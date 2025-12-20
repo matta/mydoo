@@ -60,4 +60,9 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    // Allows any host to access the dev server, which is required for using
+    // tunnels like Tailscale/ngrok where the hostname is not known in advance.
+    allowedHosts: true,
+  },
 });
