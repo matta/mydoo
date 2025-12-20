@@ -23,7 +23,9 @@ export function Breadcrumbs({ crumbs, onNavigate }: BreadcrumbsProps) {
             ) : (
               <button
                 className="crumb-link"
-                onClick={() => onNavigate(crumb.path)}
+                onClick={() => {
+                  onNavigate(crumb.path);
+                }}
               >
                 {crumb.title}
               </button>

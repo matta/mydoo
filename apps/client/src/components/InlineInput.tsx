@@ -48,7 +48,9 @@ export function InlineInput({
       type="text"
       className="inline-input"
       value={value}
-      onChange={(e) => setValue(e.target.value)}
+      onChange={(e) => {
+        setValue(e.target.value);
+      }}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
       placeholder={placeholder}

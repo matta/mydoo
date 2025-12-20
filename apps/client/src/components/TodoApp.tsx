@@ -1,11 +1,10 @@
 import { useState, useCallback } from "react";
-import { useDocument } from "@automerge/automerge-repo-react-hooks";
+import { useDocument, useRepo } from "@automerge/automerge-repo-react-hooks";
 import type { AnyDocumentId } from "@automerge/automerge-repo";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { TodoList } from "./TodoList";
 import { getBreadcrumbs, getListAtPath, generateId } from "../lib/todoUtils";
 import type { TodoDoc, TodoList as TodoListType } from "../lib/types";
-import { useRepo } from "../hooks/useRepo";
 import "../styles/TodoApp.css";
 
 export function TodoApp() {
@@ -44,10 +43,18 @@ export function TodoApp() {
       changeDoc((doc) => {
         let current: TodoListType = doc;
         for (let i = 0; i < fullPath.length - 1; i++) {
-          current = current.todos[fullPath[i]].children;
+          const id = fullPath[i];
+          if (!id) continue;
+          const next = current.todos[id];
+          if (!next) return;
+          current = next.children;
         }
         const id = fullPath[fullPath.length - 1];
-        current.todos[id].done = !current.todos[id].done;
+        if (!id) return;
+        const item = current.todos[id];
+        if (item) {
+          item.done = !item.done;
+        }
       });
     },
     [changeDoc],
@@ -56,6 +63,7 @@ export function TodoApp() {
   const handleToggleExpand = useCallback(
     (fullPath: string[]) => {
       const id = fullPath[fullPath.length - 1];
+      if (id === undefined) return;
 
       setExpandedIds((prev) => {
         const next = new Set(prev);
@@ -68,7 +76,9 @@ export function TodoApp() {
           const depth = fullPath.length - viewPath.length - 1;
           if (depth >= 2) {
             const nextRootId = fullPath[viewPath.length];
-            setViewPath((prev) => [...prev, nextRootId]);
+            if (nextRootId !== undefined) {
+              setViewPath((prev) => [...prev, nextRootId]);
+            }
           }
         }
         return next;
@@ -77,7 +87,50 @@ export function TodoApp() {
     [viewPath],
   );
 
-  const handleStartEdit = useCallback((id: string, _title: string) => {
+  // Recursive cleanup helper
+  const cleanupList = useCallback((list: TodoListType) => {
+    function recursiveCleanup(currentList: TodoListType) {
+      // 1. Clean children first (depth-first)
+      for (const id of currentList.todoOrder) {
+        const item = currentList.todos[id];
+        if (item) {
+          recursiveCleanup(item.children);
+        }
+      }
+
+      // 2. Collect done item IDs
+      const doneIds = new Set<string>();
+      for (const [id, item] of Object.entries(currentList.todos)) {
+        if (item.done) {
+          doneIds.add(id);
+        }
+      }
+
+      // 3. Delete done items
+      for (const id of doneIds) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete currentList.todos[id];
+      }
+
+      // 4. Update order array
+      const newOrder = currentList.todoOrder.filter((id) => !doneIds.has(id));
+      currentList.todoOrder.splice(
+        0,
+        currentList.todoOrder.length,
+        ...newOrder,
+      );
+    }
+
+    recursiveCleanup(list);
+  }, []);
+
+  const handleCleanup = useCallback(() => {
+    changeDoc((doc) => {
+      cleanupList(doc);
+    });
+  }, [changeDoc, cleanupList]);
+
+  const handleStartEdit = useCallback((id: string) => {
     setEditingId(id);
   }, []);
 
@@ -86,10 +139,18 @@ export function TodoApp() {
       changeDoc((doc) => {
         let current: TodoListType = doc;
         for (let i = 0; i < fullPath.length - 1; i++) {
-          current = current.todos[fullPath[i]].children;
+          const pathId = fullPath[i];
+          if (!pathId) continue;
+          const next = current.todos[pathId];
+          if (!next) return;
+          current = next.children;
         }
         const id = fullPath[fullPath.length - 1];
-        current.todos[id].title = newTitle;
+        if (!id) return;
+        const item = current.todos[id];
+        if (item) {
+          item.title = newTitle;
+        }
       });
       setEditingId(null);
     },
@@ -105,7 +166,9 @@ export function TodoApp() {
       changeDoc((doc) => {
         let current: TodoListType = doc;
         for (const id of basePath) {
-          current = current.todos[id].children;
+          const next = current.todos[id];
+          if (!next) return;
+          current = next.children;
         }
 
         const newId = generateId();
@@ -120,39 +183,6 @@ export function TodoApp() {
     },
     [changeDoc],
   );
-
-  // Recursive cleanup helper (Moved up to fix declaration order)
-  const cleanupList = useCallback((list: TodoListType) => {
-    if (!list.todos || !list.todoOrder) return;
-
-    // 1. Clean children first (depth-first)
-    for (const id of list.todoOrder) {
-      if (list.todos[id]) {
-        cleanupList(list.todos[id].children);
-      }
-    }
-
-    // 2. Collect done item IDs
-    const doneIds = new Set<string>();
-    for (const [id, item] of Object.entries(list.todos)) {
-      if (item.done) doneIds.add(id);
-    }
-
-    // 3. Delete done items
-    for (const id of doneIds) {
-      delete list.todos[id];
-    }
-
-    // 4. Update order array
-    const newOrder = list.todoOrder.filter((id) => !doneIds.has(id));
-    list.todoOrder.splice(0, list.todoOrder.length, ...newOrder);
-  }, []);
-
-  const handleCleanup = useCallback(() => {
-    changeDoc((doc) => {
-      cleanupList(doc);
-    });
-  }, [changeDoc, cleanupList]);
 
   // Early returns
   if (!doc) {

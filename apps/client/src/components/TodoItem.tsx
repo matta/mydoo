@@ -10,7 +10,7 @@ interface TodoItemProps {
   isEditing: boolean;
   onToggleDone: (path: string[]) => void;
   onToggleExpand: (path: string[]) => void;
-  onStartEdit: (id: string, title: string) => void;
+  onStartEdit: (id: string) => void;
   onSaveEdit: (path: string[], newTitle: string) => void;
   onCancelEdit: () => void;
 }
@@ -27,7 +27,7 @@ export function TodoItem({
   onSaveEdit,
   onCancelEdit,
 }: TodoItemProps) {
-  const hasChildren = item.children?.todoOrder?.length > 0;
+  const hasChildren = item.children.todoOrder.length > 0;
   const canComplete = canMarkDone(item);
 
   // Determine expand button display
@@ -46,7 +46,9 @@ export function TodoItem({
       {/* Expand/Collapse Button */}
       <button
         className="expand-btn"
-        onClick={() => onToggleExpand(path)}
+        onClick={() => {
+          onToggleExpand(path);
+        }}
         disabled={expandDisabled}
         aria-label={
           hasChildren ? (isExpanded ? "Collapse" : "Expand") : "No children"
@@ -60,7 +62,9 @@ export function TodoItem({
         type="checkbox"
         checked={item.done}
         disabled={!canComplete}
-        onChange={() => onToggleDone(path)}
+        onChange={() => {
+          onToggleDone(path);
+        }}
         title={canComplete ? "" : "Complete all children first"}
       />
 
@@ -68,13 +72,19 @@ export function TodoItem({
       {isEditing ? (
         <InlineInput
           initialValue={item.title}
-          onSave={(newTitle) => onSaveEdit(path, newTitle)}
-          onCancel={onCancelEdit}
+          onSave={(newTitle) => {
+            onSaveEdit(path, newTitle);
+          }}
+          onCancel={() => {
+            onCancelEdit();
+          }}
         />
       ) : (
         <span
           className="todo-title"
-          onClick={() => onStartEdit(id, item.title)}
+          onClick={() => {
+            onStartEdit(id);
+          }}
         >
           {item.title}
         </span>

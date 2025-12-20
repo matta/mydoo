@@ -5,8 +5,8 @@ export interface TodoItem {
 }
 
 export interface TodoList {
-  todos: { [id: string]: TodoItem };
+  todos: Record<string, TodoItem>;
   todoOrder: string[];
 }
 
-export interface TodoDoc extends TodoList {}
+export type TodoDoc = TodoList;

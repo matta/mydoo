@@ -4,6 +4,8 @@ import { VitePWA } from "vite-plugin-pwa";
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
 
+import type { PluginOption } from "vite";
+
 export default defineConfig({
   plugins: [
     react(),
@@ -58,8 +60,12 @@ export default defineConfig({
         // that lives outside the HMR cycle.
         enabled: false,
       },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4MB
+      },
     }),
-  ],
+    // TODO: Remove cast when vite-plugin-pwa ships better types
+  ] as PluginOption[],
   server: {
     // Allows any host to access the dev server, which is required for using
     // tunnels like Tailscale/ngrok where the hostname is not known in advance.

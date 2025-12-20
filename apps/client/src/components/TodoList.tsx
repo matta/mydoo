@@ -11,7 +11,7 @@ interface TodoListProps {
   editingId: string | null;
   onToggleDone: (path: string[]) => void;
   onToggleExpand: (fullPath: string[]) => void;
-  onStartEdit: (id: string, title: string) => void;
+  onStartEdit: (id: string) => void;
   onSaveEdit: (path: string[], newTitle: string) => void;
   onCancelEdit: () => void;
   onAddItem: (path: string[], title: string) => void;
@@ -35,11 +35,7 @@ export function TodoList({
   // Don't render beyond depth 2 (3 levels visible: 0, 1, 2)
   if (depth > 2) return null;
 
-  // Guard against missing data
-  if (!list?.todoOrder) {
-    return <div className="empty-list">No items</div>;
-  }
-
+  // Render children if expanded
   return (
     <div className="todo-list" style={{ marginLeft: depth > 0 ? "1.5rem" : 0 }}>
       {list.todoOrder.map((id) => {
@@ -66,7 +62,7 @@ export function TodoList({
             />
 
             {/* Render children if expanded */}
-            {isExpanded && item.children && (
+            {isExpanded && (
               <TodoList
                 list={item.children}
                 basePath={fullPath}
@@ -95,11 +91,18 @@ export function TodoList({
                 onAddItem(basePath, title);
                 setIsAdding(false);
               }}
-              onCancel={() => setIsAdding(false)}
+              onCancel={() => {
+                setIsAdding(false);
+              }}
               placeholder="New task title..."
             />
           ) : (
-            <button className="add-btn" onClick={() => setIsAdding(true)}>
+            <button
+              className="add-btn"
+              onClick={() => {
+                setIsAdding(true);
+              }}
+            >
               + Add Item
             </button>
           )}

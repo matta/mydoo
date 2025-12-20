@@ -9,8 +9,9 @@ import type { TodoDoc, TodoList, TodoItem } from "./types";
 export function getListAtPath(doc: TodoDoc, path: string[]): TodoList | null {
   let current: TodoList = doc;
   for (const id of path) {
-    if (!current.todos?.[id]) return null;
-    current = current.todos[id].children;
+    const item = current.todos[id];
+    if (!item) return null;
+    current = item.children;
   }
   return current;
 }
@@ -22,7 +23,7 @@ export function getListAtPath(doc: TodoDoc, path: string[]): TodoList | null {
  * @returns true if the item can be marked done
  */
 export function canMarkDone(item: TodoItem): boolean {
-  if (!item.children?.todoOrder?.length) return true;
+  if (!item.children.todoOrder.length) return true;
 
   return item.children.todoOrder.every((childId) => {
     const child = item.children.todos[childId];
@@ -43,8 +44,8 @@ export function getBreadcrumbs(doc: TodoDoc, viewPath: string[]) {
   let currentList: TodoList = doc;
 
   for (const id of viewPath) {
-    if (!currentList.todos?.[id]) break;
     const item = currentList.todos[id];
+    if (!item) break;
     currentPath = [...currentPath, id];
     crumbs.push({ id, title: item.title, path: currentPath });
     currentList = item.children;
