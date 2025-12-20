@@ -1,12 +1,9 @@
-import { createContext, useContext } from "react";
+import { RepoContext, useRepo } from "@automerge/automerge-repo-react-hooks";
 import { repo } from "../lib/db";
+import { ReactNode } from "react";
 
-const RepoContext = createContext(repo);
-
-export function RepoProvider({ children }: { children: React.ReactNode }) {
+export function RepoProvider({ children }: { children: ReactNode }) {
   return <RepoContext.Provider value={repo}>{children}</RepoContext.Provider>;
 }
 
-export function useRepo() {
-  return useContext(RepoContext);
-}
+export { useRepo };
