@@ -9,30 +9,38 @@ interface BreadcrumbsProps {
   onNavigate: (path: string[]) => void;
 }
 
-export function Breadcrumbs({ crumbs, onNavigate }: BreadcrumbsProps) {
-  return (
-    <nav className="breadcrumbs" aria-label="Breadcrumb navigation">
-      {crumbs.map((crumb, index) => {
-        const isLast = index === crumbs.length - 1;
+import { Breadcrumbs as MantineBreadcrumbs, Anchor, Text } from "@mantine/core";
 
-        return (
-          <span key={crumb.id}>
-            {index > 0 && <span className="separator"> / </span>}
-            {isLast ? (
-              <strong className="current">{crumb.title}</strong>
-            ) : (
-              <button
-                className="crumb-link"
-                onClick={() => {
-                  onNavigate(crumb.path);
-                }}
-              >
-                {crumb.title}
-              </button>
-            )}
-          </span>
-        );
-      })}
-    </nav>
+export function Breadcrumbs({ crumbs, onNavigate }: BreadcrumbsProps) {
+  const items = crumbs.map((crumb, index) => {
+    const isLast = index === crumbs.length - 1;
+
+    if (isLast) {
+      return (
+        <Text key={crumb.id} c="dimmed">
+          {crumb.title}
+        </Text>
+      );
+    }
+
+    return (
+      <Anchor
+        key={crumb.id}
+        component="button"
+        type="button"
+        onClick={() => {
+          onNavigate(crumb.path);
+        }}
+        size="sm"
+      >
+        {crumb.title}
+      </Anchor>
+    );
+  });
+
+  return (
+    <MantineBreadcrumbs separator="→" mt="xs">
+      {items}
+    </MantineBreadcrumbs>
   );
 }

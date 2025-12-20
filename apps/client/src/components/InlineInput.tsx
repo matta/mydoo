@@ -1,3 +1,4 @@
+import { TextInput } from "@mantine/core";
 import { useState, useRef, useEffect } from "react";
 
 interface InlineInputProps {
@@ -19,7 +20,8 @@ export function InlineInput({
   // Auto-focus when mounted
   useEffect(() => {
     inputRef.current?.focus();
-    inputRef.current?.select();
+    // setTimeout to ensure focus works after mount and ready
+    setTimeout(() => inputRef.current?.select(), 0);
   }, []);
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -43,17 +45,17 @@ export function InlineInput({
   }
 
   return (
-    <input
+    <TextInput
       ref={inputRef}
-      type="text"
-      className="inline-input"
+      variant="unstyled"
       value={value}
       onChange={(e) => {
-        setValue(e.target.value);
+        setValue(e.currentTarget.value);
       }}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
       placeholder={placeholder}
+      styles={{ input: { padding: 0, height: "auto", minHeight: 0 } }}
     />
   );
 }

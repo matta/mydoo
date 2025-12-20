@@ -1,11 +1,11 @@
 import { useState, useCallback } from "react";
 import { useDocument, useRepo } from "@automerge/automerge-repo-react-hooks";
 import type { AnyDocumentId } from "@automerge/automerge-repo";
+import { Container, Title, Button, Group, Loader, Stack } from "@mantine/core";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { TodoList } from "./TodoList";
 import { getBreadcrumbs, getListAtPath, generateId } from "../lib/todoUtils";
 import type { TodoDoc, TodoList as TodoListType } from "../lib/types";
-import "../styles/TodoApp.css";
 
 export function TodoApp() {
   const repo = useRepo();
@@ -186,7 +186,11 @@ export function TodoApp() {
 
   // Early returns
   if (!doc) {
-    return <div className="loading">Loading...</div>;
+    return (
+      <Container size="sm" py="xl">
+        <Loader />
+      </Container>
+    );
   }
 
   // Get the list at the current view path
@@ -194,35 +198,48 @@ export function TodoApp() {
   if (!currentList) {
     // Invalid path, reset to root
     setViewPath([]);
-    return <div className="loading">Resetting view...</div>;
+    return (
+      <Container size="sm" py="xl">
+        <Loader />
+        {/* Resetting view... */}
+      </Container>
+    );
   }
 
   const breadcrumbs = getBreadcrumbs(doc, viewPath);
 
   return (
-    <div className="todo-app">
-      <header className="app-header">
-        <h1>Mydoo</h1>
-        <button className="cleanup-btn" onClick={handleCleanup}>
-          🧹 Cleanup Done
-        </button>
-      </header>
+    <Container size="sm" py="xl">
+      <Group justify="space-between" mb="lg">
+        <Title order={1}>Mydoo</Title>
+        <Button
+          color="red"
+          variant="subtle"
+          size="sm"
+          onClick={handleCleanup}
+          leftSection="🧹"
+        >
+          Cleanup Done
+        </Button>
+      </Group>
 
-      <Breadcrumbs crumbs={breadcrumbs} onNavigate={handleNavigate} />
+      <Stack gap="md">
+        <Breadcrumbs crumbs={breadcrumbs} onNavigate={handleNavigate} />
 
-      <TodoList
-        list={currentList}
-        basePath={viewPath}
-        depth={0}
-        expandedIds={expandedIds}
-        editingId={editingId}
-        onToggleDone={handleToggleDone}
-        onToggleExpand={handleToggleExpand}
-        onStartEdit={handleStartEdit}
-        onSaveEdit={handleSaveEdit}
-        onCancelEdit={handleCancelEdit}
-        onAddItem={handleAddItem}
-      />
-    </div>
+        <TodoList
+          list={currentList}
+          basePath={viewPath}
+          depth={0}
+          expandedIds={expandedIds}
+          editingId={editingId}
+          onToggleDone={handleToggleDone}
+          onToggleExpand={handleToggleExpand}
+          onStartEdit={handleStartEdit}
+          onSaveEdit={handleSaveEdit}
+          onCancelEdit={handleCancelEdit}
+          onAddItem={handleAddItem}
+        />
+      </Stack>
+    </Container>
   );
 }

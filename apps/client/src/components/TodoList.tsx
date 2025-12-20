@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Stack, Button, Box } from "@mantine/core";
 import { TodoItem } from "./TodoItem";
 import { InlineInput } from "./InlineInput";
 import type { TodoList as TodoListType } from "../lib/types";
@@ -33,11 +34,19 @@ export function TodoList({
   const [isAdding, setIsAdding] = useState(false);
 
   // Don't render beyond depth 2 (3 levels visible: 0, 1, 2)
+  // Don't render beyond depth 2 (3 levels visible: 0, 1, 2)
   if (depth > 2) return null;
 
-  // Render children if expanded
+  const hasItems = list.todoOrder.length > 0;
+
   return (
-    <div className="todo-list" style={{ marginLeft: depth > 0 ? "1.5rem" : 0 }}>
+    <Stack gap={4} pl={depth > 0 ? "lg" : 0}>
+      {!hasItems && (
+        <Box c="dimmed" fs="italic" fz="sm" py="xs">
+          No items
+        </Box>
+      )}
+
       {list.todoOrder.map((id) => {
         const item = list.todos[id];
         if (!item) return null;
@@ -47,7 +56,7 @@ export function TodoList({
         const isEditing = editingId === id;
 
         return (
-          <div key={id} className="todo-item-wrapper">
+          <Box key={id}>
             <TodoItem
               id={id}
               item={item}
@@ -62,6 +71,7 @@ export function TodoList({
             />
 
             {/* Render children if expanded */}
+            {/* item.children is always defined in type, so we don't need to check existence */}
             {isExpanded && (
               <TodoList
                 list={item.children}
@@ -77,37 +87,41 @@ export function TodoList({
                 onAddItem={onAddItem}
               />
             )}
-          </div>
+          </Box>
         );
       })}
 
       {/* Add Item UI */}
-      {depth === 0 && (
-        <div className="add-item-container">
-          {isAdding ? (
-            <InlineInput
-              initialValue=""
-              onSave={(title) => {
-                onAddItem(basePath, title);
-                setIsAdding(false);
-              }}
-              onCancel={() => {
-                setIsAdding(false);
-              }}
-              placeholder="New task title..."
-            />
-          ) : (
-            <button
-              className="add-btn"
-              onClick={() => {
-                setIsAdding(true);
-              }}
-            >
-              + Add Item
-            </button>
-          )}
-        </div>
-      )}
-    </div>
+      <Box mt="xs">
+        {isAdding ? (
+          <InlineInput
+            initialValue=""
+            onSave={(title) => {
+              onAddItem(basePath, title);
+              setIsAdding(false);
+            }}
+            onCancel={() => {
+              setIsAdding(false);
+            }}
+            placeholder="New task title..."
+          />
+        ) : (
+          <Button
+            variant="subtle"
+            size="sm"
+            color="gray"
+            onClick={() => {
+              setIsAdding(true);
+            }}
+            fullWidth
+            justify="flex-start"
+            pl={0}
+            leftSection="+"
+          >
+            Add Item
+          </Button>
+        )}
+      </Box>
+    </Stack>
   );
 }

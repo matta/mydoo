@@ -1,3 +1,4 @@
+import { ActionIcon, Checkbox, Group, Text } from "@mantine/core";
 import { InlineInput } from "./InlineInput";
 import type { TodoItem as TodoItemType } from "../lib/types";
 import { canMarkDone } from "../lib/todoUtils";
@@ -30,65 +31,62 @@ export function TodoItem({
   const hasChildren = item.children.todoOrder.length > 0;
   const canComplete = canMarkDone(item);
 
-  // Determine expand button display
-  let expandIcon: string;
-  let expandDisabled: boolean;
-  if (hasChildren) {
-    expandIcon = isExpanded ? "▼" : "▶";
-    expandDisabled = false;
-  } else {
-    expandIcon = "○";
-    expandDisabled = true;
-  }
-
   return (
-    <div className={`todo-item ${item.done ? "done" : ""}`}>
+    <Group
+      align="center"
+      gap="xs"
+      wrap="nowrap"
+      className={`todo-item ${item.done ? "done" : ""}`}
+    >
       {/* Expand/Collapse Button */}
-      <button
-        className="expand-btn"
+      <ActionIcon
+        variant="subtle"
+        size="sm"
+        color="gray"
         onClick={() => {
           onToggleExpand(path);
         }}
-        disabled={expandDisabled}
-        aria-label={
-          hasChildren ? (isExpanded ? "Collapse" : "Expand") : "No children"
-        }
+        aria-label={isExpanded ? "Collapse" : "Expand"}
       >
-        {expandIcon}
-      </button>
+        {isExpanded ? "▼" : "▶"}
+      </ActionIcon>
 
       {/* Checkbox */}
-      <input
-        type="checkbox"
+      <Checkbox
         checked={item.done}
         disabled={!canComplete}
         onChange={() => {
           onToggleDone(path);
         }}
         title={canComplete ? "" : "Complete all children first"}
+        size="sm"
       />
 
       {/* Title (editable or display) */}
-      {isEditing ? (
-        <InlineInput
-          initialValue={item.title}
-          onSave={(newTitle) => {
-            onSaveEdit(path, newTitle);
-          }}
-          onCancel={() => {
-            onCancelEdit();
-          }}
-        />
-      ) : (
-        <span
-          className="todo-title"
-          onClick={() => {
-            onStartEdit(id);
-          }}
-        >
-          {item.title}
-        </span>
-      )}
-    </div>
+      <Group style={{ flex: 1 }}>
+        {isEditing ? (
+          <InlineInput
+            initialValue={item.title}
+            onSave={(newTitle) => {
+              onSaveEdit(path, newTitle);
+            }}
+            onCancel={onCancelEdit}
+          />
+        ) : (
+          <Text
+            onClick={() => {
+              onStartEdit(id);
+            }}
+            style={{
+              cursor: "pointer",
+              textDecoration: item.done ? "line-through" : "none",
+              color: item.done ? "var(--mantine-color-dimmed)" : "inherit",
+            }}
+          >
+            {item.title}
+          </Text>
+        )}
+      </Group>
+    </Group>
   );
 }
