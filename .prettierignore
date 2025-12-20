@@ -1,6 +1,5 @@
 node_modules
 dist
-.svelte-kit
 .vercel
 build
 pnpm-lock.yaml
