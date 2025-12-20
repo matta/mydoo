@@ -77,7 +77,7 @@ interface TodoDoc extends TodoList {}
 1. Open a terminal in the `apps/client` directory.
 2. Run the following command:
    ```bash
-   npm install @automerge/automerge-repo @automerge/automerge-repo-network-websocket @automerge/automerge-repo-storage-indexeddb @automerge/automerge-repo-react-hooks
+   pnpm add @automerge/automerge-repo @automerge/automerge-repo-network-websocket @automerge/automerge-repo-storage-indexeddb @automerge/automerge-repo-react-hooks
    ```
 3. Verify `package.json` now contains these in `dependencies`:
    ```json
@@ -101,7 +101,7 @@ interface TodoDoc extends TodoList {}
 
 1. In the `apps/client` directory, run:
    ```bash
-   npm install -D vite-plugin-wasm vite-plugin-top-level-await
+   pnpm add -D vite-plugin-wasm vite-plugin-top-level-await
    ```
 2. Verify `package.json` now contains these in `devDependencies`:
    ```json
@@ -149,7 +149,7 @@ interface TodoDoc extends TodoList {}
 
 4. Save the file.
 
-- [ ] **Checkpoint:** Run `npm run dev` and verify no import errors related to WASM.
+- [ ] **Checkpoint:** Run `pnpm dev` and verify no import errors related to WASM.
 
 ---
 
@@ -329,7 +329,7 @@ interface TodoDoc extends TodoList {}
    ```
 4. Save the file.
 
-- [ ] **Checkpoint:** App renders without errors when running `npm run dev`.
+- [ ] **Checkpoint:** App renders without errors when running `pnpm dev`.
 
 ---
 
@@ -1047,7 +1047,7 @@ interface TodoDoc extends TodoList {}
 **Steps:**
 
 1. Open terminal in `apps/client`.
-2. Run `npm run dev`.
+2. Run `pnpm dev`.
 3. Open browser to the displayed URL (usually `http://localhost:5173`).
 
 - [ ] **Checkpoint:** App loads without console errors.
@@ -1094,8 +1094,8 @@ interface TodoDoc extends TodoList {}
 
 **Steps:**
 
-1. Run `npm run build` in `apps/client`.
-2. Run `npm run preview` to test production build.
+1. Run `pnpm build` in `apps/client`.
+2. Run `pnpm preview` to test production build.
 3. Verify all functionality works in production mode.
 
 - [ ] **Checkpoint:** Production build works correctly.

@@ -23,6 +23,18 @@ importers:
 
   apps/client:
     dependencies:
+      '@automerge/automerge-repo':
+        specifier: ^2.5.1
+        version: 2.5.1
+      '@automerge/automerge-repo-network-websocket':
+        specifier: ^2.5.1
+        version: 2.5.1
+      '@automerge/automerge-repo-react-hooks':
+        specifier: ^2.5.1
+        version: 2.5.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@automerge/automerge-repo-storage-indexeddb':
+        specifier: ^2.5.1
+        version: 2.5.1
       react:
         specifier: ^19.2.0
         version: 19.2.3
@@ -69,6 +81,12 @@ importers:
       vite-plugin-pwa:
         specifier: ^1.2.0
         version: 1.2.0(vite@7.3.0(@types/node@24.10.4)(terser@5.44.1)(yaml@2.8.2))(workbox-build@7.4.0(@types/babel__core@7.20.5))(workbox-window@7.4.0)
+      vite-plugin-top-level-await:
+        specifier: ^1.6.0
+        version: 1.6.0(rollup@2.79.2)(vite@7.3.0(@types/node@24.10.4)(terser@5.44.1)(yaml@2.8.2))
+      vite-plugin-wasm:
+        specifier: ^3.5.0
+        version: 3.5.0(vite@7.3.0(@types/node@24.10.4)(terser@5.44.1)(yaml@2.8.2))
 
   apps/svelte-client:
     dependencies:
@@ -165,6 +183,12 @@ packages:
 
   '@automerge/automerge-repo-network-websocket@2.5.1':
     resolution: {integrity: sha512-urvhlmTZ6VoJi5o0T2mtkVd4X1cuUdBC5/C/UY5FFgWczEq7PwCdNhUndv1CQSn8ePPsT59z7ZnRzZJbqqu22Q==}
+
+  '@automerge/automerge-repo-react-hooks@2.5.1':
+    resolution: {integrity: sha512-IthUQEjXsKk0btVvkuOt+YFzuVbcO+em2BLrHQv7sqO0inUnw3CqsAxQXaISCnpotV5Cz8Xy7AAYhPR5Qtw+KA==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
 
   '@automerge/automerge-repo-storage-indexeddb@2.5.1':
     resolution: {integrity: sha512-klyemjiwEn2+PW+NTjvBtjmykjJVoaBbQgk5P02jIgvAO7KH8OACldFzPrJdO0o6WAxkiOdtte8RHFKrDPkBlw==}
@@ -2525,6 +2549,11 @@ packages:
     resolution: {integrity: sha512-QgT5//D3jfjJb6Gsjxv0Slpj23ip+HtOpnNgnb2S5zU3CB26G/IDPGoy4RJB42wzFE46DRsstbW6tKHoKbhAxw==}
     engines: {node: '>=0.10.0'}
 
+  react-usestateref@1.0.9:
+    resolution: {integrity: sha512-t8KLsI7oje0HzfzGhxFXzuwbf1z9vhBM1ptHLUIHhYqZDKFuI5tzdhEVxSNzUkYxwF8XdpOErzHlKxvP7sTERw==}
+    peerDependencies:
+      react: '>16.0.0'
+
   react@19.2.3:
     resolution: {integrity: sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA==}
     engines: {node: '>=0.10.0'}
@@ -3202,6 +3231,17 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  '@automerge/automerge-repo-react-hooks@2.5.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      '@automerge/automerge': 3.2.1
+      '@automerge/automerge-repo': 2.5.1
+      eventemitter3: 5.0.1
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+      react-usestateref: 1.0.9(react@19.2.3)
+    transitivePeerDependencies:
+      - supports-color
 
   '@automerge/automerge-repo-storage-indexeddb@2.5.1':
     dependencies:
@@ -4137,6 +4177,10 @@ snapshots:
   '@rollup/plugin-virtual@3.0.2(@rollup/wasm-node@4.53.5)':
     optionalDependencies:
       rollup: '@rollup/wasm-node@4.53.5'
+
+  '@rollup/plugin-virtual@3.0.2(rollup@2.79.2)':
+    optionalDependencies:
+      rollup: 2.79.2
 
   '@rollup/pluginutils@3.1.0(rollup@2.79.2)':
     dependencies:
@@ -5690,6 +5734,10 @@ snapshots:
 
   react-refresh@0.18.0: {}
 
+  react-usestateref@1.0.9(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+
   react@19.2.3: {}
 
   readdirp@4.1.2: {}
@@ -6198,6 +6246,17 @@ snapshots:
   vite-plugin-top-level-await@1.6.0(@rollup/wasm-node@4.53.5)(vite@7.3.0(@types/node@24.10.4)(terser@5.44.1)(yaml@2.8.2)):
     dependencies:
       '@rollup/plugin-virtual': 3.0.2(@rollup/wasm-node@4.53.5)
+      '@swc/core': 1.15.7
+      '@swc/wasm': 1.15.7
+      uuid: 10.0.0
+      vite: 7.3.0(@types/node@24.10.4)(terser@5.44.1)(yaml@2.8.2)
+    transitivePeerDependencies:
+      - '@swc/helpers'
+      - rollup
+
+  vite-plugin-top-level-await@1.6.0(rollup@2.79.2)(vite@7.3.0(@types/node@24.10.4)(terser@5.44.1)(yaml@2.8.2)):
+    dependencies:
+      '@rollup/plugin-virtual': 3.0.2(rollup@2.79.2)
       '@swc/core': 1.15.7
       '@swc/wasm': 1.15.7
       uuid: 10.0.0

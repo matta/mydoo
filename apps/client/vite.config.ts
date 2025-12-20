@@ -1,10 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import wasm from "vite-plugin-wasm";
+import topLevelAwait from "vite-plugin-top-level-await";
 
 export default defineConfig({
   plugins: [
     react(),
+    wasm(),
+    topLevelAwait(),
     VitePWA({
       // STRATEGY: "generateSW" (default) will generate the service worker file
       // automatically based on the config. This is the simplest way to get
@@ -52,7 +56,7 @@ export default defineConfig({
         // or hard-refresh to see changes. The "normal" Vite HMR for your React
         // components still works fine, but the SW itself is a separate entity
         // that lives outside the HMR cycle.
-        enabled: true,
+        enabled: false,
       },
     }),
   ],
