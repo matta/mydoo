@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=../schemas/test_case.schema.json
+name: Tree Order
+description: >
+  Verifies that the default tie-breaker for tasks with identical scores is their
+  DFS Pre-Order index (Outline Order), ensuring a stable and predictable list
+  view.
+
+  '
+initial_state:
+  current_time: "2025-01-01T12:00:00Z"
+  tasks:
+    - id: Trunk
+      title: Root
+      importance: 1
+      desired_credits: 0
+      children:
+        - id: BranchA
+          title: Branch A
+          importance: 1
+          children:
+            - id: LeafA1
+              title: Leaf A1
+              importance: 1
+            - id: LeafA2
+              title: Leaf A2
+              importance: 1
+        - id: BranchB
+          title: Branch B
+          importance: 1
+          children:
+            - id: LeafB1
+              title: Leaf B1
+              importance: 1
+steps:
+  - name: 1. Verify DFS Pre-Order
+    expected_order:
+      - LeafB1
+      - LeafA1
+      - LeafA2

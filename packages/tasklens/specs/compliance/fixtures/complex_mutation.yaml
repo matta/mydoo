@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=../schemas/test_case.schema.json
+name: "Scenario: Complex Mutation Cycle"
+description: >
+  Tests a multi-step lifecycle combining time decay and credit updates to verify
+  that task state transitions correctly impact scoring and ordering dynamics
+  over time.
+initial_state:
+  current_time: "2025-01-01T00:00:00Z"
+  tasks:
+    - id: Project
+      importance: 1
+      desired_credits: 100.0
+      credits: 100.0
+      children:
+        - id: Task
+          importance: 1
+          status: Pending
+          credits_increment: 10.0
+steps:
+  - name: "Step 1: Initial Balanced State"
+    expected_order:
+      - Task
+    expected_props:
+      - id: Project
+        score: 0.0
+  - name: "Step 2: Advance Time (Decay)"
+    mutation:
+      advance_time_seconds: 604800
+    expected_order:
+      - Task
+    expected_props:
+      - id: Project
+        effective_credits: 50.0
+        score: 0.0
+  - name: "Step 3: Add Credits (Simulate Work)"
+    mutation:
+      update_credits:
+        Project: 150.0
+    expected_order:
+      - Task
+    expected_props:
+      - id: Project
+        effective_credits: 150.0
+        score: 0.0

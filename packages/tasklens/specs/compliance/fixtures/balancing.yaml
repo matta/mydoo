@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=../schemas/test_case.schema.json
+name: Balancing
+description: >
+  Tests the dynamic balancing of parent tasks ('Projects') based on their child
+  completion rates and credit usage, ensuring neglected projects rise in
+  priority.
+initial_state:
+  current_time: "2025-01-01T12:00:00Z"
+  tasks:
+    - id: ProjectAlpha
+      title: Parent A
+      importance: 10
+      desired_credits: 100
+      children:
+        - id: AlphaTaskOne
+          importance: 10
+        - id: AlphaTaskTwo
+          importance: 10
+    - id: ProjectBeta
+      title: Parent B
+      importance: 10
+      desired_credits: 100
+      children:
+        - id: BetaTaskOne
+          importance: 10
+        - id: BetaTaskTwo
+          importance: 10
+steps:
+  - name: 1. Initial Tree Order
+    expected_order:
+      - AlphaTaskOne
+      - AlphaTaskTwo
+      - BetaTaskOne
+      - BetaTaskTwo
+  - name: 2. Finish A1 (A Utilized)
+    mutation:
+      task_updates:
+        - id: AlphaTaskOne
+          status: Done
+      update_credits:
+        ProjectAlpha: 50.0
+    expected_order:
+      - BetaTaskOne
+      - BetaTaskTwo
+      - AlphaTaskTwo
+  - name: 3. Finish B1 (B Catches Up)
+    mutation:
+      task_updates:
+        - id: BetaTaskOne
+          status: Done
+      update_credits:
+        ProjectBeta: 50.0
+    expected_order:
+      - AlphaTaskTwo
+      - BetaTaskTwo
