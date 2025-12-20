@@ -28,7 +28,6 @@ export function TodoItem({
   onSaveEdit,
   onCancelEdit,
 }: TodoItemProps) {
-  const hasChildren = item.children.todoOrder.length > 0;
   const canComplete = canMarkDone(item);
 
   return (
