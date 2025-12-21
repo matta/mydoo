@@ -42,6 +42,24 @@ export const sharedConfig = [
           varsIgnorePattern: '^_',
         },
       ],
+
+      // Google TypeScript Style (GTS) Rules (Inlined)
+      // Rationale: The `gts` package currently only exports a legacy (.eslintrc) configuration.
+      // Attempting to use it with `FlatCompat` caused version conflicts (typescript-eslint v5 vs v8).
+      // We inline these standard rules here to maintain the Google Style without the legacy dependency complexity.
+      'block-scoped-var': 'error',
+      eqeqeq: 'error',
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'eol-last': 'error',
+      'prefer-arrow-callback': 'error',
+      'no-trailing-spaces': 'error',
+      quotes: ['warn', 'single', {avoidEscape: true}],
+      'no-restricted-properties': [
+        'error',
+        {object: 'describe', property: 'only'},
+        {object: 'it', property: 'only'},
+      ],
     },
   },
   // Add config file overrides to disable type-checked rules globally.

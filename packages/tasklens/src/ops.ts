@@ -109,7 +109,7 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
       }
       if (parentDepth > 20) {
         throw new Error(
-          `Cannot create task: parent already at maximum hierarchy depth (20).`,
+          'Cannot create task: parent already at maximum hierarchy depth (20).',
         );
       }
 
@@ -250,7 +250,7 @@ export function moveTask(
 
   if (parentDepth > 20) {
     throw new Error(
-      `Cannot move task: new parent already at maximum hierarchy depth (20).`,
+      'Cannot move task: new parent already at maximum hierarchy depth (20).',
     );
   }
 
