@@ -36,17 +36,17 @@ import {TodoItem} from './TodoItem';
  * @property onAddItem - Callback when a new item is added at this level.
  */
 interface TodoListProps {
-  list: TunnelNode[];
   basePath: TaskID[];
   depth: number;
-  expandedIds: Set<TaskID>;
   editingId: TaskID | null;
+  expandedIds: Set<TaskID>;
+  list: TunnelNode[];
+  onAddItem: (path: TaskID[], title: string) => void;
+  onCancelEdit: () => void;
+  onSaveEdit: (path: TaskID[], newTitle: string) => void;
+  onStartEdit: (id: TaskID) => void;
   onToggleDone: (path: TaskID[]) => void;
   onToggleExpand: (fullPath: TaskID[]) => void;
-  onStartEdit: (id: TaskID) => void;
-  onSaveEdit: (path: TaskID[], newTitle: string) => void;
-  onCancelEdit: () => void;
-  onAddItem: (path: TaskID[], title: string) => void;
 }
 
 export function TodoList({

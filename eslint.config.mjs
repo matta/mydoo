@@ -117,6 +117,15 @@ export const sharedConfig = [
           order: 'asc',
         },
       ],
+      'perfectionist/sort-interfaces': [
+        'error',
+        {
+          type: 'natural',
+          order: 'asc',
+          partitionByComment: true,
+          partitionByNewLine: true,
+        },
+      ],
     },
   },
   // Add config file overrides to disable type-checked rules globally.

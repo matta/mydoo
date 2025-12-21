@@ -84,8 +84,8 @@ export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
  * @property includeClosed - Optional. If true, include completed/deleted tasks in results.
  */
 export interface ViewFilter {
-  placeId?: PlaceID | 'All';
   includeClosed?: boolean;
+  placeId?: PlaceID | 'All';
 }
 
 /**
@@ -95,8 +95,8 @@ export interface ViewFilter {
  * @property currentPlaceId - Optional. The user's current location for filtering.
  */
 export interface Context {
-  currentTime: number;
   currentPlaceId?: PlaceID;
+  currentTime: number;
 }
 
 /**
@@ -107,9 +107,9 @@ export interface Context {
  * @property leadTime - How far in advance (in ms) the task should appear before its due date.
  */
 export interface Schedule {
-  type: 'Once' | 'Recurring';
   dueDate: number | null;
   leadTime: number;
+  type: 'Once' | 'Recurring';
 }
 
 /**
@@ -146,31 +146,31 @@ export interface Schedule {
  * @property leadTimeFactor - Algorithm factor based on due date proximity.
  */
 export interface Task {
-  id: TaskID;
-  title: string;
-  parentId: TaskID | null;
-  placeId: PlaceID | null;
-  status: TaskStatus;
-  importance: number;
+  childTaskIds: TaskID[];
   creditIncrement: number;
   credits: number;
-  desiredCredits: number;
   creditsTimestamp: number;
+  desiredCredits: number;
+  id: TaskID;
+  importance: number;
+  isSequential: boolean;
+  parentId: TaskID | null;
+  placeId: PlaceID | null;
   priorityTimestamp: number;
   schedule: Schedule;
-  isSequential: boolean;
-  childTaskIds: TaskID[];
+  status: TaskStatus;
+  title: string;
 
   // Computed properties (not stored directly)
+  effectiveCredits?: number;
+  feedbackFactor?: number;
   isContainer?: boolean;
   isPending?: boolean;
   isReady?: boolean;
-  normalizedImportance?: number;
-  effectiveCredits?: number;
-  visibility?: boolean;
-  priority?: number;
-  feedbackFactor?: number;
   leadTimeFactor?: number;
+  normalizedImportance?: number;
+  priority?: number;
+  visibility?: boolean;
 }
 
 /**
@@ -182,8 +182,8 @@ export interface Task {
  *                            For example, "Office" might include "Desk" and "Conference Room".
  */
 export interface Place {
-  id: PlaceID;
   hours: string;
+  id: PlaceID;
   includedPlaces: PlaceID[];
 }
 
@@ -213,9 +213,9 @@ export interface TunnelNode extends Task {
  * to be added without type errors (required for Automerge compatibility).
  */
 export interface TunnelState {
-  tasks: Record<TaskID, Task>;
-  rootTaskIds: TaskID[];
-  places: Record<PlaceID, Place>;
-  nextPlaceId: number;
   [key: string]: unknown;
+  nextPlaceId: number;
+  places: Record<PlaceID, Place>;
+  rootTaskIds: TaskID[];
+  tasks: Record<TaskID, Task>;
 }

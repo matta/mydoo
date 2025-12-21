@@ -31,15 +31,15 @@ import {InlineInput} from './InlineInput';
  */
 interface TodoItemProps {
   id: TaskID;
-  item: TunnelNode;
-  path: TaskID[];
-  isExpanded: boolean;
   isEditing: boolean;
+  isExpanded: boolean;
+  item: TunnelNode;
+  onCancelEdit: () => void;
+  onSaveEdit: (path: TaskID[], newTitle: string) => void;
+  onStartEdit: (id: TaskID) => void;
   onToggleDone: (path: TaskID[]) => void;
   onToggleExpand: (path: TaskID[]) => void;
-  onStartEdit: (id: TaskID) => void;
-  onSaveEdit: (path: TaskID[], newTitle: string) => void;
-  onCancelEdit: () => void;
+  path: TaskID[];
 }
 
 export function TodoItem({

@@ -49,7 +49,6 @@ import {
  */
 export interface TunnelHookResult {
   doc: TunnelState | undefined;
-  tasks: TunnelNode[];
   ops: {
     add: (props: Partial<Task>) => void;
     update: (id: TaskID, props: Partial<Task>) => void;
@@ -61,6 +60,7 @@ export interface TunnelHookResult {
     toggleDone: (id: TaskID) => void;
     delete: (id: TaskID) => void;
   };
+  tasks: TunnelNode[];
 }
 
 /**

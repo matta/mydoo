@@ -3,8 +3,8 @@ import {useEffect, useRef, useState} from 'react';
 
 interface InlineInputProps {
   initialValue: string;
-  onSave: (value: string) => void;
   onCancel: () => void;
+  onSave: (value: string) => void;
   placeholder?: string;
 }
 
