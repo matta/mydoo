@@ -8,7 +8,12 @@ const sharedIgnores = {
 };
 
 /** Config file patterns that should bypass strict type-checking */
-const configFilePatterns = ["*.config.{js,cjs,mjs,ts}", "*.{js,cjs,mjs}"];
+const configFilePatterns = [
+  "**/*.config.{js,cjs,mjs,ts}",
+  "**/*.{js,cjs,mjs}",
+  "*.config.{js,cjs,mjs,ts}",
+  "*.{js,cjs,mjs}",
+];
 
 /** Base shared configuration */
 export const sharedConfig = [

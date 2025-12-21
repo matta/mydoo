@@ -3,10 +3,16 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
+import path from "path";
 
 import type { PluginOption } from "vite";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@mydoo/tasklens": path.resolve(__dirname, "../../packages/tasklens/src"),
+    },
+  },
   plugins: [
     react(),
     wasm(),
