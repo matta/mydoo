@@ -1,4 +1,4 @@
-import type { Task } from "../../src/types";
+import type {Task} from '../../src/types';
 
 /**
  * Pass 2: Schedule Inheritance
@@ -21,7 +21,7 @@ export function pass2ScheduleInheritance(tasks: Task[]): void {
 
   // Create a map for faster access to tasks by ID
   const taskMap = new Map<string, Task>();
-  tasks.forEach((task) => taskMap.set(task.id, task));
+  tasks.forEach(task => taskMap.set(task.id, task));
 
   // Sort tasks by parentId (roots first)
   const sortedTasks = [...tasks].sort((a, b) => {
@@ -34,7 +34,7 @@ export function pass2ScheduleInheritance(tasks: Task[]): void {
     if (task.parentId !== null) {
       const parent = taskMap.get(task.parentId);
 
-      if (task.schedule.type === "Once" && parent) {
+      if (task.schedule.type === 'Once' && parent) {
         // Inherit dueDate and leadTime from parent if they are not explicitly set on the child
         // Or, perhaps, always take parent's schedule if type is 'Once'?
         // "inherit definition" strongly suggests taking the parent's entire schedule if the child

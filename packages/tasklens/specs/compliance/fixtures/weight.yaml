@@ -1,11 +1,11 @@
 # yaml-language-server: $schema=../schemas/test_case.schema.json
-name: "Scenario 7.4: Weight Propagation"
+name: 'Scenario 7.4: Weight Propagation'
 description: >
   Verifies that a Parent's Global Importance is distributed among its children
   based on their relative Importance, implementing the 'Weight' or 'Pie Slicing'
   logic.
 initial_state:
-  current_time: "2025-01-01T00:00:00Z"
+  current_time: '2025-01-01T00:00:00Z'
   tasks:
     - id: ProjectOne
       importance: 1
@@ -31,7 +31,7 @@ initial_state:
         - id: SubTaskE
           importance: 0.2
 steps:
-  - name: "Step 1: Check Propagation"
+  - name: 'Step 1: Check Propagation'
     expected_order:
       - TaskOne
       - TaskTwo

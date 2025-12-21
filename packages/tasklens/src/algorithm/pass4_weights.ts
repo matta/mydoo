@@ -1,5 +1,5 @@
-import * as Automerge from "@automerge/automerge";
-import type { Task, TunnelState, TaskID } from "../../src/types";
+import * as Automerge from '@automerge/automerge';
+import type {Task, TunnelState, TaskID} from '../../src/types';
 
 /**
  * Pass 4: Weight Normalization
@@ -18,10 +18,10 @@ export function pass4WeightNormalization(
     parentId: TaskID | null,
   ) => Task[],
 ): void {
-  const rootTasks = tasks.filter((task) => task.parentId === null);
+  const rootTasks = tasks.filter(task => task.parentId === null);
 
   // Set NormalizedImportance for root tasks
-  rootTasks.forEach((root) => {
+  rootTasks.forEach(root => {
     root.normalizedImportance = 1.0; // Root Goals compete via Feedback, not Weight.
   });
 
@@ -38,7 +38,7 @@ export function pass4WeightNormalization(
       0,
     );
 
-    children.forEach((child) => {
+    children.forEach(child => {
       // Avoid division by zero if all children have 0 importance, though importance is 0.0-1.0
       const childImportance = child.importance; // Default to 1.0 if not set
       const parentNormalizedImportance = parent.normalizedImportance ?? 0;
@@ -57,7 +57,7 @@ export function pass4WeightNormalization(
   }
 
   // Start recursion from root tasks
-  rootTasks.forEach((root) => {
+  rootTasks.forEach(root => {
     calculateChildImportance(root);
   });
 }

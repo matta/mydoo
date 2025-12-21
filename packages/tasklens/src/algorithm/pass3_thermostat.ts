@@ -1,5 +1,5 @@
-import * as Automerge from "@automerge/automerge";
-import type { Task, TunnelState, TaskID } from "../../src/types";
+import * as Automerge from '@automerge/automerge';
+import type {Task, TunnelState, TaskID} from '../../src/types';
 
 /**
  * Pass 3: Deviation Feedback (The "Thermostat")
@@ -25,7 +25,7 @@ export function pass3DeviationFeedback(
   const k = 2.0; // Sensitivity
   const epsilon = 0.001; // Division by zero protection
 
-  const rootGoals = tasks.filter((task) => task.parentId === null);
+  const rootGoals = tasks.filter(task => task.parentId === null);
 
   let totalDesiredCredits = 0;
   let totalEffectiveCredits = 0;
@@ -46,12 +46,12 @@ export function pass3DeviationFeedback(
       task.credits * Math.pow(0.5, timeDelta / halfLifeMillis);
   }
 
-  rootGoals.forEach((root) => {
+  rootGoals.forEach(root => {
     totalDesiredCredits += root.desiredCredits;
     totalEffectiveCredits += root.effectiveCredits ?? 0; // Use 0 if not calculated
   });
 
-  rootGoals.forEach((root) => {
+  rootGoals.forEach(root => {
     if (totalDesiredCredits === 0) {
       // If no desired credits across all roots, feedback is neutral
       root.feedbackFactor = 1.0;
@@ -79,4 +79,4 @@ export function pass3DeviationFeedback(
 }
 
 // getCurrentTimestamp is not available directly in this file
-import { getCurrentTimestamp } from "../../src/utils/time";
+import {getCurrentTimestamp} from '../../src/utils/time';

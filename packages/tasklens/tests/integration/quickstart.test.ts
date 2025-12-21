@@ -1,33 +1,33 @@
-import { describe, it, expect } from "vitest";
-import { TunnelStore } from "../../src/store";
+import {describe, it, expect} from 'vitest';
+import {TunnelStore} from '../../src/store';
 
-describe("Quickstart Integration", () => {
-  it("should run the quickstart scenario", () => {
+describe('Quickstart Integration', () => {
+  it('should run the quickstart scenario', () => {
     // 1. Initialize Store
     const store = new TunnelStore();
 
     // 2. Create Data
     const rootGoal = store.createTask({
-      title: "Work",
+      title: 'Work',
       desiredCredits: 100,
     });
 
     const task = store.createTask({
-      title: "Email",
+      title: 'Email',
       parentId: rootGoal.id,
       creditIncrement: 1.0,
     });
 
     // 3. Update Priorities
-    store.recalculateScores({ placeId: "All" });
+    store.recalculateScores({placeId: 'All'});
 
     // 4. Get Todo List
-    const todos = store.getTodoList({ currentTime: Date.now() });
+    const todos = store.getTodoList({currentTime: Date.now()});
 
     // Email should be visible and sorted
     expect(todos.length).toBeGreaterThan(0);
     const firstTodo = todos[0];
-    if (!firstTodo) throw new Error("Expected at least one todo");
+    if (!firstTodo) throw new Error('Expected at least one todo');
     expect(firstTodo.id).toBe(task.id);
     expect(firstTodo.priority ?? 0).toBeGreaterThan(0);
 

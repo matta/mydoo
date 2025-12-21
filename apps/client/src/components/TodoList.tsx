@@ -13,11 +13,11 @@
  * This is a recursive component - it renders TodoList for each expanded
  * child, which allows the task tree to be displayed to arbitrary depth.
  */
-import { useState } from "react";
-import { Stack, Button, Box } from "@mantine/core";
-import { TodoItem } from "./TodoItem";
-import { InlineInput } from "./InlineInput";
-import { type TunnelNode, type TaskID } from "@mydoo/tasklens";
+import {useState} from 'react';
+import {Stack, Button, Box} from '@mantine/core';
+import {TodoItem} from './TodoItem';
+import {InlineInput} from './InlineInput';
+import {type TunnelNode, type TaskID} from '@mydoo/tasklens';
 
 /**
  * Props for the TodoList component.
@@ -70,14 +70,14 @@ export function TodoList({
   const hasItems = list.length > 0;
 
   return (
-    <Stack gap={4} pl={depth > 0 ? "lg" : 0}>
+    <Stack gap={4} pl={depth > 0 ? 'lg' : 0}>
       {!hasItems && (
         <Box c="dimmed" fs="italic" fz="sm" py="xs">
           No items
         </Box>
       )}
 
-      {list.map((item) => {
+      {list.map(item => {
         const id = item.id;
         const fullPath = [...basePath, id];
         const isExpanded = expandedIds.has(id);
@@ -123,7 +123,7 @@ export function TodoList({
         {isAdding ? (
           <InlineInput
             initialValue=""
-            onSave={(title) => {
+            onSave={title => {
               onAddItem(basePath, title);
               setIsAdding(false);
             }}

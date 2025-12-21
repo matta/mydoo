@@ -30,7 +30,7 @@
  * store.createTask({ title: "Test task" });
  * ```
  */
-export { TunnelStore } from "./store";
-export * from "./types";
-export * as TunnelOps from "./ops";
-export * from "./react";
+export {TunnelStore} from './store';
+export * from './types';
+export * as TunnelOps from './ops';
+export * from './react';

@@ -1,11 +1,11 @@
 # yaml-language-server: $schema=../schemas/test_case.schema.json
-name: "Scenario 7.1: The Thermostat"
+name: 'Scenario 7.1: The Thermostat'
 description: >
   Demonstrates the self-correcting 'Thermostat' mechanism where neglected areas
   (Life) accumulate credit deficit and rise in priority over over-serviced areas
   (Work).
 initial_state:
-  current_time: "2025-01-01T00:00:00Z"
+  current_time: '2025-01-01T00:00:00Z'
   tasks:
     - id: work
       importance: 1
@@ -16,7 +16,7 @@ initial_state:
       desired_credits: 100.0
       credits: 100.0
 steps:
-  - name: "Step 1: Balanced"
+  - name: 'Step 1: Balanced'
     expected_order:
       - work
       - life
@@ -25,7 +25,7 @@ steps:
         score: 1.0
       - id: life
         score: 1.0
-  - name: "Step 2: Imbalance"
+  - name: 'Step 2: Imbalance'
     mutation:
       update_credits:
         work: 150.0
@@ -38,7 +38,7 @@ steps:
         score: 1.5625
       - id: work
         score: 0.6944444
-  - name: "Step 3: Extreme"
+  - name: 'Step 3: Extreme'
     mutation:
       update_credits:
         work: 900.0

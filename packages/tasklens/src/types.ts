@@ -17,8 +17,8 @@
  * type-safe enum-like structure. This allows both runtime value checking
  * and compile-time type safety.
  */
-import { z } from "zod";
-import { TaskIDSchema, PlaceIDSchema } from "./schemas";
+import {z} from 'zod';
+import {TaskIDSchema, PlaceIDSchema} from './schemas';
 
 /**
  * Unique identifier for a Task.
@@ -50,7 +50,7 @@ export type PlaceID = z.infer<typeof PlaceIDSchema>;
  * Reserved Place ID representing "any location".
  * Tasks assigned to this place are always visible regardless of filter.
  */
-export const ANYWHERE_PLACE_ID = "Anywhere" as PlaceID;
+export const ANYWHERE_PLACE_ID = 'Anywhere' as PlaceID;
 
 /**
  * Possible states for a Task.
@@ -64,9 +64,9 @@ export const ANYWHERE_PLACE_ID = "Anywhere" as PlaceID;
  * - `Deleted`: Task has been soft-deleted (hidden but not removed from storage).
  */
 export const TaskStatus = {
-  Pending: "Pending",
-  Done: "Done",
-  Deleted: "Deleted",
+  Pending: 'Pending',
+  Done: 'Done',
+  Deleted: 'Deleted',
 } as const;
 
 /**
@@ -83,7 +83,7 @@ export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
  * @property includeClosed - Optional. If true, include completed/deleted tasks in results.
  */
 export interface ViewFilter {
-  placeId?: PlaceID | "All";
+  placeId?: PlaceID | 'All';
   includeClosed?: boolean;
 }
 
@@ -106,7 +106,7 @@ export interface Context {
  * @property leadTime - How far in advance (in ms) the task should appear before its due date.
  */
 export interface Schedule {
-  type: "Once" | "Recurring";
+  type: 'Once' | 'Recurring';
   dueDate: number | null;
   leadTime: number;
 }

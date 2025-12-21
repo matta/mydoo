@@ -5,7 +5,7 @@ description:
   (visible), and subsequent tasks are blocked.
 
 initial_state:
-  current_time: "2023-01-01T12:00:00+00:00"
+  current_time: '2023-01-01T12:00:00+00:00'
   timezone_offset: 0
   tasks:
     - id: Group
@@ -25,7 +25,7 @@ initial_state:
 
 steps:
   - name: Initial State - Step A Active
-    expected_order: ["Step_A"]
+    expected_order: ['Step_A']
     expected_props:
       - id: Step_A
         is_blocked: false
@@ -42,7 +42,7 @@ steps:
       task_updates:
         - id: Step_A
           status: Done
-    expected_order: ["Step_B"]
+    expected_order: ['Step_B']
     expected_props:
       - id: Step_A
         is_visible: false
@@ -58,7 +58,7 @@ steps:
       task_updates:
         - id: Step_B
           status: Done
-    expected_order: ["Step_C"]
+    expected_order: ['Step_C']
     expected_props:
       - id: Step_B
         is_visible: false

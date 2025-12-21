@@ -28,7 +28,7 @@
  * 3. **Manual sync (current)**: Keep both files and update manually. Simplest
  *    but prone to drift.
  */
-import { z } from "zod";
+import {z} from 'zod';
 
 /**
  * Schema for validating a task ID.
@@ -36,14 +36,14 @@ import { z } from "zod";
  * Uses Zod's `.brand()` to produce a branded type that matches `TaskID`
  * from types.ts. After validation, the output is typed as `TaskID`.
  */
-export const TaskIDSchema = z.string().brand<"TaskID">();
+export const TaskIDSchema = z.string().brand<'TaskID'>();
 
 /**
  * Schema for validating a place ID.
  *
  * Uses Zod's `.brand()` to produce a branded type that matches `PlaceID`.
  */
-export const PlaceIDSchema = z.string().brand<"PlaceID">();
+export const PlaceIDSchema = z.string().brand<'PlaceID'>();
 
 /**
  * Schema for validating a Schedule object.
@@ -51,7 +51,7 @@ export const PlaceIDSchema = z.string().brand<"PlaceID">();
  * @see Schedule in types.ts for the corresponding TypeScript interface.
  */
 export const ScheduleSchema = z.object({
-  type: z.enum(["Once", "Recurring"]),
+  type: z.enum(['Once', 'Recurring']),
   dueDate: z.number().nullable(),
   leadTime: z.number(),
 });
@@ -71,7 +71,7 @@ export const TaskSchema = z.object({
   parentId: TaskIDSchema.nullable(),
   childTaskIds: z.array(TaskIDSchema),
   placeId: PlaceIDSchema.nullable(),
-  status: z.enum(["Pending", "Done", "Deleted"]),
+  status: z.enum(['Pending', 'Done', 'Deleted']),
   importance: z.number().min(0).max(1),
   creditIncrement: z.number().min(0),
   credits: z.number(),

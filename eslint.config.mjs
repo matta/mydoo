@@ -1,18 +1,19 @@
-import js from "@eslint/js";
-import tseslint from "typescript-eslint";
-import globals from "globals";
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import globals from 'globals';
 
 /** Standard ignore patterns for all packages */
 const sharedIgnores = {
-  ignores: ["dist/", "dev-dist/", "node_modules/", "coverage/", "**/*.d.ts"],
+  ignores: ['dist/', 'dev-dist/', 'node_modules/', 'coverage/', '**/*.d.ts'],
 };
 
 /** Config file patterns that should bypass strict type-checking */
 const configFilePatterns = [
-  "*.config.{js,cjs,mjs,ts}",
-  "eslint.config.{js,mjs}",
-  "vite.config.{js,ts}",
-  ".lintstagedrc.js",
+  '*.config.{js,cjs,mjs,ts}',
+  'eslint.config.{js,mjs}',
+  'vite.config.{js,ts}',
+  '.lintstagedrc.js',
+  'apps/client/vite.config.ts',
 ];
 
 /** Base shared configuration */
@@ -23,7 +24,7 @@ export const sharedConfig = [
   ...tseslint.configs.stylisticTypeChecked,
   {
     languageOptions: {
-      globals: { ...globals.node, ...globals.browser },
+      globals: {...globals.node, ...globals.browser},
       parserOptions: {
         projectService: {
           allowDefaultProject: configFilePatterns,
@@ -32,13 +33,13 @@ export const sharedConfig = [
       },
     },
     rules: {
-      "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-floating-promises": "error",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
         {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
         },
       ],
     },
@@ -51,9 +52,9 @@ export const sharedConfig = [
   {
     files: configFilePatterns,
     rules: {
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
     },
   },
 ];
@@ -72,7 +73,7 @@ export const sharedConfig = [
  * package.
  */
 export function configureProject(dirname) {
-  return sharedConfig.map((config) => {
+  return sharedConfig.map(config => {
     // Override tsconfigRootDir for this package
     if (config.languageOptions?.parserOptions) {
       return {

@@ -23,29 +23,29 @@ pnpm add @mydoo/tasklens
 ### Basic Example
 
 ```typescript
-import { TunnelStore } from "@mydoo/tasklens";
+import {TunnelStore} from '@mydoo/tasklens';
 
 // 1. Initialize Store
 const store = new TunnelStore();
 
 // 2. Create Data
 const rootGoal = store.createTask({
-  title: "Work",
+  title: 'Work',
   desiredCredits: 100,
 });
 
 const task = store.createTask({
-  title: "Email",
+  title: 'Email',
   parentId: rootGoal.id,
   creditIncrement: 1.0,
 });
 
 // 3. Update Priorities
-store.recalculateScores({ placeId: "All" });
+store.recalculateScores({placeId: 'All'});
 
 // 4. Get Todo List
-const todos = store.getTodoList({ currentTime: Date.now() });
-console.log(todos.map((t) => `${t.title}: ${t.priority}`));
+const todos = store.getTodoList({currentTime: Date.now()});
+console.log(todos.map(t => `${t.title}: ${t.priority}`));
 ```
 
 ### Persistence

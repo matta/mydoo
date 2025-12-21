@@ -1,5 +1,5 @@
-import { TextInput } from "@mantine/core";
-import { useState, useRef, useEffect } from "react";
+import {TextInput} from '@mantine/core';
+import {useState, useRef, useEffect} from 'react';
 
 interface InlineInputProps {
   initialValue: string;
@@ -12,7 +12,7 @@ export function InlineInput({
   initialValue,
   onSave,
   onCancel,
-  placeholder = "Enter text...",
+  placeholder = 'Enter text...',
 }: InlineInputProps) {
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,13 +25,13 @@ export function InlineInput({
   }, []);
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       if (value.trim()) {
         onSave(value.trim());
       } else {
         onCancel();
       }
-    } else if (e.key === "Escape") {
+    } else if (e.key === 'Escape') {
       onCancel();
     }
   }
@@ -49,13 +49,13 @@ export function InlineInput({
       ref={inputRef}
       variant="unstyled"
       value={value}
-      onChange={(e) => {
+      onChange={e => {
         setValue(e.currentTarget.value);
       }}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
       placeholder={placeholder}
-      styles={{ input: { padding: 0, height: "auto", minHeight: 0 } }}
+      styles={{input: {padding: 0, height: 'auto', minHeight: 0}}}
     />
   );
 }

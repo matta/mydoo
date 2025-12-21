@@ -16,7 +16,7 @@
  *
  * The store delegates actual mutations to the pure functions in `ops.ts`.
  */
-import * as Automerge from "@automerge/automerge";
+import * as Automerge from '@automerge/automerge';
 import {
   type Task,
   type TunnelState,
@@ -24,9 +24,9 @@ import {
   type ViewFilter,
   type Context,
   ANYWHERE_PLACE_ID,
-} from "./types";
-import { recalculateScores as runRecalculateScores } from "./algorithm";
-import * as TunnelOps from "./ops";
+} from './types';
+import {recalculateScores as runRecalculateScores} from './algorithm';
+import * as TunnelOps from './ops';
 
 /**
  * A store that wraps an Automerge document containing task state.
@@ -150,13 +150,13 @@ export class TunnelStore {
    */
   createTask(props: Partial<Task>): Task {
     let newTask: Task | undefined;
-    this.doc = Automerge.change(this.doc, "Create task", (doc) => {
+    this.doc = Automerge.change(this.doc, 'Create task', doc => {
       newTask = TunnelOps.createTask(doc, props);
     });
-    if (!newTask) throw new Error("Failed to create task");
+    if (!newTask) throw new Error('Failed to create task');
 
     const task = TunnelOps.getTask(this.doc, newTask.id);
-    if (!task) throw new Error("Retrieved task is undefined");
+    if (!task) throw new Error('Retrieved task is undefined');
     return task;
   }
 
@@ -169,11 +169,11 @@ export class TunnelStore {
    * @throws Error if the task does not exist.
    */
   updateTask(id: TaskID, props: Partial<Task>): Task {
-    this.doc = Automerge.change(this.doc, `Update task ${id}`, (doc) => {
+    this.doc = Automerge.change(this.doc, `Update task ${id}`, doc => {
       TunnelOps.updateTask(doc, id, props);
     });
     const task = TunnelOps.getTask(this.doc, id);
-    if (!task) throw new Error("Retrieved task is undefined");
+    if (!task) throw new Error('Retrieved task is undefined');
     return task;
   }
 
@@ -183,7 +183,7 @@ export class TunnelStore {
    * @param id - The ID of the task to complete.
    */
   completeTask(id: TaskID): void {
-    this.doc = Automerge.change(this.doc, `Complete task ${id}`, (doc) => {
+    this.doc = Automerge.change(this.doc, `Complete task ${id}`, doc => {
       TunnelOps.completeTask(doc, id);
     });
   }
@@ -215,7 +215,7 @@ export class TunnelStore {
   getTodoList(_context: Context): Task[] {
     const allTasks = Object.values(this.doc.tasks);
     const visibleTasks = allTasks.filter(
-      (t) => t.visibility && (t.priority ?? 0) > 0.001,
+      t => t.visibility && (t.priority ?? 0) > 0.001,
     );
     return visibleTasks.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
   }

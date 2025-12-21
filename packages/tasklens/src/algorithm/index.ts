@@ -1,21 +1,21 @@
-import * as Automerge from "@automerge/automerge";
-import { TunnelStore } from "../../src/store";
+import * as Automerge from '@automerge/automerge';
+import {TunnelStore} from '../../src/store';
 import {
   type Task,
   type TaskID,
   type ViewFilter,
   type Context,
   type TunnelState,
-} from "../../src/types";
-import { getCurrentTimestamp } from "../../src/utils/time";
+} from '../../src/types';
+import {getCurrentTimestamp} from '../../src/utils/time';
 
-import { pass1ContextualVisibility } from "./pass1_visibility";
-import { pass2ScheduleInheritance } from "./pass2_schedule";
-import { pass3DeviationFeedback } from "./pass3_thermostat";
-import { pass4WeightNormalization } from "./pass4_weights";
-import { pass5LeadTimeRamp } from "./pass5_leadtime";
-import { pass6FinalPriority } from "./pass6_priority";
-import { pass7ContainerVisibility } from "./pass7_container";
+import {pass1ContextualVisibility} from './pass1_visibility';
+import {pass2ScheduleInheritance} from './pass2_schedule';
+import {pass3DeviationFeedback} from './pass3_thermostat';
+import {pass4WeightNormalization} from './pass4_weights';
+import {pass5LeadTimeRamp} from './pass5_leadtime';
+import {pass6FinalPriority} from './pass6_priority';
+import {pass7ContainerVisibility} from './pass7_container';
 
 export function recalculateScores(
   store: TunnelStore,
@@ -24,7 +24,7 @@ export function recalculateScores(
 ): void {
   const currentTime = context?.currentTime ?? getCurrentTimestamp();
 
-  store.doc = Automerge.change(store.doc, "Recalculate scores", (doc) => {
+  store.doc = Automerge.change(store.doc, 'Recalculate scores', doc => {
     const tasks = Object.values(doc.tasks);
 
     // Pass 1: Contextual Visibility
@@ -40,9 +40,7 @@ export function recalculateScores(
       docState: TunnelState,
       parentId: TaskID | null,
     ) =>
-      Object.values(docState.tasks).filter(
-        (task) => task.parentId === parentId,
-      );
+      Object.values(docState.tasks).filter(task => task.parentId === parentId);
 
     const getAncestorsFromDoc = (docState: TunnelState, id: TaskID) => {
       const ancestors: Task[] = [];

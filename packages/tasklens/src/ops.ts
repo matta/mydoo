@@ -29,8 +29,8 @@ import {
   TaskStatus,
   type TunnelNode,
   type Schedule,
-} from "./types";
-import { getCurrentTimestamp, daysToMilliseconds } from "./utils/time";
+} from './types';
+import {getCurrentTimestamp, daysToMilliseconds} from './utils/time';
 
 // --- Mutators ---
 
@@ -64,14 +64,14 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
   const newTaskId = crypto.randomUUID() as TaskID;
 
   const defaultSchedule: Schedule = {
-    type: "Once",
+    type: 'Once',
     dueDate: null,
     leadTime: daysToMilliseconds(7),
   };
 
   const newTask: Task = {
     id: newTaskId,
-    title: props.title ?? "New Task",
+    title: props.title ?? 'New Task',
     parentId: props.parentId ?? null,
     placeId: props.placeId ?? null,
     status: props.status ?? TaskStatus.Pending,
@@ -88,11 +88,11 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
 
   // Validations for numbers
   if (newTask.creditIncrement < 0)
-    throw new Error("CreditIncrement cannot be negative.");
+    throw new Error('CreditIncrement cannot be negative.');
   if (newTask.importance < 0 || newTask.importance > 1)
-    throw new Error("Importance must be between 0.0 and 1.0.");
+    throw new Error('Importance must be between 0.0 and 1.0.');
   if (newTask.desiredCredits < 0)
-    throw new Error("DesiredCredits cannot be negative.");
+    throw new Error('DesiredCredits cannot be negative.');
 
   state.tasks[newTaskId] = newTask;
 
@@ -167,20 +167,20 @@ export function updateTask(
 
   // Validation for numeric props
   if (props.desiredCredits !== undefined && props.desiredCredits < 0) {
-    throw new Error("DesiredCredits cannot be negative.");
+    throw new Error('DesiredCredits cannot be negative.');
   }
   if (props.creditIncrement !== undefined && props.creditIncrement < 0) {
-    throw new Error("CreditIncrement cannot be negative.");
+    throw new Error('CreditIncrement cannot be negative.');
   }
   if (
     props.importance !== undefined &&
     (props.importance < 0 || props.importance > 1)
   ) {
-    throw new Error("Importance must be between 0.0 and 1.0.");
+    throw new Error('Importance must be between 0.0 and 1.0.');
   }
 
   for (const [key, value] of Object.entries(props)) {
-    if (key !== "id" && key !== "childTaskIds") {
+    if (key !== 'id' && key !== 'childTaskIds') {
       // Do not allow manual overwriting of Ids via update
       // @ts-expect-error: Dynamic property assignment is required here but TypeScript flags it as potentially unsafe
       task[key] = value;
@@ -233,7 +233,7 @@ export function moveTask(
   while (currentId) {
     if (currentId === id) {
       throw new Error(
-        `Cannot move task ${id} into its own descendant ${newParentId ?? "null"}.`,
+        `Cannot move task ${id} into its own descendant ${newParentId ?? 'null'}.`,
       );
     }
     currentId = state.tasks[currentId]?.parentId ?? null;
@@ -398,7 +398,7 @@ export function getChildren(
     : state.rootTaskIds;
 
   if (!ids) return [];
-  return ids.map((id) => state.tasks[id]).filter((t): t is Task => !!t);
+  return ids.map(id => state.tasks[id]).filter((t): t is Task => !!t);
 }
 
 /**

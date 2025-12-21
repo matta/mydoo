@@ -28,5 +28,5 @@
   },
   "include": ["src"],
   // Project reference for IDE type resolution (uses tasklens's emitted .d.ts files)
-  "references": [{ "path": "../../packages/tasklens" }]
+  "references": [{"path": "../../packages/tasklens"}]
 }

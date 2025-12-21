@@ -6,7 +6,7 @@ description:
   ensure robustness (1/720 chance of random match).
 
 initial_state:
-  current_time: "2023-01-01T12:00:00+00:00"
+  current_time: '2023-01-01T12:00:00+00:00'
   timezone_offset: 0
   tasks:
     - id: Parent
@@ -34,7 +34,7 @@ initial_state:
 
 steps:
   - name: Verify Reverse Alphabetical Sequence
-    expected_order: ["Task_Z", "Task_Y", "Task_X", "Task_W", "Task_V", "Task_U"]
+    expected_order: ['Task_Z', 'Task_Y', 'Task_X', 'Task_W', 'Task_V', 'Task_U']
     expected_props:
       - id: Task_Z
         is_visible: true

@@ -4,7 +4,7 @@
  * These functions operate on `TunnelNode` objects, which represent tasks
  * with their children already resolved into a tree structure.
  */
-import { type TunnelNode, type TaskID, TaskStatus } from "@mydoo/tasklens";
+import {type TunnelNode, type TaskID, TaskStatus} from '@mydoo/tasklens';
 
 /**
  * Navigates into a nested task list by following a path of task IDs.
@@ -32,7 +32,7 @@ export function getListAtPath(
 ): TunnelNode[] | null {
   let currentList = tasks;
   for (const id of path) {
-    const item = currentList.find((t) => t.id === id);
+    const item = currentList.find(t => t.id === id);
     if (!item) return null;
     currentList = item.children;
   }
@@ -63,7 +63,7 @@ export function canMarkDone(item: TunnelNode): boolean {
   if (item.children.length === 0) return true;
 
   return item.children.every(
-    (child) =>
+    child =>
       child.status === TaskStatus.Done || child.status === TaskStatus.Deleted,
   );
 }
@@ -76,8 +76,8 @@ export function canMarkDone(item: TunnelNode): boolean {
  * - Task items have `type: 'task'` with a valid TaskID.
  */
 export type BreadcrumbItem =
-  | { type: "root"; title: string; path: TaskID[] }
-  | { type: "task"; id: TaskID; title: string; path: TaskID[] };
+  | {type: 'root'; title: string; path: TaskID[]}
+  | {type: 'task'; id: TaskID; title: string; path: TaskID[]};
 
 /**
  * Generates breadcrumb navigation data for the current view path.
@@ -103,16 +103,16 @@ export function getBreadcrumbs(
   tasks: TunnelNode[],
   viewPath: TaskID[],
 ): BreadcrumbItem[] {
-  const crumbs: BreadcrumbItem[] = [{ type: "root", title: "Root", path: [] }];
+  const crumbs: BreadcrumbItem[] = [{type: 'root', title: 'Root', path: []}];
 
   let currentPath: TaskID[] = [];
   let currentList = tasks;
 
   for (const id of viewPath) {
-    const item = currentList.find((t) => t.id === id);
+    const item = currentList.find(t => t.id === id);
     if (!item) break;
     currentPath = [...currentPath, id];
-    crumbs.push({ type: "task", id, title: item.title, path: currentPath });
+    crumbs.push({type: 'task', id, title: item.title, path: currentPath});
     currentList = item.children;
   }
   return crumbs;

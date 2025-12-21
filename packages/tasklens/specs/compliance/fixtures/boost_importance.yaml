@@ -4,7 +4,7 @@ description: >
   Verifies that the `importance` field directly influences task priority,
   ensuring high-importance tasks rank above low-importance ones.
 initial_state:
-  current_time: "2025-01-01T12:00:00Z"
+  current_time: '2025-01-01T12:00:00Z'
   tasks:
     - id: Major
       title: High Importance

@@ -15,18 +15,18 @@
  *   Zod schemas to ensure the data conforms to our expected types. This is
  *   necessary because Automerge documents are untyped at runtime.
  */
-import { useDocument } from "@automerge/automerge-repo-react-hooks";
+import {useDocument} from '@automerge/automerge-repo-react-hooks';
 import {
   type TunnelState,
   type Task,
   type TaskID,
   type TunnelNode,
   TaskStatus,
-} from "./types";
-import { type AnyDocumentId } from "@automerge/automerge-repo";
-import * as TunnelOps from "./ops";
-import { useCallback, useMemo } from "react";
-import { TunnelStateSchema } from "./schemas";
+} from './types';
+import {type AnyDocumentId} from '@automerge/automerge-repo';
+import * as TunnelOps from './ops';
+import {useCallback, useMemo} from 'react';
+import {TunnelStateSchema} from './schemas';
 
 /**
  * Return type of the `useTunnel` hook.
@@ -136,7 +136,7 @@ export function useTunnel(docUrl: AnyDocumentId): TunnelHookResult {
 
   const add = useCallback(
     (props: Partial<Task>) => {
-      mutate((d) => {
+      mutate(d => {
         TunnelOps.createTask(d, props);
       });
     },
@@ -145,7 +145,7 @@ export function useTunnel(docUrl: AnyDocumentId): TunnelHookResult {
 
   const update = useCallback(
     (id: TaskID, props: Partial<Task>) => {
-      mutate((d) => {
+      mutate(d => {
         TunnelOps.updateTask(d, id, props);
       });
     },
@@ -154,7 +154,7 @@ export function useTunnel(docUrl: AnyDocumentId): TunnelHookResult {
 
   const move = useCallback(
     (id: TaskID, newParentId: TaskID | null, afterTaskId: TaskID | null) => {
-      mutate((d) => {
+      mutate(d => {
         TunnelOps.moveTask(d, id, newParentId, afterTaskId);
       });
     },
@@ -163,7 +163,7 @@ export function useTunnel(docUrl: AnyDocumentId): TunnelHookResult {
 
   const toggleDone = useCallback(
     (id: TaskID) => {
-      mutate((d) => {
+      mutate(d => {
         const task = d.tasks[id];
         if (task) {
           task.status =
@@ -178,7 +178,7 @@ export function useTunnel(docUrl: AnyDocumentId): TunnelHookResult {
 
   const remove = useCallback(
     (id: TaskID) => {
-      mutate((d) => {
+      mutate(d => {
         TunnelOps.deleteTask(d, id);
       });
     },

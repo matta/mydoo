@@ -15,7 +15,7 @@ export function getCurrentTimestamp(): number {
  * @param timestamp The timestamp to return, or a function that returns it.
  */
 export function mockCurrentTimestamp(timestamp: number | (() => number)): void {
-  if (typeof timestamp === "number") {
+  if (typeof timestamp === 'number') {
     now = () => timestamp;
   } else {
     now = timestamp;

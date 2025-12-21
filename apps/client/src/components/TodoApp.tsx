@@ -17,20 +17,20 @@
  *   passed as props to child components.
  * - **useTunnel hook**: Provides reactive access to the Automerge document.
  */
-import { useState, useCallback } from "react";
-import { useRepo } from "@automerge/automerge-repo-react-hooks";
-import type { AnyDocumentId } from "@automerge/automerge-repo";
-import { Container, Title, Button, Group, Loader, Stack } from "@mantine/core";
-import { Breadcrumbs } from "./Breadcrumbs";
-import { TodoList } from "./TodoList";
-import { getBreadcrumbs, getListAtPath } from "../lib/todoUtils";
+import {useState, useCallback} from 'react';
+import {useRepo} from '@automerge/automerge-repo-react-hooks';
+import type {AnyDocumentId} from '@automerge/automerge-repo';
+import {Container, Title, Button, Group, Loader, Stack} from '@mantine/core';
+import {Breadcrumbs} from './Breadcrumbs';
+import {TodoList} from './TodoList';
+import {getBreadcrumbs, getListAtPath} from '../lib/todoUtils';
 import {
   useTunnel,
   type TunnelNode,
   type TunnelState,
   type TaskID,
   TaskStatus,
-} from "@mydoo/tasklens";
+} from '@mydoo/tasklens';
 
 export function TodoApp() {
   const repo = useRepo();
@@ -43,7 +43,7 @@ export function TodoApp() {
     // Create new document if none exists
     // We create a fresh tunnel state
     const handle = repo.create<TunnelState>();
-    handle.change((doc) => {
+    handle.change(doc => {
       // Init logic matching TunnelStore default but explicit here since we use raw repo create
       doc.tasks = {};
       doc.places = {};
@@ -56,7 +56,7 @@ export function TodoApp() {
     return url;
   });
 
-  const { tasks, ops } = useTunnel(docUrl);
+  const {tasks, ops} = useTunnel(docUrl);
 
   // UI State
   const [viewPath, setViewPath] = useState<TaskID[]>([]);
@@ -81,7 +81,7 @@ export function TodoApp() {
       const id = fullPath[fullPath.length - 1];
       if (id === undefined) return;
 
-      setExpandedIds((prev) => {
+      setExpandedIds(prev => {
         const next = new Set(prev);
         if (next.has(id)) {
           next.delete(id);
@@ -93,7 +93,7 @@ export function TodoApp() {
           if (depth >= 2) {
             const nextRootId = fullPath[viewPath.length];
             if (nextRootId !== undefined) {
-              setViewPath((prev) => [...prev, nextRootId]);
+              setViewPath(prev => [...prev, nextRootId]);
             }
           }
         }
@@ -120,7 +120,7 @@ export function TodoApp() {
     };
     traverse(tasks);
 
-    idsToDelete.forEach((id) => {
+    idsToDelete.forEach(id => {
       ops.delete(id);
     });
   }, [tasks, ops]);
@@ -133,7 +133,7 @@ export function TodoApp() {
     (fullPath: TaskID[], newTitle: string) => {
       const id = fullPath[fullPath.length - 1];
       if (id) {
-        ops.update(id, { title: newTitle });
+        ops.update(id, {title: newTitle});
       }
       setEditingId(null);
     },
@@ -150,7 +150,7 @@ export function TodoApp() {
       // If basePath is empty, parent is null.
       const parentId =
         basePath.length > 0 ? basePath[basePath.length - 1] : null;
-      ops.add({ title, parentId: parentId ?? null });
+      ops.add({title, parentId: parentId ?? null});
     },
     [ops],
   );

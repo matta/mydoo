@@ -7,7 +7,7 @@ description: >
 
   '
 initial_state:
-  current_time: "2025-01-01T12:00:00Z"
+  current_time: '2025-01-01T12:00:00Z'
   tasks:
     - id: Trunk
       title: Root

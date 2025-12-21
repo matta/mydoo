@@ -5,7 +5,7 @@ description:
   Max Deviation Multiplier (1000.0) ^ K.
 
 initial_state:
-  current_time: "2023-01-01T12:00:00+00:00"
+  current_time: '2023-01-01T12:00:00+00:00'
   timezone_offset: 0
   tasks:
     - id: ZeroRoot
@@ -19,7 +19,7 @@ initial_state:
 
 steps:
   - name: Verify Feedback Cap
-    expected_order: ["Child"]
+    expected_order: ['Child']
     expected_props:
       - id: Child
         # Logic:

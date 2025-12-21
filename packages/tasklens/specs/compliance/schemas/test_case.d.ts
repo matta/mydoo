@@ -12,7 +12,7 @@ export type OpenHoursRange = string;
 /**
  * Enumeration of possible task states.
  */
-export type TaskStatus = "Pending" | "Done" | "Deleted";
+export type TaskStatus = 'Pending' | 'Done' | 'Deleted';
 
 export interface TunnelAlgorithmTestCaseSchema {
   /**
@@ -73,7 +73,7 @@ export interface OpenHours {
   /**
    * Operating mode: 'always_open', 'always_closed', or 'custom'.
    */
-  mode: "always_open" | "always_closed" | "custom";
+  mode: 'always_open' | 'always_closed' | 'custom';
   /**
    * Weekly schedule mapping days to time ranges (required if mode is 'custom').
    */
@@ -108,7 +108,7 @@ export interface TaskInput {
   /**
    * Current state ({ Pending, Done, Deleted }). Used to derive IsPending.
    */
-  status?: "Pending" | "Done" | "Deleted";
+  status?: 'Pending' | 'Done' | 'Deleted';
   /**
    * Current total of decayed credit history for this task/subtree.
    */

@@ -9,10 +9,10 @@
  * The component is a "controlled" component, meaning all state and callbacks
  * are passed in as props from the parent. It does not manage its own state.
  */
-import { ActionIcon, Checkbox, Group, Text } from "@mantine/core";
-import { InlineInput } from "./InlineInput";
-import { type TunnelNode, type TaskID, TaskStatus } from "@mydoo/tasklens";
-import { canMarkDone } from "../lib/todoUtils";
+import {ActionIcon, Checkbox, Group, Text} from '@mantine/core';
+import {InlineInput} from './InlineInput';
+import {type TunnelNode, type TaskID, TaskStatus} from '@mydoo/tasklens';
+import {canMarkDone} from '../lib/todoUtils';
 
 /**
  * Props for the TodoItem component.
@@ -60,7 +60,7 @@ export function TodoItem({
       align="center"
       gap="xs"
       wrap="nowrap"
-      className={`todo-item ${item.status === TaskStatus.Done ? "done" : ""}`}
+      className={`todo-item ${item.status === TaskStatus.Done ? 'done' : ''}`}
     >
       {/* Expand/Collapse Button */}
       <ActionIcon
@@ -70,9 +70,9 @@ export function TodoItem({
         onClick={() => {
           onToggleExpand(path);
         }}
-        aria-label={isExpanded ? "Collapse" : "Expand"}
+        aria-label={isExpanded ? 'Collapse' : 'Expand'}
       >
-        {isExpanded ? "▼" : "▶"}
+        {isExpanded ? '▼' : '▶'}
       </ActionIcon>
 
       {/* Checkbox */}
@@ -82,17 +82,17 @@ export function TodoItem({
         onChange={() => {
           onToggleDone(path);
         }}
-        title={canComplete ? "" : "Complete all children first"}
+        title={canComplete ? '' : 'Complete all children first'}
         size="sm"
         // indeterminate={item.status === "Pending" && hasDoneChildren?} // Maybe later
       />
 
       {/* Title (editable or display) */}
-      <Group style={{ flex: 1 }}>
+      <Group style={{flex: 1}}>
         {isEditing ? (
           <InlineInput
             initialValue={item.title}
-            onSave={(newTitle) => {
+            onSave={newTitle => {
               onSaveEdit(path, newTitle);
             }}
             onCancel={onCancelEdit}
@@ -103,13 +103,13 @@ export function TodoItem({
               onStartEdit(id);
             }}
             style={{
-              cursor: "pointer",
+              cursor: 'pointer',
               textDecoration:
-                item.status === TaskStatus.Done ? "line-through" : "none",
+                item.status === TaskStatus.Done ? 'line-through' : 'none',
               color:
                 item.status === TaskStatus.Done
-                  ? "var(--mantine-color-dimmed)"
-                  : "inherit",
+                  ? 'var(--mantine-color-dimmed)'
+                  : 'inherit',
             }}
           >
             {item.title}

@@ -5,7 +5,7 @@ description: >
   'Included In' hierarchy. Verifies tasks are hidden when their Place is closed
   or filtered out.
 initial_state:
-  current_time: "2025-01-01T09:00:00Z"
+  current_time: '2025-01-01T09:00:00Z'
   places:
     - id: Home
       hours:
@@ -57,7 +57,7 @@ initial_state:
       desired_credits: 0.0
       place_id: Desk
 steps:
-  - name: "Filter: All Places (Office Open)"
+  - name: 'Filter: All Places (Office Open)'
     view_filter: All Places
     expected_order:
       - GlobalTask
@@ -73,7 +73,7 @@ steps:
         score: 1.0
       - id: DeskTask
         score: 1.0
-  - name: "Filter: Home"
+  - name: 'Filter: Home'
     view_filter: Home
     expected_order:
       - GlobalTask
@@ -87,7 +87,7 @@ steps:
         is_visible: false
       - id: DeskTask
         is_visible: false
-  - name: "Filter: Office"
+  - name: 'Filter: Office'
     view_filter: Office
     expected_order:
       - GlobalTask
@@ -116,7 +116,7 @@ steps:
         score: 1.0
       - id: DeskTask
         score: 1.0
-  - name: "Filter: All Places (Office Closed)"
+  - name: 'Filter: All Places (Office Closed)'
     view_filter: All Places
     expected_order:
       - GlobalTask

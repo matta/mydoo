@@ -4,7 +4,7 @@ description: >
   Verifies the fundamental sorting logic: tasks are ranked by Priority
   Descending, then by Outline Order (DFS Pre-order) as a stable tie-breaker.
 initial_state:
-  current_time: "2025-01-01T12:00:00Z"
+  current_time: '2025-01-01T12:00:00Z'
   tasks:
     - id: Major
       title: High Priority

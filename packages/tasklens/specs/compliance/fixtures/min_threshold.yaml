@@ -3,7 +3,7 @@ name: Minimum Priority Threshold
 description: Verify that tasks with priority <= 0.001 are filtered out of the sorted list.
 
 initial_state:
-  current_time: "2023-01-01T12:00:00+00:00"
+  current_time: '2023-01-01T12:00:00+00:00'
   timezone_offset: 0
   tasks:
     - id: Parent
@@ -19,7 +19,7 @@ initial_state:
 
 steps:
   - name: Check Filter
-    expected_order: ["BigSibling"] # LowPri filtered, Parent hidden by mask
+    expected_order: ['BigSibling'] # LowPri filtered, Parent hidden by mask
     expected_props:
       - id: Parent
         is_visible: false
