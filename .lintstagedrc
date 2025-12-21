@@ -1,4 +1,4 @@
 {
   "*": "prettier --write --ignore-unknown",
-  "apps/client/**/*.{ts,tsx}": "pnpm --filter client exec eslint --fix"
+  "**/*.{ts,tsx}": "eslint --fix"
 }
