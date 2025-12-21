@@ -1,6 +1,7 @@
 {
   "name": "mydoo",
   "version": "1.0.0",
+  "private": true,
   "description": "",
   "engines": {
     "node": ">=24"
