@@ -8,20 +8,20 @@ a set of YAML fixtures that cover various aspects of the algorithm.
 
 The goal of this test suite is to ensure that any implementation of the Tunnel
 algorithm behaves consistently and correctly according to the specification
-defined in [ALGORITHM.md](./ALGORITHM.md). By running these tests, implementers
+defined in [ALGORITHM.md](./algorithm.md). By running these tests, implementers
 can verify conformance to the standard.
 
 ## Structure
 
 The test suite is organized as follows:
 
-- `specs/compliance/schemas/`: Contains the JSON schema for test cases.
-- `specs/compliance/fixtures/`: Contains YAML files defining individual test scenarios.
+- `../../packages/tasklens/specs/compliance/schemas/`: Contains the JSON schema for test cases.
+- `../../packages/tasklens/specs/compliance/fixtures/`: Contains YAML files defining individual test scenarios.
 
 ## Schema
 
 The test cases are defined using a JSON schema located at
-`specs/compliance/schemas/test_case.schema.json`. This schema defines the structure of a
+`../../packages/tasklens/specs/compliance/schemas/test_case.schema.json`. This schema defines the structure of a
 "Scenario", which consists of:
 
 - `initial_state`: The state of the system before any steps are executed.
@@ -59,9 +59,9 @@ algorithm:
 
 To use this suite for conformance testing:
 
-1.  **Load Schema**: Load `specs/compliance/schemas/test_case.schema.json` to understand
+1.  **Load Schema**: Load `../../packages/tasklens/specs/compliance/schemas/test_case.schema.json` to understand
     the data model.
-2.  **Load Fixtures**: Parse each `.yaml` file in `specs/compliance/fixtures/`.
+2.  **Load Fixtures**: Parse each `.yaml` file in `../../packages/tasklens/specs/compliance/fixtures/`.
 3.  **Execute**: For each scenario:
     - Initialize your algorithm implementation with the `initial_state`.
     - Iterate through `steps`.

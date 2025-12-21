@@ -9,7 +9,7 @@ TypeScript.
   calculating task priority.
 - **Automerge Backing**: Uses `automerge` CRDT for local-first data storage and
   synchronization.
-- **Strict Typing**: Fully typed with TypeScript matching the `ALGORITHM.md`
+- **Strict Typing**: Fully typed with TypeScript matching the [`ALGORITHM.md`](../../../docs/design/algorithm.md)
   specification.
 
 ## Installation
