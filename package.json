@@ -18,6 +18,7 @@
     "@commitlint/cli": "catalog:",
     "@eslint/js": "catalog:",
     "eslint": "catalog:",
+    "eslint-plugin-sonarjs": "catalog:",
     "globals": "catalog:",
     "husky": "catalog:",
     "lint-staged": "catalog:",

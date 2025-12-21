@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
+import sonarjs from 'eslint-plugin-sonarjs';
 
 /** Standard ignore patterns for all packages */
 const sharedIgnores = {
@@ -23,6 +24,10 @@ export const sharedConfig = [
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
   {
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+      sonarjs,
+    },
     languageOptions: {
       globals: {...globals.node, ...globals.browser},
       parserOptions: {
@@ -60,6 +65,11 @@ export const sharedConfig = [
         {object: 'describe', property: 'only'},
         {object: 'it', property: 'only'},
       ],
+
+      // SonarJS Rules
+      // TODO: Reduce Cognitive Complexity. The default for this plugin is 15.
+      // We are at 40 to allow existing complex algorithm logic to pass.
+      'sonarjs/cognitive-complexity': ['error', 40],
     },
   },
   // Add config file overrides to disable type-checked rules globally.
