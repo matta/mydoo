@@ -1,6 +1,11 @@
 {
   "versionGroups": [
     {
+      "label": "Internal workspace packages and versions",
+      "dependencies": ["@mydoo/**", "mydoo", "client"],
+      "isIgnored": true
+    },
+    {
       "label": "Enforce Catalog Usage",
       "dependencies": ["**"],
       "pinVersion": "catalog:",

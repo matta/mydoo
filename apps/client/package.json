@@ -1,6 +1,6 @@
 {
   "name": "client",
-  "version": "catalog:",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,7 +16,7 @@
     "@automerge/automerge-repo-storage-indexeddb": "catalog:",
     "@mantine/core": "catalog:",
     "@mantine/hooks": "catalog:",
-    "@mydoo/tasklens": "catalog:",
+    "@mydoo/tasklens": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
