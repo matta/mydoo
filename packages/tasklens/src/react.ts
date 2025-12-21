@@ -51,14 +51,14 @@ export interface TunnelHookResult {
   doc: TunnelState | undefined;
   ops: {
     add: (props: Partial<Task>) => void;
-    update: (id: TaskID, props: Partial<Task>) => void;
+    delete: (id: TaskID) => void;
     move: (
       id: TaskID,
       newParentId: TaskID | null,
       afterTaskId: TaskID | null,
     ) => void;
     toggleDone: (id: TaskID) => void;
-    delete: (id: TaskID) => void;
+    update: (id: TaskID, props: Partial<Task>) => void;
   };
   tasks: TunnelNode[];
 }

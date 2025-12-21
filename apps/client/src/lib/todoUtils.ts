@@ -76,8 +76,8 @@ export function canMarkDone(item: TunnelNode): boolean {
  * - Task items have `type: 'task'` with a valid TaskID.
  */
 export type BreadcrumbItem =
-  | {type: 'root'; title: string; path: TaskID[]}
-  | {type: 'task'; id: TaskID; title: string; path: TaskID[]};
+  | {path: TaskID[]; title: string; type: 'root'}
+  | {id: TaskID; path: TaskID[]; title: string; type: 'task'};
 
 /**
  * Generates breadcrumb navigation data for the current view path.
