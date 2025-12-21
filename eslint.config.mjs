@@ -144,6 +144,24 @@ export const sharedConfig = [
           partitionByNewLine: true,
         },
       ],
+      'perfectionist/sort-classes': [
+        'error',
+        {
+          type: 'natural',
+          order: 'asc',
+          groups: [
+            'static-property',
+            'static-block',
+            'property',
+            'constructor',
+            'method',
+            'static-method',
+            'unknown',
+          ],
+          partitionByComment: true,
+          partitionByNewLine: true,
+        },
+      ],
     },
   },
   // Add config file overrides to disable type-checked rules globally.
