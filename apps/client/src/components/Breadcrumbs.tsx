@@ -19,7 +19,7 @@ export function Breadcrumbs({crumbs, onNavigate}: BreadcrumbsProps) {
 
     if (isLast) {
       return (
-        <Text key={key} c="dimmed">
+        <Text c="dimmed" key={key}>
           {crumb.title}
         </Text>
       );
@@ -27,13 +27,13 @@ export function Breadcrumbs({crumbs, onNavigate}: BreadcrumbsProps) {
 
     return (
       <Anchor
-        key={key}
         component="button"
-        type="button"
+        key={key}
         onClick={() => {
           onNavigate(crumb.path);
         }}
         size="sm"
+        type="button"
       >
         {crumb.title}
       </Anchor>
@@ -41,7 +41,7 @@ export function Breadcrumbs({crumbs, onNavigate}: BreadcrumbsProps) {
   });
 
   return (
-    <MantineBreadcrumbs separator="→" mt="xs">
+    <MantineBreadcrumbs mt="xs" separator="→">
       {items}
     </MantineBreadcrumbs>
   );

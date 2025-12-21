@@ -46,16 +46,16 @@ export function InlineInput({
 
   return (
     <TextInput
-      ref={inputRef}
-      variant="unstyled"
-      value={value}
+      onBlur={handleBlur}
       onChange={e => {
         setValue(e.currentTarget.value);
       }}
       onKeyDown={handleKeyDown}
-      onBlur={handleBlur}
       placeholder={placeholder}
+      ref={inputRef}
       styles={{input: {padding: 0, height: 'auto', minHeight: 0}}}
+      value={value}
+      variant="unstyled"
     />
   );
 }

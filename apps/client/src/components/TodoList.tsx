@@ -88,31 +88,31 @@ export function TodoList({
           <Box key={id}>
             <TodoItem
               id={id}
-              item={item}
-              path={fullPath}
-              isExpanded={isExpanded}
               isEditing={isEditing}
+              isExpanded={isExpanded}
+              item={item}
+              onCancelEdit={onCancelEdit}
+              onSaveEdit={onSaveEdit}
+              onStartEdit={onStartEdit}
               onToggleDone={onToggleDone}
               onToggleExpand={onToggleExpand}
-              onStartEdit={onStartEdit}
-              onSaveEdit={onSaveEdit}
-              onCancelEdit={onCancelEdit}
+              path={fullPath}
             />
 
             {/* Render children if expanded */}
             {isExpanded && (
               <TodoList
-                list={item.children}
                 basePath={fullPath}
                 depth={depth + 1}
-                expandedIds={expandedIds}
                 editingId={editingId}
+                expandedIds={expandedIds}
+                list={item.children}
+                onAddItem={onAddItem}
+                onCancelEdit={onCancelEdit}
+                onSaveEdit={onSaveEdit}
+                onStartEdit={onStartEdit}
                 onToggleDone={onToggleDone}
                 onToggleExpand={onToggleExpand}
-                onStartEdit={onStartEdit}
-                onSaveEdit={onSaveEdit}
-                onCancelEdit={onCancelEdit}
-                onAddItem={onAddItem}
               />
             )}
           </Box>
@@ -124,27 +124,27 @@ export function TodoList({
         {isAdding ? (
           <InlineInput
             initialValue=""
-            onSave={title => {
-              onAddItem(basePath, title);
+            onCancel={() => {
               setIsAdding(false);
             }}
-            onCancel={() => {
+            onSave={title => {
+              onAddItem(basePath, title);
               setIsAdding(false);
             }}
             placeholder="New task title..."
           />
         ) : (
           <Button
-            variant="subtle"
-            size="sm"
             color="gray"
+            fullWidth
+            justify="flex-start"
+            leftSection="+"
             onClick={() => {
               setIsAdding(true);
             }}
-            fullWidth
-            justify="flex-start"
             pl={0}
-            leftSection="+"
+            size="sm"
+            variant="subtle"
           >
             Add Item
           </Button>

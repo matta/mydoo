@@ -59,19 +59,19 @@ export function TodoItem({
   return (
     <Group
       align="center"
+      className={`todo-item ${item.status === TaskStatus.Done ? 'done' : ''}`}
       gap="xs"
       wrap="nowrap"
-      className={`todo-item ${item.status === TaskStatus.Done ? 'done' : ''}`}
     >
       {/* Expand/Collapse Button */}
       <ActionIcon
-        variant="subtle"
-        size="sm"
+        aria-label={isExpanded ? 'Collapse' : 'Expand'}
         color="gray"
         onClick={() => {
           onToggleExpand(path);
         }}
-        aria-label={isExpanded ? 'Collapse' : 'Expand'}
+        size="sm"
+        variant="subtle"
       >
         {isExpanded ? '▼' : '▶'}
       </ActionIcon>
@@ -83,8 +83,8 @@ export function TodoItem({
         onChange={() => {
           onToggleDone(path);
         }}
-        title={canComplete ? '' : 'Complete all children first'}
         size="sm"
+        title={canComplete ? '' : 'Complete all children first'}
         // indeterminate={item.status === "Pending" && hasDoneChildren?} // Maybe later
       />
 
@@ -93,10 +93,10 @@ export function TodoItem({
         {isEditing ? (
           <InlineInput
             initialValue={item.title}
+            onCancel={onCancelEdit}
             onSave={newTitle => {
               onSaveEdit(path, newTitle);
             }}
-            onCancel={onCancelEdit}
           />
         ) : (
           <Text

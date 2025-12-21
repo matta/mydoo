@@ -110,6 +110,13 @@ export const sharedConfig = [
           order: 'asc',
         },
       ],
+      'perfectionist/sort-jsx-props': [
+        'error',
+        {
+          type: 'natural',
+          order: 'asc',
+        },
+      ],
     },
   },
   // Add config file overrides to disable type-checked rules globally.

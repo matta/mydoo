@@ -167,7 +167,7 @@ export function TodoApp() {
     // Invalid path, reset to root
     setViewPath([]);
     return (
-      <Container size="sm" py="xl">
+      <Container py="xl" size="sm">
         <Loader />
         {/* Resetting view... */}
       </Container>
@@ -177,15 +177,15 @@ export function TodoApp() {
   const breadcrumbs = getBreadcrumbs(tasks, viewPath);
 
   return (
-    <Container size="sm" py="xl">
+    <Container py="xl" size="sm">
       <Group justify="space-between" mb="lg">
         <Title order={1}>Mydoo</Title>
         <Button
           color="red"
-          variant="subtle"
-          size="sm"
-          onClick={handleCleanup}
           leftSection="🧹"
+          onClick={handleCleanup}
+          size="sm"
+          variant="subtle"
         >
           Cleanup Done
         </Button>
@@ -195,17 +195,17 @@ export function TodoApp() {
         <Breadcrumbs crumbs={breadcrumbs} onNavigate={handleNavigate} />
 
         <TodoList
-          list={currentList}
           basePath={viewPath}
           depth={0}
-          expandedIds={expandedIds}
           editingId={editingId}
+          expandedIds={expandedIds}
+          list={currentList}
+          onAddItem={handleAddItem}
+          onCancelEdit={handleCancelEdit}
+          onSaveEdit={handleSaveEdit}
+          onStartEdit={handleStartEdit}
           onToggleDone={handleToggleDone}
           onToggleExpand={handleToggleExpand}
-          onStartEdit={handleStartEdit}
-          onSaveEdit={handleSaveEdit}
-          onCancelEdit={handleCancelEdit}
-          onAddItem={handleAddItem}
         />
       </Stack>
     </Container>
