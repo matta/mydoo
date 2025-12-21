@@ -1,4 +1,5 @@
 import {type TaskID} from '@mydoo/tasklens';
+
 import {type BreadcrumbItem} from '../lib/todoUtils';
 
 /**
@@ -9,7 +10,7 @@ interface BreadcrumbsProps {
   onNavigate: (path: TaskID[]) => void;
 }
 
-import {Breadcrumbs as MantineBreadcrumbs, Anchor, Text} from '@mantine/core';
+import {Anchor, Breadcrumbs as MantineBreadcrumbs, Text} from '@mantine/core';
 
 export function Breadcrumbs({crumbs, onNavigate}: BreadcrumbsProps) {
   const items = crumbs.map((crumb, index) => {

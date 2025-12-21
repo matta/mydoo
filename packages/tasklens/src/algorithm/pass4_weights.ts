@@ -1,5 +1,6 @@
 import * as Automerge from '@automerge/automerge';
-import type {Task, TunnelState, TaskID} from '../../src/types';
+
+import type {Task, TaskID, TunnelState} from '../../src/types';
 
 /**
  * Pass 4: Weight Normalization

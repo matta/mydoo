@@ -1,3 +1,4 @@
+import {type AnyDocumentId} from '@automerge/automerge-repo';
 /**
  * React integration for the Tunnel data model.
  *
@@ -16,17 +17,17 @@
  *   necessary because Automerge documents are untyped at runtime.
  */
 import {useDocument} from '@automerge/automerge-repo-react-hooks';
+import {useCallback, useMemo} from 'react';
+
+import * as TunnelOps from './ops';
+import {TunnelStateSchema} from './schemas';
 import {
-  type TunnelState,
   type Task,
   type TaskID,
-  type TunnelNode,
   TaskStatus,
+  type TunnelNode,
+  type TunnelState,
 } from './types';
-import {type AnyDocumentId} from '@automerge/automerge-repo';
-import * as TunnelOps from './ops';
-import {useCallback, useMemo} from 'react';
-import {TunnelStateSchema} from './schemas';
 
 /**
  * Return type of the `useTunnel` hook.

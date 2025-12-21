@@ -18,7 +18,8 @@
  * and compile-time type safety.
  */
 import {z} from 'zod';
-import {TaskIDSchema, PlaceIDSchema} from './schemas';
+
+import {PlaceIDSchema, TaskIDSchema} from './schemas';
 
 /**
  * Unique identifier for a Task.

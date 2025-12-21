@@ -1,4 +1,5 @@
-import {describe, it, expect, beforeEach, afterEach} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+
 import {TunnelStore} from '../../src/store';
 import {type Task, type TaskID, TaskStatus} from '../../src/types';
 import {

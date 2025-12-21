@@ -1,5 +1,5 @@
 import {TextInput} from '@mantine/core';
-import {useState, useRef, useEffect} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 interface InlineInputProps {
   initialValue: string;

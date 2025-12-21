@@ -1,3 +1,5 @@
+export * as TunnelOps from './ops';
+export * from './react';
 /**
  * @mydoo/tasklens - Task management data model and operations.
  *
@@ -32,5 +34,3 @@
  */
 export {TunnelStore} from './store';
 export * from './types';
-export * as TunnelOps from './ops';
-export * from './react';

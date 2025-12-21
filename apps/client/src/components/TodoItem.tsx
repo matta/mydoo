@@ -10,9 +10,10 @@
  * are passed in as props from the parent. It does not manage its own state.
  */
 import {ActionIcon, Checkbox, Group, Text} from '@mantine/core';
-import {InlineInput} from './InlineInput';
-import {type TunnelNode, type TaskID, TaskStatus} from '@mydoo/tasklens';
+import {type TaskID, TaskStatus, type TunnelNode} from '@mydoo/tasklens';
+
 import {canMarkDone} from '../lib/todoUtils';
+import {InlineInput} from './InlineInput';
 
 /**
  * Props for the TodoItem component.

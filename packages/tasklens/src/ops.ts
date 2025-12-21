@@ -23,14 +23,14 @@
  * Automerge cannot proxy JavaScript Map or Set types.
  */
 import {
+  type Schedule,
   type Task,
-  type TunnelState,
   type TaskID,
   TaskStatus,
   type TunnelNode,
-  type Schedule,
+  type TunnelState,
 } from './types';
-import {getCurrentTimestamp, daysToMilliseconds} from './utils/time';
+import {daysToMilliseconds, getCurrentTimestamp} from './utils/time';
 
 // --- Mutators ---
 

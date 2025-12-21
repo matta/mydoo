@@ -16,17 +16,17 @@
  * considered for ranking.
  */
 import * as Automerge from '@automerge/automerge';
-import {
-  type Task,
-  type Place,
-  type TunnelState,
-  type ViewFilter,
-  type TaskID,
-  type PlaceID,
-  ANYWHERE_PLACE_ID,
-} from '../../src/types';
 
 import type {OpenHours} from '../../specs/compliance/schemas/test_case';
+import {
+  ANYWHERE_PLACE_ID,
+  type Place,
+  type PlaceID,
+  type Task,
+  type TaskID,
+  type TunnelState,
+  type ViewFilter,
+} from '../../src/types';
 
 // Helper to get place from a given doc state
 function _getPlaceFromDoc(

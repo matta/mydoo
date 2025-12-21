@@ -1,14 +1,14 @@
 import * as Automerge from '@automerge/automerge';
+
 import {TunnelStore} from '../../src/store';
 import {
+  type Context,
   type Task,
   type TaskID,
-  type ViewFilter,
-  type Context,
   type TunnelState,
+  type ViewFilter,
 } from '../../src/types';
 import {getCurrentTimestamp} from '../../src/utils/time';
-
 import {pass1ContextualVisibility} from './pass1_visibility';
 import {pass2ScheduleInheritance} from './pass2_schedule';
 import {pass3DeviationFeedback} from './pass3_thermostat';

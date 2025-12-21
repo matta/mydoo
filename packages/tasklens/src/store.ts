@@ -17,16 +17,17 @@
  * The store delegates actual mutations to the pure functions in `ops.ts`.
  */
 import * as Automerge from '@automerge/automerge';
-import {
-  type Task,
-  type TunnelState,
-  type TaskID,
-  type ViewFilter,
-  type Context,
-  ANYWHERE_PLACE_ID,
-} from './types';
+
 import {recalculateScores as runRecalculateScores} from './algorithm';
 import * as TunnelOps from './ops';
+import {
+  ANYWHERE_PLACE_ID,
+  type Context,
+  type Task,
+  type TaskID,
+  type TunnelState,
+  type ViewFilter,
+} from './types';
 
 /**
  * A store that wraps an Automerge document containing task state.

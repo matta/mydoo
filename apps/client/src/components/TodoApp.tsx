@@ -1,3 +1,13 @@
+import type {AnyDocumentId} from '@automerge/automerge-repo';
+import {useRepo} from '@automerge/automerge-repo-react-hooks';
+import {Button, Container, Group, Loader, Stack, Title} from '@mantine/core';
+import {
+  type TaskID,
+  TaskStatus,
+  type TunnelNode,
+  type TunnelState,
+  useTunnel,
+} from '@mydoo/tasklens';
 /**
  * TodoApp: Main application component for the task management UI.
  *
@@ -17,20 +27,11 @@
  *   passed as props to child components.
  * - **useTunnel hook**: Provides reactive access to the Automerge document.
  */
-import {useState, useCallback} from 'react';
-import {useRepo} from '@automerge/automerge-repo-react-hooks';
-import type {AnyDocumentId} from '@automerge/automerge-repo';
-import {Container, Title, Button, Group, Loader, Stack} from '@mantine/core';
+import {useCallback, useState} from 'react';
+
+import {getBreadcrumbs, getListAtPath} from '../lib/todoUtils';
 import {Breadcrumbs} from './Breadcrumbs';
 import {TodoList} from './TodoList';
-import {getBreadcrumbs, getListAtPath} from '../lib/todoUtils';
-import {
-  useTunnel,
-  type TunnelNode,
-  type TunnelState,
-  type TaskID,
-  TaskStatus,
-} from '@mydoo/tasklens';
 
 export function TodoApp() {
   const repo = useRepo();

@@ -1,3 +1,5 @@
+import {Box, Button, Stack} from '@mantine/core';
+import {type TaskID, type TunnelNode} from '@mydoo/tasklens';
 /**
  * TodoList: Renders a list of tasks at a given level in the hierarchy.
  *
@@ -14,10 +16,9 @@
  * child, which allows the task tree to be displayed to arbitrary depth.
  */
 import {useState} from 'react';
-import {Stack, Button, Box} from '@mantine/core';
-import {TodoItem} from './TodoItem';
+
 import {InlineInput} from './InlineInput';
-import {type TunnelNode, type TaskID} from '@mydoo/tasklens';
+import {TodoItem} from './TodoItem';
 
 /**
  * Props for the TodoList component.

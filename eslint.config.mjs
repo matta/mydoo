@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
 import sonarjs from 'eslint-plugin-sonarjs';
+import perfectionist from 'eslint-plugin-perfectionist';
 
 /** Standard ignore patterns for all packages */
 const sharedIgnores = {
@@ -27,6 +28,7 @@ export const sharedConfig = [
     plugins: {
       '@typescript-eslint': tseslint.plugin,
       sonarjs,
+      perfectionist,
     },
     languageOptions: {
       globals: {...globals.node, ...globals.browser},
@@ -70,6 +72,44 @@ export const sharedConfig = [
       // TODO: Reduce Cognitive Complexity. The default for this plugin is 15.
       // We are at 40 to allow existing complex algorithm logic to pass.
       'sonarjs/cognitive-complexity': ['error', 40],
+
+      // Perfectionist Rules
+      'perfectionist/sort-imports': [
+        'error',
+        {
+          type: 'natural',
+          order: 'asc',
+          groups: [
+            ['builtin', 'external'],
+            'internal',
+            ['parent', 'sibling', 'index'],
+            'side-effect',
+            'style',
+            'unknown',
+          ],
+        },
+      ],
+      'perfectionist/sort-named-imports': [
+        'error',
+        {
+          type: 'natural',
+          order: 'asc',
+        },
+      ],
+      'perfectionist/sort-exports': [
+        'error',
+        {
+          type: 'natural',
+          order: 'asc',
+        },
+      ],
+      'perfectionist/sort-named-exports': [
+        'error',
+        {
+          type: 'natural',
+          order: 'asc',
+        },
+      ],
     },
   },
   // Add config file overrides to disable type-checked rules globally.

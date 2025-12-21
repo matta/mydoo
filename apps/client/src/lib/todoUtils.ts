@@ -4,7 +4,7 @@
  * These functions operate on `TunnelNode` objects, which represent tasks
  * with their children already resolved into a tree structure.
  */
-import {type TunnelNode, type TaskID, TaskStatus} from '@mydoo/tasklens';
+import {type TaskID, TaskStatus, type TunnelNode} from '@mydoo/tasklens';
 
 /**
  * Navigates into a nested task list by following a path of task IDs.

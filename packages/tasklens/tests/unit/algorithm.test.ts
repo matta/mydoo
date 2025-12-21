@@ -1,31 +1,32 @@
-import {describe, it, expect, beforeAll, afterAll} from 'vitest';
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import * as yaml from 'js-yaml';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
-import {TunnelStore} from '../../src/store';
-import {
-  type Task,
-  type Place,
-  type TaskID,
-  type PlaceID,
-  TaskStatus as StoreTaskStatus,
-  type ViewFilter,
-  TaskStatus,
-} from '../../src/types';
-import {
-  mockCurrentTimestamp,
-  resetCurrentTimestampMock,
-  daysToMilliseconds,
-  getCurrentTimestamp,
-} from '../../src/utils/time';
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
+
 import type {
-  TunnelAlgorithmTestCaseSchema,
-  TaskInput,
   Place as PlaceInput,
+  TaskInput,
+  TunnelAlgorithmTestCaseSchema,
 } from '../../specs/compliance/schemas/test_case';
 import schemaJson from '../../specs/compliance/schemas/test_case.schema.json';
+import {TunnelStore} from '../../src/store';
+import {
+  type Place,
+  type PlaceID,
+  TaskStatus as StoreTaskStatus,
+  type Task,
+  type TaskID,
+  TaskStatus,
+  type ViewFilter,
+} from '../../src/types';
+import {
+  daysToMilliseconds,
+  getCurrentTimestamp,
+  mockCurrentTimestamp,
+  resetCurrentTimestampMock,
+} from '../../src/utils/time';
 
 const ajv = new Ajv();
 addFormats(ajv);
