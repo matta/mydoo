@@ -26,8 +26,10 @@ describe("Quickstart Integration", () => {
 
     // Email should be visible and sorted
     expect(todos.length).toBeGreaterThan(0);
-    expect(todos[0].id).toBe(task.id);
-    expect(todos[0].priority).toBeGreaterThan(0);
+    const firstTodo = todos[0];
+    if (!firstTodo) throw new Error("Expected at least one todo");
+    expect(firstTodo.id).toBe(task.id);
+    expect(firstTodo.priority ?? 0).toBeGreaterThan(0);
 
     // Verify Work (Root) is hidden (Container Visibility Pass 7)
     // Work has a visible child (Email), so Work should be hidden.

@@ -1,4 +1,4 @@
-import { Task } from "../../src/types";
+import type { Task } from "../../src/types";
 
 /**
  * Pass 2: Schedule Inheritance

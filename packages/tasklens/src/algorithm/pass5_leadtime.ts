@@ -1,5 +1,4 @@
-import * as Automerge from "@automerge/automerge";
-import { Task, TunnelState } from "../../src/types";
+import type { Task } from "../../src/types";
 
 /**
  * Pass 5: Lead Time Ramp
@@ -10,11 +9,7 @@ import { Task, TunnelState } from "../../src/types";
  * @param tasks All tasks in the document.
  * @param currentTime The current timestamp in milliseconds.
  */
-export function pass5LeadTimeRamp(
-  doc: Automerge.Doc<TunnelState>,
-  tasks: Task[],
-  currentTime: number,
-): void {
+export function pass5LeadTimeRamp(tasks: Task[], currentTime: number): void {
   tasks.forEach((task) => {
     // If no schedule or no dueDate, leadTimeFactor is neutral (1.0 or 0.0 depending on desired default for un-scheduled tasks)
     // The spec example shows 0.0 for "Too early (Hidden)", suggesting un-scheduled are hidden.

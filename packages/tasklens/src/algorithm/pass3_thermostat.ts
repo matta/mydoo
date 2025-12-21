@@ -1,5 +1,5 @@
 import * as Automerge from "@automerge/automerge";
-import { Task, TunnelState, TaskID } from "../../src/types";
+import type { Task, TunnelState, TaskID } from "../../src/types";
 
 /**
  * Pass 3: Deviation Feedback (The "Thermostat")
@@ -40,6 +40,7 @@ export function pass3DeviationFeedback(
 
   for (const taskId in doc.tasks) {
     const task = doc.tasks[taskId];
+    if (!task) return;
     const timeDelta = getCurrentTimestamp() - task.creditsTimestamp;
     task.effectiveCredits =
       task.credits * Math.pow(0.5, timeDelta / halfLifeMillis);

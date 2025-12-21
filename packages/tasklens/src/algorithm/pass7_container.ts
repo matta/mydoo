@@ -1,5 +1,5 @@
 import * as Automerge from "@automerge/automerge";
-import { Task, TunnelState, TaskID } from "../../src/types";
+import type { Task, TunnelState, TaskID } from "../../src/types";
 
 /**
  * Pass 7: Container Visibility

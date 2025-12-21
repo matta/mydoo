@@ -3,11 +3,13 @@ export type PlaceID = string;
 
 export const ANYWHERE_PLACE_ID: PlaceID = "Anywhere";
 
-export enum TaskStatus {
-  Pending = "Pending",
-  Done = "Done",
-  Deleted = "Deleted",
-}
+export const TaskStatus = {
+  Pending: "Pending",
+  Done: "Done",
+  Deleted: "Deleted",
+} as const;
+
+export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
 
 export interface ViewFilter {
   placeId?: PlaceID; // Can be 'All'

@@ -1,11 +1,11 @@
 import * as Automerge from "@automerge/automerge";
 import { TunnelStore } from "../../src/store";
 import {
-  Task,
-  TaskID,
-  ViewFilter,
-  Context,
-  TunnelState,
+  type Task,
+  type TaskID,
+  type ViewFilter,
+  type Context,
+  type TunnelState,
 } from "../../src/types";
 import { getCurrentTimestamp } from "../../src/utils/time";
 
@@ -28,7 +28,7 @@ export function recalculateScores(
     const tasks = Object.values(doc.tasks);
 
     // Pass 1: Contextual Visibility
-    pass1ContextualVisibility(doc, tasks, viewFilter, currentTime);
+    pass1ContextualVisibility(doc, viewFilter, currentTime);
 
     // Helpers
     const getTaskFromDoc = (
@@ -66,10 +66,10 @@ export function recalculateScores(
     pass3DeviationFeedback(doc, tasks, getTaskFromDoc, getChildrenFromDoc);
 
     // Pass 4: Weight Normalization
-    pass4WeightNormalization(doc, tasks, getTaskFromDoc, getChildrenFromDoc);
+    pass4WeightNormalization(doc, tasks, getChildrenFromDoc);
 
     // Pass 5: Lead Time Ramp
-    pass5LeadTimeRamp(doc, tasks, currentTime);
+    pass5LeadTimeRamp(tasks, currentTime);
 
     // Pass 6: Final Priority
     pass6FinalPriority(doc, tasks, getAncestorsFromDoc);

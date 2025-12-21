@@ -1,6 +1,7 @@
 {
   "name": "@mydoo/tasklens",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,6 +9,7 @@
     "lint": "eslint \"{src,tests}/**/*.{ts,tsx}\"",
     "fix": "eslint --fix \"{src,tests}/**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
+    "build": "pnpm run typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "generate-types": "json2ts ./specs/compliance/schemas/test_case.schema.json ./specs/compliance/schemas/test_case.d.ts && prettier --write ./specs/compliance/schemas/test_case.d.ts",

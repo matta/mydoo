@@ -1,12 +1,12 @@
 import * as Automerge from "@automerge/automerge";
 import {
-  Task,
-  TunnelState,
-  TaskID,
+  type Task,
+  type TunnelState,
+  type TaskID,
+  type Schedule,
+  type ViewFilter,
+  type Context,
   TaskStatus,
-  Schedule,
-  ViewFilter,
-  Context,
   ANYWHERE_PLACE_ID,
 } from "./types";
 import { recalculateScores as runRecalculateScores } from "./algorithm";

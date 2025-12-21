@@ -1,5 +1,5 @@
 import * as Automerge from "@automerge/automerge";
-import { Task, TunnelState, TaskID } from "../../src/types";
+import type { Task, TunnelState, TaskID } from "../../src/types";
 
 /**
  * Pass 6: Final Priority
@@ -20,7 +20,7 @@ export function pass6FinalPriority(
   tasks.forEach((task) => {
     // Get the root task's feedback factor
     const ancestors = getAncestorsFromDoc(doc, task.id);
-    const rootTask = ancestors[0] || task; // If no ancestors, it's a root itself
+    const rootTask = ancestors[0] ?? task; // If no ancestors, it's a root itself
 
     const visibilityFactor = task.visibility ? 1.0 : 0.0;
     const normalizedImportanceFactor = task.normalizedImportance ?? 0.0;

@@ -1,21 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "strict": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "rootDir": ".",
-    "noEmit": true
-  },
-  "include": [
-    "src/**/*.ts",
-    "tests/**/*.ts",
-    "eslint.config.mjs",
-    "vitest.config.ts"
-  ],
-  "exclude": ["node_modules", "dist"]
+  "extends": "../../tsconfig.json",
+  "include": ["src", "tests", "*.config.*"]
 }

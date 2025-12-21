@@ -1,5 +1,5 @@
 import * as Automerge from "@automerge/automerge";
-import { Task, TunnelState, TaskID } from "../../src/types";
+import type { Task, TunnelState, TaskID } from "../../src/types";
 
 /**
  * Pass 4: Weight Normalization
@@ -8,13 +8,11 @@ import { Task, TunnelState, TaskID } from "../../src/types";
  *
  * @param doc The current Automerge document state (mutable proxy).
  * @param tasks All tasks in the document.
- * @param getTaskFromDoc Helper to get a task from the current document state.
  * @param getChildrenFromDoc Helper to get children from the current document state.
  */
 export function pass4WeightNormalization(
   doc: Automerge.Doc<TunnelState>,
   tasks: Task[],
-  getTaskFromDoc: (docState: TunnelState, id: TaskID) => Task | undefined,
   getChildrenFromDoc: (
     docState: TunnelState,
     parentId: TaskID | null,

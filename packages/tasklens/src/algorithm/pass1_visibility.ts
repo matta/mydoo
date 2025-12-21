@@ -1,14 +1,14 @@
 import * as Automerge from "@automerge/automerge";
 import {
-  Task,
-  Place,
-  TunnelState,
-  ViewFilter,
-  TaskID,
+  type Task,
+  type Place,
+  type TunnelState,
+  type ViewFilter,
+  type TaskID,
   ANYWHERE_PLACE_ID,
 } from "../../src/types";
 
-import { OpenHours } from "../../specs/compliance/schemas/test_case";
+import type { OpenHours } from "../../specs/compliance/schemas/test_case";
 
 // Helper to get place from a given doc state
 function _getPlaceFromDoc(
@@ -46,18 +46,24 @@ function _isPlaceOpen(place: Place, currentTime: number): boolean {
       const dayOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
         date.getUTCDay()
       ];
+      if (!dayOfWeek) return false;
       const currentHour = date.getUTCHours();
       const currentMinute = date.getUTCMinutes();
 
-      const daySchedule = openHours.schedule[dayOfWeek] as string[] | undefined;
+      const daySchedule = openHours.schedule[dayOfWeek];
       if (daySchedule) {
         for (const range of daySchedule) {
           const [start, end] = range.split("-").map((time) => {
             const [h, m] = time.split(":").map(Number);
-            return h * 60 + m; // Convert to minutes past midnight
+            return (h ?? 0) * 60 + (m ?? 0); // Convert to minutes past midnight
           });
           const currentTimeInMinutes = currentHour * 60 + currentMinute;
-          if (currentTimeInMinutes >= start && currentTimeInMinutes < end) {
+          if (
+            start !== undefined &&
+            end !== undefined &&
+            currentTimeInMinutes >= start &&
+            currentTimeInMinutes < end
+          ) {
             return true;
           }
         }
@@ -80,7 +86,6 @@ function _isPlaceOpen(place: Place, currentTime: number): boolean {
  */
 export function pass1ContextualVisibility(
   doc: Automerge.Doc<TunnelState>,
-  tasks: Task[],
   viewFilter: ViewFilter,
   currentTime: number,
 ): void {
@@ -88,9 +93,11 @@ export function pass1ContextualVisibility(
     const task = doc.tasks[taskId];
 
     // 1. Resolve Effective Place
-    let effectivePlaceId: TaskID | null = task.placeId;
-    if (effectivePlaceId === null && task.parentId !== null) {
-      let currentParent: Task | undefined = doc.tasks[task.parentId];
+    let effectivePlaceId: TaskID | null = task?.placeId ?? null;
+    if (effectivePlaceId === null && task?.parentId !== null) {
+      let currentParent: Task | undefined = task?.parentId
+        ? doc.tasks[task.parentId]
+        : undefined;
       while (currentParent?.placeId === null) {
         currentParent = currentParent.parentId
           ? doc.tasks[currentParent.parentId]
@@ -139,6 +146,8 @@ export function pass1ContextualVisibility(
     }
 
     // Final Visibility for this pass
-    task.visibility = isOpen && filterMatch;
+    if (task) {
+      task.visibility = isOpen && filterMatch;
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TunnelStore } from "../../src/store";
-import { Task, TaskStatus } from "../../src/types";
+import { type Task, TaskStatus } from "../../src/types";
 import {
   mockCurrentTimestamp,
   resetCurrentTimestampMock,

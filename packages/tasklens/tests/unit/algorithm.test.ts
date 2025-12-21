@@ -6,10 +6,11 @@ import Ajv from "ajv";
 import addFormats from "ajv-formats";
 import { TunnelStore } from "../../src/store";
 import {
-  Task,
-  Place,
+  type Task,
+  type Place,
   TaskStatus as StoreTaskStatus,
-  ViewFilter,
+  type ViewFilter,
+  TaskStatus,
 } from "../../src/types";
 import {
   mockCurrentTimestamp,
@@ -17,7 +18,7 @@ import {
   daysToMilliseconds,
   getCurrentTimestamp,
 } from "../../src/utils/time";
-import {
+import type {
   TunnelAlgorithmTestCaseSchema,
   TaskInput,
   Place as PlaceInput,
@@ -65,7 +66,9 @@ function parseTaskInput(
     title: input.title ?? "Default Task",
     parentId: parentId, // Use the string ID directly
     placeId: input.place_id ?? null,
-    status: input.status ? statusMap[input.status] : StoreTaskStatus.Pending,
+    status:
+      (input.status ? statusMap[input.status] : undefined) ??
+      TaskStatus.Pending,
     importance: input.importance ?? 1.0,
     creditIncrement: 1.0, // Default
     credits: input.credits ?? 0.0,
