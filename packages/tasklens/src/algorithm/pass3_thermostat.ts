@@ -39,7 +39,7 @@ export function pass3DeviationFeedback(
   const halfLifeMillis = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
   for (const taskId in doc.tasks) {
-    const task = doc.tasks[taskId];
+    const task = doc.tasks[taskId as TaskID];
     if (!task) return;
     const timeDelta = getCurrentTimestamp() - task.creditsTimestamp;
     task.effectiveCredits =

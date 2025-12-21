@@ -11,6 +11,10 @@
       "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts", "test/**/*.tsx"]
     },
     "lint": {},
-    "format": {}
+    "format": {},
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
   }
 }

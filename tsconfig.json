@@ -1,4 +1,11 @@
 {
+  // Solution-style tsconfig for the monorepo.
+  // This file doesn't compile anything itself; it references all packages
+  // so `tsc -b` can build the entire project in dependency order.
+  //
+  // Each package builds its own declarations; consuming packages use
+  // project references for IDE support while importing source directly
+  // for bundler HMR.
   "files": [],
   "references": [{ "path": "./apps/client" }, { "path": "./packages/tasklens" }]
 }

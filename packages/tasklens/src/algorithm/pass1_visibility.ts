@@ -1,3 +1,20 @@
+/**
+ * Pass 1: Contextual Visibility Algorithm
+ *
+ * This module implements the first pass of the task prioritization algorithm.
+ * It determines which tasks should be visible based on the user's current
+ * physical context (location) and time.
+ *
+ * The algorithm:
+ * 1. Resolves each task's "effective place" by walking up the parent chain
+ *    until a place is found (tasks inherit their parent's place if not set).
+ * 2. Checks if the effective place is currently "open" based on its schedule.
+ * 3. Checks if the task matches the current view filter (selected location).
+ * 4. Sets `task.visibility = isOpen && filterMatch`.
+ *
+ * This pass runs before priority calculations, so only visible tasks are
+ * considered for ranking.
+ */
 import * as Automerge from "@automerge/automerge";
 import {
   type Task,
@@ -5,6 +22,7 @@ import {
   type TunnelState,
   type ViewFilter,
   type TaskID,
+  type PlaceID,
   ANYWHERE_PLACE_ID,
 } from "../../src/types";
 
@@ -13,15 +31,14 @@ import type { OpenHours } from "../../specs/compliance/schemas/test_case";
 // Helper to get place from a given doc state
 function _getPlaceFromDoc(
   docState: TunnelState,
-  id: TaskID,
+  id: PlaceID,
 ): Place | undefined {
   return docState.places[id];
 }
 
 // Helper to ensure exhaustive switch case matching
-function assertUnreachable(x: never): never {
-  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  throw new Error(`Unexpected value: ${x}`);
+function assertUnreachable(_: never): never {
+  throw new Error("Unexpected value in exhaustive check");
 }
 
 // Helper to check if a place is open
@@ -90,10 +107,10 @@ export function pass1ContextualVisibility(
   currentTime: number,
 ): void {
   for (const taskId in doc.tasks) {
-    const task = doc.tasks[taskId];
+    const task = doc.tasks[taskId as TaskID];
 
     // 1. Resolve Effective Place
-    let effectivePlaceId: TaskID | null = task?.placeId ?? null;
+    let effectivePlaceId: PlaceID | null = task?.placeId ?? null;
     if (effectivePlaceId === null && task?.parentId !== null) {
       let currentParent: Task | undefined = task?.parentId
         ? doc.tasks[task.parentId]

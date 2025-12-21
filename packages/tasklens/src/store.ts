@@ -1,20 +1,69 @@
+/**
+ * TunnelStore: A wrapper around an Automerge document for algorithm testing.
+ *
+ * This class provides a higher-level API for managing the task state, primarily
+ * used in unit tests for the prioritization algorithm. For UI integration,
+ * use the `useTunnel` hook from `react.ts` instead.
+ *
+ * Key concepts:
+ * - **Automerge.from(state)**: Creates a new Automerge document from an initial
+ *   plain object. The document is a proxy that tracks all mutations.
+ * - **Automerge.change(doc, callback)**: Applies mutations to the document
+ *   within a tracked "change". This is how collaborative edits are captured
+ *   and can be synced to other clients.
+ * - **Automerge.save/load**: Serializes the document to/from a binary format
+ *   for persistence.
+ *
+ * The store delegates actual mutations to the pure functions in `ops.ts`.
+ */
 import * as Automerge from "@automerge/automerge";
 import {
   type Task,
   type TunnelState,
   type TaskID,
-  type Schedule,
   type ViewFilter,
   type Context,
-  TaskStatus,
   ANYWHERE_PLACE_ID,
 } from "./types";
 import { recalculateScores as runRecalculateScores } from "./algorithm";
-import { getCurrentTimestamp, daysToMilliseconds } from "./utils/time";
+import * as TunnelOps from "./ops";
 
+/**
+ * A store that wraps an Automerge document containing task state.
+ *
+ * This class is designed for use in unit tests and algorithm development.
+ * For React applications, use the `useTunnel` hook instead, which provides
+ * reactive updates when the document changes.
+ *
+ * @example
+ * ```typescript
+ * // Create a new store with empty state
+ * const store = new TunnelStore();
+ *
+ * // Create a task
+ * const task = store.createTask({ title: "Buy groceries" });
+ *
+ * // Update the task
+ * store.updateTask(task.id, { importance: 0.8 });
+ *
+ * // Save to binary format
+ * const bytes = store.save();
+ * ```
+ */
 export class TunnelStore {
+  /**
+   * The underlying Automerge document.
+   * This is a proxy object that tracks mutations for synchronization.
+   */
   public doc: Automerge.Doc<TunnelState>;
 
+  /**
+   * Creates a new TunnelStore.
+   *
+   * @param initialState - Optional initial state. If not provided, creates
+   *                       an empty state with no tasks or places.
+   * @throws Error if the initial state contains the reserved "Anywhere" place ID.
+   */
   constructor(initialState?: TunnelState) {
     if (initialState) {
       if (ANYWHERE_PLACE_ID in initialState.places) {
@@ -27,312 +76,174 @@ export class TunnelStore {
       this.doc = Automerge.from({
         tasks: {},
         places: {},
+        rootTaskIds: [],
         nextTaskId: 1,
         nextPlaceId: 1,
       });
     }
   }
 
+  /**
+   * Returns the current state as a read-only object.
+   * Alias for `doc` for convenience.
+   */
   get state(): TunnelState {
     return this.doc;
   }
 
-  // Helper to get task from a given doc state
-  private _getTaskFromDoc(docState: TunnelState, id: TaskID): Task | undefined {
-    return docState.tasks[id];
+  // --- CRUD Operations ---
+
+  /**
+   * Retrieves a task by ID.
+   *
+   * @param id - The ID of the task to retrieve.
+   * @returns The Task object, or undefined if not found.
+   */
+  getTask(id: TaskID): Task | undefined {
+    return TunnelOps.getTask(this.doc, id);
   }
 
-  // Helper to get children from a given doc state
-  private _getChildrenFromDoc(
-    docState: TunnelState,
-    parentId: TaskID | null,
-  ): Task[] {
-    return Object.values(docState.tasks).filter(
-      (task) => task.parentId === parentId,
-    );
+  /**
+   * Retrieves the immediate children of a task.
+   *
+   * @param parentId - The ID of the parent task, or null to get root tasks.
+   * @returns An array of child Task objects in display order.
+   */
+  getChildren(parentId: TaskID | null): Task[] {
+    return TunnelOps.getChildren(this.doc, parentId);
   }
 
-  // Helper to get ancestors from a given doc state
-  private _getAncestorsFromDoc(docState: TunnelState, id: TaskID): Task[] {
+  /**
+   * Retrieves all ancestors of a task, from root to immediate parent.
+   *
+   * @param id - The ID of the task whose ancestors to retrieve.
+   * @returns An array of ancestor Tasks, with the root first and immediate parent last.
+   *
+   * @example
+   * // For a task hierarchy: A -> B -> C
+   * store.getAncestors("C") // returns [A, B]
+   */
+  getAncestors(id: TaskID): Task[] {
     const ancestors: Task[] = [];
-    let currentTask = this._getTaskFromDoc(docState, id);
+    let currentTask = this.getTask(id);
     while (currentTask && currentTask.parentId !== null) {
-      const parent = this._getTaskFromDoc(docState, currentTask.parentId);
+      const parent = this.getTask(currentTask.parentId);
       if (parent) {
-        ancestors.unshift(parent); // Add to the beginning to maintain root-to-child order
+        ancestors.unshift(parent);
         currentTask = parent;
       } else {
-        // Parent not found, break to prevent infinite loop
         break;
       }
     }
     return ancestors;
   }
 
-  // --- CRUD Operations ---
-  getTask(id: TaskID): Task | undefined {
-    return this._getTaskFromDoc(this.doc, id);
-  }
-
-  // Public Getters for hierarchy
-  getChildren(parentId: TaskID | null): Task[] {
-    return this._getChildrenFromDoc(this.doc, parentId);
-  }
-
-  getAncestors(id: TaskID): Task[] {
-    return this._getAncestorsFromDoc(this.doc, id);
-  }
-
-  private _validateTaskProps(props: Partial<Task>): void {
-    if (props.credits !== undefined && props.credits < 0) {
-      throw new Error("Credits cannot be negative.");
-    }
-    if (props.desiredCredits !== undefined && props.desiredCredits < 0) {
-      throw new Error("DesiredCredits cannot be negative.");
-    }
-    if (props.creditIncrement !== undefined && props.creditIncrement < 0) {
-      throw new Error("CreditIncrement cannot be negative.");
-    }
-    if (props.schedule?.leadTime !== undefined && props.schedule.leadTime < 0) {
-      throw new Error("LeadTime cannot be negative.");
-    }
-    if (
-      props.importance !== undefined &&
-      (props.importance < 0 || props.importance > 1)
-    ) {
-      throw new Error("Importance must be between 0.0 and 1.0.");
-    }
-  }
-
-  private _getTaskDepthFromDoc(docState: TunnelState, taskId: TaskID): number {
-    let depth = 0;
-    let currentTask = this._getTaskFromDoc(docState, taskId);
-    while (currentTask && currentTask.parentId !== null) {
-      depth++;
-      currentTask = this._getTaskFromDoc(docState, currentTask.parentId);
-      if (depth > 20) {
-        // Max hierarchy depth check during traversal to prevent infinite loops and validate
-        throw new Error(
-          "Maximum hierarchy depth (20) exceeded during traversal.",
-        );
-      }
-    }
-    return depth;
-  }
-
+  /**
+   * Creates a new task and adds it to the state.
+   *
+   * @param props - Partial task properties. Omitted properties use defaults.
+   * @returns The newly created Task object.
+   * @throws Error if task creation fails.
+   *
+   * @example
+   * const task = store.createTask({ title: "New task", parentId: "1" });
+   */
   createTask(props: Partial<Task>): Task {
     let newTask: Task | undefined;
     this.doc = Automerge.change(this.doc, "Create task", (doc) => {
-      this._validateTaskProps(props);
-
-      const newTaskIdNum = doc.nextTaskId;
-      const newTaskId = String(newTaskIdNum); // Generate string ID
-
-      if (props.parentId !== null && props.parentId !== undefined) {
-        const parentTask = this._getTaskFromDoc(doc, props.parentId);
-        if (!parentTask) {
-          throw new Error(`Parent task with ID ${props.parentId} not found.`);
-        }
-        const parentDepth = this._getTaskDepthFromDoc(doc, props.parentId);
-        if (parentDepth >= 20) {
-          throw new Error(
-            "Cannot create task: parent already at maximum hierarchy depth (20).",
-          );
-        }
-      }
-
-      const defaultSchedule: Schedule = {
-        type: "Once",
-        dueDate: null,
-        leadTime: daysToMilliseconds(7),
-      }; // 7 days in ms
-      newTask = {
-        id: newTaskId, // Assign string ID
-        title: props.title ?? "New Task",
-        parentId: props.parentId ?? null,
-        placeId: props.placeId ?? null, // Default to null for now, will inherit later
-        status: props.status ?? TaskStatus.Pending,
-        importance: props.importance ?? 1.0,
-        creditIncrement: props.creditIncrement ?? 1.0,
-        credits: props.credits ?? 0.0,
-        desiredCredits: props.desiredCredits ?? 0.0,
-        creditsTimestamp: props.creditsTimestamp ?? getCurrentTimestamp(),
-        priorityTimestamp: props.priorityTimestamp ?? getCurrentTimestamp(),
-        schedule: props.schedule ?? defaultSchedule,
-        isSequential: props.isSequential ?? false,
-      };
-
-      doc.tasks[newTaskId] = newTask; // Store with string key
-      doc.nextTaskId = newTaskIdNum + 1; // Increment number counter
+      newTask = TunnelOps.createTask(doc, props);
     });
+    if (!newTask) throw new Error("Failed to create task");
 
-    if (!newTask) {
-      throw new Error("Failed to create task.");
-    }
-    const createdTask = this._getTaskFromDoc(this.doc, newTask.id);
-    if (!createdTask) {
-      throw new Error("Failed to retrieve created task.");
-    }
-    return createdTask;
+    const task = TunnelOps.getTask(this.doc, newTask.id);
+    if (!task) throw new Error("Retrieved task is undefined");
+    return task;
   }
 
+  /**
+   * Updates an existing task with new property values.
+   *
+   * @param id - The ID of the task to update.
+   * @param props - Partial task properties to update.
+   * @returns The updated Task object.
+   * @throws Error if the task does not exist.
+   */
   updateTask(id: TaskID, props: Partial<Task>): Task {
-    let updatedTask: Task | undefined;
     this.doc = Automerge.change(this.doc, `Update task ${id}`, (doc) => {
-      const existingTask = this._getTaskFromDoc(doc, id);
-      if (!existingTask) {
-        throw new Error(`Task with ID ${id} not found.`);
-      }
-
-      // Perform validation on props before applying
-      this._validateTaskProps(props);
-
-      // Check for parentId change and associated depth limits
-      if (
-        props.parentId !== undefined &&
-        props.parentId !== existingTask.parentId
-      ) {
-        if (props.parentId !== null) {
-          const parentTask = this._getTaskFromDoc(doc, props.parentId);
-          if (!parentTask) {
-            throw new Error(`Parent task with ID ${props.parentId} not found.`);
-          }
-          const parentDepth = this._getTaskDepthFromDoc(doc, props.parentId);
-          if (parentDepth >= 20) {
-            throw new Error(
-              "Cannot move task: new parent already at maximum hierarchy depth (20).",
-            );
-          }
-        }
-        // Also check if moving this task would make its *own* subtree too deep
-        // This is a more complex check, typically done by temporarily moving and checking max depth of subtree.
-        // For now, only checking parent depth. Full check can be added later if needed.
-      }
-
-      // Apply updates (excluding ID which is immutable)
-      // Use Object.entries and Reflect.set for clean dynamic assignment
-      for (const [key, value] of Object.entries(props)) {
-        if (key !== "id") {
-          Reflect.set(existingTask, key, value);
-        }
-      }
-      updatedTask = existingTask; // Now existingTask is the updated one
+      TunnelOps.updateTask(doc, id, props);
     });
-    if (!updatedTask) {
-      throw new Error("Failed to update task.");
-    }
-    return updatedTask;
+    const task = TunnelOps.getTask(this.doc, id);
+    if (!task) throw new Error("Retrieved task is undefined");
+    return task;
   }
 
-  // Credit Decay Algorithm (from Section 4.2 of ALGORITHM.md)
-  private _applyCreditDecay(
-    credits: number,
-    creditsTimestamp: number,
-    currentTime: number,
-  ): number {
-    const halfLifeMillis = daysToMilliseconds(7); // 7 days in milliseconds
-
-    const timeDelta = currentTime - creditsTimestamp;
-    return credits * Math.pow(0.5, timeDelta / halfLifeMillis);
-  }
-
+  /**
+   * Marks a task as completed.
+   *
+   * @param id - The ID of the task to complete.
+   */
   completeTask(id: TaskID): void {
     this.doc = Automerge.change(this.doc, `Complete task ${id}`, (doc) => {
-      const taskToComplete = this._getTaskFromDoc(doc, id);
-      if (!taskToComplete) {
-        throw new Error(`Task with ID ${id} not found.`);
-      }
-      if (taskToComplete.status === TaskStatus.Done) {
-        return; // Already done, no credit attribution needed
-      }
-
-      // Mark task as done
-      taskToComplete.status = TaskStatus.Done;
-
-      // 1. Identify Path: Ancestral path from task to root
-      const ancestralPath = this._getAncestorsFromDoc(doc, id);
-      const pathNodes = [...ancestralPath, taskToComplete]; // Include the task itself
-
-      const currentTime = getCurrentTimestamp();
-
-      // 2. Apply Decay (Pre-update) and 3. Add Effort, 4. Update Timestamp
-      pathNodes.forEach((node) => {
-        const decayedCredits = this._applyCreditDecay(
-          node.credits,
-          node.creditsTimestamp,
-          currentTime,
-        );
-        node.credits = decayedCredits + node.creditIncrement;
-        node.creditsTimestamp = currentTime;
-      });
-
-      // 5. Recurring Tasks: The spec says "If Task T repeats, the effort is added to the cumulative total; the existing history is not reset."
-      // This implies that the status should not be 'Done' for recurring tasks but rather reset/advanced.
-      // For now, if it's a recurring task, we'll just mark it pending again after credit attribution.
-      // The specific logic for advancing a recurring schedule is not fully detailed here.
-      if (taskToComplete.schedule.type === "Recurring") {
-        taskToComplete.status = TaskStatus.Pending; // Reset for next cycle
-        // TODO: Advance recurring schedule (dueDate, etc.)
-      }
+      TunnelOps.completeTask(doc, id);
     });
   }
 
   // --- Algorithm Operations ---
+
+  /**
+   * Runs the prioritization algorithm to recalculate task scores.
+   *
+   * This updates computed properties like `priority`, `visibility`, and
+   * `effectiveCredits` on all tasks based on the current state and context.
+   *
+   * @param viewFilter - Filter criteria for which tasks to include.
+   * @param context - Optional runtime context (current time, location).
+   */
   recalculateScores(viewFilter: ViewFilter, context?: Context): void {
-    // Pass the store instance and parameters to the orchestrator
     runRecalculateScores(this, viewFilter, context);
   }
 
+  /**
+   * Returns a sorted list of visible tasks for display.
+   *
+   * Tasks are filtered to only those with `visibility: true` and a positive
+   * priority score, then sorted by priority (highest first).
+   *
+   * @param _context - Runtime context (currently unused, reserved for future).
+   * @returns An array of visible Tasks sorted by priority.
+   */
   getTodoList(_context: Context): Task[] {
     const allTasks = Object.values(this.doc.tasks);
     const visibleTasks = allTasks.filter(
       (t) => t.visibility && (t.priority ?? 0) > 0.001,
     );
-
-    // Calculate DFS Pre-Order Index for tie-breaking
-    const dfsOrder = new Map<string, number>();
-    let index = 0;
-
-    // Helper to traverse
-    const visit = (taskId: string) => {
-      dfsOrder.set(taskId, index++);
-      // Get children, sort by ID for deterministic traversal
-      const children = this._getChildrenFromDoc(this.doc, taskId).sort(
-        (a, b) => {
-          return a.id.localeCompare(b.id);
-        },
-      );
-      children.forEach((c) => {
-        visit(c.id);
-      });
-    };
-
-    // Find roots, sort by ID, traverse
-    const roots = allTasks
-      .filter((t) => t.parentId === null)
-      .sort((a, b) => {
-        return a.id.localeCompare(b.id);
-      });
-    roots.forEach((r) => {
-      visit(r.id);
-    });
-
-    return visibleTasks.sort((a, b) => {
-      const priorityDiff = (b.priority ?? 0) - (a.priority ?? 0);
-      if (Math.abs(priorityDiff) > 0.000001) {
-        return priorityDiff;
-      }
-      const orderA = dfsOrder.get(a.id) ?? Infinity;
-      const orderB = dfsOrder.get(b.id) ?? Infinity;
-      return orderA - orderB;
-    });
+    return visibleTasks.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
   }
 
   // --- Persistence ---
+
+  /**
+   * Serializes the document to a binary format for storage.
+   *
+   * The returned Uint8Array can be persisted to disk, a database, or
+   * transmitted over a network. Use `TunnelStore.load()` to restore.
+   *
+   * @returns A Uint8Array containing the serialized document.
+   */
   save(): Uint8Array {
     return Automerge.save(this.doc);
   }
 
+  /**
+   * Restores a TunnelStore from a previously saved binary format.
+   *
+   * @param data - The Uint8Array from a previous `save()` call.
+   * @returns A new TunnelStore instance with the restored state.
+   *
+   * @example
+   * const bytes = existingStore.save();
+   * const restoredStore = TunnelStore.load(bytes);
+   */
   static load(data: Uint8Array): TunnelStore {
     const doc = Automerge.load<TunnelState>(data);
     const store = new TunnelStore();

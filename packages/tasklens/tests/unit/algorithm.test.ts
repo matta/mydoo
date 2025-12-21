@@ -8,6 +8,8 @@ import { TunnelStore } from "../../src/store";
 import {
   type Task,
   type Place,
+  type TaskID,
+  type PlaceID,
   TaskStatus as StoreTaskStatus,
   type ViewFilter,
   TaskStatus,
@@ -41,9 +43,9 @@ const fixtureFiles = fs
 
 function parsePlaceInput(input: PlaceInput): Place {
   return {
-    id: input.id,
+    id: input.id as PlaceID,
     hours: JSON.stringify(input.hours),
-    includedPlaces: input.included_places ?? [],
+    includedPlaces: (input.included_places ?? []) as PlaceID[],
   };
 }
 
@@ -62,10 +64,10 @@ function parseTaskInput(
   };
 
   const task: Task = {
-    id: input.id,
+    id: input.id as TaskID,
     title: input.title ?? "Default Task",
-    parentId: parentId, // Use the string ID directly
-    placeId: input.place_id ?? null,
+    parentId: parentId as TaskID | null,
+    placeId: (input.place_id ?? null) as PlaceID | null,
     status:
       (input.status ? statusMap[input.status] : undefined) ??
       TaskStatus.Pending,
@@ -94,6 +96,7 @@ function parseTaskInput(
       leadTime: (input.lead_time_seconds ?? 604800) * 1000, // Convert seconds to ms
     },
     isSequential: input.is_sequential ?? false,
+    childTaskIds: [],
   };
 
   // Handle properties potentially missing from strict TaskInput type but present in YAML
@@ -157,9 +160,14 @@ describe("Algorithm Test Suite", () => {
           });
         }
 
+        const rootTaskIds = Object.values(initialTasks)
+          .filter((t) => !t.parentId)
+          .map((t) => t.id);
+
         store = new TunnelStore({
           tasks: initialTasks,
           places: initialPlaces,
+          rootTaskIds,
           nextTaskId: 1, // Irrelevant with string IDs
           nextPlaceId: 1,
         });
@@ -183,7 +191,7 @@ describe("Algorithm Test Suite", () => {
             for (const [taskId, credits] of Object.entries(
               step.mutation.update_credits,
             )) {
-              store.updateTask(taskId, {
+              store.updateTask(taskId as TaskID, {
                 credits,
                 creditsTimestamp: getCurrentTimestamp(),
               });
@@ -196,7 +204,7 @@ describe("Algorithm Test Suite", () => {
               const { id, ...props } = update;
               if (props.status === "Done") {
                 // 'Done' status update handled via completeTask
-                store.completeTask(id);
+                store.completeTask(id as TaskID);
               } else {
                 const taskProps: Partial<Task> = {};
                 if (props.status)
@@ -211,7 +219,7 @@ describe("Algorithm Test Suite", () => {
                 if (props.importance !== undefined)
                   taskProps.importance = props.importance;
                 if (props.due_date !== undefined) {
-                  const existingTask = store.getTask(id);
+                  const existingTask = store.getTask(id as TaskID);
                   if (existingTask) {
                     taskProps.schedule = {
                       ...existingTask.schedule,
@@ -222,7 +230,7 @@ describe("Algorithm Test Suite", () => {
                   }
                 }
 
-                store.updateTask(id, taskProps);
+                store.updateTask(id as TaskID, taskProps);
               }
             });
           }
@@ -233,7 +241,7 @@ describe("Algorithm Test Suite", () => {
             if (step.view_filter === "All Places") {
               viewFilter = { placeId: "All" };
             } else {
-              viewFilter = { placeId: step.view_filter };
+              viewFilter = { placeId: step.view_filter as PlaceID };
             }
           }
           store.recalculateScores(viewFilter);
@@ -241,7 +249,7 @@ describe("Algorithm Test Suite", () => {
           // 5. Assertions
           if (step.expected_props) {
             step.expected_props.forEach((expected) => {
-              const task = store.getTask(expected.id);
+              const task = store.getTask(expected.id as TaskID);
               expect(task, `Task ${expected.id} should exist`).toBeDefined();
 
               if (task) {

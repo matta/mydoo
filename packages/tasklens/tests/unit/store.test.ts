@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TunnelStore } from "../../src/store";
-import { type Task, TaskStatus } from "../../src/types";
+import { type Task, type TaskID, TaskStatus } from "../../src/types";
 import {
   mockCurrentTimestamp,
   resetCurrentTimestampMock,
@@ -29,8 +29,8 @@ describe("TunnelStore", () => {
   it("should allow initializing with a provided state", () => {
     const initialStoreState = {
       tasks: {
-        "1": {
-          id: "1",
+        ["1" as TaskID]: {
+          id: "1" as TaskID,
           title: "Existing Task",
           parentId: null,
           placeId: null,
@@ -43,15 +43,19 @@ describe("TunnelStore", () => {
           priorityTimestamp: 0,
           schedule: { type: "Once" as const, dueDate: null, leadTime: 0 },
           isSequential: false,
+          childTaskIds: [] as TaskID[],
         },
       },
       places: {},
+      rootTaskIds: ["1" as TaskID],
       nextTaskId: 2,
       nextPlaceId: 1,
     };
     store = new TunnelStore(initialStoreState);
     expect(store.state.nextTaskId).toBe(2);
-    expect(store.getTask("1")).toEqual(initialStoreState.tasks["1"]);
+    expect(store.getTask("1" as TaskID)).toEqual(
+      initialStoreState.tasks["1" as TaskID],
+    );
   });
 
   describe("createTask", () => {
@@ -62,25 +66,30 @@ describe("TunnelStore", () => {
       const task = store.createTask({ title: "My New Task" });
 
       expect(task).toBeDefined();
-      expect(task.id).toBe("1");
+      // ID is now a UUID - verify it's a valid UUID format
+      expect(task.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      );
       expect(task.title).toBe("My New Task");
       expect(task.status).toBe(TaskStatus.Pending);
       expect(task.creditsTimestamp).toBe(currentTime);
-      expect(store.state.nextTaskId).toBe(2);
-      expect(store.getTask("1")).toEqual(task);
+      expect(store.getTask(task.id)).toEqual(task);
     });
 
-    it("should create a child task and update nextTaskId", () => {
+    it("should create a child task with correct parent reference", () => {
       const parent = store.createTask({ title: "Parent Task" });
       const child = store.createTask({
         title: "Child Task",
         parentId: parent.id,
       });
 
-      expect(child.id).toBe("2");
+      // IDs are UUIDs, verify they're different and valid
+      expect(child.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      );
+      expect(child.id).not.toBe(parent.id);
       expect(child.parentId).toBe(parent.id);
-      expect(store.state.nextTaskId).toBe(3);
-      expect(store.getTask("2")).toEqual(child);
+      expect(store.getTask(child.id)).toEqual(child);
     });
 
     it("should throw an error for negative creditIncrement", () => {
@@ -100,12 +109,12 @@ describe("TunnelStore", () => {
 
     it("should throw an error if parentId does not exist", () => {
       expect(() =>
-        store.createTask({ title: "Orphan Task", parentId: "999" }),
+        store.createTask({ title: "Orphan Task", parentId: "999" as TaskID }),
       ).toThrow("Parent task with ID 999 not found.");
     });
 
     it("should throw an error if hierarchy depth limit is exceeded", () => {
-      let parentId: string | null = null;
+      let parentId: TaskID | null = null;
       for (let i = 0; i < 20; i++) {
         // Loop 20 times to create tasks from depth 0 to 19
         const task = store.createTask({
@@ -150,9 +159,9 @@ describe("TunnelStore", () => {
     });
 
     it("should throw an error if task to update does not exist", () => {
-      expect(() => store.updateTask("999", { title: "Non Existent" })).toThrow(
-        "Task with ID 999 not found.",
-      );
+      expect(() =>
+        store.updateTask("999" as TaskID, { title: "Non Existent" }),
+      ).toThrow("Task with ID 999 not found.");
     });
 
     it("should prevent updating the task ID", () => {
@@ -173,12 +182,12 @@ describe("TunnelStore", () => {
 
     it("should throw an error when moving to a non-existent parent", () => {
       expect(() =>
-        store.updateTask(initialTask.id, { parentId: "999" }),
-      ).toThrow("Parent task with ID 999 not found.");
+        store.updateTask(initialTask.id, { parentId: "999" as TaskID }),
+      ).toThrow("New parent 999 not found");
     });
 
     it("should throw an error when moving to a parent that exceeds depth limit", () => {
-      let parentId: string | null = null;
+      let parentId: TaskID | null = null;
       for (let i = 0; i < 20; i++) {
         const task = store.createTask({
           title: `Task ${i.toString()}`,

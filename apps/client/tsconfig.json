@@ -1,9 +1,18 @@
 {
+  // TypeScript configuration for the client app.
+  //
+  // This uses a dual resolution strategy:
+  // 1. `paths` - Maps @mydoo/tasklens to source files for Vite bundling (enables HMR)
+  // 2. `references` - Points to tasklens for TypeScript project references (enables IDE type checking)
+  //
+  // IMPORTANT: For IDE types to work, tasklens must be built first (`pnpm --filter @mydoo/tasklens build`)
+  // This generates .d.ts files that the project reference system uses.
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      // Direct source import for Vite HMR support
       "@mydoo/tasklens": ["../../packages/tasklens/src/index.ts"],
       "@mydoo/tasklens/*": ["../../packages/tasklens/src/*"]
     },
@@ -18,5 +27,6 @@
     "emitDeclarationOnly": true
   },
   "include": ["src"],
+  // Project reference for IDE type resolution (uses tasklens's emitted .d.ts files)
   "references": [{ "path": "../../packages/tasklens" }]
 }

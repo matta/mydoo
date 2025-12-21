@@ -1,0 +1,205 @@
+/**
+ * React integration for the Tunnel data model.
+ *
+ * This module provides a React hook (`useTunnel`) that connects to an Automerge
+ * document and exposes typed operations for manipulating the task tree.
+ *
+ * Key concepts:
+ * - **Automerge**: A library for building collaborative applications. It stores
+ *   data in a CRDT (Conflict-free Replicated Data Type), enabling automatic
+ *   synchronization across clients without a central server.
+ * - **Document**: The Automerge "document" is the root data structure. Changes
+ *   are made by calling `changeDoc((doc) => { ... })` with a callback that
+ *   mutates the document proxy.
+ * - **Zod validation**: At read time, we validate the document structure using
+ *   Zod schemas to ensure the data conforms to our expected types. This is
+ *   necessary because Automerge documents are untyped at runtime.
+ */
+import { useDocument } from "@automerge/automerge-repo-react-hooks";
+import {
+  type TunnelState,
+  type Task,
+  type TaskID,
+  type TunnelNode,
+  TaskStatus,
+} from "./types";
+import { type AnyDocumentId } from "@automerge/automerge-repo";
+import * as TunnelOps from "./ops";
+import { useCallback, useMemo } from "react";
+import { TunnelStateSchema } from "./schemas";
+
+/**
+ * Return type of the `useTunnel` hook.
+ *
+ * This interface provides access to the task data and operations for
+ * manipulating it. All operations are automatically synchronized to
+ * other connected clients via Automerge.
+ *
+ * @property doc - The validated application state, or undefined if the document
+ *                 hasn't loaded yet or failed validation.
+ * @property tasks - The task tree as an array of root-level TunnelNodes.
+ *                   Each node contains its children recursively.
+ * @property ops - Object containing operation functions to modify the state:
+ *   - `add`: Create a new task with optional properties.
+ *   - `update`: Modify properties of an existing task.
+ *   - `move`: Relocate a task to a new parent or position.
+ *   - `toggleDone`: Toggle a task's status between Done and Pending.
+ *   - `delete`: Remove a task from the state.
+ */
+export interface TunnelHookResult {
+  doc: TunnelState | undefined;
+  tasks: TunnelNode[];
+  ops: {
+    add: (props: Partial<Task>) => void;
+    update: (id: TaskID, props: Partial<Task>) => void;
+    move: (
+      id: TaskID,
+      newParentId: TaskID | null,
+      afterTaskId: TaskID | null,
+    ) => void;
+    toggleDone: (id: TaskID) => void;
+    delete: (id: TaskID) => void;
+  };
+}
+
+/**
+ * React hook for managing task data stored in an Automerge document.
+ *
+ * This hook connects to an Automerge document specified by `docUrl` and provides:
+ * 1. Reactive access to the task tree (re-renders when the document changes).
+ * 2. Type-safe operations for creating, updating, moving, and deleting tasks.
+ *
+ * The hook handles runtime validation of the document using Zod schemas.
+ * If the document structure is invalid (corrupted or incompatible), `doc`
+ * will be undefined and `tasks` will be an empty array.
+ *
+ * @param docUrl - The Automerge document URL or ID. This is typically obtained
+ *                 from the Automerge repository when creating or loading a document.
+ * @returns A `TunnelHookResult` containing the document, task tree, and operations.
+ *
+ * @example
+ * ```typescript
+ * function TaskList() {
+ *   const { tasks, ops } = useTunnel("my-document-id");
+ *
+ *   return (
+ *     <ul>
+ *       {tasks.map(task => (
+ *         <li key={task.id}>
+ *           {task.title}
+ *           <button onClick={() => ops.toggleDone(task.id)}>Toggle</button>
+ *         </li>
+ *       ))}
+ *     </ul>
+ *   );
+ * }
+ * ```
+ *
+ * @remarks
+ * **React Hook Rules**: This function starts with "use" and follows React's
+ * hook conventions. It must be called at the top level of a function component
+ * and cannot be called conditionally.
+ *
+ * **Automerge Synchronization**: Changes made via `ops` are automatically
+ * tracked by Automerge and can be synced to other clients or persisted.
+ *
+ * **Performance Note**: The `tasks` tree is rebuilt whenever the document
+ * changes (via `useMemo` with `doc` as the dependency). This means any change
+ * to any task triggers a full tree rebuild and component re-render. For large
+ * task lists, consider:
+ * - Using `React.memo` on child components to prevent unnecessary renders.
+ * - Implementing more granular subscriptions to individual tasks.
+ * - Using virtualization for long lists.
+ */
+export function useTunnel(docUrl: AnyDocumentId): TunnelHookResult {
+  const [doc, changeDoc] = useDocument(docUrl);
+
+  const tasks = useMemo(() => {
+    // Runtime validation for read
+    const result = TunnelStateSchema.safeParse(doc);
+    if (!result.success) return [];
+    return TunnelOps.getTaskTree(result.data);
+  }, [doc]);
+
+  // Wrap changeDoc to provide type-safe mutations on the Automerge proxy.
+  // Note: We skip Zod validation inside the mutation callback for performance,
+  // as we trust the repository contract and the document structure.
+  const mutate = useCallback(
+    (callback: (d: TunnelState) => void) => {
+      changeDoc((d: unknown) => {
+        // Type cast the internal Automerge proxy to our state type.
+        callback(d as TunnelState);
+      });
+    },
+    [changeDoc],
+  );
+
+  const add = useCallback(
+    (props: Partial<Task>) => {
+      mutate((d) => {
+        TunnelOps.createTask(d, props);
+      });
+    },
+    [mutate],
+  );
+
+  const update = useCallback(
+    (id: TaskID, props: Partial<Task>) => {
+      mutate((d) => {
+        TunnelOps.updateTask(d, id, props);
+      });
+    },
+    [mutate],
+  );
+
+  const move = useCallback(
+    (id: TaskID, newParentId: TaskID | null, afterTaskId: TaskID | null) => {
+      mutate((d) => {
+        TunnelOps.moveTask(d, id, newParentId, afterTaskId);
+      });
+    },
+    [mutate],
+  );
+
+  const toggleDone = useCallback(
+    (id: TaskID) => {
+      mutate((d) => {
+        const task = d.tasks[id];
+        if (task) {
+          task.status =
+            task.status === TaskStatus.Done
+              ? TaskStatus.Pending
+              : TaskStatus.Done;
+        }
+      });
+    },
+    [mutate],
+  );
+
+  const remove = useCallback(
+    (id: TaskID) => {
+      mutate((d) => {
+        TunnelOps.deleteTask(d, id);
+      });
+    },
+    [mutate],
+  );
+
+  // For the return value 'doc', we return the raw doc if it validates, or undefined
+  const validDoc = useMemo(() => {
+    const result = TunnelStateSchema.safeParse(doc);
+    return result.success ? result.data : undefined;
+  }, [doc]);
+
+  return {
+    doc: validDoc,
+    tasks,
+    ops: {
+      add,
+      update,
+      move,
+      toggleDone,
+      delete: remove,
+    },
+  };
+}

@@ -1,33 +1,37 @@
 {
   "name": "mydoo",
-  "version": "1.0.0",
+  "version": "catalog:",
   "private": true,
   "description": "",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "fix:deps": "syncpack fix-mismatches && syncpack format",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "turbo lint",
+    "lint:deps": "syncpack lint",
+    "prepare": "husky",
+    "test": "turbo test"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "catalog:",
+    "@eslint/js": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "husky": "catalog:",
+    "lint-staged": "catalog:",
+    "prettier": "catalog:",
+    "syncpack": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:"
+  },
+  "author": "",
   "engines": {
     "node": ">=24"
   },
-  "scripts": {
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "prepare": "husky",
-    "test": "turbo test",
-    "build": "turbo build",
-    "lint": "turbo lint"
-  },
   "keywords": [],
-  "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.26.1",
-  "devDependencies": {
-    "@commitlint/cli": "^20.2.0",
-    "@eslint/js": "^9.39.2",
-    "eslint": "^9.39.2",
-    "globals": "^16.5.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
-    "prettier": "^3.7.4",
-    "turbo": "^2.7.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.49.0"
-  }
+  "packageManager": "pnpm@10.26.1"
 }

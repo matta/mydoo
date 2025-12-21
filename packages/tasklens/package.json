@@ -1,39 +1,49 @@
 {
   "name": "@mydoo/tasklens",
-  "version": "1.0.0",
+  "version": "catalog:",
   "private": true,
-  "type": "module",
   "description": "",
-  "main": "index.js",
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
-    "test": "vitest run --coverage",
-    "lint": "eslint \"{src,tests}/**/*.{ts,tsx}\"",
+    "build": "tsc --emitDeclarationOnly",
+    "check-types": "mkdir -p .tmp_gen && json2ts ./specs/compliance/schemas/test_case.schema.json .tmp_gen/test_case.d.ts && prettier --write .tmp_gen/test_case.d.ts && diff ./specs/compliance/schemas/test_case.d.ts .tmp_gen/test_case.d.ts",
     "fix": "eslint --fix \"{src,tests}/**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit",
-    "build": "pnpm run typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "generate-types": "json2ts ./specs/compliance/schemas/test_case.schema.json ./specs/compliance/schemas/test_case.d.ts && prettier --write ./specs/compliance/schemas/test_case.d.ts",
-    "check-types": "mkdir -p .tmp_gen && json2ts ./specs/compliance/schemas/test_case.schema.json .tmp_gen/test_case.d.ts && prettier --write .tmp_gen/test_case.d.ts && diff ./specs/compliance/schemas/test_case.d.ts .tmp_gen/test_case.d.ts"
+    "lint": "eslint \"{src,tests}/**/*.{ts,tsx}\"",
+    "test": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "dependencies": {
+    "@automerge/automerge-repo": "catalog:",
+    "@automerge/automerge-repo-react-hooks": "catalog:",
+    "react": "catalog:",
+    "zod": "catalog:"
+  },
   "devDependencies": {
-    "@automerge/automerge": "^3.2.1",
-    "@eslint/js": "^9.39.2",
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^25.0.2",
-    "@vitest/coverage-v8": "4.0.15",
-    "ajv": "^8.17.1",
-    "ajv-formats": "^3.0.1",
-    "eslint": "^9.39.2",
-    "globals": "^16.5.0",
-    "js-yaml": "^4.1.1",
-    "json-schema-to-typescript": "^15.0.4",
-    "prettier": "^3.7.4",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.49.0",
-    "vitest": "^4.0.15"
-  }
+    "@automerge/automerge": "catalog:",
+    "@eslint/js": "catalog:",
+    "@types/js-yaml": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "ajv": "catalog:",
+    "ajv-formats": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "js-yaml": "catalog:",
+    "json-schema-to-typescript": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  },
+  "author": "",
+  "keywords": [],
+  "license": "ISC"
 }

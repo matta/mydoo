@@ -1,12 +1,12 @@
-interface BreadcrumbItem {
-  id: string;
-  title: string;
-  path: string[];
-}
+import { type TaskID } from "@mydoo/tasklens";
+import { type BreadcrumbItem } from "../lib/todoUtils";
 
+/**
+ * Props for the Breadcrumbs component.
+ */
 interface BreadcrumbsProps {
   crumbs: BreadcrumbItem[];
-  onNavigate: (path: string[]) => void;
+  onNavigate: (path: TaskID[]) => void;
 }
 
 import { Breadcrumbs as MantineBreadcrumbs, Anchor, Text } from "@mantine/core";
@@ -14,10 +14,11 @@ import { Breadcrumbs as MantineBreadcrumbs, Anchor, Text } from "@mantine/core";
 export function Breadcrumbs({ crumbs, onNavigate }: BreadcrumbsProps) {
   const items = crumbs.map((crumb, index) => {
     const isLast = index === crumbs.length - 1;
+    const key = crumb.type === "root" ? "root" : crumb.id;
 
     if (isLast) {
       return (
-        <Text key={crumb.id} c="dimmed">
+        <Text key={key} c="dimmed">
           {crumb.title}
         </Text>
       );
@@ -25,7 +26,7 @@ export function Breadcrumbs({ crumbs, onNavigate }: BreadcrumbsProps) {
 
     return (
       <Anchor
-        key={crumb.id}
+        key={key}
         component="button"
         type="button"
         onClick={() => {
