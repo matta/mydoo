@@ -52,7 +52,7 @@ export const PlaceIDSchema = z.string().brand<'PlaceID'>();
  */
 export const ScheduleSchema = z.object({
   type: z.enum(['Once', 'Recurring']),
-  dueDate: z.number().nullable(),
+  dueDate: z.number().optional(),
   leadTime: z.number(),
 });
 
@@ -68,9 +68,9 @@ export const ScheduleSchema = z.object({
 export const TaskSchema = z.object({
   id: TaskIDSchema,
   title: z.string(),
-  parentId: TaskIDSchema.nullable(),
+  parentId: TaskIDSchema.optional(),
   childTaskIds: z.array(TaskIDSchema),
-  placeId: PlaceIDSchema.nullable(),
+  placeId: PlaceIDSchema.optional(),
   status: z.enum(['Pending', 'Done', 'Deleted']),
   importance: z.number().min(0).max(1),
   creditIncrement: z.number().min(0),

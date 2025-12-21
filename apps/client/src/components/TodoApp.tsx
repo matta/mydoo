@@ -62,7 +62,7 @@ export function TodoApp() {
   // UI State
   const [viewPath, setViewPath] = useState<TaskID[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<TaskID>>(new Set());
-  const [editingId, setEditingId] = useState<TaskID | null>(null);
+  const [editingId, setEditingId] = useState<TaskID | undefined>(undefined);
 
   // Handlers
   const handleNavigate = useCallback((path: TaskID[]) => {
@@ -136,22 +136,22 @@ export function TodoApp() {
       if (id) {
         ops.update(id, {title: newTitle});
       }
-      setEditingId(null);
+      setEditingId(undefined);
     },
     [ops],
   );
 
   const handleCancelEdit = useCallback(() => {
-    setEditingId(null);
+    setEditingId(undefined);
   }, []);
 
   const handleAddItem = useCallback(
     (basePath: TaskID[], title: string) => {
       // basePath is array of IDs. The last ID is the parent.
-      // If basePath is empty, parent is null.
+      // If basePath is empty, parent is undefined.
       const parentId =
-        basePath.length > 0 ? basePath[basePath.length - 1] : null;
-      ops.add({title, parentId: parentId ?? null});
+        basePath.length > 0 ? basePath[basePath.length - 1] : undefined;
+      ops.add({title, parentId: parentId ?? undefined});
     },
     [ops],
   );

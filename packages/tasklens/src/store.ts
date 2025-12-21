@@ -107,10 +107,10 @@ export class TunnelStore {
   /**
    * Retrieves the immediate children of a task.
    *
-   * @param parentId - The ID of the parent task, or null to get root tasks.
+   * @param parentId - The ID of the parent task, or undefined to get root tasks.
    * @returns An array of child Task objects in display order.
    */
-  getChildren(parentId: TaskID | null): Task[] {
+  getChildren(parentId: TaskID | undefined): Task[] {
     return TunnelOps.getChildren(this.doc, parentId);
   }
 
@@ -127,7 +127,7 @@ export class TunnelStore {
   getAncestors(id: TaskID): Task[] {
     const ancestors: Task[] = [];
     let currentTask = this.getTask(id);
-    while (currentTask && currentTask.parentId !== null) {
+    while (currentTask?.parentId !== undefined) {
       const parent = this.getTask(currentTask.parentId);
       if (parent) {
         ancestors.unshift(parent);

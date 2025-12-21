@@ -16,10 +16,10 @@ export function pass4WeightNormalization(
   tasks: Task[],
   getChildrenFromDoc: (
     docState: TunnelState,
-    parentId: TaskID | null,
+    parentId: TaskID | undefined,
   ) => Task[],
 ): void {
-  const rootTasks = tasks.filter(task => task.parentId === null);
+  const rootTasks = tasks.filter(task => task.parentId === undefined);
 
   // Set NormalizedImportance for root tasks
   rootTasks.forEach(root => {

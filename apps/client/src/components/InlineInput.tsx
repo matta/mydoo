@@ -15,7 +15,7 @@ export function InlineInput({
   placeholder = 'Enter text...',
 }: InlineInputProps) {
   const [value, setValue] = useState(initialValue);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(undefined);
 
   // Auto-focus when mounted
   useEffect(() => {
@@ -52,7 +52,9 @@ export function InlineInput({
       }}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
-      ref={inputRef}
+      ref={node => {
+        inputRef.current = node ?? undefined;
+      }}
       styles={{input: {padding: 0, height: 'auto', minHeight: 0}}}
       value={value}
       variant="unstyled"

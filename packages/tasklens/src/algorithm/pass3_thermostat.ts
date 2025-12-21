@@ -20,13 +20,13 @@ export function pass3DeviationFeedback(
   _getTaskFromDoc: (docState: TunnelState, id: TaskID) => Task | undefined,
   _getChildrenFromDoc: (
     docState: TunnelState,
-    parentId: TaskID | null,
+    parentId: TaskID | undefined,
   ) => Task[],
 ): void {
   const k = 2.0; // Sensitivity
   const epsilon = 0.001; // Division by zero protection
 
-  const rootGoals = tasks.filter(task => task.parentId === null);
+  const rootGoals = tasks.filter(task => task.parentId === undefined);
 
   let totalDesiredCredits = 0;
   let totalEffectiveCredits = 0;

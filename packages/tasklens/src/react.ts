@@ -54,8 +54,8 @@ export interface TunnelHookResult {
     delete: (id: TaskID) => void;
     move: (
       id: TaskID,
-      newParentId: TaskID | null,
-      afterTaskId: TaskID | null,
+      newParentId: TaskID | undefined,
+      afterTaskId: TaskID | undefined,
     ) => void;
     toggleDone: (id: TaskID) => void;
     update: (id: TaskID, props: Partial<Task>) => void;
@@ -154,7 +154,11 @@ export function useTunnel(docUrl: AnyDocumentId): TunnelHookResult {
   );
 
   const move = useCallback(
-    (id: TaskID, newParentId: TaskID | null, afterTaskId: TaskID | null) => {
+    (
+      id: TaskID,
+      newParentId: TaskID | undefined,
+      afterTaskId: TaskID | undefined,
+    ) => {
       mutate(d => {
         TunnelOps.moveTask(d, id, newParentId, afterTaskId);
       });

@@ -13,5 +13,6 @@ export default defineConfig({
     },
     // For ESM support in NodeNext, Vitest usually handles it well
     // but if issues arise, consider 'alias' or 'resolve.conditions'
+    exclude: ['dist/**', 'node_modules/**'],
   },
 });

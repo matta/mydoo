@@ -33,8 +33,6 @@ describe('TunnelStore', () => {
         ['1' as TaskID]: {
           id: '1' as TaskID,
           title: 'Existing Task',
-          parentId: null,
-          placeId: null,
           status: TaskStatus.Pending,
           importance: 1,
           creditIncrement: 1,
@@ -42,7 +40,7 @@ describe('TunnelStore', () => {
           desiredCredits: 0,
           creditsTimestamp: 0,
           priorityTimestamp: 0,
-          schedule: {type: 'Once' as const, dueDate: null, leadTime: 0},
+          schedule: {type: 'Once' as const, leadTime: 0},
           isSequential: false,
           childTaskIds: [] as TaskID[],
         },
@@ -115,7 +113,7 @@ describe('TunnelStore', () => {
     });
 
     it('should throw an error if hierarchy depth limit is exceeded', () => {
-      let parentId: TaskID | null = null;
+      let parentId: TaskID | undefined = undefined;
       for (let i = 0; i < 20; i++) {
         // Loop 20 times to create tasks from depth 0 to 19
         const task = store.createTask({
@@ -188,7 +186,7 @@ describe('TunnelStore', () => {
     });
 
     it('should throw an error when moving to a parent that exceeds depth limit', () => {
-      let parentId: TaskID | null = null;
+      let parentId: TaskID | undefined = undefined;
       for (let i = 0; i < 20; i++) {
         const task = store.createTask({
           title: `Task ${i.toString()}`,
@@ -204,7 +202,7 @@ describe('TunnelStore', () => {
       // Create a task that we'll try to move under the depth 20 parent
       const taskToMove = store.createTask({
         title: 'Task to Move',
-        parentId: null,
+        parentId: undefined,
       }); // Initially root
 
       // Try to move taskToMove (depth 0) under the taskAtDepth20 (depth 20)
@@ -215,14 +213,16 @@ describe('TunnelStore', () => {
       );
     });
 
-    it('should allow setting parentId to null (making it a root task)', () => {
+    it('should allow setting parentId to undefined (making it a root task)', () => {
       const childTask = store.createTask({
         title: 'Child',
         parentId: initialTask.id,
       });
-      const updatedChild = store.updateTask(childTask.id, {parentId: null});
-      expect(updatedChild.parentId).toBeNull();
-      expect(store.getTask(childTask.id)?.parentId).toBeNull();
+      const updatedChild = store.updateTask(childTask.id, {
+        parentId: undefined,
+      });
+      expect(updatedChild.parentId).toBeUndefined();
+      expect(store.getTask(childTask.id)?.parentId).toBeUndefined();
     });
   });
 });

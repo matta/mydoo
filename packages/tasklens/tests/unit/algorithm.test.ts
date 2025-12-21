@@ -54,7 +54,7 @@ function parsePlaceInput(input: PlaceInput): Place {
 function parseTaskInput(
   input: TaskInput,
   testStartDate: Date,
-  parentId: string | null = null,
+  parentId?: string,
 ): Task[] {
   const tasks: Task[] = [];
 
@@ -67,8 +67,6 @@ function parseTaskInput(
   const task: Task = {
     id: input.id as TaskID,
     title: input.title ?? 'Default Task',
-    parentId: parentId as TaskID | null,
-    placeId: (input.place_id ?? null) as PlaceID | null,
     status:
       (input.status ? statusMap[input.status] : undefined) ??
       TaskStatus.Pending,
@@ -83,22 +81,30 @@ function parseTaskInput(
     priorityTimestamp: testStartDate.getTime(),
     schedule: {
       type: 'Once', // Default
-      dueDate:
-        typeof input.due_date === 'string'
-          ? input.due_date
-            ? new Date(input.due_date).getTime()
-            : null
-          : typeof input.due_date === 'number'
-            ? new Date(
-                testStartDate.getTime() +
-                  daysToMilliseconds(input.due_date as number),
-              ).getTime()
-            : null,
       leadTime: (input.lead_time_seconds ?? 604800) * 1000, // Convert seconds to ms
     },
     isSequential: input.is_sequential ?? false,
     childTaskIds: [],
   };
+
+  if (parentId) task.parentId = parentId as TaskID;
+  if (input.place_id) task.placeId = input.place_id as PlaceID;
+
+  const calculatedDueDate =
+    typeof input.due_date === 'string'
+      ? input.due_date
+        ? new Date(input.due_date).getTime()
+        : undefined
+      : typeof input.due_date === 'number'
+        ? new Date(
+            testStartDate.getTime() +
+              daysToMilliseconds(input.due_date as number),
+          ).getTime()
+        : undefined;
+
+  if (calculatedDueDate !== undefined) {
+    task.schedule.dueDate = calculatedDueDate;
+  }
 
   // Handle properties potentially missing from strict TaskInput type but present in YAML
   const extendedInput = input as TaskInput & {credit_increment?: number};
@@ -226,7 +232,7 @@ describe('Algorithm Test Suite', () => {
                       ...existingTask.schedule,
                       dueDate: props.due_date
                         ? new Date(props.due_date).getTime()
-                        : null,
+                        : undefined,
                     };
                   }
                 }

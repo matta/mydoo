@@ -108,17 +108,19 @@ export function pass1ContextualVisibility(
 ): void {
   for (const taskId in doc.tasks) {
     const task = doc.tasks[taskId as TaskID];
+    if (!task) continue;
 
     // 1. Resolve Effective Place
-    let effectivePlaceId: PlaceID | null = task?.placeId ?? null;
-    if (effectivePlaceId === null && task?.parentId !== null) {
-      let currentParent: Task | undefined = task?.parentId
+    let effectivePlaceId: PlaceID | undefined = task.placeId;
+    if (effectivePlaceId === undefined && task.parentId !== undefined) {
+      let currentParent: Task | undefined = task.parentId
         ? doc.tasks[task.parentId]
         : undefined;
-      while (currentParent?.placeId === null) {
-        currentParent = currentParent.parentId
+      while (currentParent?.placeId === undefined) {
+        currentParent = currentParent?.parentId
           ? doc.tasks[currentParent.parentId]
           : undefined;
+        if (!currentParent) break;
       }
       if (currentParent) {
         effectivePlaceId = currentParent.placeId;
@@ -163,8 +165,6 @@ export function pass1ContextualVisibility(
     }
 
     // Final Visibility for this pass
-    if (task) {
-      task.visibility = isOpen && filterMatch;
-    }
+    task.visibility = isOpen && filterMatch;
   }
 }

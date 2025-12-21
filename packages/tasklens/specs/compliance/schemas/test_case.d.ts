@@ -116,7 +116,7 @@ export interface TaskInput {
   /**
    * Timestamp of last credit modification (t0 for decay calculations).
    */
-  credits_timestamp?: string | null;
+  credits_timestamp?: string | undefined;
   /**
    * Target allocation value (only valid for Root Goals).
    */
@@ -124,11 +124,11 @@ export interface TaskInput {
   /**
    * Due Date for the task.
    */
-  due_date?: string | null;
+  due_date?: string | undefined;
   /**
    * Link to the Place this task belongs to. Inherits from Parent if Null.
    */
-  place_id?: string | null;
+  place_id?: string | undefined;
   /**
    * Lead time in seconds. Defaults to 7 days (604800).
    */
@@ -174,7 +174,7 @@ export interface Step {
       credits?: number;
       desired_credits?: number;
       importance?: number;
-      due_date?: string | null;
+      due_date?: string | undefined;
       [k: string]: unknown;
     }[];
     [k: string]: unknown;

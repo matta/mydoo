@@ -25,13 +25,13 @@ export function pass2ScheduleInheritance(tasks: Task[]): void {
 
   // Sort tasks by parentId (roots first)
   const sortedTasks = [...tasks].sort((a, b) => {
-    if (a.parentId === null && b.parentId !== null) return -1;
-    if (a.parentId !== null && b.parentId === null) return 1;
+    if (a.parentId === undefined && b.parentId !== undefined) return -1;
+    if (a.parentId !== undefined && b.parentId === undefined) return 1;
     return 0; // Maintain original order otherwise
   });
 
   for (const task of sortedTasks) {
-    if (task.parentId !== null) {
+    if (task.parentId !== undefined) {
       const parent = taskMap.get(task.parentId);
 
       if (task.schedule.type === 'Once' && parent) {
@@ -39,7 +39,11 @@ export function pass2ScheduleInheritance(tasks: Task[]): void {
         // Or, perhaps, always take parent's schedule if type is 'Once'?
         // "inherit definition" strongly suggests taking the parent's entire schedule if the child
         // is designated as 'Once' and has a parent.
-        task.schedule.dueDate = parent.schedule.dueDate;
+        if (parent.schedule.dueDate === undefined) {
+          delete task.schedule.dueDate;
+        } else {
+          task.schedule.dueDate = parent.schedule.dueDate;
+        }
         task.schedule.leadTime = parent.schedule.leadTime;
       }
     }

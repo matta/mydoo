@@ -103,11 +103,11 @@ export interface Context {
  * Scheduling information for a task.
  *
  * @property type - "Once" for one-time tasks, "Recurring" for repeating tasks.
- * @property dueDate - Unix timestamp (ms) when the task is due, or null if no deadline.
+ * @property dueDate - Unix timestamp (ms) when the task is due, or undefined if no deadline.
  * @property leadTime - How far in advance (in ms) the task should appear before its due date.
  */
 export interface Schedule {
-  dueDate: number | null;
+  dueDate?: number | undefined;
   leadTime: number;
   type: 'Once' | 'Recurring';
 }
@@ -121,8 +121,8 @@ export interface Schedule {
  *
  * @property id - Unique identifier for this task.
  * @property title - Human-readable name or description of the task.
- * @property parentId - ID of the parent task, or null if this is a root task.
- * @property placeId - Location where this task should be done, or null to inherit from parent.
+ * @property parentId - ID of the parent task, or undefined if this is a root task.
+ * @property placeId - Location where this task should be done, or undefined to inherit from parent.
  * @property status - Current state: Pending, Done, or Deleted.
  * @property importance - User-assigned priority from 0.0 (lowest) to 1.0 (highest).
  * @property creditIncrement - Points awarded when this task is completed.
@@ -154,8 +154,8 @@ export interface Task {
   id: TaskID;
   importance: number;
   isSequential: boolean;
-  parentId: TaskID | null;
-  placeId: PlaceID | null;
+  parentId?: TaskID | undefined;
+  placeId?: PlaceID | undefined;
   priorityTimestamp: number;
   schedule: Schedule;
   status: TaskStatus;

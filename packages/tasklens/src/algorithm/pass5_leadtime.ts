@@ -17,7 +17,7 @@ export function pass5LeadTimeRamp(tasks: Task[], currentTime: number): void {
     // The spec "IsReady" condition: `CurrentTime >= DueDate - (2 * LeadTime)`.
     // If no dueDate, cannot be ready by this definition.
 
-    if (task.schedule.dueDate === null) {
+    if (task.schedule.dueDate === undefined) {
       task.leadTimeFactor = 1.0; // Neutral, not ramping if no due date
       return;
     }

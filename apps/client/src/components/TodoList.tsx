@@ -27,7 +27,7 @@ import {TodoItem} from './TodoItem';
  * @property basePath - Navigation path to the parent of this list (array of task IDs).
  * @property depth - Current nesting depth (0 = root of the current view).
  * @property expandedIds - Set of task IDs that should show their children.
- * @property editingId - ID of the task currently being edited, or null.
+ * @property editingId - ID of the task currently being edited, or undefined.
  * @property onToggleDone - Callback when a task's completion is toggled.
  * @property onToggleExpand - Callback when a task's expansion is toggled.
  * @property onStartEdit - Callback when editing begins on a task.
@@ -38,7 +38,7 @@ import {TodoItem} from './TodoItem';
 interface TodoListProps {
   basePath: TaskID[];
   depth: number;
-  editingId: TaskID | null;
+  editingId: TaskID | undefined;
   expandedIds: Set<TaskID>;
   list: TunnelNode[];
   onAddItem: (path: TaskID[], title: string) => void;
@@ -66,7 +66,7 @@ export function TodoList({
 
   // Don't render beyond depth 2 (3 levels visible: 0, 1, 2)
   // Don't render beyond depth 2 (3 levels visible: 0, 1, 2)
-  if (depth > 2) return null;
+  if (depth > 2) return undefined;
 
   const hasItems = list.length > 0;
 

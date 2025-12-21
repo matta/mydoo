@@ -1,8 +1,9 @@
 import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import globals from 'globals';
-import sonarjs from 'eslint-plugin-sonarjs';
 import perfectionist from 'eslint-plugin-perfectionist';
+import sonarjs from 'eslint-plugin-sonarjs';
+import unicorn from 'eslint-plugin-unicorn';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 /** Standard ignore patterns for all packages */
 const sharedIgnores = {
@@ -29,6 +30,7 @@ export const sharedConfig = [
       '@typescript-eslint': tseslint.plugin,
       sonarjs,
       perfectionist,
+      unicorn,
     },
     languageOptions: {
       globals: {...globals.node, ...globals.browser},
@@ -162,6 +164,9 @@ export const sharedConfig = [
           partitionByNewLine: true,
         },
       ],
+
+      // Unicorn Rules
+      'unicorn/no-null': 'error',
     },
   },
   // Add config file overrides to disable type-checked rules globally.

@@ -20,6 +20,7 @@
     "eslint": "catalog:",
     "eslint-plugin-perfectionist": "catalog:",
     "eslint-plugin-sonarjs": "catalog:",
+    "eslint-plugin-unicorn": "catalog:",
     "globals": "catalog:",
     "husky": "catalog:",
     "lint-staged": "catalog:",

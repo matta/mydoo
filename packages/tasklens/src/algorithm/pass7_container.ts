@@ -15,7 +15,7 @@ export function pass7ContainerVisibility(
   tasks: Task[],
   getChildrenFromDoc: (
     docState: TunnelState,
-    parentId: TaskID | null,
+    parentId: TaskID | undefined,
   ) => Task[],
 ): void {
   // Goal: Ensure the Todo List remains uncluttered, showing only actionable leaves or empty containers.

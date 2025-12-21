@@ -65,15 +65,15 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
 
   const defaultSchedule: Schedule = {
     type: 'Once',
-    dueDate: null,
+    dueDate: undefined,
     leadTime: daysToMilliseconds(7),
   };
 
   const newTask: Task = {
     id: newTaskId,
     title: props.title ?? 'New Task',
-    parentId: props.parentId ?? null,
-    placeId: props.placeId ?? null,
+    parentId: props.parentId ?? undefined,
+    placeId: props.placeId ?? undefined,
     status: props.status ?? TaskStatus.Pending,
     importance: props.importance ?? 1.0,
     creditIncrement: props.creditIncrement ?? 1.0,
@@ -85,6 +85,11 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
     isSequential: props.isSequential ?? false,
     childTaskIds: [],
   };
+
+  // Automerge doesn't support 'undefined' values, so we must remove them
+  if (newTask.parentId === undefined) delete newTask.parentId;
+  if (newTask.placeId === undefined) delete newTask.placeId;
+  if (newTask.schedule.dueDate === undefined) delete newTask.schedule.dueDate;
 
   // Validations for numbers
   if (newTask.creditIncrement < 0)
@@ -102,10 +107,10 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
     if (parent) {
       // Validation: Depth limit
       let parentDepth = 0;
-      let p: TaskID | null = newTask.parentId;
+      let p: TaskID | undefined = newTask.parentId;
       while (p) {
         parentDepth++;
-        p = state.tasks[p]?.parentId ?? null;
+        p = state.tasks[p]?.parentId ?? undefined;
       }
       if (parentDepth > 20) {
         throw new Error(
@@ -157,7 +162,7 @@ export function updateTask(
 
   // Handle parentId change if it exists in props and is different
   if (props.parentId !== undefined && props.parentId !== task.parentId) {
-    moveTask(state, id, props.parentId, null); // Move to top of new parent
+    moveTask(state, id, props.parentId, undefined); // Move to top of new parent
     // Remove parentId from props to avoid double-setting it in the loop below
     // (moveTask handles it)
     // However, we still need to set other props.
@@ -179,12 +184,30 @@ export function updateTask(
     throw new Error('Importance must be between 0.0 and 1.0.');
   }
 
-  for (const [key, value] of Object.entries(props)) {
-    if (key !== 'id' && key !== 'childTaskIds') {
-      // Do not allow manual overwriting of Ids via update
-      // @ts-expect-error: Dynamic property assignment is required here but TypeScript flags it as potentially unsafe
-      task[key] = value;
-    }
+  // Explicit property updates - fully type-safe, no escapes needed.
+  // For required properties, 'in' check is sufficient (TypeScript knows value is defined).
+  // For optional properties (parentId, placeId), we use 'in' to detect explicit undefined.
+  if ('title' in props) task.title = props.title;
+  if ('status' in props) task.status = props.status;
+  if ('importance' in props) task.importance = props.importance;
+  if ('creditIncrement' in props) task.creditIncrement = props.creditIncrement;
+  if ('credits' in props) task.credits = props.credits;
+  if ('desiredCredits' in props) task.desiredCredits = props.desiredCredits;
+  if ('creditsTimestamp' in props)
+    task.creditsTimestamp = props.creditsTimestamp;
+  if ('priorityTimestamp' in props)
+    task.priorityTimestamp = props.priorityTimestamp;
+  if ('schedule' in props) task.schedule = props.schedule;
+  if ('isSequential' in props) task.isSequential = props.isSequential;
+
+  // Optional properties that can be deleted (Automerge requires delete, not undefined)
+  if ('parentId' in props) {
+    if (props.parentId === undefined) delete task.parentId;
+    else task.parentId = props.parentId;
+  }
+  if ('placeId' in props) {
+    if (props.placeId === undefined) delete task.placeId;
+    else task.placeId = props.placeId;
   }
 
   return task;
@@ -202,8 +225,8 @@ export function updateTask(
  *
  * @param state - The application state to mutate.
  * @param id - The ID of the task to move.
- * @param newParentId - The ID of the new parent task, or null to make it a root task.
- * @param afterTaskId - The ID of a sibling task to insert after, or null to insert
+ * @param newParentId - The ID of the new parent task, or undefined to make it a root task.
+ * @param afterTaskId - The ID of a sibling task to insert after, or undefined to insert
  *                      at the beginning (top) of the list.
  *
  * @throws Error if the task with the given ID does not exist.
@@ -213,7 +236,7 @@ export function updateTask(
  *
  * @example
  * // Move task to root (no parent), at the top of the list
- * moveTask(state, "5", null, null);
+ * moveTask(state, "5", undefined, undefined);
  *
  * // Move task under parent "2", after sibling "3"
  * moveTask(state, "5", "2", "3");
@@ -221,8 +244,8 @@ export function updateTask(
 export function moveTask(
   state: TunnelState,
   id: TaskID,
-  newParentId: TaskID | null,
-  afterTaskId: TaskID | null,
+  newParentId: TaskID | undefined,
+  afterTaskId: TaskID | undefined,
 ): void {
   const task = state.tasks[id];
   if (!task) throw new Error(`Task ${id} not found`);
@@ -233,10 +256,10 @@ export function moveTask(
   while (currentId) {
     if (currentId === id) {
       throw new Error(
-        `Cannot move task ${id} into its own descendant ${newParentId ?? 'null'}.`,
+        `Cannot move task ${id} into its own descendant ${newParentId ?? 'undefined'}.`,
       );
     }
-    currentId = state.tasks[currentId]?.parentId ?? null;
+    currentId = state.tasks[currentId]?.parentId ?? undefined;
   }
 
   // Validation: Depth limit
@@ -245,7 +268,7 @@ export function moveTask(
   let p = newParentId;
   while (p) {
     parentDepth++;
-    p = state.tasks[p]?.parentId ?? null;
+    p = state.tasks[p]?.parentId ?? undefined;
   }
 
   if (parentDepth > 20) {
@@ -265,7 +288,7 @@ export function moveTask(
   // 1. Remove from old location
   if (oldParentId) {
     const oldParent = state.tasks[oldParentId];
-    // oldParent is guaranteed to exist if oldParentId is not null, based on state integrity.
+    // oldParent is guaranteed to exist if oldParentId is not undefined, based on state integrity.
     const idx = oldParent?.childTaskIds.indexOf(id);
     if (idx !== undefined && idx !== -1) oldParent?.childTaskIds.splice(idx, 1);
   } else {
@@ -298,7 +321,11 @@ export function moveTask(
   }
 
   // 3. Update task parent pointer
-  task.parentId = newParentId;
+  if (newParentId === undefined) {
+    delete task.parentId;
+  } else {
+    task.parentId = newParentId;
+  }
 }
 
 /**
@@ -385,13 +412,13 @@ export function getTask(state: TunnelState, id: TaskID): Task | undefined {
  * Retrieves the immediate children of a task.
  *
  * @param state - The application state to read from.
- * @param parentId - The ID of the parent task, or null to get root-level tasks.
+ * @param parentId - The ID of the parent task, or undefined to get root-level tasks.
  * @returns An array of Task objects in their display order. Returns empty array
  *          if the parent has no children or doesn't exist.
  */
 export function getChildren(
   state: TunnelState,
-  parentId: TaskID | null,
+  parentId: TaskID | undefined,
 ): Task[] {
   const ids = parentId
     ? state.tasks[parentId]?.childTaskIds

@@ -16,7 +16,7 @@ import {type TaskID, TaskStatus, type TunnelNode} from '@mydoo/tasklens';
  * @param tasks - The root list of tasks (top-level TunnelNodes).
  * @param path - An array of task IDs representing the navigation path.
  *               An empty array returns the root list.
- * @returns The list of children at the specified path, or null if any ID
+ * @returns The list of children at the specified path, or undefined if any ID
  *          in the path is not found (invalid path).
  *
  * @example
@@ -24,16 +24,16 @@ import {type TaskID, TaskStatus, type TunnelNode} from '@mydoo/tasklens';
  * getListAtPath(tasks, [])      // returns root tasks
  * getListAtPath(tasks, ["1"])   // returns children of "Work"
  * getListAtPath(tasks, ["1", "2"]) // returns children of "Project A"
- * getListAtPath(tasks, ["999"]) // returns null (ID not found)
+ * getListAtPath(tasks, ["999"]) // returns undefined (ID not found)
  */
 export function getListAtPath(
   tasks: TunnelNode[],
   path: TaskID[],
-): TunnelNode[] | null {
+): TunnelNode[] | undefined {
   let currentList = tasks;
   for (const id of path) {
     const item = currentList.find(t => t.id === id);
-    if (!item) return null;
+    if (!item) return undefined;
     currentList = item.children;
   }
   return currentList;

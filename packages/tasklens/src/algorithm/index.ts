@@ -38,14 +38,14 @@ export function recalculateScores(
 
     const getChildrenFromDoc = (
       docState: TunnelState,
-      parentId: TaskID | null,
+      parentId: TaskID | undefined,
     ) =>
       Object.values(docState.tasks).filter(task => task.parentId === parentId);
 
     const getAncestorsFromDoc = (docState: TunnelState, id: TaskID) => {
       const ancestors: Task[] = [];
       let currentTask = getTaskFromDoc(docState, id);
-      while (currentTask && currentTask.parentId !== null) {
+      while (currentTask?.parentId !== undefined) {
         const parent = getTaskFromDoc(docState, currentTask.parentId);
         if (parent) {
           ancestors.unshift(parent);
