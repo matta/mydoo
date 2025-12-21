@@ -135,6 +135,15 @@ export const sharedConfig = [
           partitionByNewLine: true,
         },
       ],
+      'perfectionist/sort-enums': [
+        'error',
+        {
+          type: 'natural',
+          order: 'asc',
+          partitionByComment: true,
+          partitionByNewLine: true,
+        },
+      ],
     },
   },
   // Add config file overrides to disable type-checked rules globally.
