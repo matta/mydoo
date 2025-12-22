@@ -22,6 +22,7 @@
  * object in tests). The `state.tasks` Record uses plain objects because
  * Automerge cannot proxy JavaScript Map or Set types.
  */
+import {validateDepth, validateNoCycle} from './domain/invariants';
 import {
   type Schedule,
   type Task,
@@ -106,17 +107,7 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
     const parent = state.tasks[newTask.parentId];
     if (parent) {
       // Validation: Depth limit
-      let parentDepth = 0;
-      let p: TaskID | undefined = newTask.parentId;
-      while (p) {
-        parentDepth++;
-        p = state.tasks[p]?.parentId ?? undefined;
-      }
-      if (parentDepth > 20) {
-        throw new Error(
-          'Cannot create task: parent already at maximum hierarchy depth (20).',
-        );
-      }
+      validateDepth(state, newTask.parentId);
 
       parent.childTaskIds.unshift(newTaskId); // Add to top by default
     } else {
@@ -251,37 +242,15 @@ export function moveTask(
   if (!task) throw new Error(`Task ${id} not found`);
 
   // Validation: Cycle detection
-  // Check if newParentId is a descendant of id
-  let currentId = newParentId;
-  while (currentId) {
-    if (currentId === id) {
-      throw new Error(
-        `Cannot move task ${id} into its own descendant ${newParentId ?? 'undefined'}.`,
-      );
-    }
-    currentId = state.tasks[currentId]?.parentId ?? undefined;
+  if (newParentId) {
+    validateNoCycle(state, id, newParentId);
   }
 
   // Validation: Depth limit
-  // Calculate depth of new parent
-  let parentDepth = 0;
-  let p = newParentId;
-  while (p) {
-    parentDepth++;
-    p = state.tasks[p]?.parentId ?? undefined;
+  const parentIdCheck = newParentId ?? undefined;
+  if (parentIdCheck) {
+    validateDepth(state, parentIdCheck, 20, 'Cannot move task: new parent');
   }
-
-  if (parentDepth > 20) {
-    throw new Error(
-      'Cannot move task: new parent already at maximum hierarchy depth (20).',
-    );
-  }
-
-  // Also check if moving this subtree exceeds depth limit for its own descendants?
-  // Use simple check for now: if we move a tree, we must ensure max depth + subtree height <= limit
-  // But verifying entire subtree height might be expensive.
-  // The test specifically checks "new parent already at maximum hierarchy depth".
-  // So checking new parent depth is sufficient for that specific test case.
 
   const oldParentId = task.parentId;
 

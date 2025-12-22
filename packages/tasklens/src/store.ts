@@ -18,7 +18,7 @@
  */
 import * as Automerge from '@automerge/automerge';
 
-import {recalculateScores as runRecalculateScores} from './algorithm';
+import {recalculatePriorities as runRecalculatePriorities} from './domain/priority';
 import * as TunnelOps from './ops';
 import {
   ANYWHERE_PLACE_ID,
@@ -201,7 +201,9 @@ export class TunnelStore {
    * @param context - Optional runtime context (current time, location).
    */
   recalculateScores(viewFilter: ViewFilter, context?: Context): void {
-    runRecalculateScores(this, viewFilter, context);
+    this.doc = Automerge.change(this.doc, 'Recalculate scores', doc => {
+      runRecalculatePriorities(doc, viewFilter, context);
+    });
   }
 
   /**
