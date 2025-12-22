@@ -65,21 +65,23 @@ The Store calls Domain functions synchronously inside mutation transactions. It 
 
 **Pseudocode API**:
 
-```text
-State Access:
-  get_current_state() -> Snapshot
-  subscribe_to_changes(callback)
+```typescript
+interface PersistenceStore {
+  // State Access
+  getCurrentState(): Snapshot;
+  subscribeToChanges(callback: () => void): void;
 
-Mutations:
-  create_entity(type, data)
-  update_entity(id, changes)
-  delete_entity(id)
-  move_entity(id, new_parent, position)
-  transaction(description, operation_fn)
+  // Mutations
+  createEntity(kind: EntityType, data: any): void;
+  updateEntity(id: string, changes: Record<string, any>): void;
+  deleteEntity(id: string): void;
+  moveEntity(id: string, newParent: string, position: number): void;
+  transaction(description: string, operation: () => void): void;
 
-Persistence:
-  save() -> binary_data
-  load(binary_data)
+  // Persistence
+  save(): Uint8Array;
+  load(data: Uint8Array): void;
+}
 ```
 
 ---
@@ -92,24 +94,27 @@ The Domain does not initiate communication. Its pure functions are called by the
 
 **Pseudocode API**:
 
-```text
-Services:
-  calculate_priorities(task_list, context) -> DecoratedTaskList
-  heal_integrity(state) -> CleanState
+```typescript
+interface DomainServices {
+  calculatePriorities(taskList: Task[], ctx: Context): DecoratedTaskList;
+  healIntegrity(state: State): CleanState;
+}
 
-Invariants:
-  assert_valid_metric(value)
-  assert_no_cycles(tree_structure)
-  assert_depth_limit(tree_structure)
+interface Invariants {
+  assertValidMetric(value: number): void;
+  assertNoCycles(tree: Tree): void;
+  assertDepthLimit(tree: Tree): void;
+}
 ```
 
 **Key Principle**: Domain functions are called _inside_ Store transactions. This enables atomic operations while keeping domain logic Automerge-free:
 
-```text
-Store.recalculate_scores():
-  transaction("Recalculate", state =>
-    Domain.calculate_priorities(state, filter, now)
-  )
+```python
+def recalculate_scores(self):
+    def op(state: State):
+        Domain.calculate_priorities(state, filter, now)
+
+    self.transaction("Recalculate", op)
 ```
 
 ---
@@ -124,28 +129,43 @@ _Note: In React, the View Projection layer often includes **container components
 
 **Pseudocode API**:
 
-```text
-Projections (Read):
-  project_tree_view(state) -> NestedNodes
-  project_flat_list(state, filter) -> SortedItems
-  get_navigation_path(state, active_item) -> Breadcrumbs
+```typescript
+// Container Component
+function TaskList(): Element;
 
-Actions (Write):
-  dispatch_complete(task_id) -> calls Store.update + Store.recalc
-  dispatch_move(task_id, target) -> calls Store.move + Store.recalc
+// Actions
+function dispatchComplete(taskId: string): void;
+function dispatchMove(taskId: string, target: string): void;
 ```
 
-**Pseudocode Container Component**:
+```python
+# Component Implementation
+def TaskList():
+    state = store.subscribe()
+    # Pure projection (State -> View Data)
+    tree = project_tree_view(state)
 
-```text
-ContainerComponent TaskList():
-  state = Store.subscribe()
-  tree = project_tree_view(state)
-  actions = { toggle_done: id -> Store.complete(id) }
+    # Render
+    items = []
+    for node in tree:
+        def on_toggle():
+            dispatch_complete(node.id)
 
-  render:
-    for each node in tree:
-      TaskRow(title: node.title, is_checked: node.is_done, on_toggle: actions.toggle_done(node.id))
+        def on_move(target):
+            dispatch_move(node.id, target)
+
+        items.append(TaskRow(node.title, node.is_done, on_toggle, on_move))
+
+    return Fragment(items)
+
+# Actions Implementation
+def dispatch_complete(task_id):
+    store.update(task_id, changes)
+    store.recalculate()
+
+def dispatch_move(task_id, target):
+    store.move(task_id, target)
+    store.recalculate()
 ```
 
 ---
@@ -158,19 +178,19 @@ The UI receives data from the ViewModel as _props_ (arguments passed to componen
 
 **Pseudocode Presentational Components**:
 
-```text
-Component TaskRow(title, is_checked, on_toggle):
-  render:
-    Checkbox(checked: is_checked, on_change: on_toggle)
-    Label(text: title)
+```python
+def TaskRow(title: str, is_checked: bool, on_toggle: Callable, on_move: Callable) -> Element:
+    return Row(
+        Checkbox(is_checked, on_toggle),
+        Label(title),
+        DraggableHandle(on_drop=on_move)
+    )
 
-Component Checkbox(checked, on_change):
-  render:
-    input(type: "checkbox", checked: checked, on_click: on_change)
+def Checkbox(checked: bool, on_change: Callable) -> Element:
+    return Input("checkbox", checked, on_change)
 
-Component Label(text):
-  render:
-    span(text)
+def Label(text: str) -> Element:
+    return Span(text)
 ```
 
 ---
