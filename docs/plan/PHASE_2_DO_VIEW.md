@@ -64,7 +64,7 @@ _Wire everything together in the main view._
 - [x] `pnpm build` -> Pass
 - [x] `pnpm test` -> Pass (ALL repo tests)
 - [x] `pnpm test:e2e` -> Pass
-- [ ] **EVIDENCE**: Show terminal output of passing tests.
+- [x] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
 
@@ -76,16 +76,16 @@ _Wire everything together in the main view._
 
 _Verify with real data._
 
-- [ ] Create a "Seed Data" mechanism (button/script) to populate Automerge with test tasks.
-- [ ] Verify sorting matches expectations visually.
-- [ ] Write E2E test verifying list rendering.
+- [x] Create a "Seed Data" mechanism (button/script) to populate Automerge with test tasks.
+- [x] Verify sorting matches expectations visually.
+- [x] Write E2E test verifying list rendering.
 
 **Validation**
 
-- [ ] `pnpm test:e2e` -> New test passes.
+- [x] `pnpm test:e2e` -> New test passes.
 
 **Completion**
 
-- [ ] 🛑 STOP and prompt for user review.
-- [ ] 💾 Request git commit.
+- [x] 🛑 STOP and prompt for user review.
+- [x] 💾 Request git commit.
 - [ ] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.

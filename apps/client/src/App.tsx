@@ -1,5 +1,6 @@
 import {MantineProvider} from '@mantine/core';
 
+import {SeedData} from './dev/SeedData';
 import {DoViewContainer} from './viewmodel/containers/DoViewContainer';
 import {useDocument} from './viewmodel/useDocument';
 
@@ -14,6 +15,7 @@ function App() {
 
   return (
     <MantineProvider>
+      <SeedData docUrl={docUrl} />
       <DoViewContainer docUrl={docUrl} />
     </MantineProvider>
   );
