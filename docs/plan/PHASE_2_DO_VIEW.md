@@ -46,8 +46,8 @@ _Create the basic visualization components._
 
 **Completion**
 
-- [ ] 🛑 STOP and prompt for user review.
-- [ ] 💾 Request git commit.
+- [x] 🛑 STOP and prompt for user review.
+- [x] 💾 Request git commit.
 - [ ] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
 
 ## Step 3: Implement Do View Container

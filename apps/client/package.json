@@ -21,6 +21,7 @@
     "@mantine/form": "catalog:",
     "@mantine/hooks": "catalog:",
     "@mydoo/tasklens": "workspace:*",
+    "@tabler/icons-react": "catalog:",
     "dayjs": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"

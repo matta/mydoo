@@ -19,7 +19,9 @@ export function TaskRow({task, onComplete, style}: TaskRowProps) {
         <Checkbox
           aria-label={`Complete ${task.title}`}
           checked={false}
-          onChange={() => { onComplete(task.id); }}
+          onChange={() => {
+            onComplete(task.id);
+          }}
         />
 
         <Text flex={1} style={{userSelect: 'none'}}>

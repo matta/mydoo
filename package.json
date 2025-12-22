@@ -15,7 +15,8 @@
     "lint:deps": "syncpack lint",
     "lint:root": "eslint --no-error-on-unmatched-pattern *.{js,mjs,ts}",
     "prepare": "husky",
-    "test": "turbo test"
+    "test": "turbo test",
+    "test:e2e": "pnpm --filter client test:e2e"
   },
   "devDependencies": {
     "@commitlint/cli": "catalog:",
