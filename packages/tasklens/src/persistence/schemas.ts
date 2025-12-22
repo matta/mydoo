@@ -37,18 +37,19 @@ import {z} from 'zod';
  * can cause strict Zod record validation to fail if it inspects all own keys.
  * This helper preprocesses the object to only expose enumerable string keys,
  * effectively stripping the symbols before validation.
+ *
+ * @remarks Keys are always strings in our domain (TaskID, PlaceID are branded strings).
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 function AutomergeRecord<
-  K extends z.ZodType<any, any, any>,
-  V extends z.ZodType<any, any, any>,
+  // We must allow 'any' for the Definition and Input types to satisfy Zod's
+  // internal variance checks (e.g. allowing z.string() which accepts unknown inputs).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SEE ABOVE
+  K extends z.ZodType<string | number | symbol, any, any>,
+  V extends z.ZodType,
 >(keySchema: K, valueSchema: V) {
-  /* eslint-enable @typescript-eslint/no-explicit-any */
   return z.preprocess(
     val => {
       if (typeof val !== 'object' || val === null) return val;
-      // Create a shallow copy using only enumerable string keys.
-      // This strips out Automerge's internal symbols.
       const cleanObj: Record<string, unknown> = {};
       for (const k of Object.keys(val)) {
         cleanObj[k] = (val as Record<string, unknown>)[k];

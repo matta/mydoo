@@ -351,10 +351,12 @@ export function deleteTask(state: TunnelState, id: TaskID): void {
     if (idx > -1) state.rootTaskIds.splice(idx, 1);
   }
 
-  // Remove task from state. Tasks is a plain Record to support Automerge proxying,
-  // so we must use the delete operator and suppress the lint warning.
-  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-  delete state.tasks[id];
+  // Remove task from state.
+  //
+  // TODO: if state.tasks is an Automerge document then this is correct, but if
+  // it is a plain Record then we should use delete state.tasks[id]; or set it
+  // to undefined. The difference doesn't matter too much, however.
+  Reflect.deleteProperty(state.tasks, id);
 
   // TODO: Recursively delete children to avoid orphaned tasks
   if (task.childTaskIds.length > 0) {

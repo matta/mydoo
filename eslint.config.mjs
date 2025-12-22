@@ -1,5 +1,6 @@
 import js from '@eslint/js';
 import checkFile from 'eslint-plugin-check-file';
+import eslintPluginEslintComments from 'eslint-plugin-eslint-comments';
 import perfectionist from 'eslint-plugin-perfectionist';
 import sonarjs from 'eslint-plugin-sonarjs';
 import unicorn from 'eslint-plugin-unicorn';
@@ -35,6 +36,7 @@ export const sharedConfig = [
       sonarjs,
       perfectionist,
       unicorn,
+      'eslint-comments': eslintPluginEslintComments,
       'check-file': checkFile,
     },
     languageOptions: {
@@ -172,6 +174,16 @@ export const sharedConfig = [
 
       // Unicorn Rules
       'unicorn/no-null': 'error',
+
+      // ESLint Comments Rules (Strict Suppression Policy)
+      'eslint-comments/no-unlimited-disable': 'error',
+      'eslint-comments/require-description': 'error',
+      'eslint-comments/no-use': [
+        'error',
+        {
+          allow: ['eslint-disable-next-line', 'eslint-disable-line'],
+        },
+      ],
 
       // Check File Rules
       'check-file/filename-naming-convention': [

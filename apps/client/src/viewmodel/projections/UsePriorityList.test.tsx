@@ -76,9 +76,7 @@ describe('usePriorityList', () => {
 
     const {result} = renderHook(() => usePriorityList(mockDocUrl));
 
-    expect(result.current.tasks).toHaveLength(1);
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(result.current.tasks[0]!.id).toBe('1');
+    expect(result.current.tasks).toMatchObject([{id: '1'}]);
   });
 
   it('sorts tasks by priority (descending)', () => {
@@ -94,13 +92,11 @@ describe('usePriorityList', () => {
 
     const {result} = renderHook(() => usePriorityList(mockDocUrl));
 
-    expect(result.current.tasks).toHaveLength(3);
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(result.current.tasks[0]!.id).toBe('2'); // High
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(result.current.tasks[1]!.id).toBe('3'); // Medium
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(result.current.tasks[2]!.id).toBe('1'); // Low
+    expect(result.current.tasks).toMatchObject([
+      {id: '2'}, // High
+      {id: '3'}, // Medium
+      {id: '1'}, // Low
+    ]);
   });
 
   it('returns empty list when doc is loading', () => {

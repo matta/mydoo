@@ -23,6 +23,7 @@
     "@eslint/js": "catalog:",
     "eslint": "catalog:",
     "eslint-plugin-check-file": "catalog:",
+    "eslint-plugin-eslint-comments": "catalog:",
     "eslint-plugin-perfectionist": "catalog:",
     "eslint-plugin-sonarjs": "catalog:",
     "eslint-plugin-unicorn": "catalog:",
