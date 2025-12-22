@@ -141,7 +141,7 @@ This logic runs client-side on the flattened task list derived from the Automerg
 
 ### 4.2 The "Do" View (Primary)
 
-- **Visual Structure:** A flat list of tasks sorted by the Priority Algorithm.
+- **Visual Structure:** A flat list of tasks sorted **purely by computed priority score**. There are no section headers or temporal groupings (e.g., "Overdue", "Today", "Later"). Overdue items, items due today, and items due later are intermixed—their position in the list is determined solely by the algorithm's priority calculation.
 - **Filter Logic:** Shows tasks where `Visibility = True` per [ALGORITHM.md](./algorithm.md) Pass 1.
 - **Context Filter:** Header dropdown (e.g., "Home", "Work"). Place filtering logic is defined in ALGORITHM.md §3.2.
 - **Task Row Elements:**
@@ -153,17 +153,30 @@ This logic runs client-side on the flattened task list derived from the Automerg
     - **Inbox:** Distinct border to denote unfiled status.
 
 - **Interactions:**
-  - **Checkbox:** Immediately sets `status = 'completed'` and triggers credit attribution (no staging).
-  - **"Update/Refresh" Button:** Runs Repetition Logic (generates next instances) and triggers "Healer".
+  - **Checkbox:** Toggles task status. Checking sets `status = 'Done'` and triggers credit attribution. Unchecking reverts to `status = 'Pending'`.
+  - **"Update/Refresh" Button:** Runs Repetition Logic (generates next instances), triggers "Healer", and **acknowledges completed tasks** (removing them from the Do list).
   - **Floating Action Button (Mobile):** Adds a new task directly to the **Inbox**.
+
+> [!IMPORTANT]
+> **Completed Task Visibility Lifecycle**
+>
+> When a task is marked "Done", it remains visible in the Do list with a strikethrough until acknowledged. This allows the user to see what they accomplished and to undo accidental completions.
+>
+> **The acknowledgment occurs when the user presses the Refresh button**, which sets `isAcknowledged = true` on finished tasks. Tasks with `isAcknowledged` are hidden from the Do view but remain in the document for history and the Balance view's credit tracking.
+>
+> **Persisted State**: The `isAcknowledged` flag is stored in the Automerge document (synced across devices).
 
 ### 4.3 The "Plan" View (Outline)
 
 - **Structure:** Indented tree view. Infinite nesting supported.
 - **Root Nodes:** Fixed "Inbox" node (pinned at top) + User TLIs.
+- **Navigation (Hybrid)**:
+  - **Desktop:** Tree with expand/collapse chevrons. Full outline visible.
+  - **Mobile:** Drill-down navigation. Tapping a parent "zooms in" to show only its children. A **breadcrumb trail** at the top shows the current path and allows navigation back up.
 - **Interaction:**
-- **Expand/Collapse:** Chevrons (`>`) to toggle children.
-- **Selection:** Tap to Edit.
+  - **Expand/Collapse (Desktop):** Chevrons (`>`) to toggle children.
+  - **Drill-Down (Mobile):** Tap parent title to navigate into it.
+  - **Selection:** Tap task row to open Edit modal.
 
 ### 4.4 The "Balance" View
 
@@ -181,7 +194,12 @@ Since there is no "selection" state on mobile, tapping any task text opens a ful
 2. **Navigation & Hierarchy:**
 
 - **Parent:** Read-only text showing current project.
-- **"Move..." Button:** Opens a picker to select a new parent.
+- **"Move..." Button:** Opens a picker modal allowing the user to:
+  1. **Select a new parent** (reparenting), and/or
+  2. **Choose position among siblings** (reordering within the same or new parent).
+
+  This is the **only mechanism for reorganizing tasks**—no drag-and-drop is required for MVP.
+
 - **"Find in Plan" Button:** Closes the modal and navigates to the task's location in the Plan view.
 
 3. **Status/Logic:**
@@ -214,9 +232,22 @@ Since there is no "selection" state on mobile, tapping any task text opens a ful
 - _Yellow:_ Local changes, syncing...
 - _Gray:_ Offline.
 
-## 5. Implementation Guide
+## 5. Future Enhancements (Out of Scope for MVP)
 
-### 5.1 Type Definitions
+The following features are explicitly deferred to post-MVP releases. This is not a complete list, nor are these features guaranteed to ever be implemented:
+
+1. **Snooze/Defer Task**: "Hide this task until a specific date." Would require a `snoozeUntil` field and priority suppression logic.
+2. **Drag-and-Drop Reorganization**: Direct manipulation of task hierarchy in the Plan view. MVP uses the Move picker instead.
+3. **Archive/Cleanup Completed Tasks**: Bulk deletion of tasks completed more than N days ago.
+4. **Calendar View**: Visual timeline of tasks with due dates.
+5. **Search**: Full-text search across task titles and notes.
+6. **Tags/Labels**: Additional categorization beyond Places.
+
+---
+
+## 6. Implementation Guide
+
+### 6.1 Type Definitions
 
 See [automerge-schema.md](./automerge-schema.md) for schema documentation.
 
@@ -225,7 +256,7 @@ The canonical TypeScript implementation is in [`@mydoo/tasklens`](file:///Users/
 - [`types.ts`](file:///Users/matt/src/mydoo/packages/tasklens/src/types.ts) — TypeScript interfaces
 - [`schemas.ts`](file:///Users/matt/src/mydoo/packages/tasklens/src/schemas.ts) — Zod validation
 
-### 5.2 Automerge Provider (`src/contexts/AutomergeContext.tsx`)
+### 6.2 Automerge Provider (`src/contexts/AutomergeContext.tsx`)
 
 ```typescript
 import React, { createContext, useContext, useState, useEffect } from 'react';

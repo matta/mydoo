@@ -51,10 +51,11 @@ Each task stored in `tasks[id]` has the following fields:
 
 ### Optional Fields (absent when not set)
 
-| Field      | Type     | When present                                                      |
-| ---------- | -------- | ----------------------------------------------------------------- |
-| `parentId` | `string` | Task ID of parent. **Absent** for root tasks.                     |
-| `placeId`  | `string` | Place ID for location context. **Absent** to inherit from parent. |
+| Field            | Type      | When present                                                                                           |
+| ---------------- | --------- | ------------------------------------------------------------------------------------------------------ |
+| `parentId`       | `string`  | Task ID of parent. **Absent** for root tasks.                                                          |
+| `placeId`        | `string`  | Place ID for location context. **Absent** to inherit from parent.                                      |
+| `isAcknowledged` | `boolean` | `true` when completed task has been acknowledged (hidden from Do list). **Absent** = not acknowledged. |
 
 > **CRITICAL**: Automerge does not support `undefined` values. Optional fields are represented by **absence** (using the `delete` operator), not by setting to `undefined` or `null`.
 
