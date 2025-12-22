@@ -1183,7 +1183,234 @@ describe('TaskRow', () => {
 
 ---
 
-## 11. External Dependencies
+## 11. Accessibility Requirements
+
+All components must meet WCAG 2.1 Level AA standards. This section defines specific accessibility requirements for keyboard navigation, screen reader support, and focus management.
+
+### 11.1 Keyboard Navigation
+
+#### Global Shortcuts
+
+| Key                 | Action                                  | Context                          |
+| ------------------- | --------------------------------------- | -------------------------------- |
+| `Tab` / `Shift+Tab` | Navigate between interactive elements   | Global                           |
+| `Escape`            | Close modal/drawer, cancel editing      | Modals, inline editors           |
+| `Ctrl+/` or `Cmd+/` | Show keyboard shortcuts help            | Global                           |
+| `n`                 | Create new task in current context      | Do/Plan views (when not editing) |
+| `r`                 | Refresh task list (run healer)          | Do view                          |
+| `1` - `4`           | Switch to tab (Do/Plan/Balance/Context) | Global (when not editing)        |
+
+#### Task List Navigation (Do View)
+
+| Key                     | Action                          |
+| ----------------------- | ------------------------------- |
+| `↑` / `↓`               | Navigate between tasks          |
+| `Space`                 | Toggle task completion          |
+| `Enter`                 | Open task editor                |
+| `Delete` or `Backspace` | Delete task (with confirmation) |
+
+#### Tree Navigation (Plan View)
+
+| Key           | Action                                                |
+| ------------- | ----------------------------------------------------- |
+| `↑` / `↓`     | Navigate between visible tasks                        |
+| `←`           | Collapse current task (if expanded) or move to parent |
+| `→`           | Expand current task (if has children)                 |
+| `Space`       | Toggle task completion                                |
+| `Enter`       | Open task editor                                      |
+| `Shift+Enter` | Drill down into task (mobile mode)                    |
+| `Backspace`   | Navigate up one level (mobile mode)                   |
+
+#### Modal/Editor Navigation
+
+| Key                             | Action                       |
+| ------------------------------- | ---------------------------- |
+| `Tab` / `Shift+Tab`             | Navigate between form fields |
+| `Escape`                        | Close without saving         |
+| `Ctrl+Enter` or `Cmd+Enter`     | Save and close               |
+| `Ctrl+Shift+S` or `Cmd+Shift+S` | Add sibling task             |
+| `Ctrl+Shift+C` or `Cmd+Shift+C` | Add child task               |
+
+### 11.2 Focus Management
+
+#### Focus Trap in Modals
+
+When a modal opens:
+
+1. Focus moves to the first focusable element (typically the title input)
+2. `Tab` cycles through modal elements only (does not escape to background)
+3. `Shift+Tab` from first element moves to last element (wrap-around)
+4. On close, focus returns to the trigger element (e.g., the task row that opened the editor)
+
+**Implementation Note:** Use a focus trap library or implement manually with `keydown` listeners.
+
+#### Focus Indicators
+
+All interactive elements must have visible focus indicators:
+
+- **Default:** 2px solid outline with high contrast color (e.g., blue `#0066CC`)
+- **Offset:** 2px from element boundary to prevent overlap
+- **Never:** `outline: none` without a custom replacement
+
+#### Focus Restoration
+
+| Scenario          | Behavior                                              |
+| ----------------- | ----------------------------------------------------- |
+| **Delete task**   | Focus moves to next task in list, or previous if last |
+| **Complete task** | Focus remains on same task (allows rapid completion)  |
+| **Create task**   | Focus moves to new task's title field                 |
+| **Move task**     | After move, focus returns to task in new position     |
+| **Close modal**   | Focus returns to element that opened modal            |
+
+### 11.3 Screen Reader Support
+
+#### Semantic HTML
+
+Use semantic elements over generic `<div>` and `<span>`:
+
+| Component       | Semantic Element                               |
+| --------------- | ---------------------------------------------- |
+| Task list       | `<ul>` with `<li>` items                       |
+| Tree view       | `<ul role="tree">` with `<li role="treeitem">` |
+| Navigation tabs | `<nav>` with `<button role="tab">`             |
+| Modals          | `<dialog>` or `<div role="dialog">`            |
+| Buttons         | `<button>` (never `<div onclick>`)             |
+
+#### ARIA Labels and Descriptions
+
+**Task Row:**
+
+```html
+<li role="listitem" aria-label="Task: Buy groceries, due tomorrow, overdue">
+  <input
+    type="checkbox"
+    aria-label="Mark 'Buy groceries' as complete"
+    aria-describedby="task-meta-123"
+  />
+  <span id="task-meta-123" class="sr-only">
+    Due tomorrow, overdue, in project Home
+  </span>
+</li>
+```
+
+**Tree Item:**
+
+```html
+<li role="treeitem" aria-expanded="true" aria-level="2">
+  <button aria-label="Collapse 'Project X'">
+    <ChevronIcon aria-hidden="true" />
+  </button>
+  <span>Project X</span>
+  <span class="sr-only">3 subtasks</span>
+</li>
+```
+
+**Icon-Only Buttons:**
+
+```html
+<button aria-label="Add new task">
+  <PlusIcon aria-hidden="true" />
+</button>
+```
+
+#### Live Regions
+
+Announce dynamic changes without moving focus:
+
+```html
+<!-- Sync status indicator -->
+<div role="status" aria-live="polite" aria-atomic="true">
+  Synced 2 seconds ago
+</div>
+
+<!-- Task completion feedback -->
+<div role="alert" aria-live="assertive" aria-atomic="true">
+  Task "Buy groceries" marked as complete
+</div>
+```
+
+| `aria-live` Value | Use Case                        |
+| ----------------- | ------------------------------- |
+| `polite`          | Sync status, background updates |
+| `assertive`       | Errors, important confirmations |
+
+### 11.4 Component-Specific Requirements
+
+#### TaskRow / TaskOutlineItem
+
+- **Checkbox:** Must have `aria-label` with task title
+- **Task title:** Must be focusable (wrapped in `<button>` or `<a>`)
+- **Metadata:** Use `aria-describedby` to associate with checkbox
+- **Visual cues:** Must not rely on color alone (e.g., overdue = red text + icon)
+
+#### PriorityTaskList / OutlineTree
+
+- **Container:** `role="list"` or `role="tree"`
+- **Items:** `role="listitem"` or `role="treeitem"`
+- **Tree items:** Include `aria-level`, `aria-expanded`, `aria-setsize`, `aria-posinset`
+- **Empty state:** Include visible text (not just icon) explaining no tasks
+
+#### Modals (TaskEditorModal, MovePickerModal)
+
+- **Container:** `role="dialog"` and `aria-modal="true"`
+- **Title:** `aria-labelledby` pointing to modal heading
+- **Description:** `aria-describedby` for additional context
+- **Close button:** `aria-label="Close"` (not just an X icon)
+- **Focus trap:** Implemented as described in §11.2
+
+#### Form Inputs
+
+- **Labels:** Every input must have an associated `<label>` (not just placeholder)
+- **Required fields:** Use `aria-required="true"` and visual indicator (e.g., asterisk)
+- **Validation errors:** Use `aria-invalid="true"` and `aria-describedby` pointing to error message
+- **Sliders:** Include `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, `aria-valuetext`
+
+**Example (Importance Slider):**
+
+```html
+<label for="importance-slider">Importance</label>
+<input
+  id="importance-slider"
+  type="range"
+  min="0"
+  max="1"
+  step="0.1"
+  value="0.8"
+  aria-valuemin="0"
+  aria-valuemax="1"
+  aria-valuenow="0.8"
+  aria-valuetext="80% important"
+/>
+```
+
+#### Navigation Tabs
+
+- **Container:** `role="tablist"`
+- **Tabs:** `role="tab"`, `aria-selected="true|false"`, `aria-controls="panel-id"`
+- **Panels:** `role="tabpanel"`, `aria-labelledby="tab-id"`
+- **Keyboard:** Arrow keys to navigate tabs, `Enter`/`Space` to activate
+
+### 11.5 Mobile Accessibility
+
+- **Touch targets:** Minimum 44×44px (iOS) / 48×48px (Android)
+- **Spacing:** Minimum 8px between adjacent touch targets
+- **Gestures:** All swipe/pinch gestures must have button alternatives
+- **Zoom:** Support pinch-to-zoom (don't set `user-scalable=no`)
+
+### 11.6 Testing Checklist
+
+- [ ] All functionality accessible via keyboard only
+- [ ] Focus indicators visible on all interactive elements
+- [ ] Screen reader announces all content and state changes
+- [ ] Color contrast meets WCAG AA (4.5:1 for text, 3:1 for UI components)
+- [ ] Tested with VoiceOver (iOS/macOS) and TalkBack (Android)
+- [ ] Tested with keyboard navigation in Chrome, Firefox, Safari
+- [ ] All images/icons have alt text or `aria-label`
+- [ ] No keyboard traps (can escape from all UI states)
+
+---
+
+## 12. External Dependencies
 
 | Package        | Purpose           | Status                      |
 | -------------- | ----------------- | --------------------------- |
@@ -1193,7 +1420,7 @@ describe('TaskRow', () => {
 
 ---
 
-## 12. Migration Checklist
+## 13. Migration Checklist
 
 ### Phase 1: Foundation
 
@@ -1241,14 +1468,14 @@ describe('TaskRow', () => {
 
 ---
 
-## 13. Future Optimizations (Post-MVP)
+## 14. Future Optimizations (Post-MVP)
 
 - **List Virtualization**: Implement windowing (e.g., `react-virtuoso`) for the Do List and Plan Tree to support datasets > 1000 items.
 - **Drag-and-Drop**: Implement direct manipulation for task reordering in the Plan view.
 
 ---
 
-## 14. References
+## 15. References
 
 - [PRD](./prd.md) — Product requirements and UX specification
 - [Architecture](./architecture.md) — Layer definitions and boundaries
