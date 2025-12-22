@@ -18,14 +18,22 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
       - ✅ `pnpm test:e2e` (4/4)
       - ✅ **EVIDENCE**: You must present the terminal output/screenshot of passing tests to the user.
       - ✅ **CLEAN LISTS**: **MUST** update `task.md` and `PHASE_X.md` to mark completed steps as `[x]` before asking for review. Don't leave stale TODOs.
+    - **Redundant Checklist (MANDATORY)**: To prevent context loss, the "Validation" and "Completion" checklists (including the specific commit verification commands) **MUST** be repeated **VERBATIM** for **every single step** in the Phase Document. Do NOT reference a shared section.
     - **Stop & Wait**: At the end of **every step**, you must:
       - 🛑 **STOP** execution.
       - 🗣️ **Prompt** the user for manual review with the EVIDENCE.
       - 💾 **Ask** to commit changes to git.
+      - 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint) that often cause commits to fail.
+        - **ACTION**: You **MUST** check the terminal output and exit code of `git commit` immediately after running it.
+        - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g., shorten commit message, fix linting), and **RETRY** the commit until it succeeds.
+        - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT" step until `git log` confirms the new commit exists and `git status` is clean.
     - **Final Review**: After the entire phase is complete, you must:
       - 🗣️ **Quote** STOP AND WAIT
       - 💾 **Ask** to commit changes to git, if any.
-      - 🛑 **VERIFY COMMIT SUCCESS**: Ensure the commit command succeeded (Exit Code 0). If it failed (e.g., lint error), you **MUST** fix it and retry before proceeding. Do NOT continue until `git status` is clean.
+      - 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint) that often cause commits to fail.
+        - **ACTION**: You **MUST** check the terminal output and exit code of `git commit` immediately after running it.
+        - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g., shorten commit message, fix linting), and **RETRY** the commit until it succeeds.
+        - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT" step until `git log` confirms the new commit exists and `git status` is clean.
       - STOP AND WAIT for the user's response and act on it.
       - Return to the MASTER_PLAN.md to continue working on the next phase.
 

@@ -19,44 +19,22 @@ _Create the projection hook that transforms raw Automerge data into a sorted, fl
 - [x] `pnpm build` -> Pass
 - [x] `pnpm test` -> Pass (ALL repo tests)
 - [x] `pnpm test:e2e` -> Pass (Regression check)
-- [ ] **EVIDENCE**: Show terminal output of passing tests.
+- [x] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
 
 - [x] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [x] 🛑 STOP and prompt for user review.
 - [x] 💾 Request git commit.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
+- [x] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
 
 ## Step 2: Implement UI Primitives
 
 _Create the basic visualization components._
 
-- [ ] Create `apps/client/src/components/primitives/TaskRow.tsx`.
-- [ ] Create `apps/client/src/components/composites/PriorityTaskList.tsx`.
-- [ ] Implement Storybook/Preview (or just use basic dev references).
-
-**Validation**
-
-- [x] `pnpm fix` -> Pass
-- [x] `pnpm build` -> Pass
-- [x] `pnpm test` -> Pass (ALL repo tests)
-- [x] `pnpm test:e2e` -> Pass
-- [ ] **EVIDENCE**: Show terminal output of passing tests.
-
-**Completion**
-
-- [x] 🛑 STOP and prompt for user review.
-- [x] 💾 Request git commit.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
-
-## Step 3: Implement Do View Container
-
-_Wire everything together in the main view._
-
-- [ ] Create `apps/client/src/viewmodel/containers/DoViewContainer.tsx`.
-- [ ] Use `usePriorityList` and `PriorityTaskList`.
-- [ ] Update `App.tsx` (or Router) to show `DoViewContainer` at `/`.
+- [x] Create `apps/client/src/components/primitives/TaskRow.tsx`.
+- [x] Create `apps/client/src/components/composites/PriorityTaskList.tsx`.
+- [x] Implement Storybook/Preview (or just use basic dev references).
 
 **Validation**
 
@@ -68,9 +46,31 @@ _Wire everything together in the main view._
 
 **Completion**
 
-- [ ] 🛑 STOP and prompt for user review.
-- [ ] 💾 Request git commit.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
+- [x] 🛑 STOP and prompt for user review.
+- [x] 💾 Request git commit.
+- [x] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
+
+## Step 3: Implement Do View Container
+
+_Wire everything together in the main view._
+
+- [x] Create `apps/client/src/viewmodel/containers/DoViewContainer.tsx`.
+- [x] Use `usePriorityList` and `PriorityTaskList`.
+- [x] Update `App.tsx` (or Router) to show `DoViewContainer` at `/`.
+
+**Validation**
+
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm build` -> Pass
+- [x] `pnpm test` -> Pass (ALL repo tests)
+- [x] `pnpm test:e2e` -> Pass
+- [x] **EVIDENCE**: Show terminal output of passing tests.
+
+**Completion**
+
+- [x] 🛑 STOP and prompt for user review.
+- [x] 💾 Request git commit.
+- [x] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
 
 ## Step 4: End-to-End Verification
 
@@ -88,4 +88,4 @@ _Verify with real data._
 
 - [x] 🛑 STOP and prompt for user review.
 - [x] 💾 Request git commit.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
+- [x] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
