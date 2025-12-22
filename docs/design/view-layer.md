@@ -35,10 +35,20 @@ Instead of mandating a specific UI framework, this specification defines the **c
 | **Theming**           | Must support CSS variables and dark mode to meet the "vibrant aesthetics" goal.        |
 | **Layouts**           | Must support responsive Application Shells (Split Pane on Desktop, Tab Bar on Mobile). |
 
-**Gap Mitigation:**
+### 1.3 Selected UI Library: Mantine v7
 
-- **Tree view**: Most libraries lack a native nested tree. This must be built as a custom recursive component.
-- **Task reorganization**: Handled via a "Move..." picker modal in the MVP to avoid complex drag-and-drop dependencies initially.
+**Rationale:**
+
+- ✅ **Meets all requirements**: Excellence in forms (`@mantine/form`), dates (`@mantine/dates`), and accessibility.
+- **Bundle Size**: ~60KB gzipped (Core + Hooks + Form + Dates), fitting PWA targets.
+- **Developer Experience**: TypeScript-first, extensive hooks library (`use-hotkeys`, `use-os`, `use-viewport-size`).
+
+**Installation:**
+
+```bash
+pnpm add @mantine/core @mantine/hooks @mantine/form @mantine/dates dayjs
+pnpm add -D postcss postcss-preset-mantine postcss-simple-vars
+```
 
 ---
 

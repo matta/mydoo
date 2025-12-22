@@ -1,0 +1,99 @@
+# View Layer Implementation: Master Plan
+
+This document tracks the rollout of the `mydoo` View Layer. The implementation is broken down into **Vertical Slices** to allow for "Testing As You Go" and avoiding a "big bang" integration.
+
+> **Status Tracking**: Mark items as `[x]` when completed and committed.
+
+## Workflow Rules (Strict Enforcement)
+
+1.  **Phase Documentation**: Before starting any phase, you **MUST** create a detailed `docs/plan/PHASE_<N>_<NAME>.md` document. This document must strictly adhere to the following structure:
+    - **Discrete Steps**: The Phase Doc must break the work down into discrete, atomic steps (e.g., "Implement one hook").
+    - **Test Coverage**: All logic changes must be covered by tests as specified in [`docs/design/test-suite.md`](../design/test-suite.md).
+    - **Quality Gates**: Every single step must pass the **Golden Trio** before moving to the next:
+      - ✅ `pnpm lint` (Zero errors)
+      - ✅ `pnpm build` (Zero errors)
+      - ✅ `pnpm test` (Zero failures)
+    - **Stop & Wait**: At the end of **every step**, you must:
+      - 🛑 **STOP** execution.
+      - 🗣️ **Prompt** the user for manual review.
+      - 💾 **Ask** to commit changes to git.
+    - **Final Review**: After the entire phase is complete, you must:
+      - 🗣️ **Quote** STOP AND WAIT
+      - 💾 **Ask** to commit changes to git, if any.
+      - STOP AND WAIT for the user's response and act on it.
+      - Return to the MASTER_PLAN.md to continue working on the next phase.
+
+---
+
+## Phase 1: Foundation & Infrastructure
+
+_Goal: Setup tooling, dependencies, and core data wiring._
+
+- [ ] **Infrastructure Setup**
+  - [ ] Install UI Library dependencies (Mantine v7)
+  - [ ] Configure `vitest` and `playwright` for `apps/client`
+  - [ ] Create directory structure (`viewmodel/`, `components/`, `tests/`)
+  - [ ] Create `AppShell` layout skeleton
+- [ ] **Data Wiring**
+  - [ ] Implement `useDocument` (doc handle provider)
+  - [ ] Verify Automerge connection in React (smoke test)
+
+## Phase 2: The "Do" View (Vertical Slice 1)
+
+_Goal: Read-only rendering of the priority list. Prove the data pipeline works._
+
+- [ ] **Logic (TDD)**
+  - [ ] Test & Implement `usePriorityList` hook
+  - [ ] Test & Implement `useSystemIntents` (Healer/Refresh)
+- [ ] **UI Components**
+  - [ ] Create `TaskRow` primitive
+  - [ ] Create `PriorityTaskList` composite
+  - [ ] Implement `DoViewContainer`
+- [ ] **Verification**
+  - [ ] Unit Test: `usePriorityList` sorting
+  - [ ] E2E: App loads and displays tasks from IDB
+
+## Phase 3: Core Interactions (Vertical Slice 2)
+
+_Goal: Make the list interactive. Complete, Uncomplete, Quick Add._
+
+- [ ] **Logic (TDD)**
+  - [ ] Test & Implement `useTaskIntents` (Complete, Create)
+- [ ] **UI Integration**
+  - [ ] Wire `TaskRow` checkbox to `completeTask`
+  - [ ] Add "Quick Entry" input to `DoViewContainer`
+- [ ] **Verification**
+  - [ ] Integration Test: Click checkbox -> Store updates
+  - [ ] E2E: Create task -> Realtime update
+
+## Phase 4: The "Plan" View (Tree)
+
+_Goal: Hierarchical navigation._
+
+- [ ] **Logic**
+  - [ ] Implement `useTaskTree` (Recursive projection)
+  - [ ] Implement `useBreadcrumbs`
+  - [ ] Implement `useNavigationState` (Expansion state)
+- [ ] **UI Components**
+  - [ ] Create `OutlineTree` component (Recursive)
+  - [ ] Implement `PlanViewContainer`
+
+## Phase 5: Task Details & Editing
+
+_Goal: Full property editing._
+
+- [ ] **Logic**
+  - [ ] Implement `useTaskDetails` (Deep data fetch)
+  - [ ] Implement `usePlaceIntents`
+- [ ] **UI Components**
+  - [ ] Create `TaskEditorModal` (The "Mega-Component")
+  - [ ] Wire form handling (Validation, Dirty checking)
+  - [ ] Create `MovePickerModal`
+
+## Phase 6: Polish & Balance
+
+_Goal: Complete the feature set._
+
+- [ ] Implement `BalanceViewContainer`
+- [ ] Implement `ContextViewContainer`
+- [ ] Final Accessibility Audit
