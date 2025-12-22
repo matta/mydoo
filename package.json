@@ -6,7 +6,9 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
+    "fix": "pnpm run fix:deps && pnpm run fix:lint && pnpm run format",
     "fix:deps": "syncpack fix-mismatches && syncpack format",
+    "fix:lint": "turbo lint -- --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "turbo lint",
