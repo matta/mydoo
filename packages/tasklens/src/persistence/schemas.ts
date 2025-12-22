@@ -31,6 +31,35 @@
 import {z} from 'zod';
 
 /**
+ * Helper to create a record schema that handles Automerge proxies.
+ *
+ * Automerge proxies contain internal symbols (e.g. Symbol(_am_meta)) which
+ * can cause strict Zod record validation to fail if it inspects all own keys.
+ * This helper preprocesses the object to only expose enumerable string keys,
+ * effectively stripping the symbols before validation.
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function AutomergeRecord<
+  K extends z.ZodType<any, any, any>,
+  V extends z.ZodType<any, any, any>,
+>(keySchema: K, valueSchema: V) {
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  return z.preprocess(
+    val => {
+      if (typeof val !== 'object' || val === null) return val;
+      // Create a shallow copy using only enumerable string keys.
+      // This strips out Automerge's internal symbols.
+      const cleanObj: Record<string, unknown> = {};
+      for (const k of Object.keys(val)) {
+        cleanObj[k] = (val as Record<string, unknown>)[k];
+      }
+      return cleanObj;
+    },
+    z.record(keySchema, valueSchema),
+  );
+}
+
+/**
  * Schema for validating a task ID.
  *
  * Uses Zod's `.brand()` to produce a branded type that matches `TaskID`
@@ -99,6 +128,6 @@ export const TunnelStateSchema = z.object({
   nextTaskId: z.number(),
   nextPlaceId: z.number(),
   rootTaskIds: z.array(TaskIDSchema),
-  tasks: z.record(TaskIDSchema, TaskSchema),
-  places: z.record(PlaceIDSchema, z.any()),
+  tasks: AutomergeRecord(TaskIDSchema, TaskSchema),
+  places: AutomergeRecord(PlaceIDSchema, z.any()),
 });
