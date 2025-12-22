@@ -57,7 +57,7 @@ jobs:
         run: pnpm test
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: pnpm --filter client exec playwright install --with-deps
 
       - name: E2E Tests
         run: pnpm --filter client test:e2e
