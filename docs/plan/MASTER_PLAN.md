@@ -10,18 +10,22 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
     - **Clean Git State**: Before starting any step, you **MUST** verify that `git status` is clean (no uncommitted changes).
     - **Discrete Steps**: The Phase Doc must break the work down into discrete, atomic steps (e.g., "Implement one hook").
     - **Test Coverage**: All logic changes must be covered by tests as specified in [`docs/design/test-suite.md`](../design/test-suite.md).
-    - **Quality Gates**: The following **must all pass** before you prompt the user for manual review:
-      - ✅ `pnpm fix` (Auto-fix lint/format issues)
-      - ✅ `pnpm build` (Zero errors)
-      - ✅ `pnpm test` (Zero failures)
-      - ✅ `pnpm test:e2e` (Zero failures)
+    - **Quality Gates (MANDATORY FOR EVERY STEP)**:
+      The following **must all pass** before you prompt the user for manual review. You are NOT ALLOWED to skip any of these, even for "logic only" changes:
+      - ✅ `pnpm fix` (1/4)
+      - ✅ `pnpm build` (2/4)
+      - ✅ `pnpm test` (3/4) - **MUST RUN ON ENTIRE REPO**
+      - ✅ `pnpm test:e2e` (4/4)
+      - ✅ **EVIDENCE**: You must present the terminal output/screenshot of passing tests to the user.
+      - ✅ **CLEAN LISTS**: **MUST** update `task.md` and `PHASE_X.md` to mark completed steps as `[x]` before asking for review. Don't leave stale TODOs.
     - **Stop & Wait**: At the end of **every step**, you must:
       - 🛑 **STOP** execution.
-      - 🗣️ **Prompt** the user for manual review.
+      - 🗣️ **Prompt** the user for manual review with the EVIDENCE.
       - 💾 **Ask** to commit changes to git.
     - **Final Review**: After the entire phase is complete, you must:
       - 🗣️ **Quote** STOP AND WAIT
       - 💾 **Ask** to commit changes to git, if any.
+      - 🛑 **VERIFY COMMIT SUCCESS**: Ensure the commit command succeeded (Exit Code 0). If it failed (e.g., lint error), you **MUST** fix it and retry before proceeding. Do NOT continue until `git status` is clean.
       - STOP AND WAIT for the user's response and act on it.
       - Return to the MASTER_PLAN.md to continue working on the next phase.
 

@@ -6,22 +6,27 @@
 
 _Create the projection hook that transforms raw Automerge data into a sorted, flat list of tasks._
 
-- [ ] Create `apps/client/src/viewmodel/projections/usePriorityList.ts`.
-- [ ] Implement logic to:
+- [x] Create `apps/client/src/viewmodel/projections/usePriorityList.ts`.
+- [x] Implement logic to:
   - Flatten the task tree (if needed) or iterate tasks.
   - Filter by `status: Pending`.
   - Sort by `priority` (descending).
-- [ ] Write unit test: `tests/usePriorityList.test.tsx`.
+- [x] Write unit test: `tests/usePriorityList.test.tsx`.
 
 **Validation**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm test` -> Pass (New tests passing)
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm build` -> Pass
+- [x] `pnpm test` -> Pass (ALL repo tests)
+- [x] `pnpm test:e2e` -> Pass (Regression check)
+- [ ] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
 
-- [ ] 🛑 STOP and prompt for user review.
-- [ ] 💾 Request git commit.
+- [x] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
+- [x] 🛑 STOP and prompt for user review.
+- [x] 💾 Request git commit.
+- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
 
 ## Step 2: Implement UI Primitives
 
@@ -35,11 +40,15 @@ _Create the basic visualization components._
 
 - [ ] `pnpm fix` -> Pass
 - [ ] `pnpm build` -> Pass
+- [ ] `pnpm test` -> Pass (ALL repo tests)
+- [ ] `pnpm test:e2e` -> Pass
+- [ ] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
 
 - [ ] 🛑 STOP and prompt for user review.
 - [ ] 💾 Request git commit.
+- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
 
 ## Step 3: Implement Do View Container
 
@@ -52,13 +61,16 @@ _Wire everything together in the main view._
 **Validation**
 
 - [ ] `pnpm fix` -> Pass
-- [ ] `pnpm dev` -> App loads and displays "No tasks" or placeholder state.
-- [ ] `pnpm test:e2e` -> Smoke test still passes.
+- [ ] `pnpm build` -> Pass
+- [ ] `pnpm test` -> Pass (ALL repo tests)
+- [ ] `pnpm test:e2e` -> Pass
+- [ ] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
 
 - [ ] 🛑 STOP and prompt for user review.
 - [ ] 💾 Request git commit.
+- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
 
 ## Step 4: End-to-End Verification
 
@@ -76,3 +88,4 @@ _Verify with real data._
 
 - [ ] 🛑 STOP and prompt for user review.
 - [ ] 💾 Request git commit.
+- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Did the commit succeed? If not, fix it immediately.
