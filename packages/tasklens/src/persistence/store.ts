@@ -18,8 +18,7 @@
  */
 import * as Automerge from '@automerge/automerge';
 
-import {recalculatePriorities as runRecalculatePriorities} from './domain/priority';
-import * as TunnelOps from './ops';
+import {recalculatePriorities as runRecalculatePriorities} from '../domain/priority';
 import {
   ANYWHERE_PLACE_ID,
   type Context,
@@ -27,7 +26,8 @@ import {
   type TaskID,
   type TunnelState,
   type ViewFilter,
-} from './types';
+} from '../types';
+import * as TunnelOps from './ops';
 
 /**
  * A store that wraps an Automerge document containing task state.

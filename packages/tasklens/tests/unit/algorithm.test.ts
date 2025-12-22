@@ -11,7 +11,7 @@ import type {
   TunnelAlgorithmTestCaseSchema,
 } from '../../specs/compliance/schemas/test_case';
 import schemaJson from '../../specs/compliance/schemas/test_case.schema.json';
-import {TunnelStore} from '../../src/store';
+import {TunnelStore} from '../../src/persistence/store';
 import {
   type Place,
   type PlaceID,

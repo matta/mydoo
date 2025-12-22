@@ -22,7 +22,7 @@
  * object in tests). The `state.tasks` Record uses plain objects because
  * Automerge cannot proxy JavaScript Map or Set types.
  */
-import {validateDepth, validateNoCycle} from './domain/invariants';
+import {validateDepth, validateNoCycle} from '../domain/invariants';
 import {
   type Schedule,
   type Task,
@@ -30,8 +30,8 @@ import {
   TaskStatus,
   type TunnelNode,
   type TunnelState,
-} from './types';
-import {daysToMilliseconds, getCurrentTimestamp} from './utils/time';
+} from '../types';
+import {daysToMilliseconds, getCurrentTimestamp} from '../utils/time';
 
 // --- Mutators ---
 

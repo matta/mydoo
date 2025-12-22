@@ -19,7 +19,7 @@
  */
 import {z} from 'zod';
 
-import {PlaceIDSchema, TaskIDSchema} from './schemas';
+import {PlaceIDSchema, TaskIDSchema} from './persistence/schemas';
 
 /**
  * Unique identifier for a Task.

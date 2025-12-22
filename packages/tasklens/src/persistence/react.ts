@@ -19,15 +19,15 @@ import {type AnyDocumentId} from '@automerge/automerge-repo';
 import {useDocument} from '@automerge/automerge-repo-react-hooks';
 import {useCallback, useMemo} from 'react';
 
-import * as TunnelOps from './ops';
-import {TunnelStateSchema} from './schemas';
 import {
   type Task,
   type TaskID,
   TaskStatus,
   type TunnelNode,
   type TunnelState,
-} from './types';
+} from '../types';
+import * as TunnelOps from './ops';
+import {TunnelStateSchema} from './schemas';
 
 /**
  * Return type of the `useTunnel` hook.
