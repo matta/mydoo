@@ -1,8 +1,8 @@
 import js from '@eslint/js';
+import checkFile from 'eslint-plugin-check-file';
 import perfectionist from 'eslint-plugin-perfectionist';
 import sonarjs from 'eslint-plugin-sonarjs';
 import unicorn from 'eslint-plugin-unicorn';
-import checkFile from 'eslint-plugin-check-file';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 

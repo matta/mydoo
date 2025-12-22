@@ -11,8 +11,9 @@
     "fix:lint": "turbo lint -- --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "turbo lint",
+    "lint": "turbo lint && pnpm lint:root",
     "lint:deps": "syncpack lint",
+    "lint:root": "eslint --no-error-on-unmatched-pattern *.{js,mjs,ts}",
     "prepare": "husky",
     "test": "turbo test"
   },
