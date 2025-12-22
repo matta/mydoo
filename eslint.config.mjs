@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import perfectionist from 'eslint-plugin-perfectionist';
 import sonarjs from 'eslint-plugin-sonarjs';
 import unicorn from 'eslint-plugin-unicorn';
+import checkFile from 'eslint-plugin-check-file';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -31,6 +32,7 @@ export const sharedConfig = [
       sonarjs,
       perfectionist,
       unicorn,
+      'check-file': checkFile,
     },
     languageOptions: {
       globals: {...globals.node, ...globals.browser},
@@ -167,6 +169,24 @@ export const sharedConfig = [
 
       // Unicorn Rules
       'unicorn/no-null': 'error',
+
+      // Check File Rules
+      'check-file/filename-naming-convention': [
+        'error',
+        {
+          '**/*.tsx': 'PASCAL_CASE',
+          '**/*.ts': 'CAMEL_CASE',
+        },
+        {
+          ignoreMiddleExtensions: true,
+        },
+      ],
+      'check-file/folder-naming-convention': [
+        'error',
+        {
+          'src/**/': 'KEBAB_CASE',
+        },
+      ],
     },
   },
   // Add config file overrides to disable type-checked rules globally.

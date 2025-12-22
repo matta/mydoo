@@ -6,13 +6,13 @@ import {
   type ViewFilter,
 } from '../types';
 import {getCurrentTimestamp} from '../utils/time';
-import {pass1ContextualVisibility} from './pass1_visibility';
-import {pass2ScheduleInheritance} from './pass2_schedule';
-import {pass3DeviationFeedback} from './pass3_thermostat';
-import {pass4WeightNormalization} from './pass4_weights';
-import {pass5LeadTimeRamp} from './pass5_leadtime';
-import {pass6FinalPriority} from './pass6_priority';
-import {pass7ContainerVisibility} from './pass7_container';
+import {pass1ContextualVisibility} from './pass1Visibility';
+import {pass2ScheduleInheritance} from './pass2Schedule';
+import {pass3DeviationFeedback} from './pass3Thermostat';
+import {pass4WeightNormalization} from './pass4Weights';
+import {pass5LeadTimeRamp} from './pass5Leadtime';
+import {pass6FinalPriority} from './pass6Priority';
+import {pass7ContainerVisibility} from './pass7Container';
 
 export function recalculatePriorities(
   state: TunnelState,
