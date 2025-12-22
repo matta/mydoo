@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .turbo
+
+# Test Artifacts
+playwright-report
+test-results
+.last-run.json
