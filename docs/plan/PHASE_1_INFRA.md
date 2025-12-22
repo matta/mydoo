@@ -24,15 +24,15 @@ _Install Mantine UI library and testing tools._
 
 _Setup PostCSS, Vitest, and Playwright._
 
-- [ ] Create `postcss.config.cjs` (Mantine preset).
-- [ ] Create `apps/client/vitest.config.ts` (JSDOM environment).
-- [ ] Create `playwright.config.ts` (Base configuration).
-- [ ] Update `apps/client/package.json` scripts (`test`, `test:e2e`).
+- [x] Create `postcss.config.cjs` (Mantine preset).
+- [x] Create `apps/client/vitest.config.ts` (JSDOM environment).
+- [x] Create `playwright.config.ts` (Base configuration).
+- [x] Update `apps/client/package.json` scripts (`test`, `test:e2e`).
 
 **Validation**
 
-- [ ] `pnpm lint` -> Pass
-- [ ] `pnpm --filter client test` -> Pass (0 tests is fine, just checks config load)
+- [x] `pnpm lint` -> Pass
+- [x] `pnpm --filter client test` -> Pass (0 tests is fine, just checks config load)
 
 **Completion**
 

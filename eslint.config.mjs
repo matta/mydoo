@@ -18,6 +18,8 @@ const configFilePatterns = [
   'vite.config.{js,ts}',
   '.lintstagedrc.js',
   'apps/client/vite.config.ts',
+  'apps/client/vitest.config.ts',
+  'apps/client/playwright.config.ts',
 ];
 
 /** Base shared configuration */
