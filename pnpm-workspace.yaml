@@ -2,53 +2,60 @@ packages:
   - apps/*
   - packages/*
 
-onlyBuiltDependencies:
-  - esbuild
-
 catalogs:
   default:
-    react: ^19.2.3
-    react-dom: ^19.2.3
-    '@types/react': ^19.2.7
-    '@types/react-dom': ^19.2.3
     '@automerge/automerge': ^3.2.1
     '@automerge/automerge-repo': ^2.5.1
-    '@automerge/automerge-repo-react-hooks': ^2.5.1
     '@automerge/automerge-repo-network-websocket': ^2.5.1
+    '@automerge/automerge-repo-react-hooks': ^2.5.1
     '@automerge/automerge-repo-storage-indexeddb': ^2.5.1
-    typescript: ^5.9.3
-    vite: ^7.2.4
+    '@commitlint/cli': ^20.2.0
+    '@eslint/js': ^9.39.2
+    '@mantine/core': 8.3.10
+    '@mantine/dates': 8.3.10
+    '@mantine/form': 8.3.10
+    '@mantine/hooks': 8.3.10
+    '@playwright/test': ^1.57.0
+    '@testing-library/react': ^16.3.1
+    '@testing-library/user-event': ^14.6.1
+    '@types/js-yaml': ^4.0.9
+    '@types/node': ^25.0.2
+    '@types/react': ^19.2.7
+    '@types/react-dom': ^19.2.3
+    '@vitejs/plugin-react': ^5.1.1
+    '@vitest/coverage-v8': ^4.0.16
+    ajv: ^8.17.1
+    ajv-formats: ^3.0.1
+    dayjs: ^1.11.19
     eslint: ^9.39.2
-    prettier: ^3.7.4
-    zod: ^4.2.1
+    eslint-plugin-check-file: ^3.3.1
+    eslint-plugin-perfectionist: ^5.0.0
+    eslint-plugin-react-hooks: ^7.0.1
+    eslint-plugin-react-refresh: ^0.4.24
     eslint-plugin-sonarjs: ^3.0.5
     eslint-plugin-unicorn: ^57.0.0
-    eslint-plugin-perfectionist: ^5.0.0
-    eslint-plugin-check-file: ^3.3.1
-    '@eslint/js': ^9.39.2
-    typescript-eslint: ^8.49.0
     globals: ^16.5.0
-    '@vitejs/plugin-react': ^5.1.1
+    husky: ^9.1.7
+    js-yaml: ^4.1.1
+    jsdom: ^27.3.0
+    json-schema-to-typescript: ^15.0.4
+    lint-staged: ^16.2.7
+    postcss: 8.5.6
+    postcss-preset-mantine: 1.18.0
+    postcss-simple-vars: 7.0.1
+    prettier: ^3.7.4
+    react: ^19.2.3
+    react-dom: ^19.2.3
+    syncpack: ^13.0.2
+    turbo: ^2.7.1
+    typescript: ^5.9.3
+    typescript-eslint: ^8.49.0
+    vite: ^7.2.4
     vite-plugin-pwa: ^1.2.0
     vite-plugin-top-level-await: ^1.6.0
     vite-plugin-wasm: ^3.5.0
-    '@types/node': ^25.0.2
-    '@vitest/coverage-v8': ^4.0.16
-    vitest: ^4.0.15
-    '@mantine/core': 8.3.10
-    '@mantine/hooks': 8.3.10
-    eslint-plugin-react-hooks: ^7.0.1
-    eslint-plugin-react-refresh: ^0.4.24
-    postcss: ^8.5.6
-    postcss-preset-mantine: ^1.18.0
-    postcss-simple-vars: ^7.0.1
-    '@types/js-yaml': ^4.0.9
-    ajv: ^8.17.1
-    ajv-formats: ^3.0.1
-    js-yaml: ^4.1.1
-    json-schema-to-typescript: ^15.0.4
-    syncpack: ^13.0.2
-    '@commitlint/cli': ^20.2.0
-    husky: ^9.1.7
-    lint-staged: ^16.2.7
-    turbo: ^2.7.1
+    vitest: 4.0.16
+    zod: ^4.2.1
+
+onlyBuiltDependencies:
+  - esbuild

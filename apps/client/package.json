@@ -15,13 +15,19 @@
     "@automerge/automerge-repo-react-hooks": "catalog:",
     "@automerge/automerge-repo-storage-indexeddb": "catalog:",
     "@mantine/core": "catalog:",
+    "@mantine/dates": "catalog:",
+    "@mantine/form": "catalog:",
     "@mantine/hooks": "catalog:",
     "@mydoo/tasklens": "workspace:*",
+    "dayjs": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",
+    "@playwright/test": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/user-event": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
@@ -30,6 +36,7 @@
     "eslint-plugin-react-hooks": "catalog:",
     "eslint-plugin-react-refresh": "catalog:",
     "globals": "catalog:",
+    "jsdom": "catalog:",
     "postcss": "catalog:",
     "postcss-preset-mantine": "catalog:",
     "postcss-simple-vars": "catalog:",
@@ -38,6 +45,7 @@
     "vite": "catalog:",
     "vite-plugin-pwa": "catalog:",
     "vite-plugin-top-level-await": "catalog:",
-    "vite-plugin-wasm": "catalog:"
+    "vite-plugin-wasm": "catalog:",
+    "vitest": "catalog:"
   }
 }

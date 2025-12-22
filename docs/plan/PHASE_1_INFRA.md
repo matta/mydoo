@@ -6,14 +6,14 @@
 
 _Install Mantine UI library and testing tools._
 
-- [ ] Install Mantine core packages (`@mantine/core`, hooks, form, dates) + `dayjs`.
-- [ ] Install PostCSS dependencies.
-- [ ] Install Test dependencies (`vitest`, `jsdom`, `@testing-library/react`, `@playwright/test`).
+- [x] Install Mantine core packages (`@mantine/core`, hooks, form, dates) + `dayjs`.
+- [x] Install PostCSS dependencies.
+- [x] Install Test dependencies (`vitest`, `jsdom`, `@testing-library/react`, `@playwright/test`).
 
 **Validation**
 
-- [ ] `pnpm install` -> Clean exit
-- [ ] `pnpm build` -> Pass
+- [x] `pnpm install` -> Clean exit
+- [x] `pnpm build` -> Pass
 
 **Completion**
 
