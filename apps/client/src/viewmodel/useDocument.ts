@@ -1,6 +1,5 @@
-import type {AnyDocumentId} from '@automerge/automerge-repo';
 import {useRepo} from '@automerge/automerge-repo-react-hooks';
-import type {TunnelState} from '@mydoo/tasklens';
+import type {DocumentHandle, TunnelState} from '@mydoo/tasklens';
 import {useState} from 'react';
 
 /**
@@ -14,13 +13,14 @@ import {useState} from 'react';
  * 3. Updates the window hash to match the new document URL.
  * 4. Returns the Document URL for use by other hooks (e.g. useTunnel).
  *
- * @returns {AnyDocumentId} The URL of the current Automerge document.
+ * @returns {DocumentHandle} The URL of the current Automerge document.
  */
 export function useDocument() {
   const repo = useRepo();
-  const [docUrl] = useState<AnyDocumentId>(() => {
+  const [docUrl] = useState<DocumentHandle>(() => {
     const hash = window.location.hash.slice(1);
-    if (hash) return hash as AnyDocumentId;
+    // Explicitly cast the hash string to our opaque type
+    if (hash) return hash as unknown as DocumentHandle;
 
     const handle = repo.create<TunnelState>();
     handle.change(doc => {
@@ -32,7 +32,7 @@ export function useDocument() {
     });
     const url = handle.url;
     window.location.hash = url;
-    return url;
+    return url as unknown as DocumentHandle;
   });
 
   return docUrl;

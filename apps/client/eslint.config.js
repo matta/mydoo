@@ -37,8 +37,6 @@ export default defineConfig([
     // Exceptions: Infrastructure and specific Connector Hooks are allowed to use Automerge
     files: [
       'src/viewmodel/useDocument.ts',
-      'src/viewmodel/useTaskActions.ts',
-      'src/viewmodel/useTaskTree.ts',
       'src/hooks/RepoProvider.tsx',
       'src/lib/db.ts',
     ],

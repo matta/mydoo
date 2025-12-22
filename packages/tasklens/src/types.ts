@@ -48,6 +48,14 @@ export type TaskID = z.infer<typeof TaskIDSchema>;
 export type PlaceID = z.infer<typeof PlaceIDSchema>;
 
 /**
+ * Opaque handle for a Tunnel Document.
+ *
+ * This type erases the underlying persistence implementation details (e.g. Automerge AnyDocumentId)
+ * from the public API, allowing consumers to pass document references without importing persistence types.
+ */
+export type DocumentHandle = string & {__brand: 'DocumentHandle'};
+
+/**
  * Reserved Place ID representing "any location".
  * Tasks assigned to this place are always visible regardless of filter.
  */

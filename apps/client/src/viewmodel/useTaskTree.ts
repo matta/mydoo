@@ -1,5 +1,4 @@
-import {type AnyDocumentId} from '@automerge/automerge-repo';
-import {useTunnel} from '@mydoo/tasklens';
+import {type DocumentHandle, useTunnel} from '@mydoo/tasklens';
 
 /**
  * ViewModel hook for accessing the task tree data.
@@ -13,7 +12,7 @@ import {useTunnel} from '@mydoo/tasklens';
  * @param docUrl - The URL of the Automerge document.
  * @returns Object containing the task tree and raw document.
  */
-export function useTaskTree(docUrl: AnyDocumentId) {
+export function useTaskTree(docUrl: DocumentHandle) {
   const {tasks, doc} = useTunnel(docUrl);
 
   return {

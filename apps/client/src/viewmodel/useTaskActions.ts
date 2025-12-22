@@ -1,5 +1,9 @@
-import {type AnyDocumentId} from '@automerge/automerge-repo';
-import {type Task, type TaskID, useTunnel} from '@mydoo/tasklens';
+import {
+  type DocumentHandle,
+  type Task,
+  type TaskID,
+  useTunnel,
+} from '@mydoo/tasklens';
 import {useCallback} from 'react';
 
 /**
@@ -11,7 +15,7 @@ import {useCallback} from 'react';
  * @param docUrl - The URL of the Automerge document.
  * @returns Object containing action methods.
  */
-export function useTaskActions(docUrl: AnyDocumentId) {
+export function useTaskActions(docUrl: DocumentHandle) {
   const {ops} = useTunnel(docUrl);
 
   const addTask = useCallback(

@@ -20,6 +20,7 @@ import {useDocument} from '@automerge/automerge-repo-react-hooks';
 import {useCallback, useMemo} from 'react';
 
 import {
+  type DocumentHandle,
   type Task,
   type TaskID,
   TaskStatus,
@@ -39,7 +40,7 @@ import {TunnelStateSchema} from './schemas';
  * @property doc - The validated application state, or undefined if the document
  *                 hasn't loaded yet or failed validation.
  * @property tasks - The task tree as an array of root-level TunnelNodes.
- *                   Each node contains its children recursively.
+ *                   Each node contains its children recursively. This is a read-only projection.
  * @property ops - Object containing operation functions to modify the state:
  *   - `add`: Create a new task with optional properties.
  *   - `update`: Modify properties of an existing task.
@@ -66,7 +67,7 @@ export interface TunnelHookResult {
 /**
  * React hook for managing task data stored in an Automerge document.
  *
- * This hook connects to an Automerge document specified by `docUrl` and provides:
+ * This hook connects to an Automerge document specified by a `DocumentHandle` and provides:
  * 1. Reactive access to the task tree (re-renders when the document changes).
  * 2. Type-safe operations for creating, updating, moving, and deleting tasks.
  *
@@ -74,14 +75,15 @@ export interface TunnelHookResult {
  * If the document structure is invalid (corrupted or incompatible), `doc`
  * will be undefined and `tasks` will be an empty array.
  *
- * @param docUrl - The Automerge document URL or ID. This is typically obtained
- *                 from the Automerge repository when creating or loading a document.
+ * @param docId - The opaque DocumentHandle (erased Automerge URL).
+ *                This is typically obtained from `useDocument()`.
  * @returns A `TunnelHookResult` containing the document, task tree, and operations.
  *
  * @example
  * ```typescript
  * function TaskList() {
- *   const { tasks, ops } = useTunnel("my-document-id");
+ *   const docId = useDocument();
+ *   const { tasks, ops } = useTunnel(docId);
  *
  *   return (
  *     <ul>
@@ -101,18 +103,12 @@ export interface TunnelHookResult {
  * hook conventions. It must be called at the top level of a function component
  * and cannot be called conditionally.
  *
- * **Automerge Synchronization**: Changes made via `ops` are automatically
- * tracked by Automerge and can be synced to other clients or persisted.
- *
  * **Performance Note**: The `tasks` tree is rebuilt whenever the document
- * changes (via `useMemo` with `doc` as the dependency). This means any change
- * to any task triggers a full tree rebuild and component re-render. For large
- * task lists, consider:
- * - Using `React.memo` on child components to prevent unnecessary renders.
- * - Implementing more granular subscriptions to individual tasks.
- * - Using virtualization for long lists.
+ * changes. For large lists, memoize child components.
  */
-export function useTunnel(docUrl: AnyDocumentId): TunnelHookResult {
+export function useTunnel(docId: DocumentHandle): TunnelHookResult {
+  // Cast the opaque opaque handle back to AnyDocumentId for the internal library
+  const docUrl = docId as unknown as AnyDocumentId;
   const [doc, changeDoc] = useDocument(docUrl);
 
   const tasks = useMemo(() => {
