@@ -78,11 +78,11 @@ _Setup providers and global styles._
 
 **Validation**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm build` -> Pass
-- [ ] `pnpm dev` -> Browser loads with Mantine styles (inspect element to verify)
-- [ ] `pnpm --filter client test` -> Pass
-- [ ] `pnpm --filter client test:e2e` -> Pass
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm build` -> Pass
+- [x] `pnpm dev` -> Browser loads with Mantine styles (inspect element to verify)
+- [x] `pnpm --filter client test` -> Pass
+- [x] `pnpm --filter client test:e2e` -> Pass
 
 **Completion**
 
