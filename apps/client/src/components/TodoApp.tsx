@@ -6,30 +6,15 @@ import {
   TaskStatus,
   type TunnelNode,
   type TunnelState,
-  useTunnel,
 } from '@mydoo/tasklens';
-/**
- * TodoApp: Main application component for the task management UI.
- *
- * This component serves as the root of the task management interface. It:
- * 1. Connects to an Automerge document (creating one if needed).
- * 2. Manages UI state for navigation, expansion, and editing.
- * 3. Renders the task list with breadcrumb navigation.
- *
- * The document URL is stored in the browser's URL hash, allowing users to
- * share or bookmark specific task lists.
- *
- * @remarks
- * This component uses several React patterns that may be unfamiliar:
- * - **useState with initializer**: `useState(() => { ... })` runs the function
- *   once on mount to compute the initial value.
- * - **useCallback**: Memoizes functions to prevent unnecessary re-renders when
- *   passed as props to child components.
- * - **useTunnel hook**: Provides reactive access to the Automerge document.
- */
 import {useCallback, useState} from 'react';
 
-import {getBreadcrumbs, getListAtPath} from '../lib/todoUtils';
+import {
+  useBreadcrumbs,
+  useTaskActions,
+  useTaskTree,
+  useTodoList,
+} from '../viewmodel';
 import {Breadcrumbs} from './Breadcrumbs';
 import {TodoList} from './TodoList';
 
@@ -42,10 +27,8 @@ export function TodoApp() {
     if (hash) return hash as AnyDocumentId;
 
     // Create new document if none exists
-    // We create a fresh tunnel state
     const handle = repo.create<TunnelState>();
     handle.change(doc => {
-      // Init logic matching TunnelStore default but explicit here since we use raw repo create
       doc.tasks = {};
       doc.places = {};
       doc.rootTaskIds = [];
@@ -57,14 +40,21 @@ export function TodoApp() {
     return url;
   });
 
-  const {tasks, ops} = useTunnel(docUrl);
+  // --- ViewModel Integration ---
+  const {tasks} = useTaskTree(docUrl);
+  const actions = useTaskActions(docUrl);
 
   // UI State
   const [viewPath, setViewPath] = useState<TaskID[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<TaskID>>(new Set());
   const [editingId, setEditingId] = useState<TaskID | undefined>(undefined);
 
-  // Handlers
+  // Projections
+  const {currentList, isPathValid} = useTodoList(tasks, viewPath);
+  const breadcrumbs = useBreadcrumbs(tasks, viewPath);
+
+  // --- Handlers ---
+
   const handleNavigate = useCallback((path: TaskID[]) => {
     setViewPath(path);
   }, []);
@@ -72,9 +62,9 @@ export function TodoApp() {
   const handleToggleDone = useCallback(
     (fullPath: TaskID[]) => {
       const id = fullPath[fullPath.length - 1];
-      if (id) ops.toggleDone(id);
+      if (id) actions.toggleDone(id);
     },
-    [ops],
+    [actions],
   );
 
   const handleToggleExpand = useCallback(
@@ -112,8 +102,6 @@ export function TodoApp() {
       for (const node of nodes) {
         if (node.status === TaskStatus.Done) {
           idsToDelete.push(node.id);
-          // Note: deleting parent implicitly orphans children.
-          // When parent is done, we skip traversing its children.
         } else {
           traverse(node.children);
         }
@@ -122,9 +110,9 @@ export function TodoApp() {
     traverse(tasks);
 
     idsToDelete.forEach(id => {
-      ops.delete(id);
+      actions.deleteTask(id);
     });
-  }, [tasks, ops]);
+  }, [tasks, actions]);
 
   const handleStartEdit = useCallback((id: TaskID) => {
     setEditingId(id);
@@ -134,11 +122,11 @@ export function TodoApp() {
     (fullPath: TaskID[], newTitle: string) => {
       const id = fullPath[fullPath.length - 1];
       if (id) {
-        ops.update(id, {title: newTitle});
+        actions.updateTask(id, {title: newTitle});
       }
       setEditingId(undefined);
     },
-    [ops],
+    [actions],
   );
 
   const handleCancelEdit = useCallback(() => {
@@ -147,34 +135,26 @@ export function TodoApp() {
 
   const handleAddItem = useCallback(
     (basePath: TaskID[], title: string) => {
-      // basePath is array of IDs. The last ID is the parent.
-      // If basePath is empty, parent is undefined.
       const parentId =
         basePath.length > 0 ? basePath[basePath.length - 1] : undefined;
-      ops.add({title, parentId: parentId ?? undefined});
+      actions.addTask(title, parentId);
     },
-    [ops],
+    [actions],
   );
 
-  // Early returns
-
-  // Get the list at the current view path
-  // `tasks` is the root list (TunnelNode[])
-  // getListAtPath navigates down
-  const currentList = getListAtPath(tasks, viewPath);
-
-  if (!currentList) {
-    // Invalid path, reset to root
-    setViewPath([]);
+  // Check if path is valid, else reset
+  if (!isPathValid) {
+    if (viewPath.length > 0) {
+      setViewPath([]); // Reset to root
+    }
     return (
       <Container py="xl" size="sm">
         <Loader />
-        {/* Resetting view... */}
       </Container>
     );
   }
 
-  const breadcrumbs = getBreadcrumbs(tasks, viewPath);
+  if (!currentList) return undefined; // Should be handled by isPathValid check above
 
   return (
     <Container py="xl" size="sm">
