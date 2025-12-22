@@ -38,10 +38,10 @@ _Create the basic visualization components._
 
 **Validation**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm build` -> Pass
-- [ ] `pnpm test` -> Pass (ALL repo tests)
-- [ ] `pnpm test:e2e` -> Pass
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm build` -> Pass
+- [x] `pnpm test` -> Pass (ALL repo tests)
+- [x] `pnpm test:e2e` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
@@ -60,10 +60,10 @@ _Wire everything together in the main view._
 
 **Validation**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm build` -> Pass
-- [ ] `pnpm test` -> Pass (ALL repo tests)
-- [ ] `pnpm test:e2e` -> Pass
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm build` -> Pass
+- [x] `pnpm test` -> Pass (ALL repo tests)
+- [x] `pnpm test:e2e` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
