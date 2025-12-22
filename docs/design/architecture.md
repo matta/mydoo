@@ -178,18 +178,11 @@ Component Label(text):
 ## Directory Structure
 
 ```text
-packages/tasklens/src/
+packages/tasklens/src/        # "The Core" (Headless)
 ├── domain/                   # Business logic, no Automerge
 │   ├── priority.ts           # 7-pass algorithm (pure functions)
 │   ├── healer.ts             # Dedup/integrity (pure functions)
 │   ├── invariants.ts         # Validation: depth, cycles
-│   └── index.ts
-│
-├── viewmodel/                # UI-facing projections
-│   ├── useTaskTree.ts        # TunnelState → TunnelNode[]
-│   ├── useTodoList.ts        # TunnelState → sorted Task[]
-│   ├── useBreadcrumbs.ts     # Computes parent chain
-│   ├── useTaskActions.ts     # Write orchestration
 │   └── index.ts
 │
 ├── persistence/              # Automerge lives here ONLY
@@ -200,6 +193,16 @@ packages/tasklens/src/
 │
 ├── types.ts                  # Pure domain types (no Automerge)
 └── index.ts                  # Public exports
+
+apps/client/src/              # "The App" (Thick Client)
+├── viewmodel/                # UI-facing projections (React Hooks)
+│   ├── useTaskTree.ts        # TunnelState → TunnelNode[]
+│   ├── useTodoList.ts        # TunnelState → sorted Task[]
+│   ├── useBreadcrumbs.ts     # Computes parent chain
+│   ├── useTaskActions.ts     # Write orchestration
+│   └── index.ts
+│
+└── components/               # Visual components
 ```
 
 ---
@@ -218,11 +221,12 @@ packages/tasklens/src/
 2. Refactor `ops.ts` to call invariant functions
 3. Add unit tests for invariants with plain objects
 
-### Phase 3: Create ViewModel Layer
+### Phase 3: Create ViewModel Layer (in `apps/client`)
 
-1. Move `getTaskTree()` from `ops.ts` to `viewmodel/useTaskTree.ts`
-2. Create `useTaskActions.ts` to orchestrate writes
-3. Refactor `react.ts` to be a thin Automerge adapter
+1. Create `apps/client/src/viewmodel/`
+2. Move `getTaskTree()` logic from `tasklens` to `client/viewmodel/useTaskTree.ts`
+3. Create `client/viewmodel/useTaskActions.ts` to orchestrate writes
+4. Keep `tasklens/src/react.ts` as a thin Automerge data provider (Context/Hook)
 
 ### Phase 4: Reorganize Directory Structure
 
@@ -348,10 +352,10 @@ export function healState(state: TunnelState): void {
 }
 ```
 
-### C. ViewModel Layer (Hooks & Actions)
+### C. ViewModel Layer (in `apps/client`)
 
 ```typescript
-// viewmodel/useTaskTree.ts
+// apps/client/src/viewmodel/useTaskTree.ts
 export function projectToTree(state: TunnelState): TunnelNode[] {
   // Build nested tree from flat task map
 }
