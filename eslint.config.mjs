@@ -20,6 +20,7 @@ const configFilePatterns = [
   'apps/client/vite.config.ts',
   'apps/client/vitest.config.ts',
   'apps/client/playwright.config.ts',
+  'apps/client/eslint.config.js',
 ];
 
 /** Base shared configuration */

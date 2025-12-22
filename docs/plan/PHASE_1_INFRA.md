@@ -69,10 +69,10 @@ _Create the directory structure for MVVM pattern._
 
 _Setup providers and global styles._
 
-- [ ] Update `apps/client/src/main.tsx`:
-  - Wrap with `<MantineProvider>`.
-  - Ensure `<AutomergeProvider>` is present.
-  - Import Mantine CSS (`@mantine/core/styles.css`, etc).
+- [x] Update `apps/client/src/main.tsx`:
+  - [x] Wrap with `<MantineProvider>`.
+  - [x] Ensure `<AutomergeProvider>` is present.
+  - [x] Import Mantine CSS (`@mantine/core/styles.css`, etc).
 
 **Validation**
 
@@ -93,18 +93,18 @@ _Setup providers and global styles._
 
 _Create the foundational hook for data access._
 
-- [ ] Create `apps/client/src/viewmodel/projections/useDocument.ts`.
-- [ ] Implement hook to retrieve/create document handle from Context.
-- [ ] Write integration test: `tests/useDocument.test.tsx`.
+- [x] Create `apps/client/src/viewmodel/projections/useDocument.ts` (Found in `viewmodel/useDocument.ts`).
+- [x] Implement hook to retrieve/create document handle from Context.
+- [x] Write integration test: `tests/useDocument.test.tsx` (Created `UseDocument.test.tsx`).
 
 **Validation**
 
 **Validation**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm lint` -> Pass
-- [ ] `pnpm --filter client test` -> Pass (1 test passing)
-- [ ] `pnpm --filter client test:e2e` -> Pass
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm lint` -> Pass
+- [x] `pnpm --filter client test` -> Pass (1 test passing)
+- [x] `pnpm --filter client test:e2e` -> Pass
 
 **Completion**
 

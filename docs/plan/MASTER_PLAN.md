@@ -7,6 +7,7 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
 ## Workflow Rules (Strict Enforcement)
 
 1.  **Phase Documentation**: Before starting any phase, you **MUST** create a detailed `docs/plan/PHASE_<N>_<NAME>.md` document. This document must strictly adhere to the following structure:
+    - **Clean Git State**: Before starting any step, you **MUST** verify that `git status` is clean (no uncommitted changes).
     - **Discrete Steps**: The Phase Doc must break the work down into discrete, atomic steps (e.g., "Implement one hook").
     - **Test Coverage**: All logic changes must be covered by tests as specified in [`docs/design/test-suite.md`](../design/test-suite.md).
     - **Quality Gates**: The following **must all pass** before you prompt the user for manual review:

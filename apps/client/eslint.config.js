@@ -39,6 +39,7 @@ export default defineConfig([
       'src/viewmodel/useDocument.ts',
       'src/hooks/RepoProvider.tsx',
       'src/lib/db.ts',
+      '**/*.test.{ts,tsx}',
     ],
     rules: {
       // Re-define restricted imports to allow Automerge, but still ban deep persistence imports
