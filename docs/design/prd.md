@@ -20,164 +20,11 @@ A local-first, synchronization-agnostic task management system. It eliminates "l
 - **Persistence:** IndexedDB (`automerge-repo-storage-indexeddb`).
 - **Network:** WebSocket (`automerge-repo-network-websocket`).
 
-### 2.2 Data Schema (Monolithic Document)
+### 2.2 Data Schema
 
-**Concept: Normalized Data**
-The Automerge document acts like a relational database. We do **not** store the tree structure directly (e.g., we do not nest `Task` objects inside other `Task` objects).
+The Automerge document structure is specified in **[automerge-schema.md](./automerge-schema.md)**.
 
-- **Storage:** All tasks exist in a single flat map (`tasks`), keyed by their ID.
-- **Hierarchy:** The tree structure is reconstructed using reference IDs (`childIds` and `parentId`).
-- **Benefit:** This allows O(1) lookups for any task, easy re-parenting (moving a task is just changing string IDs, not moving giant JSON objects), and efficient synchronization.
-
-```typescript
-// System Constants
-const ROOT_INBOX_ID = 'system-inbox';
-const PLACE_ANYWHERE_ID = 'system-place-anywhere';
-
-interface RootDoc {
-  /**
-   * THE "DATABASE" TABLES
-   * These maps are the single source of truth for all entities in the system.
-   */
-
-  /**
-   * A flat map containing EVERY task in the system, regardless of status or depth.
-   * - Includes: Active, Completed, Deleted, Inbox, and deeply nested sub-tasks.
-   * - Key: The Task ID (UUID or Deterministic ID).
-   */
-  tasks: {[id: string]: Task};
-
-  /**
-   * A flat map containing ALL context places.
-   * - Used to populate the "Context" dropdowns and filter lists.
-   */
-  places: {[id: string]: Place};
-
-  /**
-   * TOPOLOGY & ORDERING
-   */
-
-  /**
-   * The entry points for the Plan view.
-   * - Contains only the IDs of "Top-Level Items" (TLIs).
-   * - Order: Visual order is determined by this array.
-   * - CONFLICT HANDLING: Due to Automerge array merging strategies, this list may
-   * temporarily contain duplicates. The "Healer" routine (Section 3.4)
-   * sanitizes this by retaining only the *first* occurrence of any ID.
-   */
-  rootTaskIds: string[];
-
-  /**
-   * GLOBAL CONFIGURATION
-   */
-  settings: {
-    userName: string;
-    /**
-     * Tuning parameter for the Balance Algorithm.
-     * 0.0 = "Chill" (Balance deficits barely affect priority).
-     * 1.0 = "Strict" (Balance deficits aggressively boost priority).
-     */
-    balanceSensitivity: number;
-  };
-}
-
-interface Task {
-  id: string;
-  title: string;
-  notes?: string; // Markdown supported. Undefined = no notes.
-
-  /**
-   * HIERARCHY / GRAPH CONNECTIONS
-   */
-
-  /**
-   * The ID of the parent task.
-   * - undefined: If this task is a Top-Level Item (TLI) listed in `RootDoc.rootTaskIds`.
-   */
-  parentId?: string;
-
-  /**
-   * Ordered list of children IDs.
-   * - CONFLICT HANDLING: Like `rootTaskIds`, this may accumulate duplicates during merge.
-   * The "Healer" routine ensures only the first occurrence of an ID is preserved.
-   * - Empty array [] if leaf node.
-   */
-  childIds: string[];
-
-  /**
-   * STATE & LIFECYCLE
-   */
-  status: 'active' | 'completed' | 'deleted';
-
-  createdAt: number; // Unix Timestamp (ms)
-
-  /**
-   * Used by the "Balance" algorithm to calculate Actual Effort history.
-   * - undefined: If status is 'active' or 'deleted'.
-   */
-  completedAt?: number;
-
-  /**
-   * Used by the "Staleness" algorithm (see STALENESS.md).
-   * - Updated on task creation, completion, snooze, or edit.
-   * - A timestamp far in the past indicates the task is "stale".
-   */
-  lastReviewTimestamp: number;
-
-  /**
-   * SCORING FACTORS (See Algorithm Spec)
-   */
-
-  importance: number; // 0.0 (Trivial) to 1.0 (Critical).
-  effort: number; // Weighting for Balance: 1 (Small), 3 (Med), 5 (Large)
-
-  /**
-   * SCHEDULING
-   */
-
-  dueDate?: string; // ISO Date (YYYY-MM-DD). Undefined = No deadline.
-  leadTimeDays: number; // Days before due date to start showing. Must be >= 0. Ignored if dueDate is undefined.
-
-  /**
-   * REPETITION STRATEGY
-   * - undefined: This is a one-off task.
-   * - object: This task will regenerate upon completion.
-   */
-  repeatConfig?: {
-    type: 'routinely' | 'calendar';
-    intervalDays: number;
-
-    /**
-     * A UUID constant shared by all instances of this routine (e.g. "Laundry").
-     * Used to prevent duplicates during merge conflicts.
-     */
-    seriesId: string;
-
-    /**
-     * Monotonically increasing counter (1, 2, 3...).
-     * Used by the "Healer" routine to identify the latest version.
-     */
-    iterationIndex: number;
-  };
-
-  /**
-   * CONTEXT
-   * Links to `RootDoc.places`.
-   * Defaults to PLACE_ANYWHERE_ID.
-   */
-  placeId: string;
-}
-
-interface Place {
-  id: string;
-  name: string;
-  /**
-   * Supports nesting (e.g., "Kitchen" is inside "Home").
-   * - undefined: If this is a top-level context (e.g., "Home", "Work").
-   */
-  parentPlaceId?: string;
-}
-```
+> **Key Principle**: Automerge serves exclusively as the storage and merge layer. The rest of the application consumes plain TypeScript objects—never Automerge proxies directly.
 
 ## 3. The Logic Specification
 
@@ -369,75 +216,14 @@ Since there is no "selection" state on mobile, tapping any task text opens a ful
 
 ## 5. Implementation Guide
 
-### 5.1 Type Definitions (`src/types.ts`)
+### 5.1 Type Definitions
 
-```typescript
-export const ROOT_INBOX_ID = 'system-inbox';
-export const PLACE_ANYWHERE_ID = 'system-place-anywhere';
+See [automerge-schema.md](./automerge-schema.md) for schema documentation.
 
-export type TaskStatus = 'active' | 'completed' | 'deleted';
-export type RepeatType = 'routinely' | 'calendar';
+The canonical TypeScript implementation is in [`@mydoo/tasklens`](file:///Users/matt/src/mydoo/packages/tasklens):
 
-export interface RepeatConfig {
-  type: RepeatType;
-  intervalDays: number;
-  seriesId: string;
-  iterationIndex: number;
-}
-
-export interface Task {
-  id: string;
-  title: string;
-  notes?: string;
-
-  /**
-   * HIERARCHY:
-   * 'parentId' is undefined if this is a Top Level Item (in rootTaskIds).
-   */
-  parentId?: string;
-  childIds: string[];
-
-  status: TaskStatus;
-  createdAt: number;
-  completedAt?: number;
-  lastReviewTimestamp: number;
-
-  importance: number; // 0.0 to 1.0
-  effort: number; // 1 (Small), 3 (Medium), 5 (Large)
-
-  dueDate?: string; // ISO Date string
-  leadTimeDays: number;
-
-  repeatConfig?: RepeatConfig;
-  placeId: string;
-}
-
-export interface Place {
-  id: string;
-  name: string;
-  parentPlaceId?: string;
-}
-
-export interface Settings {
-  userName: string;
-  balanceSensitivity: number;
-}
-
-export interface RootDoc {
-  // The flat map of all tasks.
-  // Tasks are NOT nested. Hierarchy is derived from parentId/childIds.
-  tasks: {[id: string]: Task};
-
-  places: {[id: string]: Place};
-
-  // IDs of the top-level items (Goals/Categories)
-  // NOTE: This array may contain duplicates due to merge conflicts.
-  // The Healer algorithm sanitizes this by keeping only the first occurrence.
-  rootTaskIds: string[];
-
-  settings: Settings;
-}
-```
+- [`types.ts`](file:///Users/matt/src/mydoo/packages/tasklens/src/types.ts) — TypeScript interfaces
+- [`schemas.ts`](file:///Users/matt/src/mydoo/packages/tasklens/src/schemas.ts) — Zod validation
 
 ### 5.2 Automerge Provider (`src/contexts/AutomergeContext.tsx`)
 
