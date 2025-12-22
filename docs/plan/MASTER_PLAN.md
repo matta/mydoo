@@ -10,31 +10,30 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
     - **Clean Git State**: Before starting any step, you **MUST** verify that `git status` is clean (no uncommitted changes).
     - **Discrete Steps**: The Phase Doc must break the work down into discrete, atomic steps (e.g., "Implement one hook").
     - **Test Coverage**: All logic changes must be covered by tests as specified in [`docs/design/test-suite.md`](../design/test-suite.md).
-    - **Quality Gates (MANDATORY FOR EVERY STEP)**:
-      The following **must all pass** before you prompt the user for manual review. You are NOT ALLOWED to skip any of these, even for "logic only" changes:
-      - ✅ `pnpm fix` (1/4)
-      - ✅ `pnpm build` (2/4)
-      - ✅ `pnpm test` (3/4) - **MUST RUN ON ENTIRE REPO**
-      - ✅ `pnpm test:e2e` (4/4)
-      - ✅ **EVIDENCE**: You must present the terminal output/screenshot of passing tests to the user.
-      - ✅ **CLEAN LISTS**: **MUST** update `task.md` and `PHASE_X.md` to mark completed steps as `[x]` before asking for review. Don't leave stale TODOs.
-    - **Redundant Checklist (MANDATORY)**: To prevent context loss, the "Validation" and "Completion" checklists (including the specific commit verification commands) **MUST** be repeated **VERBATIM** for **every single step** in the Phase Document. Do NOT reference a shared section.
-    - **Stop & Wait**: At the end of **every step**, you must:
-      - 🛑 **STOP** execution.
-      - 🗣️ **Prompt** the user for manual review with the EVIDENCE.
-      - 💾 **Ask** to commit changes to git.
-      - 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint) that often cause commits to fail.
+    - **Quality Gates and Stop Protocol (MANDATORY)**:
+      For **EVERY SINGLE STEP** in your Phase Document, you **MUST** copy-paste the following block **VERBATIM**. You are **NOT ALLOWED** to summarize or shorten it. It must appear exactly as below at the end of every step:
+
+      ```markdown
+      **Quality Gates**
+
+      - [ ] `pnpm fix` -> Pass
+      - [ ] `pnpm build` -> Pass
+      - [ ] `pnpm test` -> Pass (ALL repo tests)
+      - [ ] `pnpm test:e2e` -> Pass
+      - [ ] **EVIDENCE**: Show terminal output of passing tests.
+
+      **Completion**
+
+      - [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
+      - [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
+      - [ ] 💾 Request git commit.
+      - [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint).
         - **ACTION**: You **MUST** check the terminal output and exit code of `git commit` immediately after running it.
         - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g., shorten commit message, fix linting), and **RETRY** the commit until it succeeds.
         - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT" step until `git log` confirms the new commit exists and `git status` is clean.
-    - **Final Review**: After the entire phase is complete, you must:
-      - 🗣️ **Quote** STOP AND WAIT
-      - 💾 **Ask** to commit changes to git, if any.
-      - 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint) that often cause commits to fail.
-        - **ACTION**: You **MUST** check the terminal output and exit code of `git commit` immediately after running it.
-        - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g., shorten commit message, fix linting), and **RETRY** the commit until it succeeds.
-        - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT" step until `git log` confirms the new commit exists and `git status` is clean.
-      - STOP AND WAIT for the user's response and act on it.
+      ```
+
+    - **Final Review**: After the entire phase is complete, you must follow the same "Stop & Wait" protocol.
       - Return to the MASTER_PLAN.md to continue working on the next phase.
 
 ---
@@ -43,29 +42,29 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
 
 _Goal: Setup tooling, dependencies, and core data wiring._
 
-- [ ] **Infrastructure Setup**
-  - [ ] Install UI Library dependencies (Mantine v7)
-  - [ ] Configure `vitest` and `playwright` for `apps/client`
-  - [ ] Create directory structure (`viewmodel/`, `components/`, `tests/`)
-  - [ ] Create `AppShell` layout skeleton
-- [ ] **Data Wiring**
-  - [ ] Implement `useDocument` (doc handle provider)
-  - [ ] Verify Automerge connection in React (smoke test)
+- [x] **Infrastructure Setup**
+  - [x] Install UI Library dependencies (Mantine v7)
+  - [x] Configure `vitest` and `playwright` for `apps/client`
+  - [x] Create directory structure (`viewmodel/`, `components/`, `tests/`)
+  - [x] Create `AppShell` layout skeleton
+- [x] **Data Wiring**
+  - [x] Implement `useDocument` (doc handle provider)
+  - [x] Verify Automerge connection in React (smoke test)
 
 ## Phase 2: The "Do" View (Vertical Slice 1)
 
 _Goal: Read-only rendering of the priority list. Prove the data pipeline works._
 
-- [ ] **Logic (TDD)**
-  - [ ] Test & Implement `usePriorityList` hook
-  - [ ] Test & Implement `useSystemIntents` (Healer/Refresh)
-- [ ] **UI Components**
-  - [ ] Create `TaskRow` primitive
-  - [ ] Create `PriorityTaskList` composite
-  - [ ] Implement `DoViewContainer`
-- [ ] **Verification**
-  - [ ] Unit Test: `usePriorityList` sorting
-  - [ ] E2E: App loads and displays tasks from IDB
+- [x] **Logic (TDD)**
+  - [x] Test & Implement `usePriorityList` hook
+  - [x] Test & Implement `useSystemIntents` (Healer/Refresh)
+- [x] **UI Components**
+  - [x] Create `TaskRow` primitive
+  - [x] Create `PriorityTaskList` composite
+  - [x] Implement `DoViewContainer`
+- [x] **Verification**
+  - [x] Unit Test: `usePriorityList` sorting
+  - [x] E2E: App loads and displays tasks from IDB
 
 ## Phase 3: Core Interactions (Vertical Slice 2)
 
