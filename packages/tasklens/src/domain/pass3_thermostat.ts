@@ -1,5 +1,3 @@
-import * as Automerge from '@automerge/automerge';
-
 import type {Task, TaskID, TunnelState} from '../../src/types';
 
 /**
@@ -15,7 +13,7 @@ import type {Task, TaskID, TunnelState} from '../../src/types';
  * @param getChildrenFromDoc Helper to get children from the current document state.
  */
 export function pass3DeviationFeedback(
-  doc: Automerge.Doc<TunnelState>,
+  doc: TunnelState,
   tasks: Task[],
   _getTaskFromDoc: (docState: TunnelState, id: TaskID) => Task | undefined,
   _getChildrenFromDoc: (

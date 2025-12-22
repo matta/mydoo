@@ -1,5 +1,3 @@
-import * as Automerge from '@automerge/automerge';
-
 import type {Task, TaskID, TunnelState} from '../../src/types';
 
 /**
@@ -11,7 +9,7 @@ import type {Task, TaskID, TunnelState} from '../../src/types';
  * @param getChildrenFromDoc Helper to get children from the current document state.
  */
 export function pass7ContainerVisibility(
-  doc: Automerge.Doc<TunnelState>,
+  doc: TunnelState,
   tasks: Task[],
   getChildrenFromDoc: (
     docState: TunnelState,

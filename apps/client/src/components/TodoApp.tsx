@@ -1,16 +1,10 @@
-import type {AnyDocumentId} from '@automerge/automerge-repo';
-import {useRepo} from '@automerge/automerge-repo-react-hooks';
 import {Button, Container, Group, Loader, Stack, Title} from '@mantine/core';
-import {
-  type TaskID,
-  TaskStatus,
-  type TunnelNode,
-  type TunnelState,
-} from '@mydoo/tasklens';
+import {type TaskID, TaskStatus, type TunnelNode} from '@mydoo/tasklens';
 import {useCallback, useState} from 'react';
 
 import {
   useBreadcrumbs,
+  useDocument,
   useTaskActions,
   useTaskTree,
   useTodoList,
@@ -19,26 +13,7 @@ import {Breadcrumbs} from './Breadcrumbs';
 import {TodoList} from './TodoList';
 
 export function TodoApp() {
-  const repo = useRepo();
-
-  // Get or create document URL from hash
-  const [docUrl] = useState(() => {
-    const hash = window.location.hash.slice(1);
-    if (hash) return hash as AnyDocumentId;
-
-    // Create new document if none exists
-    const handle = repo.create<TunnelState>();
-    handle.change(doc => {
-      doc.tasks = {};
-      doc.places = {};
-      doc.rootTaskIds = [];
-      doc.nextTaskId = 1;
-      doc.nextPlaceId = 1;
-    });
-    const url = handle.url;
-    window.location.hash = url;
-    return url;
-  });
+  const docUrl = useDocument();
 
   // --- ViewModel Integration ---
   const {tasks} = useTaskTree(docUrl);

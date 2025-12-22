@@ -1,5 +1,3 @@
-import * as Automerge from '@automerge/automerge';
-
 import type {Task, TaskID, TunnelState} from '../../src/types';
 
 /**
@@ -14,7 +12,7 @@ import type {Task, TaskID, TunnelState} from '../../src/types';
  * @param getAncestorsFromDoc Helper to get ancestors from the current document state.
  */
 export function pass6FinalPriority(
-  doc: Automerge.Doc<TunnelState>,
+  doc: TunnelState,
   tasks: Task[],
   getAncestorsFromDoc: (docState: TunnelState, id: TaskID) => Task[],
 ): void {

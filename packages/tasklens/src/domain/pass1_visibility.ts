@@ -15,8 +15,6 @@
  * This pass runs before priority calculations, so only visible tasks are
  * considered for ranking.
  */
-import * as Automerge from '@automerge/automerge';
-
 import type {OpenHours} from '../../specs/compliance/schemas/test_case';
 import {
   ANYWHERE_PLACE_ID,
@@ -102,7 +100,7 @@ function _isPlaceOpen(place: Place, currentTime: number): boolean {
  * @param currentTime The current timestamp in milliseconds.
  */
 export function pass1ContextualVisibility(
-  doc: Automerge.Doc<TunnelState>,
+  doc: TunnelState,
   viewFilter: ViewFilter,
   currentTime: number,
 ): void {
