@@ -9,10 +9,11 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
 1.  **Phase Documentation**: Before starting any phase, you **MUST** create a detailed `docs/plan/PHASE_<N>_<NAME>.md` document. This document must strictly adhere to the following structure:
     - **Discrete Steps**: The Phase Doc must break the work down into discrete, atomic steps (e.g., "Implement one hook").
     - **Test Coverage**: All logic changes must be covered by tests as specified in [`docs/design/test-suite.md`](../design/test-suite.md).
-    - **Quality Gates**: Every single step must pass the **Golden Trio** before moving to the next:
-      - ✅ `pnpm lint` (Zero errors)
+    - **Quality Gates**: The following **must all pass** before you prompt the user for manual review:
+      - ✅ `pnpm fix` (Auto-fix lint/format issues)
       - ✅ `pnpm build` (Zero errors)
       - ✅ `pnpm test` (Zero failures)
+      - ✅ `pnpm test:e2e` (Zero failures)
     - **Stop & Wait**: At the end of **every step**, you must:
       - 🛑 **STOP** execution.
       - 🗣️ **Prompt** the user for manual review.

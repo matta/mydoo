@@ -12,8 +12,11 @@ _Install Mantine UI library and testing tools._
 
 **Validation**
 
+- [x] `pnpm fix` -> Pass
 - [x] `pnpm install` -> Clean exit
 - [x] `pnpm build` -> Pass
+- [x] `pnpm test` -> Pass
+- [x] `pnpm test:e2e` -> Pass
 
 **Completion**
 
@@ -31,8 +34,10 @@ _Setup PostCSS, Vitest, and Playwright._
 
 **Validation**
 
+- [x] `pnpm fix` -> Pass
 - [x] `pnpm lint` -> Pass
-- [x] `pnpm --filter client test` -> Pass (0 tests is fine, just checks config load)
+- [x] `pnpm --filter client test` -> Pass
+- [x] `pnpm --filter client test:e2e` -> Pass
 
 **Completion**
 
@@ -43,13 +48,17 @@ _Setup PostCSS, Vitest, and Playwright._
 
 _Create the directory structure for MVVM pattern._
 
-- [ ] Create `viewmodel/{projections,intents,containers}`.
-- [ ] Create `components/{primitives,composites,modals,layouts}`.
-- [ ] Create `tests/` directory.
+- [x] Create `viewmodel/{projections,intents,containers}`.
+- [x] Create `components/{primitives,composites,modals,layouts}`.
+- [x] Create `tests/` directory.
 
 **Validation**
 
-- [ ] `tree apps/client/src` shows new folders
+- [x] `pnpm fix` -> Pass
+- [x] `tree apps/client/src` shows new folders
+- [x] `pnpm build` -> Pass
+- [x] `pnpm --filter client test` -> Pass
+- [x] `pnpm --filter client test:e2e` -> Pass
 
 **Completion**
 
@@ -67,8 +76,13 @@ _Setup providers and global styles._
 
 **Validation**
 
+**Validation**
+
+- [ ] `pnpm fix` -> Pass
 - [ ] `pnpm build` -> Pass
 - [ ] `pnpm dev` -> Browser loads with Mantine styles (inspect element to verify)
+- [ ] `pnpm --filter client test` -> Pass
+- [ ] `pnpm --filter client test:e2e` -> Pass
 
 **Completion**
 
@@ -85,8 +99,12 @@ _Create the foundational hook for data access._
 
 **Validation**
 
+**Validation**
+
+- [ ] `pnpm fix` -> Pass
 - [ ] `pnpm lint` -> Pass
 - [ ] `pnpm --filter client test` -> Pass (1 test passing)
+- [ ] `pnpm --filter client test:e2e` -> Pass
 
 **Completion**
 
