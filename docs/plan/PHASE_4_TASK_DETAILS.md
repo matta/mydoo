@@ -81,7 +81,7 @@ _Implement cascade deletion per PRD §3.6._
 
 _Build the modal per PRD §4.5._
 
-- [ ] Create `TaskEditorModal` component:
+- [x] Create `TaskEditorModal` component:
   - Title input
   - Parent (read-only) + "Move..." button _(defer to Phase 5)_ + "Find in Plan" _(defer)_
   - Importance slider (0.0 - 1.0)
@@ -90,9 +90,9 @@ _Build the modal per PRD §4.5._
   - Place dropdown
   - Notes textarea
   - Footer: Add Sibling, Add Child, Delete
-- [ ] Create `DeleteConfirmModal` (shows descendant count)
-- [ ] Wire modal open on task tap
-- [ ] Implement Mobile FAB for quick Inbox add (PRD §4.2)
+- [x] Create `DeleteConfirmModal` (shows descendant count)
+- [x] Wire modal open on task tap
+- [ ] Implement Mobile FAB for quick Inbox add (PRD §4.2) _(defer)_
 
 **Quality Gates**
 

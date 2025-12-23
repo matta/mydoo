@@ -23,6 +23,14 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 });
 
+// Mock ResizeObserver - required by Mantine's modal and floating components
+class MockResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+window.ResizeObserver = MockResizeObserver;
+
 /**
  * Custom render function that wraps components with MantineProvider.
  * Use this instead of @testing-library/react's render for Mantine components.

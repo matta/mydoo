@@ -1,4 +1,9 @@
-import {type DocumentHandle, type TaskID, useTunnel} from '@mydoo/tasklens';
+import {
+  type DocumentHandle,
+  type Task,
+  type TaskID,
+  useTunnel,
+} from '@mydoo/tasklens';
 import {useCallback} from 'react';
 
 /**
@@ -31,9 +36,17 @@ export function useTaskIntents(docUrl: DocumentHandle) {
     [ops],
   );
 
+  const updateTask = useCallback(
+    (id: TaskID, updates: Partial<Task>) => {
+      ops.update(id, updates);
+    },
+    [ops],
+  );
+
   return {
     toggleTaskCompletion,
     createTask,
     deleteTask,
+    updateTask,
   };
 }

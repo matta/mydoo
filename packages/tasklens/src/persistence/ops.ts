@@ -84,7 +84,7 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
       ANYWHERE_PLACE_ID,
     status: props.status ?? TaskStatus.Pending,
     importance: props.importance ?? 1.0,
-    creditIncrement: props.creditIncrement ?? 1.0,
+    creditIncrement: props.creditIncrement ?? 0.5,
     credits: props.credits ?? 0.0,
     desiredCredits: props.desiredCredits ?? 0.0,
     creditsTimestamp: props.creditsTimestamp ?? getCurrentTimestamp(),

@@ -6,6 +6,7 @@ import App from './App';
 import {RepoProvider} from './hooks/RepoProvider';
 
 import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');

@@ -41,7 +41,7 @@ When creating a new task, apply the following defaults:
 | Field (UI)            | Implementation Field   | Default Value                                                  |
 | --------------------- | ---------------------- | -------------------------------------------------------------- |
 | `importance`          | `importance`           | `1.0` (essential)                                              |
-| `effort` (1\|3\|5)    | `creditIncrement`      | Inherit from parent; root tasks default to `1.0`               |
+| `effort` (0.0–1.0)  | `creditIncrement`      | Inherit from parent; root tasks default to `0.5`               |
 | `leadTime`            | `schedule.leadTime`    | `daysToMilliseconds(0.33)` (~8 hours in ms)                    |
 | `notes`               | `notes`                | `undefined` (optional)                                         |
 | `dueDate`             | `schedule.dueDate`     | `undefined` (no deadline)                                      |
