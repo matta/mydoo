@@ -451,3 +451,21 @@ export function getTaskTree(state: TunnelState): TunnelNode[] {
 
   return state.rootTaskIds.map(buildNode).filter((n): n is TunnelNode => !!n);
 }
+
+/**
+ * Calculates the total number of descendants for a given task.
+ *
+ * @param state - The application state to read from.
+ * @param taskId - The ID of the task to start from.
+ * @returns The total number of sub-tasks (children, grandchildren, etc.).
+ */
+export function getDescendantCount(state: TunnelState, taskId: TaskID): number {
+  const task = state.tasks[taskId];
+  if (!task) return 0;
+
+  let count = task.childTaskIds.length;
+  for (const childId of task.childTaskIds) {
+    count += getDescendantCount(state, childId);
+  }
+  return count;
+}
