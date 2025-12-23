@@ -1,4 +1,5 @@
 #!/bin/sh
-# Only run the fast tool on commit.
-# We trust CI to catch deep type errors (slow).
+# Run fast lint/format checks
 pnpm biome check --staged --no-errors-on-unmatched
+# Run type checking to prevent build errors (slower but safer)
+pnpm typecheck
