@@ -40,6 +40,12 @@ export interface NavigationState {
   /** Reset the drill-down stack to the root. */
   resetView: () => void;
 
+  /**
+   * Set the entire drill-down stack to a specific path.
+   * Useful for jumping to a specific depth (e.g., breadcrumbs).
+   */
+  setViewPath: (ids: TaskID[]) => void;
+
   /** Toggle the expansion state of a specific task. */
   toggleExpanded: (id: TaskID) => void;
 
@@ -60,7 +66,7 @@ export function useNavigationState(): NavigationState {
   const [expandedIds, setExpandedIds] = useState<Set<TaskID>>(new Set());
 
   // Stack of IDs for drill-down navigation (empty = root)
-  const [viewPath, setViewPath] = useState<TaskID[]>([]);
+  const [viewPath, setViewPathState] = useState<TaskID[]>([]);
 
   const isExpanded = useCallback(
     (id: TaskID) => expandedIds.has(id),
@@ -94,7 +100,7 @@ export function useNavigationState(): NavigationState {
   }, []);
 
   const pushView = useCallback((id: TaskID) => {
-    setViewPath(prev => {
+    setViewPathState(prev => {
       // Copy the array to mutate it for push
       const next = [...prev];
       next.push(id);
@@ -103,7 +109,7 @@ export function useNavigationState(): NavigationState {
   }, []);
 
   const popView = useCallback(() => {
-    setViewPath(prev => {
+    setViewPathState(prev => {
       // Copy the array to mutate it for pop
       const next = [...prev];
       next.pop();
@@ -112,7 +118,11 @@ export function useNavigationState(): NavigationState {
   }, []);
 
   const resetView = useCallback(() => {
-    setViewPath([]);
+    setViewPathState([]);
+  }, []);
+
+  const setViewPath = useCallback((ids: TaskID[]) => {
+    setViewPathState(ids);
   }, []);
 
   return {
@@ -124,6 +134,7 @@ export function useNavigationState(): NavigationState {
     popView,
     pushView,
     resetView,
+    setViewPath,
     toggleExpanded,
     viewPath,
   };

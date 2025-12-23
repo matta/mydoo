@@ -59,4 +59,19 @@ describe('useNavigationState', () => {
     act(() => result.current.resetView());
     expect(result.current.viewPath).toEqual([]);
   });
+
+  it('allows setting view path arbitrarily', () => {
+    const {result} = renderHook(() => useNavigationState());
+    const id1 = 'a' as TaskID;
+    const id2 = 'b' as TaskID;
+    const id3 = 'c' as TaskID;
+
+    act(() => result.current.setViewPath([id1, id2, id3]));
+    expect(result.current.viewPath).toEqual([id1, id2, id3]);
+    expect(result.current.currentViewId).toBe(id3);
+
+    act(() => result.current.setViewPath([id1]));
+    expect(result.current.viewPath).toEqual([id1]);
+    expect(result.current.currentViewId).toBe(id1);
+  });
 });

@@ -65,29 +65,29 @@ _Implement the core tree projection and navigation state._
 
 ---
 
-## Step 3: Navigation & Mobile Support
+## Step 4: Navigation & Mobile Support
 
 _Handle deep navigation and breadcrumbs._
 
-- [ ] Implement `useBreadcrumbs` (path from root to current view)
-- [ ] Implement Mobile drill-down interaction (Tap parent -> push to stack)
-- [ ] UI: Breadcrumb bar integration
+- [x] Implement `useBreadcrumbs` (path from root to current view)
+- [x] Implement Mobile drill-down interaction (Tap parent -> push to stack)
+- [x] UI: Breadcrumb bar integration
 
 **Quality Gates**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm build` -> Pass
-- [ ] `pnpm test` -> Pass
-- [ ] `pnpm test:e2e` -> Pass
-- [ ] ✅ Update this doc
-- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm build` -> Pass
+- [x] `pnpm test` -> Pass
+- [x] `pnpm test:e2e` -> Pass
+- [x] ✅ Update this doc
+- [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
 - [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
-- [ ] 🛑 **STOP FOR HUMAN APPROVAL** before commit
+- [x] 🛑 **STOP FOR HUMAN APPROVAL** before commit
 - [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response is NOT sufficient.
 
 ---
 
-## Step 4: Reparenting & Validation
+## Step 5: Reparenting & Validation
 
 _Move tasks and verify everything (including deferred items)._
 

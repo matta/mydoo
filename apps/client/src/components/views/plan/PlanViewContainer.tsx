@@ -42,6 +42,8 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
     pushView,
     popView,
     collapseAll,
+    resetView,
+    setViewPath,
   } = useNavigationState();
   const {toggleTask, indentTask, outdentTask} = useTaskIntents(docUrl);
   const breadcrumbs = useBreadcrumbs(docUrl, currentViewId);
@@ -85,22 +87,42 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
               Back
             </Button>
           )}
-          {/* TODO: Add click handler to breadcrumb items to navigate via pushView(item.id) */}
           <Breadcrumbs separator=">">
-            {breadcrumbs.map((item, index) => (
-              <Text
-                key={item.id}
-                size="sm"
-                c={index === breadcrumbs.length - 1 ? 'text' : 'dimmed'}
-              >
-                {item.title}
-              </Text>
-            ))}
-            {breadcrumbs.length === 0 && <Text size="sm">Plan</Text>}
+            <Button
+              variant="subtle"
+              size="xs"
+              onClick={resetView}
+              fw={breadcrumbs.length === 0 ? 'bold' : 'normal'}
+              c={breadcrumbs.length === 0 ? 'text' : 'dimmed'}
+              px={4}
+            >
+              Plan
+            </Button>
+            {breadcrumbs.map((item, index) => {
+              const isLast = index === breadcrumbs.length - 1;
+              return (
+                <Button
+                  key={item.id}
+                  variant="subtle"
+                  size="xs"
+                  onClick={() => {
+                    const newPath = breadcrumbs
+                      .slice(0, index + 1)
+                      .map(b => b.id);
+                    setViewPath(newPath);
+                  }}
+                  fw={isLast ? 'bold' : 'normal'}
+                  c={isLast ? 'text' : 'dimmed'}
+                  px={4}
+                >
+                  {item.title}
+                </Button>
+              );
+            })}
           </Breadcrumbs>
         </Group>
         <Group>
-          <Button variant="default" size="xs" onClick={() => collapseAll()}>
+          <Button variant="default" size="xs" onClick={collapseAll}>
             Collapse All
           </Button>
         </Group>
