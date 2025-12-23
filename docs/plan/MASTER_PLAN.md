@@ -163,23 +163,27 @@ _Goal: Hierarchical tree navigation with expand/collapse._
 
 **PRD References**: [§4.3 The Plan View](../design/prd.md)
 
-- [x] **Logic**
+> **🔴 Current Priority**: Make the outline view visible before proceeding with remaining work.
+
+- [x] **Step 1-3: Logic & UI (Complete)**
   - [x] Implement `useTaskTree` (Recursive projection)
-  - [ ] Implement `useBreadcrumbs`
+  - [x] Implement `useBreadcrumbs`
   - [x] Implement `useNavigationState` (Expansion state, viewPath)
-- [x] **UI Components**
   - [x] Create `OutlineTree` component (Recursive, with chevrons)
   - [x] Create `TaskOutlineItem` primitive
   - [x] Implement `PlanViewContainer`
-  - [ ] Implement Mobile drill-down navigation with breadcrumb trail
+  - [x] Unit tests for tree projection, breadcrumbs, keyboard navigation
+- [ ] **Step 4: Make Outline Visible (BLOCKER)** ← _Start here_
+  - [ ] Verify route/tab integration loads `PlanViewContainer`
+  - [ ] Visual verification: confirm tree renders in running app
+  - [ ] E2E baseline for outline view
+- [ ] **Remaining Work (Blocked until Step 4 complete)**
+  - [ ] Mobile drill-down navigation with breadcrumb trail
   - [ ] Create `MovePickerModal` (select new parent + position)
-- [ ] **Verification**
-  - [x] Unit tests for tree projection
-  - [x] E2E: Navigate tree, expand/collapse, drill-down on mobile
-  - [ ] **Enable skipped E2E test**: `should persist task after page reload` (fix seed param issue)
   - [ ] E2E: Move task -> Verify tree updates correctly
-  - [ ] E2E: Verify Task Editor (Edit Title/Importance/Effort) _(Deferred from Phase 4)_
-  - [ ] E2E: Verify Task Deletion (Cascade with descendants) _(Deferred from Phase 4)_
+  - [ ] E2E: Task Editor verification _(Deferred from Phase 4)_
+  - [ ] E2E: Task Deletion cascade _(Deferred from Phase 4)_
+  - [ ] Enable skipped E2E test: `should persist task after page reload`
 
 ## Phase 6: TaskLens Type Rationalization
 **Rationale**: Clarifies the boundary between Persisted State (DB) and Computed View State. Prevents accidental mutation of CRDT history with transient scores. Makes the data flow explicit: `DB -> Algo -> View`.
