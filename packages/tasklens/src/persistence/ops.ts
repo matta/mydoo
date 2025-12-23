@@ -24,6 +24,7 @@
  */
 import {validateDepth, validateNoCycle} from '../domain/invariants';
 import {
+  ANYWHERE_PLACE_ID,
   type Schedule,
   type Task,
   type TaskID,
@@ -74,7 +75,13 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
     id: newTaskId,
     title: props.title ?? 'New Task',
     parentId: props.parentId ?? undefined,
-    placeId: props.placeId ?? undefined,
+    // Inherit placeId from parent, or default to ANYWHERE_PLACE_ID for root tasks
+    placeId:
+      props.placeId ??
+      (props.parentId
+        ? state.tasks[props.parentId]?.placeId
+        : ANYWHERE_PLACE_ID) ??
+      ANYWHERE_PLACE_ID,
     status: props.status ?? TaskStatus.Pending,
     importance: props.importance ?? 1.0,
     creditIncrement: props.creditIncrement ?? 1.0,
@@ -91,6 +98,7 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
 
   // Automerge doesn't support 'undefined' values, so we must remove them
   if (newTask.parentId === undefined) delete newTask.parentId;
+  // placeId now always has a value from inheritance logic, but check anyway
   if (newTask.placeId === undefined) delete newTask.placeId;
   if (newTask.schedule.dueDate === undefined) delete newTask.schedule.dueDate;
 
