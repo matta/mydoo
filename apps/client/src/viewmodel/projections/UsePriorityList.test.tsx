@@ -68,7 +68,10 @@ describe('usePriorityList', () => {
     const mockState: Partial<TunnelState> = {
       tasks: {
         '1': createMockTask('1', 'Todo 1', TaskStatus.Pending, 0.5),
-        '2': createMockTask('2', 'Done 1', TaskStatus.Done, 0.5),
+        '2': {
+          ...createMockTask('2', 'Done 1', TaskStatus.Done, 0.5),
+          isAcknowledged: true,
+        },
         '3': createMockTask('3', 'Deleted 1', TaskStatus.Deleted, 0.5),
       } as Record<TaskID, TunnelNode>,
     } as unknown as TunnelState;

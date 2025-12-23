@@ -28,7 +28,15 @@ test.describe('Task Interactions', () => {
     });
     await checkbox.click();
 
-    // 4. Verify it disappears (Do view filters out completed tasks)
+    // 4. Verify it remains visible (strikethrough state) until acknowledged
+    await expect(taskRow).toBeVisible();
+    await expect(taskRow).toHaveCSS('text-decoration-line', 'line-through');
+
+    // 5. Click Refresh to acknowledge and clear
+    const refreshButton = page.getByRole('button', {name: 'Refresh'});
+    await refreshButton.click();
+
+    // 6. Verify it disappears
     await expect(taskRow).toBeHidden();
   });
 });
