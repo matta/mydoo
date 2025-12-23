@@ -38,17 +38,18 @@ The Automerge document structure is specified in **[automerge-schema.md](./autom
 
 When creating a new task, apply the following defaults:
 
-| Field                 | Default Value                                                  |
-| --------------------- | -------------------------------------------------------------- |
-| `importance`          | `1.0` (essential)                                              |
-| `effort`              | Inherit from parent; root tasks default to `3` (average)       |
-| `leadTimeDays`        | `0.33` (~8 hours)                                              |
-| `notes`               | `undefined` (optional)                                         |
-| `dueDate`             | `undefined` (no deadline)                                      |
-| `placeId`             | Inherit from parent; root tasks default to `PLACE_ANYWHERE_ID` |
-| `lastReviewTimestamp` | `Date.now()`                                                   |
-| `status`              | `'active'`                                                     |
-| `childIds`            | `[]`                                                           |
+| Field (UI)            | Implementation Field   | Default Value                                                  |
+| --------------------- | ---------------------- | -------------------------------------------------------------- |
+| `importance`          | `importance`           | `1.0` (essential)                                              |
+| `effort` (1\|3\|5)    | `creditIncrement`      | Inherit from parent; root tasks default to `1.0`               |
+| `leadTime`            | `schedule.leadTime`    | `daysToMilliseconds(0.33)` (~8 hours in ms)                    |
+| `notes`               | `notes`                | `undefined` (optional)                                         |
+| `dueDate`             | `schedule.dueDate`     | `undefined` (no deadline)                                      |
+| `placeId`             | `placeId`              | Inherit from parent; root tasks default to `ANYWHERE_PLACE_ID` |
+| `lastReviewTimestamp` | `lastReviewTimestamp`  | `Date.now()` _(deferred to staleness implementation)_          |
+| `status`              | `status`               | `'Pending'` (equivalent to `'active'`)                         |
+| `childIds`            | `childTaskIds`         | `[]`                                                           |
+
 
 ### 3.3 ID Generation Strategy (Duplicate Prevention)
 

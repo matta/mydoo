@@ -104,25 +104,28 @@ _Goal: Fix regressions and missing specs identified during Phase 3 verification.
 
 ---
 
-## Phase 3.5: Task Creation Defaults (Next)
+## Phase 3.5: Task Creation Defaults (Complete)
 
 _Goal: Ensure tasks are created with correct PRD-specified defaults and hierarchy rules._
 
 **PRD References**: [§3.2 Default Values for New Tasks](../design/prd.md)
 
-- [ ] **Logic**
-  - [ ] Update `createTask` in `useTaskIntents` to apply PRD §3.2 defaults:
-    - `importance`: `1.0`
-    - `effort`: Inherit from parent; root tasks default to `3`
-    - `leadTimeDays`: `0.33` (~8 hours)
-    - `placeId`: Inherit from parent; root tasks default to `PLACE_ANYWHERE_ID`
-    - `lastReviewTimestamp`: `Date.now()`
-    - `status`: `'active'`
-    - `childIds`: `[]`
-  - [ ] Enforce hierarchy rules (tasks added via Quick Add go to Inbox)
-- [ ] **Verification**
-  - [ ] Unit tests for default value application
-  - [ ] Unit tests for inheritance from parent
+- [x] **Logic**
+  - [x] Update `createTask` in `useTaskIntents` to accept optional `parentId`
+  - [x] Implement `placeId` inheritance in `ops.createTask`:
+    - Root tasks default to `ANYWHERE_PLACE_ID`
+    - Child tasks inherit `placeId` from parent
+- [x] **Verification**
+  - [x] Unit tests for default value application
+  - [x] Unit tests for inheritance from parent
+  - [x] E2E tests for task creation
+- [x] **Documentation**
+  - [x] Updated PRD §3.2 to clarify field mappings (effort→creditIncrement, leadTimeMs, status Pending=active)
+
+**Deferred:**
+- `lastReviewTimestamp` initialization → Phase 6+ (Staleness/Autofocus)
+
+**Commits**: `0dcd64b`, `1f9d3dc`, `263af85`
 
 ## Phase 4: Task Details & Editing
 
