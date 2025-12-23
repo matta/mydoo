@@ -46,18 +46,19 @@ _Implement the core tree projection and navigation state._
 - [ ] Implement explicit "Move..." Interaction (Reparenting/Reordering).
   - *Constraint*: No drag-and-drop for MVP (per PRD).
   - Use `MovePickerModal` or Keyboard Indent/Outdent.
-  - *Refinement*: Ensure basic "Indent/Outdent" via keyboard (Tab/Shift+Tab) works.
-- [ ] Connect `TaskOutlineItem` actions (Drill down, Toggle completion).
-- [ ] Add "Breadcrumbs" for navigation history in `PlanViewContainer`.
-- [ ] **Verification**:
-  - [ ] Keyboard navigation tests.
-  - [ ] E2E test for tree manipulation.
+  - [x] *Refinement*: Ensure basic "Indent/Outdent" via keyboard (Tab/Shift+Tab) works.
+- [x] Connect `TaskOutlineItem` actions (Drill down, Toggle completion).
+- [x] Add "Breadcrumbs" for navigation history in `PlanViewContainer`.
+- [x] **Verification**:
+  - [x] Keyboard navigation tests (`TaskOutlineItem.test.tsx`).
+  - [x] Logic tests (`UseTaskIntents_Move.test.tsx`, `useBreadcrumbs.test.tsx`).
+  - [ ] E2E test for tree manipulation (Deferred to Step 4).
 
-**Quality Gates (Step 2)**
+**Quality Gates (Step 3)**
 - [x] `pnpm fix`
 - [x] `pnpm build`
 - [x] `pnpm test`
-- [x] `pnpm test:e2e`
+- [x] `pnpm test:e2e` (Regression passed)
 - [x] `git commit` (User approval required). They must all pass in sequence against the same repository state.
 - [x] 🛑 **STOP FOR HUMAN APPROVAL** before commit
 - [x] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response is NOT sufficient.

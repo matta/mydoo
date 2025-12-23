@@ -22,13 +22,21 @@ export interface TaskOutlineItemProps {
   onExpandToggle: () => void;
   /** Callback to toggle completion status. */
   onToggleCompletion: () => void;
+  /** Handler when the task is indented (e.g., via Tab key). */
+  onIndent: () => void;
+  /** Handler when the task is outdented (e.g., via Shift+Tab key). */
+  onOutdent: () => void;
 }
 
 /**
- * Renders a single row in the task tree.
+ * Renders a single row in the hierarchical task outline.
  *
- * Displays indentation based on depth, an expansion chevron (if children exist),
- * a completion checkbox, the task title, and a drill-down button.
+ * @remarks
+ * This component is responsible for:
+ * - Visualizing tree depth via padding.
+ * - Handling expansion toggling for nodes with children.
+ * - Providing direct action controls (completion, drill-down).
+ * - Intercepting keyboard navigation (Tab/Shift+Tab) to trigger structural changes.
  */
 export function TaskOutlineItem({
   depth,
@@ -37,8 +45,25 @@ export function TaskOutlineItem({
   onDrillDown,
   onExpandToggle,
   onToggleCompletion,
+  onIndent,
+  onOutdent,
 }: TaskOutlineItemProps) {
   const hasChildren = node.children.length > 0;
+
+  /**
+   * Intercepts Tab keys to trigger indent/outdent operations.
+   * Prevents default browser focus traversal to allow structural editing.
+   */
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      if (event.shiftKey) {
+        onOutdent();
+      } else {
+        onIndent();
+      }
+    }
+  };
 
   return (
     <Group
@@ -51,6 +76,8 @@ export function TaskOutlineItem({
         paddingBottom: 4,
         minHeight: 36,
       }}
+      onKeyDown={handleKeyDown}
+      tabIndex={0} // Make row focusable for keyboard interaction
     >
       {/* Expansion Chevron */}
       <ActionIcon

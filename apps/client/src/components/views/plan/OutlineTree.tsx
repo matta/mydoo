@@ -17,16 +17,22 @@ export interface OutlineTreeProps {
   onExpandToggle: (id: TaskID) => void;
   /** Callback to toggle completion of a task. */
   onToggleCompletion: (id: TaskID) => void;
-  /** Current depth level provided by recursion. */
+  /** Callback invoked when a task requests indentation. */
+  onIndent: (id: TaskID) => void;
+  /** Callback invoked when a task requests outdentation. */
+  onOutdent: (id: TaskID) => void;
+  /** The current indentation depth (handled internally by recursion). */
   depth?: number;
 }
 
 /**
- * Recursive tree component for rendering the task hierarchy.
+ * A recursive tree component that renders the task hierarchy.
  *
- * Iterates through `nodes` and renders a `TaskOutlineItem` for each.
- * If a node is expanded and has children, it recursively renders another
- * `OutlineTree` for the children.
+ * @remarks
+ * - Iterates through the provided `nodes`.
+ * - Renders a `TaskOutlineItem` for each node.
+ * - Recursively renders itself for expanded children.
+ * - Propagates all interaction callbacks (expansion, completion, movement) from the root to leaf nodes.
  */
 export function OutlineTree({
   expandedIds,
@@ -34,6 +40,8 @@ export function OutlineTree({
   onDrillDown,
   onExpandToggle,
   onToggleCompletion,
+  onIndent,
+  onOutdent,
   depth = 0,
 }: OutlineTreeProps) {
   if (nodes.length === 0) {
@@ -47,6 +55,10 @@ export function OutlineTree({
 
         return (
           <div key={node.id}>
+            {/*
+              PERF: Arrow functions create new references on each render.
+              For large lists, consider memoizing TaskOutlineItem or using useCallback.
+            */}
             <TaskOutlineItem
               depth={depth}
               isExpanded={isExpanded}
@@ -54,6 +66,8 @@ export function OutlineTree({
               onDrillDown={() => onDrillDown(node.id)}
               onExpandToggle={() => onExpandToggle(node.id)}
               onToggleCompletion={() => onToggleCompletion(node.id)}
+              onIndent={() => onIndent(node.id)}
+              onOutdent={() => onOutdent(node.id)}
             />
 
             {isExpanded && node.children.length > 0 && (
@@ -64,6 +78,8 @@ export function OutlineTree({
                 onDrillDown={onDrillDown}
                 onExpandToggle={onExpandToggle}
                 onToggleCompletion={onToggleCompletion}
+                onIndent={onIndent}
+                onOutdent={onOutdent}
               />
             )}
           </div>

@@ -30,6 +30,8 @@ describe('TaskOutlineItem', () => {
     onDrillDown: vi.fn(),
     onExpandToggle: vi.fn(),
     onToggleCompletion: vi.fn(),
+    onIndent: vi.fn(),
+    onOutdent: vi.fn(),
   };
 
   const renderComponent = (props: Partial<TaskOutlineItemProps> = {}) => {
@@ -93,5 +95,30 @@ describe('TaskOutlineItem', () => {
     expect(groupDiv.style.paddingLeft).toContain(
       'calc(2 * var(--mantine-spacing-md))',
     );
+  });
+
+  it('calls onIndent when Tab is pressed', async () => {
+    const onIndent = vi.fn();
+    renderComponent({onIndent});
+
+    const row = screen.getByTestId('task-item');
+    await userEvent.tab(); // Focus the element?
+    // userEvent.tab() just creates a tab event, might not focus row if not set up.
+    // We added tabIndex={0} to Group.
+    row.focus();
+    await userEvent.keyboard('{Tab}');
+
+    expect(onIndent).toHaveBeenCalled();
+  });
+
+  it('calls onOutdent when Shift+Tab is pressed', async () => {
+    const onOutdent = vi.fn();
+    renderComponent({onOutdent});
+
+    const row = screen.getByTestId('task-item');
+    row.focus();
+    await userEvent.keyboard('{Shift>}{Tab}{/Shift}');
+
+    expect(onOutdent).toHaveBeenCalled();
   });
 });

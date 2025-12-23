@@ -1,9 +1,17 @@
-import {Box, Button, Group, LoadingOverlay, Text, Title} from '@mantine/core';
+import {
+  Box,
+  Breadcrumbs,
+  Button,
+  Group,
+  LoadingOverlay,
+  Text,
+} from '@mantine/core';
 import type {DocumentHandle, TunnelNode} from '@mydoo/tasklens';
 import {IconArrowLeft} from '@tabler/icons-react';
 import {useMemo} from 'react';
 import {useTaskIntents} from '../../../viewmodel/intents/useTaskIntents';
 import {useTaskTree} from '../../../viewmodel/projections/useTaskTree';
+import {useBreadcrumbs} from '../../../viewmodel/ui/useBreadcrumbs';
 import {useNavigationState} from '../../../viewmodel/ui/useNavigationState';
 import {OutlineTree} from './OutlineTree';
 
@@ -16,13 +24,14 @@ export interface PlanViewContainerProps {
 }
 
 /**
- * Main container for the Plan View (hierarchical task list).
+ * The primary container for the "Plan" view.
  *
- * Orchestrates:
- * - Fetching the task tree (`useTaskTree`).
- * - Managing navigation state (expansion, drill-down) via `useNavigationState`.
- * - Handling user intentions (`toggleTask` completion).
- * - Rendering the recursive `OutlineTree`.
+ * @remarks
+ * Orchestrates the hierarchical task display and management:
+ * - **State Management**: Syncs with `useNavigationState` for expansion/collapse and drill-down history.
+ * - **Data Projection**: Uses `useTaskTree` to transform raw Automerge data into a traversable tree structure.
+ * - **User Intent**: Exposes operations for task modification (completion, structure changes via indent/outdent).
+ * - **Navigation**: Calculates and renders breadcrumbs via `useBreadcrumbs`.
  */
 export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
   const {roots, isLoading} = useTaskTree(docUrl);
@@ -34,15 +43,14 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
     popView,
     collapseAll,
   } = useNavigationState();
-  const {toggleTask} = useTaskIntents(docUrl);
+  const {toggleTask, indentTask, outdentTask} = useTaskIntents(docUrl);
+  const breadcrumbs = useBreadcrumbs(docUrl, currentViewId);
 
-  // Filter the tree based on current drill-down view
+  // Derive the subset of roots to display based on the current "drill-down" view.
+  // If `currentViewId` is set, we traverse the tree to find that node and show its children.
   const displayRoots = useMemo(() => {
     if (!currentViewId) return roots;
 
-    // Find the current view node in the existing tree
-    // We need a helper to find a node by ID in the tree
-    // Ideally useTaskTree could support this, or we just crawl here.
     const findNode = (nodes: TunnelNode[]): TunnelNode | undefined => {
       for (const node of nodes) {
         if (node.id === currentViewId) return node;
@@ -54,22 +62,6 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
 
     const target = findNode(roots);
     return target ? target.children : [];
-  }, [roots, currentViewId]);
-
-  const viewTitle = useMemo(() => {
-    if (!currentViewId) return 'Plan';
-
-    // Find title... similar crawl
-    const findNode = (nodes: TunnelNode[]): TunnelNode | undefined => {
-      for (const node of nodes) {
-        if (node.id === currentViewId) return node;
-        const found = findNode(node.children);
-        if (found) return found;
-      }
-      return undefined;
-    };
-
-    return findNode(roots)?.title || 'Task Details';
   }, [roots, currentViewId]);
 
   if (isLoading) {
@@ -93,13 +85,24 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
               Back
             </Button>
           )}
-          <Title order={3}>{viewTitle}</Title>
+          {/* TODO: Add click handler to breadcrumb items to navigate via pushView(item.id) */}
+          <Breadcrumbs separator=">">
+            {breadcrumbs.map((item, index) => (
+              <Text
+                key={item.id}
+                size="sm"
+                c={index === breadcrumbs.length - 1 ? 'text' : 'dimmed'}
+              >
+                {item.title}
+              </Text>
+            ))}
+            {breadcrumbs.length === 0 && <Text size="sm">Plan</Text>}
+          </Breadcrumbs>
         </Group>
         <Group>
           <Button variant="default" size="xs" onClick={() => collapseAll()}>
             Collapse All
           </Button>
-          {/* <Button variant="default" size="xs" onClick={() => expandAll()}>Expand All</Button> */}
         </Group>
       </Group>
 
@@ -110,6 +113,8 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
           onDrillDown={pushView}
           onExpandToggle={toggleExpanded}
           onToggleCompletion={toggleTask}
+          onIndent={indentTask}
+          onOutdent={outdentTask}
         />
 
         {displayRoots.length === 0 && (
