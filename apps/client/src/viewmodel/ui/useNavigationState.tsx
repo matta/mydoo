@@ -1,5 +1,12 @@
 import type {TaskID} from '@mydoo/tasklens';
-import {useCallback, useState} from 'react';
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 
 /**
  * State manager for hierarchical tree navigation and interaction.
@@ -10,6 +17,12 @@ import {useCallback, useState} from 'react';
  *    current traversal path (used typically in mobile views or focused editing).
  */
 export interface NavigationState {
+  /** The currently active tab in the application shell. */
+  activeTab: 'do' | 'plan';
+
+  /** Set the active tab. */
+  setActiveTab: (tab: 'do' | 'plan') => void;
+
   /** Collapse all currently expanded nodes. */
   collapseAll: () => void;
 
@@ -53,15 +66,15 @@ export interface NavigationState {
   viewPath: TaskID[];
 }
 
+const NavigationContext = createContext<NavigationState | null>(null);
+
 /**
- * Hook to manage UI state for the Task Plan View.
- *
- * Provides reactive primitives for building a collapsable, sortable,
- * and navigable task tree.
- *
- * @returns {NavigationState} Methods and state for tree interaction.
+ * Provider component that holds the Navigation State.
  */
-export function useNavigationState(): NavigationState {
+export function NavigationProvider({children}: {children: ReactNode}) {
+  // Active tab state
+  const [activeTab, setActiveTab] = useState<'do' | 'plan'>('do');
+
   // Set of ID strings for expanded nodes
   const [expandedIds, setExpandedIds] = useState<Set<TaskID>>(new Set());
 
@@ -125,17 +138,53 @@ export function useNavigationState(): NavigationState {
     setViewPathState(ids);
   }, []);
 
-  return {
-    collapseAll,
-    currentViewId: viewPath.at(-1),
-    expandAll,
-    expandedIds,
-    isExpanded,
-    popView,
-    pushView,
-    resetView,
-    setViewPath,
-    toggleExpanded,
-    viewPath,
-  };
+  const value = useMemo(
+    () => ({
+      activeTab,
+      setActiveTab,
+      collapseAll,
+      currentViewId: viewPath.at(-1),
+      expandAll,
+      expandedIds,
+      isExpanded,
+      popView,
+      pushView,
+      resetView,
+      setViewPath,
+      toggleExpanded,
+      viewPath,
+    }),
+    [
+      activeTab,
+      expandAll,
+      expandedIds,
+      isExpanded,
+      popView,
+      pushView,
+      resetView,
+      setViewPath,
+      toggleExpanded,
+      viewPath,
+      collapseAll,
+    ],
+  );
+
+  return (
+    <NavigationContext.Provider value={value}>
+      {children}
+    </NavigationContext.Provider>
+  );
+}
+
+/**
+ * Hook to consume the Navigation State from Context.
+ */
+export function useNavigationState(): NavigationState {
+  const context = useContext(NavigationContext);
+  if (!context) {
+    throw new Error(
+      'useNavigationState must be used within a NavigationProvider',
+    );
+  }
+  return context;
 }

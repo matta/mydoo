@@ -1,7 +1,8 @@
 import {MantineProvider} from '@mantine/core';
 
+import {AppShellContainer} from './components/shell/AppShellContainer';
 import {SeedData} from './dev/SeedData';
-import {DoViewContainer} from './viewmodel/containers/DoViewContainer';
+import {NavigationProvider} from './viewmodel/ui/useNavigationState';
 import {useDocument} from './viewmodel/useDocument';
 
 import '@mantine/core/styles.css';
@@ -16,8 +17,10 @@ function App() {
 
   return (
     <MantineProvider>
-      <SeedData docUrl={docUrl} />
-      <DoViewContainer docUrl={docUrl} />
+      <NavigationProvider>
+        <SeedData docUrl={docUrl} />
+        <AppShellContainer docUrl={docUrl} />
+      </NavigationProvider>
     </MantineProvider>
   );
 }

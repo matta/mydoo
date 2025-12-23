@@ -63,7 +63,8 @@ import {daysToMilliseconds, getCurrentTimestamp} from '../utils/time';
 export function createTask(state: TunnelState, props: Partial<Task>): Task {
   // Use UUID for CRDT compatibility - sequential counters cause conflicts
   // when multiple replicas create tasks simultaneously.
-  const newTaskId = crypto.randomUUID() as TaskID;
+  // Caller may provide an ID for testing purposes.
+  const newTaskId = props.id ?? (crypto.randomUUID() as TaskID);
 
   const defaultSchedule: Schedule = {
     type: 'Once',

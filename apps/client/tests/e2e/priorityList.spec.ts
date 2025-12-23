@@ -9,16 +9,15 @@ test.describe('Priority List', () => {
     const listContainer = page.getByRole('heading', {name: 'Priorities'});
     await expect(listContainer).toBeVisible();
 
-    // 3. Verify the tasks are rendered in the correct order (Priority/Importance ID sort)
-    // Seeding: Buy Milk (1), Walk Dog (0.5), Read Book (0.1)
-    const taskRows = page.getByRole('checkbox');
-    await expect(taskRows).toHaveCount(3);
-
-    // Verify content text
-    // Note: We rely on unit tests for precise sorting verification.
-    // Here we primarily verify that seeded tasks are successfully rendered and visible.
-    await expect(page.getByText('Buy Milk')).toBeVisible();
-    await expect(page.getByText('Walk Dog')).toBeVisible();
-    await expect(page.getByText('Read Book')).toBeVisible();
+    // 3. Verify leaf tasks are rendered
+    // The Do View shows only leaf tasks (Pass 7 hides containers with visible children).
+    // Seed data includes:
+    // - Research Requirements, Design UI Mocks (children of Project Alpha)
+    // - Milk, Eggs, Bread (children of Buy Groceries)
+    // - Unit Test (deepest leaf)
+    // - Quick Task (standalone)
+    await expect(page.getByText('Research Requirements')).toBeVisible();
+    await expect(page.getByText('Milk')).toBeVisible();
+    await expect(page.getByText('Quick Task')).toBeVisible();
   });
 });

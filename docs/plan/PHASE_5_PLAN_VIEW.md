@@ -51,33 +51,34 @@ _Implemented the core tree projection and navigation state._
 
 ### Tasks
 
-- [ ] **Verify Route/Tab Integration**
-  - Confirm the "Plan" tab in the `AppShellContainer` / navigation shell loads `PlanViewContainer`
-  - Check that the mobile tab bar includes the Plan tab
-  - Verify desktop split-pane layout renders `PlanViewContainer` in the sidebar
+- [x] **Verify Route/Tab Integration**
+  - [x] Confirm the "Plan" tab in the `AppShellContainer` / navigation shell loads `PlanViewContainer`
+  - [x] Check that the mobile tab bar includes the Plan tab
+  - [x] Verify desktop split-pane layout renders `PlanViewContainer` in the sidebar
 
-- [ ] **Seed Data Verification**
-  - Confirm seeded tasks include hierarchical structure (parent-child relationships)
-  - Ensure at least one task has children to verify expand/collapse
-  - Verify `rootTaskIds` is populated correctly in the Automerge document
+- [x] **Implement Dev Tools / Seeding UI**
+  - [x] Add visual controls (e.g., in a Dev/Debug menu or bottom bar) to populate sample data
+  - [x] Sample data must include hierarchical structures (multi-level nesting) to test tree visualization
+  - [x] Validation: Seeding should function correctly even if the document is empty or partially populated
 
-- [ ] **Visual Verification**
-  - Load the app in development mode (`pnpm dev`)
-  - Navigate to the Plan view on both mobile and desktop viewport sizes
-  - Confirm the tree renders with correct indentation and chevrons
-  - Verify breadcrumb bar appears and functions
+- [x] **Visual Verification**
+  - [x] Load the app in development mode (`pnpm dev`)
+  - [x] Navigate to the Plan view on both mobile and desktop viewport sizes
+  - [x] Confirm the tree renders with correct indentation and chevrons
+  - [x] Verify breadcrumb bar appears and functions
 
-- [ ] **E2E Baseline**
-  - Ensure existing `plan.spec.ts` E2E tests exercise the outline view
-  - Verify navigation, expand/collapse, and basic interactions work
+- [x] **E2E Baseline**
+  - [x] Ensure existing `plan.spec.ts` E2E tests exercise the outline view
+  - [x] Verify navigation, expand/collapse, and basic interactions work
+  - [x] **New**: Verify that the seeding UI populates the tree structure correctly in E2E tests
 
 **Quality Gates**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm build` -> Pass
-- [ ] `pnpm test` -> Pass (ALL repo tests)
-- [ ] `pnpm test:e2e` -> Pass
-- [ ] **EVIDENCE**: Show terminal output of passing tests.
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm build` -> Pass
+- [x] `pnpm test` -> Pass (ALL repo tests)
+- [x] `pnpm test:e2e` -> Pass
+- [x] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
 
@@ -102,9 +103,9 @@ _Handle deep navigation on small screens with breadcrumb trail._
 ### Tasks
 
 - [ ] **Implement Drill-Down Interaction**
-  - On mobile viewport, tapping a parent task title pushes that task's ID onto the `viewPath` stack
+  - On mobile viewport, tapping the "Drill Down" arrow icon pushes that task's ID onto the `viewPath` stack
   - `PlanViewContainer` should render only the children of the current `viewPath` head (not the full tree)
-  - Tapping the task row (non-title area) should still open the Task Editor modal
+  - **New Requirement**: Tapping the task title (or rest of row) opens the Task Editor modal
 
 - [ ] **Breadcrumb Trail for Mobile**
   - Mobile breadcrumbs should be horizontally scrollable if path is long
@@ -127,6 +128,7 @@ _Handle deep navigation on small screens with breadcrumb trail._
 - [ ] Unit tests for `useNavigationState` path manipulation (`navigateTo`, `navigateUp`)
 - [ ] Component tests for mobile breadcrumb rendering and tap interactions
 - [ ] E2E test: On mobile viewport, tap parent → verify only children visible → tap breadcrumb → verify navigation back
+- [ ] **Deferred from Step 4**: E2E test for 4-level deep navigation (Deep Work Project → Module A → Component X → Unit Test)
 
 **Quality Gates**
 
@@ -219,7 +221,7 @@ _Catch up on E2E tests that were deferred from Phase 4._
 ### Tasks
 
 - [ ] **E2E: Edit Task Properties**
-  - Open Task Editor modal for an existing task
+  - Click task title in Plan View to open Task Editor modal
   - Modify title, importance, effort
   - Save changes
   - Verify changes persisted (reload page, check values)

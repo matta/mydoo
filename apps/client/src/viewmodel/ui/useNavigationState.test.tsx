@@ -2,11 +2,13 @@ import type {TaskID} from '@mydoo/tasklens';
 import {act, renderHook} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
 
-import {useNavigationState} from './useNavigationState';
+import {NavigationProvider, useNavigationState} from './useNavigationState';
 
 describe('useNavigationState', () => {
   it('manages expansion state', () => {
-    const {result} = renderHook(() => useNavigationState());
+    const {result} = renderHook(() => useNavigationState(), {
+      wrapper: NavigationProvider,
+    });
 
     const id1 = '1' as TaskID;
     const id2 = '2' as TaskID;
@@ -33,7 +35,9 @@ describe('useNavigationState', () => {
   });
 
   it('manages view path for drill-down', () => {
-    const {result} = renderHook(() => useNavigationState());
+    const {result} = renderHook(() => useNavigationState(), {
+      wrapper: NavigationProvider,
+    });
     const id1 = 'root' as TaskID;
     const id2 = 'sub' as TaskID;
 
@@ -61,7 +65,9 @@ describe('useNavigationState', () => {
   });
 
   it('allows setting view path arbitrarily', () => {
-    const {result} = renderHook(() => useNavigationState());
+    const {result} = renderHook(() => useNavigationState(), {
+      wrapper: NavigationProvider,
+    });
     const id1 = 'a' as TaskID;
     const id2 = 'b' as TaskID;
     const id3 = 'c' as TaskID;
