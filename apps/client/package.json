@@ -1,16 +1,6 @@
 {
   "name": "client",
   "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "tsc -b && vite build",
-    "dev": "vite",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "test": "vitest run",
-    "test:e2e": "playwright test"
-  },
   "dependencies": {
     "@automerge/automerge-repo": "catalog:",
     "@automerge/automerge-repo-network-websocket": "catalog:",
@@ -20,7 +10,7 @@
     "@mantine/dates": "catalog:",
     "@mantine/form": "catalog:",
     "@mantine/hooks": "catalog:",
-    "@mydoo/tasklens": "workspace:*",
+    "@mydoo/tasklens": "0.0.0",
     "@tabler/icons-react": "catalog:",
     "dayjs": "catalog:",
     "react": "catalog:",
@@ -37,8 +27,6 @@
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
     "eslint": "catalog:",
-    "eslint-plugin-react-hooks": "catalog:",
-    "eslint-plugin-react-refresh": "catalog:",
     "globals": "catalog:",
     "jsdom": "catalog:",
     "postcss": "catalog:",
@@ -51,5 +39,15 @@
     "vite-plugin-top-level-await": "catalog:",
     "vite-plugin-wasm": "catalog:",
     "vitest": "catalog:"
-  }
+  },
+  "private": true,
+  "scripts": {
+    "build": "tsc -b && vite build",
+    "dev": "vite",
+    "lint": "biome check . && eslint .",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "type": "module"
 }

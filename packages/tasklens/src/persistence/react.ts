@@ -1,4 +1,4 @@
-import {type AnyDocumentId} from '@automerge/automerge-repo';
+import type {AnyDocumentId} from '@automerge/automerge-repo';
 /**
  * React integration for the Tunnel data model.
  *

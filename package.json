@@ -1,46 +1,38 @@
 {
   "name": "mydoo",
-  "version": "0.0.0",
-  "private": true,
   "description": "",
-  "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "fix": "pnpm run fix:deps && pnpm run fix:lint && pnpm run format",
-    "fix:deps": "syncpack fix-mismatches && syncpack format",
-    "fix:lint": "turbo lint -- --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "lint": "turbo lint && pnpm lint:root",
-    "lint:deps": "syncpack lint",
-    "lint:root": "eslint --no-error-on-unmatched-pattern *.{js,mjs,ts}",
-    "prepare": "husky",
-    "test": "turbo test",
-    "test:e2e": "pnpm --filter client test:e2e"
-  },
+  "version": "0.0.0",
+  "author": "",
   "devDependencies": {
-    "@commitlint/cli": "catalog:",
+    "@biomejs/biome": "^2.3.10",
     "@eslint/js": "catalog:",
     "eslint": "catalog:",
-    "eslint-plugin-check-file": "catalog:",
-    "eslint-plugin-eslint-comments": "catalog:",
-    "eslint-plugin-perfectionist": "catalog:",
-    "eslint-plugin-sonarjs": "catalog:",
-    "eslint-plugin-unicorn": "catalog:",
     "globals": "catalog:",
     "husky": "catalog:",
-    "lint-staged": "catalog:",
-    "prettier": "catalog:",
     "syncpack": "catalog:",
     "turbo": "catalog:",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
   },
-  "author": "",
   "engines": {
     "node": ">=24"
   },
   "keywords": [],
   "license": "ISC",
-  "packageManager": "pnpm@10.26.1"
+  "packageManager": "pnpm@10.26.1",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "fix": "pnpm run fix:deps && biome check --write .",
+    "fix:deps": "syncpack fix-mismatches && syncpack format",
+    "format": "biome format .",
+    "lint": "pnpm run lint:fast && pnpm run lint:strict",
+    "lint:deps": "syncpack lint",
+    "lint:fast": "biome check .",
+    "lint:strict": "eslint .",
+    "prepare": "husky",
+    "test": "turbo test",
+    "test:e2e": "pnpm --filter client test:e2e"
+  }
 }

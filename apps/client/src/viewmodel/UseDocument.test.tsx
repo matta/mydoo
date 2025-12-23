@@ -1,5 +1,5 @@
-import {Repo} from '@automerge/automerge-repo';
 import type {DocumentId} from '@automerge/automerge-repo';
+import {Repo} from '@automerge/automerge-repo';
 import {RepoContext} from '@automerge/automerge-repo-react-hooks';
 import type {TunnelState} from '@mydoo/tasklens';
 import {renderHook} from '@testing-library/react';

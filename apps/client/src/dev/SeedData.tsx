@@ -24,5 +24,6 @@ export function SeedData({docUrl}: {docUrl: DocumentHandle}) {
     }
   }, [doc, ops]);
 
+  // biome-ignore lint/complexity/noUselessFragments: unblocks TS build
   return <></>;
 }

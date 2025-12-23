@@ -1,8 +1,8 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import * as yaml from 'js-yaml';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 
 import type {
@@ -207,6 +207,7 @@ describe('Algorithm Test Suite', () => {
 
           // 3. Task Updates (Status, etc.)
           if (step.mutation?.task_updates) {
+            // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: test helper
             step.mutation.task_updates.forEach(update => {
               const {id, ...props} = update;
               if (props.status === 'Done') {

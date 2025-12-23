@@ -41,8 +41,7 @@ export function pass3DeviationFeedback(
     const task = doc.tasks[taskId as TaskID];
     if (!task) return;
     const timeDelta = getCurrentTimestamp() - task.creditsTimestamp;
-    task.effectiveCredits =
-      task.credits * Math.pow(0.5, timeDelta / halfLifeMillis);
+    task.effectiveCredits = task.credits * 0.5 ** (timeDelta / halfLifeMillis);
   }
 
   rootGoals.forEach(root => {
@@ -73,7 +72,7 @@ export function pass3DeviationFeedback(
     // Cap DeviationRatio to prevent extreme spikes (spec says 1000.0)
     deviationRatio = Math.min(deviationRatio, 1000.0);
 
-    root.feedbackFactor = Math.pow(deviationRatio, k);
+    root.feedbackFactor = deviationRatio ** k;
   });
 }
 

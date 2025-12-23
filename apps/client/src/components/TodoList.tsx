@@ -1,5 +1,5 @@
 import {Box, Button, Stack} from '@mantine/core';
-import {type TaskID, type TunnelNode} from '@mydoo/tasklens';
+import type {TaskID, TunnelNode} from '@mydoo/tasklens';
 /**
  * TodoList: Renders a list of tasks at a given level in the hierarchy.
  *

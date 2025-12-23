@@ -24,7 +24,7 @@ vi.mock('@mydoo/tasklens', async importOriginal => {
     ...actual,
     useTunnel: (url: DocumentHandle) =>
       mockUseTunnel(url) as ReturnType<
-        (typeof import('@mydoo/tasklens'))['useTunnel']
+        typeof import('@mydoo/tasklens')['useTunnel']
       >,
   };
 });

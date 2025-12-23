@@ -1,4 +1,4 @@
-import {type TaskID, type TunnelNode} from '@mydoo/tasklens';
+import type {TaskID, TunnelNode} from '@mydoo/tasklens';
 import {useMemo} from 'react';
 
 import {getBreadcrumbs} from '../lib/todoUtils';

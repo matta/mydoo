@@ -43,8 +43,8 @@ import {z} from 'zod';
 function AutomergeRecord<
   // We must allow 'any' for the Definition and Input types to satisfy Zod's
   // internal variance checks (e.g. allowing z.string() which accepts unknown inputs).
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SEE ABOVE
-  K extends z.ZodType<string | number | symbol, any, any>,
+  // biome-ignore lint/suspicious/noExplicitAny: internal variance checks
+  K extends z.ZodType<string | number | symbol, any, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
   V extends z.ZodType,
 >(keySchema: K, valueSchema: V) {
   return z.preprocess(

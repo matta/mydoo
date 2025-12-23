@@ -1,10 +1,4 @@
-import {
-  type Context,
-  type Task,
-  type TaskID,
-  type TunnelState,
-  type ViewFilter,
-} from '../types';
+import type {Context, Task, TaskID, TunnelState, ViewFilter} from '../types';
 import {getCurrentTimestamp} from '../utils/time';
 import {pass1ContextualVisibility} from './pass1Visibility';
 import {pass2ScheduleInheritance} from './pass2Schedule';

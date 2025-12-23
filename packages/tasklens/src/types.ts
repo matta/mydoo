@@ -17,9 +17,9 @@
  * type-safe enum-like structure. This allows both runtime value checking
  * and compile-time type safety.
  */
-import {z} from 'zod';
+import type {z} from 'zod';
 
-import {PlaceIDSchema, TaskIDSchema} from './persistence/schemas';
+import type {PlaceIDSchema, TaskIDSchema} from './persistence/schemas';
 
 /**
  * Unique identifier for a Task.

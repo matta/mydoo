@@ -4,7 +4,7 @@ import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 
-import {render} from '../../test/setup';
+import {customRender as render} from '../../test/setup';
 import {TaskRow} from './TaskRow';
 
 function createMockTask(overrides: Partial<Task> = {}): Task {

@@ -1,2 +1,4 @@
 #!/bin/sh
-npx lint-staged
+# Only run the fast tool on commit.
+# We trust CI to catch deep type errors (slow).
+pnpm biome check --staged --no-errors-on-unmatched

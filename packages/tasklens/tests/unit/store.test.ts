@@ -113,7 +113,7 @@ describe('TunnelStore', () => {
     });
 
     it('should throw an error if hierarchy depth limit is exceeded', () => {
-      let parentId: TaskID | undefined = undefined;
+      let parentId: TaskID | undefined;
       for (let i = 0; i < 20; i++) {
         // Loop 20 times to create tasks from depth 0 to 19
         const task = store.createTask({
@@ -186,7 +186,7 @@ describe('TunnelStore', () => {
     });
 
     it('should throw an error when moving to a parent that exceeds depth limit', () => {
-      let parentId: TaskID | undefined = undefined;
+      let parentId: TaskID | undefined;
       for (let i = 0; i < 20; i++) {
         const task = store.createTask({
           title: `Task ${i.toString()}`,
