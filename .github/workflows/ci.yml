@@ -30,9 +30,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Biome Check
-        run: pnpm lint:fast
-
-
+        run: pnpm lint
 
       - name: Build
         run: pnpm build
