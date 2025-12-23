@@ -18,8 +18,8 @@ export function useTaskIntents(docUrl: DocumentHandle) {
   );
 
   const createTask = useCallback(
-    (title: string) => {
-      ops.add({title});
+    (title: string, parentId?: TaskID) => {
+      ops.add({title, parentId});
     },
     [ops],
   );

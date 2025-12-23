@@ -107,4 +107,47 @@ describe('useTaskIntents', () => {
     if (!taskFinal) throw new Error('Task missing in final');
     expect(taskFinal.status).toBe('Pending');
   });
+
+  it('should create a child task with parentId', async () => {
+    // 1. Setup Document
+    const {result: docResult} = renderHook(() => useDocument(), {wrapper});
+    const docUrl = docResult.current;
+
+    const handle = await repo.find<TunnelState>(
+      docUrl as unknown as DocumentId,
+    );
+    await handle.whenReady();
+
+    // 2. Setup Intents Hook
+    const {result} = renderHook(() => useTaskIntents(docUrl), {wrapper});
+
+    // 3. Create Parent Task
+    act(() => {
+      result.current.createTask('Parent Task');
+    });
+
+    const docAfterParent = handle.doc();
+    const parentTask = Object.values(docAfterParent.tasks)[0];
+    if (!parentTask) throw new Error('Parent task not found');
+
+    // 4. Create Child Task
+    act(() => {
+      result.current.createTask('Child Task', parentTask.id);
+    });
+
+    // 5. Verify Child Task
+    const docFinal = handle.doc();
+    const tasks = Object.values(docFinal.tasks);
+    expect(tasks).toHaveLength(2);
+
+    const childTask = tasks.find(t => t.title === 'Child Task');
+    if (!childTask) throw new Error('Child task not found');
+
+    // Get fresh parent from final doc
+    const parentTaskFinal = docFinal.tasks[parentTask.id];
+    if (!parentTaskFinal) throw new Error('Parent task not found in final doc');
+
+    expect(childTask.parentId).toBe(parentTask.id);
+    expect(parentTaskFinal.childTaskIds).toContain(childTask.id);
+  });
 });
