@@ -39,6 +39,9 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "error"
+      },
       "complexity": {
         "noExcessiveCognitiveComplexity": {
           "level": "error",

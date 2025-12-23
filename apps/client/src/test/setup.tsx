@@ -14,7 +14,7 @@ Object.defineProperty(window, 'matchMedia', {
   value: (query: string): MediaQueryList => ({
     matches: false,
     media: query,
-    onchange: null as any,
+    onchange: null,
     addListener: () => undefined,
     removeListener: () => undefined,
     addEventListener: () => undefined,
