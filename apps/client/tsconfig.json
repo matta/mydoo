@@ -29,8 +29,7 @@
     /* Monorepo Paths */
     "paths": {
       "@/*": ["./src/*"],
-      "@mydoo/tasklens": ["../../packages/tasklens/src/index.ts"],
-      "@mydoo/tasklens/*": ["../../packages/tasklens/src/*"]
+      "@mydoo/tasklens": ["../../packages/tasklens/src/index.ts"]
     }
   },
   "include": ["src", "tests", "vite.config.ts", "vitest.config.ts"],
