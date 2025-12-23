@@ -7,6 +7,7 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
 ## Workflow Rules (Strict Enforcement)
 
 1.  **Phase Documentation**: Before starting any phase, you **MUST** create a detailed `docs/plan/PHASE_<N>_<NAME>.md` document. This document must strictly adhere to the following structure:
+
     - **Clean Git State**: Before starting any step, you **MUST** verify that `git status` is clean (no uncommitted changes).
     - **Discrete Steps**: The Phase Doc must break the work down into discrete, atomic steps (e.g., "Implement one hook").
     - **Test Coverage**: All logic changes must be covered by tests as specified in [`docs/design/test-suite.md`](../design/test-suite.md).
@@ -78,6 +79,7 @@ _Goal: Make the list interactive. Complete, Uncomplete, Quick Add._
   - [x] Wire `TaskRow` checkbox to `completeTask`
   - [x] Add "Quick Entry" input to `DoViewContainer`
 - [x] **Verification**
+
   - [x] Integration Test: Click checkbox -> Store updates
   - [x] E2E: Create task -> Realtime update
 
@@ -125,6 +127,7 @@ _Goal: Ensure tasks are created with correct PRD-specified defaults and hierarch
   - [x] Updated PRD §3.2 to clarify field mappings (effort→creditIncrement, leadTimeMs, status Pending=active)
 
 **Deferred:**
+
 - `lastReviewTimestamp` initialization → Phase 6+ (Staleness/Autofocus)
 
 **Commits**: `0dcd64b`, `1f9d3dc`, `263af85`
@@ -184,7 +187,17 @@ _Goal: Hierarchical tree navigation with expand/collapse._
 
 _Goal: Complete the feature set._
 
-- [ ] Implement `BalanceViewContainer`
-- [ ] Implement `ContextViewContainer`
-- [ ] Implement `usePlaceIntents`
-- [ ] Final Accessibility Audit
+**PRD References**: [§4.4 Balance View](../design/prd.md), [ALGORITHM.md §3.2 Places](../design/algorithm.md)
+
+- [ ] **Step 1: The Balance View**
+  - [ ] Implement `BalanceViewContainer`: List Root Goals (exclude Inbox)
+  - [ ] Add sliders for `DesiredCredits` (0-100% allocation target)
+  - [ ] Add visual feedback bars for `Actual%` (EffectiveCredits)
+- [ ] **Step 2: Context Management (Places)**
+  - [ ] Implement `usePlaceIntents` (CRUD for Places)
+  - [ ] Create `PlaceEditorModal`: Name, Schedule (Hours), Included Places
+  - [ ] Implement `ContextViewContainer`: Management list
+- [ ] **Step 3: Accessibility & Final Polish**
+  - [ ] Audit semantic HTML and ARIA labels
+  - [ ] Verify keyboard navigation
+  - [ ] Verify screen reader announcements
