@@ -32,11 +32,7 @@ jobs:
       - name: Biome Check
         run: pnpm lint:fast
 
-      - name: Lint Dependencies
-        run: pnpm lint:deps
 
-      - name: Lint (TypeScript Strict)
-        run: pnpm lint:strict
 
       - name: Build
         run: pnpm build

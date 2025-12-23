@@ -9,22 +9,22 @@ We adhere to a strict policy regarding linting suppressions to ensure code quali
 #### General Principles
 
 1.  **Suppress As A Last Resort**: Suppressions should be used sparingly and only when absolutely required. Avoid suppressing entire files or large sections of code. There is usually a better way to address the underlying issue; strongly consider refactoring the code to remove the need for the suppression.
-2.  **No Blanket Suppressions**: File-level suppressions (e.g., `/* eslint-disable ... */` at the top of a file) are **strictly prohibited**.
-3.  **Targeted Suppressions Only**: Suppressions must be as granular as possible, typically using `// eslint-disable-next-line`.
-4.  **Mandatory Justification**: Every suppression **must** be accompanied by a comment on the preceding line explaining _why_ the suppression is necessary.
+2.  **No Blanket Suppressions**: File-level suppressions are **strictly prohibited**.
+3.  **Targeted Suppressions Only**: Suppressions must be as granular as possible, using `// biome-ignore lint/rule: reason`.
+4.  **Mandatory Justification**: Every suppression **must** be accompanied by a explanation of _why_ the suppression is necessary (which is built into the biome-ignore syntax).
 
 **Correct:**
 
 ```typescript
 // Safe because we are testing the error handler
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: testing error handler
 const invalidInput = 'foo' as any;
 ```
 
 **Incorrect:**
 
 ```typescript
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// biome-ignore lint/suspicious/noExplicitAny: reason
 const invalidInput = 'foo' as any;
 ```
 

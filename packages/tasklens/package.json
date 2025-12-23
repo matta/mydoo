@@ -11,19 +11,16 @@
   },
   "devDependencies": {
     "@automerge/automerge": "catalog:",
-    "@eslint/js": "catalog:",
     "@types/js-yaml": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "ajv": "catalog:",
     "ajv-formats": "catalog:",
-    "eslint": "catalog:",
-    "globals": "catalog:",
+
     "js-yaml": "catalog:",
     "json-schema-to-typescript": "catalog:",
     "typescript": "catalog:",
-    "typescript-eslint": "catalog:",
     "vitest": "catalog:"
   },
   "exports": {
@@ -35,7 +32,7 @@
   "scripts": {
     "build": "tsc --emitDeclarationOnly",
     "generate-types": "json2ts ./specs/compliance/schemas/test_case.schema.json ./specs/compliance/schemas/test_case.d.ts && biome format --write ./specs/compliance/schemas/test_case.d.ts",
-    "lint": "biome check . && eslint .",
+    "lint": "biome check .",
     "test": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },

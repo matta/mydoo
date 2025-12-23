@@ -353,15 +353,20 @@ export function deleteTask(state: TunnelState, id: TaskID): void {
 
   // Remove task from state.
   //
-  // TODO: if state.tasks is an Automerge document then this is correct, but if
-  // it is a plain Record then we should use delete state.tasks[id]; or set it
-  // to undefined. The difference doesn't matter too much, however.
+  // Becuase state.tasks is an Automerge proxy, we use Reflect.deleteProperty to
+  // remove the task. The usual way of doing this is to use delete
+  // state.tasks[id]; or set it to undefined, but the former issues a lint
+  // warning in our code base, and the latter is semantically wrong for
+  // automerge proxies (it ends up setting the property to null but doesn't
+  // delete it from the map).ß
   Reflect.deleteProperty(state.tasks, id);
 
   // TODO: Recursively delete children to avoid orphaned tasks
   if (task.childTaskIds.length > 0) {
     console.warn(
-      `deleteTask: Task ${id} has ${String(task.childTaskIds.length)} children that are now orphaned`,
+      `deleteTask: Task ${id} has ${String(
+        task.childTaskIds.length,
+      )} children that are now orphaned`,
     );
   }
 }

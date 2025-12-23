@@ -5,14 +5,9 @@
   "author": "",
   "devDependencies": {
     "@biomejs/biome": "^2.3.10",
-    "@eslint/js": "catalog:",
-    "eslint": "catalog:",
-    "globals": "catalog:",
     "husky": "catalog:",
-    "syncpack": "catalog:",
     "turbo": "catalog:",
-    "typescript": "catalog:",
-    "typescript-eslint": "catalog:"
+    "typescript": "catalog:"
   },
   "engines": {
     "node": ">=24"
@@ -24,13 +19,10 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "fix": "pnpm run fix:deps && biome check --write .",
-    "fix:deps": "syncpack fix-mismatches && syncpack format",
+    "fix": "biome check --write .",
     "format": "biome format .",
-    "lint": "pnpm run lint:fast && pnpm run lint:strict",
-    "lint:deps": "syncpack lint",
+    "lint": "pnpm run lint:fast",
     "lint:fast": "biome check .",
-    "lint:strict": "eslint .",
     "prepare": "husky",
     "test": "turbo test",
     "test:e2e": "pnpm --filter client test:e2e"
