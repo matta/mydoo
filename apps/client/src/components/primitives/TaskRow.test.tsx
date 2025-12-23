@@ -11,6 +11,7 @@ function createMockTask(overrides: Partial<Task> = {}): Task {
   return {
     id: '1' as TaskID,
     title: 'Test Task',
+    isAcknowledged: false, // Default
     status: TaskStatus.Pending,
     importance: 0.5,
     childTaskIds: [],

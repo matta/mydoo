@@ -110,6 +110,8 @@ export const TaskSchema = z.object({
   priorityTimestamp: z.number(),
   schedule: ScheduleSchema,
   isSequential: z.boolean(),
+  // Lifecycle state for visibility
+  isAcknowledged: z.boolean().default(false),
 });
 
 /**

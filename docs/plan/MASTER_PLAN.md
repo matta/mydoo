@@ -57,7 +57,7 @@ _Goal: Read-only rendering of the priority list. Prove the data pipeline works._
 
 - [x] **Logic (TDD)**
   - [x] Test & Implement `usePriorityList` hook
-  - [x] Test & Implement `useSystemIntents` (Healer/Refresh)
+  - [ ] Test & Implement `useSystemIntents` (Healer/Refresh) **[MISSED - SEE REMEDIATION]**
 - [x] **UI Components**
   - [x] Create `TaskRow` primitive
   - [x] Create `PriorityTaskList` composite
@@ -70,14 +70,38 @@ _Goal: Read-only rendering of the priority list. Prove the data pipeline works._
 
 _Goal: Make the list interactive. Complete, Uncomplete, Quick Add._
 
-- [ ] **Logic (TDD)**
-  - [ ] Test & Implement `useTaskIntents` (Complete, Create)
-- [ ] **UI Integration**
-  - [ ] Wire `TaskRow` checkbox to `completeTask`
-  - [ ] Add "Quick Entry" input to `DoViewContainer`
-- [ ] **Verification**
-  - [ ] Integration Test: Click checkbox -> Store updates
-  - [ ] E2E: Create task -> Realtime update
+- [x] **Logic (TDD)**
+  - [x] Test & Implement `useTaskIntents` (Complete, Create)
+- [x] **UI Integration**
+  - [x] Wire `TaskRow` checkbox to `completeTask`
+  - [x] Add "Quick Entry" input to `DoViewContainer`
+- [x] **Verification**
+  - [x] Integration Test: Click checkbox -> Store updates
+  - [x] E2E: Create task -> Realtime update
+
+- [ ] **Deferred / Known Gaps**
+  - [-] Task Creation Inheritance (PRD §3.2)
+  - [-] Task Details Modal (PRD §4.5)
+  - [-] Mobile FAB (PRD §4.2)
+
+## Phase 2/3 Remediation Plan (Active)
+
+_Goal: Fix regressions and missing specs identified during Phase 3 verification._
+
+- [x] **Fix: Immediate Disappearance**
+  - [x] Update `usePriorityList` to include `isAcknowledged=false` tasks (even if status=Done)
+  - [x] Verify strikethrough styling for Done tasks
+- [x] **Fix: Missing System Intents**
+  - [x] Implement `useSystemIntents` (refresh/acknowledge logic)
+  - [x] Add "Update/Refresh" button to `DoViewContainer`
+- [ ] **Fix: Task Creation Logic** [DEFERRED]
+  - [-] Enforce PRD defaults (Section 3.2) in `createTask` (currently minimal)
+  - [-] Enforce hierarchy rules (Inbox vs TLI)
+  - [-] Implement Task Details Modal (PRD §4.5)
+  - [-] Implement FAB for Mobile Task Creation (PRD §4.2)
+
+- [x] **Verification**
+  - [x] E2E: Complete task -> Stays visible -> Click Refresh -> Disappears
 
 ## Phase 4: The "Plan" View (Tree)
 

@@ -169,6 +169,12 @@ export interface Task {
   status: TaskStatus;
   title: string;
 
+  /**
+   * If true, the user has acknowledged this completed task (via Refresh).
+   * It should be hidden from the primary "Do" view.
+   */
+  isAcknowledged: boolean;
+
   // Computed properties (not stored directly)
   effectiveCredits?: number;
   feedbackFactor?: number;

@@ -24,7 +24,15 @@ export function TaskRow({task, onToggle, style}: TaskRowProps) {
           }}
         />
 
-        <Text flex={1} style={{userSelect: 'none'}}>
+        <Text
+          c={task.status === 'Done' ? 'dimmed' : ''}
+          flex={1}
+          style={{
+            userSelect: 'none',
+
+            textDecoration: task.status === 'Done' ? 'line-through' : undefined,
+          }}
+        >
           {task.title}
         </Text>
 

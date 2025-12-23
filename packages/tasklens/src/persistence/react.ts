@@ -61,6 +61,10 @@ export interface TunnelHookResult {
     toggleDone: (id: TaskID) => void;
     update: (id: TaskID, props: Partial<Task>) => void;
   };
+  /**
+   * Run a custom transaction on the document state.
+   */
+  change: (callback: (d: TunnelState) => void) => void;
   tasks: TunnelNode[];
 }
 
@@ -195,6 +199,7 @@ export function useTunnel(docId: DocumentHandle): TunnelHookResult {
   return {
     doc: validDoc,
     tasks,
+    change: mutate,
     ops: {
       add,
       update,

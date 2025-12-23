@@ -1,8 +1,17 @@
-import {Container, LoadingOverlay, Stack, Title} from '@mantine/core';
+import {
+  Button,
+  Container,
+  Group,
+  LoadingOverlay,
+  Stack,
+  Title,
+} from '@mantine/core';
 import type {DocumentHandle, TaskID} from '@mydoo/tasklens';
+import {IconRefresh} from '@tabler/icons-react';
 
 import {PriorityTaskList} from '../../components/composites/PriorityTaskList';
 import {QuickAddInput} from '../../components/primitives/QuickAddInput';
+import {useSystemIntents} from '../intents/useSystemIntents';
 import {useTaskIntents} from '../intents/useTaskIntents';
 import {usePriorityList} from '../projections/usePriorityList';
 
@@ -13,6 +22,7 @@ export interface DoViewContainerProps {
 export function DoViewContainer({docUrl}: DoViewContainerProps) {
   const {tasks, isLoading} = usePriorityList(docUrl);
   const {createTask, toggleTaskCompletion} = useTaskIntents(docUrl);
+  const {refreshTaskList} = useSystemIntents(docUrl);
 
   const handleToggle = (id: string) => {
     toggleTaskCompletion(id as TaskID);
@@ -27,7 +37,17 @@ export function DoViewContainer({docUrl}: DoViewContainerProps) {
       <LoadingOverlay visible={isLoading} />
 
       <Stack gap="xl">
-        <Title order={2}>Priorities</Title>
+        <Group justify="space-between">
+          <Title order={2}>Priorities</Title>
+          <Button
+            leftSection={<IconRefresh size={14} />}
+            onClick={() => refreshTaskList()}
+            size="xs"
+            variant="light"
+          >
+            Refresh
+          </Button>
+        </Group>
 
         <QuickAddInput onAdd={handleCreate} />
 

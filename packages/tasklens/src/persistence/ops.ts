@@ -85,6 +85,8 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
     schedule: props.schedule ?? defaultSchedule,
     isSequential: props.isSequential ?? false,
     childTaskIds: [],
+    // Remediation: Init as unacknowledged
+    isAcknowledged: false,
   };
 
   // Automerge doesn't support 'undefined' values, so we must remove them

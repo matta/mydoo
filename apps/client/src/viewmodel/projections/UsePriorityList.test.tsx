@@ -54,6 +54,7 @@ const createMockTask = (
   schedule: {leadTime: 0, type: 'Once' as const},
   status,
   title,
+  isAcknowledged: false, // Default
 });
 
 describe('usePriorityList', () => {
@@ -77,6 +78,33 @@ describe('usePriorityList', () => {
     const {result} = renderHook(() => usePriorityList(mockDocUrl));
 
     expect(result.current.tasks).toMatchObject([{id: '1'}]);
+  });
+
+  it('includes completed tasks that are NOT acknowledged', () => {
+    const mockState: Partial<TunnelState> = {
+      tasks: {
+        '1': createMockTask('1', 'Todo 1', TaskStatus.Pending, 0.5),
+        '2': {
+          ...createMockTask('2', 'Done Unacked', TaskStatus.Done, 0.5),
+          isAcknowledged: false,
+        },
+        '3': {
+          ...createMockTask('3', 'Done Acked', TaskStatus.Done, 0.5),
+          isAcknowledged: true,
+        },
+      } as Record<TaskID, TunnelNode>,
+    } as unknown as TunnelState;
+
+    mockUseTunnel.mockReturnValue({doc: mockState});
+
+    const {result} = renderHook(() => usePriorityList(mockDocUrl));
+
+    // Should include Todo 1 and Done Unacked, but exclude Done Acked
+    expect(result.current.tasks).toHaveLength(2);
+    expect(result.current.tasks.map(t => t.id)).toEqual(
+      expect.arrayContaining(['1', '2']),
+    );
+    expect(result.current.tasks.find(t => t.id === '3')).toBeUndefined();
   });
 
   it('sorts tasks by priority (descending)', () => {

@@ -43,6 +43,7 @@ describe('TunnelStore', () => {
           schedule: {type: 'Once' as const, leadTime: 0},
           isSequential: false,
           childTaskIds: [] as TaskID[],
+          isAcknowledged: false,
         },
       },
       places: {},
