@@ -11,6 +11,8 @@ jobs:
     name: Build, Lint, and Test
     runs-on: ubuntu-latest
 
+    env:
+      TURBO_CACHE_DIR: .turbo
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
@@ -26,6 +28,14 @@ jobs:
           node-version: 24
           cache: 'pnpm'
 
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -37,14 +47,6 @@ jobs:
 
       - name: Test
         run: pnpm test
-
-      - name: Cache Turbo
-        uses: actions/cache@v4
-        with:
-          path: node_modules/.cache/turbo
-          key: turbo-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            turbo-${{ runner.os }}-
 
       - name: Cache Playwright binaries
         uses: actions/cache@v4
