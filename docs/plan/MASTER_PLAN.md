@@ -133,16 +133,15 @@ _Goal: Ensure tasks are created with correct PRD-specified defaults and hierarch
 **Commits**: `0dcd64b`, `1f9d3dc`, `263af85`
 
 ## Phase 4: Task Details & Editing
-
 _Goal: Full property editing via modal. Add Sibling/Child creation. Delete with confirmation._
 
 **PRD References**: [§4.5 Task Editing (Details Modal)](../design/prd.md), [§3.6 Deletion Logic](../design/prd.md)
 
-- [ ] **Logic**
-  - [ ] Implement `useTaskDetails` (fetch task + parent title + descendant count)
-  - [ ] Extend `useTaskIntents` with `deleteTask` (cascade to descendants)
-- [ ] **UI Components**
-  - [ ] Create `TaskEditorModal` (PRD §4.5):
+- [x] **Logic**
+  - [x] Implement `useTaskDetails` (fetch task + parent title + descendant count)
+  - [x] Extend `useTaskIntents` with `deleteTask` (cascade to descendants)
+- [x] **UI Components**
+  - [x] Create `TaskEditorModal` (PRD §4.5):
     - Title input
     - Parent (read-only) + "Move..." button + "Find in Plan" button
     - Importance slider (0.0 - 1.0)
@@ -151,72 +150,94 @@ _Goal: Full property editing via modal. Add Sibling/Child creation. Delete with 
     - Place dropdown
     - Notes textarea
     - Footer: Add Sibling, Add Child, Delete
-  - [ ] Create `DeleteConfirmModal` (PRD §3.6: show descendant count)
+  - [x] Create `DeleteConfirmModal` (PRD §3.6: show descendant count)
   - [ ] Implement Mobile FAB for quick Inbox add (PRD §4.2)
 - [ ] **Verification**
-  - [ ] Unit tests for `useTaskDetails`
-  - [ ] Integration tests for modal interactions
+  - [x] Unit tests for `useTaskDetails`
+  - [x] Integration tests for modal interactions
   - [ ] E2E: Edit task -> Save -> Verify changes _(Deferred to Phase 5)_
   - [ ] E2E: Delete task with children -> cascade _(Deferred to Phase 5)_
 
 ## Phase 5: The "Plan" View (Tree)
-
 _Goal: Hierarchical tree navigation with expand/collapse._
 
 **PRD References**: [§4.3 The Plan View](../design/prd.md)
 
-- [ ] **Logic**
-  - [ ] Implement `useTaskTree` (Recursive projection)
+- [x] **Logic**
+  - [x] Implement `useTaskTree` (Recursive projection)
   - [ ] Implement `useBreadcrumbs`
-  - [ ] Implement `useNavigationState` (Expansion state, viewPath)
-- [ ] **UI Components**
-  - [ ] Create `OutlineTree` component (Recursive, with chevrons)
-  - [ ] Create `TaskOutlineItem` primitive
-  - [ ] Implement `PlanViewContainer`
+  - [x] Implement `useNavigationState` (Expansion state, viewPath)
+- [x] **UI Components**
+  - [x] Create `OutlineTree` component (Recursive, with chevrons)
+  - [x] Create `TaskOutlineItem` primitive
+  - [x] Implement `PlanViewContainer`
   - [ ] Implement Mobile drill-down navigation with breadcrumb trail
   - [ ] Create `MovePickerModal` (select new parent + position)
 - [ ] **Verification**
-  - [ ] Unit tests for tree projection
-  - [ ] E2E: Navigate tree, expand/collapse, drill-down on mobile
+  - [x] Unit tests for tree projection
+  - [x] E2E: Navigate tree, expand/collapse, drill-down on mobile
   - [ ] **Enable skipped E2E test**: `should persist task after page reload` (fix seed param issue)
   - [ ] E2E: Move task -> Verify tree updates correctly
   - [ ] E2E: Verify Task Editor (Edit Title/Importance/Effort) _(Deferred from Phase 4)_
   - [ ] E2E: Verify Task Deletion (Cascade with descendants) _(Deferred from Phase 4)_
 
-## Phase 6: Polish & Balance
-
-_Goal: Complete the feature set._
-
-**PRD References**: [§4.4 Balance View](../design/prd.md), [ALGORITHM.md §3.2 Places](../design/algorithm.md)
-
-- [ ] **Step 1: The Balance View**
-  - [ ] Implement `BalanceViewContainer`: List Root Goals (exclude Inbox)
-  - [ ] Add sliders for `DesiredCredits` (0-100% allocation target)
-  - [ ] Add visual feedback bars for `Actual%` (EffectiveCredits)
-- [ ] **Step 2: Context Management (Places)**
-  - [ ] Implement `usePlaceIntents` (CRUD for Places)
-  - [ ] Create `PlaceEditorModal`: Name, Schedule (Hours), Included Places
-  - [ ] Implement `ContextViewContainer`: Management list
-- [ ] **Step 3: Accessibility & Final Polish**
-  - [ ] Audit semantic HTML and ARIA labels
-  - [ ] Verify keyboard navigation
-  - [ ] Verify screen reader announcements
-
-## Phase 6: Post-MVP Refactoring & Tech Debt
-
-**Goal**: Rationalize architecture and clean up strict type boundaries in `tasklens`.
-
-### Step 1: TaskLens Type Rationalization
-
+## Phase 6: TaskLens Type Rationalization
 **Rationale**: Clarifies the boundary between Persisted State (DB) and Computed View State. Prevents accidental mutation of CRDT history with transient scores. Makes the data flow explicit: `DB -> Algo -> View`.
 
 - [ ] **Define Exact Types**:
   - `PersistedTask` (Schema properties only): `id`, `title`, `status`, `importance`, `schedule`, `isAcknowledged`, etc.
-  - `ComputedTask` (Runtime only): Extends `PersistedTask` with **REQUIRED** `priority`, `visibility`, `effectiveCredits`, `normalizedImportance`, `feedbackFactor`.
+  - `ComputedTask` (Immutable Veneer): `Readonly<PersistedTask & ComputedProps>`
+    - `ComputedProps`: **REQUIRED** `priority`, `visibility`, `effectiveCredits`, `normalizedImportance`, `feedbackFactor`.
+    - **Goal**: View layer receives guaranteed immutable objects. No accidental invalidation of Automerge proxies.
 - [ ] **Refactor Algorithm**:
-  - Modify `recalculatePriorities` signature to: `(tasks: PersistedTask[]) => ComputedTask[]`.
-  - Delete `getPrioritizedTasks` (wrapper becomes unnecessary if `recalculate` returns the result).
-  - Update all Pass 1-7 functions to work on `ComputedTask` drafts.
+  - Input: `Readonly<PersistedTask>[]`
+  - Output: `ComputedTask[]` (New objects, not modified proxies)
+  - `recalculatePriorities` becomes a pure function returning the veneer types.
 - [ ] **Strict Enforcement**:
   - Update `TunnelState` to strictly use `PersistedTask` record.
   - Fix all TS errors resulting from the split.
+
+## Phase 7: The Balance View
+**Goal**: Implement the "Life Balance" algorithm visualization.
+
+**PRD References**: [§4.4 Balance View](../design/prd.md)
+
+- [ ] **Step 1: Balance Logic**
+  - [ ] Implement `useBalanceData` (Compute Target % vs Actual %)
+  - [ ] Implement `desiredCredits` updates
+- [ ] **Step 2: Balance UI**
+  - [ ] Create `BalanceItem` row (Slider for Target, Progress Bar for Actual)
+  - [ ] Implement `BalanceViewContainer` (List Root Goals)
+  - [ ] **Verification**: E2E for adjusting Desired Credits.
+
+## Phase 8: Contexts & Places
+**Goal**: Manage spatial and temporal contexts to filter the "Do" list.
+
+**PRD References**: [§4.1 Global Nav](../design/prd.md), [§4.2 Do View (Filter)](../design/prd.md), [ALGORITHM.md §3.2 Places](../design/algorithm.md)
+
+- [ ] **Step 1: Place Logic & State**
+  - [ ] Implement `usePlaceIntents` (CRUD: Create, Update, Delete w/ Orphan logic)
+  - [ ] Implement `usePlaces` (List provider)
+  - [ ] Implement `deletePlace` op (Reassigns tasks to `ANYWHERE`)
+  - [ ] **Verification**: Unit tests for Place CRUD and Deletion logic.
+- [ ] **Step 2: Place Management UI**
+  - [ ] Create `PlaceList` component (Context View)
+  - [ ] Create `PlaceEditorModal`:
+    - Name input
+    - Schedule Editor (Hours: 24/7 vs Custom)
+    - Inclusion Picker ("Inside of...")
+  - [ ] Implement `ContextViewContainer`
+  - [ ] **Verification**: E2E for creating and editing places.
+- [ ] **Step 3: Integration**
+  - [ ] Add `PlacePicker` to `TaskEditorModal` (Assign places)
+  - [ ] Add `ContextFilter` dropdown to `DoViewContainer`
+  - [ ] Update `useNavigationState` to handle `placeFilter`
+  - [ ] **Verification**: E2E: Create Place -> Assign Task -> Filter View -> Verify Visibility.
+
+## Phase 9: Accessibility & Final Polish
+**Goal**: Ensure the app is accessible and production-ready.
+
+- [ ] Audit semantic HTML and ARIA labels
+- [ ] Verify keyboard navigation
+- [ ] Verify screen reader announcements
+- [ ] Mobile PWA Manifest & Icon verification

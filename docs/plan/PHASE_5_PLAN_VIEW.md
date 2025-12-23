@@ -57,9 +57,9 @@ _Implement the core tree projection and navigation state._
 - [x] `pnpm build`
 - [x] `pnpm test`
 - [x] `pnpm test:e2e`
-- [ ] `git commit` (User approval required). They must all pass in sequence against the same repository state.
+- [x] `git commit` (User approval required). They must all pass in sequence against the same repository state.
 - [x] 🛑 **STOP FOR HUMAN APPROVAL** before commit
-- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response is NOT sufficient.
+- [x] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response is NOT sufficient.
 
 ---
 
