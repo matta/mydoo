@@ -4,11 +4,11 @@ import type {Task, TaskID} from '@mydoo/tasklens';
 import {TaskRow} from '../primitives/TaskRow';
 
 export interface PriorityTaskListProps {
-  onComplete: (id: TaskID) => void;
+  onToggle: (id: TaskID) => void;
   tasks: Task[];
 }
 
-export function PriorityTaskList({tasks, onComplete}: PriorityTaskListProps) {
+export function PriorityTaskList({tasks, onToggle}: PriorityTaskListProps) {
   if (tasks.length === 0) {
     return (
       <Text c="dimmed" py="xl" ta="center">
@@ -20,7 +20,7 @@ export function PriorityTaskList({tasks, onComplete}: PriorityTaskListProps) {
   return (
     <Stack gap="xs">
       {tasks.map(task => (
-        <TaskRow key={task.id} onComplete={onComplete} task={task} />
+        <TaskRow key={task.id} onToggle={onToggle} task={task} />
       ))}
     </Stack>
   );

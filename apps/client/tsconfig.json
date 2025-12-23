@@ -27,6 +27,7 @@
     "emitDeclarationOnly": true
   },
   "include": ["src", "tests/e2e"],
+  "exclude": ["src/**/*.test.tsx", "src/**/*.test.ts", "src/test/**/*"],
   // Project reference for IDE type resolution (uses tasklens's emitted .d.ts files)
   "references": [{"path": "../../packages/tasklens"}]
 }

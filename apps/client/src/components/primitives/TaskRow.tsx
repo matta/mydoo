@@ -3,12 +3,12 @@ import type {Task, TaskID} from '@mydoo/tasklens';
 import {IconGripVertical} from '@tabler/icons-react';
 
 export interface TaskRowProps {
-  onComplete: (id: TaskID) => void;
+  onToggle: (id: TaskID) => void;
   style?: React.CSSProperties;
   task: Task;
 }
 
-export function TaskRow({task, onComplete, style}: TaskRowProps) {
+export function TaskRow({task, onToggle, style}: TaskRowProps) {
   return (
     <Paper p="xs" shadow="xs" style={style} withBorder>
       <Group align="center" gap="sm" wrap="nowrap">
@@ -18,9 +18,9 @@ export function TaskRow({task, onComplete, style}: TaskRowProps) {
 
         <Checkbox
           aria-label={`Complete ${task.title}`}
-          checked={false}
+          checked={task.status === 'Done'}
           onChange={() => {
-            onComplete(task.id);
+            onToggle(task.id);
           }}
         />
 

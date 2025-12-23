@@ -1,0 +1,74 @@
+import type {Task, TaskID} from '@mydoo/tasklens';
+import {TaskStatus} from '@mydoo/tasklens';
+import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {describe, expect, it, vi} from 'vitest';
+
+import {render} from '../../test/setup';
+import {TaskRow} from './TaskRow';
+
+function createMockTask(overrides: Partial<Task> = {}): Task {
+  return {
+    id: '1' as TaskID,
+    title: 'Test Task',
+    status: TaskStatus.Pending,
+    importance: 0.5,
+    childTaskIds: [],
+    credits: 0,
+    creditsTimestamp: Date.now(),
+    creditIncrement: 1,
+    desiredCredits: 10,
+    isSequential: false,
+    priorityTimestamp: Date.now(),
+    schedule: {
+      type: 'Once',
+      leadTime: 0,
+    },
+    ...overrides,
+  };
+}
+
+describe('TaskRow', () => {
+  it('renders task title', () => {
+    const task = createMockTask({title: 'Buy Groceries'});
+    render(<TaskRow onToggle={vi.fn()} task={task} />);
+
+    expect(screen.getByText('Buy Groceries')).toBeInTheDocument();
+  });
+
+  it('calls onToggle with task id when checkbox is clicked', async () => {
+    const user = userEvent.setup();
+    const onToggle = vi.fn();
+    const task = createMockTask({id: 'task-123' as TaskID});
+
+    render(<TaskRow onToggle={onToggle} task={task} />);
+
+    const checkbox = screen.getByRole('checkbox');
+    await user.click(checkbox);
+
+    expect(onToggle).toHaveBeenCalledWith('task-123');
+  });
+
+  it('shows unchecked checkbox for Pending task', () => {
+    const task = createMockTask({status: TaskStatus.Pending});
+    render(<TaskRow onToggle={vi.fn()} task={task} />);
+
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('shows checked checkbox for Done task', () => {
+    const task = createMockTask({status: TaskStatus.Done});
+    render(<TaskRow onToggle={vi.fn()} task={task} />);
+
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toBeChecked();
+  });
+
+  it('displays task importance', () => {
+    const task = createMockTask({importance: 0.75});
+    render(<TaskRow onToggle={vi.fn()} task={task} />);
+
+    expect(screen.getByText('0.75')).toBeInTheDocument();
+  });
+});

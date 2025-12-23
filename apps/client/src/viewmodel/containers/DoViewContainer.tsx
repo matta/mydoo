@@ -1,7 +1,9 @@
 import {Container, LoadingOverlay, Stack, Title} from '@mantine/core';
-import type {DocumentHandle} from '@mydoo/tasklens';
+import type {DocumentHandle, TaskID} from '@mydoo/tasklens';
 
 import {PriorityTaskList} from '../../components/composites/PriorityTaskList';
+import {QuickAddInput} from '../../components/primitives/QuickAddInput';
+import {useTaskIntents} from '../intents/useTaskIntents';
 import {usePriorityList} from '../projections/usePriorityList';
 
 export interface DoViewContainerProps {
@@ -10,10 +12,14 @@ export interface DoViewContainerProps {
 
 export function DoViewContainer({docUrl}: DoViewContainerProps) {
   const {tasks, isLoading} = usePriorityList(docUrl);
+  const {createTask, toggleTaskCompletion} = useTaskIntents(docUrl);
 
-  const handleComplete = (id: string) => {
-    // TODO: Implement completion logic in next phase (useTaskIntents)
-    console.log('Complete task:', id);
+  const handleToggle = (id: string) => {
+    toggleTaskCompletion(id as TaskID);
+  };
+
+  const handleCreate = (text: string) => {
+    createTask(text);
   };
 
   return (
@@ -23,7 +29,9 @@ export function DoViewContainer({docUrl}: DoViewContainerProps) {
       <Stack gap="xl">
         <Title order={2}>Priorities</Title>
 
-        <PriorityTaskList onComplete={handleComplete} tasks={tasks} />
+        <QuickAddInput onAdd={handleCreate} />
+
+        <PriorityTaskList onToggle={handleToggle} tasks={tasks} />
       </Stack>
     </Container>
   );

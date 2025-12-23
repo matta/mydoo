@@ -1,6 +1,7 @@
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import {defineConfig} from 'eslint/config';
+import tseslint from 'typescript-eslint';
 
 import {configureProject} from '../../eslint.config.mjs';
 
@@ -13,6 +14,7 @@ export default defineConfig([
   {
     // Global restrictions for the Client App
     files: ['src/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}', 'src/test/**/*', 'src/tests/**/*'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -39,7 +41,6 @@ export default defineConfig([
       'src/viewmodel/useDocument.ts',
       'src/hooks/RepoProvider.tsx',
       'src/lib/db.ts',
-      '**/*.test.{ts,tsx}',
     ],
     rules: {
       // Re-define restricted imports to allow Automerge, but still ban deep persistence imports
@@ -55,6 +56,41 @@ export default defineConfig([
           ],
         },
       ],
+    },
+  },
+  {
+    // Test files - disable type-aware linting since they're excluded from main tsconfig
+    ...tseslint.configs.disableTypeChecked,
+    files: [
+      '**/*.test.{ts,tsx}',
+      'src/test/**/*.{ts,tsx}',
+      'src/tests/**/*.{ts,tsx}',
+    ],
+  },
+  {
+    // Additional test file rules
+    files: [
+      '**/*.test.{ts,tsx}',
+      'src/test/**/*.{ts,tsx}',
+      'src/tests/**/*.{ts,tsx}',
+    ],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+      // Test files can use Automerge directly
+      'no-restricted-imports': 'off',
+    },
+  },
+  {
+    // E2E tests (Playwright) - uses CommonJS and doesn't need strict TS rules
+    files: ['tests/e2e/**/*.{js,ts}'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      // Playwright tests are inherently complex
+      'sonarjs/cognitive-complexity': 'off',
     },
   },
 ]);

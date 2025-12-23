@@ -22,6 +22,9 @@ const configFilePatterns = [
   'apps/client/vitest.config.ts',
   'apps/client/playwright.config.ts',
   'apps/client/eslint.config.js',
+  // E2E test files (Playwright)
+  'tests/e2e/*.spec.js',
+  'apps/client/tests/e2e/*.spec.js',
 ];
 
 /** Base shared configuration */
@@ -186,10 +189,16 @@ export const sharedConfig = [
       ],
 
       // Check File Rules
+      // Allow lowercase for idiomatic config/test utility files (e.g., setup.tsx, vitest.config.ts)
       'check-file/filename-naming-convention': [
         'error',
         {
-          '**/*.tsx': 'PASCAL_CASE',
+          // React components must be PascalCase
+          '**/components/**/*.tsx': 'PASCAL_CASE',
+          '**/viewmodel/**/*.tsx': 'PASCAL_CASE',
+          // Non-component TSX files (e.g., test utilities) can be camelCase or lowercase
+          '**/test/**/*.tsx': 'CAMEL_CASE',
+          // TypeScript files should be camelCase
           '**/*.ts': 'CAMEL_CASE',
         },
         {
