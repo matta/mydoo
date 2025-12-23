@@ -40,11 +40,14 @@
   "private": true,
   "scripts": {
     "build": "tsc -b && vite build",
+    "clean": "rm -rf dist",
     "dev": "vite",
+    "fix": "biome check --write .",
     "lint": "biome check .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
   },
   "type": "module"
 }

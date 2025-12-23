@@ -31,6 +31,8 @@
   "private": true,
   "scripts": {
     "build": "tsc --emitDeclarationOnly",
+    "clean": "rm -rf dist",
+    "fix": "biome check --write .",
     "generate-types": "json2ts ./specs/compliance/schemas/test_case.schema.json ./specs/compliance/schemas/test_case.d.ts && biome format --write ./specs/compliance/schemas/test_case.d.ts",
     "lint": "biome check .",
     "test": "vitest run --coverage",

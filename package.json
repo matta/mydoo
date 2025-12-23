@@ -21,10 +21,10 @@
     "dev": "turbo dev",
     "fix": "biome check --write .",
     "format": "biome format .",
-    "lint": "pnpm run lint:fast",
-    "lint:fast": "biome check .",
+    "lint": "biome check .",
     "prepare": "husky",
     "test": "turbo test",
-    "test:e2e": "pnpm --filter client test:e2e"
+    "test:e2e": "pnpm --filter client test:e2e",
+    "typecheck": "tsc -b"
   }
 }
