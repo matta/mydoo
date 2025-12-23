@@ -43,9 +43,10 @@ _Implement the core tree projection and navigation state._
   - [x] Removed bogus `nextTaskId`/`nextPlaceId` counters (using UUIDs).
 
 ### Step 3: Interaction & Layout
-- [ ] Implement drag-and-drop (if using `dnd-kit` or similar) OR basic move actions.
-  - *Decision*: For MVP, stick to "Move Up/Down" buttons or basic keyboard shortcuts?
-  - *Refinement*: Let's ensure basic "Indent/Outdent" via keyboard (Tab/Shift+Tab) works.
+- [ ] Implement explicit "Move..." Interaction (Reparenting/Reordering).
+  - *Constraint*: No drag-and-drop for MVP (per PRD).
+  - Use `MovePickerModal` or Keyboard Indent/Outdent.
+  - *Refinement*: Ensure basic "Indent/Outdent" via keyboard (Tab/Shift+Tab) works.
 - [ ] Connect `TaskOutlineItem` actions (Drill down, Toggle completion).
 - [ ] Add "Breadcrumbs" for navigation history in `PlanViewContainer`.
 - [ ] **Verification**:
@@ -94,7 +95,7 @@ _Move tasks and verify everything (including deferred items)._
 - [ ] **Verification Catch-up**:
   - [ ] E2E: Edit task properties (Title/Importance) _(Deferred from Phase 4)_
   - [ ] E2E: Delete task + Cascade _(Deferred from Phase 4)_
-  - [ ] E2E: Drag/Move task -> verify tree update
+  - [ ] E2E: Move Picker task -> verify tree update
 
 **Quality Gates**
 
