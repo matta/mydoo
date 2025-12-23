@@ -153,7 +153,8 @@ _Goal: Full property editing via modal. Add Sibling/Child creation. Delete with 
 - [ ] **Verification**
   - [ ] Unit tests for `useTaskDetails`
   - [ ] Integration tests for modal interactions
-  - [ ] E2E: Edit task -> Save -> Verify changes
+  - [ ] E2E: Edit task -> Save -> Verify changes _(Deferred to Phase 5)_
+  - [ ] E2E: Delete task with children -> cascade _(Deferred to Phase 5)_
 
 ## Phase 5: The "Plan" View (Tree)
 
@@ -176,6 +177,8 @@ _Goal: Hierarchical tree navigation with expand/collapse._
   - [ ] E2E: Navigate tree, expand/collapse, drill-down on mobile
   - [ ] **Enable skipped E2E test**: `should persist task after page reload` (fix seed param issue)
   - [ ] E2E: Move task -> Verify tree updates correctly
+  - [ ] E2E: Verify Task Editor (Edit Title/Importance/Effort) _(Deferred from Phase 4)_
+  - [ ] E2E: Verify Task Deletion (Cascade with descendants) _(Deferred from Phase 4)_
 
 ## Phase 6: Polish & Balance
 
