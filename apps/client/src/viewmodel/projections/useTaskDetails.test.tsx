@@ -105,6 +105,7 @@ describe('useTaskDetails', () => {
   it('returns null when task not found', () => {
     const mockState: TunnelState = {
       nextPlaceId: 1,
+      nextTaskId: 0,
       places: {},
       tasks: {},
       rootTaskIds: [],

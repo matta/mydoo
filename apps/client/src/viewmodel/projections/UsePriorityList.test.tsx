@@ -4,7 +4,7 @@ import type {
   TunnelNode,
   TunnelState,
 } from '@mydoo/tasklens';
-import {TaskStatus} from '@mydoo/tasklens';
+import {type Task, TaskStatus} from '@mydoo/tasklens';
 import {renderHook} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
@@ -73,6 +73,7 @@ describe('usePriorityList', () => {
           isAcknowledged: true,
         },
       } as Record<TaskID, TunnelNode>,
+      places: {},
     } as unknown as TunnelState;
 
     mockUseTunnel.mockReturnValue({doc: mockState});
@@ -95,6 +96,7 @@ describe('usePriorityList', () => {
           isAcknowledged: true,
         },
       } as Record<TaskID, TunnelNode>,
+      places: {},
     } as unknown as TunnelState;
 
     mockUseTunnel.mockReturnValue({doc: mockState});
@@ -103,10 +105,12 @@ describe('usePriorityList', () => {
 
     // Should include Todo 1 and Done Unacked, but exclude Done Acked
     expect(result.current.tasks).toHaveLength(2);
-    expect(result.current.tasks.map(t => t.id)).toEqual(
+    expect(result.current.tasks.map((t: Task) => t.id)).toEqual(
       expect.arrayContaining(['1', '2']),
     );
-    expect(result.current.tasks.find(t => t.id === '3')).toBeUndefined();
+    expect(
+      result.current.tasks.find((t: Task) => t.id === '3'),
+    ).toBeUndefined();
   });
 
   it('sorts tasks by priority (descending)', () => {
@@ -116,6 +120,7 @@ describe('usePriorityList', () => {
         '2': createMockTask('2', 'High Priority', TaskStatus.Pending, 0.9),
         '3': createMockTask('3', 'Medium Priority', TaskStatus.Pending, 0.5),
       } as Record<TaskID, TunnelNode>,
+      places: {},
     } as unknown as TunnelState;
 
     mockUseTunnel.mockReturnValue({doc: mockState});

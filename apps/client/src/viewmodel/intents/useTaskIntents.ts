@@ -2,6 +2,7 @@ import {
   type DocumentHandle,
   type Task,
   type TaskID,
+  TaskStatus,
   useTunnel,
 } from '@mydoo/tasklens';
 import {useCallback} from 'react';
@@ -13,14 +14,7 @@ import {useCallback} from 'react';
  * providing domain-specific actions like "createTask" and "toggleTaskCompletion".
  */
 export function useTaskIntents(docUrl: DocumentHandle) {
-  const {ops} = useTunnel(docUrl);
-
-  const toggleTaskCompletion = useCallback(
-    (id: TaskID) => {
-      ops.toggleDone(id);
-    },
-    [ops],
-  );
+  const {doc, ops} = useTunnel(docUrl);
 
   const createTask = useCallback(
     (title: string, parentId?: TaskID) => {
@@ -43,10 +37,27 @@ export function useTaskIntents(docUrl: DocumentHandle) {
     [ops],
   );
 
+  /**
+   * Toggles the completion status of a task between 'Done' and 'Pending'.
+   * @param id - The ID of the task to toggle.
+   */
+  const toggleTask = useCallback(
+    (id: TaskID) => {
+      if (!doc) return;
+      const task = doc.tasks[id];
+      if (!task) return;
+
+      const newStatus =
+        task.status === TaskStatus.Done ? TaskStatus.Pending : TaskStatus.Done;
+      updateTask(id, {status: newStatus});
+    },
+    [doc, updateTask],
+  );
+
   return {
-    toggleTaskCompletion,
     createTask,
-    deleteTask,
     updateTask,
+    deleteTask,
+    toggleTask,
   };
 }

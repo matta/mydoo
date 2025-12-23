@@ -128,8 +128,6 @@ export const TaskSchema = z.object({
  * should be defined if Place validation is needed.
  */
 export const TunnelStateSchema = z.object({
-  nextTaskId: z.number(),
-  nextPlaceId: z.number(),
   rootTaskIds: z.array(TaskIDSchema),
   tasks: AutomergeRecord(TaskIDSchema, TaskSchema),
   places: AutomergeRecord(PlaceIDSchema, z.any()),

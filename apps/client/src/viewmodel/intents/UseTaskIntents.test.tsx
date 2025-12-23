@@ -84,7 +84,7 @@ describe('useTaskIntents', () => {
 
     // 4. Toggle Completion
     act(() => {
-      result.current.toggleTaskCompletion(taskId);
+      result.current.toggleTask(taskId);
     });
 
     // 5. Verify
@@ -97,7 +97,7 @@ describe('useTaskIntents', () => {
 
     // 6. Toggle Back
     act(() => {
-      result.current.toggleTaskCompletion(taskId);
+      result.current.toggleTask(taskId);
     });
 
     const docFinal = handle.doc();

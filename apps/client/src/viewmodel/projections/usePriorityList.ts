@@ -1,26 +1,9 @@
 import {
   type DocumentHandle,
-  type Task,
-  TaskStatus,
-  type TunnelState,
+  getPrioritizedTasks,
   useTunnel,
 } from '@mydoo/tasklens';
 import {useMemo} from 'react';
-
-/**
- * Filter and sort logic for priority list.
- */
-export function selectPriorityList(state: TunnelState): Task[] {
-  return Object.values(state.tasks)
-    .filter(
-      t =>
-        t.status === TaskStatus.Pending ||
-        (t.status === TaskStatus.Done && !t.isAcknowledged),
-    )
-    .sort(
-      (a, b) => (b.priority ?? b.importance) - (a.priority ?? a.importance),
-    );
-}
 
 /**
  * Hook to retrieve a prioritized list of pending tasks.
@@ -32,7 +15,7 @@ export function usePriorityList(docUrl: DocumentHandle) {
 
   const tasks = useMemo(() => {
     if (!doc) return [];
-    return selectPriorityList(doc);
+    return getPrioritizedTasks(doc);
   }, [doc]);
 
   return {

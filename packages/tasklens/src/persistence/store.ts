@@ -78,8 +78,6 @@ export class TunnelStore {
         tasks: {},
         places: {},
         rootTaskIds: [],
-        nextTaskId: 1,
-        nextPlaceId: 1,
       });
     }
   }

@@ -34,7 +34,7 @@ export interface DoViewContainerProps {
  */
 export function DoViewContainer({docUrl}: DoViewContainerProps) {
   const {tasks, isLoading} = usePriorityList(docUrl);
-  const {createTask, toggleTaskCompletion, deleteTask, updateTask} =
+  const {createTask, toggleTask, deleteTask, updateTask} =
     useTaskIntents(docUrl);
   const {refreshTaskList} = useSystemIntents(docUrl);
 
@@ -55,9 +55,9 @@ export function DoViewContainer({docUrl}: DoViewContainerProps) {
 
   const handleToggle = useCallback(
     (id: TaskID) => {
-      toggleTaskCompletion(id);
+      toggleTask(id);
     },
-    [toggleTaskCompletion],
+    [toggleTask],
   );
 
   const handleTitleTap = useCallback((id: TaskID) => {
@@ -98,7 +98,7 @@ export function DoViewContainer({docUrl}: DoViewContainerProps) {
 
   const handleDelete = useCallback(
     (taskId: TaskID, hasChildren: boolean) => {
-      const taskToDeleteData = tasks.find(t => t.id === taskId);
+      const taskToDeleteData = tasks.find((t: Task) => t.id === taskId);
       if (!taskToDeleteData) return;
 
       if (hasChildren) {

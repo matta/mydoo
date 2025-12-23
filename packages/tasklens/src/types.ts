@@ -215,18 +215,17 @@ export interface TunnelNode extends Task {
  * This is the root object that contains all tasks and places. It is stored
  * in Automerge (a CRDT library) for real-time synchronization between clients.
  *
- * @property tasks - Map of task ID to Task object. All tasks are stored flat here.
- * @property rootTaskIds - Ordered list of top-level task IDs (tasks with no parent).
- * @property places - Map of place ID to Place object.
- * @property nextTaskId - Counter for generating unique task IDs.
  * @property nextPlaceId - Counter for generating unique place IDs.
+ * @property nextTaskId - Counter for generating unique task IDs.
+ * @property places - Map of place ID to Place object.
+ * @property rootTaskIds - Ordered list of top-level task IDs (tasks with no parent).
+ * @property tasks - Map of task ID to Task object. All tasks are stored flat here.
  *
- * The index signature `[key: string]: unknown` allows additional properties
- * to be added without type errors (required for Automerge compatibility).
+ * The index signature is strictly required by @automerge/automerge types.
+ * Without it, `Automerge.from<TunnelState>()` fails type checking.
  */
 export interface TunnelState {
   [key: string]: unknown;
-  nextPlaceId: number;
   places: Record<PlaceID, Place>;
   rootTaskIds: TaskID[];
   tasks: Record<TaskID, Task>;

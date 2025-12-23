@@ -23,8 +23,6 @@ describe('TunnelStore', () => {
     const state = store.state;
     expect(state.tasks).toEqual({});
     expect(state.places).toEqual({});
-    expect(state.nextTaskId).toBe(1);
-    expect(state.nextPlaceId).toBe(1);
   });
 
   it('should allow initializing with a provided state', () => {

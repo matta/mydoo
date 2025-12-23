@@ -201,3 +201,22 @@ _Goal: Complete the feature set._
   - [ ] Audit semantic HTML and ARIA labels
   - [ ] Verify keyboard navigation
   - [ ] Verify screen reader announcements
+
+## Phase 6: Post-MVP Refactoring & Tech Debt
+
+**Goal**: Rationalize architecture and clean up strict type boundaries in `tasklens`.
+
+### Step 1: TaskLens Type Rationalization
+
+**Rationale**: Clarifies the boundary between Persisted State (DB) and Computed View State. Prevents accidental mutation of CRDT history with transient scores. Makes the data flow explicit: `DB -> Algo -> View`.
+
+- [ ] **Define Exact Types**:
+  - `PersistedTask` (Schema properties only): `id`, `title`, `status`, `importance`, `schedule`, `isAcknowledged`, etc.
+  - `ComputedTask` (Runtime only): Extends `PersistedTask` with **REQUIRED** `priority`, `visibility`, `effectiveCredits`, `normalizedImportance`, `feedbackFactor`.
+- [ ] **Refactor Algorithm**:
+  - Modify `recalculatePriorities` signature to: `(tasks: PersistedTask[]) => ComputedTask[]`.
+  - Delete `getPrioritizedTasks` (wrapper becomes unnecessary if `recalculate` returns the result).
+  - Update all Pass 1-7 functions to work on `ComputedTask` drafts.
+- [ ] **Strict Enforcement**:
+  - Update `TunnelState` to strictly use `PersistedTask` record.
+  - Fix all TS errors resulting from the split.
