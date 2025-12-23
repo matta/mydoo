@@ -23,8 +23,8 @@ _Create the intent hooks that project user actions into Automerge operations._
 
 - [x] ✅ **CLEAN LISTS**: Lists are clean.
 - [x] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 Request git commit.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Pending.
+- [x] 💾 Request git commit.
+- [x] 🛑 **VERIFY COMMIT SUCCESS**: Commit `651d5d4`.
 
 ## Step 2: Wire UI Interactions
 
@@ -47,8 +47,8 @@ _Connect the `TaskRow` checkbox to the intents._
 
 - [x] ✅ **CLEAN LISTS**: Lists are clean.
 - [x] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 Request git commit.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Pending.
+- [x] 💾 Request git commit.
+- [x] 🛑 **VERIFY COMMIT SUCCESS**: Commit `651d5d4`.
 
 ## Step 3: Implement Quick Add
 
@@ -70,8 +70,8 @@ _Add the ability to create new tasks from the view._
 
 - [x] ✅ **CLEAN LISTS**: Lists are clean.
 - [x] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 Request git commit.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Pending.
+- [x] 💾 Request git commit.
+- [x] 🛑 **VERIFY COMMIT SUCCESS**: Commit `651d5d4`.
 
 ## Step 4: End-to-End Verification
 
