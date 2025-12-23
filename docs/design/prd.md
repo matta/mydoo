@@ -108,10 +108,10 @@ Automerge merges concurrent array insertions by keeping both. This creates dupli
 When a user deletes a task that has children:
 
 1. **Warning:** UI MUST present a confirmation dialog showing the count of descendants that will also be deleted (e.g., "Delete 'Project X' and 12 sub-tasks?").
-2. **On Confirm:** Set `status = 'deleted'` on the target task AND all descendants (children, grandchildren, etc.).
+2. **On Confirm:** Remove the target task AND all descendants from the `tasks` map (hard-delete). Also removes from `childTaskIds` and `rootTaskIds`.
 3. **On Cancel:** No changes.
 
-**Note:** Deleted tasks remain in the `tasks` map for history/undo purposes but are excluded from all views.
+**Note:** Deleted tasks are permanently removed. Undo functionality (if needed) is handled via Automerge's native history features, not via a soft-delete status.
 
 ### 3.7 The Scoring Algorithm (Computed View)
 

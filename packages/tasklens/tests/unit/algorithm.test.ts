@@ -61,7 +61,6 @@ function parseTaskInput(
   const statusMap: Record<string, StoreTaskStatus> = {
     Pending: StoreTaskStatus.Pending,
     Done: StoreTaskStatus.Done,
-    Deleted: StoreTaskStatus.Deleted,
   };
 
   const task: Task = {

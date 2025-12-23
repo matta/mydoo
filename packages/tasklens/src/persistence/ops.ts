@@ -327,29 +327,24 @@ export function completeTask(state: TunnelState, id: TaskID): void {
 }
 
 /**
- * Deletes a task from the state.
+ * Deletes a task and all its descendants (cascade hard-delete).
  *
- * This function removes the task from its parent's child list (or the root list),
- * then removes it from the tasks map. Children of the deleted task are NOT
- * automatically deleted, which may result in orphaned tasks.
+ * This function uses an iterative queue-based approach (not recursion)
+ * to safely handle deeply nested hierarchies without stack overflow.
+ *
+ * Steps:
+ * 1. Removes the task from its parent's childTaskIds (or rootTaskIds).
+ * 2. Iteratively removes all descendants from the tasks map.
  *
  * @param state - The application state to mutate.
  * @param id - The ID of the task to delete.
- *
- * @remarks
- * If the task has children, a warning is logged to the console. The children
- * remain in the state but are no longer reachable from the tree structure.
- * A future improvement would recursively delete all descendants.
- *
- * The `delete` operator is used because `state.tasks` is a plain JavaScript
- * object (Record), which is required for Automerge compatibility. Automerge
- * cannot track changes to Map or Set types.
+ * @returns The count of deleted tasks (target + descendants).
  */
-export function deleteTask(state: TunnelState, id: TaskID): void {
+export function deleteTask(state: TunnelState, id: TaskID): number {
   const task = state.tasks[id];
-  if (!task) return;
+  if (!task) return 0;
 
-  // Remove from parent's child list or root list
+  // 1. Remove from parent's child list or root list FIRST
   if (task.parentId) {
     const parent = state.tasks[task.parentId];
     if (parent?.childTaskIds) {
@@ -361,24 +356,25 @@ export function deleteTask(state: TunnelState, id: TaskID): void {
     if (idx > -1) state.rootTaskIds.splice(idx, 1);
   }
 
-  // Remove task from state.
-  //
-  // Becuase state.tasks is an Automerge proxy, we use Reflect.deleteProperty to
-  // remove the task. The usual way of doing this is to use delete
-  // state.tasks[id]; or set it to undefined, but the former issues a lint
-  // warning in our code base, and the latter is semantically wrong for
-  // automerge proxies (it ends up setting the property to null but doesn't
-  // delete it from the map).ß
-  Reflect.deleteProperty(state.tasks, id);
+  // 2. Iteratively delete target and all descendants using a queue
+  const queue: TaskID[] = [id];
+  let deletedCount = 0;
 
-  // TODO: Recursively delete children to avoid orphaned tasks
-  if (task.childTaskIds.length > 0) {
-    console.warn(
-      `deleteTask: Task ${id} has ${String(
-        task.childTaskIds.length,
-      )} children that are now orphaned`,
-    );
+  while (queue.length > 0) {
+    const taskId = queue.shift();
+    if (taskId === undefined) continue;
+    const t = state.tasks[taskId];
+    if (!t) continue;
+
+    // Queue all children for deletion
+    queue.push(...t.childTaskIds);
+
+    // Delete this task
+    Reflect.deleteProperty(state.tasks, taskId);
+    deletedCount += 1;
   }
+
+  return deletedCount;
 }
 
 // --- Selectors (read-only queries) ---

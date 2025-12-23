@@ -101,7 +101,7 @@ export const TaskSchema = z.object({
   parentId: TaskIDSchema.optional(),
   childTaskIds: z.array(TaskIDSchema),
   placeId: PlaceIDSchema.optional(),
-  status: z.enum(['Pending', 'Done', 'Deleted']),
+  status: z.enum(['Pending', 'Done']),
   importance: z.number().min(0).max(1),
   creditIncrement: z.number().min(0),
   credits: z.number(),

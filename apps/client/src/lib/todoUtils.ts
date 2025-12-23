@@ -43,18 +43,18 @@ export function getListAtPath(
  * Checks whether a task can be marked as completed.
  *
  * A task can only be marked "Done" if all of its children are already
- * completed (Done) or removed (Deleted). This prevents marking a parent
- * task as done while work remains on subtasks.
+ * completed (Done). This prevents marking a parent task as done while
+ * work remains on subtasks.
  *
  * @param item - The task to check.
- * @returns true if the task has no children, or all children are Done/Deleted.
+ * @returns true if the task has no children, or all children are Done.
  *
  * @example
  * // Task with no children
  * canMarkDone({ ...task, children: [] }) // true
  *
  * // Task with all children done
- * canMarkDone({ ...task, children: [doneTask, deletedTask] }) // true
+ * canMarkDone({ ...task, children: [doneTask] }) // true
  *
  * // Task with pending children
  * canMarkDone({ ...task, children: [pendingTask] }) // false
@@ -62,10 +62,7 @@ export function getListAtPath(
 export function canMarkDone(item: TunnelNode): boolean {
   if (item.children.length === 0) return true;
 
-  return item.children.every(
-    child =>
-      child.status === TaskStatus.Done || child.status === TaskStatus.Deleted,
-  );
+  return item.children.every(child => child.status === TaskStatus.Done);
 }
 
 /**

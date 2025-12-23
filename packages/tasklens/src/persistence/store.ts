@@ -189,6 +189,20 @@ export class TunnelStore {
     });
   }
 
+  /**
+   * Deletes a task and all its descendants (cascade).
+   *
+   * @param id - The ID of the task to delete.
+   * @returns The number of tasks deleted (task + descendants).
+   */
+  deleteTask(id: TaskID): number {
+    let deletedCount = 0;
+    this.doc = Automerge.change(this.doc, `Delete task ${id}`, doc => {
+      deletedCount = TunnelOps.deleteTask(doc, id);
+    });
+    return deletedCount;
+  }
+
   // --- Algorithm Operations ---
 
   /**

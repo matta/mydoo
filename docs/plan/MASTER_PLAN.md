@@ -174,6 +174,8 @@ _Goal: Hierarchical tree navigation with expand/collapse._
 - [ ] **Verification**
   - [ ] Unit tests for tree projection
   - [ ] E2E: Navigate tree, expand/collapse, drill-down on mobile
+  - [ ] **Enable skipped E2E test**: `should persist task after page reload` (fix seed param issue)
+  - [ ] E2E: Move task -> Verify tree updates correctly
 
 ## Phase 6: Polish & Balance
 

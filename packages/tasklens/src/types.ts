@@ -70,12 +70,10 @@ export const ANYWHERE_PLACE_ID = 'Anywhere' as PlaceID;
  *
  * - `Pending`: Task is not yet completed.
  * - `Done`: Task has been completed.
- * - `Deleted`: Task has been soft-deleted (hidden but not removed from storage).
  */
 export const TaskStatus = {
   Pending: 'Pending',
   Done: 'Done',
-  Deleted: 'Deleted',
 } as const;
 
 /**

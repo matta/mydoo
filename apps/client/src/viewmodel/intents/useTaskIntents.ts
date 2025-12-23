@@ -24,8 +24,16 @@ export function useTaskIntents(docUrl: DocumentHandle) {
     [ops],
   );
 
+  const deleteTask = useCallback(
+    (id: TaskID) => {
+      ops.delete(id);
+    },
+    [ops],
+  );
+
   return {
     toggleTaskCompletion,
     createTask,
+    deleteTask,
   };
 }
