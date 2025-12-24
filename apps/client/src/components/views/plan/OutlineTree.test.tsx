@@ -37,6 +37,8 @@ describe('OutlineTree', () => {
     onToggleCompletion: vi.fn(),
     onIndent: vi.fn(),
     onOutdent: vi.fn(),
+    viewMode: 'tree',
+    onOpenEditor: vi.fn(),
   };
 
   const renderComponent = (props: Partial<OutlineTreeProps> = {}) => {

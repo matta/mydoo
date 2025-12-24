@@ -6,9 +6,10 @@ import {
   LoadingOverlay,
   Text,
 } from '@mantine/core';
+import {useMediaQuery} from '@mantine/hooks';
 import type {DocumentHandle, TunnelNode} from '@mydoo/tasklens';
 import {IconArrowLeft} from '@tabler/icons-react';
-import {useMemo} from 'react';
+import {useEffect, useMemo} from 'react';
 import {useTaskIntents} from '../../../viewmodel/intents/useTaskIntents';
 import {useTaskTree} from '../../../viewmodel/projections/useTaskTree';
 import {useBreadcrumbs} from '../../../viewmodel/ui/useBreadcrumbs';
@@ -32,6 +33,7 @@ export interface PlanViewContainerProps {
  * - **Data Projection**: Uses `useTaskTree` to transform raw Automerge data into a traversable tree structure.
  * - **User Intent**: Exposes operations for task modification (completion, structure changes via indent/outdent).
  * - **Navigation**: Calculates and renders breadcrumbs via `useBreadcrumbs`.
+ * - **Responsiveness**: Switches between Tree Mode (Desktop) and Drill-Down Mode (Mobile).
  */
 export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
   const {roots, isLoading} = useTaskTree(docUrl);
@@ -44,14 +46,31 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
     collapseAll,
     resetView,
     setViewPath,
+    setEditingTaskId,
+    viewPath,
   } = useNavigationState();
   const {toggleTask, indentTask, outdentTask} = useTaskIntents(docUrl);
   const breadcrumbs = useBreadcrumbs(docUrl, currentViewId);
 
+  // Responsive Breakpoint: 768px (sm) matches AppShell logic
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const viewMode = isDesktop ? 'tree' : 'drill';
+
+  // Strict Viewport Modes: Switching behavior
+  useEffect(() => {
+    if (isDesktop && viewPath.length > 0) {
+      // Mobile -> Desktop: Reset viewPath to empty (show full tree)
+      resetView();
+    }
+    // Desktop -> Mobile: Start at root for simplicity as per plan
+  }, [isDesktop, viewPath, resetView]);
+
   // Derive the subset of roots to display based on the current "drill-down" view.
   // If `currentViewId` is set, we traverse the tree to find that node and show its children.
   const displayRoots = useMemo(() => {
-    if (!currentViewId) return roots;
+    // In Tree Mode (Desktop), always show full root list (drill-down is disabled)
+    // Corrected logic:
+    if (isDesktop || !currentViewId) return roots;
 
     const findNode = (nodes: TunnelNode[]): TunnelNode | undefined => {
       for (const node of nodes) {
@@ -64,7 +83,7 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
 
     const target = findNode(roots);
     return target ? target.children : [];
-  }, [roots, currentViewId]);
+  }, [roots, currentViewId, isDesktop]);
 
   if (isLoading) {
     return <LoadingOverlay visible />;
@@ -75,56 +94,64 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
       p="md"
       style={{height: '100%', display: 'flex', flexDirection: 'column'}}
     >
+      {/* Navigation Header - Only relevant in Drill-Down Mode (Mobile) or if depth > 0 */}
       <Group justify="space-between" mb="md">
-        <Group>
-          {currentViewId && (
-            <Button
-              variant="subtle"
-              leftSection={<IconArrowLeft size={16} />}
-              onClick={popView}
-              size="xs"
-            >
-              Back
-            </Button>
-          )}
-          <Breadcrumbs separator=">">
-            <Button
-              variant="subtle"
-              size="xs"
-              onClick={resetView}
-              fw={breadcrumbs.length === 0 ? 'bold' : 'normal'}
-              c={breadcrumbs.length === 0 ? 'text' : 'dimmed'}
-              px={4}
-            >
-              Plan
-            </Button>
-            {breadcrumbs.map((item, index) => {
-              const isLast = index === breadcrumbs.length - 1;
-              return (
+        {!isDesktop && (
+          <Group>
+            {currentViewId && (
+              <Button
+                variant="subtle"
+                leftSection={<IconArrowLeft size={16} />}
+                onClick={popView}
+                size="xs"
+              >
+                Back
+              </Button>
+            )}
+            {/* Scrollable Breadcrumbs container for mobile */}
+            <Box style={{overflowX: 'auto', maxWidth: '60vw'}}>
+              <Breadcrumbs separator=">">
                 <Button
-                  key={item.id}
                   variant="subtle"
                   size="xs"
-                  onClick={() => {
-                    const newPath = breadcrumbs
-                      .slice(0, index + 1)
-                      .map(b => b.id);
-                    setViewPath(newPath);
-                  }}
-                  fw={isLast ? 'bold' : 'normal'}
-                  c={isLast ? 'text' : 'dimmed'}
+                  onClick={resetView}
+                  fw={breadcrumbs.length === 0 ? 'bold' : 'normal'}
+                  c={breadcrumbs.length === 0 ? 'text' : 'dimmed'}
                   px={4}
                 >
-                  {item.title}
+                  Plan
                 </Button>
-              );
-            })}
-          </Breadcrumbs>
-        </Group>
+                {breadcrumbs.map((item, index) => {
+                  const isLast = index === breadcrumbs.length - 1;
+                  return (
+                    <Button
+                      key={item.id}
+                      variant="subtle"
+                      size="xs"
+                      onClick={() => {
+                        const newPath = breadcrumbs
+                          .slice(0, index + 1)
+                          .map(b => b.id);
+                        setViewPath(newPath);
+                      }}
+                      fw={isLast ? 'bold' : 'normal'}
+                      c={isLast ? 'text' : 'dimmed'}
+                      px={4}
+                    >
+                      {item.title}
+                    </Button>
+                  );
+                })}
+              </Breadcrumbs>
+            </Box>
+          </Group>
+        )}
         <Group>
-          <Button variant="default" size="xs" onClick={collapseAll}>
-            Collapse All
-          </Button>
+          {isDesktop && (
+            <Button variant="default" size="xs" onClick={collapseAll}>
+              Collapse All
+            </Button>
+          )}
         </Group>
       </Group>
 
@@ -137,6 +164,8 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
           onToggleCompletion={toggleTask}
           onIndent={indentTask}
           onOutdent={outdentTask}
+          viewMode={viewMode}
+          onOpenEditor={setEditingTaskId}
         />
 
         {displayRoots.length === 0 && (

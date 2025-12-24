@@ -80,4 +80,22 @@ describe('useNavigationState', () => {
     expect(result.current.viewPath).toEqual([id1]);
     expect(result.current.currentViewId).toBe(id1);
   });
+
+  it('manages editing task id', () => {
+    const {result} = renderHook(() => useNavigationState(), {
+      wrapper: NavigationProvider,
+    });
+    const id1 = 'task-1' as TaskID;
+
+    // Initial
+    expect(result.current.editingTaskId).toBeNull();
+
+    // Set Editing
+    act(() => result.current.setEditingTaskId(id1));
+    expect(result.current.editingTaskId).toBe(id1);
+
+    // Clear Editing
+    act(() => result.current.setEditingTaskId(null));
+    expect(result.current.editingTaskId).toBeNull();
+  });
 });

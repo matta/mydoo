@@ -26,6 +26,10 @@ export interface TaskOutlineItemProps {
   onIndent: () => void;
   /** Handler when the task is outdented (e.g., via Shift+Tab key). */
   onOutdent: () => void;
+  /** View mode: 'tree' (desktop) or 'drill' (mobile). */
+  viewMode: 'tree' | 'drill';
+  /** Callback to open task editor. */
+  onOpenEditor: () => void;
 }
 
 /**
@@ -47,6 +51,8 @@ export function TaskOutlineItem({
   onToggleCompletion,
   onIndent,
   onOutdent,
+  viewMode,
+  onOpenEditor,
 }: TaskOutlineItemProps) {
   const hasChildren = node.children.length > 0;
 
@@ -62,8 +68,14 @@ export function TaskOutlineItem({
       } else {
         onIndent();
       }
+    } else if (event.key === 'Enter') {
+      // Enter opens editor in both modes
+      onOpenEditor();
     }
   };
+
+  const showChevron = viewMode === 'tree';
+  const showDrillDown = viewMode === 'drill';
 
   return (
     <Group
@@ -79,24 +91,29 @@ export function TaskOutlineItem({
       onKeyDown={handleKeyDown}
       tabIndex={0} // Make row focusable for keyboard interaction
     >
-      {/* Expansion Chevron */}
-      <ActionIcon
-        variant="subtle"
-        size="sm"
-        color="gray"
-        onClick={onExpandToggle}
-        aria-label="Toggle expansion"
-        style={{
-          opacity: hasChildren ? 1 : 0,
-          pointerEvents: hasChildren ? 'auto' : 'none',
-        }}
-      >
-        {isExpanded ? (
-          <IconChevronDown size={14} />
-        ) : (
-          <IconChevronRight size={14} />
-        )}
-      </ActionIcon>
+      {/* Expansion Chevron (Tree Mode Only) */}
+      {showChevron && (
+        <ActionIcon
+          variant="subtle"
+          size="sm"
+          color="gray"
+          onClick={e => {
+            e.stopPropagation();
+            onExpandToggle();
+          }}
+          aria-label="Toggle expansion"
+          style={{
+            opacity: hasChildren ? 1 : 0,
+            pointerEvents: hasChildren ? 'auto' : 'none',
+          }}
+        >
+          {isExpanded ? (
+            <IconChevronDown size={14} />
+          ) : (
+            <IconChevronRight size={14} />
+          )}
+        </ActionIcon>
+      )}
 
       {/* Completion Checkbox */}
       <Checkbox
@@ -104,29 +121,36 @@ export function TaskOutlineItem({
         onChange={onToggleCompletion}
         aria-label={`Complete ${node.title}`}
         size="xs"
+        onClick={e => e.stopPropagation()}
       />
 
-      {/* Task Title */}
+      {/* Task Title - Click opens Editor */}
       <Text
         size="sm"
         fw={500}
         {...(node.status === 'Done' ? {c: 'dimmed', td: 'line-through'} : {})}
-        style={{flex: 1, cursor: 'default'}}
+        style={{flex: 1, cursor: 'pointer'}}
         truncate
+        onClick={onOpenEditor}
       >
         {node.title}
       </Text>
 
-      {/* Drill Down Action */}
-      <ActionIcon
-        variant="subtle"
-        size="sm"
-        color="gray"
-        onClick={onDrillDown}
-        aria-label="Focus view"
-      >
-        <IconArrowRight size={14} />
-      </ActionIcon>
+      {/* Drill Down Action (Mobile Only) */}
+      {showDrillDown && hasChildren && (
+        <ActionIcon
+          variant="subtle"
+          size="sm"
+          color="gray"
+          onClick={e => {
+            e.stopPropagation();
+            onDrillDown();
+          }}
+          aria-label="Drill down"
+        >
+          <IconArrowRight size={14} />
+        </ActionIcon>
+      )}
     </Group>
   );
 }

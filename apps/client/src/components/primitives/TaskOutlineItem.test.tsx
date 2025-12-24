@@ -32,6 +32,8 @@ describe('TaskOutlineItem', () => {
     onToggleCompletion: vi.fn(),
     onIndent: vi.fn(),
     onOutdent: vi.fn(),
+    viewMode: 'tree',
+    onOpenEditor: vi.fn(),
   };
 
   const renderComponent = (props: Partial<TaskOutlineItemProps> = {}) => {
@@ -80,9 +82,11 @@ describe('TaskOutlineItem', () => {
 
   it('renders drill-down button and calls handler', async () => {
     const onDrillDown = vi.fn();
-    renderComponent({onDrillDown});
+    const childNode = {...mockNode, id: 'child-1' as TaskID};
+    const parentNode = {...mockNode, children: [childNode]};
+    renderComponent({onDrillDown, viewMode: 'drill', node: parentNode});
 
-    const drillBtn = screen.getByRole('button', {name: 'Focus view'});
+    const drillBtn = screen.getByRole('button', {name: 'Drill down'});
     expect(drillBtn).toBeInTheDocument();
 
     await userEvent.click(drillBtn);

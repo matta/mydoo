@@ -41,6 +41,15 @@ export interface NavigationState {
   /** The set of currently expanded task IDs. */
   expandedIds: Set<TaskID>;
 
+  /**
+   * The ID of the task currently being edited in the modal.
+   * Null means no task is being edited (modal is closed).
+   */
+  editingTaskId: TaskID | null;
+
+  /** Set the ID of the task to edit, opening the modal. */
+  setEditingTaskId: (id: TaskID | null) => void;
+
   /** Check if a specific task is currently expanded. */
   isExpanded: (id: TaskID) => boolean;
 
@@ -80,6 +89,9 @@ export function NavigationProvider({children}: {children: ReactNode}) {
 
   // Stack of IDs for drill-down navigation (empty = root)
   const [viewPath, setViewPathState] = useState<TaskID[]>([]);
+
+  // Task ID being edited (null = none)
+  const [editingTaskId, setEditingTaskId] = useState<TaskID | null>(null);
 
   const isExpanded = useCallback(
     (id: TaskID) => expandedIds.has(id),
@@ -144,6 +156,8 @@ export function NavigationProvider({children}: {children: ReactNode}) {
       setActiveTab,
       collapseAll,
       currentViewId: viewPath.at(-1),
+      editingTaskId,
+      setEditingTaskId,
       expandAll,
       expandedIds,
       isExpanded,
@@ -166,6 +180,7 @@ export function NavigationProvider({children}: {children: ReactNode}) {
       toggleExpanded,
       viewPath,
       collapseAll,
+      editingTaskId,
     ],
   );
 

@@ -44,7 +44,7 @@ _Implemented the core tree projection and navigation state._
 
 ---
 
-## Step 4: Make Outline Visible 🔴 CURRENT PRIORITY
+## Step 4: Make Outline Visible ✅
 
 > [!CAUTION]
 > **Blocker**: The Plan View outline is not currently accessible in the running app. This must be resolved before any further Phase 5 work.
@@ -82,19 +82,19 @@ _Implemented the core tree projection and navigation state._
 
 **Completion**
 
-- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
-- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
-- [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint).
+- [x] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
+- [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
+- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
+- [x] 🛑 STOP and prompt for user review with the EVIDENCE.
+- [x] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
+- [x] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint).
   - **ACTION**: You **MUST** check the terminal output and exit code of `git commit` immediately after running it.
   - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g., shorten commit message, fix linting), and **RETRY** the commit until it succeeds.
   - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT" step until `git log` confirms the new commit exists and `git status` is clean.
 
 ---
 
-## Step 5: Mobile Drill-Down Navigation
+## Step 5: Mobile Drill-Down Navigation 🔴 CURRENT PRIORITY
 
 _Handle deep navigation on small screens with breadcrumb trail._
 
@@ -102,7 +102,7 @@ _Handle deep navigation on small screens with breadcrumb trail._
 
 ### Tasks
 
-- [ ] **Implement Drill-Down Interaction**
+- [x] **Implement Drill-Down Interaction**
   - **Interaction Model (Codified)**:
     - **Tap "Drill Down" Arrow**: Pushes task ID to `viewPath` (Drill Down)
     - **Tap Row / Title**: Opens Task Editor modal
@@ -113,18 +113,18 @@ _Handle deep navigation on small screens with breadcrumb trail._
     - Ensure `useNavigationState` properly tracks `editingTaskId`
     - **Long Press**: No action (reserved)
 
-- [ ] **Breadcrumb Trail for Mobile**
+- [x] **Breadcrumb Trail for Mobile**
   - Mobile breadcrumbs should be horizontally scrollable if path is long
   - Each breadcrumb segment is tappable to navigate directly to that level
   - "Root" or home icon at the start to return to top-level view
   - Current location should be visually distinct (not clickable)
 
-- [ ] **Navigation Actions**
+- [x] **Navigation Actions**
   - `navigateTo(path: TaskID[])` — Set the entire path stack
   - `navigateUp()` — Pop the last item from the stack (go up one level)
   - Hardware/gesture back should trigger `navigateUp()` on mobile
 
-- [ ] **Strict Viewport Modes**
+- [x] **Strict Viewport Modes**
   - **Mobile (< 768px)**:
     - **Drill-Down Mode**: Show content of `viewPath` head only.
     - **Icons**: Show "Drill Down" arrow (Right). **Hide** Expand Chevron.
@@ -139,18 +139,18 @@ _Handle deep navigation on small screens with breadcrumb trail._
 
 ### Verification
 
-- [ ] Unit tests for `useNavigationState` path manipulation (`navigateTo`, `navigateUp`)
-- [ ] Component tests for mobile breadcrumb rendering and tap interactions
-- [ ] E2E test: On mobile viewport, tap parent → verify only children visible → tap breadcrumb → verify navigation back
-- [ ] **Deferred from Step 4**: E2E test for 4-level deep navigation (Deep Work Project → Module A → Component X → Unit Test)
+- [x] Unit tests for `useNavigationState` path manipulation (`navigateTo`, `navigateUp`)
+- [x] Component tests for mobile breadcrumb rendering and tap interactions
+- [x] E2E test: On mobile viewport, tap parent → verify only children visible → tap breadcrumb → verify navigation back
+- [x] **Deferred from Step 4**: E2E test for 4-level deep navigation (Deep Work Project → Module A → Component X → Unit Test)
 
 **Quality Gates**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm build` -> Pass
-- [ ] `pnpm test` -> Pass (ALL repo tests)
-- [ ] `pnpm test:e2e` -> Pass
-- [ ] **EVIDENCE**: Show terminal output of passing tests.
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm build` -> Pass
+- [x] `pnpm test` -> Pass (ALL repo tests)
+- [x] `pnpm test:e2e` -> Pass
+- [x] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
 

@@ -177,13 +177,18 @@ _Goal: Hierarchical tree navigation with expand/collapse._
   - [ ] Verify route/tab integration loads `PlanViewContainer`
   - [ ] Visual verification: confirm tree renders in running app
   - [ ] E2E baseline for outline view
-- [ ] **Remaining Work (Blocked until Step 4 complete)**
-  - [ ] Mobile drill-down navigation with breadcrumb trail
+- [x] **Step 5: Mobile Drill-Down Navigation (Complete)**
+  - [x] Implement strict viewport modes (Tree vs Drill-Down)
+  - [x] Implement scrollable breadcrumb trail for mobile
+  - [x] Tap row/title opens Task Editor; tap arrow drills down
+  - [x] E2E tests for mobile navigation
+- [ ] **Remaining Work**
   - [ ] Create `MovePickerModal` (select new parent + position)
   - [ ] E2E: Move task -> Verify tree updates correctly
   - [ ] E2E: Task Editor verification _(Deferred from Phase 4)_
   - [ ] E2E: Task Deletion cascade _(Deferred from Phase 4)_
   - [ ] Enable skipped E2E test: `should persist task after page reload`
+  - [ ] Replace browser `confirm()` with Mantine modal in `TaskEditorContainer` _(Polish)_
 
 ## Phase 6: TaskLens Type Rationalization
 **Rationale**: Clarifies the boundary between Persisted State (DB) and Computed View State. Prevents accidental mutation of CRDT history with transient scores. Makes the data flow explicit: `DB -> Algo -> View`.
@@ -245,3 +250,7 @@ _Goal: Hierarchical tree navigation with expand/collapse._
 - [ ] Verify keyboard navigation
 - [ ] Verify screen reader announcements
 - [ ] Mobile PWA Manifest & Icon verification
+
+**Nits (Low Priority)**:
+- [ ] Improve E2E test seeding reliability (currently relies on Dev menu visibility)
+- [ ] Consider memoization for large OutlineTree lists

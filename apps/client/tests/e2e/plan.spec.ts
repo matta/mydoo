@@ -33,10 +33,7 @@ test.describe('Plan View', () => {
     await expect(researchTask).toBeVisible();
     await expect(page.getByText('Design UI Mocks')).toBeVisible();
 
-    // 7. Verify breadcrumbs are at root (Plan)
-    // Scope to main area to avoid conflict with sidebar
-    await expect(
-      page.locator('main').getByRole('button', {name: 'Plan', exact: true}),
-    ).toBeVisible();
+    // Note: Breadcrumbs are hidden on desktop viewport per strict viewport modes.
+    // Mobile breadcrumb behavior is tested in mobile-drill-down.spec.ts.
   });
 });
