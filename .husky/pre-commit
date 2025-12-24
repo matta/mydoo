@@ -1,5 +1,28 @@
 #!/bin/sh
-# Run fast lint/format checks
-pnpm biome check --staged --no-errors-on-unmatched
-# Run type checking to prevent build errors (slower but safer)
-pnpm typecheck
+
+run_gate() {
+  local cmd="$1"
+  echo "$0 running '$cmd'"
+  $cmd || { 
+    echo "❌ CRITICAL FAILURE: COMMAND '$cmd' FAILED. COMMIT MANDATORILY BLOCKED."
+    echo "STOP: DO NOT BYPASS. YOU MUST FIX ALL ERRORS AND RETRY."
+    echo "IF THE FIX IS NON-TRIVIAL, YOU MUST STOP AND WAIT FOR HUMAN REVIEW."
+    exit 1
+  }
+}
+
+if [ "$ANTIGRAVITY_AGENT" = "1" ]; then
+  echo "🤖 Antigravity Agent detected. Running full quality gates..."
+
+  run_gate "pnpm lint"
+  run_gate "pnpm build"
+  run_gate "pnpm test"
+  run_gate "pnpm test:e2e"
+
+  echo "✅ All quality gates passed. Proceeding with commit."
+else
+  # Run fast lint/format checks for humans
+  pnpm biome check --staged --no-errors-on-unmatched
+  # Run type checking to prevent build errors (slower but safer)
+  pnpm typecheck
+fi
