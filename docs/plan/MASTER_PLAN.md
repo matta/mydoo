@@ -257,3 +257,5 @@ _Goal: Hierarchical tree navigation with expand/collapse._
 **Nits (Low Priority)**:
 - [ ] Improve E2E test seeding reliability (currently relies on Dev menu visibility)
 - [ ] Consider memoization for large OutlineTree lists
+- [ ] Refactor `TaskOutlineItem` props: 12 props is approaching threshold; consider grouping callbacks (e.g., `actions: TaskActions`) or using context
+

@@ -27,20 +27,20 @@ export interface OutlineTreeProps {
   viewMode: 'tree' | 'drill';
   /** Callback to open task editor. */
   onOpenEditor: (id: TaskID) => void;
+  // Context Actions
+  onAddSibling: (id: TaskID) => void;
+  onAddChild: (id: TaskID) => void;
+  onDelete: (id: TaskID) => void;
 }
 
 /**
  * A recursive tree component that renders the task hierarchy.
  *
  * @remarks
- * - Iterates through the provided `nodes`.
- * - Renders a `TaskOutlineItem` for each node.
- * - Recursively renders itself for expanded children (only in tree mode or if expanded? Actually in drill mode we only show one level, so recursion handles child rendering if we were to support expansion in drill mode, but drill mode implies navigating *into* the view. Wait, existing code recursively renders if expanded. In drill mode, we might not have expanded logic?
- * NO: In drill mode, we show only the current level. If we want to show children, we drill down. So expansion might be disabled or hidden in drill mode. The requirement says "Drill-Down Mode: Show content of viewPath head only." which implies flat list of children.
- * But `displayRoots` in PlanViewContainer handles the "content of viewPath head".
- * So here we just iterate `nodes`. `expandedIds` might not be relevant for drill mode if we don't show chevrons.
- * But wait, if we are in drill mode, can we expand? "Icons: Hide Expand Chevron". So effectively flattened list at that level.
- * So the recursive call `isExpanded && ...` relies on `expandedIds`. If chevrons are hidden, we can't expand. So it effectively stays collapsed. That works.
+ * Renders a `TaskOutlineItem` for each node and recursively renders children
+ * when expanded. In drill mode, expansion is effectively disabled (chevrons
+ * hidden), so only the current level displays. The recursion still works
+ * correctly because `expandedIds` won't contain drill-mode nodes.
  */
 export function OutlineTree({
   expandedIds,
@@ -53,6 +53,9 @@ export function OutlineTree({
   depth = 0,
   viewMode,
   onOpenEditor,
+  onAddSibling,
+  onAddChild,
+  onDelete,
 }: OutlineTreeProps) {
   if (nodes.length === 0) {
     return null;
@@ -80,6 +83,9 @@ export function OutlineTree({
               onOutdent={() => onOutdent(node.id)}
               viewMode={viewMode}
               onOpenEditor={() => onOpenEditor(node.id)}
+              onAddSibling={() => onAddSibling(node.id)}
+              onAddChild={() => onAddChild(node.id)}
+              onDelete={() => onDelete(node.id)}
             />
 
             {isExpanded && node.children.length > 0 && (
@@ -94,6 +100,9 @@ export function OutlineTree({
                 onOutdent={onOutdent}
                 viewMode={viewMode}
                 onOpenEditor={onOpenEditor}
+                onAddSibling={onAddSibling}
+                onAddChild={onAddChild}
+                onDelete={onDelete}
               />
             )}
           </div>

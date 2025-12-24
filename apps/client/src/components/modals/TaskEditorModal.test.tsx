@@ -158,4 +158,23 @@ describe('TaskEditorModal', () => {
 
     expect(onDelete).toHaveBeenCalledWith('task-1', true);
   });
+
+  it('shows loading state when in edit mode but task is null', () => {
+    renderWithProviders(
+      <TaskEditorModal
+        descendantCount={0}
+        onAddChild={vi.fn()}
+        onAddSibling={vi.fn()}
+        onClose={vi.fn()}
+        onDelete={vi.fn()}
+        onSave={vi.fn()}
+        opened={true}
+        parentTitle={null}
+        task={null}
+        mode="edit"
+      />,
+    );
+
+    expect(screen.getByText('Loading task details...')).toBeInTheDocument();
+  });
 });

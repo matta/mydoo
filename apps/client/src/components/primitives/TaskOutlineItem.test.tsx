@@ -34,6 +34,9 @@ describe('TaskOutlineItem', () => {
     onOutdent: vi.fn(),
     viewMode: 'tree',
     onOpenEditor: vi.fn(),
+    onAddSibling: vi.fn(),
+    onAddChild: vi.fn(),
+    onDelete: vi.fn(),
   };
 
   const renderComponent = (props: Partial<TaskOutlineItemProps> = {}) => {
@@ -124,5 +127,41 @@ describe('TaskOutlineItem', () => {
     await userEvent.keyboard('{Shift>}{Tab}{/Shift}');
 
     expect(onOutdent).toHaveBeenCalled();
+  });
+
+  it('calls onAddSibling when menu action clicked', async () => {
+    const onAddSibling = vi.fn();
+    renderComponent({onAddSibling, viewMode: 'tree'});
+
+    await userEvent.click(screen.getByTestId('task-menu-trigger'));
+    // Menu dropdown renders in a portal; query within document body
+    const menuItem = await screen.findByRole('menuitem', {
+      name: /add sibling/i,
+    });
+    await userEvent.click(menuItem);
+
+    expect(onAddSibling).toHaveBeenCalled();
+  });
+
+  it('calls onAddChild when menu action clicked', async () => {
+    const onAddChild = vi.fn();
+    renderComponent({onAddChild, viewMode: 'tree'});
+
+    await userEvent.click(screen.getByTestId('task-menu-trigger'));
+    const menuItem = await screen.findByRole('menuitem', {name: /add child/i});
+    await userEvent.click(menuItem);
+
+    expect(onAddChild).toHaveBeenCalled();
+  });
+
+  it('calls onDelete when menu action clicked', async () => {
+    const onDelete = vi.fn();
+    renderComponent({onDelete, viewMode: 'tree'});
+
+    await userEvent.click(screen.getByTestId('task-menu-trigger'));
+    const menuItem = await screen.findByRole('menuitem', {name: /delete/i});
+    await userEvent.click(menuItem);
+
+    expect(onDelete).toHaveBeenCalled();
   });
 });

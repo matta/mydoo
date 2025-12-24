@@ -1,0 +1,11 @@
+.task-menu-trigger {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Reveal menu trigger on row hover, focus, or when menu is active */
+.task-row:hover .task-menu-trigger,
+.task-menu-trigger:focus,
+.task-menu-trigger[aria-expanded="true"] {
+  opacity: 1;
+}

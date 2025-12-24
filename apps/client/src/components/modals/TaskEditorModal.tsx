@@ -47,6 +47,8 @@ interface TaskEditorModalProps {
   onDelete: (taskId: TaskID, hasChildren: boolean) => void;
   /** Callback to handle creation of a new task */
   onCreate?: (title: string, parentId: TaskID | undefined) => void;
+  /** Explicit mode: 'create' or 'edit'. Defaults to inference if not provided (legacy). */
+  mode?: 'create' | 'edit' | undefined;
 }
 
 /** Milliseconds per day for lead time conversion */
@@ -63,12 +65,13 @@ export function TaskEditorModal({
   onAddChild,
   onDelete,
   onCreate,
+  mode,
 }: TaskEditorModalProps) {
   // Local form state
   const [title, setTitle] = useState('');
   const [importance, setImportance] = useState(0.5);
   const [effort, setEffort] = useState(0.5);
-  const [dueDateStr, setDueDateStr] = useState<string | null>(null);
+  const [dueDate, setDueDate] = useState<Date | null>(null);
   const [leadTimeDays, setLeadTimeDays] = useState<number | string>(7);
   const [notes, setNotes] = useState('');
 
@@ -79,12 +82,9 @@ export function TaskEditorModal({
       setImportance(task.importance);
       setEffort(task.creditIncrement);
       if (task.schedule.dueDate) {
-        const dateStr = new Date(task.schedule.dueDate)
-          .toISOString()
-          .split('T')[0];
-        setDueDateStr(dateStr ?? null);
+        setDueDate(new Date(task.schedule.dueDate));
       } else {
-        setDueDateStr(null);
+        setDueDate(null);
       }
       setLeadTimeDays(Math.round(task.schedule.leadTime / MS_PER_DAY));
       setNotes('');
@@ -93,7 +93,7 @@ export function TaskEditorModal({
       setTitle('');
       setImportance(0.5);
       setEffort(0.5);
-      setDueDateStr(null);
+      setDueDate(null);
       setLeadTimeDays(7);
       setNotes('');
     }
@@ -102,9 +102,7 @@ export function TaskEditorModal({
   const handleSave = useCallback(() => {
     if (task) {
       // Edit Mode
-      const dueDateTimestamp = dueDateStr
-        ? new Date(dueDateStr).getTime()
-        : undefined;
+      const dueDateTimestamp = dueDate?.getTime();
 
       const updates: Partial<Task> = {
         title,
@@ -129,7 +127,7 @@ export function TaskEditorModal({
     title,
     importance,
     effort,
-    dueDateStr,
+    dueDate,
     leadTimeDays,
     onSave,
     onCreate,
@@ -154,7 +152,25 @@ export function TaskEditorModal({
     // Don't close here - the parent handles the delete confirmation flow
   }, [task, descendantCount, onDelete]);
 
-  const isCreateMode = !task;
+  // Use explicit mode if provided, otherwise infer from task presence
+  const isCreateMode = mode ? mode === 'create' : !task;
+
+  if (mode === 'edit' && !task) {
+    // If in edit mode but task is null, show loading state
+    return (
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        centered
+        size="lg"
+        title="Loading..."
+      >
+        <Stack align="center" py="xl">
+          <Text>Loading task details...</Text>
+        </Stack>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -223,10 +239,12 @@ export function TaskEditorModal({
           <DatePickerInput
             clearable
             label="Due Date"
-            onChange={value => setDueDateStr(value)}
+            onChange={value => {
+              // DatePickerInput returns string | null in v8.x
+              setDueDate(value ? new Date(value) : null);
+            }}
             placeholder="Pick a date"
-            value={dueDateStr}
-            valueFormat="YYYY-MM-DD"
+            value={dueDate}
           />
           <NumberInput
             label="Lead Time (days)"

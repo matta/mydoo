@@ -1,4 +1,9 @@
-import type {DocumentHandle, Task, TaskID} from '@mydoo/tasklens';
+import {
+  type DocumentHandle,
+  type Task,
+  type TaskID,
+  useTunnel,
+} from '@mydoo/tasklens';
 import {TaskEditorModal} from '../../components/modals/TaskEditorModal';
 import {useTaskIntents} from '../intents/useTaskIntents';
 import {useTaskDetails} from '../projections/useTaskDetails';
@@ -25,6 +30,18 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     editingTaskId ?? ('' as TaskID),
   );
   const {updateTask, createTask, deleteTask} = useTaskIntents(docUrl);
+
+  // Resolve parent title for Create Mode
+  const {doc} = useTunnel(docUrl);
+  let resolvedParentTitle = parentTitle;
+
+  if (modal?.type === 'create' && doc) {
+    if (modal.parentId) {
+      resolvedParentTitle = doc.tasks[modal.parentId]?.title ?? null;
+    } else {
+      resolvedParentTitle = null; // Root
+    }
+  }
 
   /** Closes the Task Editor modal by clearing the editing state. */
   const handleClose = () => closeModal();
@@ -98,7 +115,8 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
       opened={!!modal && (modal.type === 'create' || !!task)}
       onClose={handleClose}
       task={modal?.type === 'create' ? null : task}
-      parentTitle={parentTitle}
+      mode={modal?.type}
+      parentTitle={resolvedParentTitle}
       descendantCount={descendantCount}
       onSave={handleSave}
       onCreate={handleCreate}

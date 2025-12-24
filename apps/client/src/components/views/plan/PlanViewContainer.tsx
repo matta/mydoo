@@ -7,7 +7,12 @@ import {
   Text,
 } from '@mantine/core';
 import {useMediaQuery} from '@mantine/hooks';
-import type {DocumentHandle, TunnelNode} from '@mydoo/tasklens';
+import {
+  type DocumentHandle,
+  type TaskID,
+  type TunnelNode,
+  useTunnel,
+} from '@mydoo/tasklens';
 import {IconArrowLeft} from '@tabler/icons-react';
 import {useEffect, useMemo} from 'react';
 import {useTaskIntents} from '../../../viewmodel/intents/useTaskIntents';
@@ -47,10 +52,42 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
     resetView,
     setViewPath,
     openEditModal,
+    openCreateModal,
     viewPath,
   } = useNavigationState();
-  const {toggleTask, indentTask, outdentTask} = useTaskIntents(docUrl);
+  const {doc} = useTunnel(docUrl);
+
+  const {createTask, toggleTask, deleteTask, indentTask, outdentTask} =
+    useTaskIntents(docUrl);
   const breadcrumbs = useBreadcrumbs(docUrl, currentViewId);
+
+  /**
+   * Opens the create modal to add a sibling task after the specified task.
+   * @param id - The reference task; the new sibling will be inserted after this task.
+   */
+  const handleAddSibling = (id: TaskID) => {
+    if (!doc) return;
+    const task = doc.tasks[id];
+    if (task) {
+      openCreateModal(task.parentId, id);
+    }
+  };
+
+  /**
+   * Opens the create modal to add a child task under the specified parent.
+   * @param id - The parent task ID for the new child.
+   */
+  const handleAddChild = (id: TaskID) => {
+    openCreateModal(id, undefined);
+  };
+
+  /**
+   * Deletes the specified task and its descendants.
+   * @param id - The task ID to delete.
+   */
+  const handleDelete = (id: TaskID) => {
+    deleteTask(id);
+  };
 
   // Responsive Breakpoint: 768px (sm) matches AppShell logic
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -69,8 +106,9 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
   // If `currentViewId` is set, we traverse the tree to find that node and show its children.
   const displayRoots = useMemo(() => {
     // In Tree Mode (Desktop), always show full root list (drill-down is disabled)
-    // Corrected logic:
-    if (isDesktop || !currentViewId) return roots;
+    if (isDesktop || !currentViewId) {
+      return roots;
+    }
 
     const findNode = (nodes: TunnelNode[]): TunnelNode | undefined => {
       for (const node of nodes) {
@@ -166,12 +204,29 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
           onOutdent={outdentTask}
           viewMode={viewMode}
           onOpenEditor={openEditModal}
+          onAddSibling={handleAddSibling}
+          onAddChild={handleAddChild}
+          onDelete={handleDelete}
         />
 
         {displayRoots.length === 0 && (
-          <Text c="dimmed" fs="italic" ta="center" mt="xl">
-            No tasks found.
-          </Text>
+          <Box ta="center" mt="xl">
+            <Text c="dimmed" fs="italic" mb="md">
+              No tasks found.
+            </Text>
+            <Button
+              variant="light"
+              onClick={() => {
+                if (currentViewId) {
+                  createTask('New Subtask', currentViewId);
+                } else {
+                  createTask('New Task');
+                }
+              }}
+            >
+              Add First Task
+            </Button>
+          </Box>
         )}
       </Box>
     </Box>
