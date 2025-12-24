@@ -18,6 +18,7 @@ import {
   IconPlus,
   IconTrash,
 } from '@tabler/icons-react';
+import {useEffect, useRef} from 'react';
 
 import './TaskOutlineItem.css';
 
@@ -49,6 +50,8 @@ export interface TaskOutlineItemProps {
   onAddSibling: () => void;
   onAddChild: () => void;
   onDelete: () => void;
+  /** Whether this task should flash to indicate it was just created/moved. */
+  isFlashTarget?: boolean;
 }
 
 /**
@@ -75,8 +78,20 @@ export function TaskOutlineItem({
   onAddSibling,
   onAddChild,
   onDelete,
+  isFlashTarget,
 }: TaskOutlineItemProps) {
+  const elementRef = useRef<HTMLDivElement>(null);
   const hasChildren = node.children.length > 0;
+
+  useEffect(() => {
+    if (isFlashTarget && elementRef.current) {
+      // Scroll to view
+      elementRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [isFlashTarget]);
 
   /**
    * Intercepts Tab keys to trigger indent/outdent operations.
@@ -111,7 +126,8 @@ export function TaskOutlineItem({
       }}
       onKeyDown={handleKeyDown}
       tabIndex={0} // Make row focusable for keyboard interaction
-      className="task-row"
+      className={`task-row ${isFlashTarget ? 'flash-highlight' : ''}`}
+      ref={elementRef}
     >
       {/* Task Actions Menu (Bullet replacement on Desktop, Context Menu on Mobile) */}
       <Menu position="bottom-start" shadow="md" width={200} withinPortal>

@@ -631,7 +631,12 @@ interface NavigationState {
   movePickerTaskId: TaskID | undefined;
 
   // Feedback state
-  lastCreatedTaskId: TaskID | undefined; // For "Highlight & Reveal"
+  /**
+   * For "Highlight & Reveal":
+   * - Desktop: Auto-expand parent, scroll to task, flash.
+   * - Mobile: Auto-drill into parent (show its children), scroll, flash.
+   */
+  lastCreatedTaskId: TaskID | undefined;
 
   // Filter state
   placeFilter: PlaceID | 'all';

@@ -16,3 +16,16 @@
     opacity: 1;
   }
 }
+
+@keyframes yellow-fade {
+  0% {
+    background-color: var(--mantine-color-yellow-1);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.flash-highlight {
+  animation: yellow-fade 1s ease-out forwards;
+}

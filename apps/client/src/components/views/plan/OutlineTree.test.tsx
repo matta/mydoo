@@ -42,6 +42,7 @@ describe('OutlineTree', () => {
     onAddSibling: vi.fn(),
     onAddChild: vi.fn(),
     onDelete: vi.fn(),
+    lastCreatedTaskId: undefined,
   };
 
   const renderComponent = (props: Partial<OutlineTreeProps> = {}) => {

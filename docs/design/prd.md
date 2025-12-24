@@ -38,18 +38,17 @@ The Automerge document structure is specified in **[automerge-schema.md](./autom
 
 When creating a new task, apply the following defaults:
 
-| Field (UI)            | Implementation Field   | Default Value                                                  |
-| --------------------- | ---------------------- | -------------------------------------------------------------- |
-| `importance`          | `importance`           | `1.0` (essential)                                              |
-| `effort` (0.0–1.0)  | `creditIncrement`      | Inherit from parent; root tasks default to `0.5`               |
-| `leadTime`            | `schedule.leadTime`    | `daysToMilliseconds(0.33)` (~8 hours in ms)                    |
-| `notes`               | `notes`                | `undefined` (optional)                                         |
-| `dueDate`             | `schedule.dueDate`     | `undefined` (no deadline)                                      |
-| `placeId`             | `placeId`              | Inherit from parent; root tasks default to `ANYWHERE_PLACE_ID` |
-| `lastReviewTimestamp` | `lastReviewTimestamp`  | `Date.now()` _(deferred to staleness implementation)_          |
-| `status`              | `status`               | `'Pending'` (equivalent to `'active'`)                         |
-| `childIds`            | `childTaskIds`         | `[]`                                                           |
-
+| Field (UI)            | Implementation Field  | Default Value                                                  |
+| --------------------- | --------------------- | -------------------------------------------------------------- |
+| `importance`          | `importance`          | `1.0` (essential)                                              |
+| `effort` (0.0–1.0)    | `creditIncrement`     | Inherit from parent; root tasks default to `0.5`               |
+| `leadTime`            | `schedule.leadTime`   | `daysToMilliseconds(0.33)` (~8 hours in ms)                    |
+| `notes`               | `notes`               | `undefined` (optional)                                         |
+| `dueDate`             | `schedule.dueDate`    | `undefined` (no deadline)                                      |
+| `placeId`             | `placeId`             | Inherit from parent; root tasks default to `ANYWHERE_PLACE_ID` |
+| `lastReviewTimestamp` | `lastReviewTimestamp` | `Date.now()` _(deferred to staleness implementation)_          |
+| `status`              | `status`              | `'Pending'` (equivalent to `'active'`)                         |
+| `childIds`            | `childTaskIds`        | `[]`                                                           |
 
 ### 3.3 ID Generation Strategy (Duplicate Prevention)
 
@@ -146,6 +145,7 @@ This logic runs client-side on the flattened task list derived from the Automerg
 - **Filter Logic:** Shows tasks where `Visibility = True` per [ALGORITHM.md](./algorithm.md) Pass 1.
 - **Context Filter:** Header dropdown (e.g., "Home", "Work"). Place filtering logic is defined in ALGORITHM.md §3.2.
 - **Task Row Elements:**
+
   - **Left:** Checkbox.
   - **Center:** Task Title + Small Metadata text (Parent Project Name, Due Date icon).
   - **Visual Cues:**
@@ -158,8 +158,7 @@ This logic runs client-side on the flattened task list derived from the Automerg
   - **"Update/Refresh" Button:** Runs Repetition Logic (generates next instances), triggers "Healer", and **acknowledges completed tasks** (removing them from the Do list).
   - **Floating Action Button (Mobile):** Adds a new task directly to the **Inbox**.
 
-> [!IMPORTANT]
-> **Completed Task Visibility Lifecycle**
+> [!IMPORTANT] > **Completed Task Visibility Lifecycle**
 >
 > When a task is marked "Done", it remains visible in the Do list with a strikethrough until acknowledged. This allows the user to see what they accomplished and to undo accidental completions.
 >
@@ -178,7 +177,9 @@ This logic runs client-side on the flattened task list derived from the Automerg
   - **Desktop (Hover Menu):** Hovering a row reveals a `•••` menu trigger (replacing the bullet). Menu options: "Add Sibling", "Add Child", "Delete".
   - **Mobile (Bottom Bar):** Persistent toolbar at the bottom of the Plan view (above global nav). Contains `[<]` (Up Level) and `[+]` (Add to Top of current view).
   - **Append Row:** A `[ + ]` row at the very bottom of the list (Desktop & Mobile) allows adding tasks to the end of the current zoom level.
-  - **Navigation Feedback:** Creating a task triggers "Highlight & Reveal" (flashes yellow, auto-expands parent, auto-scrolls to new task).
+  - **Navigation Feedback:** Creating a task triggers \"Highlight & Reveal\":
+    - **Desktop**: Auto-expands parent, auto-scrolls to new task row, new task row flashes yellow.
+    - **Mobile**: Auto-drills into the parent task (showing its children, including the new one), auto-scrolls to new task row, new task row flashes yellow.
   - **Edit Task:** Tap task **Title or Row** to open Edit modal.
 
 ### 4.4 The "Balance" View
@@ -192,6 +193,7 @@ This logic runs client-side on the flattened task list derived from the Automerg
 Since there is no "selection" state on mobile, tapping any task text opens a full-screen modal (Mobile) or centered Popup (Desktop).
 
 **Modes:**
+
 - **Create Mode:** Opens with empty fields. Hierarchy controls are hidden. "Save" creates the task and closes the modal.
 - **Edit Mode:** Opens with existing data. Hierarchy controls are visible.
 
@@ -199,6 +201,7 @@ Since there is no "selection" state on mobile, tapping any task text opens a ful
 
 1. **Title:** Text input.
 2. **Navigation & Hierarchy (Edit Mode Only):**
+
    - **Parent:** Read-only label showing current parent.
    - **Hierarchy Controls:**
      - `[← Outdent]`: Moves task up one level (becomes sibling of parent).
@@ -265,11 +268,11 @@ The canonical TypeScript implementation is in [`@mydoo/tasklens`](file:///Users/
 ### 6.2 Automerge Provider (`src/contexts/AutomergeContext.tsx`)
 
 ```typescript
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Repo, DocHandle } from '@automerge/automerge-repo';
-import { IndexedDBStorageAdapter } from '@automerge/automerge-repo-storage-indexeddb';
-import { BrowserWebSocketClientAdapter } from '@automerge/automerge-repo-network-websocket';
-import { RootDoc, ROOT_INBOX_ID, PLACE_ANYWHERE_ID } from '../types';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { Repo, DocHandle } from "@automerge/automerge-repo";
+import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
+import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
+import { RootDoc, ROOT_INBOX_ID, PLACE_ANYWHERE_ID } from "../types";
 
 // Initialize Repo
 const repo = new Repo({
@@ -291,22 +294,26 @@ const AutomergeContext = createContext<AutomergeContextType>({
 
 export const useAutomerge = () => useContext(AutomergeContext);
 
-export const AutomergeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [handle, setHandle] = useState<DocHandle<RootDoc> | undefined>(undefined);
+export const AutomergeProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [handle, setHandle] = useState<DocHandle<RootDoc> | undefined>(
+    undefined
+  );
   const [doc, setDoc] = useState<RootDoc | undefined>(undefined);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const initDoc = async () => {
       // Simple strategy: persist the root handle URL in localStorage
-      const rootHandleId = localStorage.getItem('rootHandleId');
+      const rootHandleId = localStorage.getItem("rootHandleId");
       let myHandle: DocHandle<RootDoc>;
 
       if (rootHandleId) {
         myHandle = repo.find<RootDoc>(rootHandleId);
       } else {
         myHandle = repo.create<RootDoc>();
-        localStorage.setItem('rootHandleId', myHandle.url);
+        localStorage.setItem("rootHandleId", myHandle.url);
 
         // Initialize Schema
         myHandle.change((d) => {
@@ -315,8 +322,8 @@ export const AutomergeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             [PLACE_ANYWHERE_ID]: {
               id: PLACE_ANYWHERE_ID,
               name: "Anywhere",
-              parentPlaceId: undefined
-            }
+              parentPlaceId: undefined,
+            },
           };
           d.rootTaskIds = [ROOT_INBOX_ID];
 
@@ -327,7 +334,7 @@ export const AutomergeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             notes: "System Inbox",
             parentId: undefined,
             childIds: [],
-            status: 'active',
+            status: "active",
             createdAt: Date.now(),
             lastReviewTimestamp: Date.now(),
             importance: 0.5,
@@ -335,12 +342,12 @@ export const AutomergeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             dueDate: undefined,
             leadTimeDays: 0,
             repeatConfig: undefined,
-            placeId: PLACE_ANYWHERE_ID
+            placeId: PLACE_ANYWHERE_ID,
           };
 
           d.settings = {
             userName: "User",
-            balanceSensitivity: 0.5
+            balanceSensitivity: 0.5,
           };
         });
       }
@@ -352,7 +359,7 @@ export const AutomergeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setReady(true);
 
       // Listen for changes
-      myHandle.on('change', (payload) => {
+      myHandle.on("change", (payload) => {
         setDoc(payload.doc);
       });
     };
@@ -366,5 +373,4 @@ export const AutomergeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     </AutomergeContext.Provider>
   );
 };
-
 ```

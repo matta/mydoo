@@ -55,6 +55,7 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
     openEditModal,
     openCreateModal,
     viewPath,
+    lastCreatedTaskId,
   } = useNavigationState();
   const {doc} = useTunnel(docUrl);
 
@@ -205,6 +206,7 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
           onAddSibling={handleAddSibling}
           onAddChild={handleAddChild}
           onDelete={handleDelete}
+          lastCreatedTaskId={lastCreatedTaskId}
         />
 
         {displayRoots.length === 0 && (

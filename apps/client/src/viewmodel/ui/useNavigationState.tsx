@@ -95,6 +95,12 @@ export interface NavigationState {
 
   /** The full history stack of drill-down navigation. */
   viewPath: TaskID[];
+
+  /** The ID of the most recently created task (for highlight/scroll). */
+  lastCreatedTaskId: TaskID | undefined;
+
+  /** Set the last created task ID. */
+  setLastCreatedTaskId: (id: TaskID | undefined) => void;
 }
 
 const NavigationContext = createContext<NavigationState | null>(null);
@@ -115,12 +121,19 @@ export function NavigationProvider({children}: {children: ReactNode}) {
   // Unified modal state (undefined = closed)
   const [modal, setModal] = useState<ModalState | undefined>(undefined);
 
+  // Track the ID of the most recently created task for "Highlight & Reveal"
+  const [lastCreatedTaskId, setLastCreatedTaskId] = useState<
+    TaskID | undefined
+  >(undefined);
+
   const openEditModal = useCallback((taskId: TaskID) => {
+    setLastCreatedTaskId(undefined);
     setModal({type: 'edit', taskId});
   }, []);
 
   const openCreateModal = useCallback(
     (parentId?: TaskID, afterTaskId?: TaskID, position?: 'start' | 'end') => {
+      setLastCreatedTaskId(undefined);
       setModal({
         type: 'create',
         parentId,
@@ -211,16 +224,14 @@ export function NavigationProvider({children}: {children: ReactNode}) {
       setViewPath,
       toggleExpanded,
       viewPath,
+      lastCreatedTaskId,
+      setLastCreatedTaskId,
     }),
     [
       activeTab,
       expandAll,
       expandedIds,
       isExpanded,
-      popView,
-      pushView,
-      resetView,
-      setViewPath,
       toggleExpanded,
       viewPath,
       collapseAll,
@@ -228,6 +239,7 @@ export function NavigationProvider({children}: {children: ReactNode}) {
       openEditModal,
       openCreateModal,
       closeModal,
+      lastCreatedTaskId,
     ],
   );
 

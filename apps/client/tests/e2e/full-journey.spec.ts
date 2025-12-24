@@ -94,15 +94,12 @@ test.describe('Full User Journey: Desktop', () => {
       await page.getByRole('button', {name: 'Create Task'}).click();
 
       // Verify hierarchy
-      // TODO: Auto-expand is Step 6E. For now, manually expand "Desktop Root".
+      // Auto-expand is now handled by Step 6E (implemented).
+
       // Wait for modal to close
       await expect(page.getByRole('dialog')).toBeHidden();
 
-      // The parent should have an expand chevron now. Click it.
-      const rootItem = page.getByTestId('task-item').first();
-      await rootItem.getByRole('button', {name: 'Toggle expansion'}).click();
-
-      // Now "Desktop Child" should be visible.
+      // "Desktop Child" should be visible automatically due to auto-expand.
       await expect(page.getByText('Desktop Child')).toBeVisible();
 
       // Optional: Verify indentation or order (Child comes after Parent)

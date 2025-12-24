@@ -1,3 +1,4 @@
+import {useMediaQuery} from '@mantine/hooks';
 import {
   type DocumentHandle,
   type Task,
@@ -22,8 +23,15 @@ interface TaskEditorContainerProps {
  * - Provides action handlers (save, add sibling, add child, delete) via `useTaskIntents`.
  */
 export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
-  const {modal, closeModal, openCreateModal, viewPath, popView} =
-    useNavigationState();
+  const {
+    modal,
+    closeModal,
+    openCreateModal,
+    viewPath,
+    popView,
+    expandAll,
+    setLastCreatedTaskId,
+  } = useNavigationState();
   const editingTaskId = modal?.type === 'edit' ? modal.taskId : undefined;
 
   const {task, parentTitle, descendantCount} = useTaskDetails(
@@ -32,6 +40,8 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
   );
   const {updateTask, createTask, deleteTask, indentTask, outdentTask} =
     useTaskIntents(docUrl);
+
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   // Resolve parent title for Create Mode
   const {doc} = useTunnel(docUrl);
@@ -120,17 +130,27 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
   const handleCreate = (title: string) => {
     if (modal?.type !== 'create') return;
 
+    let newTaskId: TaskID;
+
     if (modal.afterTaskId) {
-      createTask(title, modal.parentId, {
+      newTaskId = createTask(title, modal.parentId, {
         position: 'after',
         afterTaskId: modal.afterTaskId,
       });
     } else if (modal.position) {
-      createTask(title, modal.parentId, {
+      newTaskId = createTask(title, modal.parentId, {
         position: modal.position,
       });
     } else {
-      createTask(title, modal.parentId);
+      newTaskId = createTask(title, modal.parentId);
+    }
+
+    // UX: Highlight & Reveal
+    setLastCreatedTaskId(newTaskId);
+
+    if (modal.parentId && isDesktop) {
+      // If we created a child (has parentId), ensure the parent is expanded (Desktop only)
+      expandAll([modal.parentId]);
     }
   };
 

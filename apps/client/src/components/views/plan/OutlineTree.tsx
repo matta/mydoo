@@ -31,6 +31,8 @@ export interface OutlineTreeProps {
   onAddSibling: (id: TaskID) => void;
   onAddChild: (id: TaskID) => void;
   onDelete: (id: TaskID) => void;
+  /** The ID of the most recently created task (for highlight/scroll). */
+  lastCreatedTaskId: TaskID | undefined;
 }
 
 /**
@@ -56,6 +58,7 @@ export function OutlineTree({
   onAddSibling,
   onAddChild,
   onDelete,
+  lastCreatedTaskId,
 }: OutlineTreeProps) {
   if (nodes.length === 0) {
     return null;
@@ -86,6 +89,7 @@ export function OutlineTree({
               onAddSibling={() => onAddSibling(node.id)}
               onAddChild={() => onAddChild(node.id)}
               onDelete={() => onDelete(node.id)}
+              isFlashTarget={node.id === lastCreatedTaskId}
             />
 
             {isExpanded && node.children.length > 0 && (
@@ -103,6 +107,7 @@ export function OutlineTree({
                 onAddSibling={onAddSibling}
                 onAddChild={onAddChild}
                 onDelete={onDelete}
+                lastCreatedTaskId={lastCreatedTaskId}
               />
             )}
           </div>
