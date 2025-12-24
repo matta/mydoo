@@ -9,11 +9,11 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 > [!IMPORTANT]
 > This is a prerequisite for Sub-Steps 6B and 6C. Both desktop and mobile create flows depend on "Create Mode."
 
-> [!WARNING]
-> **API Gap**: Current `createTask(state, props)` always inserts at **top** (`unshift`). The spec requires:
+> [!WARNING] > **API Gap**: Current `createTask(state, props)` always inserts at **top** (`unshift`). The spec requires:
+>
 > - "Add Sibling" → insert **immediately after** reference task
 > - "Add Child" → insert at **end** of children
-> 
+>
 > The `createTask` API must be extended with an optional `afterTaskId` parameter (similar to `moveTask`).
 
 - [x] **API**: Extend `ops.createTask` to support flexible positioning
@@ -41,30 +41,29 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 - [x] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
 - [x] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
 
-
-- [ ] **State**: Add to `useNavigationState`
-  - `createTaskParentId: TaskID | null` — when set, modal opens in **Create Mode**.
-  - `createTaskAfterTaskId: TaskID | undefined` — for "Add Sibling", the reference task to insert after.
-  - `editingTaskId` for Edit Mode, `createTaskParentId` for Create Mode — mutually exclusive.
-  - `openCreateModal(parentId: TaskID | null, afterTaskId?: TaskID)` — opens Create Mode.
+- [x] **State**: Add to `useNavigationState`
+  - `createTaskParentId: TaskID | null` (Refactored to `modal: ModalState`)
+  - `createTaskAfterTaskId: TaskID | undefined` (Refactored to `modal: ModalState`)
+  - `editingTaskId` (Refactored to `modal: ModalState`)
+  - Refactored all modal state into a single `modal` object.
+  - Consistently use `undefined` for optional IDs (`parentId`, `afterTaskId`) per preference.
 
 **Quality Gates**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm build` -> Pass
-- [ ] `pnpm test` -> Pass (ALL repo tests)
-- [ ] `pnpm test:e2e` -> Pass
-- [ ] **EVIDENCE**: Show terminal output of passing tests.
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm build` -> Pass
+- [x] `pnpm test` -> Pass (ALL repo tests)
+- [x] `pnpm test:e2e` -> Pass
+- [x] **EVIDENCE**: Full quality gate sequence passed in background command `8fb6be2e-b503-40ad-bfcd-db995e2e5617`. Refactored `useNavigationState` and its usages to use a unified `ModalState` object with `undefined` for optional properties.
 
 **Completion**
 
-- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
-- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
-- [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
+- [x] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
+- [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
+- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
+- [x] 🛑 STOP and prompt for user review with the EVIDENCE.
 - [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
 - [ ] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
-
 
 - [ ] **Component**: `TaskEditorModal` — Support Create Mode
   - **When in Create Mode**:
@@ -91,8 +90,8 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 - [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
 - [ ] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
 
-
 - [ ] **Container**: `TaskEditorContainer` — Handle both modes
+
   - Determine mode from navigation state.
   - Provide appropriate save handler based on mode.
 
@@ -100,7 +99,6 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
   - [ ] Unit: `ops.createTask` - Verify `position: 'start'`, `'end'`, and `'after'` (logic & persistence).
   - [ ] Unit: `useNavigationState` - Verify `openCreateModal` sets correct state.
   - [ ] Component: `TaskEditorModal` - Verify "Create Mode" renders correctly (empty form, no hierarchy controls).
-
 
 **Quality Gates**
 
@@ -127,6 +125,7 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 > This layout change applies to **desktop (tree mode) only**. Mobile retains the existing `[Checkbox] [Title] [Drill Arrow]` layout from Step 5.
 
 - [ ] **Component**: `TaskOutlineItem` (Desktop Variant)
+
   - **Layout**: `[Indent Spacer] [Menu Trigger (•••)] [Chevron] [Checkbox] [Title]`
   - **Behavior**:
     - `Menu Trigger`: Acts as the "Bullet".
@@ -144,7 +143,6 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 - [ ] **Tests**:
   - [ ] Component: `TaskOutlineItem` - Verify Hover Menu appears on hover (desktop).
   - [ ] Component: `TaskOutlineItem` - Verify Menu clicks trigger correct events.
-
 
 **Quality Gates**
 
@@ -171,8 +169,8 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 > The **Row Layout** behavior below is already implemented in Step 5. It is documented here for context only.
 > New work in this step: **Bottom Bar** (entirely new component) and **Append Row**.
 
-> [!IMPORTANT]
-> **"Current Zoom Level" Definition**: Tasks created via `[+]` or Append Row use the `viewPath` head as their parent.
+> [!IMPORTANT] > **"Current Zoom Level" Definition**: Tasks created via `[+]` or Append Row use the `viewPath` head as their parent.
+>
 > - At root (`viewPath = []`): New tasks are **root-level** (`parentId = null`), NOT Inbox children.
 > - Drilled into "Groceries" (`viewPath = ["groceries-id"]`): New tasks become children of "Groceries".
 
@@ -203,11 +201,13 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 - [ ] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
 
 - **EXISTING (Step 5)** — Row Layout: `[Checkbox] [Title] ... [Drill Arrow >]`
+
   - Expansion chevrons hidden.
   - Drill-down arrow on far right.
   - Tapping the row/title opens the **Task Editor Modal** (already wired in `TaskOutlineItem`).
 
 - [ ] **NEW — Append Row**: `[ + ]` (Icon)
+
   - Located at the very bottom of the list. **Visible on both Desktop and Mobile.**
   - **Scrolls with content** (not floating).
   - Tap -> Opens **Task Editor Modal** to create new item at **Bottom** of current zoom level (uses `position: 'end'`).
@@ -217,7 +217,6 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
   - [ ] Component: `PlanViewContainer` - Verify Append Row renders at bottom.
   - [ ] E2E: Mobile - Tap `[+]` (Bottom Bar) opens modal -> Save -> Task at top.
   - [ ] E2E: Mobile - Tap `[+]` (Append Row) opens modal -> Save -> Task at bottom.
-
 
 **Quality Gates**
 
@@ -245,6 +244,7 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 > Since this app uses a modal for task editing, the ribbon is replaced with inline modal content.
 
 - [ ] **Component**: `TaskEditorModal` — Add "Hierarchy" section
+
   - **Layout** (within modal content, **Edit Mode Only**):
     ```
     ── Hierarchy ──────────────
@@ -264,7 +264,6 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
   - [ ] Component: `TaskEditorModal` - Verify Hierarchy section appears in Edit Mode.
   - [ ] Unit: `useTaskIntents` - Indent/Outdent logic (parent/sibling resolution).
   - [ ] Unit: Single-child Outdent Edge Case (Mobile) -> Triggers `navigateUp()`.
-
 
 **Quality Gates**
 
@@ -289,6 +288,7 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 
 - [ ] **State**: Track `lastCreatedTaskId`.
 - [ ] **Logic**:
+
   - **Auto-Expand**: Parent of new task must expand (if collapsed).
   - **Auto-Scroll**: Scroll Plan View to new item after modal close. **Always** scroll to the new task, whether inserted at top or bottom.
   - **Visual Cue**: Yellow fade-flash on the new row (brief animation, ~500ms).
@@ -319,6 +319,7 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 In all flows, the user is in Plan mode (the outline).
 
 **1. Desktop: Add Sibling**
+
 - **User**: Hovers over "Buy Milk".
 - **UI**: Bullet becomes `•••`.
 - **User**: Clicks `•••` -> Selects "Add Sibling".
@@ -327,6 +328,7 @@ In all flows, the user is in Plan mode (the outline).
 - **UI**: Modal closes. "Buy Eggs" appears **immediately after** "Buy Milk" (not at end of list). Row flashes yellow.
 
 **2. Desktop: Add Child**
+
 - **User**: Hovers over "Smart Fats".
 - **UI**: Bullet becomes `•••`.
 - **User**: Clicks `•••` -> Selects "Add Child".
@@ -335,6 +337,7 @@ In all flows, the user is in Plan mode (the outline).
 - **UI**: Modal closes. "Smart Fats" expands (if closed). "Avocado" appears **at the end** of children. Row flashes yellow.
 
 **3. Mobile: Add to Bottom (Append Row)**
+
 - **User**: Scrolls to bottom of list.
 - **User**: Taps `[ + ]` row.
 - **UI**: Opens Modal (Create Mode). Parent = Current Zoom View.
@@ -343,6 +346,7 @@ In all flows, the user is in Plan mode (the outline).
 - **UI**: Modal closes. "Buy Eggs" appears at the **bottom** of the list (above the `[ + ]` row). Flashes yellow.
 
 **4. Mobile: Add to Top (Bottom Toolbar)**
+
 - **User**: Taps `+` on the Bottom Toolbar.
 - **UI**: Opens Modal (Create Mode). Parent = Current Zoom View.
 - **System**: Keyboard slides up.
@@ -350,6 +354,7 @@ In all flows, the user is in Plan mode (the outline).
 - **UI**: Modal closes. "Buy Milk" appears at the **top** of the list. Flashes yellow.
 
 **5. Mobile: Edit & Indent**
+
 - **User**: Taps "Buy Eggs" title.
 - **UI**: Opens Modal (Edit Mode). Hierarchy section visible.
 - **User**: Taps `[Indent →]` in Hierarchy section.

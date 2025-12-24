@@ -17,15 +17,17 @@ interface TaskEditorContainerProps {
  * - Provides action handlers (save, add sibling, add child, delete) via `useTaskIntents`.
  */
 export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
-  const {editingTaskId, setEditingTaskId} = useNavigationState();
+  const {modal, closeModal, openCreateModal} = useNavigationState();
+  const editingTaskId = modal?.type === 'edit' ? modal.taskId : undefined;
+
   const {task, parentTitle, descendantCount} = useTaskDetails(
     docUrl,
     editingTaskId ?? ('' as TaskID),
   );
-  const {updateTask, createTask, deleteTask} = useTaskIntents(docUrl);
+  const {updateTask, deleteTask} = useTaskIntents(docUrl);
 
   /** Closes the Task Editor modal by clearing the editing state. */
-  const handleClose = () => setEditingTaskId(null);
+  const handleClose = () => closeModal();
 
   /**
    * Persists task changes to the document.
@@ -41,7 +43,7 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
    * @param parentId - The parent task ID, or undefined for root-level tasks.
    */
   const handleAddSibling = (parentId: TaskID | undefined) => {
-    createTask('New Task', parentId);
+    openCreateModal(parentId, editingTaskId);
   };
 
   /**
@@ -49,7 +51,7 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
    * @param parentId - The parent task ID.
    */
   const handleAddChild = (parentId: TaskID) => {
-    createTask('New Subtask', parentId);
+    openCreateModal(parentId);
   };
 
   /**
@@ -76,9 +78,9 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
 
   return (
     <TaskEditorModal
-      opened={!!editingTaskId && !!task}
+      opened={!!modal && (modal.type === 'create' || !!task)}
       onClose={handleClose}
-      task={task}
+      task={modal?.type === 'create' ? null : task}
       parentTitle={parentTitle}
       descendantCount={descendantCount}
       onSave={handleSave}

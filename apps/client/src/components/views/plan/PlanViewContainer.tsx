@@ -46,7 +46,7 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
     collapseAll,
     resetView,
     setViewPath,
-    setEditingTaskId,
+    openEditModal,
     viewPath,
   } = useNavigationState();
   const {toggleTask, indentTask, outdentTask} = useTaskIntents(docUrl);
@@ -165,7 +165,7 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
           onIndent={indentTask}
           onOutdent={outdentTask}
           viewMode={viewMode}
-          onOpenEditor={setEditingTaskId}
+          onOpenEditor={openEditModal}
         />
 
         {displayRoots.length === 0 && (

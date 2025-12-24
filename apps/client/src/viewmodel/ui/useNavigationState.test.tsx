@@ -81,21 +81,39 @@ describe('useNavigationState', () => {
     expect(result.current.currentViewId).toBe(id1);
   });
 
-  it('manages editing task id', () => {
+  it('manages modal state', () => {
     const {result} = renderHook(() => useNavigationState(), {
       wrapper: NavigationProvider,
     });
     const id1 = 'task-1' as TaskID;
+    const parentId = 'parent' as TaskID;
+    const afterId = 'after' as TaskID;
 
     // Initial
-    expect(result.current.editingTaskId).toBeNull();
+    expect(result.current.modal).toBeUndefined();
 
-    // Set Editing
-    act(() => result.current.setEditingTaskId(id1));
-    expect(result.current.editingTaskId).toBe(id1);
+    // Open Edit
+    act(() => result.current.openEditModal(id1));
+    expect(result.current.modal).toEqual({type: 'edit', taskId: id1});
 
-    // Clear Editing
-    act(() => result.current.setEditingTaskId(null));
-    expect(result.current.editingTaskId).toBeNull();
+    // Close
+    act(() => result.current.closeModal());
+    expect(result.current.modal).toBeUndefined();
+
+    // Open Create
+    act(() => result.current.openCreateModal(parentId, afterId));
+    expect(result.current.modal).toEqual({
+      type: 'create',
+      parentId,
+      afterTaskId: afterId,
+    });
+
+    // Switch to Edit
+    act(() => result.current.openEditModal(id1));
+    expect(result.current.modal).toEqual({type: 'edit', taskId: id1});
+
+    // Open Create Root
+    act(() => result.current.openCreateModal());
+    expect(result.current.modal).toEqual({type: 'create', parentId: undefined});
   });
 });
