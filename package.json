@@ -5,6 +5,7 @@
   "author": "",
   "devDependencies": {
     "@biomejs/biome": "^2.3.10",
+    "@commitlint/cli": "^20.2.0",
     "husky": "catalog:",
     "turbo": "catalog:",
     "typescript": "catalog:"
