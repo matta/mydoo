@@ -46,7 +46,11 @@ test.describe('Full User Journey: Desktop', () => {
 
       if (await addFirstBtn.isVisible()) {
         await addFirstBtn.click();
-        await page.waitForTimeout(1000);
+        await expect(
+          page.getByRole('heading', {name: 'Create Task'}),
+        ).toBeVisible();
+        await page.getByRole('textbox', {name: 'Title'}).fill('My First Task');
+        await page.getByRole('button', {name: 'Create Task'}).click();
       }
 
       // 2. Rename Root Task

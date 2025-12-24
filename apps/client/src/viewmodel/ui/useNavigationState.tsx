@@ -17,6 +17,7 @@ export type ModalState =
       type: 'create';
       parentId: TaskID | undefined;
       afterTaskId: TaskID | undefined;
+      position?: 'start' | 'end';
     };
 
 /**
@@ -62,7 +63,11 @@ export interface NavigationState {
   openEditModal: (id: TaskID) => void;
 
   /** Opens the modal in Create Mode. */
-  openCreateModal: (parentId?: TaskID, afterTaskId?: TaskID) => void;
+  openCreateModal: (
+    parentId?: TaskID,
+    afterTaskId?: TaskID,
+    position?: 'start' | 'end',
+  ) => void;
 
   /** Closes the task editor modal. */
   closeModal: () => void;
@@ -115,8 +120,13 @@ export function NavigationProvider({children}: {children: ReactNode}) {
   }, []);
 
   const openCreateModal = useCallback(
-    (parentId?: TaskID, afterTaskId?: TaskID) => {
-      setModal({type: 'create', parentId, afterTaskId});
+    (parentId?: TaskID, afterTaskId?: TaskID, position?: 'start' | 'end') => {
+      setModal({
+        type: 'create',
+        parentId,
+        afterTaskId,
+        ...(position ? {position} : {}),
+      });
     },
     [],
   );

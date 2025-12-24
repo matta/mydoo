@@ -213,8 +213,8 @@ export function TaskOutlineItem({
         {node.title}
       </Text>
 
-      {/* Drill Down Action (Mobile Only) */}
-      {showDrillDown && hasChildren && (
+      {/* Drill Down Action (Mobile Only) - Always visible in drill mode to allow adding children */}
+      {showDrillDown && (
         <ActionIcon
           variant="subtle"
           size="sm"

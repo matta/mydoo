@@ -76,11 +76,11 @@ test.describe('Mobile Drill-Down Navigation', () => {
       page.getByRole('button', {name: 'Deep Work Project'}),
     ).toBeVisible();
 
-    // Verify Back button
-    await expect(page.getByRole('button', {name: 'Back'})).toBeVisible();
+    // Verify Back button (Up Level)
+    await expect(page.getByLabel('Up Level')).toBeVisible();
 
     // Click Back
-    await page.getByRole('button', {name: 'Back'}).click();
+    await page.getByLabel('Up Level').click();
 
     // Verify back to root
     await expect(page.getByText('Deep Work Project')).toBeVisible();

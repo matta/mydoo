@@ -105,6 +105,10 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
         position: 'after',
         afterTaskId: modal.afterTaskId,
       });
+    } else if (modal.position) {
+      createTask(title, modal.parentId, {
+        position: modal.position,
+      });
     } else {
       createTask(title, modal.parentId);
     }

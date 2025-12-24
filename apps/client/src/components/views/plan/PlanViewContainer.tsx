@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Box,
   Breadcrumbs,
   Button,
@@ -13,7 +14,7 @@ import {
   type TunnelNode,
   useTunnel,
 } from '@mydoo/tasklens';
-import {IconArrowLeft} from '@tabler/icons-react';
+import {IconArrowLeft, IconMenu, IconPlus} from '@tabler/icons-react';
 import {useEffect, useMemo} from 'react';
 import {useTaskIntents} from '../../../viewmodel/intents/useTaskIntents';
 import {useTaskTree} from '../../../viewmodel/projections/useTaskTree';
@@ -57,7 +58,7 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
   } = useNavigationState();
   const {doc} = useTunnel(docUrl);
 
-  const {createTask, toggleTask, deleteTask, indentTask, outdentTask} =
+  const {toggleTask, deleteTask, indentTask, outdentTask} =
     useTaskIntents(docUrl);
   const breadcrumbs = useBreadcrumbs(docUrl, currentViewId);
 
@@ -87,6 +88,15 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
    */
   const handleDelete = (id: TaskID) => {
     deleteTask(id);
+  };
+
+  /**
+   * Handles creation from the Bottom Bar or Append Row.
+   * @param position - 'start' (top) or 'end' (bottom).
+   */
+  const handleAddAtPosition = (position: 'start' | 'end') => {
+    const parentId = currentViewId ?? undefined;
+    openCreateModal(parentId, undefined, position);
   };
 
   // Responsive Breakpoint: 768px (sm) matches AppShell logic
@@ -128,26 +138,13 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
   }
 
   return (
-    <Box
-      p="md"
-      style={{height: '100%', display: 'flex', flexDirection: 'column'}}
-    >
-      {/* Navigation Header - Only relevant in Drill-Down Mode (Mobile) or if depth > 0 */}
-      <Group justify="space-between" mb="md">
-        {!isDesktop && (
-          <Group>
-            {currentViewId && (
-              <Button
-                variant="subtle"
-                leftSection={<IconArrowLeft size={16} />}
-                onClick={popView}
-                size="xs"
-              >
-                Back
-              </Button>
-            )}
-            {/* Scrollable Breadcrumbs container for mobile */}
-            <Box style={{overflowX: 'auto', maxWidth: '60vw'}}>
+    <Box style={{height: '100%', display: 'flex', flexDirection: 'column'}}>
+      {/* Navigation Header - Top */}
+      <Box p="md" pb="xs">
+        <Group justify="space-between" mb="xs">
+          {/* Breadcrumbs - Always visible if deep, but mainly for Mobile Drill-Down context */}
+          {(!isDesktop || breadcrumbs.length > 0) && (
+            <Box style={{overflowX: 'auto', flex: 1}}>
               <Breadcrumbs separator=">">
                 <Button
                   variant="subtle"
@@ -182,18 +179,19 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
                 })}
               </Breadcrumbs>
             </Box>
-          </Group>
-        )}
-        <Group>
-          {isDesktop && (
-            <Button variant="default" size="xs" onClick={collapseAll}>
-              Collapse All
-            </Button>
           )}
+          <Group>
+            {isDesktop && (
+              <Button variant="default" size="xs" onClick={collapseAll}>
+                Collapse All
+              </Button>
+            )}
+          </Group>
         </Group>
-      </Group>
+      </Box>
 
-      <Box style={{flex: 1, overflowY: 'auto'}}>
+      {/* Main Content Area - Scrollable */}
+      <Box style={{flex: 1, overflowY: 'auto'}} px="md">
         <OutlineTree
           nodes={displayRoots}
           expandedIds={expandedIds}
@@ -217,18 +215,89 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
             <Button
               variant="light"
               onClick={() => {
-                if (currentViewId) {
-                  createTask('New Subtask', currentViewId);
-                } else {
-                  createTask('New Task');
-                }
+                handleAddAtPosition('end');
               }}
             >
               Add First Task
             </Button>
           </Box>
         )}
+
+        {/* Append Row - Visible at bottom of list */}
+        {displayRoots.length > 0 && (
+          <Button
+            variant="subtle"
+            fullWidth
+            h={48}
+            mt="md"
+            justify="center"
+            onClick={() => handleAddAtPosition('end')}
+            leftSection={<IconPlus size={16} />}
+            c="dimmed"
+            aria-label="Append Row"
+            data-testid="append-row-button"
+          >
+            {/* Icon access via leftSection, empty text */}
+          </Button>
+        )}
+
+        {/* Spacer for bottom bar on mobile */}
+        {!isDesktop && <Box h={60} />}
       </Box>
+
+      {/* Mobile Bottom Bar - Fixed */}
+      {!isDesktop && (
+        <Group
+          justify="space-between"
+          p="md"
+          gap="0"
+          style={{
+            borderTop: '1px solid var(--mantine-color-default-border)',
+            backgroundColor: 'var(--mantine-color-body)',
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 10,
+          }}
+        >
+          {/* Hamburger (Disabled) */}
+          <ActionIcon
+            variant="subtle"
+            disabled
+            aria-label="Menu"
+            size="lg"
+            color="gray"
+          >
+            <IconMenu size={22} />
+          </ActionIcon>
+
+          {/* Up Level / Back */}
+          <ActionIcon
+            variant="subtle"
+            onClick={popView}
+            disabled={!currentViewId}
+            aria-label="Up Level"
+            size="lg"
+            color="gray"
+          >
+            <IconArrowLeft size={22} />
+          </ActionIcon>
+
+          {/* Add at Top */}
+          <ActionIcon
+            variant="transparent"
+            radius="xl"
+            size="xl"
+            onClick={() => handleAddAtPosition('start')}
+            aria-label="Add Task at Top"
+            style={{border: '1px solid var(--mantine-color-default-border)'}}
+          >
+            <IconPlus size={26} />
+          </ActionIcon>
+
+          {/* Empty Right Slot */}
+          <Box w={40} />
+        </Group>
+      )}
     </Box>
   );
 }
