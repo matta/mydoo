@@ -741,7 +741,7 @@ function ContextViewContainer() {
 ### 5.5 `TaskEditorContainer`
 
 **Responsibility**: Full-screen task details editor modal.
-**State Management**: Must use a **Form Hook** (e.g., `useForm`) to manage transient state. The user's keystrokes should update local form state, not the Automerge document directly. Writes to the store occur only on "Save".
+**State Management**: For MVP, the `TaskEditorModal` manages its own transient form state (local `useState`). The container simply assumes responsibility for fetching the `Task` data and handling the "Save" action to persist to Automerge.
 
 ```tsx
 function TaskEditorContainer() {
@@ -751,23 +751,7 @@ function TaskEditorContainer() {
   const taskIntents = useTaskIntents(docUrl);
   const {places} = usePlaces(docUrl);
 
-  // Form State Logic
-  // 1. Initialize form with default values from 'task'
-  // 2. Reset form when 'task' changes (switched to new task)
-  // 3. Handle validation (required title, non-negative numbers)
-  const form = useGenericForm({
-    initialValues: task || defaultValues,
-    validate: {
-      title: value => (value.trim().length === 0 ? 'Title is required' : null),
-      importance: value =>
-        value < 0 || value > 1 ? 'Invalid importance' : null,
-    },
-  });
-
-  // Effect: Sync form with loaded task
-  useEffect(() => {
-    if (task) form.setValues(task);
-  }, [task]);
+  // Note: Form state (dirty checking, validation) is handled internally by TaskEditorModal for MVP.
 
   if (!nav.editingTaskId) return null;
 
@@ -775,21 +759,12 @@ function TaskEditorContainer() {
     <TaskEditorModal
       task={task}
       places={places}
-      isOpen={true}
+      opened={true}
       onClose={navActions.closeTaskEditor}
       onSave={taskIntents.updateTask}
       onDelete={taskIntents.deleteTask}
-      onCreateSibling={title => taskIntents.createTask(title, task?.parentId)}
-      onCreateChild={title => taskIntents.createTask(title, task?.id)}
-      onFindInPlan={() => {
-        navActions.closeTaskEditor();
-        navActions.setActiveTab('plan');
-        navActions.navigateTo(
-          task.ancestorPath
-            .map(b => (b.type === 'task' ? b.id : null))
-            .filter(Boolean),
-        );
-      }}
+      onAddSibling={parentId => taskIntents.createTask("New Task", parentId)}
+      onAddChild={parentId => taskIntents.createTask("New Task", parentId)}
     />
   );
 }

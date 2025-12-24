@@ -172,12 +172,12 @@ This logic runs client-side on the flattened task list derived from the Automerg
 - **Structure:** Indented tree view. Infinite nesting supported.
 - **Root Nodes:** Fixed "Inbox" node (pinned at top) + User TLIs.
 - **Navigation (Hybrid)**:
-  - **Desktop:** Tree with expand/collapse chevrons. Full outline visible.
-  - **Mobile:** Drill-down navigation. Tapping a parent "zooms in" to show only its children. A **breadcrumb trail** at the top shows the current path and allows navigation back up.
+  - **Desktop (Tree Mode):** Full outline visible with expand/collapse chevrons (`>`). No drill-down or breadcrumbs. Use strict tree navigation.
+  - **Mobile (Drill-Down Mode):** Drill-down navigation only. Tapping a parent's **arrow icon** "zooms in" to show only its children. A **breadcrumb trail** at the top shows the current path.
 - **Interaction:**
-  - **Expand/Collapse (Desktop):** Chevrons (`>`) to toggle children.
-  - **Drill-Down (Mobile):** Tap parent title to navigate into it.
-  - **Selection:** Tap task row to open Edit modal.
+  - **Expand/Collapse (Desktop):** Click Chevron (`>`) to toggle children.
+  - **Drill-Down (Mobile):** Tap **Arrow Icon** (Right side) to navigate into a parent.
+  - **Edit Task (Both):** Tap task **Title or Row** to open Edit modal.
 
 ### 4.4 The "Balance" View
 

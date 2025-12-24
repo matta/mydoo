@@ -103,9 +103,15 @@ _Handle deep navigation on small screens with breadcrumb trail._
 ### Tasks
 
 - [ ] **Implement Drill-Down Interaction**
-  - On mobile viewport, tapping the "Drill Down" arrow icon pushes that task's ID onto the `viewPath` stack
-  - `PlanViewContainer` should render only the children of the current `viewPath` head (not the full tree)
-  - **New Requirement**: Tapping the task title (or rest of row) opens the Task Editor modal
+  - **Interaction Model (Codified)**:
+    - **Tap "Drill Down" Arrow**: Pushes task ID to `viewPath` (Drill Down)
+    - **Tap Row / Title**: Opens Task Editor modal
+    - **New Requirement**: Tapping the task title (or rest of row) opens the Task Editor modal
+  - **Task Editor Implementation**:
+    - Create `viewmodel/containers/TaskEditorContainer.tsx` (connects storage to `TaskEditorModal`)
+    - Mount `<TaskEditorContainer />` in `AppShellContainer` (conditionally rendered when `editingTaskId` is set)
+    - Ensure `useNavigationState` properly tracks `editingTaskId`
+    - **Long Press**: No action (reserved)
 
 - [ ] **Breadcrumb Trail for Mobile**
   - Mobile breadcrumbs should be horizontally scrollable if path is long
@@ -118,10 +124,18 @@ _Handle deep navigation on small screens with breadcrumb trail._
   - `navigateUp()` — Pop the last item from the stack (go up one level)
   - Hardware/gesture back should trigger `navigateUp()` on mobile
 
-- [ ] **Responsive Behavior**
-  - Desktop: Full tree visible with expand/collapse (no drill-down)
-  - Mobile: Drill-down with breadcrumbs
-  - Switching between viewports should handle gracefully (e.g., if drilled down on mobile and resize to desktop, show expanded tree at that position)
+- [ ] **Strict Viewport Modes**
+  - **Mobile (< 768px)**:
+    - **Drill-Down Mode**: Show content of `viewPath` head only.
+    - **Icons**: Show "Drill Down" arrow (Right). **Hide** Expand Chevron.
+    - **Breadcrumbs**: **Visible** (scrollable).
+  - **Desktop (>= 768px)**:
+    - **Tree Mode**: Show full expandable tree.
+    - **Icons**: Show "Expand" Chevron (Left). **Hide** Drill-Down Arrow.
+    - **Breadcrumbs**: **Hidden** (Tree structure provides context).
+  - **Switching behavior**:
+    - Mobile -> Desktop: Reset `viewPath` to empty (show full tree), try to preserve `expandedIds`.
+    - Desktop -> Mobile: If `expandedIds` has deep items, maybe auto-drill? (Optional: Start at root for simplicity).
 
 ### Verification
 
@@ -157,7 +171,8 @@ _Allow users to reorganize tasks by changing parent and position._
 
 ### Tasks
 
-- [ ] **Create `MovePickerModal` Component** ([view-layer.md §5.6](../design/view-layer.md))
+- [ ] **Create `MovePickerModal` Component**
+  - **Does not exist yet** — Create in `components/modals`
   - Modal displays a tree/list of potential parent tasks
   - **Exclusion filter**: Must exclude the task being moved AND all its descendants (prevents circular references)
   - For each potential parent, show option to choose position among its children:
@@ -171,14 +186,11 @@ _Allow users to reorganize tasks by changing parent and position._
   - Output: List of valid parent tasks (all tasks minus self and descendants)
   - Memoized computation to avoid recalculating on every render
 
-- [ ] **Implement `moveTask` Operation**
-  - Signature: `moveTask(taskId: TaskID, newParentId: TaskID | undefined, afterSiblingId: TaskID | undefined)`
-  - `newParentId = undefined` means move to root level
-  - `afterSiblingId = undefined` means insert at the beginning
-  - Updates:
-    1. Remove task ID from old parent's `childTaskIds` (or `rootTaskIds` if was root)
-    2. Update task's `parentId` field
-    3. Insert task ID into new parent's `childTaskIds` (or `rootTaskIds`) at correct position
+- [ ] **Utilize Existing `ops.moveTask`**
+  - Logic already exists in `packages/tasklens/src/persistence/ops.ts`
+  - Supports `newParentId` (undefined = root) and `afterTaskId`
+  - Includes cycle detection and depth validation
+  - **Task**: Expose this via `useTaskIntents` (add `moveTask` to the interface)
 
 - [ ] **Wire into Task Editor Modal**
   - "Move..." button in `TaskEditorModal` opens `MovePickerModal`
