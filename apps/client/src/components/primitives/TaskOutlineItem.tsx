@@ -9,7 +9,7 @@ import {
   rem,
   Text,
 } from '@mantine/core';
-import type {TunnelNode} from '@mydoo/tasklens';
+import type {TaskID, TunnelNode} from '@mydoo/tasklens';
 import {
   IconArrowRight,
   IconChevronDown,
@@ -18,7 +18,7 @@ import {
   IconPlus,
   IconTrash,
 } from '@tabler/icons-react';
-import {useEffect, useRef} from 'react';
+import {memo, useEffect, useRef} from 'react';
 
 import './TaskOutlineItem.css';
 
@@ -33,23 +33,23 @@ export interface TaskOutlineItemProps {
   /** The task node to display. */
   node: TunnelNode;
   /** Callback for drill-down navigation (mobile/focus). */
-  onDrillDown: () => void;
+  onDrillDown: (id: TaskID) => void;
   /** Callback to toggle expansion state. */
-  onExpandToggle: () => void;
+  onExpandToggle: (id: TaskID) => void;
   /** Callback to toggle completion status. */
-  onToggleCompletion: () => void;
+  onToggleCompletion: (id: TaskID) => void;
   /** Handler when the task is indented (e.g., via Tab key). */
-  onIndent: () => void;
+  onIndent: (id: TaskID) => void;
   /** Handler when the task is outdented (e.g., via Shift+Tab key). */
-  onOutdent: () => void;
+  onOutdent: (id: TaskID) => void;
   /** View mode: 'tree' (desktop) or 'drill' (mobile). */
   viewMode: 'tree' | 'drill';
   /** Callback to open task editor. */
-  onOpenEditor: () => void;
+  onOpenEditor: (id: TaskID) => void;
   // Context Actions
-  onAddSibling: () => void;
-  onAddChild: () => void;
-  onDelete: () => void;
+  onAddSibling: (id: TaskID) => void;
+  onAddChild: (id: TaskID) => void;
+  onDelete: (id: TaskID) => void;
   /** Whether this task should flash to indicate it was just created/moved. */
   isFlashTarget?: boolean;
 }
@@ -64,7 +64,7 @@ export interface TaskOutlineItemProps {
  * - Providing direct action controls (completion, drill-down).
  * - Intercepting keyboard navigation (Tab/Shift+Tab) to trigger structural changes.
  */
-export function TaskOutlineItem({
+export const TaskOutlineItem = memo(function TaskOutlineItem({
   depth,
   isExpanded,
   node,
@@ -101,12 +101,12 @@ export function TaskOutlineItem({
     if (event.key === 'Tab') {
       event.preventDefault();
       if (event.shiftKey) {
-        onOutdent();
+        onOutdent(node.id);
       } else {
-        onIndent();
+        onIndent(node.id);
       }
     } else if (event.key === 'Enter') {
-      onOpenEditor();
+      onOpenEditor(node.id);
     }
   };
 
@@ -130,7 +130,13 @@ export function TaskOutlineItem({
       ref={elementRef}
     >
       {/* Task Actions Menu (Bullet replacement on Desktop, Context Menu on Mobile) */}
-      <Menu position="bottom-start" shadow="md" width={200} withinPortal>
+      <Menu
+        position="bottom-start"
+        shadow="md"
+        width={200}
+        withinPortal
+        returnFocus={false}
+      >
         <MenuTarget>
           <ActionIcon
             variant="transparent"
@@ -149,7 +155,7 @@ export function TaskOutlineItem({
             leftSection={<IconPlus style={{width: rem(14), height: rem(14)}} />}
             onClick={e => {
               e.stopPropagation();
-              onAddSibling();
+              onAddSibling(node.id);
             }}
           >
             Add Sibling
@@ -158,7 +164,7 @@ export function TaskOutlineItem({
             leftSection={<IconPlus style={{width: rem(14), height: rem(14)}} />}
             onClick={e => {
               e.stopPropagation();
-              onAddChild();
+              onAddChild(node.id);
             }}
           >
             Add Child
@@ -170,7 +176,7 @@ export function TaskOutlineItem({
             }
             onClick={e => {
               e.stopPropagation();
-              onDelete();
+              onDelete(node.id);
             }}
           >
             Delete
@@ -186,7 +192,7 @@ export function TaskOutlineItem({
           color="gray"
           onClick={e => {
             e.stopPropagation();
-            onExpandToggle();
+            onExpandToggle(node.id);
           }}
           aria-label="Toggle expansion"
           style={{
@@ -205,7 +211,7 @@ export function TaskOutlineItem({
       {/* Completion Checkbox */}
       <Checkbox
         checked={node.status === 'Done'}
-        onChange={onToggleCompletion}
+        onChange={() => onToggleCompletion(node.id)}
         aria-label={`Complete ${node.title}`}
         size="xs"
         onClick={e => e.stopPropagation()}
@@ -218,7 +224,7 @@ export function TaskOutlineItem({
         {...(node.status === 'Done' ? {c: 'dimmed', td: 'line-through'} : {})}
         style={{flex: 1, cursor: 'pointer'}}
         truncate
-        onClick={onOpenEditor}
+        onClick={() => onOpenEditor(node.id)}
       >
         {node.title}
       </Text>
@@ -231,7 +237,7 @@ export function TaskOutlineItem({
           color="gray"
           onClick={e => {
             e.stopPropagation();
-            onDrillDown();
+            onDrillDown(node.id);
           }}
           aria-label="Drill down"
         >
@@ -240,4 +246,4 @@ export function TaskOutlineItem({
       )}
     </Group>
   );
-}
+});

@@ -79,16 +79,16 @@ export function OutlineTree({
               depth={depth}
               isExpanded={isExpanded}
               node={node}
-              onDrillDown={() => onDrillDown(node.id)}
-              onExpandToggle={() => onExpandToggle(node.id)}
-              onToggleCompletion={() => onToggleCompletion(node.id)}
-              onIndent={() => onIndent(node.id)}
-              onOutdent={() => onOutdent(node.id)}
+              onDrillDown={onDrillDown}
+              onExpandToggle={onExpandToggle}
+              onToggleCompletion={onToggleCompletion}
+              onIndent={onIndent}
+              onOutdent={onOutdent}
               viewMode={viewMode}
-              onOpenEditor={() => onOpenEditor(node.id)}
-              onAddSibling={() => onAddSibling(node.id)}
-              onAddChild={() => onAddChild(node.id)}
-              onDelete={() => onDelete(node.id)}
+              onOpenEditor={onOpenEditor}
+              onAddSibling={onAddSibling}
+              onAddChild={onAddChild}
+              onDelete={onDelete}
               isFlashTarget={node.id === lastCreatedTaskId}
             />
 

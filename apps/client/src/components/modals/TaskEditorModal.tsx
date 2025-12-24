@@ -193,11 +193,13 @@ export function TaskEditorModal({
       <Stack gap="md">
         {/* Title */}
         <TextInput
+          key={isCreateMode ? 'create' : task?.id}
           label="Title"
           onChange={e => setTitle(e.currentTarget.value)}
           placeholder="What needs to be done?"
           value={title}
           data-autofocus
+          autoFocus
         />
 
         {/* Hierarchy Controls (Edit Mode Only) */}

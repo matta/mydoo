@@ -4,14 +4,14 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 
 ## 🐛 Bugs (Next To Complete)
 
-- [ ] **BUG: Title Input Not Focused**: When Task Editor Modal opens (Create or Edit mode), the Title input should be auto-focused, at least on desktop. Currently requires manual click.
-- [ ] **BUG: Child Not Visible After Creation**: When adding a child via "Add Child" (hover menu or modal), the parent is not auto-expanded, so the child is hidden. User must manually expand. **Cross-ref**: This is addressed by **Sub-Step 6E: "Highlight & Reveal"** (Auto-Expand logic).
-- [x] **BUG: CSS Specificity (Hover Menu)**: Fixed. The selector was incorrectly applying `opacity: 1` universally. Changed to `.task-row:hover .task-menu-trigger`.
-- [ ] **PERF: Memoize TaskOutlineItem**: `OutlineTree` creates arrow functions in every render. Apply `React.memo` to `TaskOutlineItem` to avoid unnecessary re-renders.
+- [x] **BUG: Title Input Not Focused**: Fixed. Added `key` prop and `autoFocus` to `TextInput`, and disabled `returnFocus` on the parent `Menu` to avoid focus conflicts.
+- [x] **BUG: Child Not Visible After Creation**: Addressed by Sub-Step 6E and verified in regression tests.
+- [x] **BUG: CSS Specificity (Hover Menu)**: Fixed.
+- [x] **PERF: Memoize TaskOutlineItem**: Implemented `React.memo` and stabilized callbacks in `OutlineTree`.
 
 ## 🧪 Missing Tests
 
-- [ ] **TEST: Mobile E2E Gap**: Step 5 was marked Done, but the E2E test for Mobile Drill-Down Journey is missing. Add verification for this.
+- [x] **TEST: Mobile E2E Gap**: Added `regression-coverage.spec.ts` and updated `mobile-interactions.spec.ts`.
 
 ### Sub-Step 6A: Modal Create Mode (Prerequisite)
 
@@ -274,21 +274,9 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 
 **Goal**: Verify the complete user flow from an empty state to a populated hierarchy on both Desktop and Mobile.
 
-- [ ] **Scenario**: Desktop Full Journey
-
-  - Start Empty -> "Add First Task" button appears.
-  - Create Root Task -> Verify visible.
-  - Rename Root Task -> Verify title update persistence.
-  - Add Sibling (Hover Menu) -> Verify position.
-  - Add Child (Hover Menu) -> Verify hierarchy.
-
-- [ ] **Scenario**: Mobile Full Journey
-  - Start Empty -> "Add First Task" button appears.
-  - Create Root Task -> Verify visible.
-  - Rename Root Task (Tap Title -> Modal) -> Verify persistence.
-  - Add Sibling (Footer Action) -> Verify position.
-  - Add Child (Footer Action) -> Verify Drill-Down visibility (Child hidden at root, visible after drill).
+- [x] **Scenario**: Desktop Full Journey
+- [x] **Scenario**: Mobile Full Journey
 
 **Quality Gates**
 
-- [ ] `pnpm test:e2e` -> Pass (`full-journey.spec.ts`)
+- [x] `pnpm test:e2e` -> Pass (`full-journey.spec.ts`, `regression-coverage.spec.ts`)
