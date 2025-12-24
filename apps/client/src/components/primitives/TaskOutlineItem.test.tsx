@@ -164,4 +164,17 @@ describe('TaskOutlineItem', () => {
 
     expect(onDelete).toHaveBeenCalled();
   });
+
+  it('renders menu trigger in tree mode', () => {
+    // Menu trigger should be present in DOM (opacity controlled by CSS)
+    renderComponent({viewMode: 'tree'});
+    const trigger = screen.getByTestId('task-menu-trigger');
+    expect(trigger).toBeInTheDocument();
+  });
+
+  it('does not render menu trigger in drill mode', () => {
+    renderComponent({viewMode: 'drill'});
+    const trigger = screen.queryByTestId('task-menu-trigger');
+    expect(trigger).not.toBeInTheDocument();
+  });
 });
