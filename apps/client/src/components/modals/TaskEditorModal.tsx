@@ -49,6 +49,12 @@ interface TaskEditorModalProps {
   onCreate?: (title: string, parentId: TaskID | undefined) => void;
   /** Explicit mode: 'create' or 'edit'. Defaults to inference if not provided (legacy). */
   mode?: 'create' | 'edit' | undefined;
+  /** Callback to indent the task */
+  onIndent?: (taskId: TaskID) => void;
+  /** Callback to outdent the task */
+  onOutdent?: (taskId: TaskID) => void;
+  /** Whether indentation is possible (has previous sibling) */
+  canIndent?: boolean;
 }
 
 /** Milliseconds per day for lead time conversion */
@@ -66,6 +72,9 @@ export function TaskEditorModal({
   onDelete,
   onCreate,
   mode,
+  onIndent,
+  onOutdent,
+  canIndent = false,
 }: TaskEditorModalProps) {
   // Local form state
   const [title, setTitle] = useState('');
@@ -191,13 +200,45 @@ export function TaskEditorModal({
           data-autofocus
         />
 
-        {/* Parent (read-only) */}
-        <Group>
+        {/* Hierarchy Controls (Edit Mode Only) */}
+        {!isCreateMode && task && (
+          <Stack gap="xs">
+            <Text size="sm" fw={500}>
+              Hierarchy
+            </Text>
+            <Group justify="space-between" align="center">
+              <Text c="dimmed" size="sm">
+                Parent: {parentTitle || 'Root (Top Level)'}
+              </Text>
+              {/* Move button placeholder (Phase 5 Step 7) */}
+            </Group>
+            <Group grow>
+              <Button
+                variant="default"
+                onClick={() => onOutdent?.(task.id)}
+                disabled={!task.parentId}
+                leftSection={<span>←</span>}
+              >
+                Outdent
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => onIndent?.(task.id)}
+                rightSection={<span>→</span>}
+                disabled={!canIndent}
+              >
+                Indent
+              </Button>
+            </Group>
+          </Stack>
+        )}
+
+        {/* Create Mode Parent Display */}
+        {isCreateMode && (
           <Text c="dimmed" size="sm">
             Parent: {parentTitle || 'Root (Top Level)'}
           </Text>
-          {/* Move button deferred to Phase 5 */}
-        </Group>
+        )}
 
         {/* Importance Slider */}
         <Stack gap="xs">

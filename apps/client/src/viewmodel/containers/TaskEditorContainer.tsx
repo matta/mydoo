@@ -22,14 +22,16 @@ interface TaskEditorContainerProps {
  * - Provides action handlers (save, add sibling, add child, delete) via `useTaskIntents`.
  */
 export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
-  const {modal, closeModal, openCreateModal} = useNavigationState();
+  const {modal, closeModal, openCreateModal, viewPath, popView} =
+    useNavigationState();
   const editingTaskId = modal?.type === 'edit' ? modal.taskId : undefined;
 
   const {task, parentTitle, descendantCount} = useTaskDetails(
     docUrl,
     editingTaskId ?? ('' as TaskID),
   );
-  const {updateTask, createTask, deleteTask} = useTaskIntents(docUrl);
+  const {updateTask, createTask, deleteTask, indentTask, outdentTask} =
+    useTaskIntents(docUrl);
 
   // Resolve parent title for Create Mode
   const {doc} = useTunnel(docUrl);
@@ -40,6 +42,24 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
       resolvedParentTitle = doc.tasks[modal.parentId]?.title ?? null;
     } else {
       resolvedParentTitle = null; // Root
+    }
+  }
+
+  /**
+   * Calculate whether the task can be indented.
+   * A task can only be indented if it has a previous sibling to become a child of.
+   * This duplicates logic from useTaskIntents.indentTask() for UI state purposes.
+   */
+  let canIndent = false;
+  if (task && doc) {
+    const siblings = task.parentId
+      ? doc.tasks[task.parentId]?.childTaskIds
+      : doc.rootTaskIds;
+
+    if (siblings && siblings.length > 0) {
+      // Only enable if we have siblings and this task is not first
+      const idx = siblings.indexOf(task.id);
+      canIndent = idx > 0;
     }
   }
 
@@ -114,6 +134,38 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     }
   };
 
+  /**
+   * Indents the task to become a child of its previous sibling.
+   * @param taskId - The ID of the task to indent.
+   */
+  const handleIndent = (taskId: TaskID) => {
+    indentTask(taskId);
+  };
+
+  /**
+   * Outdents the task to become a sibling of its parent.
+   *
+   * **Mobile Edge Case**: If the user is zoomed into the parent context,
+   * outdenting moves the task out of view. We auto-navigate up one level
+   * before executing the move to keep the task visible after the operation.
+   *
+   * **Timing Note**: We check `task.parentId` from current React state (before
+   * the Automerge operation), then navigate synchronously. The outdent operation
+   * applies asynchronously, so the task data is stable during our check.
+   *
+   * @param taskId - The ID of the task to outdent.
+   */
+  const handleOutdent = (taskId: TaskID) => {
+    if (task) {
+      const currentHead = viewPath[viewPath.length - 1];
+      if (currentHead && currentHead === task.parentId) {
+        // Navigate up before the move completes to keep task visible
+        popView();
+      }
+    }
+    outdentTask(taskId);
+  };
+
   return (
     <TaskEditorModal
       opened={!!modal && (modal.type === 'create' || !!task)}
@@ -127,6 +179,9 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
       onAddSibling={handleAddSibling}
       onAddChild={handleAddChild}
       onDelete={handleDelete}
+      onIndent={handleIndent}
+      onOutdent={handleOutdent}
+      canIndent={canIndent}
     />
   );
 }

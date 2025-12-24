@@ -177,4 +177,44 @@ describe('TaskEditorModal', () => {
 
     expect(screen.getByText('Loading task details...')).toBeInTheDocument();
   });
+
+  it('disables Indent button when canIndent is false', () => {
+    renderWithProviders(
+      <TaskEditorModal
+        descendantCount={0}
+        onAddChild={vi.fn()}
+        onAddSibling={vi.fn()}
+        onClose={vi.fn()}
+        onDelete={vi.fn()}
+        onSave={vi.fn()}
+        opened={true}
+        parentTitle={null}
+        task={mockTask}
+        canIndent={false}
+      />,
+    );
+
+    const indentBtn = screen.getByRole('button', {name: /indent/i});
+    expect(indentBtn).toBeDisabled();
+  });
+
+  it('enables Indent button when canIndent is true', () => {
+    renderWithProviders(
+      <TaskEditorModal
+        descendantCount={0}
+        onAddChild={vi.fn()}
+        onAddSibling={vi.fn()}
+        onClose={vi.fn()}
+        onDelete={vi.fn()}
+        onSave={vi.fn()}
+        opened={true}
+        parentTitle={null}
+        task={mockTask}
+        canIndent={true}
+      />,
+    );
+
+    const indentBtn = screen.getByRole('button', {name: /indent/i});
+    expect(indentBtn).not.toBeDisabled();
+  });
 });
