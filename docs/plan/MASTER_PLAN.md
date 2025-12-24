@@ -163,7 +163,7 @@ _Goal: Hierarchical tree navigation with expand/collapse._
 
 **PRD References**: [§4.3 The Plan View](../design/prd.md)
 
-> **🔴 Current Priority**: Make the outline view visible before proceeding with remaining work.
+> **🔴 Current Priority**: Implement MovePickerModal for task reorganization.
 
 - [x] **Step 1-3: Logic & UI (Complete)**
   - [x] Implement `useTaskTree` (Recursive projection)
@@ -173,10 +173,10 @@ _Goal: Hierarchical tree navigation with expand/collapse._
   - [x] Create `TaskOutlineItem` primitive
   - [x] Implement `PlanViewContainer`
   - [x] Unit tests for tree projection, breadcrumbs, keyboard navigation
-- [ ] **Step 4: Make Outline Visible (BLOCKER)** ← _Start here_
-  - [ ] Verify route/tab integration loads `PlanViewContainer`
-  - [ ] Visual verification: confirm tree renders in running app
-  - [ ] E2E baseline for outline view
+- [x] **Step 4: Make Outline Visible (Complete)**
+  - [x] Verify route/tab integration loads `PlanViewContainer`
+  - [x] Visual verification: confirm tree renders in running app
+  - [x] E2E baseline for outline view
 - [x] **Step 5: Mobile Drill-Down Navigation (Complete)**
   - [x] Implement strict viewport modes (Tree vs Drill-Down)
   - [x] Implement scrollable breadcrumb trail for mobile

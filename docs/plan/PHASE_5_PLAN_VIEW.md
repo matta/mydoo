@@ -167,7 +167,7 @@ _Handle deep navigation on small screens with breadcrumb trail._
 
 _Allow users to reorganize tasks by changing parent and position._
 
-**PRD Reference**: [§4.5 Task Editing](../design/prd.md) — "Move... Button: Opens a picker modal allowing the user to: 1) Select a new parent (reparenting), and/or 2) Choose position among siblings (reordering within the same or new parent). This is the only mechanism for reorganizing tasks—no drag-and-drop is required for MVP."
+**PRD Reference**: [§4.5 Task Editing](../design/prd.md) — "Move... Button: Opens a picker modal allowing the user to: Select a new parent (reparenting). **NOTE**: Detailed reordering within siblings is deferred for this step (User Decision: Option A)."
 
 ### Tasks
 
@@ -175,10 +175,8 @@ _Allow users to reorganize tasks by changing parent and position._
   - **Does not exist yet** — Create in `components/modals`
   - Modal displays a tree/list of potential parent tasks
   - **Exclusion filter**: Must exclude the task being moved AND all its descendants (prevents circular references)
-  - For each potential parent, show option to choose position among its children:
-    - "At the beginning"
-    - "After [sibling name]" dropdown
-  - Visual distinction for current parent (if staying in same location)
+  - **Interaction**: Selecting a parent moves the task to the **end** of that parent's child list
+  - **Deferred**: Precise reordering among siblings is deferred to a future update
   - Loading state while calculating valid targets
 
 - [ ] **Implement `useValidParentTargets` Hook**
@@ -206,6 +204,51 @@ _Allow users to reorganize tasks by changing parent and position._
 - [ ] Unit tests for `moveTask` operation (correct array manipulation)
 - [ ] Component tests for `MovePickerModal` (renders targets, handles selection)
 - [ ] E2E test: Open task editor → Click "Move..." → Select new parent → Verify tree updates correctly
+
+**Quality Gates**
+
+- [ ] `pnpm fix` -> Pass
+- [ ] `pnpm build` -> Pass
+- [ ] `pnpm test` -> Pass (ALL repo tests)
+- [ ] `pnpm test:e2e` -> Pass
+- [ ] **EVIDENCE**: Show terminal output of passing tests.
+
+**Completion**
+
+- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
+- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
+- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
+- [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
+- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
+- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
+
+---
+
+## Step 6.5: Task Editor Polish (Missing Features)
+
+_Implement features erroneously marked as complete in Phase 4._
+
+### Tasks
+
+- [ ] **"Find in Plan" Button**
+  - **Logic**: Closes modal, resets `viewPath` to the task's location, expands necessary parents.
+  - **UI**: Added to "Navigation & Hierarchy" section of modal.
+  - **Interaction**: `onFindInPlan` callback prop.
+
+- [ ] **Repetition Selector**
+  - **Logic**: Maps to `task.repeatConfig`.
+  - **UI**: Dropdown or Segmented Control (None | Routinely | Calendar).
+  - **Validation**: Ensure `dueDate` is set if repetition is enabled.
+
+- [ ] **Notes Field**
+  - **Logic**: Wire up to `task.notes`.
+  - **UI**: Enable the currently disabled Textarea.
+
+### Verification
+
+- [ ] E2E: Create repeating task -> Verify config persisted.
+- [ ] E2E: "Find in Plan" -> Navigates to correct tree location.
+- [ ] Unit tests for recurrence logic edge cases.
 
 **Quality Gates**
 
