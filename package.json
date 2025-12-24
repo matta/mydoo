@@ -24,7 +24,7 @@
     "lint": "biome check .",
     "prepare": "husky",
     "test": "turbo test",
-    "test:e2e": "pnpm --filter client test:e2e",
+    "test:e2e": "turbo test:e2e",
     "typecheck": "tsc -b"
   }
 }
