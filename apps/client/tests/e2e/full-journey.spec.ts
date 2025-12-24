@@ -1,6 +1,16 @@
 import {expect, test} from '@playwright/test';
 
-// TODO: Add 'Full User Journey: Mobile' test suite (STEP.md Sub-Step 6F)
+/**
+ * Full User Journey: Desktop
+ *
+ * This test suite validates the core "happy path" for desktop users, starting from an empty state
+ * and building out a complex task hierarchy. It verifies:
+ * - Application initialization and navigation to the Plan view.
+ * - Initial task creation from the empty state.
+ * - Task editing and rename persistence.
+ * - Hierarchical structure management (Add Sibling, Add Child).
+ * - UI feedback and focus management during structurally transformative actions.
+ */
 test.describe('Full User Journey: Desktop', () => {
   test.use({viewport: {width: 1280, height: 720}});
 
