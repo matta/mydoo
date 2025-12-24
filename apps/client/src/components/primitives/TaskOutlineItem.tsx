@@ -113,60 +113,54 @@ export function TaskOutlineItem({
       tabIndex={0} // Make row focusable for keyboard interaction
       className="task-row"
     >
-      {/* Desktop Hover Menu (replaces Bullet) */}
-      {viewMode === 'tree' && (
-        <Menu position="bottom-start" shadow="md" width={200} withinPortal>
-          <MenuTarget>
-            <ActionIcon
-              variant="transparent"
-              size="sm"
-              onClick={e => e.stopPropagation()}
-              className="task-menu-trigger"
-              aria-label="Task actions"
-              data-testid="task-menu-trigger"
-            >
-              <IconDots style={{width: rem(16), height: rem(16)}} />
-            </ActionIcon>
-          </MenuTarget>
+      {/* Task Actions Menu (Bullet replacement on Desktop, Context Menu on Mobile) */}
+      <Menu position="bottom-start" shadow="md" width={200} withinPortal>
+        <MenuTarget>
+          <ActionIcon
+            variant="transparent"
+            size="sm"
+            onClick={e => e.stopPropagation()}
+            className="task-menu-trigger"
+            aria-label="Task actions"
+            data-testid="task-menu-trigger"
+          >
+            <IconDots style={{width: rem(16), height: rem(16)}} />
+          </ActionIcon>
+        </MenuTarget>
 
-          <MenuDropdown>
-            <MenuItem
-              leftSection={
-                <IconPlus style={{width: rem(14), height: rem(14)}} />
-              }
-              onClick={e => {
-                e.stopPropagation();
-                onAddSibling();
-              }}
-            >
-              Add Sibling
-            </MenuItem>
-            <MenuItem
-              leftSection={
-                <IconPlus style={{width: rem(14), height: rem(14)}} />
-              }
-              onClick={e => {
-                e.stopPropagation();
-                onAddChild();
-              }}
-            >
-              Add Child
-            </MenuItem>
-            <MenuItem
-              color="red"
-              leftSection={
-                <IconTrash style={{width: rem(14), height: rem(14)}} />
-              }
-              onClick={e => {
-                e.stopPropagation();
-                onDelete();
-              }}
-            >
-              Delete
-            </MenuItem>
-          </MenuDropdown>
-        </Menu>
-      )}
+        <MenuDropdown>
+          <MenuItem
+            leftSection={<IconPlus style={{width: rem(14), height: rem(14)}} />}
+            onClick={e => {
+              e.stopPropagation();
+              onAddSibling();
+            }}
+          >
+            Add Sibling
+          </MenuItem>
+          <MenuItem
+            leftSection={<IconPlus style={{width: rem(14), height: rem(14)}} />}
+            onClick={e => {
+              e.stopPropagation();
+              onAddChild();
+            }}
+          >
+            Add Child
+          </MenuItem>
+          <MenuItem
+            color="red"
+            leftSection={
+              <IconTrash style={{width: rem(14), height: rem(14)}} />
+            }
+            onClick={e => {
+              e.stopPropagation();
+              onDelete();
+            }}
+          >
+            Delete
+          </MenuItem>
+        </MenuDropdown>
+      </Menu>
 
       {/* Expansion Chevron (Tree Mode Only) */}
       {showChevron && (

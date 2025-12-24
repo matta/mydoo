@@ -128,5 +128,44 @@ test.describe('Mobile Bottom Bar Interactions', () => {
         page.getByTestId('task-item').filter({hasText: childTitle}),
       ).not.toBeVisible();
     });
+
+    test('Add Child via Context Menu', async ({page}) => {
+      // 1. Create Parent
+      await page.getByLabel('Add Task at Top').click();
+      await page.getByRole('heading', {name: 'Create Task'}).waitFor();
+      const parentTitle = `Menu Parent ${Date.now()}`;
+      await page.getByRole('textbox', {name: 'Title'}).fill(parentTitle);
+      await page.getByRole('button', {name: 'Create Task'}).click();
+
+      // 2. Open Context Menu
+      const parentRow = page
+        .getByTestId('task-item')
+        .filter({hasText: parentTitle})
+        .first();
+      // On mobile, the menu trigger should now be visible or interactable
+      // Assuming 'Task actions' label from TaskOutlineItem.tsx
+      await parentRow.getByLabel('Task actions').click();
+
+      // 3. Click "Add Child"
+      await page.getByRole('menuitem', {name: 'Add Child'}).click();
+
+      // 4. Create Child
+      await expect(
+        page.getByRole('heading', {name: 'Create Task'}),
+      ).toBeVisible();
+      const childTitle = `Menu Child ${Date.now()}`;
+      await page.getByRole('textbox', {name: 'Title'}).fill(childTitle);
+      await page.getByRole('button', {name: 'Create Task'}).click();
+
+      // 5. Verify Child is added (might need to expand or drill down to see it?)
+      // In 'drill' mode, adding a child to a node usually doesn't show it unless we are IN the parent.
+      // BUT if we are at Root, and we added a child to Root Node, it becomes hidden under the parent.
+      // We should see the parent has children indication (e.g. drill down arrow).
+      // Or we can drill down to verify.
+      await parentRow.getByLabel('Drill down').click();
+      await expect(
+        page.getByTestId('task-item').filter({hasText: childTitle}),
+      ).toBeVisible();
+    });
   });
 });

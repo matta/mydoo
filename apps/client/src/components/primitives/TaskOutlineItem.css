@@ -4,8 +4,16 @@
 }
 
 /* Reveal menu trigger on row hover, focus, or when menu is active */
-.task-row:hover .task-menu-trigger,
+.task-row:hover
+.task-menu-trigger,
 .task-menu-trigger:focus,
 .task-menu-trigger[aria-expanded="true"] {
   opacity: 1;
+}
+
+/* Always show menu on mobile (touch devices) */
+@media (max-width: 48em) {
+  .task-menu-trigger {
+    opacity: 1;
+  }
 }
