@@ -24,7 +24,7 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     docUrl,
     editingTaskId ?? ('' as TaskID),
   );
-  const {updateTask, deleteTask} = useTaskIntents(docUrl);
+  const {updateTask, createTask, deleteTask} = useTaskIntents(docUrl);
 
   /** Closes the Task Editor modal by clearing the editing state. */
   const handleClose = () => closeModal();
@@ -76,6 +76,23 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     }
   };
 
+  /**
+   * Handles creation of a new task from the modal.
+   * @param title - The title of the new task.
+   */
+  const handleCreate = (title: string) => {
+    if (modal?.type !== 'create') return;
+
+    if (modal.afterTaskId) {
+      createTask(title, modal.parentId, {
+        position: 'after',
+        afterTaskId: modal.afterTaskId,
+      });
+    } else {
+      createTask(title, modal.parentId);
+    }
+  };
+
   return (
     <TaskEditorModal
       opened={!!modal && (modal.type === 'create' || !!task)}
@@ -84,6 +101,7 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
       parentTitle={parentTitle}
       descendantCount={descendantCount}
       onSave={handleSave}
+      onCreate={handleCreate}
       onAddSibling={handleAddSibling}
       onAddChild={handleAddChild}
       onDelete={handleDelete}

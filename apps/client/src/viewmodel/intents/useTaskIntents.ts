@@ -1,10 +1,12 @@
 import {
+  type CreateTaskOptions,
   type DocumentHandle,
   type Task,
   type TaskID,
   TaskStatus,
   useTunnel,
 } from '@mydoo/tasklens';
+
 import {useCallback} from 'react';
 
 /**
@@ -17,8 +19,8 @@ export function useTaskIntents(docUrl: DocumentHandle) {
   const {doc, ops} = useTunnel(docUrl);
 
   const createTask = useCallback(
-    (title: string, parentId?: TaskID) => {
-      ops.add({title, parentId});
+    (title: string, parentId?: TaskID, options?: CreateTaskOptions) => {
+      ops.add({title, parentId}, options);
     },
     [ops],
   );

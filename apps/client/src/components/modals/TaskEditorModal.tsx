@@ -43,7 +43,10 @@ interface TaskEditorModalProps {
   onAddSibling: (parentId: TaskID | undefined) => void;
   /** Callback to add a child task */
   onAddChild: (parentId: TaskID) => void;
+  /** Callback to delete a task */
   onDelete: (taskId: TaskID, hasChildren: boolean) => void;
+  /** Callback to handle creation of a new task */
+  onCreate?: (title: string, parentId: TaskID | undefined) => void;
 }
 
 /** Milliseconds per day for lead time conversion */
@@ -59,6 +62,7 @@ export function TaskEditorModal({
   onAddSibling,
   onAddChild,
   onDelete,
+  onCreate,
 }: TaskEditorModalProps) {
   // Local form state
   const [title, setTitle] = useState('');
@@ -68,14 +72,12 @@ export function TaskEditorModal({
   const [leadTimeDays, setLeadTimeDays] = useState<number | string>(7);
   const [notes, setNotes] = useState('');
 
-  // Sync form state when task changes
+  // Sync form state when task changes (Edit Mode) or clear it (Create Mode)
   useEffect(() => {
     if (task) {
       setTitle(task.title);
       setImportance(task.importance);
-      // creditIncrement is already [0..1]
       setEffort(task.creditIncrement);
-      // Convert timestamp to ISO date string for DateInput
       if (task.schedule.dueDate) {
         const dateStr = new Date(task.schedule.dueDate)
           .toISOString()
@@ -85,33 +87,43 @@ export function TaskEditorModal({
         setDueDateStr(null);
       }
       setLeadTimeDays(Math.round(task.schedule.leadTime / MS_PER_DAY));
-      // Notes field doesn't exist in current schema - placeholder for future
+      setNotes('');
+    } else {
+      // Create Mode: Reset to defaults
+      setTitle('');
+      setImportance(0.5);
+      setEffort(0.5);
+      setDueDateStr(null);
+      setLeadTimeDays(7);
       setNotes('');
     }
-  }, [task]);
+  }, [task, opened]); // Also reset when opening in Create Mode
 
   const handleSave = useCallback(() => {
-    if (!task) return;
+    if (task) {
+      // Edit Mode
+      const dueDateTimestamp = dueDateStr
+        ? new Date(dueDateStr).getTime()
+        : undefined;
 
-    // Convert date string back to timestamp
-    const dueDateTimestamp = dueDateStr
-      ? new Date(dueDateStr).getTime()
-      : undefined;
+      const updates: Partial<Task> = {
+        title,
+        importance,
+        creditIncrement: effort,
+        schedule: {
+          ...task.schedule,
+          dueDate: dueDateTimestamp,
+          leadTime: Number(leadTimeDays) * MS_PER_DAY,
+        },
+      };
 
-    const updates: Partial<Task> = {
-      title,
-      importance,
-      // creditIncrement is [0..1], same as effort slider
-      creditIncrement: effort,
-      schedule: {
-        ...task.schedule,
-        dueDate: dueDateTimestamp,
-        leadTime: Number(leadTimeDays) * MS_PER_DAY,
-      },
-    };
-
-    onSave(task.id, updates);
-    onClose();
+      onSave(task.id, updates);
+      onClose();
+    } else if (onCreate) {
+      // Create Mode
+      onCreate(title, undefined); // TaskEditorContainer will handle positioning via state
+      onClose();
+    }
   }, [
     task,
     title,
@@ -120,6 +132,7 @@ export function TaskEditorModal({
     dueDateStr,
     leadTimeDays,
     onSave,
+    onCreate,
     onClose,
   ]);
 
@@ -141,7 +154,7 @@ export function TaskEditorModal({
     // Don't close here - the parent handles the delete confirmation flow
   }, [task, descendantCount, onDelete]);
 
-  if (!task) return null;
+  const isCreateMode = !task;
 
   return (
     <Modal
@@ -150,7 +163,7 @@ export function TaskEditorModal({
       onClose={onClose}
       opened={opened}
       size="lg"
-      title="Edit Task"
+      title={isCreateMode ? 'Create Task' : 'Edit Task'}
     >
       <Stack gap="md">
         {/* Title */}
@@ -234,23 +247,25 @@ export function TaskEditorModal({
           value={notes}
         />
 
-        {/* Save Button */}
-        <Button fullWidth onClick={handleSave}>
-          Save Changes
+        {/* Save/Create Button */}
+        <Button fullWidth onClick={handleSave} disabled={!title.trim()}>
+          {isCreateMode ? 'Create Task' : 'Save Changes'}
         </Button>
 
-        {/* Footer Actions */}
-        <Group grow>
-          <Button onClick={handleAddSibling} variant="outline">
-            Add Sibling
-          </Button>
-          <Button onClick={handleAddChild} variant="outline">
-            Add Child
-          </Button>
-          <Button color="red" onClick={handleDelete} variant="outline">
-            Delete
-          </Button>
-        </Group>
+        {/* Footer Actions (Edit Mode Only) */}
+        {!isCreateMode && (
+          <Group grow>
+            <Button onClick={handleAddSibling} variant="outline">
+              Add Sibling
+            </Button>
+            <Button onClick={handleAddChild} variant="outline">
+              Add Child
+            </Button>
+            <Button color="red" onClick={handleDelete} variant="outline">
+              Delete
+            </Button>
+          </Group>
+        )}
       </Stack>
     </Modal>
   );
