@@ -187,11 +187,7 @@ export function updateTask(
   // Handle parentId change if it exists in props and is different
   if (props.parentId !== undefined && props.parentId !== task.parentId) {
     moveTask(state, id, props.parentId, undefined); // Move to top of new parent
-    // Remove parentId from props to avoid double-setting it in the loop below
-    // (moveTask handles it)
-    // However, we still need to set other props.
-    // Reflect.set will overwrite what moveTask did if we are not careful.
-    // But moveTask sets task.parentId. props.parentId matches that. So it's fine.
+    // Note: moveTask updates task.parentId in place.
   }
 
   // Validation for numeric props
@@ -208,30 +204,49 @@ export function updateTask(
     throw new Error('Importance must be between 0.0 and 1.0.');
   }
 
-  // Explicit property updates - fully type-safe, no escapes needed.
-  // For required properties, 'in' check is sufficient (TypeScript knows value is defined).
-  // For optional properties (parentId, placeId), we use 'in' to detect explicit undefined.
-  if ('title' in props) task.title = props.title;
-  if ('status' in props) task.status = props.status;
-  if ('importance' in props) task.importance = props.importance;
-  if ('creditIncrement' in props) task.creditIncrement = props.creditIncrement;
-  if ('credits' in props) task.credits = props.credits;
-  if ('desiredCredits' in props) task.desiredCredits = props.desiredCredits;
-  if ('creditsTimestamp' in props)
-    task.creditsTimestamp = props.creditsTimestamp;
-  if ('priorityTimestamp' in props)
-    task.priorityTimestamp = props.priorityTimestamp;
-  if ('schedule' in props) task.schedule = props.schedule;
-  if ('isSequential' in props) task.isSequential = props.isSequential;
+  // Idiomatic Automerge: Mutate the proxy directly
+  // This should trigger the change detection.
 
-  // Optional properties that can be deleted (Automerge requires delete, not undefined)
-  if ('parentId' in props) {
-    if (props.parentId === undefined) delete task.parentId;
-    else task.parentId = props.parentId;
+  if (props.title !== undefined) task.title = props.title;
+  if (props.status !== undefined) task.status = props.status;
+  if (props.importance !== undefined) task.importance = props.importance;
+  if (props.creditIncrement !== undefined)
+    task.creditIncrement = props.creditIncrement;
+  if (props.credits !== undefined) task.credits = props.credits;
+  if (props.desiredCredits !== undefined)
+    task.desiredCredits = props.desiredCredits;
+  if (props.creditsTimestamp !== undefined)
+    task.creditsTimestamp = props.creditsTimestamp;
+  if (props.priorityTimestamp !== undefined)
+    task.priorityTimestamp = props.priorityTimestamp;
+  if (props.isSequential !== undefined) task.isSequential = props.isSequential;
+  if (props.isAcknowledged !== undefined)
+    task.isAcknowledged = props.isAcknowledged;
+
+  // Handle nested objects carefully
+  if (props.schedule) {
+    if (props.schedule.type) task.schedule.type = props.schedule.type;
+    if (props.schedule.leadTime !== undefined)
+      task.schedule.leadTime = props.schedule.leadTime;
+
+    // Only delete dueDate if explicitly passed as undefined (use 'in' check)
+    if ('dueDate' in props.schedule) {
+      if (props.schedule.dueDate === undefined) {
+        delete task.schedule.dueDate;
+      } else {
+        task.schedule.dueDate = props.schedule.dueDate;
+      }
+    }
   }
-  if ('placeId' in props) {
-    if (props.placeId === undefined) delete task.placeId;
-    else task.placeId = props.placeId;
+
+  // Handle optional properties that can be unset (Automerge requires delete, not undefined)
+  if (props.parentId === undefined && 'parentId' in props) {
+    delete task.parentId;
+  }
+  if (props.placeId === undefined && 'placeId' in props) {
+    delete task.placeId;
+  } else if (props.placeId !== undefined) {
+    task.placeId = props.placeId;
   }
 
   return task;
