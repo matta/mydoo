@@ -188,6 +188,7 @@ export function TaskEditorModal({
           onChange={e => setTitle(e.currentTarget.value)}
           placeholder="What needs to be done?"
           value={title}
+          data-autofocus
         />
 
         {/* Parent (read-only) */}

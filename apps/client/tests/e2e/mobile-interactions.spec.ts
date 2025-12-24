@@ -73,6 +73,8 @@ test.describe('Mobile Bottom Bar Interactions', () => {
       await expect(
         page.getByRole('heading', {name: 'Create Task'}),
       ).toBeVisible();
+      // Verify Title is focused (Bug Fix)
+      await expect(page.getByRole('textbox', {name: 'Title'})).toBeFocused();
       const title = `Top Task ${Date.now()}`;
       await page.getByRole('textbox', {name: 'Title'}).fill(title);
       await page.getByRole('button', {name: 'Create Task'}).click();

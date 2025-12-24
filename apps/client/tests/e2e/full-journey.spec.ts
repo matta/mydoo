@@ -49,6 +49,8 @@ test.describe('Full User Journey: Desktop', () => {
         await expect(
           page.getByRole('heading', {name: 'Create Task'}),
         ).toBeVisible();
+        // Verify Title is focused (Desktop)
+        await expect(page.getByRole('textbox', {name: 'Title'})).toBeFocused();
         await page.getByRole('textbox', {name: 'Title'}).fill('My First Task');
         await page.getByRole('button', {name: 'Create Task'}).click();
       }
