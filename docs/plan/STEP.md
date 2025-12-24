@@ -246,12 +246,12 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
   - [x] **Auto-Expand**: Parent of new task must expand (if collapsed). (Desktop only).
   - [x] **Auto-Scroll**: Scroll Plan View to new item after modal close. **Always** scroll to the new task, whether inserted at top or bottom.
   - [x] **Visual Cue**: Yellow fade-flash on the new row (brief animation, ~500ms).
-  - [ ] **Mobile Auto-Drill**: When creating a child task on mobile, auto-drill into the parent (call `pushView(parentId)`) so the new child is visible. (**Gap identified**: current implementation does NOT do this.)**
+  - [x] **Mobile Auto-Drill**: When creating a child task on mobile, auto-drill into the parent (call `pushView(parentId)`) so the new child is visible.
 
 - [x] **Tests**:
   - [x] E2E: Create Sibling -> Verify parent expands + auto-scroll to new task.
   - [x] E2E: Verify yellow flash class is applied to new item. (Verified via visual cue and E2E pass).
-  - [ ] E2E: Mobile: Add Child via Context Menu -> Verify auto-drill into parent + child visible.
+  - [x] E2E: Mobile: Add Child via Context Menu -> Verify auto-drill into parent + child visible.
 
 **Quality Gates**
 
@@ -259,14 +259,14 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 - [x] `pnpm build` -> Pass
 - [x] `pnpm test` -> Pass (ALL repo tests)
 - [x] `pnpm test:e2e` -> Pass (17 passed, 1 skipped)
-- [x] **EVIDENCE**: Full quality gate pass in `752ba316-f3ef-49c9-979b-81c807191dec`. Auto-expand (desktop-only fix for mobile invariants), scroll, and flash highlight implemented and verified.
+- [x] **EVIDENCE**: Full quality gate pass in `9f8db4b9-b498-4b74-9e4e-39fe07c3e672`. Mobile auto-drill implemented and verified.
 
 **Completion**
 
-- [ ] ✅ **CLEAN LISTS**: Pending Mobile Auto-Drill.
+- [x] ✅ **CLEAN LISTS**: Checked.
 - [x] 🛑 **TRUST BUT VERIFY**: Verified with full QG pass.
 - [x] 🛑 **RESTART ON EDIT**: Final pass complete.
-- [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
+- [x] 🛑 STOP and prompt for user review with the EVIDENCE.
 - [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
 - [ ] 🛑 **VERIFY COMMIT SUCCESS**: Pending.
 

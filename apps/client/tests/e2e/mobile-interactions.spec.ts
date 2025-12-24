@@ -117,12 +117,13 @@ test.describe('Mobile Bottom Bar Interactions', () => {
       await page.getByRole('textbox', {name: 'Title'}).fill(childTitle);
       await page.getByRole('button', {name: 'Create Task'}).click();
 
-      // 5. Verify Child is visible in this view
+      // 5. Verify Child is visible in this view (we're already drilled into parent)
       await expect(
         page.getByTestId('task-item').filter({hasText: childTitle}),
       ).toBeVisible();
 
-      // 6. Go Up and verify Child is NOT visible in root
+      // 6. Go Up twice (once to parent level, once to root) and verify Child is NOT visible
+      await page.getByLabel('Up Level').click();
       await page.getByLabel('Up Level').click();
       await expect(
         page.getByTestId('task-item').filter({hasText: childTitle}),
@@ -157,12 +158,11 @@ test.describe('Mobile Bottom Bar Interactions', () => {
       await page.getByRole('textbox', {name: 'Title'}).fill(childTitle);
       await page.getByRole('button', {name: 'Create Task'}).click();
 
-      // 5. Verify Child is added (might need to expand or drill down to see it?)
-      // In 'drill' mode, adding a child to a node usually doesn't show it unless we are IN the parent.
-      // BUT if we are at Root, and we added a child to Root Node, it becomes hidden under the parent.
-      // We should see the parent has children indication (e.g. drill down arrow).
-      // Or we can drill down to verify.
-      await parentRow.getByLabel('Drill down').click();
+      // 5. NEW BEHAVIOR: Auto-drill should have navigated us into the parent
+      // Verify we're now viewing the parent's children (breadcrumb shows parent)
+      await expect(page.getByRole('button', {name: parentTitle})).toBeVisible();
+
+      // 6. Verify Child is visible (we auto-drilled into parent)
       await expect(
         page.getByTestId('task-item').filter({hasText: childTitle}),
       ).toBeVisible();

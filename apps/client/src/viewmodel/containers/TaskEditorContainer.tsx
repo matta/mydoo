@@ -29,6 +29,7 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     openCreateModal,
     viewPath,
     popView,
+    pushView,
     expandAll,
     setLastCreatedTaskId,
   } = useNavigationState();
@@ -148,9 +149,14 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     // UX: Highlight & Reveal
     setLastCreatedTaskId(newTaskId);
 
-    if (modal.parentId && isDesktop) {
-      // If we created a child (has parentId), ensure the parent is expanded (Desktop only)
-      expandAll([modal.parentId]);
+    if (modal.parentId) {
+      if (isDesktop) {
+        // Desktop: Auto-expand the parent so the child is visible
+        expandAll([modal.parentId]);
+      } else {
+        // Mobile: Auto-drill into the parent so the child is visible
+        pushView(modal.parentId);
+      }
     }
   };
 
