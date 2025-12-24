@@ -45,8 +45,8 @@ describe('useTaskIntents (Move Interactions)', () => {
     // Sibling is at 0, Target is at 1. Target's previous sibling is Sibling.
 
     act(() => {
-      result.current.createTask('Target');
       result.current.createTask('Sibling');
+      result.current.createTask('Target');
     });
 
     const doc = handle.docSync();

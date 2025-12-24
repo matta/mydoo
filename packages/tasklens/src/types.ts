@@ -186,6 +186,14 @@ export interface Task {
 }
 
 /**
+ * Options for creating a new task, primarily for positioning.
+ */
+export type CreateTaskOptions =
+  | {position: 'start'}
+  | {position: 'end'}
+  | {position: 'after'; afterTaskId: TaskID};
+
+/**
  * A physical or virtual location where tasks can be performed.
  *
  * @property id - Unique identifier for this place.

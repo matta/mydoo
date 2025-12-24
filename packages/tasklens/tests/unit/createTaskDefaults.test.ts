@@ -1,4 +1,4 @@
-import {ANYWHERE_PLACE_ID, type PlaceID} from '@mydoo/tasklens';
+import {ANYWHERE_PLACE_ID, type PlaceID, type TaskID} from '@mydoo/tasklens';
 import {describe, expect, it} from 'vitest';
 
 import {createTask} from '../../src/persistence/ops';
@@ -97,5 +97,79 @@ describe('createTask - Default Values and Inheritance', () => {
 
     const updatedParent = store.state.tasks[parent.id];
     expect(updatedParent?.childTaskIds).toContain(child.id);
+  });
+
+  describe('Positioning', () => {
+    it('should add child to end by default', () => {
+      const store = new TunnelStore();
+      const parent = createTask(store.state, {title: 'Parent'});
+      createTask(store.state, {title: 'First', parentId: parent.id});
+      createTask(store.state, {title: 'Second', parentId: parent.id});
+
+      const updatedParent = store.state.tasks[parent.id];
+      const childIds = updatedParent?.childTaskIds ?? [];
+      expect(childIds.length).toBe(2);
+      if (childIds[0])
+        expect(store.state.tasks[childIds[0]]?.title).toBe('First');
+      if (childIds[1])
+        expect(store.state.tasks[childIds[1]]?.title).toBe('Second');
+    });
+
+    it('should add child to start when specified', () => {
+      const store = new TunnelStore();
+      const parent = createTask(store.state, {title: 'Parent'});
+      createTask(store.state, {title: 'First', parentId: parent.id});
+      createTask(
+        store.state,
+        {title: 'New First', parentId: parent.id},
+        {position: 'start'},
+      );
+
+      const updatedParent = store.state.tasks[parent.id];
+      const childIds = updatedParent?.childTaskIds ?? [];
+      expect(childIds[0]).toBeDefined();
+      if (childIds[0])
+        expect(store.state.tasks[childIds[0]]?.title).toBe('New First');
+    });
+
+    it('should add child after specific task', () => {
+      const store = new TunnelStore();
+      const parent = createTask(store.state, {title: 'Parent'});
+      const first = createTask(store.state, {
+        title: 'First',
+        parentId: parent.id,
+      });
+      createTask(store.state, {title: 'Second', parentId: parent.id});
+
+      createTask(
+        store.state,
+        {title: 'Inserted', parentId: parent.id},
+        {position: 'after', afterTaskId: first.id},
+      );
+
+      const updatedParent = store.state.tasks[parent.id];
+      const childIds = updatedParent?.childTaskIds ?? [];
+      if (childIds[1])
+        expect(store.state.tasks[childIds[1]]?.title).toBe('Inserted');
+    });
+
+    it('should fallback to end if afterTaskId is not found', () => {
+      const store = new TunnelStore();
+      const parent = createTask(store.state, {title: 'Parent'});
+      createTask(store.state, {title: 'First', parentId: parent.id});
+
+      createTask(
+        store.state,
+        {title: 'Fallback', parentId: parent.id},
+        {position: 'after', afterTaskId: 'non-existent' as TaskID},
+      );
+
+      const updatedParent = store.state.tasks[parent.id];
+      const childTaskIds = updatedParent?.childTaskIds ?? [];
+      const lastId = childTaskIds[childTaskIds.length - 1];
+      if (lastId) {
+        expect(store.state.tasks[lastId]?.title).toBe('Fallback');
+      }
+    });
   });
 });

@@ -20,6 +20,7 @@ import {useDocument} from '@automerge/automerge-repo-react-hooks';
 import {useCallback, useMemo} from 'react';
 
 import {
+  type CreateTaskOptions,
   type DocumentHandle,
   type Task,
   type TaskID,
@@ -51,7 +52,7 @@ import {TunnelStateSchema} from './schemas';
 export interface TunnelHookResult {
   doc: TunnelState | undefined;
   ops: {
-    add: (props: Partial<Task>) => void;
+    add: (props: Partial<Task>, options?: CreateTaskOptions) => void;
     delete: (id: TaskID) => void;
     move: (
       id: TaskID,
@@ -136,9 +137,9 @@ export function useTunnel(docId: DocumentHandle): TunnelHookResult {
   );
 
   const add = useCallback(
-    (props: Partial<Task>) => {
+    (props: Partial<Task>, options?: CreateTaskOptions) => {
       mutate(d => {
-        TunnelOps.createTask(d, props);
+        TunnelOps.createTask(d, props, options);
       });
     },
     [mutate],

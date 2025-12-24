@@ -25,6 +25,7 @@
 import {validateDepth, validateNoCycle} from '../domain/invariants';
 import {
   ANYWHERE_PLACE_ID,
+  type CreateTaskOptions,
   type Schedule,
   type Task,
   type TaskID,
@@ -47,6 +48,7 @@ import {daysToMilliseconds, getCurrentTimestamp} from '../utils/time';
  *                or a plain object for testing.
  * @param props - Partial task properties. Any omitted properties will use defaults.
  *                Common properties to set: `title`, `parentId`, `importance`.
+ * @param options - Optional positioning configuration.
  * @returns The newly created Task object.
  *
  * @throws Error if `parentId` refers to a non-existent task.
@@ -57,10 +59,14 @@ import {daysToMilliseconds, getCurrentTimestamp} from '../utils/time';
  * // Create a root task
  * createTask(state, { title: "Buy groceries" });
  *
- * // Create a child task
- * createTask(state, { title: "Buy milk", parentId: "1" });
+ * // Create a child task at the beginning of children
+ * createTask(state, { title: "Buy milk", parentId: "1" }, { position: 'start' });
  */
-export function createTask(state: TunnelState, props: Partial<Task>): Task {
+export function createTask(
+  state: TunnelState,
+  props: Partial<Task>,
+  options: CreateTaskOptions = {position: 'end'},
+): Task {
   // Use UUID for CRDT compatibility - sequential counters cause conflicts
   // when multiple replicas create tasks simultaneously.
   // Caller may provide an ID for testing purposes.
@@ -114,18 +120,34 @@ export function createTask(state: TunnelState, props: Partial<Task>): Task {
   state.tasks[newTaskId] = newTask;
 
   // Add to parent's children list or root list
+  let targetList: TaskID[];
   if (newTask.parentId) {
     const parent = state.tasks[newTask.parentId];
     if (parent) {
       // Validation: Depth limit
       validateDepth(state, newTask.parentId);
-
-      parent.childTaskIds.unshift(newTaskId); // Add to top by default
+      targetList = parent.childTaskIds;
     } else {
       throw new Error(`Parent task with ID ${newTask.parentId} not found.`);
     }
   } else {
-    state.rootTaskIds.unshift(newTaskId);
+    targetList = state.rootTaskIds;
+  }
+
+  // Position the task
+  if (options.position === 'start') {
+    targetList.unshift(newTaskId);
+  } else if (options.position === 'after' && options.afterTaskId) {
+    const idx = targetList.indexOf(options.afterTaskId);
+    if (idx !== -1) {
+      targetList.splice(idx + 1, 0, newTaskId);
+    } else {
+      // Fallback to end if afterTaskId not found
+      targetList.push(newTaskId);
+    }
+  } else {
+    // Default: end
+    targetList.push(newTaskId);
   }
 
   return newTask;
