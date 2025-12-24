@@ -172,12 +172,14 @@ This logic runs client-side on the flattened task list derived from the Automerg
 - **Structure:** Indented tree view. Infinite nesting supported.
 - **Root Nodes:** Fixed "Inbox" node (pinned at top) + User TLIs.
 - **Navigation (Hybrid)**:
-  - **Desktop (Tree Mode):** Full outline visible with expand/collapse chevrons (`>`). No drill-down or breadcrumbs. Use strict tree navigation.
+  - **Desktop (Tree Mode):** Full outline visible with expand/collapse chevrons (`>`).
   - **Mobile (Drill-Down Mode):** Drill-down navigation only. Tapping a parent's **arrow icon** "zooms in" to show only its children. A **breadcrumb trail** at the top shows the current path.
-- **Interaction:**
-  - **Expand/Collapse (Desktop):** Click Chevron (`>`) to toggle children.
-  - **Drill-Down (Mobile):** Tap **Arrow Icon** (Right side) to navigate into a parent.
-  - **Edit Task (Both):** Tap task **Title or Row** to open Edit modal.
+- **Interaction & Creation:**
+  - **Desktop (Hover Menu):** Hovering a row reveals a `•••` menu trigger (replacing the bullet). Menu options: "Add Sibling", "Add Child", "Delete".
+  - **Mobile (Bottom Bar):** Persistent toolbar at the bottom of the Plan view (above global nav). Contains `[<]` (Up Level) and `[+]` (Add to Top of current view).
+  - **Append Row:** A `[ + ]` row at the very bottom of the list (Desktop & Mobile) allows adding tasks to the end of the current zoom level.
+  - **Navigation Feedback:** Creating a task triggers "Highlight & Reveal" (flashes yellow, auto-expands parent, auto-scrolls to new task).
+  - **Edit Task:** Tap task **Title or Row** to open Edit modal.
 
 ### 4.4 The "Balance" View
 
@@ -189,19 +191,22 @@ This logic runs client-side on the flattened task list derived from the Automerg
 
 Since there is no "selection" state on mobile, tapping any task text opens a full-screen modal (Mobile) or centered Popup (Desktop).
 
+**Modes:**
+- **Create Mode:** Opens with empty fields. Hierarchy controls are hidden. "Save" creates the task and closes the modal.
+- **Edit Mode:** Opens with existing data. Hierarchy controls are visible.
+
 **Modal Contents:**
 
 1. **Title:** Text input.
-2. **Navigation & Hierarchy:**
-
-- **Parent:** Read-only text showing current project.
-- **"Move..." Button:** Opens a picker modal allowing the user to:
-  1. **Select a new parent** (reparenting), and/or
-  2. **Choose position among siblings** (reordering within the same or new parent).
-
-  This is the **only mechanism for reorganizing tasks**—no drag-and-drop is required for MVP.
-
-- **"Find in Plan" Button:** Closes the modal and navigates to the task's location in the Plan view.
+2. **Navigation & Hierarchy (Edit Mode Only):**
+   - **Parent:** Read-only label showing current parent.
+   - **Hierarchy Controls:**
+     - `[← Outdent]`: Moves task up one level (becomes sibling of parent).
+       - **Edge Case (Mobile)**: If the task is a direct child of the current zoom context, outdenting moves it out of view. In this case, the system **MUST** auto-navigate up one level so the task remains visible.
+     - `[Indent →]`: Moves task to become child of previous sibling.
+     - **"Move..." Button**: Opens a picker modal for precise reparenting (step 7).
+     - **Note**: Hierarchy actions (Indent, Outdent, Move) are applied **immediately** to the database.
+   - **"Find in Plan" Button:** Closes modal and navigates to task in Plan view.
 
 3. **Status/Logic:**
 

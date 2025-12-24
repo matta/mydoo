@@ -163,7 +163,7 @@ _Goal: Hierarchical tree navigation with expand/collapse._
 
 **PRD References**: [§4.3 The Plan View](../design/prd.md)
 
-> **🔴 Current Priority**: Implement MovePickerModal for task reorganization.
+> **🔴 Current Priority**: Implement Critical Create Flow Fixes (Highlight & Reveal).
 
 - [x] **Step 1-3: Logic & UI (Complete)**
   - [x] Implement `useTaskTree` (Recursive projection)
@@ -182,6 +182,9 @@ _Goal: Hierarchical tree navigation with expand/collapse._
   - [x] Implement scrollable breadcrumb trail for mobile
   - [x] Tap row/title opens Task Editor; tap arrow drills down
   - [x] E2E tests for mobile navigation
+- [ ] **Step 6: Critical Create Flow Fixes (Highlight & Reveal)**
+  - [ ] Add "More" menu to TaskOutlineItem (Add Child, Add Sibling)
+  - [ ] Implement "Highlight & Reveal" (Auto-expand, Auto-scroll, Flash)
 - [ ] **Remaining Work**
   - [ ] Create `MovePickerModal` (select new parent + position)
   - [ ] E2E: Move task -> Verify tree updates correctly

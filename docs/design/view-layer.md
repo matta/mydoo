@@ -346,6 +346,21 @@ function useTaskDetails(
 
 ---
 
+### 3.9 `useValidParentTargets(docUrl: DocumentHandle, excludedTaskId: TaskID | undefined)`
+
+**Purpose**: Calculate valid parent candidates for reparenting (excluding self and descendants to prevent cycles).
+
+```typescript
+function useValidParentTargets(
+  docUrl: DocumentHandle, 
+  excludedTaskId: TaskID | undefined
+): TunnelNode[];
+```
+
+**Location**: `apps/client/src/viewmodel/projections/useValidParentTargets.ts` (NEW)
+
+---
+
 ## 4. Action Hooks (User Intents)
 
 Action hooks expose **User Intents** (see §2.4)—semantic operations representing user goals. Each intent may trigger multiple store mutations and side effects.
@@ -480,8 +495,17 @@ export function useTaskIntents(docUrl: DocumentHandle): TaskIntents {
 ```typescript
 interface TaskIntents {
   /** Intent: "I want to add a new task"
-   *  Effects: Creates task with defaults, adds to parent's childIds */
-  createTask: (title: string, parentId?: TaskID) => TaskID;
+   *  Effects: Creates task with defaults, adds to parent's childIds
+   *  @param options.position - 'start' (prepend), 'end' (append), or 'after' (insert after afterTaskId)
+   */
+  createTask: (
+    title: string,
+    parentId?: TaskID,
+    options?: 
+      | {position: 'start'}
+      | {position: 'end'}
+      | {position: 'after'; afterTaskId: TaskID}
+  ) => TaskID;
 
   /** Intent: "I finished this task"
    *  Effects: Sets status=Done, triggers recurrence if repeating, runs healer */
@@ -494,6 +518,14 @@ interface TaskIntents {
   /** Intent: "This task belongs elsewhere" or "Reorder this task"
    *  Effects: Updates parentId and/or position in childIds array */
   moveTask: (id: TaskID, newParentId?: TaskID, afterSiblingId?: TaskID) => void;
+
+  /** Intent: "Increase hierarchy level (move right)"
+   *  Effects: Becomes child of previous sibling */
+  indentTask: (id: TaskID) => void;
+
+  /** Intent: "Decrease hierarchy level (move left)"
+   *  Effects: Becomes sibling of current parent */
+  outdentTask: (id: TaskID) => void;
 
   /** Intent: "I don't need this task anymore"
    *  Effects: Sets status=Deleted on task and all descendants */
@@ -593,7 +625,13 @@ interface NavigationState {
 
   // Modal state
   editingTaskId: TaskID | undefined;
+  createTaskParentId: TaskID | null | undefined; // For Create Mode (null = root)
+  createTaskPosition: 'start' | 'end' | 'after'; // Insertion position
+  createTaskAfterTaskId: TaskID | undefined; // For "Add Sibling" positioning (when position='after')
   movePickerTaskId: TaskID | undefined;
+
+  // Feedback state
+  lastCreatedTaskId: TaskID | undefined; // For "Highlight & Reveal"
 
   // Filter state
   placeFilter: PlaceID | 'all';
@@ -604,11 +642,19 @@ interface NavigationActions {
   navigateTo: (path: TaskID[]) => void;
   navigateUp: () => void;
   toggleExpanded: (id: TaskID) => void;
-  openTaskEditor: (id: TaskID) => void;
+  
+  openTaskEditor: (id: TaskID) => void; // Edit Mode
+  openCreateTask: (
+    parentId: TaskID | null,
+    options?: {position?: 'start' | 'end' | 'after'; afterTaskId?: TaskID}
+  ) => void; // Create Mode
   closeTaskEditor: () => void;
+  
   openMovePicker: (id: TaskID) => void;
   closeMovePicker: () => void;
+  
   setPlaceFilter: (placeId: PlaceID | 'all') => void;
+  clearLastCreatedTaskId: () => void;
 }
 
 function useNavigationState(): [NavigationState, NavigationActions];
@@ -676,13 +722,21 @@ function PlanViewContainer() {
       expandedIds={nav.expandedIds}
       onNavigate={navActions.navigateTo}
       onToggleExpand={navActions.toggleExpanded}
-      onCreateTask={taskIntents.createTask}
+      onCreateTask={(title, parentId, afterTaskId) =>
+        taskIntents.createTask(title, parentId, afterTaskId)
+      }
       onEditTask={navActions.openTaskEditor}
       onMoveTask={navActions.openMovePicker}
     />
   );
 }
 ```
+
+> [!NOTE]
+> **Mobile Layout**: The `PlanViewContainer` renders a persistent **Bottom Bar** on mobile viewports. This bar contains:
+> - `[<]` Up Level (navigates up the stack)
+> - `[+]` Add Task (opens "Create Mode" targeting the current view/zoom level)
+
 
 **Location**: `apps/client/src/viewmodel/containers/PlanViewContainer.tsx` (NEW)
 
@@ -740,7 +794,7 @@ function ContextViewContainer() {
 
 ### 5.5 `TaskEditorContainer`
 
-**Responsibility**: Full-screen task details editor modal.
+**Responsibility**: Full-screen task details editor modal. Supports "Create Mode" (new task) and "Edit Mode" (existing task).
 **State Management**: For MVP, the `TaskEditorModal` manages its own transient form state (local `useState`). The container simply assumes responsibility for fetching the `Task` data and handling the "Save" action to persist to Automerge.
 
 ```tsx
@@ -751,20 +805,49 @@ function TaskEditorContainer() {
   const taskIntents = useTaskIntents(docUrl);
   const {places} = usePlaces(docUrl);
 
-  // Note: Form state (dirty checking, validation) is handled internally by TaskEditorModal for MVP.
+  // Determine Mode
+  const isCreateMode = !!nav.createTaskParentId;
+  const parentId = isCreateMode ? nav.createTaskParentId : task?.parentId;
 
-  if (!nav.editingTaskId) return null;
+  if (!nav.editingTaskId && !isCreateMode) return null;
 
   return (
     <TaskEditorModal
-      task={task}
+      // Data
+      task={isCreateMode ? undefined : task} // Undefined task triggers "Empty Form"
+      initialParentId={parentId}
       places={places}
+      mode={isCreateMode ? 'create' : 'edit'}
+
+      // Lifecycle
       opened={true}
       onClose={navActions.closeTaskEditor}
-      onSave={taskIntents.updateTask}
-      onDelete={taskIntents.deleteTask}
-      onAddSibling={parentId => taskIntents.createTask("New Task", parentId)}
-      onAddChild={parentId => taskIntents.createTask("New Task", parentId)}
+
+      // Actions
+      onSave={(data) => {
+         if (isCreateMode) {
+           taskIntents.createTask(data.title, parentId, {
+             position: nav.createTaskPosition,
+             afterTaskId: nav.createTaskAfterTaskId,
+           });
+         } else {
+           taskIntents.updateTask(task.id, data);
+         }
+         navActions.closeTaskEditor();
+      }}
+      onDelete={() => {
+        taskIntents.deleteTask(task.id);
+        navActions.closeTaskEditor();
+      }}
+
+      // Hierarchy (Exposed only in Edit Mode)
+      onIndent={() => taskIntents.indentTask(task.id)}
+      onOutdent={() => taskIntents.outdentTask(task.id)}
+      onMove={() => navActions.openMovePicker(task.id)}
+      onFindInPlan={() => {
+         navActions.closeTaskEditor();
+         navActions.navigateToTask(task.id);
+      }}
     />
   );
 }
@@ -900,7 +983,7 @@ These components receive all data as props and have no internal state except tra
 | Component          | Props                                                    | Typical Implementation                    |
 | ------------------ | -------------------------------------------------------- | ----------------------------------------- |
 | `TaskRow`          | `task: PriorityTask`, `onToggle`, `onEdit`               | `Group`, `Checkbox`, `Text`, `Badge`      |
-| `TaskOutlineItem`  | `node: TunnelNode`, `isExpanded`, `onToggle`, `onExpand` | `Group`, `Checkbox`, `Text`, `ActionIcon` |
+| `TaskOutlineItem`  | `node`, `isExpanded`, `onToggle`, `onHoverMenu`          | `Group`, `Menu` (Desktop), `Checkbox`     |
 | `PriorityTaskList` | `tasks[]`, callbacks                                     | `Stack`, `ScrollArea`                     |
 | `OutlineTree`      | `nodes[]`, `expandedIds`, callbacks                      | `Stack` (recursive)                       |
 
