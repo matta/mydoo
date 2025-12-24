@@ -11,8 +11,8 @@ run_gate() {
   }
 }
 
-if [ "$ANTIGRAVITY_AGENT" = "1" ]; then
-  echo "🤖 Antigravity Agent detected. Running full quality gates..."
+if [ "$ANTIGRAVITY_AGENT" = "1" ] || [ "$GEMINI_CLI" = "1" ]; then
+  echo "🤖 Agent detected (Antigravity/Gemini). Running full quality gates..."
 
   run_gate "pnpm lint"
   run_gate "pnpm build"
