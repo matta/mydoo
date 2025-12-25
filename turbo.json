@@ -10,12 +10,13 @@
   "tasks": {
     "//#lint:filenames": {
       "inputs": [
-        "**/*",
-        "!**/node_modules/**",
-        "!**/dist/**",
-        "!**/.git/**",
-        "!**/.turbo/**",
-        "!**/coverage/**",
+        "**/*.md",
+        "**/*.sh",
+        "**/*.yaml",
+        "**/*.yml",
+        "**/*.toml",
+        "**/*.config.js",
+        "**/*.config.ts",
         "!**/playwright-report/**",
         "!**/test-results/**"
       ],

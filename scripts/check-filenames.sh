@@ -104,7 +104,15 @@ EOF
 # Find files that violate the convention
 # Exclude: .git, node_modules, dist, .turbo, coverage, grandfathered files
 # Exclude: Extensions handled by Biome (ts, tsx, js, jsx, cjs, mjs, json, jsonc)
-VIOLATIONS=$(find . -type f \
+VIOLATIONS=$(find . -type f \( \
+    -name "*.md" -o \
+    -name "*.sh" -o \
+    -name "*.yaml" -o \
+    -name "*.yml" -o \
+    -name "*.toml" -o \
+    -name "*.config.js" -o \
+    -name "*.config.ts" \
+  \) \
   -not -path "./.git/*" \
   -not -path "*/.git/*" \
   -not -path "./node_modules/*" \
@@ -126,7 +134,6 @@ VIOLATIONS=$(find . -type f \
   -not -name "README.md" \
   -not -name "Dockerfile" \
   -not -name "Makefile" \
-  | grep -vE "\.(ts|tsx|js|jsx|cjs|mjs|json|jsonc)$" \
   | grep -E "/[^/]*[A-Z_][^/]*$" \
   | grep -vFf .grandfathered_files)
 
