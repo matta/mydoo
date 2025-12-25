@@ -9,7 +9,6 @@ run_gate() {
     echo "IF THE FIX IS NON-TRIVIAL, YOU MUST STOP AND WAIT FOR HUMAN REVIEW."
     exit 1
   }
-  echo "✅ '$cmd' succeeded."
 }
 
 if [ "$ANTIGRAVITY_AGENT" = "1" ] || [ "$GEMINI_CLI" = "1" ]; then

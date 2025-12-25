@@ -10,6 +10,7 @@
 - **Git Commit Rule:** NEVER commit a git change without an explicit command from the user beginning with `git commit`. If the user asks to commit (e.g., "commit this") without the explicit command, STOP and ask for confirmation.
 - **Git Presubmit Rule:** NEVER use `--no-verify`. On presubmit failure: fix trivial issues and retry; otherwise STOP AND WAIT.
 - **Foreground Commit Rule:** ALWAYS run `git commit` in the foreground (synchronously). Presubmit hooks often fail or warn; immediate feedback is required to retry or fix issues promptly.
+- **Verification Protocol:** The Agent must NEVER report a shell command as successful based on log output alone. The Agent MUST verify that the process `Exit Code` is `0` (via `command_status`) before claiming success.
 
 ## Documentation
 
