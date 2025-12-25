@@ -8,6 +8,7 @@
 
 - **Clean Tree Rule:** Before starting unrelated work or a new development phase, run `git status`. If the working tree is not clean, STOP and notify the user.
 - **Git Presubmit Rule:** NEVER use `--no-verify`. On presubmit failure: fix trivial issues and retry; otherwise STOP AND WAIT.
+- **Foreground Commit Rule:** ALWAYS run `git commit` in the foreground (synchronously). Presubmit hooks often fail or warn; immediate feedback is required to retry or fix issues promptly.
 
 ## Documentation
 
