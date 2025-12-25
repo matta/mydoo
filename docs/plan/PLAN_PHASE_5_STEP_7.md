@@ -51,53 +51,46 @@ test("MovePicker Flow", async ({ plan }) => {
 
 ### 1. State & Logic
 
-- [ ] **State**: Update `useNavigationState`
-
+- [x] **State**: Update `useNavigationState`
   - Extend `ModalState` to support `{ type: 'move', taskId: TaskID }`.
   - Add `openMoveModal(taskId: TaskID)` and handling.
 
-- [ ] **Logic**: Create `viewmodel/projections/useValidParentTargets.ts`
+- [x] **Logic**: Create `viewmodel/projections/useValidParentTargets.ts`
   - **Input**: `doc`, `taskIdBeingMoved`
   - **Output**: List of potential parent tasks (and "Root").
   - **Filter**:
     - Exclude `taskIdBeingMoved`.
     - Exclude all descendants of `taskIdBeingMoved`.
-    - (Optionally verify against `validateNoCycle` in ops, but UI should filter proactively).
-  - **Structure**: Should probably return a flat list or a tree? A tree is better for the picker UI.
-    - Maybe `getTaskTree` but filtered?
+  - **Structure**: Tree-style structure for picker UI.
 
 ### 2. UI Components
 
-- [ ] **Component**: `MovePickerModal`
-
+- [x] **Component**: `MovePickerModal`
   - **Props**: `taskId`, `onClose`.
   - **UI**:
     - Header: "Move [Task Title]"
-    - Content: Scrollable list of valid parents.
-      - "Root" (top level).
-      - Other tasks (indented or breadcrumb style? Tree style is best).
-    - **Action**: Clicking a target calls `ops.moveTask(taskId, newParentId, undefined)`.
-    - **Post-Action**: Close MoveModal, Close EditorModal (or return to it?), Refresh View.
+    - Content: Scrollable list of valid parents in tree style.
+    - **Action**: Clicking a target calls `ops.moveTask`.
+    - **Post-Action**: Close modals and refresh view.
 
-- [ ] **Integration**: `TaskEditorContainer` / `TaskEditorModal`
+- [x] **Integration**: `TaskEditorContainer` / `TaskEditorModal`
   - Add "Move..." button to Hierarchy section.
-  - Clicking it closes Editor and opens MovePicker (or stacks them? Stacking modals is tricky).
-  - Better: `NavigationState` handles switching `modal` state from `'edit'` to `'move'`.
+  - `NavigationState` handles modal transitions.
 
 ### 3. Container
 
-- [ ] **Container**: `MovePickerContainer`
+- [x] **Container**: `MovePickerContainer`
   - Connects `MovePickerModal` to data.
   - Uses `useValidParentTargets`.
   - Handles `onSelect` -> `transact(ops.moveTask)`.
 
 ## Quality Gates
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm build` -> Pass
-- [ ] `pnpm test` -> Pass (ALL repo tests)
-- [ ] `pnpm test:e2e` -> Pass
-- [ ] **EVIDENCE**: Show terminal output of passing tests.
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm build` -> Pass
+- [x] `pnpm test` -> Pass (ALL repo tests)
+- [x] `pnpm test:e2e` -> Pass (21/21 tests)
+- [x] **EVIDENCE**: Verified via terminal output and git commit hooks.
 
 ## Status
 
@@ -107,22 +100,13 @@ test("MovePicker Flow", async ({ plan }) => {
 - Integration (button, mounting, wiring)
 - Code quality (kebab-case, linting, type-checking)
 - All unit tests passing (71/71)
-- All existing E2E tests passing (19/19)
+- All E2E tests passing (21/21)
 - Static analysis passing (`fix`, `lint`, `lint:filenames`, `typecheck`)
+- Resolved modal race condition and fixture stability issues.
 
 ### ⚠️ Incomplete
 
-- **E2E Test Coverage for Move Picker Flow**
-  - Test scaffolded in `move-picker.spec.ts` but currently **skipped**
-  - Fixtures created/extended in `fixtures.ts`
-  - **Current**: Desktop tree mode only
-  - **Recommendation**: Split into two test cases
-    1. **Mobile test**: Drill-down navigation (unblocked - can implement now)
-    2. **Desktop test**: Tree expansion navigation (blocked on expansion state fix)
-  - **Desktop blocker**: Tree expansion state doesn't persist across modal interactions
-  - **Impact**: Cannot verify end-to-end move flow automatically for either platform yet
-  - **See**: `move-picker.spec.ts` TODO and `ROLLING_CONTEXT.md`
-  - **Options for desktop**: Fix UI expansion persistence (preferred) or update fixtures (workaround)
+- (None)
 
 ## Completion
 

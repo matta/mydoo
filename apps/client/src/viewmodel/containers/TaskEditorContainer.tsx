@@ -34,6 +34,7 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     expandAll,
     setLastCreatedTaskId,
   } = useNavigationState();
+
   const editingTaskId = modal?.type === 'edit' ? modal.taskId : undefined;
 
   const {task, parentTitle, descendantCount} = useTaskDetails(

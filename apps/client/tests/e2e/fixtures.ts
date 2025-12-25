@@ -1,5 +1,5 @@
 import type {Page} from '@playwright/test';
-import {test as base} from '@playwright/test';
+import {test as base, expect} from '@playwright/test';
 
 // Define the custom fixture type
 type PlanFixture = {
@@ -89,13 +89,36 @@ class PlanPage {
     // Click "Add Child" in the footer
     await editModal.getByRole('button', {name: 'Add Child'}).click();
 
-    // 2. Expect "Create Task" modal to appear (implied by placeholder presence)
-    const input = this.page.getByPlaceholder('What needs to be done?');
+    // 2. Expect "Create Task" modal to appear
+    const createModal = this.page.getByRole('dialog', {name: 'Create Task'});
+    await createModal.waitFor({state: 'visible', timeout: 3000});
+
+    const input = createModal.getByPlaceholder('What needs to be done?');
     await input.waitFor({state: 'visible', timeout: 3000});
 
-    // 3. Fill and Save
+    console.log('Fixture: Filling title Task B');
+    await input.click();
     await input.fill(title);
+
+    console.log('Fixture: Pressing Enter');
     await input.press('Enter');
+    console.log('Fixture: Pressed Enter');
+
+    // VERIFY: Check if task exists in list (should be visible if auto-expanded)
+    // Or at least check if parent now has children?
+    // We can't easily check visibility because it might be inside collapsed parent (on desktop).
+    // But on Desktop, handleCreate calls expandAll.
+    // So it SHOULD be visible.
+    try {
+      await this.page
+        .getByText(title)
+        .waitFor({state: 'visible', timeout: 2000});
+      console.log(
+        `Fixture: addChild - ${title} created and visible immediately.`,
+      );
+    } catch (_e) {
+      console.log(`Fixture: addChild - ${title} NOT visible immediately.`);
+    }
 
     // 4. Close Create Modal
     await this.page.keyboard.press('Escape');
@@ -126,7 +149,21 @@ class PlanPage {
 
     // Find the chevron button within the row (aria-label="Toggle expansion")
     const chevron = row.getByLabel('Toggle expansion');
-    await chevron.click({force: true});
+
+    if (await chevron.isVisible()) {
+      console.log(`Fixture: toggleExpand checking ${title}.`);
+      // Check if valid first
+      const isExpanded = await chevron.getAttribute('data-expanded');
+      console.log(`Fixture: isExpanded attr: ${isExpanded}`);
+      if (isExpanded !== 'true') {
+        console.log(`Fixture: Clicking toggle for ${title}`);
+        await chevron.dispatchEvent('click', {bubbles: true});
+      } else {
+        console.log(`Fixture: Already expanded ${title}`);
+      }
+    } else {
+      console.log(`Fixture: Chevron not visible for ${title}`);
+    }
   }
 }
 

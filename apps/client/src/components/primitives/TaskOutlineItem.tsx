@@ -199,6 +199,8 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
             opacity: hasChildren ? 1 : 0,
             pointerEvents: hasChildren ? 'auto' : 'none',
           }}
+          // Used by E2E tests (fixtures.ts) to verify expansion state
+          data-expanded={isExpanded}
         >
           {isExpanded ? (
             <IconChevronDown size={14} />

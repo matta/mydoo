@@ -149,14 +149,14 @@ export function TaskEditorModal({
   const handleAddSibling = useCallback(() => {
     if (!task) return;
     onAddSibling(task.parentId);
-    onClose();
-  }, [task, onAddSibling, onClose]);
+    // Note: Do NOT close here - modal transitions to Create mode
+  }, [task, onAddSibling]);
 
   const handleAddChild = useCallback(() => {
     if (!task) return;
     onAddChild(task.id);
-    onClose();
-  }, [task, onAddChild, onClose]);
+    // Note: Do NOT close here - modal transitions to Create mode
+  }, [task, onAddChild]);
 
   const handleDelete = useCallback(() => {
     if (!task) return;
@@ -204,8 +204,10 @@ export function TaskEditorModal({
           data-autofocus
           autoFocus
           onKeyDown={e => {
-            if (e.key === 'Enter' && title.trim()) {
-              handleSave();
+            if (e.key === 'Enter') {
+              if (title?.trim()) {
+                handleSave();
+              }
             }
           }}
         />
