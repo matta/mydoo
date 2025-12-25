@@ -1,26 +1,55 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "package.json",
+    "pnpm-workspace.yaml",
+    "tsconfig.base.json",
+    "biome.json"
+  ],
   "globalPassThroughEnv": ["ANTIGRAVITY_AGENT", "GEMINI_CLI", "CI"],
   "tasks": {
     "//#lint:filenames": {
-      "inputs": ["**/*"]
+      "inputs": [
+        "**/*",
+        "!**/node_modules/**",
+        "!**/dist/**",
+        "!**/.turbo/**",
+        "!**/coverage/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
     },
     "lint": {
-      "dependsOn": ["//#lint:filenames"]
+      "dependsOn": ["//#lint:filenames"],
+      "outputs": []
     },
-    "format": {},
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
     "build": {
       "dependsOn": ["lint", "^build"],
+      "inputs": [
+        "src/**/*",
+        "public/**/*",
+        "package.json",
+        "tsconfig.json",
+        "vite.config.ts",
+        "index.html",
+        "specs/**/*"
+      ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "test": {
       "dependsOn": ["lint", "build"],
-      "outputs": ["coverage/**"],
-      "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts", "test/**/*.tsx"]
+      "inputs": ["src/**/*", "tests/**/*", "test/**/*", "specs/**/*"],
+      "outputs": []
     },
     "test:e2e": {
       "dependsOn": ["lint", "build"],
-      "cache": false
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "cache": true
     },
     "dev": {
       "cache": false,

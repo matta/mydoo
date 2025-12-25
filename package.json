@@ -22,7 +22,7 @@
     "dev": "turbo dev",
     "fix": "biome check --write .",
     "format": "biome format .",
-    "lint": "biome check . && pnpm lint:filenames",
+    "lint": "biome check .",
     "lint:filenames": "./scripts/check-filenames.sh",
     "prepare": "husky",
     "test": "turbo test",

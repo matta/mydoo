@@ -12,12 +12,9 @@ run_gate() {
 }
 
 if [ "$ANTIGRAVITY_AGENT" = "1" ] || [ "$GEMINI_CLI" = "1" ]; then
-  echo "🤖 Agent detected (Antigravity/Gemini). Running full quality gates..."
+  echo "🤖 Agent detected (Antigravity/Gemini). Running full quality gates (Turbo)..."
 
-  run_gate "pnpm lint"
-  run_gate "pnpm build"
-  run_gate "pnpm test"
-  run_gate "pnpm test:e2e"
+  run_gate "pnpm exec turbo run test test:e2e typecheck"
 
   echo "✅ All quality gates passed. Proceeding with commit."
 else
