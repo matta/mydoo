@@ -13,6 +13,7 @@ import {
  */
 export type ModalState =
   | {type: 'edit'; taskId: TaskID}
+  | {type: 'move'; taskId: TaskID}
   | {
       type: 'create';
       parentId: TaskID | undefined;
@@ -61,6 +62,9 @@ export interface NavigationState {
 
   /** Opens the modal in Edit Mode for a specific task. */
   openEditModal: (id: TaskID) => void;
+
+  /** Opens the modal in Move Mode for a specific task. */
+  openMoveModal: (id: TaskID) => void;
 
   /** Opens the modal in Create Mode. */
   openCreateModal: (
@@ -129,6 +133,12 @@ export function NavigationProvider({children}: {children: ReactNode}) {
   const openEditModal = useCallback((taskId: TaskID) => {
     setLastCreatedTaskId(undefined);
     setModal({type: 'edit', taskId});
+  }, []);
+
+  const openMoveModal = useCallback((taskId: TaskID) => {
+    // When opening move modal, we usually transition from edit modal.
+    // We don't need to clear lastCreatedTaskId necessarily, but safe to do so or keep it.
+    setModal({type: 'move', taskId});
   }, []);
 
   const openCreateModal = useCallback(
@@ -213,6 +223,7 @@ export function NavigationProvider({children}: {children: ReactNode}) {
       currentViewId: viewPath.at(-1),
       modal,
       openEditModal,
+      openMoveModal,
       openCreateModal,
       closeModal,
       expandAll,
@@ -237,6 +248,7 @@ export function NavigationProvider({children}: {children: ReactNode}) {
       collapseAll,
       modal,
       openEditModal,
+      openMoveModal,
       openCreateModal,
       closeModal,
       lastCreatedTaskId,

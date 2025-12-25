@@ -27,6 +27,7 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     modal,
     closeModal,
     openCreateModal,
+    openMoveModal,
     viewPath,
     popView,
     pushView,
@@ -192,12 +193,31 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     outdentTask(taskId);
   };
 
+  /* Open the move picker modal */
+  const handleMove = (taskId: TaskID) => {
+    // We are currently in the edit modal. We want to switch to the move modal.
+    // openMoveModal(taskId) will update the 'modal' state to { type: 'move' ... }
+    // This will cause TaskEditorContainer to render null (because isOpen check fails)
+    // and MovePickerContainer to render (because its isOpen check passes).
+    // Perfect.
+    if (taskId) {
+      // Import this from hook if it's not exposed?
+      // useNavigationState exposes openMoveModal.
+      // But I need to destructure it first.
+      openMoveModal(taskId);
+    }
+  };
+
   return (
     <TaskEditorModal
       opened={!!modal && (modal.type === 'create' || !!task)}
       onClose={handleClose}
       task={modal?.type === 'create' ? null : task}
-      mode={modal?.type}
+      mode={
+        modal?.type === 'create' || modal?.type === 'edit'
+          ? modal.type
+          : undefined
+      }
       parentTitle={resolvedParentTitle}
       descendantCount={descendantCount}
       onSave={handleSave}
@@ -207,6 +227,7 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
       onDelete={handleDelete}
       onIndent={handleIndent}
       onOutdent={handleOutdent}
+      onMove={handleMove}
       canIndent={canIndent}
     />
   );

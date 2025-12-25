@@ -20,6 +20,7 @@
 
 - We use Vitest for testing.
 - All new code must have tests.
+- **Strict Verification:** ALWAYS run `pnpm fix`, `pnpm lint:filenames`, and `pnpm typecheck` BEFORE running tests. Do not check in code that fails static analysis.
 
 ## Context Convention: `ROLLING_CONTEXT.md`
 

@@ -99,6 +99,31 @@ test("MovePicker Flow", async ({ plan }) => {
 - [ ] `pnpm test:e2e` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
+## Status
+
+### ✅ Complete
+
+- Core implementation (all components, hooks, containers)
+- Integration (button, mounting, wiring)
+- Code quality (kebab-case, linting, type-checking)
+- All unit tests passing (71/71)
+- All existing E2E tests passing (19/19)
+- Static analysis passing (`fix`, `lint`, `lint:filenames`, `typecheck`)
+
+### ⚠️ Incomplete
+
+- **E2E Test Coverage for Move Picker Flow**
+  - Test scaffolded in `move-picker.spec.ts` but currently **skipped**
+  - Fixtures created/extended in `fixtures.ts`
+  - **Current**: Desktop tree mode only
+  - **Recommendation**: Split into two test cases
+    1. **Mobile test**: Drill-down navigation (unblocked - can implement now)
+    2. **Desktop test**: Tree expansion navigation (blocked on expansion state fix)
+  - **Desktop blocker**: Tree expansion state doesn't persist across modal interactions
+  - **Impact**: Cannot verify end-to-end move flow automatically for either platform yet
+  - **See**: `move-picker.spec.ts` TODO and `ROLLING_CONTEXT.md`
+  - **Options for desktop**: Fix UI expansion persistence (preferred) or update fixtures (workaround)
+
 ## Completion
 
 - [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.

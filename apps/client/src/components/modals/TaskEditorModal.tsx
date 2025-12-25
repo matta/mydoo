@@ -53,6 +53,8 @@ interface TaskEditorModalProps {
   onIndent?: (taskId: TaskID) => void;
   /** Callback to outdent the task */
   onOutdent?: (taskId: TaskID) => void;
+  /** Callback to initiate move (reparenting) */
+  onMove?: (taskId: TaskID) => void;
   /** Whether indentation is possible (has previous sibling) */
   canIndent?: boolean;
 }
@@ -74,6 +76,7 @@ export function TaskEditorModal({
   mode,
   onIndent,
   onOutdent,
+  onMove,
   canIndent = false,
 }: TaskEditorModalProps) {
   // Local form state
@@ -200,6 +203,11 @@ export function TaskEditorModal({
           value={title}
           data-autofocus
           autoFocus
+          onKeyDown={e => {
+            if (e.key === 'Enter' && title.trim()) {
+              handleSave();
+            }
+          }}
         />
 
         {/* Hierarchy Controls (Edit Mode Only) */}
@@ -212,7 +220,13 @@ export function TaskEditorModal({
               <Text c="dimmed" size="sm">
                 Parent: {parentTitle || 'Root (Top Level)'}
               </Text>
-              {/* Move button placeholder (Phase 5 Step 7) */}
+              <Button
+                variant="subtle"
+                size="xs"
+                onClick={() => onMove?.(task.id)}
+              >
+                Move...
+              </Button>
             </Group>
             <Group grow>
               <Button

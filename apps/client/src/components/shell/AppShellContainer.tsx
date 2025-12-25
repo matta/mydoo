@@ -10,6 +10,7 @@ import {
 } from '@tabler/icons-react';
 import {seedHierarchicalData} from '../../dev/SeedData';
 import {DoViewContainer} from '../../viewmodel/containers/DoViewContainer';
+import {MovePickerContainer} from '../../viewmodel/containers/move-picker-container';
 import {TaskEditorContainer} from '../../viewmodel/containers/TaskEditorContainer';
 import {useNavigationState} from '../../viewmodel/ui/useNavigationState';
 import {PlanViewContainer} from '../views/plan/PlanViewContainer';
@@ -133,6 +134,7 @@ export function AppShellContainer({docUrl}: {docUrl: DocumentHandle}) {
         {activeTab === 'do' && <DoViewContainer docUrl={docUrl} />}
         {activeTab === 'plan' && <PlanViewContainer docUrl={docUrl} />}
         <TaskEditorContainer docUrl={docUrl} />
+        <MovePickerContainer />
       </AppShell.Main>
 
       {/* Mobile Bottom Tab Bar: Only visible on small screens */}
