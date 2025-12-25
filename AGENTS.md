@@ -31,38 +31,26 @@ For efforts spanning multiple sessions or commits, we maintain a root-level `ROL
   - `task.md` / `implementation_plan.md`: The agent's *ephemeral, internal* checklist for the immediate next step.
   - `ROLLING_CONTEXT.md`: The *persistent, shared* narrative of the broader effort.
 
-## Hybrid AI-Assisted Testing Strategy
+## Testing Strategy: Executable Specs
 
 We use a risk-based testing protocol. Not everything is tested the same way.
+
+We reject fragile, low-level DOM tests. We use **Fluent, Literate Architecture** where tests act as high-level executable specifications using the project's **Ubiquitous Language**.
 
 ### 1. The Core Protocol: "Stop & Plan"
 
 **Rule:** The AI must Stop & Plan before:
 - Adding new features or significantly changing existing behavior.
-- Making UI changes that alter user-facing workflows or visual states.
-- Modifying code that lacks test coverage (plan must include adding tests).
+- Making UI changes that alter user-facing workflows.
+- Modifying code that lacks test coverage.
 
-For trivial fixes (typos, formatting, obvious one-liners), the agent may proceed directly.
+**The Planning Step:**
+1.  **Draft the Spec:** For complex features, the AI must draft the *Test Case* (in TypeScript) before writing implementation code. This acts as the requirement definition.
+2.  **Verify Language:** Ensure the draft uses domain terms (`journal.reflect()`), not implementation terms (`button.click()`).
 
-1.  **Categorize:** Declare the feature's complexity bucket (see below).
-2.  **Plan:** Output a specification (Text Plan for simple features, Gherkin for complex ones).
-3.  **Approve:** Validate the plan against edge cases.
-4.  **Execute:** Write code only after explicit approval.
+### 2. Architectural Layers
 
-### 2. The Decision Matrix (4-Bucket System)
-
-#### 1. Unit (**Pure Logic**)
-- **Use When:** Logic runs without a browser (math, parsers, hooks).
-- **Tooling:** `Vitest`
-- **Spec:** Natural Language Comments
-
-#### 2. Component (**Isolated UI**)
-- **Use When:** Visual states (Loading, Error) or atomic interactions.
-- **Tooling:** `Storybook`
-- **Spec:** `.stories.tsx`
-
-#### 3. Integration
-- **Use When:** Routine flows, navigation, simple CRUD.
+#### Layer 1: The Executable Spec (Test File)
 - **Tooling:** `Playwright`
 - **Spec:** `// Spec: User can...` (Natural Language)
 
@@ -83,4 +71,4 @@ For trivial fixes (typos, formatting, obvious one-liners), the agent may proceed
 - _Need to see it?_ -> **Storybook**
 - _Need to calculate it?_ -> **Vitest**
 - _Need to navigate it?_ -> **Playwright**
-- _Is it complex or critical?_ -> **BDD (Gherkin)**
+- _Is it complex or critical?_ -> **Executable Spec (Playwright)**
