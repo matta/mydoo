@@ -50,7 +50,8 @@ We reject fragile, low-level DOM tests. We use **Fluent, Literate Architecture**
 **The Planning Step:**
 
 1.  **Draft the Spec:** For complex features, the AI must draft the _Test Case_ (in TypeScript) before writing implementation code. This acts as the requirement definition.
-2.  **Verify Language:** Ensure the draft uses domain terms (`journal.reflect()`), not implementation terms (`button.click()`).
+2.  **Verify Language:** Ensure the draft uses domain terms (e.g., `plan.createTask()`, `do.complete()`), NOT generic or implementation terms (`journal.entry()`, `button.click()`).
+3.  **Ubiquitous Language Rule:** ALWAYS use the specific Vocabulary of the Domain (e.g., `Inbox`, `Plan`, `Do`, `Balance`, `Context`). See `docs/design/prd.md` for the dictionary.
 
 ### 2. Architectural Layers
 
@@ -61,9 +62,9 @@ We reject fragile, low-level DOM tests. We use **Fluent, Literate Architecture**
 - **Constraint:** **NO** direct usage of `page`, `locator`, or CSS selectors allowed here.
 - **Example:**
   ```typescript
-  test("User can journal", async ({ journal }) => {
-    await test.step("Create entry", async () => {
-      await journal.createEntry("Morning Run").save();
+  test("User can organize tasks", async ({ plan }) => {
+    await test.step("Create task", async () => {
+      await plan.createTask("Buy Milk");
     });
   });
   ```

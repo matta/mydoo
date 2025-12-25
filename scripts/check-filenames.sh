@@ -18,6 +18,7 @@ cat <<EOF > .grandfathered_files
 ./docs/plan/MASTER_PLAN.md
 ./docs/plan/PLAN_PHASE_5_STEP_6.md
 ./docs/plan/PHASE_4_TASK_DETAILS.md
+./docs/plan/PLAN_PHASE_5_STEP_7.md
 ./TODO.md
 ./packages/tasklens/specs/compliance/schemas/test_case.d.ts
 ./packages/tasklens/specs/compliance/schemas/test_case.schema.json
