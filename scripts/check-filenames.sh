@@ -44,7 +44,8 @@ cat <<EOF > .grandfathered_files
 ./packages/tasklens/src/domain/pass1Visibility.ts
 ./packages/tasklens/src/domain/pass4Weights.ts
 ./packages/tasklens/src/domain/pass7Container.ts
-./agent_reference/GEMINI.md
+./GEMINI.md
+./AGENTS.md
 ./apps/client/tests/e2e/priorityList.spec.ts
 ./apps/client/README.md
 ./apps/client/src/viewmodel/ui/useBreadcrumbs.test.tsx
