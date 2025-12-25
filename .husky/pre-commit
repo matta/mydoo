@@ -9,14 +9,13 @@ run_gate() {
     echo "IF THE FIX IS NON-TRIVIAL, YOU MUST STOP AND WAIT FOR HUMAN REVIEW."
     exit 1
   }
+  echo "✅ '$cmd' succeeded."
 }
 
 if [ "$ANTIGRAVITY_AGENT" = "1" ] || [ "$GEMINI_CLI" = "1" ]; then
   echo "🤖 Agent detected (Antigravity/Gemini). Running full quality gates (Turbo)..."
 
   run_gate "pnpm exec turbo run test test:e2e typecheck"
-
-  echo "✅ All quality gates passed. Proceeding with commit."
 else
   # Run fast lint/format checks for humans
   pnpm biome check --staged --no-errors-on-unmatched
