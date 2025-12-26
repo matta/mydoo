@@ -78,19 +78,43 @@ const mockRepo = {
  * Custom render function that wraps components with MantineProvider and custom test theme.
  * Use this instead of @testing-library/react's render for Mantine components.
  */
-function AllProviders({children}: PropsWithChildren) {
-  return (
-    <RepoContext.Provider value={mockRepo}>
-      <MantineProvider theme={testingTheme}>{children}</MantineProvider>
-    </RepoContext.Provider>
-  );
+
+/**
+ * Create a wrapper component with the necessary providers.
+ * useful for renderHook.
+ */
+export function createTestWrapper(repo: Repo = mockRepo) {
+  return function TestWrapper({children}: PropsWithChildren) {
+    return (
+      <RepoContext.Provider value={repo}>
+        <MantineProvider theme={testingTheme}>{children}</MantineProvider>
+      </RepoContext.Provider>
+    );
+  };
 }
 
+/**
+ * Options for custom render.
+ * @param repo - Optional Automerge Repo instance to use in the context.
+ */
+export interface TestRenderOptions extends Omit<RenderOptions, 'wrapper'> {
+  repo?: Repo;
+}
+
+/**
+ * Render a component with all global providers (Mantine, Repo, etc).
+ * @param ui - The component to render
+ * @param options - Render options including custom Repo
+ */
 export function renderWithTestProviders(
   ui: React.ReactNode,
-  options?: Omit<RenderOptions, 'wrapper'>,
+  options: TestRenderOptions = {},
 ): RenderResult {
-  return testingLibraryRender(ui, {wrapper: AllProviders, ...options});
+  const {repo, ...renderOptions} = options;
+  return testingLibraryRender(ui, {
+    wrapper: createTestWrapper(repo),
+    ...renderOptions,
+  });
 }
 
 /**

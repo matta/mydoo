@@ -1,13 +1,22 @@
 import type {TaskID} from '@mydoo/tasklens';
 import {act, renderHook} from '@testing-library/react';
+import type {ReactNode} from 'react';
 import {describe, expect, it} from 'vitest';
 
+import {createTestWrapper} from '../../test/setup';
 import {NavigationProvider, useNavigationState} from './useNavigationState';
 
 describe('useNavigationState', () => {
+  const TestWrapper = createTestWrapper();
+  const wrapper = ({children}: {children: ReactNode}) => (
+    <TestWrapper>
+      <NavigationProvider>{children}</NavigationProvider>
+    </TestWrapper>
+  );
+
   it('manages expansion state', () => {
     const {result} = renderHook(() => useNavigationState(), {
-      wrapper: NavigationProvider,
+      wrapper,
     });
 
     const id1 = '1' as TaskID;
@@ -36,7 +45,7 @@ describe('useNavigationState', () => {
 
   it('manages view path for drill-down', () => {
     const {result} = renderHook(() => useNavigationState(), {
-      wrapper: NavigationProvider,
+      wrapper,
     });
     const id1 = 'root' as TaskID;
     const id2 = 'sub' as TaskID;
@@ -66,7 +75,7 @@ describe('useNavigationState', () => {
 
   it('allows setting view path arbitrarily', () => {
     const {result} = renderHook(() => useNavigationState(), {
-      wrapper: NavigationProvider,
+      wrapper,
     });
     const id1 = 'a' as TaskID;
     const id2 = 'b' as TaskID;
@@ -83,7 +92,7 @@ describe('useNavigationState', () => {
 
   it('manages modal state', () => {
     const {result} = renderHook(() => useNavigationState(), {
-      wrapper: NavigationProvider,
+      wrapper,
     });
     const id1 = 'task-1' as TaskID;
     const parentId = 'parent' as TaskID;

@@ -1,10 +1,10 @@
 import type {DocumentId} from '@automerge/automerge-repo';
 import {Repo} from '@automerge/automerge-repo';
-import {RepoContext} from '@automerge/automerge-repo-react-hooks';
 import type {TunnelState} from '@mydoo/tasklens';
 import {renderHook} from '@testing-library/react';
-import type {ReactNode} from 'react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+
+import {createTestWrapper} from '../test/setup';
 
 import {useDocument} from './useDocument';
 
@@ -25,11 +25,8 @@ describe('useDocument', () => {
     window.location.hash = '';
   });
 
-  const wrapper = ({children}: {children: ReactNode}) => (
-    <RepoContext.Provider value={repo}>{children}</RepoContext.Provider>
-  );
-
   it('should create a new document if no hash is present', async () => {
+    const wrapper = createTestWrapper(repo);
     const {result} = renderHook(() => useDocument(), {wrapper});
 
     // It should generate a handle (opaque string)
@@ -56,6 +53,7 @@ describe('useDocument', () => {
     const existingId = 'test-doc-id';
     window.location.hash = `#${existingId}`;
 
+    const wrapper = createTestWrapper(repo);
     const {result} = renderHook(() => useDocument(), {wrapper});
 
     expect(result.current).toBe(existingId);

@@ -1,10 +1,9 @@
 import type {DocHandle, DocumentId} from '@automerge/automerge-repo';
 import {Repo} from '@automerge/automerge-repo';
-import {RepoContext} from '@automerge/automerge-repo-react-hooks';
 import type {DocumentHandle, TunnelState} from '@mydoo/tasklens';
 import {act, renderHook} from '@testing-library/react';
-import type {ReactNode} from 'react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import {createTestWrapper} from '../../test/setup';
 import {useTaskIntents} from '../intents/useTaskIntents';
 import {useDocument} from '../useDocument';
 import {useBreadcrumbs} from './useBreadcrumbs';
@@ -18,9 +17,7 @@ describe('useBreadcrumbs', () => {
     repo = new Repo({network: []});
     window.location.hash = '';
 
-    const wrapper = ({children}: {children: ReactNode}) => (
-      <RepoContext.Provider value={repo}>{children}</RepoContext.Provider>
-    );
+    const wrapper = createTestWrapper(repo);
 
     const {result} = renderHook(() => useDocument(), {wrapper});
     docUrl = result.current;
@@ -32,11 +29,8 @@ describe('useBreadcrumbs', () => {
     window.location.hash = '';
   });
 
-  const wrapper = ({children}: {children: ReactNode}) => (
-    <RepoContext.Provider value={repo}>{children}</RepoContext.Provider>
-  );
-
   it('should return empty array for root view', () => {
+    const wrapper = createTestWrapper(repo);
     const {result} = renderHook(() => useBreadcrumbs(docUrl, undefined), {
       wrapper,
     });
@@ -45,6 +39,7 @@ describe('useBreadcrumbs', () => {
 
   it('should return path for nested task', async () => {
     // 1. Setup Data: Root -> Parent -> Child
+    const wrapper = createTestWrapper(repo);
     const {result: intents} = renderHook(() => useTaskIntents(docUrl), {
       wrapper,
     });
@@ -64,6 +59,7 @@ describe('useBreadcrumbs', () => {
     if (!childId) throw new Error('Child ID not found');
 
     // 2. Test Breadcrumbs when focused on Child
+    // wrapper is already defined above
     const {result} = renderHook(() => useBreadcrumbs(docUrl, childId), {
       wrapper,
     });
