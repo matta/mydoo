@@ -24,6 +24,25 @@
 - All new code must have tests.
 - **Strict Verification:** ALWAYS run `pnpm fix && pnpm pre-commit` before certifying a change. You MAY use targeted `turbo` commands during development, but you MUST run the full `pnpm fix && pnpm pre-commit` sequence before asking the user to commit.
 
+### Test Commands
+
+```bash
+# All unit tests (monorepo-wide)
+pnpm test
+
+# All E2E tests (monorepo-wide)
+pnpm test:e2e
+
+# All unit tests in a specific package
+pnpm exec turbo run test --filter <package>
+# e.g. pnpm exec turbo run test --filter client
+
+# Specific test file within a package
+pnpm exec turbo run test --filter <package> -- <TestFile>
+# e.g. pnpm exec turbo run test --filter client -- PlanViewContainer
+```
+
+
 ## Context Convention: `ROLLING_CONTEXT.md`
 
 For efforts spanning multiple sessions or commits, we maintain a root-level `ROLLING_CONTEXT.md`.
