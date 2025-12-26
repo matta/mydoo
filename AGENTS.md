@@ -42,7 +42,6 @@ pnpm exec turbo run test --filter <package> -- <TestFile>
 # e.g. pnpm exec turbo run test --filter client -- PlanViewContainer
 ```
 
-
 ## Context Convention: `ROLLING_CONTEXT.md`
 
 For efforts spanning multiple sessions or commits, we maintain a root-level `ROLLING_CONTEXT.md`.
@@ -55,51 +54,70 @@ For efforts spanning multiple sessions or commits, we maintain a root-level `ROL
   - `task.md` / `implementation_plan.md`: The agent's _ephemeral, internal_ checklist for the immediate next step.
   - `ROLLING_CONTEXT.md`: The _persistent, shared_ narrative of the broader effort.
 
-## Testing Strategy: Executable Specs
+## Testing Strategy
 
-We use a risk-based testing protocol. Not everything is tested the same way.
+### Core Philosophy: Fidelity First
 
-We reject fragile, low-level DOM tests. We use **Fluent, Literate Architecture** where tests act as high-level executable specifications using the project's **Ubiquitous Language**.
+We prioritize fidelity. Because this is a Local-First application relying on **Automerge** (WASM, Binary CRDTs) and specific browser technologies (`IndexedDB`, `TextEncoder`, `Crypto`), our strategic goal is to **avoid simulated environments like JSDOM**.
 
-### 1. The Core Protocol: "Stop & Plan"
+### 1. The 3-Tier Architecture (Goal State)
 
-**Rule:** The AI must Stop & Plan before:
+| Tier | Scope | Target Infrastructure | Rationale |
+| :--- | :--- | :--- | :--- |
+| **Tier 1** | Pure Logic | **Node.js** | Native WASM performance; no DOM pollution. |
+| **Tier 2** | Components | **Vitest Browser Mode** | Real `IndexedDB` and `TextEncoder` implementation. |
+| **Tier 3** | Journeys | **Playwright** | Full multi-tab sync and offline/online simulation. |
 
-- Adding new features or significantly changing existing behavior.
-- Making UI changes that alter user-facing workflows.
-- Modifying code that lacks test coverage.
+### 2. Current Implementation Status
 
-**The Planning Step:**
+> **Note:** We are largely in **JSDOM** today. Use the rules below for daily development.
 
-1.  **Draft the Spec:** For complex features, the AI must draft the _Test Case_ (in TypeScript) before writing implementation code. This acts as the requirement definition.
-2.  **Verify Language:** Ensure the draft uses domain terms (e.g., `plan.createTask()`, `do.complete()`), NOT generic or implementation terms (`journal.entry()`, `button.click()`).
-3.  **Ubiquitous Language Rule:** ALWAYS use the specific Vocabulary of the Domain (e.g., `Inbox`, `Plan`, `Do`, `Balance`, `Context`). See `docs/design/prd.md` for the dictionary.
+**Tier 1 (Packages/Logic):**
+*   **Status:** Runs in **Node**.
+*   **Command:** `pnpm test` (via Turbo).
 
-### 2. Architectural Layers
+**Tier 2 (Client Components):**
+*   **Status:** Runs in **JSDOM**.
+*   **Command:** `pnpm test` (via Turbo).
+*   **Aspiration:** We will migrate this to Browser Mode (`--project=browser`).
 
-#### Layer 1: The Executable Spec (Test File)
+**Tier 3 (E2E):**
+*   **Status:** Runs in **Chromium**.
+*   **Command:** `pnpm test:e2e`.
 
-- **Tooling:** `Playwright`
-- **Style:** High-level narrative using `test.step`.
-- **Constraint:** **NO** direct usage of `page`, `locator`, or CSS selectors allowed here.
-- **Example:**
-  ```typescript
-  test("User can organize tasks", async ({ plan }) => {
-    await test.step("Create task", async () => {
-      await plan.createTask("Buy Milk");
-    });
+### 3. AI Agent Instructions
+
+1.  **New Test Mandate:** All **NEW** tests must strictly follow the **Executable Specs** style (Section 4). **Do not mimic legacy patterns** found in existing files.
+2.  **Generate Compatible Tests:** Write component tests using `@testing-library/react` that pass in JSDOM.
+3.  **Respect the Goal:** Avoid relying on JSDOM-specific APIs (`jest-dom` extensions are okay, but don't access `window.` internals directly if a standard API exists).
+4.  **Mocking Strategy:**
+    *   **Tier 1:** No mocks. Test logic directly.
+    *   **Tier 2:** **Mock AutomergeRepo**. JSDOM struggles with the Repo's binary/WASM networking. Mock the handle to ensure component tests are stable in the simulated environment.
+
+### 4. Executable Specs & Style Guide
+
+Tests are **Executable Specifications**. They should read as high-level narratives using the project's **Ubiquitous Language**.
+
+**Ubiquitous Language Rule:** ALWAYS use domain terms (`Inbox`, `Plan`, `Do`, `Balance`, `Context`). See `docs/design/prd.md` for the dictionary. Reject implementation-level terms in test narratives.
+
+- ✅ `plan.createTask("Buy Milk")`
+- ❌ `button.click()`, `journal.entry()`
+
+**Fluent Architecture (Playwright E2E):**
+
+- Use `test.step` for high-level narrative structure.
+- **NO** direct `page`, `locator`, or CSS selectors in the spec layer—delegate to Domain Helpers or Page Objects.
+- Use **Inline Gherkin** comments (`// Given`, `// When`, `// Then`) to define intent.
+
+**Example:**
+
+```typescript
+test("User can organize tasks", async ({ plan }) => {
+  await test.step("Create task", async () => {
+    // Given the user is on the Plan view
+    // When they create a new task
+    await plan.createTask("Buy Milk");
+    // Then the task appears in the list
   });
-  ```
-
-### 3. Implementation Rules
-
-- **For Bucket 1 (Unit):** Follow existing conventions. Test public APIs; internal helpers need not be tested directly, unless complexity warrants it.
-- **For Bucket 2 (UI):** Use "Portable Stories." Define states in Storybook, then import them into Unit/Interaction tests to avoid duplication.
-- **For Executable Specs (Playwright):** Use **Fluent Architecture**. Start with **Inline Gherkin** comments (`// Given/When/Then`) to define intent. Test bodies must be readable narratives. Map all steps to Domain Helpers or Page Objects.
-
-### 4. Quick Select
-
-- _Need to see it?_ -> **Storybook**
-- _Need to calculate it?_ -> **Vitest**
-- _Need to navigate it?_ -> **Playwright**
-- _Is it complex or critical?_ -> **Executable Spec (Playwright)**
+});
+```

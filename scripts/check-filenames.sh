@@ -136,6 +136,7 @@ VIOLATIONS=$(find . -type f \( \
   -not -name "check-filenames.sh" \
   -not -name "LICENSE" \
   -not -name "README.md" \
+  -not -name "CONTRIBUTING.md" \
   -not -name "Dockerfile" \
   -not -name "Makefile" \
   | grep -E "/[^/]*[A-Z_][^/]*$" \
