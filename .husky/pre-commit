@@ -1,31 +1,3 @@
 #!/bin/sh
 
-# Prevent ROLLING_CONTEXT.md from accidental commitment
-if git diff --cached --name-only | grep -q "^ROLLING_CONTEXT.md$"; then
-  echo "❌ ERROR: ROLLING_CONTEXT.md is staged for commit."
-  echo "This file is for local working memory only and must not be committed."
-  echo "Run 'git restore --staged ROLLING_CONTEXT.md' to unstage it."
-  exit 1
-fi
-
-run_gate() {
-  local cmd="$1"
-  echo "$0 running '$cmd'"
-  $cmd || { 
-    echo "❌ CRITICAL FAILURE: COMMAND '$cmd' FAILED. COMMIT MANDATORILY BLOCKED."
-    echo "STOP: DO NOT BYPASS. YOU MUST FIX ALL ERRORS AND RETRY."
-    echo "IF THE FIX IS NON-TRIVIAL, YOU MUST STOP AND WAIT FOR HUMAN REVIEW."
-    exit 1
-  }
-}
-
-if [ "$ANTIGRAVITY_AGENT" = "1" ] || [ "$GEMINI_CLI" = "1" ]; then
-  echo "🤖 Agent detected (Antigravity/Gemini). Running full quality gates (Turbo)..."
-
-  run_gate "pnpm exec turbo run test test:e2e typecheck"
-else
-  # Run fast lint/format checks for humans
-  pnpm biome check --staged --no-errors-on-unmatched
-  # Run type checking to prevent build errors (slower but safer)
-  pnpm typecheck
-fi
+pnpm pre-commit

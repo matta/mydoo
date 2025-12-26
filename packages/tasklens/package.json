@@ -17,7 +17,6 @@
     "@vitest/coverage-v8": "catalog:",
     "ajv": "catalog:",
     "ajv-formats": "catalog:",
-
     "js-yaml": "catalog:",
     "json-schema-to-typescript": "catalog:",
     "typescript": "catalog:",
@@ -30,13 +29,10 @@
   "license": "ISC",
   "private": true,
   "scripts": {
-    "build": "tsc --emitDeclarationOnly",
+    "build": "../../scripts/only-allow-turbo.sh build -- tsc --emitDeclarationOnly",
     "clean": "rm -rf dist",
-    "fix": "biome check --write .",
     "generate-types": "json2ts ./specs/compliance/schemas/test_case.schema.json ./specs/compliance/schemas/test_case.d.ts && biome format --write ./specs/compliance/schemas/test_case.d.ts",
-    "lint": "biome check .",
-    "test": "vitest run --coverage",
-    "typecheck": "tsc --noEmit"
+    "test": "../../scripts/only-allow-turbo.sh test -- vitest run --coverage"
   },
   "type": "module",
   "types": "./src/index.ts"

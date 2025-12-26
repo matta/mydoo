@@ -8,6 +8,12 @@
   ],
   "globalPassThroughEnv": ["ANTIGRAVITY_AGENT", "GEMINI_CLI", "CI"],
   "tasks": {
+    "//#check:staged": {
+      "cache": false
+    },
+    "//#lint:staged": {
+      "cache": false
+    },
     "//#lint:filenames": {
       "inputs": [
         "**/*.md",

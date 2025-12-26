@@ -39,15 +39,12 @@
   },
   "private": true,
   "scripts": {
-    "build": "tsc -b && vite build",
+    "build": "../../scripts/only-allow-turbo.sh build -- vite build",
     "clean": "rm -rf dist",
     "dev": "vite",
-    "fix": "biome check --write .",
-    "lint": "biome check .",
     "preview": "vite preview",
-    "test": "vitest run",
-    "test:e2e": "playwright test",
-    "typecheck": "tsc --noEmit"
+    "test": "../../scripts/only-allow-turbo.sh test -- vitest run",
+    "test:e2e": "../../scripts/only-allow-turbo.sh test:e2e -- playwright test"
   },
   "type": "module"
 }
