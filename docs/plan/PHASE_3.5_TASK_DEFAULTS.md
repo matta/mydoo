@@ -17,10 +17,7 @@ _Enable specifying where new tasks are created in the hierarchy._
 
 **Quality Gates**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm build` -> Pass
-- [ ] `pnpm test` -> Pass (ALL repo tests)
-- [ ] `pnpm test:e2e` -> Pass
+- [ ] `pnpm fix && pnpm pre-commit` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
@@ -58,10 +55,7 @@ Currently, `ops.createTask` in `packages/tasklens/src/persistence/ops.ts`:
 
 **Quality Gates**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm build` -> Pass
-- [ ] `pnpm test` -> Pass (ALL repo tests)
-- [ ] `pnpm test:e2e` -> Pass
+- [ ] `pnpm fix && pnpm pre-commit` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
@@ -84,12 +78,7 @@ _Ensure the full stack applies defaults correctly._
   - Created task has correct default values
   - Task appears in priority list
 
-**Quality Gates**
-
-- [x] `pnpm fix` -> Pass
-- [x] `pnpm build` -> Pass
-- [x] `pnpm test` -> Pass (61 tasklens, 22 client)
-- [x] `pnpm test:e2e` -> Pass (6 of 7 tests)
+- [x] `pnpm fix && pnpm pre-commit` -> Pass
 - [x] **EVIDENCE**: All tests passing.
 
 **Completion**

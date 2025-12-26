@@ -14,13 +14,10 @@ _Fetch task details for the modal._
   - Returns task object, parent title, descendant count, isLoading
 - [x] Write unit tests
 
-- [x] `pnpm fix` -> Pass
-- [x] `pnpm build` -> Pass
-- [x] `pnpm test` -> Pass (Client tests: 26 passed)
-- [x] `pnpm lint` -> Pass
+- [x] `pnpm fix && pnpm pre-commit` -> Pass
 - [x] ✅ Update this doc
 - [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
+- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`). They must all pass in sequence against the same repository state.
 - [ ] 🛑 **STOP FOR HUMAN APPROVAL** before commit
 - [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response is NOT sufficient.
 
@@ -64,14 +61,10 @@ _Implement cascade deletion per PRD §3.6._
 
 **Quality Gates**
 
-- [x] `pnpm fix` -> Pass
-- [x] `pnpm build` -> Pass
-- [x] `pnpm test` -> Pass
-- [x] `pnpm test:e2e` -> 6 Passed (1 Skipped - Known Issue)
-- [x] `pnpm lint` -> Pass
+- [x] `pnpm fix && pnpm pre-commit` -> Pass
 - [ ] ✅ Update this doc
 - [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
+- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`). They must all pass in sequence against the same repository state.
 - [ ] 🛑 **STOP FOR HUMAN APPROVAL** before commit
 - [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response is NOT sufficient.
 
@@ -96,13 +89,10 @@ _Build the modal per PRD §4.5._
 
 **Quality Gates**
 
-- [x] `pnpm fix` -> Pass
-- [x] `pnpm build` -> Pass
-- [x] `pnpm test` -> Pass (102 tests passed)
-- [x] `pnpm test:e2e` -> Pass (6 passed, 1 skipped)
+- [x] `pnpm fix && pnpm pre-commit` -> Pass
 - [x] ✅ Update this doc
 - [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
+- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`). They must all pass in sequence against the same repository state.
 - [x] 🛑 **STOP FOR HUMAN APPROVAL** before commit
 - [x] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response is NOT sufficient.
 
@@ -116,13 +106,10 @@ _Build the modal per PRD §4.5._
 
 **Quality Gates**
 
-- [-] `pnpm fix` -> Skipped (Deferred)
-- [-] `pnpm build` -> Skipped (Deferred)
-- [-] `pnpm test` -> Skipped (Deferred)
-- [-] `pnpm test:e2e` -> Skipped (Deferred)
+- [-] `pnpm fix && pnpm pre-commit` -> Skipped (Deferred)
 - [x] ✅ Update this doc
 - [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
+- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`). They must all pass in sequence against the same repository state.
 - [x] 🛑 **STOP FOR HUMAN APPROVAL** before commit
 - [x] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response is NOT sufficient.
 

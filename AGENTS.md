@@ -22,7 +22,7 @@
 
 - We use Vitest for testing.
 - All new code must have tests.
-- **Strict Verification:** ALWAYS run `pnpm fix`, `pnpm lint:filenames`, and `pnpm typecheck` BEFORE running tests. Do not check in code that fails static analysis.
+- **Strict Verification:** ALWAYS run `pnpm fix && pnpm pre-commit` before certifying a change. You MAY use targeted `turbo` commands during development, but you MUST run the full `pnpm fix && pnpm pre-commit` sequence before asking the user to commit.
 
 ## Context Convention: `ROLLING_CONTEXT.md`
 

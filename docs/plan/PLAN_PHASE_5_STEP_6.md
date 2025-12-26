@@ -37,15 +37,12 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 
 **Quality Gates**
 
-- [x] `pnpm fix` -> Pass
-- [x] `pnpm build` -> Pass
-- [x] `pnpm test` -> Pass (ALL repo tests)
-- [x] `pnpm test:e2e` -> Pass
+- [x] `pnpm fix && pnpm pre-commit` -> Pass
 - [x] **EVIDENCE**: Full quality gate sequence passed in background command `dcd1c1c5-979a-4ee9-9279-8775e7ebd64a`. Unit tests for `createTask` positioning added and passing in `packages/tasklens/tests/unit/createTaskDefaults.test.ts`. Existing client tests fixed to handle new default positioning.
 
 - [x] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run.
-- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`).
+- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`).
 - [x] 🛑 STOP and prompt for user review with the EVIDENCE.
 - [x] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**.
 - [x] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
@@ -59,17 +56,14 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 
 **Quality Gates**
 
-- [x] `pnpm fix` -> Pass
-- [x] `pnpm build` -> Pass
-- [x] `pnpm test` -> Pass (ALL repo tests)
-- [x] `pnpm test:e2e` -> Pass
+- [x] `pnpm fix && pnpm pre-commit` -> Pass
 - [x] **EVIDENCE**: Full quality gate sequence passed in background command `8fb6be2e-b503-40ad-bfcd-db995e2e5617`. Refactored `useNavigationState` and its usages to use a unified `ModalState` object with `undefined` for optional properties.
 
 **Completion**
 
 - [x] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
+- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`). They must all pass in sequence against the same repository state.
 - [x] 🛑 STOP and prompt for user review with the EVIDENCE.
 - [x] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
 - [x] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
@@ -134,17 +128,14 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 
 **Quality Gates**
 
-- [x] `pnpm fix` -> Pass
-- [x] `pnpm build` -> Pass
-- [x] `pnpm test` -> Pass (ALL repo tests)
-- [x] `pnpm test:e2e` -> Pass
+- [x] `pnpm fix && pnpm pre-commit` -> Pass
 - [x] **EVIDENCE**: Full quality gate pass in `bc892411-6d9f-40e2-af05-e38a18d137bb`.
 
 **Completion**
 
 - [x] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
+- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`). They must all pass in sequence against the same repository state.
 - [x] 🛑 STOP and prompt for user review with the EVIDENCE.
 - [x] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
 - [x] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
@@ -184,7 +175,7 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 
 - [x] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run.
-- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`).
+- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`).
 - [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
 - [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**.
 - [ ] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
@@ -221,17 +212,14 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 
 **Quality Gates**
 
-- [x] `pnpm fix` -> Pass
-- [x] `pnpm build` -> Pass
-- [x] `pnpm test` -> Pass (ALL repo tests)
-- [x] `pnpm test:e2e` -> Pass (17 passed, 1 skipped)
+- [x] `pnpm fix && pnpm pre-commit` -> Pass (17 passed, 1 skipped)
 - [x] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
 
 - [x] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run.
-- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`).
+- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`).
 - [x] 🛑 STOP and prompt for user review with the EVIDENCE.
 - [x] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**.
 - [x] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
@@ -255,10 +243,7 @@ _Implementing "Workflowy-like" interactions for seamless structure management._
 
 **Quality Gates**
 
-- [x] `pnpm fix` -> Pass
-- [x] `pnpm build` -> Pass
-- [x] `pnpm test` -> Pass (ALL repo tests)
-- [x] `pnpm test:e2e` -> Pass (17 passed, 1 skipped)
+- [x] `pnpm fix && pnpm pre-commit` -> Pass (17 passed, 1 skipped)
 - [x] **EVIDENCE**: Full quality gate pass in `9f8db4b9-b498-4b74-9e4e-39fe07c3e672`. Mobile auto-drill implemented and verified.
 
 **Completion**
