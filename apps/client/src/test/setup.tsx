@@ -1,8 +1,14 @@
-import {createTheme, MantineProvider, Menu, Modal} from '@mantine/core';
+import {
+  createTheme,
+  MantineProvider,
+  Menu,
+  Modal,
+  Popover,
+} from '@mantine/core';
 import {
   type RenderOptions,
   type RenderResult,
-  render as rtlRender,
+  render as testingLibraryRender,
 } from '@testing-library/react';
 import type {PropsWithChildren} from 'react';
 
@@ -32,20 +38,27 @@ class MockResizeObserver {
 window.ResizeObserver = MockResizeObserver;
 
 // Define global test theme with transitions disabled
-// We disable transitions in tests to prevent flakiness caused by timing issues with
-// animations (especially for Modals and Menus) and to speed up test execution.
-const testTheme = createTheme({
+// We use duration: 1 (not 0) because duration: 0 breaks userEvent interaction
+// with Mantine's Menu component - the internal state machine doesn't complete.
+// 1ms is effectively instant but allows the state machine to work.
+const testingTheme = createTheme({
   components: {
     // Disable Menu transitions for tests
     Menu: Menu.extend({
       defaultProps: {
-        transitionProps: {duration: 0},
+        transitionProps: {duration: 1},
       },
     }),
     // Disable Modal transitions for tests
     Modal: Modal.extend({
       defaultProps: {
-        transitionProps: {duration: 0},
+        transitionProps: {duration: 1},
+      },
+    }),
+    // Disable Popover transitions for tests (Menu uses this internally)
+    Popover: Popover.extend({
+      defaultProps: {
+        transitionProps: {duration: 1},
       },
     }),
   },
@@ -56,12 +69,30 @@ const testTheme = createTheme({
  * Use this instead of @testing-library/react's render for Mantine components.
  */
 function AllProviders({children}: PropsWithChildren) {
-  return <MantineProvider theme={testTheme}>{children}</MantineProvider>;
+  return <MantineProvider theme={testingTheme}>{children}</MantineProvider>;
 }
 
-export function customRender(
+export function renderWithTestProviders(
   ui: React.ReactNode,
   options?: Omit<RenderOptions, 'wrapper'>,
 ): RenderResult {
-  return rtlRender(ui, {wrapper: AllProviders, ...options});
+  return testingLibraryRender(ui, {wrapper: AllProviders, ...options});
 }
+
+/**
+ * TESTING MANTINE ASYNC COMPONENTS
+ *
+ * Mantine components (Menu, Modal, etc.) have transitions and async state machines.
+ * Tests that interact with these components should use "await" with "findBy*" queries
+ * to ensure the component has reached the expected state.
+ *
+ * PATTERN:
+ * const user = userEvent.setup();
+ * await user.click(menuTrigger);
+ * // PREFERRED: findByRole waits automatically (up to 1000ms) for the item to appear
+ * const item = await screen.findByRole('menuitem', { name: /action/i });
+ * await user.click(item);
+ *
+ * // ALTERNATIVE: waitFor (only if findBy* isn't applicable)
+ * await waitFor(() => expect(something).toBeVisible());
+ */

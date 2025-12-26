@@ -1,22 +1,10 @@
-import {MantineProvider} from '@mantine/core';
 import type {Task, TaskID} from '@mydoo/tasklens';
-import {fireEvent, render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
+import {renderWithTestProviders} from '../../test/setup';
 
 import {TaskEditorModal} from './TaskEditorModal';
-
-// Mock @mantine/dates since it requires DatesProvider
-vi.mock('@mantine/dates', () => ({
-  DateInput: ({label}: {label: string}) => (
-    <div data-testid="date-input">{label}</div>
-  ),
-  DatePickerInput: ({label}: {label: string}) => (
-    <div data-testid="date-picker-input">{label}</div>
-  ),
-}));
-
-const renderWithProviders = (ui: React.ReactElement) =>
-  render(<MantineProvider>{ui}</MantineProvider>);
 
 const mockTask: Task = {
   id: 'task-1' as TaskID,
@@ -39,7 +27,7 @@ const mockTask: Task = {
 
 describe('TaskEditorModal', () => {
   it('renders task title in input', () => {
-    renderWithProviders(
+    renderWithTestProviders(
       <TaskEditorModal
         descendantCount={0}
         onAddChild={vi.fn()}
@@ -57,7 +45,7 @@ describe('TaskEditorModal', () => {
   });
 
   it('renders parent title', () => {
-    renderWithProviders(
+    renderWithTestProviders(
       <TaskEditorModal
         descendantCount={0}
         onAddChild={vi.fn()}
@@ -75,7 +63,7 @@ describe('TaskEditorModal', () => {
   });
 
   it('shows Root when no parent', () => {
-    renderWithProviders(
+    renderWithTestProviders(
       <TaskEditorModal
         descendantCount={0}
         onAddChild={vi.fn()}
@@ -92,11 +80,11 @@ describe('TaskEditorModal', () => {
     expect(screen.getByText(/Root \(Top Level\)/)).toBeInTheDocument();
   });
 
-  it('calls onAddSibling when Add Sibling clicked', () => {
+  it('calls onAddSibling when Add Sibling clicked', async () => {
     const onAddSibling = vi.fn();
     const taskWithParent = {...mockTask, parentId: 'parent-1' as TaskID};
 
-    renderWithProviders(
+    renderWithTestProviders(
       <TaskEditorModal
         descendantCount={0}
         onAddChild={vi.fn()}
@@ -110,15 +98,15 @@ describe('TaskEditorModal', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', {name: /add sibling/i}));
+    await userEvent.click(screen.getByRole('button', {name: /add sibling/i}));
 
     expect(onAddSibling).toHaveBeenCalledWith('parent-1');
   });
 
-  it('calls onAddChild when Add Child clicked', () => {
+  it('calls onAddChild when Add Child clicked', async () => {
     const onAddChild = vi.fn();
 
-    renderWithProviders(
+    renderWithTestProviders(
       <TaskEditorModal
         descendantCount={0}
         onAddChild={onAddChild}
@@ -132,15 +120,15 @@ describe('TaskEditorModal', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', {name: /add child/i}));
+    await userEvent.click(screen.getByRole('button', {name: /add child/i}));
 
     expect(onAddChild).toHaveBeenCalledWith('task-1');
   });
 
-  it('calls onDelete when Delete clicked', () => {
+  it('calls onDelete when Delete clicked', async () => {
     const onDelete = vi.fn();
 
-    renderWithProviders(
+    renderWithTestProviders(
       <TaskEditorModal
         descendantCount={2}
         onAddChild={vi.fn()}
@@ -154,13 +142,13 @@ describe('TaskEditorModal', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', {name: /delete/i}));
+    await userEvent.click(screen.getByRole('button', {name: /delete/i}));
 
     expect(onDelete).toHaveBeenCalledWith('task-1', true);
   });
 
   it('shows loading state when in edit mode but task is null', () => {
-    renderWithProviders(
+    renderWithTestProviders(
       <TaskEditorModal
         descendantCount={0}
         onAddChild={vi.fn()}
@@ -179,7 +167,7 @@ describe('TaskEditorModal', () => {
   });
 
   it('disables Indent button when canIndent is false', () => {
-    renderWithProviders(
+    renderWithTestProviders(
       <TaskEditorModal
         descendantCount={0}
         onAddChild={vi.fn()}
@@ -199,7 +187,7 @@ describe('TaskEditorModal', () => {
   });
 
   it('enables Indent button when canIndent is true', () => {
-    renderWithProviders(
+    renderWithTestProviders(
       <TaskEditorModal
         descendantCount={0}
         onAddChild={vi.fn()}

@@ -1,12 +1,12 @@
 import {fireEvent, screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 
-import {customRender as render} from '../../test/setup';
+import {renderWithTestProviders} from '../../test/setup';
 import {QuickAddInput} from './QuickAddInput';
 
 describe('QuickAddInput', () => {
   it('renders with placeholder', () => {
-    render(<QuickAddInput onAdd={vi.fn()} />);
+    renderWithTestProviders(<QuickAddInput onAdd={vi.fn()} />);
     expect(
       screen.getByPlaceholderText('Add a new task...'),
     ).toBeInTheDocument();
@@ -14,7 +14,7 @@ describe('QuickAddInput', () => {
 
   it('calls onAdd with trimmed text on Enter', () => {
     const onAdd = vi.fn();
-    render(<QuickAddInput onAdd={onAdd} />);
+    renderWithTestProviders(<QuickAddInput onAdd={onAdd} />);
 
     const input = screen.getByPlaceholderText('Add a new task...');
     fireEvent.change(input, {target: {value: '  Buy Milk  '}});
@@ -25,7 +25,7 @@ describe('QuickAddInput', () => {
 
   it('clears input after submit', () => {
     const onAdd = vi.fn();
-    render(<QuickAddInput onAdd={onAdd} />);
+    renderWithTestProviders(<QuickAddInput onAdd={onAdd} />);
 
     const input = screen.getByPlaceholderText('Add a new task...');
     fireEvent.change(input, {target: {value: 'Walk Dog'}});
@@ -36,7 +36,7 @@ describe('QuickAddInput', () => {
 
   it('does not call onAdd for empty input', () => {
     const onAdd = vi.fn();
-    render(<QuickAddInput onAdd={onAdd} />);
+    renderWithTestProviders(<QuickAddInput onAdd={onAdd} />);
 
     const input = screen.getByPlaceholderText('Add a new task...');
     fireEvent.change(input, {target: {value: '   '}});
@@ -47,7 +47,7 @@ describe('QuickAddInput', () => {
 
   it('calls onAdd when button is clicked', () => {
     const onAdd = vi.fn();
-    render(<QuickAddInput onAdd={onAdd} />);
+    renderWithTestProviders(<QuickAddInput onAdd={onAdd} />);
 
     const input = screen.getByPlaceholderText('Add a new task...');
     fireEvent.change(input, {target: {value: 'Test Task'}});
@@ -59,7 +59,7 @@ describe('QuickAddInput', () => {
   });
 
   it('disables button when input is empty', () => {
-    render(<QuickAddInput onAdd={vi.fn()} />);
+    renderWithTestProviders(<QuickAddInput onAdd={vi.fn()} />);
 
     const button = screen.getByLabelText('Add task');
     expect(button).toBeDisabled();

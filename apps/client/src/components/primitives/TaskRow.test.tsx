@@ -4,7 +4,7 @@ import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 
-import {customRender as render} from '../../test/setup';
+import {renderWithTestProviders} from '../../test/setup';
 import {TaskRow} from './TaskRow';
 
 function createMockTask(overrides: Partial<Task> = {}): Task {
@@ -32,7 +32,7 @@ function createMockTask(overrides: Partial<Task> = {}): Task {
 describe('TaskRow', () => {
   it('renders task title', () => {
     const task = createMockTask({title: 'Buy Groceries'});
-    render(<TaskRow onToggle={vi.fn()} task={task} />);
+    renderWithTestProviders(<TaskRow onToggle={vi.fn()} task={task} />);
 
     expect(screen.getByText('Buy Groceries')).toBeInTheDocument();
   });
@@ -42,7 +42,7 @@ describe('TaskRow', () => {
     const onToggle = vi.fn();
     const task = createMockTask({id: 'task-123' as TaskID});
 
-    render(<TaskRow onToggle={onToggle} task={task} />);
+    renderWithTestProviders(<TaskRow onToggle={onToggle} task={task} />);
 
     const checkbox = screen.getByRole('checkbox');
     await user.click(checkbox);
@@ -52,7 +52,7 @@ describe('TaskRow', () => {
 
   it('shows unchecked checkbox for Pending task', () => {
     const task = createMockTask({status: TaskStatus.Pending});
-    render(<TaskRow onToggle={vi.fn()} task={task} />);
+    renderWithTestProviders(<TaskRow onToggle={vi.fn()} task={task} />);
 
     const checkbox = screen.getByRole('checkbox');
     expect(checkbox).not.toBeChecked();
@@ -60,7 +60,7 @@ describe('TaskRow', () => {
 
   it('shows checked checkbox for Done task', () => {
     const task = createMockTask({status: TaskStatus.Done});
-    render(<TaskRow onToggle={vi.fn()} task={task} />);
+    renderWithTestProviders(<TaskRow onToggle={vi.fn()} task={task} />);
 
     const checkbox = screen.getByRole('checkbox');
     expect(checkbox).toBeChecked();
@@ -68,7 +68,7 @@ describe('TaskRow', () => {
 
   it('displays task importance', () => {
     const task = createMockTask({importance: 0.75});
-    render(<TaskRow onToggle={vi.fn()} task={task} />);
+    renderWithTestProviders(<TaskRow onToggle={vi.fn()} task={task} />);
 
     expect(screen.getByText('0.75')).toBeInTheDocument();
   });

@@ -1,8 +1,8 @@
-import {MantineProvider} from '@mantine/core';
 import type {TaskID, TunnelNode} from '@mydoo/tasklens';
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
+import {renderWithTestProviders} from '../../test/setup';
 import {TaskOutlineItem, type TaskOutlineItemProps} from './TaskOutlineItem';
 
 describe('TaskOutlineItem', () => {
@@ -40,10 +40,8 @@ describe('TaskOutlineItem', () => {
   };
 
   const renderComponent = (props: Partial<TaskOutlineItemProps> = {}) => {
-    return render(
-      <MantineProvider>
-        <TaskOutlineItem {...defaultProps} {...props} />
-      </MantineProvider>,
+    return renderWithTestProviders(
+      <TaskOutlineItem {...defaultProps} {...props} />,
     );
   };
 
