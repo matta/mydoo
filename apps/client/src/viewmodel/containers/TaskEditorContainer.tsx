@@ -32,7 +32,9 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     popView,
     pushView,
     expandAll,
+    setViewPath,
     setLastCreatedTaskId,
+    setActiveTab,
   } = useNavigationState();
 
   const editingTaskId = modal?.type === 'edit' ? modal.taskId : undefined;
@@ -194,7 +196,6 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     outdentTask(taskId);
   };
 
-  /* Open the move picker modal */
   const handleMove = (taskId: TaskID) => {
     // We are currently in the edit modal. We want to switch to the move modal.
     // openMoveModal(taskId) will update the 'modal' state to { type: 'move' ... }
@@ -207,6 +208,46 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
       // But I need to destructure it first.
       openMoveModal(taskId);
     }
+  };
+
+  /**
+   * "Find in Plan" handler.
+   * Closes the modal, expands ancestors (to ensure visibility),
+   * and highlights the task (scroll + flash).
+   */
+  const handleFindInPlan = (taskId: TaskID) => {
+    if (!doc) return;
+
+    // 1. Calculate ancestry path
+    const ancestors: TaskID[] = [];
+    let currentId = doc.tasks[taskId]?.parentId;
+    while (currentId && doc.tasks[currentId]) {
+      ancestors.unshift(currentId);
+      currentId = doc.tasks[currentId]?.parentId;
+    }
+
+    // 2. Ensure visibility based on viewport mode
+    if (isDesktop) {
+      // Desktop: Expand all ancestors so the tree opens up
+      expandAll(ancestors);
+      // Reset view path (if we were drilled down elsewhere) so we can see the full tree
+      // (Optional: only do this if the ancestors aren't visible? For robustness, reset to root)
+      setViewPath([]);
+    } else {
+      // Mobile: drill down to the parent
+      // This sets the view path to [grandparent, parent]
+      // So the list view shows the siblings of the target task.
+      setViewPath(ancestors);
+    }
+
+    // 3. Highlight and Scroll
+    setLastCreatedTaskId(taskId); // Re-use the "New Task" highlight mechanism
+
+    // 4. Switch to Plan View
+    setActiveTab('plan');
+
+    // 5. Close Modal
+    closeModal();
   };
 
   return (
@@ -229,6 +270,7 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
       onIndent={handleIndent}
       onOutdent={handleOutdent}
       onMove={handleMove}
+      onFindInPlan={handleFindInPlan}
       canIndent={canIndent}
     />
   );

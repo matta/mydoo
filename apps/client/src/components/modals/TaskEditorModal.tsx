@@ -55,6 +55,8 @@ interface TaskEditorModalProps {
   onOutdent?: (taskId: TaskID) => void;
   /** Callback to initiate move (reparenting) */
   onMove?: (taskId: TaskID) => void;
+  /** Callback to find the task in the plan view */
+  onFindInPlan?: (taskId: TaskID) => void;
   /** Whether indentation is possible (has previous sibling) */
   canIndent?: boolean;
 }
@@ -76,7 +78,9 @@ export function TaskEditorModal({
   mode,
   onIndent,
   onOutdent,
+
   onMove,
+  onFindInPlan,
   canIndent = false,
 }: TaskEditorModalProps) {
   // Local form state
@@ -230,6 +234,14 @@ export function TaskEditorModal({
                 Move...
               </Button>
             </Group>
+            <Button
+              variant="default"
+              fullWidth
+              leftSection={<span>🎯</span>}
+              onClick={() => onFindInPlan?.(task.id)}
+            >
+              Find in Plan
+            </Button>
             <Group grow>
               <Button
                 variant="default"

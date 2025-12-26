@@ -36,4 +36,42 @@ test.describe('Plan View', () => {
     // Note: Breadcrumbs are hidden on desktop viewport per strict viewport modes.
     // Mobile breadcrumb behavior is tested in mobile-drill-down.spec.ts.
   });
+  test('Find in Plan should navigate from Do view to Plan view tree location', async ({
+    page,
+  }) => {
+    // 1. Seed Data
+    await page.getByRole('button', {name: 'Dev'}).click();
+    await page.getByRole('menuitem', {name: 'Seed Data'}).click();
+
+    // 2. Go to Do Tab (ensure we are there)
+    await page.getByRole('button', {name: 'Do'}).click();
+
+    // 3. Open a child task ("Research Requirements")
+    // Note: The Do view renders a flat list of tasks sorted by score.
+    // "Research Requirements" is High Importance (1.0) so it should be visible.
+    const task = page.getByText('Research Requirements');
+    await expect(task).toBeVisible();
+    await task.click();
+
+    // 4. Click "Find in Plan" in the modal
+    await page.getByRole('button', {name: 'Find in Plan'}).click();
+
+    // 5. Verify Modal Closes
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+
+    // 6. Verify we switched to Plan View
+    // The Plan view renders the tree.
+    // "Project Alpha" (parent) should be visible.
+    const parent = page.getByText('Project Alpha');
+    await expect(parent).toBeVisible();
+
+    // 7. Verify Parent is Auto-Expanded
+    // "Design UI Mocks" is a sibling of Research Requirements.
+    // If the parent wasn't expanded, this sibling would be hidden.
+    const sibling = page.getByText('Design UI Mocks');
+    await expect(sibling).toBeVisible();
+
+    // 8. Verify the Target Task is Visible
+    await expect(page.getByText('Research Requirements')).toBeVisible();
+  });
 });
