@@ -1,4 +1,5 @@
-import {fireEvent, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 
 import {renderWithTestProviders} from '../../test/setup';
@@ -12,48 +13,49 @@ describe('QuickAddInput', () => {
     ).toBeInTheDocument();
   });
 
-  it('calls onAdd with trimmed text on Enter', () => {
+  it('calls onAdd with trimmed text on Enter', async () => {
+    const user = userEvent.setup();
     const onAdd = vi.fn();
     renderWithTestProviders(<QuickAddInput onAdd={onAdd} />);
 
     const input = screen.getByPlaceholderText('Add a new task...');
-    fireEvent.change(input, {target: {value: '  Buy Milk  '}});
-    fireEvent.keyDown(input, {key: 'Enter'});
+    await user.type(input, '  Buy Milk  {Enter}');
 
     expect(onAdd).toHaveBeenCalledWith('Buy Milk');
   });
 
-  it('clears input after submit', () => {
+  it('clears input after submit', async () => {
+    const user = userEvent.setup();
     const onAdd = vi.fn();
     renderWithTestProviders(<QuickAddInput onAdd={onAdd} />);
 
     const input = screen.getByPlaceholderText('Add a new task...');
-    fireEvent.change(input, {target: {value: 'Walk Dog'}});
-    fireEvent.keyDown(input, {key: 'Enter'});
+    await user.type(input, 'Walk Dog{Enter}');
 
     expect(input).toHaveValue('');
   });
 
-  it('does not call onAdd for empty input', () => {
+  it('does not call onAdd for empty input', async () => {
+    const user = userEvent.setup();
     const onAdd = vi.fn();
     renderWithTestProviders(<QuickAddInput onAdd={onAdd} />);
 
     const input = screen.getByPlaceholderText('Add a new task...');
-    fireEvent.change(input, {target: {value: '   '}});
-    fireEvent.keyDown(input, {key: 'Enter'});
+    await user.type(input, '   {Enter}');
 
     expect(onAdd).not.toHaveBeenCalled();
   });
 
-  it('calls onAdd when button is clicked', () => {
+  it('calls onAdd when button is clicked', async () => {
+    const user = userEvent.setup();
     const onAdd = vi.fn();
     renderWithTestProviders(<QuickAddInput onAdd={onAdd} />);
 
     const input = screen.getByPlaceholderText('Add a new task...');
-    fireEvent.change(input, {target: {value: 'Test Task'}});
+    await user.type(input, 'Test Task');
 
     const button = screen.getByLabelText('Add task');
-    fireEvent.click(button);
+    await user.click(button);
 
     expect(onAdd).toHaveBeenCalledWith('Test Task');
   });

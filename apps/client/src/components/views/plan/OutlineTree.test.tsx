@@ -1,7 +1,7 @@
-import {MantineProvider} from '@mantine/core';
 import type {TaskID, TunnelNode} from '@mydoo/tasklens';
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
+import {renderWithTestProviders} from '../../../test/setup';
 import {OutlineTree, type OutlineTreeProps} from './OutlineTree';
 
 describe('OutlineTree', () => {
@@ -46,10 +46,8 @@ describe('OutlineTree', () => {
   };
 
   const renderComponent = (props: Partial<OutlineTreeProps> = {}) => {
-    return render(
-      <MantineProvider>
-        <OutlineTree {...defaultProps} {...props} />
-      </MantineProvider>,
+    return renderWithTestProviders(
+      <OutlineTree {...defaultProps} {...props} />,
     );
   };
 

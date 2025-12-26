@@ -1,7 +1,8 @@
-import {MantineProvider} from '@mantine/core';
 import type {DocumentHandle} from '@mydoo/tasklens';
-import {fireEvent, render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
+import {renderWithTestProviders} from '../../../test/setup';
 import {PlanViewContainer} from './PlanViewContainer';
 
 // Mock dependencies (removed old manual mocks)
@@ -75,9 +76,6 @@ vi.mock('./OutlineTree', () => ({
   OutlineTree: () => <div data-testid="outline-tree" />,
 }));
 
-const renderWithProviders = (ui: React.ReactElement) =>
-  render(<MantineProvider>{ui}</MantineProvider>);
-
 describe('PlanViewContainer', () => {
   // Helper to mock viewport per test
   const mockViewport = (isDesktop: boolean) => {
@@ -89,12 +87,13 @@ describe('PlanViewContainer', () => {
     vi.clearAllMocks();
   });
 
-  it('renders "Add First Task" button when task list is empty', () => {
+  it('renders "Add First Task" button when task list is empty', async () => {
+    const user = userEvent.setup();
     mockViewport(true); // Desktop
     mocks.useTaskTree.roots = [];
     mocks.useTaskTree.isLoading = false;
 
-    renderWithProviders(
+    renderWithTestProviders(
       <PlanViewContainer docUrl={'test-doc' as DocumentHandle} />,
     );
 
@@ -102,9 +101,8 @@ describe('PlanViewContainer', () => {
 
     // In new logic, "Add First Task" triggers handleAddAtPosition('end') -> openCreateModal
     const addButton = screen.getByRole('button', {name: /add first task/i});
-    fireEvent.click(addButton);
+    await user.click(addButton);
 
-    // Check call on the spy
     // Check call on the spy
     expect(mocks.mockUseNavigationState.openCreateModal).toHaveBeenCalledWith(
       undefined,
@@ -119,7 +117,7 @@ describe('PlanViewContainer', () => {
     mocks.useTaskTree.roots = [{id: '1'} as any];
     mocks.useTaskTree.isLoading = false;
 
-    renderWithProviders(
+    renderWithTestProviders(
       <PlanViewContainer docUrl={'test-doc' as DocumentHandle} />,
     );
 
@@ -134,7 +132,7 @@ describe('PlanViewContainer', () => {
     mocks.useTaskTree.roots = [{id: '1'} as any];
     mocks.useTaskTree.isLoading = false;
 
-    renderWithProviders(
+    renderWithTestProviders(
       <PlanViewContainer docUrl={'test-doc' as DocumentHandle} />,
     );
 
@@ -147,7 +145,7 @@ describe('PlanViewContainer', () => {
     mocks.useTaskTree.roots = [{id: '1'} as any];
     mocks.useTaskTree.isLoading = false;
 
-    renderWithProviders(
+    renderWithTestProviders(
       <PlanViewContainer docUrl={'test-doc' as DocumentHandle} />,
     );
     // Append row is an IconPlus button at bottom
@@ -165,17 +163,18 @@ describe('PlanViewContainer', () => {
     // For now, I'll assumme I can find it by role 'button' (it's the one at the bottom).
   });
 
-  it('calls openCreateModal with position="start" when Top "+" tapped (Mobile)', () => {
+  it('calls openCreateModal with position="start" when Top "+" tapped (Mobile)', async () => {
+    const user = userEvent.setup();
     mockViewport(false);
     // biome-ignore lint/suspicious/noExplicitAny: Mocking
     mocks.useTaskTree.roots = [{id: '1'} as any];
     mocks.useTaskTree.isLoading = false;
-    renderWithProviders(
+    renderWithTestProviders(
       <PlanViewContainer docUrl={'test-doc' as DocumentHandle} />,
     );
 
     const topPlus = screen.getByLabelText('Add Task at Top');
-    fireEvent.click(topPlus);
+    await user.click(topPlus);
 
     expect(mocks.mockUseNavigationState.openCreateModal).toHaveBeenCalledWith(
       undefined,
