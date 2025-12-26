@@ -8,6 +8,8 @@
 
 - **Clean Tree Rule:** Before starting unrelated work or a new development phase, run `git status`. If the working tree is not clean, STOP and notify the user.
 - **Git Commit Rule:** NEVER commit a git change without an explicit command from the user beginning with `git commit`. If the user asks to commit (e.g., "commit this") without the explicit command, STOP and ask for confirmation.
+  - **Enforcement Protocol:** When work is complete and ready to commit, the Agent MUST explicitly state "Waiting for git commit command" and STOP. The Agent must NOT infer or assume permission to commit from context, prior commits, or phrases like "continue" or "finish this."
+  - **Verification Check:** Before executing any `git commit`, the Agent must verify: "Did the user's most recent message start with 'git commit'?" If NO, STOP immediately.
 - **Git Presubmit Rule:** NEVER use `--no-verify`. On presubmit failure: fix trivial issues and retry; otherwise STOP AND WAIT.
 - **Foreground Commit Rule:** ALWAYS run `git commit` in the foreground (synchronously). Presubmit hooks often fail or warn; immediate feedback is required to retry or fix issues promptly.
 - **Verification Protocol:** The Agent must NEVER report a shell command as successful based on log output alone. The Agent MUST verify that the process `Exit Code` is `0` (via `command_status`) before claiming success.
