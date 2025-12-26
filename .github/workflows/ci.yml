@@ -61,4 +61,4 @@ jobs:
         run: pnpm --filter client exec playwright install chromium --with-deps
 
       - name: E2E Tests
-        run: pnpm --filter client test:e2e
+        run: pnpm test:e2e
