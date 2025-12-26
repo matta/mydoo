@@ -52,6 +52,7 @@ test("MovePicker Flow", async ({ plan }) => {
 ### 1. State & Logic
 
 - [x] **State**: Update `useNavigationState`
+
   - Extend `ModalState` to support `{ type: 'move', taskId: TaskID }`.
   - Add `openMoveModal(taskId: TaskID)` and handling.
 
@@ -66,6 +67,7 @@ test("MovePicker Flow", async ({ plan }) => {
 ### 2. UI Components
 
 - [x] **Component**: `MovePickerModal`
+
   - **Props**: `taskId`, `onClose`.
   - **UI**:
     - Header: "Move [Task Title]"
@@ -110,9 +112,9 @@ test("MovePicker Flow", async ({ plan }) => {
 
 ## Completion
 
-- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
-- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
-- [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
+- [x] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
+- [x] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
+- [x] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix`). They must all pass in sequence against the same repository state.
+- [x] 🛑 STOP and prompt for user review with the EVIDENCE.
+- [x] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
+- [x] 🛑 **VERIFY COMMIT SUCCESS**: Check terminal output and exit code of `git commit`.
