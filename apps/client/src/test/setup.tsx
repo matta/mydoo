@@ -1,4 +1,4 @@
-import {MantineProvider} from '@mantine/core';
+import {createTheme, MantineProvider, Menu, Modal} from '@mantine/core';
 import {
   type RenderOptions,
   type RenderResult,
@@ -31,12 +31,32 @@ class MockResizeObserver {
 }
 window.ResizeObserver = MockResizeObserver;
 
+// Define global test theme with transitions disabled
+// We disable transitions in tests to prevent flakiness caused by timing issues with
+// animations (especially for Modals and Menus) and to speed up test execution.
+const testTheme = createTheme({
+  components: {
+    // Disable Menu transitions for tests
+    Menu: Menu.extend({
+      defaultProps: {
+        transitionProps: {duration: 0},
+      },
+    }),
+    // Disable Modal transitions for tests
+    Modal: Modal.extend({
+      defaultProps: {
+        transitionProps: {duration: 0},
+      },
+    }),
+  },
+});
+
 /**
- * Custom render function that wraps components with MantineProvider.
+ * Custom render function that wraps components with MantineProvider and custom test theme.
  * Use this instead of @testing-library/react's render for Mantine components.
  */
 function AllProviders({children}: PropsWithChildren) {
-  return <MantineProvider>{children}</MantineProvider>;
+  return <MantineProvider theme={testTheme}>{children}</MantineProvider>;
 }
 
 export function customRender(
