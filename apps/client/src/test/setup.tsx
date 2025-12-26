@@ -1,3 +1,5 @@
+import type {Repo} from '@automerge/automerge-repo';
+import {RepoContext} from '@automerge/automerge-repo-react-hooks';
 import {
   createTheme,
   MantineProvider,
@@ -64,12 +66,24 @@ const testingTheme = createTheme({
   },
 });
 
+// Mock Automerge Repo
+const mockRepo = {
+  find: vi.fn(),
+  create: vi.fn(),
+  registerHandler: vi.fn(),
+  unregisterHandler: vi.fn(),
+} as unknown as Repo;
+
 /**
  * Custom render function that wraps components with MantineProvider and custom test theme.
  * Use this instead of @testing-library/react's render for Mantine components.
  */
 function AllProviders({children}: PropsWithChildren) {
-  return <MantineProvider theme={testingTheme}>{children}</MantineProvider>;
+  return (
+    <RepoContext.Provider value={mockRepo}>
+      <MantineProvider theme={testingTheme}>{children}</MantineProvider>
+    </RepoContext.Provider>
+  );
 }
 
 export function renderWithTestProviders(
