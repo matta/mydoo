@@ -1,11 +1,10 @@
 import type {DocHandle, DocumentId} from '@automerge/automerge-repo';
 import {Repo} from '@automerge/automerge-repo';
-import {RepoContext} from '@automerge/automerge-repo-react-hooks';
 import type {DocumentHandle, TunnelState} from '@mydoo/tasklens';
 import {act, renderHook} from '@testing-library/react';
-import type {ReactNode} from 'react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
+import {createTestWrapper} from '../../test/setup';
 import {useDocument} from '../useDocument';
 import {useTaskIntents} from './useTaskIntents';
 
@@ -18,9 +17,7 @@ describe('useTaskIntents (Move Interactions)', () => {
     repo = new Repo({network: []});
     window.location.hash = '';
 
-    const wrapper = ({children}: {children: ReactNode}) => (
-      <RepoContext.Provider value={repo}>{children}</RepoContext.Provider>
-    );
+    const wrapper = createTestWrapper(repo);
 
     const {result} = renderHook(() => useDocument(), {wrapper});
     docUrl = result.current;
@@ -32,11 +29,8 @@ describe('useTaskIntents (Move Interactions)', () => {
     window.location.hash = '';
   });
 
-  const wrapper = ({children}: {children: ReactNode}) => (
-    <RepoContext.Provider value={repo}>{children}</RepoContext.Provider>
-  );
-
   it('should indent a task (become child of previous sibling)', async () => {
+    const wrapper = createTestWrapper(repo);
     const {result} = renderHook(() => useTaskIntents(docUrl), {wrapper});
 
     // Setup: Root -> [Target, Sibling]
@@ -83,6 +77,7 @@ describe('useTaskIntents (Move Interactions)', () => {
   });
 
   it('should outdent a task (become sibling of parent)', async () => {
+    const wrapper = createTestWrapper(repo);
     const {result} = renderHook(() => useTaskIntents(docUrl), {wrapper});
 
     // Setup: Root -> Parent -> Child
@@ -108,12 +103,6 @@ describe('useTaskIntents (Move Interactions)', () => {
     });
 
     const docAfter = handle.doc();
-    console.log('Roots:', docAfter.rootTaskIds);
-    // Should be [Parent, Child] - wait, logic might append or prepend.
-    // If we assume it appends to root list:
-    // Roots before: [Parent]
-    // Outdent Child -> Child removed from Parent, added to Roots.
-
     // We relax order check if needed, but checking existence is key.
     const roots = docAfter.rootTaskIds;
     expect(roots).toContain(childId);
@@ -124,6 +113,7 @@ describe('useTaskIntents (Move Interactions)', () => {
   });
 
   it('should not indent if no previous sibling', async () => {
+    const wrapper = createTestWrapper(repo);
     const {result} = renderHook(() => useTaskIntents(docUrl), {wrapper});
 
     act(() => {

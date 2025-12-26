@@ -1,11 +1,10 @@
 import type {DocumentId} from '@automerge/automerge-repo';
 import {Repo} from '@automerge/automerge-repo';
-import {RepoContext} from '@automerge/automerge-repo-react-hooks';
 import type {TunnelState} from '@mydoo/tasklens';
 import {act, renderHook} from '@testing-library/react';
-import type {ReactNode} from 'react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
+import {createTestWrapper} from '../../test/setup';
 import {useDocument} from '../useDocument';
 import {useTaskIntents} from './useTaskIntents';
 
@@ -21,12 +20,9 @@ describe('useTaskIntents', () => {
     window.location.hash = '';
   });
 
-  const wrapper = ({children}: {children: ReactNode}) => (
-    <RepoContext.Provider value={repo}>{children}</RepoContext.Provider>
-  );
-
   it('should create a task', async () => {
     // 1. Setup Document
+    const wrapper = createTestWrapper(repo);
     const {result: docResult} = renderHook(() => useDocument(), {wrapper});
     const docUrl = docResult.current;
 
@@ -59,6 +55,7 @@ describe('useTaskIntents', () => {
 
   it('should toggle task completion', async () => {
     // 1. Setup Document
+    const wrapper = createTestWrapper(repo);
     const {result: docResult} = renderHook(() => useDocument(), {wrapper});
     const docUrl = docResult.current;
 
@@ -110,6 +107,7 @@ describe('useTaskIntents', () => {
 
   it('should create a child task with parentId', async () => {
     // 1. Setup Document
+    const wrapper = createTestWrapper(repo);
     const {result: docResult} = renderHook(() => useDocument(), {wrapper});
     const docUrl = docResult.current;
 
