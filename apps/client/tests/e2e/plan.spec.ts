@@ -1,4 +1,4 @@
-import {expect, test} from '@playwright/test';
+import {expect, test} from './fixtures';
 
 test.describe('Plan View', () => {
   test.beforeEach(async ({page}) => {
@@ -36,6 +36,7 @@ test.describe('Plan View', () => {
     // Note: Breadcrumbs are hidden on desktop viewport per strict viewport modes.
     // Mobile breadcrumb behavior is tested in mobile-drill-down.spec.ts.
   });
+
   test('Find in Plan should navigate from Do view to Plan view tree location', async ({
     page,
   }) => {
@@ -73,5 +74,71 @@ test.describe('Plan View', () => {
 
     // 8. Verify the Target Task is Visible
     await expect(page.getByText('Research Requirements')).toBeVisible();
+  });
+
+  test('should edit task properties and persist changes', async ({
+    page,
+    plan,
+  }) => {
+    // 1. Create a task
+    const taskTitle = 'Task to Edit';
+    await plan.createTask(taskTitle);
+
+    // 2. Open Task Editor
+    await plan.openTaskEditor(taskTitle);
+
+    // 3. Edit Title
+    const newTitle = 'Edited Task Title';
+    await page.getByLabel('Title').fill(newTitle);
+
+    // 4. Save
+    await page.getByRole('button', {name: 'Save Changes'}).click();
+
+    // 5. Verify in Plan View
+    await expect(page.getByText(newTitle)).toBeVisible();
+    await expect(page.getByText(taskTitle)).not.toBeVisible();
+
+    // 6. Verify persistence after reload
+    await page.reload();
+    await page.getByRole('button', {name: 'Plan'}).waitFor();
+    await page.getByRole('button', {name: 'Plan'}).click();
+    await expect(page.getByText(newTitle)).toBeVisible();
+  });
+
+  test('should delete task with cascade', async ({page, plan}) => {
+    // 1. Create Parent
+    const parentTitle = 'Parent Task';
+    await plan.createTask(parentTitle);
+
+    // 2. Add Child
+    await plan.selectTask(parentTitle);
+    const childTitle = 'Child Task';
+    await plan.addChild(childTitle);
+
+    // 3. Delete Parent
+    // Setup dialog handler BEFORE clicking because confirm() blocks
+    page.once('dialog', async dialog => {
+      expect(dialog.message()).toContain('1 descendants');
+      await dialog.accept();
+    });
+
+    // Open editor for parent again
+    await plan.openTaskEditor(parentTitle);
+    await page.getByRole('button', {name: 'Delete'}).click();
+
+    // 4. Verify Removal
+    await expect(page.getByText(parentTitle)).not.toBeVisible();
+    await expect(page.getByText(childTitle)).not.toBeVisible();
+  });
+
+  test('should persist data across page reloads', async ({page, plan}) => {
+    const persistTask = 'Persistent Task';
+    await plan.createTask(persistTask);
+
+    await page.reload();
+
+    await page.getByRole('button', {name: 'Plan'}).click();
+
+    await expect(page.getByText(persistTask)).toBeVisible();
   });
 });

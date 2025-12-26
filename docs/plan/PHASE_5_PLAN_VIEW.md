@@ -424,7 +424,7 @@ _Implement features erroneously marked as complete in Phase 4._
 
 ### Tasks
 
-- [ ] **"Find in Plan" Button**
+- [x] **"Find in Plan" Button**
   - **Logic**: Closes modal, resets `viewPath` to the task's location, expands necessary parents.
   - **UI**: Added to "Navigation & Hierarchy" section of modal.
   - **Interaction**: `onFindInPlan` callback prop.
@@ -441,7 +441,7 @@ _Implement features erroneously marked as complete in Phase 4._
 ### Verification
 
 - [ ] E2E: Create repeating task -> Verify config persisted.
-- [ ] E2E: "Find in Plan" -> Navigates to correct tree location.
+- [x] E2E: "Find in Plan" -> Navigates to correct tree location.
 - [ ] Unit tests for recurrence logic edge cases.
 
 **Quality Gates**
@@ -469,13 +469,13 @@ _Catch up on E2E tests that were deferred from Phase 4._
 
 ### Tasks
 
-- [ ] **E2E: Edit Task Properties**
+- [x] **E2E: Edit Task Properties**
   - Click task title in Plan View to open Task Editor modal
   - Modify title, importance, effort
   - Save changes
   - Verify changes persisted (reload page, check values)
 
-- [ ] **E2E: Delete Task with Cascade**
+- [x] **E2E: Delete Task with Cascade**
   - Create or identify a task with children
   - Open Task Editor for parent task
   - Click "Delete"
@@ -483,7 +483,7 @@ _Catch up on E2E tests that were deferred from Phase 4._
   - Confirm deletion
   - Verify parent AND all children are removed from the tree
 
-- [ ] **E2E: Page Reload Persistence**
+- [x] **E2E: Page Reload Persistence**
   - Fix seed parameter issue preventing this test
   - Create a task
   - Reload the page
@@ -491,16 +491,16 @@ _Catch up on E2E tests that were deferred from Phase 4._
 
 ### Verification
 
-- [ ] All three E2E scenarios pass in both Chromium and WebKit
-- [ ] Enable any previously skipped tests (`should persist task after page reload`)
+- [x] All three E2E scenarios pass in both Chromium and WebKit
+- [x] Enable any previously skipped tests (`should persist task after page reload`)
 
 **Quality Gates**
 
-- [ ] `pnpm fix` -> Pass
-- [ ] `pnpm build` -> Pass
-- [ ] `pnpm test` -> Pass (ALL repo tests)
-- [ ] `pnpm test:e2e` -> Pass
-- [ ] **EVIDENCE**: Show terminal output of passing tests.
+- [x] `pnpm fix` -> Pass
+- [x] `pnpm build` -> Pass
+- [x] `pnpm test` -> Pass (ALL repo tests)
+- [x] `pnpm test:e2e` -> Pass
+- [x] **EVIDENCE**: Show terminal output of passing tests.
 
 **Completion**
 
