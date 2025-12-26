@@ -9,6 +9,11 @@ type PlanFixture = {
   openTaskEditor: (title: string) => Promise<void>;
   clickMoveButton: () => Promise<void>;
   toggleExpand: (title: string) => Promise<void>;
+  completeTask: (title: string) => Promise<void>;
+  clearCompletedTasks: () => Promise<void>;
+  verifyTaskVisible: (title: string) => Promise<void>;
+  verifyTaskHidden: (title: string) => Promise<void>;
+  verifyTaskCompleted: (title: string) => Promise<void>;
 };
 
 // Create the fixture class/helper
@@ -165,6 +170,38 @@ class PlanPage {
       console.log(`Fixture: Chevron not visible for ${title}`);
     }
   }
+
+  async completeTask(title: string) {
+    const taskRow = this.page
+      .locator(`[data-testid="task-item"]`, {hasText: title})
+      .first();
+
+    const checkbox = taskRow.getByRole('checkbox');
+    await checkbox.click();
+  }
+
+  async clearCompletedTasks() {
+    await this.page.getByRole('button', {name: 'Do'}).click();
+    await this.page.getByRole('button', {name: 'Refresh'}).click();
+  }
+
+  async verifyTaskVisible(title: string) {
+    await expect(this.page.getByText(title).first()).toBeVisible();
+  }
+
+  async verifyTaskHidden(title: string) {
+    await expect(this.page.getByText(title).first()).toBeHidden();
+  }
+
+  async verifyTaskCompleted(title: string) {
+    const taskRow = this.page
+      .locator(`[data-testid="task-item"]`, {hasText: title})
+      .first();
+    const titleText = taskRow.getByText(title).first();
+
+    await expect(taskRow).toBeVisible();
+    await expect(titleText).toHaveCSS('text-decoration-line', 'line-through');
+  }
 }
 
 export const test = base.extend<{plan: PlanFixture}>({
@@ -179,6 +216,11 @@ export const test = base.extend<{plan: PlanFixture}>({
       openTaskEditor: title => planPage.openTaskEditor(title),
       clickMoveButton: () => planPage.clickMoveButton(),
       toggleExpand: title => planPage.toggleExpand(title),
+      completeTask: title => planPage.completeTask(title),
+      clearCompletedTasks: () => planPage.clearCompletedTasks(),
+      verifyTaskVisible: title => planPage.verifyTaskVisible(title),
+      verifyTaskHidden: title => planPage.verifyTaskHidden(title),
+      verifyTaskCompleted: title => planPage.verifyTaskCompleted(title),
     });
   },
 });
