@@ -6,9 +6,13 @@ NC='\033[0m' # No Color
 
 echo "Checking filenames for kebab-case compliance..."
 
+# Create a temporary file for the grandfathered list
+GRANDFATHERED_FILE=$(mktemp "${TMPDIR:-/tmp}/grandfathered_files.XXXXXX") || exit 1
+trap 'rm -f "$GRANDFATHERED_FILE"' EXIT
+
 # Files to ignore (Grandfathered list)
 # We use a grep pattern file for this to handle the list cleanly
-cat <<EOF > .grandfathered_files
+cat <<EOF > "$GRANDFATHERED_FILE"
 ./docs/design/architecture_variances.md
 ./docs/plan/PHASE_3_CORE_INTERACTIONS.md
 ./docs/plan/PHASE_3.5_TASK_DEFAULTS.md
@@ -129,17 +133,13 @@ VIOLATIONS=$(find . -type f \( \
   -not -path "./.turbo/*" \
   -not -path "*/.turbo/*" \
   -not -path "./.husky/*" \
-  -not -name ".grandfathered_files" \
   -not -name "check-filenames.sh" \
   -not -name "LICENSE" \
   -not -name "README.md" \
   -not -name "Dockerfile" \
   -not -name "Makefile" \
   | grep -E "/[^/]*[A-Z_][^/]*$" \
-  | grep -vFf .grandfathered_files)
-
-# Cleanup
-rm .grandfathered_files
+  | grep -vFf "$GRANDFATHERED_FILE")
 
 if [ -n "$VIOLATIONS" ]; then
   echo "${RED}❌ Error: The following files do not follow the kebab-case naming convention:${NC}"
