@@ -14,8 +14,6 @@ import {
 } from '@testing-library/react';
 import type {PropsWithChildren} from 'react';
 
-import '@testing-library/jest-dom/vitest';
-
 // Mock for window.matchMedia - required by Mantine's color scheme detection
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
