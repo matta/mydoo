@@ -52,13 +52,13 @@ describe('useBreadcrumbs', () => {
     act(() => {
       intents.current.createTask('Parent');
     });
-    const parentId = handle.docSync().rootTaskIds[0];
+    const parentId = handle.doc().rootTaskIds[0];
     if (!parentId) throw new Error('Parent ID not found');
 
     act(() => {
       intents.current.createTask('Child', parentId);
     });
-    const parent = handle.docSync().tasks[parentId];
+    const parent = handle.doc().tasks[parentId];
     if (!parent) throw new Error('Parent task not found');
     const childId = parent.childTaskIds[0];
     if (!childId) throw new Error('Child ID not found');

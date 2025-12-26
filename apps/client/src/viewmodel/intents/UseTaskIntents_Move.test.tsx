@@ -49,7 +49,7 @@ describe('useTaskIntents (Move Interactions)', () => {
       result.current.createTask('Target');
     });
 
-    const doc = handle.docSync();
+    const doc = handle.doc();
     const roots = doc.rootTaskIds;
     expect(roots).toHaveLength(2);
     // [Sibling, Target]
@@ -71,7 +71,7 @@ describe('useTaskIntents (Move Interactions)', () => {
       result.current.indentTask(targetId);
     });
 
-    const docAfter = handle.docSync();
+    const docAfter = handle.doc();
     // Validate structure: Sibling should now have Target as child
     const sibling = docAfter.tasks[siblingId];
     if (!sibling) throw new Error('Sibling task not found');
@@ -89,14 +89,14 @@ describe('useTaskIntents (Move Interactions)', () => {
     act(() => {
       result.current.createTask('Parent');
     });
-    const parentId = handle.docSync().rootTaskIds[0];
+    const parentId = handle.doc().rootTaskIds[0];
     if (!parentId) throw new Error('Parent ID not found');
 
     act(() => {
       result.current.createTask('Child', parentId);
     });
 
-    const doc = handle.docSync();
+    const doc = handle.doc();
     const parent = doc.tasks[parentId];
     if (!parent) throw new Error('Parent task not found');
 
@@ -107,7 +107,7 @@ describe('useTaskIntents (Move Interactions)', () => {
       result.current.outdentTask(childId);
     });
 
-    const docAfter = handle.docSync();
+    const docAfter = handle.doc();
     console.log('Roots:', docAfter.rootTaskIds);
     // Should be [Parent, Child] - wait, logic might append or prepend.
     // If we assume it appends to root list:
@@ -129,14 +129,14 @@ describe('useTaskIntents (Move Interactions)', () => {
     act(() => {
       result.current.createTask('Solo');
     });
-    const id = handle.docSync().rootTaskIds[0];
+    const id = handle.doc().rootTaskIds[0];
     if (!id) throw new Error('ID not found');
 
     act(() => {
       result.current.indentTask(id);
     });
 
-    const doc = handle.docSync();
+    const doc = handle.doc();
     if (doc.rootTaskIds.length === 0) throw new Error('No root tasks found');
     expect(doc.rootTaskIds).toHaveLength(1);
 
