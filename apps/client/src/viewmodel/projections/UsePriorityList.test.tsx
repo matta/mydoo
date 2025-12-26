@@ -8,6 +8,7 @@ import {type Task, TaskStatus} from '@mydoo/tasklens';
 import {renderHook} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
+import {createTestWrapper} from '../../test/setup';
 import {usePriorityList} from './usePriorityList';
 
 // Mock @mydoo/tasklens
@@ -78,7 +79,9 @@ describe('usePriorityList', () => {
 
     mockUseTunnel.mockReturnValue({doc: mockState});
 
-    const {result} = renderHook(() => usePriorityList(mockDocUrl));
+    const {result} = renderHook(() => usePriorityList(mockDocUrl), {
+      wrapper: createTestWrapper(),
+    });
 
     expect(result.current.tasks).toMatchObject([{id: '1'}]);
   });
@@ -101,7 +104,9 @@ describe('usePriorityList', () => {
 
     mockUseTunnel.mockReturnValue({doc: mockState});
 
-    const {result} = renderHook(() => usePriorityList(mockDocUrl));
+    const {result} = renderHook(() => usePriorityList(mockDocUrl), {
+      wrapper: createTestWrapper(),
+    });
 
     // Should include Todo 1 and Done Unacked, but exclude Done Acked
     expect(result.current.tasks).toHaveLength(2);
@@ -125,7 +130,9 @@ describe('usePriorityList', () => {
 
     mockUseTunnel.mockReturnValue({doc: mockState});
 
-    const {result} = renderHook(() => usePriorityList(mockDocUrl));
+    const {result} = renderHook(() => usePriorityList(mockDocUrl), {
+      wrapper: createTestWrapper(),
+    });
 
     expect(result.current.tasks).toMatchObject([
       {id: '2'}, // High
@@ -136,7 +143,9 @@ describe('usePriorityList', () => {
 
   it('returns empty list when doc is loading', () => {
     mockUseTunnel.mockReturnValue({doc: undefined});
-    const {result} = renderHook(() => usePriorityList(mockDocUrl));
+    const {result} = renderHook(() => usePriorityList(mockDocUrl), {
+      wrapper: createTestWrapper(),
+    });
     expect(result.current.isLoading).toBe(true);
     expect(result.current.tasks).toEqual([]);
   });

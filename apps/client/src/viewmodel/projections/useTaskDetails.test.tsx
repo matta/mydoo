@@ -8,6 +8,7 @@ import {
 import {renderHook} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
+import {createTestWrapper} from '../../test/setup';
 import {useTaskDetails} from './useTaskDetails';
 
 // Mock @mydoo/tasklens
@@ -74,7 +75,12 @@ describe('useTaskDetails', () => {
 
     mockUseTunnel.mockReturnValue({doc: mockState});
 
-    const {result} = renderHook(() => useTaskDetails(mockDocUrl, childTask.id));
+    const {result} = renderHook(
+      () => useTaskDetails(mockDocUrl, childTask.id),
+      {
+        wrapper: createTestWrapper(),
+      },
+    );
 
     expect(result.current.task?.title).toBe('Child Task');
     expect(result.current.parentTitle).toBe('Parent Goal');
@@ -95,7 +101,9 @@ describe('useTaskDetails', () => {
 
     mockUseTunnel.mockReturnValue({doc: mockState});
 
-    const {result} = renderHook(() => useTaskDetails(mockDocUrl, rootTask.id));
+    const {result} = renderHook(() => useTaskDetails(mockDocUrl, rootTask.id), {
+      wrapper: createTestWrapper(),
+    });
 
     expect(result.current.task?.title).toBe('Root Task');
     expect(result.current.parentTitle).toBeNull();
@@ -113,8 +121,11 @@ describe('useTaskDetails', () => {
 
     mockUseTunnel.mockReturnValue({doc: mockState});
 
-    const {result} = renderHook(() =>
-      useTaskDetails(mockDocUrl, 'non-existent' as TaskID),
+    const {result} = renderHook(
+      () => useTaskDetails(mockDocUrl, 'non-existent' as TaskID),
+      {
+        wrapper: createTestWrapper(),
+      },
     );
 
     expect(result.current.task).toBeNull();
@@ -124,8 +135,11 @@ describe('useTaskDetails', () => {
   it('returns loading state when doc is undefined', () => {
     mockUseTunnel.mockReturnValue({doc: undefined});
 
-    const {result} = renderHook(() =>
-      useTaskDetails(mockDocUrl, 'any' as TaskID),
+    const {result} = renderHook(
+      () => useTaskDetails(mockDocUrl, 'any' as TaskID),
+      {
+        wrapper: createTestWrapper(),
+      },
     );
 
     expect(result.current.isLoading).toBe(true);

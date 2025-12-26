@@ -8,6 +8,7 @@ import {TaskStatus} from '@mydoo/tasklens';
 import {renderHook} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
+import {createTestWrapper} from '../../test/setup';
 import {useTaskTree} from './useTaskTree';
 
 // Mock @mydoo/tasklens
@@ -75,7 +76,9 @@ describe('useTaskTree', () => {
 
     mockUseTunnel.mockReturnValue({doc: mockState});
 
-    const {result} = renderHook(() => useTaskTree(mockDocUrl));
+    const {result} = renderHook(() => useTaskTree(mockDocUrl), {
+      wrapper: createTestWrapper(),
+    });
 
     expect(result.current.roots).toHaveLength(2);
     expect(result.current.roots[0]?.id).toBe('root1');
@@ -89,7 +92,9 @@ describe('useTaskTree', () => {
 
   it('handles loading state', () => {
     mockUseTunnel.mockReturnValue({doc: undefined});
-    const {result} = renderHook(() => useTaskTree(mockDocUrl));
+    const {result} = renderHook(() => useTaskTree(mockDocUrl), {
+      wrapper: createTestWrapper(),
+    });
     expect(result.current.isLoading).toBe(true);
     expect(result.current.roots).toEqual([]);
   });
