@@ -1,7 +1,11 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 
 import {TunnelStore} from '../../src/persistence/store';
-import {type RepeatConfig, type Task, TaskStatus} from '../../src/types';
+import {
+  type PersistedTask,
+  type RepeatConfig,
+  TaskStatus,
+} from '../../src/types';
 
 describe('TunnelStore', () => {
   let store: TunnelStore;
@@ -57,7 +61,7 @@ describe('TunnelStore', () => {
   });
 
   describe('updateTask', () => {
-    let initialTask: Task;
+    let initialTask: PersistedTask;
 
     beforeEach(() => {
       initialTask = store.createTask({

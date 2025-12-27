@@ -13,10 +13,11 @@ import type {
 import schemaJson from '../../specs/compliance/schemas/test_case.schema.json';
 import {TunnelStore} from '../../src/persistence/store';
 import {
+  type EnrichedTask,
+  type PersistedTask,
   type Place,
   type PlaceID,
   TaskStatus as StoreTaskStatus,
-  type Task,
   type TaskID,
   TaskStatus,
   type ViewFilter,
@@ -50,20 +51,20 @@ function parsePlaceInput(input: PlaceInput): Place {
   };
 }
 
-// Helper to recursively parse TaskInput to Task
+// Helper to recursively parse TaskInput to PersistedTask
 function parseTaskInput(
   input: TaskInput,
   testStartDate: Date,
   parentId?: string,
-): Task[] {
-  const tasks: Task[] = [];
+): PersistedTask[] {
+  const tasks: PersistedTask[] = [];
 
   const statusMap: Record<string, StoreTaskStatus> = {
     Pending: StoreTaskStatus.Pending,
     Done: StoreTaskStatus.Done,
   };
 
-  const task: Task = {
+  const task: PersistedTask = {
     id: input.id as TaskID,
     title: input.title ?? 'Default Task',
     status:
@@ -151,7 +152,7 @@ describe('Algorithm Test Suite', () => {
         mockCurrentTimestamp(testStartDate.getTime());
 
         // Initialize Store with initial state
-        const initialTasks: Record<string, Task> = {};
+        const initialTasks: Record<string, PersistedTask> = {};
 
         validTestCase.initial_state.tasks.forEach(taskInput => {
           const parsedTasks = parseTaskInput(taskInput, testStartDate);
@@ -175,8 +176,10 @@ describe('Algorithm Test Suite', () => {
         store = new TunnelStore({
           tasks: initialTasks,
           places: initialPlaces,
+          // rootTaskIds must be manually provided for TunnelStore constructor.
+          // The parseTaskInput helper doesn't track roots, so we calculate them here.
           rootTaskIds,
-          nextTaskId: 1, // Irrelevant with string IDs
+          nextTaskId: 1,
           nextPlaceId: 1,
         });
       });
@@ -215,7 +218,7 @@ describe('Algorithm Test Suite', () => {
                 // 'Done' status update handled via completeTask
                 store.completeTask(id as TaskID);
               } else {
-                const taskProps: Partial<Task> = {};
+                const taskProps: Partial<PersistedTask> = {};
                 if (props.status)
                   taskProps.status =
                     StoreTaskStatus[
@@ -253,13 +256,26 @@ describe('Algorithm Test Suite', () => {
               viewFilter = {placeId: step.view_filter as PlaceID};
             }
           }
-          store.recalculateScores(viewFilter);
+          // Get the transient computed result
+          // Use dumpCalculatedState to inspect internal values even if hidden/done
+          const computedTasks = store.dumpCalculatedState(viewFilter);
+
+          // Map for easy assertion lookup
+          // Cast to EnrichedTask for testing hidden fields
+          const computedMap = new Map<TaskID, EnrichedTask>();
+          computedTasks.forEach(t => {
+            computedMap.set(t.id, t as unknown as EnrichedTask);
+          });
 
           // 5. Assertions
           if (step.expected_props) {
             step.expected_props.forEach(expected => {
-              const task = store.getTask(expected.id as TaskID);
-              expect(task, `Task ${expected.id} should exist`).toBeDefined();
+              // We check against the COMPUTED result, not the store (which is persisted only)
+              const task = computedMap.get(expected.id as TaskID);
+              expect(
+                task,
+                `Task ${expected.id} should be in computed results`,
+              ).toBeDefined();
 
               if (task) {
                 if (expected.score !== undefined) {

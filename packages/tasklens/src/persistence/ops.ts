@@ -26,11 +26,11 @@ import {validateDepth, validateNoCycle} from '../domain/invariants';
 import {
   ANYWHERE_PLACE_ID,
   type CreateTaskOptions,
+  type PersistedTask,
+  type PersistedTunnelNode,
   type Schedule,
-  type Task,
   type TaskID,
   TaskStatus,
-  type TunnelNode,
   type TunnelState,
 } from '../types';
 import {daysToMilliseconds, getCurrentTimestamp} from '../utils/time';
@@ -57,9 +57,9 @@ import {daysToMilliseconds, getCurrentTimestamp} from '../utils/time';
  */
 export function createTask(
   state: TunnelState,
-  props: Partial<Task>,
+  props: Partial<PersistedTask>,
   options: CreateTaskOptions = {position: 'end'},
-): Task {
+): PersistedTask {
   // Use UUID for CRDT compatibility - sequential counters cause conflicts
   // when multiple replicas create tasks simultaneously.
   // Caller may provide an ID for testing purposes.
@@ -69,7 +69,7 @@ export function createTask(
     dueDate: undefined,
     leadTime: daysToMilliseconds(7),
   };
-  const newTask: Task = {
+  const newTask: PersistedTask = {
     id: newTaskId,
     title: props.title ?? 'New Task',
     parentId: props.parentId ?? undefined,
@@ -162,8 +162,8 @@ export function createTask(
 export function updateTask(
   state: TunnelState,
   id: TaskID,
-  props: Partial<Task>,
-): Task {
+  props: Partial<PersistedTask>,
+): PersistedTask {
   const task = state.tasks[id];
   if (!task) throw new Error(`Task with ID ${id} not found.`);
 
@@ -402,7 +402,10 @@ export function deleteTask(state: TunnelState, id: TaskID): number {
  * @param id - The ID of the task to retrieve.
  * @returns The Task object, or undefined if not found.
  */
-export function getTask(state: TunnelState, id: TaskID): Task | undefined {
+export function getTask(
+  state: TunnelState,
+  id: TaskID,
+): PersistedTask | undefined {
   return state.tasks[id];
 }
 
@@ -417,12 +420,12 @@ export function getTask(state: TunnelState, id: TaskID): Task | undefined {
 export function getChildren(
   state: TunnelState,
   parentId: TaskID | undefined,
-): Task[] {
+): PersistedTask[] {
   const ids = parentId
     ? state.tasks[parentId]?.childTaskIds
     : state.rootTaskIds;
   if (!ids) return [];
-  return ids.map(id => state.tasks[id]).filter((t): t is Task => !!t);
+  return ids.map(id => state.tasks[id]).filter((t): t is PersistedTask => !!t);
 }
 
 /**
@@ -440,16 +443,18 @@ export function getChildren(
  * Tasks that don't exist in the state (e.g., corrupted references) are
  * filtered out to maintain a valid tree structure.
  */
-export function getTaskTree(state: TunnelState): TunnelNode[] {
-  const buildNode = (taskId: TaskID): TunnelNode | undefined => {
+export function getTaskTree(state: TunnelState): PersistedTunnelNode[] {
+  const buildNode = (taskId: TaskID): PersistedTunnelNode | undefined => {
     const task = state.tasks[taskId];
     if (!task) return undefined;
     const children = task.childTaskIds
       .map(buildNode)
-      .filter((n): n is TunnelNode => !!n);
+      .filter((n): n is PersistedTunnelNode => !!n);
     return {...task, children};
   };
-  return state.rootTaskIds.map(buildNode).filter((n): n is TunnelNode => !!n);
+  return state.rootTaskIds
+    .map(buildNode)
+    .filter((n): n is PersistedTunnelNode => !!n);
 }
 
 /**

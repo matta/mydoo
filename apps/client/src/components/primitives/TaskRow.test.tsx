@@ -26,6 +26,9 @@ function createMockTask(overrides: Partial<Task> = {}): Task {
       leadTime: 0,
     },
     notes: '',
+    isContainer: false,
+    isPending: true,
+    isReady: true,
     ...overrides,
   };
 }

@@ -1,21 +1,18 @@
-import type {Task, TaskID, TunnelState} from '../../src/types';
+import type {EnrichedTask, TaskID, TunnelState} from '../../src/types';
 
 /**
  * Pass 4: Weight Normalization
  * Propagates importance down the tree.
  * Updates the `normalizedImportance` property of each task.
  *
- * @param doc The current Automerge document state (mutable proxy).
- * @param tasks All tasks in the document.
- * @param getChildrenFromDoc Helper to get children from the current document state.
+ * @param doc The current Automerge document state (keep signature, though unused if we use tasks access).
+ * @param tasks All tasks (Mutable EnrichedTasks).
+ * @param getChildrenFromMap Helper to get EnrichedTask children.
  */
 export function pass4WeightNormalization(
-  doc: TunnelState,
-  tasks: Task[],
-  getChildrenFromDoc: (
-    docState: TunnelState,
-    parentId: TaskID | undefined,
-  ) => Task[],
+  _doc: TunnelState,
+  tasks: EnrichedTask[],
+  getChildrenFromMap: (parentId: TaskID | undefined) => EnrichedTask[],
 ): void {
   const rootTasks = tasks.filter(task => task.parentId === undefined);
 
@@ -25,8 +22,8 @@ export function pass4WeightNormalization(
   });
 
   // Recursively calculate normalizedImportance for children
-  function calculateChildImportance(parent: Task) {
-    const children = getChildrenFromDoc(doc, parent.id);
+  function calculateChildImportance(parent: EnrichedTask) {
+    const children = getChildrenFromMap(parent.id);
     if (children.length === 0) {
       return;
     }

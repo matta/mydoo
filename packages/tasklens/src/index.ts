@@ -1,4 +1,5 @@
 export * from './domain/index';
+export * from './domain/projections';
 export * from './domain/tree';
 export * as TunnelOps from './persistence/ops';
 export * from './persistence/react';

@@ -49,6 +49,9 @@ describe('useTaskDetails', () => {
       isSequential: false,
       isAcknowledged: false,
       notes: '',
+      isContainer: false,
+      isPending: true,
+      isReady: true,
     }) as Task;
 
   it('returns task details correctly', () => {

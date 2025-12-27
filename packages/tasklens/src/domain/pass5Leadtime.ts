@@ -1,4 +1,4 @@
-import type {Task} from '../../src/types';
+import type {EnrichedTask} from '../../src/types';
 
 /**
  * Pass 5: Lead Time Ramp
@@ -6,10 +6,13 @@ import type {Task} from '../../src/types';
  * Updates the `leadTimeFactor` property of each task.
  *
  * @param doc The current Automerge document state (mutable proxy).
- * @param tasks All tasks in the document.
+ * @param tasks All tasks in the document (Mutable EnrichedTasks).
  * @param currentTime The current timestamp in milliseconds.
  */
-export function pass5LeadTimeRamp(tasks: Task[], currentTime: number): void {
+export function pass5LeadTimeRamp(
+  tasks: EnrichedTask[],
+  currentTime: number,
+): void {
   tasks.forEach(task => {
     // If no schedule or no dueDate, leadTimeFactor is neutral (1.0 or 0.0 depending on desired default for un-scheduled tasks)
     // The spec example shows 0.0 for "Too early (Hidden)", suggesting un-scheduled are hidden.

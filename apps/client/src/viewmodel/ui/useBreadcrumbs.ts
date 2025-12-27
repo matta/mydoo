@@ -1,4 +1,9 @@
-import type {DocumentHandle, Task, TaskID, TunnelState} from '@mydoo/tasklens';
+import type {
+  DocumentHandle,
+  PersistedTask,
+  TaskID,
+  TunnelState,
+} from '@mydoo/tasklens';
 import {useTunnel} from '@mydoo/tasklens';
 import {useMemo} from 'react';
 
@@ -41,7 +46,7 @@ export function useBreadcrumbs(
 
     while (currentId && safetyCounter < MAX_DEPTH) {
       if (!doc) break; // Defensive check
-      const task: Task | undefined = doc.tasks[currentId];
+      const task: PersistedTask | undefined = doc.tasks[currentId];
       if (!task) break;
 
       path.unshift({

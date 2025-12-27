@@ -1,4 +1,4 @@
-import type {Task, TaskID, TunnelState} from '../../src/types';
+import type {EnrichedTask, TaskID, TunnelState} from '../../src/types';
 
 /**
  * Pass 6: Final Priority
@@ -7,23 +7,22 @@ import type {Task, TaskID, TunnelState} from '../../src/types';
  *
  * Formula: `Priority = (Visibility ? 1.0 : 0.0) * NormalizedImportance * Root.FeedbackFactor * LeadTimeFactor`
  *
- * @param doc The current Automerge document state (mutable proxy).
- * @param tasks All tasks in the document.
- * @param getAncestorsFromDoc Helper to get ancestors from the current document state.
+ * @param doc The current Automerge document state.
+ * @param tasks All tasks (Mutable EnrichedTasks).
+ * @param getAncestorsFromMap Helper to get ancestors (EnrichedTasks).
  */
 export function pass6FinalPriority(
-  doc: TunnelState,
-  tasks: Task[],
-  getAncestorsFromDoc: (docState: TunnelState, id: TaskID) => Task[],
+  _doc: TunnelState,
+  tasks: EnrichedTask[],
+  getAncestorsFromMap: (id: TaskID) => EnrichedTask[],
 ): void {
   tasks.forEach(task => {
-    // Get the root task's feedback factor
-    const ancestors = getAncestorsFromDoc(doc, task.id);
-    const rootTask = ancestors[0] ?? task; // If no ancestors, it's a root itself
+    const ancestors = getAncestorsFromMap(task.id);
+    const rootTask = ancestors[0] ?? task;
 
     const visibilityFactor = task.visibility ? 1.0 : 0.0;
     const normalizedImportanceFactor = task.normalizedImportance ?? 0.0;
-    const feedbackFactor = rootTask.feedbackFactor ?? 1.0; // Default to 1.0 if not calculated
+    const feedbackFactor = rootTask.feedbackFactor ?? 1.0;
     const leadTimeFactor = task.leadTimeFactor ?? 0.0;
 
     task.priority =

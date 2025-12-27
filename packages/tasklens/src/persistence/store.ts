@@ -18,11 +18,12 @@
  */
 import * as Automerge from '@automerge/automerge';
 
-import {recalculatePriorities as runRecalculatePriorities} from '../domain/priority';
+import {getPrioritizedTasks} from '../domain/priority';
 import {
   ANYWHERE_PLACE_ID,
+  type ComputedTask,
   type Context,
-  type Task,
+  type PersistedTask,
   type TaskID,
   type TunnelState,
   type ViewFilter,
@@ -98,7 +99,7 @@ export class TunnelStore {
    * @param id - The ID of the task to retrieve.
    * @returns The Task object, or undefined if not found.
    */
-  getTask(id: TaskID): Task | undefined {
+  getTask(id: TaskID): PersistedTask | undefined {
     return TunnelOps.getTask(this.doc, id);
   }
 
@@ -108,7 +109,7 @@ export class TunnelStore {
    * @param parentId - The ID of the parent task, or undefined to get root tasks.
    * @returns An array of child Task objects in display order.
    */
-  getChildren(parentId: TaskID | undefined): Task[] {
+  getChildren(parentId: TaskID | undefined): PersistedTask[] {
     return TunnelOps.getChildren(this.doc, parentId);
   }
 
@@ -122,8 +123,8 @@ export class TunnelStore {
    * // For a task hierarchy: A -> B -> C
    * store.getAncestors("C") // returns [A, B]
    */
-  getAncestors(id: TaskID): Task[] {
-    const ancestors: Task[] = [];
+  getAncestors(id: TaskID): PersistedTask[] {
+    const ancestors: PersistedTask[] = [];
     let currentTask = this.getTask(id);
     while (currentTask?.parentId !== undefined) {
       const parent = this.getTask(currentTask.parentId);
@@ -147,8 +148,8 @@ export class TunnelStore {
    * @example
    * const task = store.createTask({ title: "New task", parentId: "1" });
    */
-  createTask(props: Partial<Task>): Task {
-    let newTask: Task | undefined;
+  createTask(props: Partial<PersistedTask>): PersistedTask {
+    let newTask: PersistedTask | undefined;
     this.doc = Automerge.change(this.doc, 'Create task', doc => {
       newTask = TunnelOps.createTask(doc, props);
     });
@@ -167,7 +168,7 @@ export class TunnelStore {
    * @returns The updated Task object.
    * @throws Error if the task does not exist.
    */
-  updateTask(id: TaskID, props: Partial<Task>): Task {
+  updateTask(id: TaskID, props: Partial<PersistedTask>): PersistedTask {
     this.doc = Automerge.change(this.doc, `Update task ${id}`, doc => {
       TunnelOps.updateTask(doc, id, props);
     });
@@ -212,10 +213,13 @@ export class TunnelStore {
    * @param viewFilter - Filter criteria for which tasks to include.
    * @param context - Optional runtime context (current time, location).
    */
-  recalculateScores(viewFilter: ViewFilter, context?: Context): void {
-    this.doc = Automerge.change(this.doc, 'Recalculate scores', doc => {
-      runRecalculatePriorities(doc, viewFilter, context);
-    });
+  recalculateScores(
+    viewFilter: ViewFilter = {},
+    _context?: Context,
+  ): ComputedTask[] {
+    // Scores are now computed transiently and NOT stored in the doc.
+    // Use getPrioritizedTasks to get the computed list.
+    return getPrioritizedTasks(this.doc, viewFilter);
   }
 
   /**
@@ -227,12 +231,20 @@ export class TunnelStore {
    * @param _context - Runtime context (currently unused, reserved for future).
    * @returns An array of visible Tasks sorted by priority.
    */
-  getTodoList(_context: Context): Task[] {
-    const allTasks = Object.values(this.doc.tasks);
-    const visibleTasks = allTasks.filter(
-      t => t.visibility && (t.priority ?? 0) > 0.001,
-    );
-    return visibleTasks.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+  getTodoList(_context?: Context): ComputedTask[] {
+    // getPrioritizedTasks inherently returns the Todo List (Sorted + Filtered for Status/Visibility)
+    // Pass default filter if none provided
+    return getPrioritizedTasks(this.doc, {});
+  }
+
+  /**
+   * For Testing/Debugging: Get ALL calculated tasks including invalid/hidden ones.
+   */
+  dumpCalculatedState(viewFilter: ViewFilter = {}): ComputedTask[] {
+    return getPrioritizedTasks(this.doc, viewFilter, {
+      includeHidden: true,
+      includeDone: true,
+    });
   }
 
   // --- Persistence ---

@@ -150,11 +150,10 @@ export interface OpenHours {
 }
 
 /**
- * A unit of work in the task management system.
+ * A unit of work in the task management system (Persisted Record).
  *
- * Tasks form a tree hierarchy where each task can have child tasks.
- * The tree structure is maintained via `parentId` (pointer to parent) and
- * `childTaskIds` (ordered list of children).
+ * This interface represents the raw data stored in the database (Automerge).
+ * Unlike the legacy `Task` type, it does NOT contain computed properties.
  *
  * @property id - Unique identifier for this task.
  * @property title - Human-readable name or description of the task.
@@ -170,19 +169,11 @@ export interface OpenHours {
  * @property schedule - Due date and recurrence information.
  * @property isSequential - If true, children must be completed in order.
  * @property childTaskIds - Ordered list of child task IDs.
- *
- * Computed properties (populated by the algorithm, not stored):
- * @property isContainer - True if this task has children.
- * @property isPending - True if status is Pending.
- * @property isReady - True if this task can be worked on (no blockers).
- * @property normalizedImportance - Importance adjusted relative to siblings.
- * @property effectiveCredits - Credits after applying decay formula.
- * @property visibility - True if this task should be shown in the current view.
- * @property priority - Calculated priority score for sorting.
- * @property feedbackFactor - Algorithm factor based on credit feedback.
- * @property leadTimeFactor - Algorithm factor based on due date proximity.
+ * @property notes - Markdown notes attached to the task.
+ * @property repeatConfig - Configuration for recurring tasks.
+ * @property isAcknowledged - If true, completed task is hidden from "Do" view.
  */
-export interface Task {
+export interface PersistedTask {
   childTaskIds: TaskID[];
   creditIncrement: number;
   credits: number;
@@ -199,24 +190,60 @@ export interface Task {
   title: string;
   notes: string;
   repeatConfig?: RepeatConfig | undefined;
-
-  /**
-   * If true, the user has acknowledged this completed task (via Refresh).
-   * It should be hidden from the primary "Do" view.
-   */
   isAcknowledged: boolean;
-
-  // Computed properties (not stored directly)
-  effectiveCredits?: number;
-  feedbackFactor?: number;
-  isContainer?: boolean;
-  isPending?: boolean;
-  isReady?: boolean;
-  leadTimeFactor?: number;
-  normalizedImportance?: number;
-  priority?: number;
-  visibility?: boolean;
 }
+
+/**
+ * Internal Mutable Object for Algorithm Processing.
+ *
+ * This type is used exclusively within the `domain/` logic.
+ * It extends `PersistedTask` with all the scratchpad fields needed by
+ * the 7-pass prioritization algorithm.
+ *
+ * Performance Note: These objects are created via shallow clone for
+ * extreme mutability performance in V8 hidden classes.
+ */
+export interface EnrichedTask extends PersistedTask {
+  // --- Scores & Factors ---
+  effectiveCredits: number;
+  feedbackFactor: number;
+  leadTimeFactor: number;
+  normalizedImportance: number;
+  priority: number;
+  visibility: boolean;
+
+  // --- State Helpers ---
+  isContainer: boolean;
+  isPending: boolean;
+  isReady: boolean;
+}
+
+/**
+ * Public View Object (Read-Only).
+ *
+ * This is the object exposed to the Client / UI.
+ * It contains the persisted data plus a safe subset of computed helpers.
+ * It specifically EXCLUDES internal scoring factors (priority, visibility, etc)
+ * to prevent the UI from relying on implementation details.
+ */
+export interface ComputedTask extends PersistedTask {
+  readonly isContainer: boolean;
+  readonly isPending: boolean;
+  readonly isReady: boolean;
+}
+
+/**
+ * Legacy Alias for Client Compatibility.
+ *
+ * The client code expects a `Task` type. We point this to `ComputedTask`
+ * so that components see the safe, read-only view of a task.
+ *
+ * TODO: This alias is temporary to ease migration. We should eventually:
+ * 1. Allow the Client to handle `PersistedTask` for write operations (Editor).
+ * 2. Explicitly use `ComputedTask` for read operations (Lists/Views).
+ * 3. Fix the `pnpm typecheck` errors in `apps/client` where mocks/types are incorrect.
+ */
+export type Task = ComputedTask;
 
 /**
  * Options for creating a new task, primarily for positioning.
@@ -244,10 +271,18 @@ export interface Place {
  * A Task with its children resolved into a tree structure.
  *
  * Used for UI rendering where the full tree hierarchy needs to be traversed.
- * Extends Task with a `children` array containing nested TunnelNodes.
+ * Extends ComputedTask with a `children` array containing nested TunnelNodes.
  */
-export interface TunnelNode extends Task {
+export interface TunnelNode extends ComputedTask {
   children: TunnelNode[];
+}
+
+/**
+ * A Raw Persisted Task with its children resolved.
+ * Used for recursive operations on the raw state (e.g. deletion).
+ */
+export interface PersistedTunnelNode extends PersistedTask {
+  children: PersistedTunnelNode[];
 }
 
 /**
@@ -260,7 +295,7 @@ export interface TunnelNode extends Task {
  * @property nextTaskId - Counter for generating unique task IDs.
  * @property places - Map of place ID to Place object.
  * @property rootTaskIds - Ordered list of top-level task IDs (tasks with no parent).
- * @property tasks - Map of task ID to Task object. All tasks are stored flat here.
+ * @property tasks - Map of task ID to PersistedTask object. All tasks are stored flat here.
  *
  * The index signature is strictly required by @automerge/automerge types.
  * Without it, `Automerge.from<TunnelState>()` fails type checking.
@@ -269,5 +304,5 @@ export interface TunnelState {
   [key: string]: unknown;
   places: Record<PlaceID, Place>;
   rootTaskIds: TaskID[];
-  tasks: Record<TaskID, Task>;
+  tasks: Record<TaskID, PersistedTask>;
 }

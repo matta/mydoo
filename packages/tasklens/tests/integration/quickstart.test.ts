@@ -19,10 +19,7 @@ describe('Quickstart Integration', () => {
       creditIncrement: 1.0,
     });
 
-    // 3. Update Priorities
-    store.recalculateScores({placeId: 'All'});
-
-    // 4. Get Todo List
+    // 3. Get Todo List (Calculates scores on demand)
     const todos = store.getTodoList({currentTime: Date.now()});
 
     // Email should be visible and sorted
@@ -30,12 +27,13 @@ describe('Quickstart Integration', () => {
     const firstTodo = todos[0];
     if (!firstTodo) throw new Error('Expected at least one todo');
     expect(firstTodo.id).toBe(task.id);
-    expect(firstTodo.priority ?? 0).toBeGreaterThan(0);
+    // Explicit cast to access hidden/optional priority for integration verification
+    // biome-ignore lint/suspicious/noExplicitAny: integration test verifying hidden field
+    expect((firstTodo as any).priority ?? 0).toBeGreaterThan(0);
 
     // Verify Work (Root) is hidden (Container Visibility Pass 7)
-    // Work has a visible child (Email), so Work should be hidden.
-    const workTask = store.getTask(rootGoal.id);
-    expect(workTask?.visibility).toBe(false);
-    expect(workTask?.priority).toBe(0.0);
+    // Work has a visible child (Email), so Work should be hidden from the todo list.
+    const workInTodos = todos.find(t => t.id === rootGoal.id);
+    expect(workInTodos).toBeUndefined();
   });
 });

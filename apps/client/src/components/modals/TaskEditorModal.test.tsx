@@ -24,6 +24,9 @@ const mockTask: Task = {
   childTaskIds: [],
   isAcknowledged: false,
   notes: '',
+  isContainer: false,
+  isPending: true,
+  isReady: true,
 };
 
 describe('TaskEditorModal', () => {

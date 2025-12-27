@@ -3,8 +3,11 @@ import {
   type DocumentHandle,
   type Task,
   type TaskID,
+  toComputedTask,
   useTunnel,
 } from '@mydoo/tasklens';
+import {useCallback} from 'react';
+
 import {TaskEditorModal} from '../../components/modals/TaskEditorModal';
 import {useTaskIntents} from '../intents/useTaskIntents';
 import {useTaskDetails} from '../projections/useTaskDetails';
@@ -51,6 +54,30 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
   // Resolve parent title for Create Mode
   const {doc} = useTunnel(docUrl);
   let resolvedParentTitle = parentTitle;
+
+  // We need to pass a ComputedTask to the modal, but our internal state in Editor
+  // is usually partial or persisted.
+  // If we have a full task object from the doc, project it.
+  // If we are creating, we pass null.
+  // But if we have partial updates, we might need to handle that.
+  // TaskEditorModal expects `Task | null` (where Task is ComputedTask alias).
+  const editorState = useCallback(() => {
+    if (modal?.type === 'create') {
+      if (!modal.parentId) return {task: null, parent: null};
+      // Assuming 'tasks' is available from 'doc'
+      const tasks = doc?.tasks || {};
+      return {task: null, parent: tasks[modal.parentId] || null};
+    }
+    // Edit mode
+    if (!modal?.taskId) return {task: null, parent: null};
+    // computedTask is already derived from 'task' which comes from doc.tasks[modal.taskId]
+    const computedTask = task ? toComputedTask(task) : null;
+    const tasks = doc?.tasks || {};
+    return {
+      task: computedTask,
+      parent: task?.parentId ? tasks[task.parentId] : null,
+    };
+  }, [doc, modal, task]);
 
   if (modal?.type === 'create' && doc) {
     if (modal.parentId) {
@@ -261,11 +288,13 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
     closeModal();
   };
 
+  const currentEditorState = editorState();
+
   return (
     <TaskEditorModal
       opened={!!modal && (modal.type === 'create' || !!task)}
       onClose={handleClose}
-      task={modal?.type === 'create' ? null : task}
+      task={currentEditorState.task} // Now correctly typed as computed task or null
       mode={
         modal?.type === 'create' || modal?.type === 'edit'
           ? modal.type

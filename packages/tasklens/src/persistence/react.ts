@@ -22,6 +22,7 @@ import {useCallback, useMemo} from 'react';
 import {
   type CreateTaskOptions,
   type DocumentHandle,
+  type PersistedTunnelNode,
   type Task,
   type TaskID,
   TaskStatus,
@@ -111,8 +112,18 @@ export interface TunnelHookResult {
  * **Performance Note**: The `tasks` tree is rebuilt whenever the document
  * changes. For large lists, memoize child components.
  */
+
+// Helper to hydrate PersistedTunnelNode to TunnelNode (Computed)
+const enrichNode = (node: PersistedTunnelNode): TunnelNode => ({
+  ...node,
+  children: node.children.map(enrichNode),
+  isContainer: node.childTaskIds.length > 0,
+  isPending: node.status === TaskStatus.Pending,
+  isReady: node.status === TaskStatus.Pending, // Simple approximation for Tree View
+});
+
 export function useTunnel(docId: DocumentHandle): TunnelHookResult {
-  // Cast the opaque opaque handle back to AnyDocumentId for the internal library
+  // Cast the opaque handle back to AnyDocumentId for the internal library
   const docUrl = docId as unknown as AnyDocumentId;
   const [doc, changeDoc] = useDocument(docUrl);
 
@@ -120,7 +131,11 @@ export function useTunnel(docId: DocumentHandle): TunnelHookResult {
     // Runtime validation for read
     const result = TunnelStateSchema.safeParse(doc);
     if (!result.success) return [];
-    return TunnelOps.getTaskTree(result.data);
+
+    const rawTree = TunnelOps.getTaskTree(result.data);
+
+    // Hydrate to Computed Nodes
+    return rawTree.map(enrichNode);
   }, [doc]);
 
   // Wrap changeDoc to provide type-safe mutations on the Automerge proxy.

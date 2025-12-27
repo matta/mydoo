@@ -41,8 +41,6 @@ const createMockTask = (
   isPending: true,
   isReady: true,
   isSequential: false,
-  normalizedImportance: 1,
-  priority: 1,
   priorityTimestamp: 0,
   schedule: {leadTime: 0, type: 'Once'},
   status: TaskStatus.Pending,

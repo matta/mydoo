@@ -1,4 +1,4 @@
-import type {Task} from '../../src/types';
+import type {EnrichedTask} from '../../src/types';
 
 /**
  * Pass 2: Schedule Inheritance
@@ -6,7 +6,7 @@ import type {Task} from '../../src/types';
  * Updates the `schedule` property of tasks if inheriting.
  * @param tasks All tasks in the document.
  */
-export function pass2ScheduleInheritance(tasks: Task[]): void {
+export function pass2ScheduleInheritance(tasks: EnrichedTask[]): void {
   // Traverse tasks, applying schedule inheritance
   // This might require a topological sort or iterative passes if hierarchy depth is not guaranteed.
   // For simplicity and given max depth 20, a recursive approach or multiple passes are viable.
@@ -20,7 +20,7 @@ export function pass2ScheduleInheritance(tasks: Task[]): void {
   // We'll iterate through tasks and apply inheritance. A task's parent must be processed first.
 
   // Create a map for faster access to tasks by ID
-  const taskMap = new Map<string, Task>();
+  const taskMap = new Map<string, EnrichedTask>();
   tasks.forEach(task => {
     taskMap.set(task.id, task);
   });

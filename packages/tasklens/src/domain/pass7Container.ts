@@ -1,32 +1,29 @@
-import type {Task, TaskID, TunnelState} from '../../src/types';
+import type {EnrichedTask, TaskID, TunnelState} from '../../src/types';
 
 /**
  * Pass 7: Container Visibility
  * Recursively hides any Container Task that has at least one visible descendant.
  *
- * @param doc The current Automerge document state (mutable proxy).
- * @param tasks All tasks in the document.
- * @param getChildrenFromDoc Helper to get children from the current document state.
+ * @param doc The current Automerge document state.
+ * @param tasks All tasks (Mutable EnrichedTasks).
+ * @param getChildrenFromMap Helper to get children (EnrichedTasks).
  */
 export function pass7ContainerVisibility(
-  doc: TunnelState,
-  tasks: Task[],
-  getChildrenFromDoc: (
-    docState: TunnelState,
-    parentId: TaskID | undefined,
-  ) => Task[],
+  _doc: TunnelState,
+  tasks: EnrichedTask[],
+  getChildrenFromMap: (parentId: TaskID | undefined) => EnrichedTask[],
 ): void {
   // Goal: Ensure the Todo List remains uncluttered, showing only actionable leaves or empty containers.
   // Logic: For each Task T where IsContainer = True: If Any(Descendants(T).Visibility == True): Set T.Visibility = False & T.Priority = 0.0
 
   // First, identify all container tasks
   const containerTasks = tasks.filter(
-    task => getChildrenFromDoc(doc, task.id).length > 0,
+    task => getChildrenFromMap(task.id).length > 0,
   );
 
   // Function to recursively check for visible descendants
-  function hasVisibleDescendant(currentTask: Task): boolean {
-    const children = getChildrenFromDoc(doc, currentTask.id);
+  function hasVisibleDescendant(currentTask: EnrichedTask): boolean {
+    const children = getChildrenFromMap(currentTask.id);
     if (children.length === 0) {
       // Leaf node, check its own visibility (from previous passes)
       return currentTask.visibility === true;

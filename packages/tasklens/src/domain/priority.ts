@@ -1,4 +1,11 @@
-import type {Context, Task, TaskID, TunnelState, ViewFilter} from '../types';
+import type {
+  ComputedTask,
+  Context,
+  EnrichedTask,
+  TaskID,
+  TunnelState,
+  ViewFilter,
+} from '../types';
 import {getCurrentTimestamp} from '../utils/time';
 import {pass1ContextualVisibility} from './pass1Visibility';
 import {pass2ScheduleInheritance} from './pass2Schedule';
@@ -8,33 +15,48 @@ import {pass5LeadTimeRamp} from './pass5Leadtime';
 import {pass6FinalPriority} from './pass6Priority';
 import {pass7ContainerVisibility} from './pass7Container';
 
+/**
+ * Options to control which tasks are included in the prioritized output.
+ */
+export interface PriorityOptions {
+  /** If true, include tasks with `visibility: false`. Defaults to false. */
+  includeHidden?: boolean;
+  /** If true, include acknowledged done tasks. Defaults to false. */
+  includeDone?: boolean;
+}
+
+/**
+ * Runs the prioritization algorithm on the mutable EnrichedTask objects.
+ * (Stage 2 of the Pipeline)
+ */
 export function recalculatePriorities(
   state: TunnelState,
+  enrichedTasks: EnrichedTask[],
   viewFilter: ViewFilter,
   context?: Context,
 ): void {
   const currentTime = context?.currentTime ?? getCurrentTimestamp();
-  const tasks = Object.values(state.tasks);
 
-  // Pass 1: Contextual Visibility
-  pass1ContextualVisibility(state, viewFilter, currentTime);
+  // Create Lookup Maps for Helpers
+  // Performance: O(N) to build map, but enables O(1) lookups in passes.
+  const taskMap = new Map<TaskID, EnrichedTask>();
+  enrichedTasks.forEach(t => {
+    taskMap.set(t.id, t);
+  });
 
   // Helpers
-  const getTaskFromDoc = (
-    docState: TunnelState,
-    id: TaskID,
-  ): Task | undefined => docState.tasks[id];
+  const getTaskFromMap = (id: TaskID) => taskMap.get(id);
 
-  const getChildrenFromDoc = (
-    docState: TunnelState,
-    parentId: TaskID | undefined,
-  ) => Object.values(docState.tasks).filter(task => task.parentId === parentId);
+  // Note: Filter is O(N).
+  // We can optimize by building a parent index if performance suffers for N > 2000.
+  const getChildrenFromMap = (parentId: TaskID | undefined) =>
+    enrichedTasks.filter(task => task.parentId === parentId);
 
-  const getAncestorsFromDoc = (docState: TunnelState, id: TaskID) => {
-    const ancestors: Task[] = [];
-    let currentTask = getTaskFromDoc(docState, id);
+  const getAncestorsFromMap = (id: TaskID) => {
+    const ancestors: EnrichedTask[] = [];
+    let currentTask = getTaskFromMap(id);
     while (currentTask?.parentId !== undefined) {
-      const parent = getTaskFromDoc(docState, currentTask.parentId);
+      const parent = getTaskFromMap(currentTask.parentId);
       if (parent) {
         ancestors.unshift(parent);
         currentTask = parent;
@@ -45,77 +67,95 @@ export function recalculatePriorities(
     return ancestors;
   };
 
-  // Pass 2: Schedule Inheritance
-  pass2ScheduleInheritance(tasks);
-
-  // Pass 3: Deviation Feedback
-  pass3DeviationFeedback(state, tasks, getTaskFromDoc, getChildrenFromDoc);
-
-  // Pass 4: Weight Normalization
-  pass4WeightNormalization(state, tasks, getChildrenFromDoc);
-
-  // Pass 5: Lead Time Ramp
-  pass5LeadTimeRamp(tasks, currentTime);
-
-  // Pass 6: Final Priority
-  pass6FinalPriority(state, tasks, getAncestorsFromDoc);
-
-  // Pass 7: Container Visibility
-  pass7ContainerVisibility(state, tasks, getChildrenFromDoc);
+  pass1ContextualVisibility(state, enrichedTasks, viewFilter, currentTime);
+  pass2ScheduleInheritance(enrichedTasks);
+  pass3DeviationFeedback(
+    state,
+    enrichedTasks,
+    getTaskFromMap,
+    getChildrenFromMap,
+  );
+  pass4WeightNormalization(state, enrichedTasks, getChildrenFromMap);
+  pass5LeadTimeRamp(enrichedTasks, currentTime);
+  pass6FinalPriority(state, enrichedTasks, getAncestorsFromMap);
+  pass7ContainerVisibility(state, enrichedTasks, getChildrenFromMap);
 }
 
 /**
  * Derives the "Projected State" for the View Layer.
  *
- * computes transient properties (priority, visibility) that are not stored in the DB.
+ * Implements the 3-Stage Pipeline:
+ * 1. Hydrate (Persisted -> Enriched)
+ * 2. Process (Run Algorithm)
+ * 3. Sanitize (Enriched -> Computed)
  *
  * @param state The raw Automerge state (Read-Only).
- * @param viewFilter Filter criteria (e.g. 'Pending' is implicit for priority list, but viewFilter handles Places).
- * @returns Sorted, filtered list of tasks ready for display.
+ * @param viewFilter Filter criteria.
+ * @returns Sorted, filtered list of tasks for the View.
  */
 export function getPrioritizedTasks(
   state: TunnelState,
   viewFilter: ViewFilter = {},
-): Task[] {
-  // 1. Shallow clone tasks to allow mutation of computed properties (priority, visibility).
-  // We must clone ALL tasks because the algorithm traverses the graph (parents/children).
-  const clonedTasks: Record<string, Task> = {};
-  for (const [id, task] of Object.entries(state.tasks)) {
-    clonedTasks[id] = {...task};
-  }
+  options: PriorityOptions = {},
+): ComputedTask[] {
+  // --- Stage 1: Hydrate & Initialize ---
+  // Clone Persisted Tasks into Mutable Enriched Tasks
+  const enrichedTasks: EnrichedTask[] = Object.values(state.tasks).map(
+    persisted => {
+      const isContainer = persisted.childTaskIds.length > 0;
+      const isPending = persisted.status === 'Pending';
 
-  // 2. Create a specific Projected State for the algo to work on.
-  // We use "as TunnelState" because we are mocking the structure with cloned tasks.
-  const projectedState: TunnelState = {
-    ...state,
-    tasks: clonedTasks,
-  };
+      return {
+        ...persisted,
+        effectiveCredits: 0,
+        feedbackFactor: 1.0,
+        leadTimeFactor: 0,
+        normalizedImportance: 0,
+        priority: 0,
+        visibility: true,
+        isContainer,
+        isPending,
+        isReady: false,
+      };
+    },
+  );
 
-  // 3. Run the full algorithm on the cloned state.
-  recalculatePriorities(projectedState, viewFilter);
+  // --- Stage 2: Process ---
+  recalculatePriorities(state, enrichedTasks, viewFilter);
 
-  // 4. Return the filtered list (Pending + Visible + Sorted).
-  // Note: recalculatePriorities applies Pass 1 & 7 which set 'visibility'.
-  // We also explicitly filter for Status here as 'getPrioritizedList' implies 'Active' tasks.
-  // Uses logic similar to what projections.ts had, but relying on the computed props.
-  return Object.values(projectedState.tasks)
+  // --- Stage 3: Sanitize & Sort ---
+
+  // Sort by Priority (Desc) -> Importance -> ID
+  enrichedTasks.sort((a, b) => {
+    const pA = a.priority ?? 0;
+    const pB = b.priority ?? 0;
+    if (pA !== pB) return pB - pA;
+    return (b.importance ?? 0) - (a.importance ?? 0);
+  });
+
+  return enrichedTasks
     .filter(t => {
-      // Must be Visible (Pass 1 place/context + Pass 7 container visibility)
-      if (!t.visibility) return false;
+      if (!options.includeHidden && !t.visibility) return false;
 
-      // Must be Pending OR (Done + Unacknowledged)
-      // Usually Pass 1 handles "Done" visibility?
-      // Let's check Pass 1. Pass 1 usually hides Done tasks unless specific view settings.
-      // But explicit Status check provides safety.
-      return (
-        t.status === 'Pending' || (t.status === 'Done' && !t.isAcknowledged)
-      );
+      if (!options.includeDone) {
+        return (
+          t.status === 'Pending' || (t.status === 'Done' && !t.isAcknowledged)
+        );
+      }
+      return true;
     })
-    .sort((a, b) => {
-      // Sort by Priority (Pass 6) -> Importance -> Creation (implicit in ID?)
-      const pA = a.priority ?? 0;
-      const pB = b.priority ?? 0;
-      if (pA !== pB) return pB - pA;
-      return (b.importance ?? 0) - (a.importance ?? 0);
+    .map(enriched => {
+      const isReady = enriched.isPending && enriched.leadTimeFactor > 0;
+
+      // Note: We return the enriched object cast as ComputedTask for performance.
+      // Extra properties (priority, visibility) are present at runtime but hidden by types.
+      const computed: ComputedTask = {
+        ...enriched,
+        isContainer: enriched.isContainer,
+        isPending: enriched.isPending,
+        isReady,
+      };
+
+      return computed;
     });
 }

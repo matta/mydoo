@@ -8,8 +8,8 @@
  * 4. Round-trip serialization through Automerge save/load
  */
 import {
+  type PersistedTask,
   type PlaceID,
-  type Task,
   type TaskID,
   TaskStatus,
 } from '@mydoo/tasklens';
@@ -20,7 +20,7 @@ import {TunnelStore} from '../../src/persistence/store';
 
 describe('updateTask - Exhaustive Field Coverage', () => {
   let store: TunnelStore;
-  let baseTask: Task;
+  let baseTask: PersistedTask;
 
   beforeEach(() => {
     store = new TunnelStore();
@@ -228,7 +228,7 @@ describe('updateTask - Exhaustive Field Coverage', () => {
       expect(store.state.tasks[child.id]?.parentId).toBe(baseTask.id);
 
       // Explicitly unset parentId by passing it as undefined with 'in' semantics
-      const propsWithExplicitUndefined: Partial<Task> = {};
+      const propsWithExplicitUndefined: Partial<PersistedTask> = {};
       Object.defineProperty(propsWithExplicitUndefined, 'parentId', {
         value: undefined,
         enumerable: true,
@@ -260,7 +260,7 @@ describe('updateTask - Exhaustive Field Coverage', () => {
       expect(store.state.tasks[baseTask.id]?.placeId).toBe(newPlaceId);
 
       // Explicitly unset placeId
-      const propsWithExplicitUndefined: Partial<Task> = {};
+      const propsWithExplicitUndefined: Partial<PersistedTask> = {};
       Object.defineProperty(propsWithExplicitUndefined, 'placeId', {
         value: undefined,
         enumerable: true,
@@ -309,7 +309,7 @@ describe('updateTask - Round-Trip Serialization (Automerge)', () => {
   }
 
   let store: TunnelStore;
-  let baseTask: Task;
+  let baseTask: PersistedTask;
 
   beforeEach(() => {
     store = new TunnelStore();
@@ -493,7 +493,7 @@ describe('updateTask - Automerge Deletion Semantics', () => {
     expect('placeId' in storedTask).toBe(true);
 
     // Explicitly delete via update
-    const props: Partial<Task> = {};
+    const props: Partial<PersistedTask> = {};
     Object.defineProperty(props, 'placeId', {
       value: undefined,
       enumerable: true,
@@ -513,7 +513,7 @@ describe('updateTask - Automerge Deletion Semantics', () => {
       placeId: 'ToBeDeleted' as PlaceID,
     });
 
-    const props: Partial<Task> = {};
+    const props: Partial<PersistedTask> = {};
     Object.defineProperty(props, 'placeId', {
       value: undefined,
       enumerable: true,

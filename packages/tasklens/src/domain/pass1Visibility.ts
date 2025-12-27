@@ -17,11 +17,10 @@
  */
 import {
   ANYWHERE_PLACE_ID,
+  type EnrichedTask,
   type OpenHours,
   type Place,
   type PlaceID,
-  type Task,
-  type TaskID,
   type TunnelState,
   type ViewFilter,
 } from '../../src/types';
@@ -94,26 +93,26 @@ function _isPlaceOpen(place: Place, currentTime: number): boolean {
  * Pass 1: Contextual Visibility
  * Filters tasks by Physical Context and Time.
  * Updates the `visibility` property of each task.
- * @param doc The current Automerge document state (mutable proxy).
- * @param tasks All tasks in the document.
+ * @param _doc The current Automerge document state (mutable proxy).
+ * @param tasks All tasks in the document (Mutable EnrichedTasks).
  * @param viewFilter The active view filter from the user.
  * @param currentTime The current timestamp in milliseconds.
  */
 export function pass1ContextualVisibility(
   doc: TunnelState,
+  tasks: EnrichedTask[],
   viewFilter: ViewFilter,
   currentTime: number,
 ): void {
-  for (const taskId in doc.tasks) {
-    const task = doc.tasks[taskId as TaskID];
-    if (!task) continue;
-
+  for (const task of tasks) {
     // 1. Resolve Effective Place
+    // We can lookup parents in `doc` because hierarchy/placeId are Persisted properties.
     let effectivePlaceId: PlaceID | undefined = task.placeId;
     if (effectivePlaceId === undefined && task.parentId !== undefined) {
-      let currentParent: Task | undefined = task.parentId
-        ? doc.tasks[task.parentId]
+      let currentParent = task.parentId
+        ? doc.tasks[task.parentId] // Lookup in Persisted State
         : undefined;
+
       while (currentParent?.placeId === undefined) {
         currentParent = currentParent?.parentId
           ? doc.tasks[currentParent.parentId]

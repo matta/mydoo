@@ -1,5 +1,5 @@
 import {
-  buildTree,
+  buildTunnelTree,
   type DocumentHandle,
   type TunnelNode,
   useTunnel,
@@ -22,7 +22,7 @@ export function useTaskTree(docUrl: DocumentHandle): TaskTree {
 
   const roots = useMemo(() => {
     if (!doc) return [];
-    return buildTree(doc.rootTaskIds, doc.tasks);
+    return buildTunnelTree(doc.rootTaskIds, doc.tasks);
   }, [doc]);
 
   return {

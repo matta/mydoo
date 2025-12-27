@@ -1,5 +1,5 @@
 import {
-  buildTree,
+  buildTunnelTree,
   type DocumentHandle,
   type TaskID,
   type TunnelNode,
@@ -29,10 +29,10 @@ export function useValidParentTargets(
       // If no task is being moved, technically all are valid, but usually we call this with a task.
       // If movedTaskId is undefined, just return full tree or empty?
       // Let's return full tree if no movedTaskId provided (though unlikely case for this hook).
-      return buildTree(doc.rootTaskIds, doc.tasks);
+      return buildTunnelTree(doc.rootTaskIds, doc.tasks);
     }
 
-    const fullTree = buildTree(doc.rootTaskIds, doc.tasks);
+    const fullTree = buildTunnelTree(doc.rootTaskIds, doc.tasks);
 
     // Recursive filter function
     const filterNode = (node: TunnelNode): TunnelNode | null => {

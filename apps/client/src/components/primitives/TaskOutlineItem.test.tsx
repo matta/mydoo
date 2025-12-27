@@ -22,6 +22,9 @@ describe('TaskOutlineItem', () => {
     isAcknowledged: false,
     isSequential: false,
     notes: '',
+    isContainer: false,
+    isPending: true,
+    isReady: true,
   };
 
   const defaultProps: TaskOutlineItemProps = {

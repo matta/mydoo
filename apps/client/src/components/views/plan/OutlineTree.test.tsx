@@ -21,6 +21,9 @@ describe('OutlineTree', () => {
     isAcknowledged: false,
     isSequential: false,
     notes: '',
+    isContainer: false,
+    isPending: true,
+    isReady: true,
   };
 
   const mockRoot: TunnelNode = {

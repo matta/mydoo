@@ -1,4 +1,4 @@
-import type {Task, TaskID, TunnelState} from '../../src/types';
+import type {EnrichedTask, TaskID, TunnelState} from '../../src/types';
 
 /**
  * Pass 3: Deviation Feedback (The "Thermostat")
@@ -7,23 +7,21 @@ import type {Task, TaskID, TunnelState} from '../../src/types';
  *
  * Constants: `k=2.0` (Sensitivity), `epsilon=0.001` (Div/0 Protection).
  *
- * @param doc The current Automerge document state (mutable proxy).
- * @param tasks All tasks in the document.
- * @param getTaskFromDoc Helper to get a task from the current document state.
- * @param getChildrenFromDoc Helper to get children from the current document state.
+ * @param doc The current Automerge document state (mutable proxy or source of truth).
+ * @param tasks All tasks (Mutable EnrichedTasks).
+ * @param getTaskFromMap Helper to get an EnrichedTask by ID.
+ * @param getChildrenFromMap Helper to get EnrichedTask children.
  */
 export function pass3DeviationFeedback(
-  doc: TunnelState,
-  tasks: Task[],
-  _getTaskFromDoc: (docState: TunnelState, id: TaskID) => Task | undefined,
-  _getChildrenFromDoc: (
-    docState: TunnelState,
-    parentId: TaskID | undefined,
-  ) => Task[],
+  _doc: TunnelState,
+  tasks: EnrichedTask[],
+  _getTaskFromMap: (id: TaskID) => EnrichedTask | undefined,
+  _getChildrenFromMap: (parentId: TaskID | undefined) => EnrichedTask[],
 ): void {
   const k = 2.0; // Sensitivity
   const epsilon = 0.001; // Division by zero protection
 
+  // Filter root tasks from the Enriched list
   const rootGoals = tasks.filter(task => task.parentId === undefined);
 
   let totalDesiredCredits = 0;
@@ -37,9 +35,7 @@ export function pass3DeviationFeedback(
   // So, let's update EffectiveCredits here first. HalfLife is 7 Days.
   const halfLifeMillis = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
-  for (const taskId in doc.tasks) {
-    const task = doc.tasks[taskId as TaskID];
-    if (!task) return;
+  for (const task of tasks) {
     const timeDelta = getCurrentTimestamp() - task.creditsTimestamp;
     task.effectiveCredits = task.credits * 0.5 ** (timeDelta / halfLifeMillis);
   }
