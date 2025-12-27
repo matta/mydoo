@@ -37,6 +37,10 @@ interface PlanFixture {
 
   // Navigation
   switchToPlanView: () => Promise<void>;
+  switchToDoView: () => Promise<void>;
+
+  // Lifecycle / Setup
+  primeWithSampleData: () => Promise<void>;
 }
 
 /**
@@ -211,6 +215,14 @@ class PlanPage implements PlanFixture {
       .click();
   }
 
+  async switchToDoView(): Promise<void> {
+    await this.page
+      .locator('nav, footer')
+      .getByRole('button', {name: 'Do'})
+      .last()
+      .click();
+  }
+
   // --- Mobile Helpers ---
 
   async mobileDrillDown(title: string): Promise<void> {
@@ -255,6 +267,19 @@ class PlanPage implements PlanFixture {
     const picker = this.page.getByRole('dialog', {name: /^Move "/});
     const target = picker.getByText(title, {exact: true});
     await expect(target).not.toBeVisible();
+  }
+
+  // --- Lifecycle / Setup ---
+
+  async primeWithSampleData(): Promise<void> {
+    await this.page.goto('/?seed=true');
+    // Ensure the app is loaded by waiting for the Plan button
+    await expect(
+      this.page
+        .locator('nav, footer')
+        .getByRole('button', {name: 'Plan'})
+        .last(),
+    ).toBeVisible();
   }
 }
 

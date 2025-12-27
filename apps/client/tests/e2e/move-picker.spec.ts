@@ -1,8 +1,8 @@
 import {test} from './fixtures';
 
 test.describe('Move Picker Interactions', () => {
-  test.beforeEach(async ({page}) => {
-    await page.goto('/?seed=true');
+  test.beforeEach(async ({plan}) => {
+    await plan.primeWithSampleData();
   });
 
   test('Move Task to Another Parent', async ({plan}) => {

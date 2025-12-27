@@ -4,8 +4,8 @@ test.describe('Mobile Interactions', () => {
   // iPhone SE viewport
   test.use({viewport: {width: 375, height: 667}});
 
-  test.beforeEach(async ({page, plan}) => {
-    await page.goto('/?seed=true');
+  test.beforeEach(async ({plan}) => {
+    await plan.primeWithSampleData();
     await plan.switchToPlanView();
   });
 

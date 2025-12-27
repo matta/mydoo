@@ -1,8 +1,8 @@
 import {test} from './fixtures';
 
 test.describe('Task Interactions', () => {
-  test.beforeEach(async ({page}) => {
-    await page.goto('/?seed=true');
+  test.beforeEach(async ({plan}) => {
+    await plan.primeWithSampleData();
   });
 
   test('create and complete a task', async ({plan}) => {
