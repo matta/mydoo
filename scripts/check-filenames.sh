@@ -13,8 +13,6 @@ trap 'rm -f "$GRANDFATHERED_FILE"' EXIT
 # Files to ignore (Grandfathered list)
 # We use a grep pattern file for this to handle the list cleanly
 cat <<EOF > "$GRANDFATHERED_FILE"
-./packages/tasklens/specs/compliance/schemas/test_case.d.ts
-./packages/tasklens/specs/compliance/schemas/test_case.schema.json
 ./packages/tasklens/specs/compliance/fixtures/zero_feedback.yaml
 ./packages/tasklens/specs/compliance/fixtures/tree_order.yaml
 ./packages/tasklens/specs/compliance/fixtures/boost_lead_time.yaml
@@ -26,72 +24,15 @@ cat <<EOF > "$GRANDFATHERED_FILE"
 ./packages/tasklens/specs/compliance/fixtures/min_threshold.yaml
 ./packages/tasklens/specs/compliance/fixtures/complex_mutation.yaml
 ./packages/tasklens/specs/compliance/fixtures/boost_importance.yaml
-./packages/tasklens/tests/unit/deleteTaskCascade.test.ts
-./packages/tasklens/tests/unit/schemaValidation.test.ts
-./packages/tasklens/tests/unit/createTaskDefaults.test.ts
-./packages/tasklens/tests/unit/updateTask.test.ts
-./packages/tasklens/src/domain/pass5Leadtime.ts
-./packages/tasklens/src/domain/pass2Schedule.ts
-./packages/tasklens/src/domain/pass6Priority.ts
-./packages/tasklens/src/domain/pass3Thermostat.ts
-./packages/tasklens/src/domain/pass1Visibility.ts
-./packages/tasklens/src/domain/pass4Weights.ts
-./packages/tasklens/src/domain/pass7Container.ts
-./apps/client/tests/e2e/priorityList.spec.ts
-./apps/client/src/viewmodel/ui/useBreadcrumbs.test.tsx
-./apps/client/src/viewmodel/ui/useNavigationState.tsx
-./apps/client/src/viewmodel/ui/useBreadcrumbs.ts
-./apps/client/src/viewmodel/ui/useNavigationState.test.tsx
-./apps/client/src/viewmodel/useTodoList.ts
-./apps/client/src/viewmodel/UseDocument.test.tsx
-./apps/client/src/viewmodel/projections/usePriorityList.ts
-./apps/client/src/viewmodel/projections/useTaskTree.test.tsx
-./apps/client/src/viewmodel/projections/useTaskDetails.ts
-./apps/client/src/viewmodel/projections/useTaskDetails.test.tsx
-./apps/client/src/viewmodel/projections/UsePriorityList.test.tsx
-./apps/client/src/viewmodel/projections/useTaskTree.ts
-./apps/client/src/viewmodel/useTaskActions.ts
-./apps/client/src/viewmodel/useBreadcrumbs.ts
-./apps/client/src/viewmodel/useDocument.ts
-./apps/client/src/viewmodel/containers/DoViewContainer.tsx
-./apps/client/src/viewmodel/containers/TaskEditorContainer.tsx
-./apps/client/src/viewmodel/intents/UseTaskIntents_Move.test.tsx
-./apps/client/src/viewmodel/intents/UseTaskIntents.test.tsx
-./apps/client/src/viewmodel/intents/useSystemIntents.ts
-./apps/client/src/viewmodel/intents/UseSystemIntents.test.tsx
-./apps/client/src/viewmodel/intents/useTaskIntents.ts
-./apps/client/src/viewmodel/useTaskTree.ts
-./apps/client/src/App.tsx
-./apps/client/src/components/TodoItem.tsx
-./apps/client/src/components/shell/AppShellContainer.tsx
-./apps/client/src/components/TodoApp.tsx
-./apps/client/src/components/composites/PriorityTaskList.tsx
-./apps/client/src/components/Breadcrumbs.tsx
-./apps/client/src/components/modals/DeleteConfirmModal.tsx
-./apps/client/src/components/modals/TaskEditorModal.test.tsx
-./apps/client/src/components/modals/TaskEditorModal.tsx
-./apps/client/src/components/modals/DeleteConfirmModal.test.tsx
-./apps/client/src/components/primitives/QuickAddInput.test.tsx
-./apps/client/src/components/primitives/TaskRow.tsx
-./apps/client/src/components/primitives/TaskRow.test.tsx
-./apps/client/src/components/primitives/QuickAddInput.tsx
-./apps/client/src/components/primitives/TaskOutlineItem.css
-./apps/client/src/components/primitives/TaskOutlineItem.tsx
-./apps/client/src/components/primitives/TaskOutlineItem.test.tsx
-./apps/client/src/components/views/plan/OutlineTree.tsx
-./apps/client/src/components/views/plan/PlanViewContainer.tsx
-./apps/client/src/components/views/plan/OutlineTree.test.tsx
-./apps/client/src/components/views/plan/PlanViewContainer.test.tsx
-./apps/client/src/components/InlineInput.tsx
-./apps/client/src/components/TodoList.tsx
-./apps/client/src/hooks/RepoProvider.tsx
-./apps/client/src/lib/todoUtils.ts
-./apps/client/src/dev/SeedData.tsx
 EOF
 
 # Find files that violate the convention
-# Exclude: .git, node_modules, dist, .turbo, coverage, grandfathered files
-# Exclude: Extensions handled by Biome (ts, tsx, js, jsx, cjs, mjs, json, jsonc)
+#
+# Exclusions Strategy:
+# 1. System/Generated: .git, node_modules, build artifacts (dist, coverage) - Not source code.
+# 2. Source Code: Delegated to Biome.
+#    Biome is configured to enforce `kebab-case` for ts, js, json, etc.
+#    See `biome.json` > linter > rules > style > useFilenamingConvention.
 VIOLATIONS=$(find . -type f \( \
     -name "*.md" -o \
     -name "*.sh" -o \
