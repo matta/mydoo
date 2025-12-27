@@ -18,7 +18,7 @@ test.describe('Move Picker Interactions', () => {
 
       // Create child under root
       // (Using previous flow: Select Root -> Add Child)
-      await plan.selectTask(rootTask);
+      await plan.openTaskEditor(rootTask);
       await plan.addChild(childTask);
 
       // Verify initial state
@@ -54,11 +54,11 @@ test.describe('Move Picker Interactions', () => {
 
     await test.step('Setup Three-Level Hierarchy', async () => {
       await plan.createTask(parent);
-      await plan.selectTask(parent);
+      await plan.openTaskEditor(parent);
       await plan.addChild(child);
 
       await plan.toggleExpand(parent);
-      await plan.selectTask(child);
+      await plan.openTaskEditor(child);
       await plan.addChild(grandchild);
     });
 

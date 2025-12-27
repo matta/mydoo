@@ -67,7 +67,7 @@ test.describe('Plan View', () => {
     await test.step('Setup hierarchy', async () => {
       // Given a hierarchy: Parent -> Child
       await plan.createTask(parentTitle);
-      await plan.selectTask(parentTitle);
+      await plan.openTaskEditor(parentTitle);
       await plan.addChild(childTitle);
     });
 

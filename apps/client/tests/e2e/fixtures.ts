@@ -11,8 +11,9 @@ import {test as base, expect} from '@playwright/test';
 interface PlanFixture {
   // Core Task Operations
   createTask: (title: string) => Promise<void>;
-  selectTask: (title: string) => Promise<void>;
+  addFirstTask: (title: string) => Promise<void>;
   addChild: (title: string) => Promise<void>;
+  addSibling: (targetTitle: string, siblingTitle: string) => Promise<void>;
   openTaskEditor: (title: string) => Promise<void>;
   clickMoveButton: () => Promise<void>;
   toggleExpand: (title: string, shouldExpand?: boolean) => Promise<void>;
@@ -25,6 +26,7 @@ interface PlanFixture {
   verifyTaskVisible: (title: string) => Promise<void>;
   verifyTaskHidden: (title: string) => Promise<void>;
   verifyTaskCompleted: (title: string) => Promise<void>;
+  verifyFocusedByLabel: (label: string) => Promise<void>;
 
   // Mobile Helpers
   mobileDrillDown: (title: string) => Promise<void>;
@@ -95,47 +97,45 @@ class PlanPage implements PlanFixture {
     ).toBeVisible();
   }
 
-  async selectTask(title: string): Promise<void> {
-    // Wait for the task to be visible (important after tree expansions)
-    const el = this.page.getByText(title, {exact: true}).first();
-    await el.waitFor({state: 'visible', timeout: 5000});
-    await el.click();
+  async addFirstTask(title: string): Promise<void> {
+    await this.page.getByRole('button', {name: 'Add First Task'}).click();
+    const modal = this.page.getByRole('dialog', {name: 'Create Task'});
+    await this.verifyFocusedByLabel('Title');
+    await modal.getByRole('textbox', {name: 'Title'}).fill(title);
+    await modal.getByRole('button', {name: 'Create Task'}).click();
+    await expect(modal).not.toBeVisible();
   }
 
   async addChild(title: string): Promise<void> {
-    // Strategy: Assume Task Editor is open (via selectTask).
-
-    // 1. Check if "Edit Task" modal is open and visible
+    // Strategy: Assume Task Editor is open (clicking a task title opens it).
     const editModal = this.page.getByRole('dialog', {name: 'Edit Task'});
-
-    // We expect it to be visible because selectTask opens it.
     await editModal.waitFor({state: 'visible', timeout: 3000});
 
     // Click "Add Child" in the footer
     await editModal.getByRole('button', {name: 'Add Child'}).click();
 
-    // 2. Expect "Create Task" modal to appear
+    // Expect "Create Task" modal to appear
     const createModal = this.page.getByRole('dialog', {name: 'Create Task'});
     await createModal.waitFor({state: 'visible', timeout: 3000});
+    await this.verifyFocusedByLabel('Title');
+    await createModal.getByRole('textbox', {name: 'Title'}).fill(title);
+    await createModal.getByRole('button', {name: 'Create Task'}).click();
+    await expect(createModal).not.toBeVisible();
+  }
 
-    const input = createModal.getByPlaceholder('What needs to be done?');
-    await input.waitFor({state: 'visible', timeout: 3000});
+  async addSibling(targetTitle: string, siblingTitle: string): Promise<void> {
+    const row = this.page
+      .locator(`[data-testid="task-item"]`, {hasText: targetTitle})
+      .first();
+    await row.hover();
+    await row.getByTestId('task-menu-trigger').click();
+    await this.page.getByRole('menuitem', {name: 'Add Sibling'}).click();
 
-    await input.click();
-    await input.fill(title);
-    await input.press('Enter');
-
-    // VERIFY: Check if task exists in list (should be visible if auto-expanded)
-    try {
-      await this.page
-        .getByText(title)
-        .waitFor({state: 'visible', timeout: 2000});
-    } catch {
-      // Task may be in collapsed parent
-    }
-
-    // Close Create Modal
-    await this.page.keyboard.press('Escape');
+    const modal = this.page.getByRole('dialog', {name: 'Create Task'});
+    await this.verifyFocusedByLabel('Title');
+    await modal.getByRole('textbox', {name: 'Title'}).fill(siblingTitle);
+    await modal.getByRole('button', {name: 'Create Task'}).click();
+    await expect(modal).not.toBeVisible();
   }
 
   async openTaskEditor(title: string): Promise<void> {
@@ -182,13 +182,14 @@ class PlanPage implements PlanFixture {
   }
 
   async clearCompletedTasks(): Promise<void> {
-    await this.page.getByRole('button', {name: 'Do'}).click();
+    await this.switchToDoView();
     await this.page.getByRole('button', {name: 'Refresh'}).click();
   }
 
   async editTaskTitle(title: string, newTitle: string): Promise<void> {
     await this.openTaskEditor(title);
     const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
+    await this.verifyFocusedByLabel('Title');
     await modal.getByRole('textbox', {name: 'Title'}).fill(newTitle);
     await modal.getByRole('button', {name: 'Save Changes'}).click();
     await expect(modal).not.toBeVisible();
@@ -219,7 +220,9 @@ class PlanPage implements PlanFixture {
   }
 
   async verifyTaskHidden(title: string): Promise<void> {
-    await expect(this.page.getByText(title).first()).toBeHidden();
+    await expect(
+      this.page.getByText(title, {exact: true}).first(),
+    ).toBeHidden();
   }
 
   async verifyTaskCompleted(title: string): Promise<void> {
@@ -230,6 +233,10 @@ class PlanPage implements PlanFixture {
 
     await expect(taskRow).toBeVisible();
     await expect(titleText).toHaveCSS('text-decoration-line', 'line-through');
+  }
+
+  async verifyFocusedByLabel(label: string): Promise<void> {
+    await expect(this.page.getByLabel(label)).toBeFocused();
   }
 
   // --- Navigation ---
