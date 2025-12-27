@@ -45,9 +45,6 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Test
-        run: pnpm test
-
       - name: Cache Playwright binaries
         uses: actions/cache@v4
         id: playwright-cache
@@ -59,6 +56,9 @@ jobs:
       - name: Install Playwright Browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm --filter client exec playwright install chromium --with-deps
+
+      - name: Test
+        run: pnpm test
 
       - name: E2E Tests
         run: pnpm test:e2e
