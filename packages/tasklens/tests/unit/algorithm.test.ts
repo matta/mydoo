@@ -85,6 +85,7 @@ function parseTaskInput(
     isSequential: input.is_sequential ?? false,
     childTaskIds: [],
     isAcknowledged: false, // Default for tests
+    notes: '',
   };
 
   if (parentId) task.parentId = parentId as TaskID;

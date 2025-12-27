@@ -131,23 +131,34 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
   /**
    * Handles creation of a new task from the modal.
    * @param title - The title of the new task.
+   * @param props - Additional task properties (importance, effort, etc.)
    */
-  const handleCreate = (title: string) => {
+  const handleCreate = (title: string, props?: Partial<Task>) => {
     if (modal?.type !== 'create') return;
 
     let newTaskId: TaskID;
 
     if (modal.afterTaskId) {
-      newTaskId = createTask(title, modal.parentId, {
-        position: 'after',
-        afterTaskId: modal.afterTaskId,
-      });
+      newTaskId = createTask(
+        title,
+        modal.parentId,
+        {
+          position: 'after',
+          afterTaskId: modal.afterTaskId,
+        },
+        props,
+      );
     } else if (modal.position) {
-      newTaskId = createTask(title, modal.parentId, {
-        position: modal.position,
-      });
+      newTaskId = createTask(
+        title,
+        modal.parentId,
+        {
+          position: modal.position,
+        },
+        props,
+      );
     } else {
-      newTaskId = createTask(title, modal.parentId);
+      newTaskId = createTask(title, modal.parentId, undefined, props);
     }
 
     // UX: Highlight & Reveal

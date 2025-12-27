@@ -19,10 +19,15 @@ export function useTaskIntents(docUrl: DocumentHandle) {
   const {doc, ops} = useTunnel(docUrl);
 
   const createTask = useCallback(
-    (title: string, parentId?: TaskID, options?: CreateTaskOptions): TaskID => {
+    (
+      title: string,
+      parentId?: TaskID,
+      options?: CreateTaskOptions,
+      props?: Partial<Task>,
+    ): TaskID => {
       // Generate ID client-side so we can return it and use it for navigation/highlight
       const newTaskId = crypto.randomUUID() as TaskID;
-      ops.add({id: newTaskId, title, parentId}, options);
+      ops.add({id: newTaskId, title, parentId, ...props}, options);
       return newTaskId;
     },
     [ops],

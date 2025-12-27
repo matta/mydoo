@@ -31,3 +31,4 @@ test-results
 .last-run.json
 coverage
 ROLLING_CONTEXT.md
+**/__screenshots__

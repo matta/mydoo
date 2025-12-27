@@ -179,16 +179,16 @@ _Goal: Hierarchical tree navigation with expand/collapse._
   - [x] Implement scrollable breadcrumb trail for mobile
   - [x] Tap row/title opens Task Editor; tap arrow drills down
   - [x] E2E tests for mobile navigation
-- [ ] **Step 6: Critical Create Flow Fixes (Highlight & Reveal)**
-  - [ ] Add "More" menu to TaskOutlineItem (Add Child, Add Sibling)
-  - [ ] Implement "Highlight & Reveal" (Auto-expand, Auto-scroll, Flash)
-- [ ] **Remaining Work**
-  - [ ] Create `MovePickerModal` (select new parent + position)
-  - [ ] E2E: Move task -> Verify tree updates correctly
-  - [ ] E2E: Task Editor verification _(Deferred from Phase 4)_
-  - [ ] E2E: Task Deletion cascade _(Deferred from Phase 4)_
-  - [ ] Enable skipped E2E test: `should persist task after page reload`
-  - [ ] Replace browser `confirm()` with Mantine modal in `TaskEditorContainer` _(Polish)_
+- [x] **Step 6: Critical Create Flow Fixes (Highlight & Reveal) [COMPLETE]**
+  - [x] Add "More" menu to TaskOutlineItem (Add Child, Add Sibling)
+  - [x] Implement "Highlight & Reveal" (Auto-expand, Auto-scroll, Flash)
+- [x] **Remaining Work [COMPLETE]**
+  - [x] Create `MovePickerModal` (select new parent + position)
+  - [x] E2E: Move task -> Verify tree updates correctly
+  - [x] E2E: Task Editor verification (Step 9)
+  - [x] E2E: Task Deletion cascade (Step 9)
+  - [x] Enable skipped E2E test: `should persist task after page reload`
+  - [x] Replace browser `confirm()` with Mantine modal in `TaskEditorContainer` (Polish)
 
 ## Phase 6: TaskLens Type Rationalization
 **Rationale**: Clarifies the boundary between Persisted State (DB) and Computed View State. Prevents accidental mutation of CRDT history with transient scores. Makes the data flow explicit: `DB -> Algo -> View`.

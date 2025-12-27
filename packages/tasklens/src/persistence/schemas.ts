@@ -87,6 +87,14 @@ export const ScheduleSchema = z.object({
 });
 
 /**
+ * Schema for validating RepeatConfig.
+ */
+export const RepeatConfigSchema = z.object({
+  frequency: z.enum(['daily', 'weekly', 'monthly', 'yearly']),
+  interval: z.number().min(1),
+});
+
+/**
  * Schema for validating a Task object.
  *
  * This schema validates all required properties of a Task. Note that computed
@@ -98,6 +106,7 @@ export const ScheduleSchema = z.object({
 export const TaskSchema = z.object({
   id: TaskIDSchema,
   title: z.string(),
+  notes: z.string().default(''),
   parentId: TaskIDSchema.optional(),
   childTaskIds: z.array(TaskIDSchema),
   placeId: PlaceIDSchema.optional(),
@@ -109,6 +118,7 @@ export const TaskSchema = z.object({
   creditsTimestamp: z.number(),
   priorityTimestamp: z.number(),
   schedule: ScheduleSchema,
+  repeatConfig: RepeatConfigSchema.optional(),
   isSequential: z.boolean(),
   // Lifecycle state for visibility
   isAcknowledged: z.boolean().default(false),

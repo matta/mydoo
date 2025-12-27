@@ -54,13 +54,6 @@ import {daysToMilliseconds, getCurrentTimestamp} from '../utils/time';
  * @throws Error if `parentId` refers to a non-existent task.
  * @throws Error if the parent task is already at maximum depth (20 levels).
  * @throws Error if `creditIncrement`, `importance`, or `desiredCredits` are invalid.
- *
- * @example
- * // Create a root task
- * createTask(state, { title: "Buy groceries" });
- *
- * // Create a child task at the beginning of children
- * createTask(state, { title: "Buy milk", parentId: "1" }, { position: 'start' });
  */
 export function createTask(
   state: TunnelState,
@@ -71,13 +64,11 @@ export function createTask(
   // when multiple replicas create tasks simultaneously.
   // Caller may provide an ID for testing purposes.
   const newTaskId = props.id ?? (crypto.randomUUID() as TaskID);
-
   const defaultSchedule: Schedule = {
     type: 'Once',
     dueDate: undefined,
     leadTime: daysToMilliseconds(7),
   };
-
   const newTask: Task = {
     id: newTaskId,
     title: props.title ?? 'New Task',
@@ -101,6 +92,7 @@ export function createTask(
     childTaskIds: [],
     // Remediation: Init as unacknowledged
     isAcknowledged: false,
+    notes: props.notes ?? '',
   };
 
   // Automerge doesn't support 'undefined' values, so we must remove them
@@ -149,9 +141,9 @@ export function createTask(
     // Default: end
     targetList.push(newTaskId);
   }
-
   return newTask;
 }
+
 /**
  * Updates an existing task with new property values.
  *
@@ -166,13 +158,6 @@ export function createTask(
  *
  * @throws Error if the task with the given ID does not exist.
  * @throws Error if any numeric property is outside its valid range.
- *
- * @example
- * // Mark task as important
- * updateTask(state, "1", { importance: 1.0 });
- *
- * // Move task to a new parent
- * updateTask(state, "1", { parentId: "2" });
  */
 export function updateTask(
   state: TunnelState,
@@ -180,9 +165,7 @@ export function updateTask(
   props: Partial<Task>,
 ): Task {
   const task = state.tasks[id];
-  if (!task) {
-    throw new Error(`Task with ID ${id} not found.`);
-  }
+  if (!task) throw new Error(`Task with ID ${id} not found.`);
 
   // Handle parentId change if it exists in props and is different
   if (props.parentId !== undefined && props.parentId !== task.parentId) {
@@ -206,7 +189,6 @@ export function updateTask(
 
   // Idiomatic Automerge: Mutate the proxy directly
   // This should trigger the change detection.
-
   if (props.title !== undefined) task.title = props.title;
   if (props.status !== undefined) task.status = props.status;
   if (props.importance !== undefined) task.importance = props.importance;
@@ -222,8 +204,15 @@ export function updateTask(
   if (props.isSequential !== undefined) task.isSequential = props.isSequential;
   if (props.isAcknowledged !== undefined)
     task.isAcknowledged = props.isAcknowledged;
+  if (props.notes !== undefined) task.notes = props.notes;
 
   // Handle nested objects carefully
+  if (props.repeatConfig !== undefined) {
+    task.repeatConfig = props.repeatConfig;
+  } else if ('repeatConfig' in props) {
+    delete task.repeatConfig;
+  }
+
   if (props.schedule) {
     if (props.schedule.type) task.schedule.type = props.schedule.type;
     if (props.schedule.leadTime !== undefined)
@@ -242,13 +231,17 @@ export function updateTask(
   // Handle optional properties that can be unset (Automerge requires delete, not undefined)
   if (props.parentId === undefined && 'parentId' in props) {
     delete task.parentId;
+    // Note: If we just nullified parentId but didn't call moveTask, the task
+    // might still be in the old parent's child list.
+    // However, the earlier check `if (props.parentId !== undefined ...)` handles explicit moves.
+    // If user passed explicit `parentId: undefined`, that block handles moving to root.
   }
+
   if (props.placeId === undefined && 'placeId' in props) {
     delete task.placeId;
   } else if (props.placeId !== undefined) {
     task.placeId = props.placeId;
   }
-
   return task;
 }
 
@@ -272,13 +265,6 @@ export function updateTask(
  * @throws Error if moving would create a cycle (task becoming ancestor of itself).
  * @throws Error if the new parent is at maximum hierarchy depth (20 levels).
  * @throws Error if the new parent task does not exist.
- *
- * @example
- * // Move task to root (no parent), at the top of the list
- * moveTask(state, "5", undefined, undefined);
- *
- * // Move task under parent "2", after sibling "3"
- * moveTask(state, "5", "2", "3");
  */
 export function moveTask(
   state: TunnelState,
@@ -327,7 +313,7 @@ export function moveTask(
   if (afterTaskId) {
     const afterIdx = targetList.indexOf(afterTaskId);
     if (afterIdx === -1) {
-      // Sibling not found, append to end (or beginning? usually end implies safe default if target missing)
+      // Sibling not found, append to end (safe default)
       targetList.push(id);
     } else {
       targetList.splice(afterIdx + 1, 0, id);
@@ -350,17 +336,10 @@ export function moveTask(
  *
  * @param state - The application state to mutate.
  * @param id - The ID of the task to complete.
- *
- * @remarks
- * This is a simplified implementation. A full implementation would also:
- * - Award credits to the task and its ancestors.
- * - Handle recurring tasks by resetting status and advancing the due date.
- * - Update timestamps for priority recalculation.
  */
 export function completeTask(state: TunnelState, id: TaskID): void {
   const task = state.tasks[id];
   if (!task) return;
-
   task.status = TaskStatus.Done;
 }
 
@@ -411,7 +390,6 @@ export function deleteTask(state: TunnelState, id: TaskID): number {
     Reflect.deleteProperty(state.tasks, taskId);
     deletedCount += 1;
   }
-
   return deletedCount;
 }
 
@@ -443,7 +421,6 @@ export function getChildren(
   const ids = parentId
     ? state.tasks[parentId]?.childTaskIds
     : state.rootTaskIds;
-
   if (!ids) return [];
   return ids.map(id => state.tasks[id]).filter((t): t is Task => !!t);
 }
@@ -462,27 +439,16 @@ export function getChildren(
  * The function performs a depth-first traversal starting from `rootTaskIds`.
  * Tasks that don't exist in the state (e.g., corrupted references) are
  * filtered out to maintain a valid tree structure.
- *
- * @example
- * const tree = getTaskTree(state);
- * // tree[0].title === "Work"
- * // tree[0].children[0].title === "Project A"
  */
 export function getTaskTree(state: TunnelState): TunnelNode[] {
   const buildNode = (taskId: TaskID): TunnelNode | undefined => {
     const task = state.tasks[taskId];
     if (!task) return undefined;
-
     const children = task.childTaskIds
       .map(buildNode)
       .filter((n): n is TunnelNode => !!n);
-
-    return {
-      ...task,
-      children,
-    };
+    return {...task, children};
   };
-
   return state.rootTaskIds.map(buildNode).filter((n): n is TunnelNode => !!n);
 }
 
@@ -496,7 +462,6 @@ export function getTaskTree(state: TunnelState): TunnelNode[] {
 export function getDescendantCount(state: TunnelState, taskId: TaskID): number {
   const task = state.tasks[taskId];
   if (!task) return 0;
-
   let count = task.childTaskIds.length;
   for (const childId of task.childTaskIds) {
     count += getDescendantCount(state, childId);

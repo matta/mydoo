@@ -16,6 +16,7 @@ import {
   Group,
   Modal,
   NumberInput,
+  Select,
   Slider,
   Stack,
   Text,
@@ -23,7 +24,7 @@ import {
   TextInput,
 } from '@mantine/core';
 import {DatePickerInput} from '@mantine/dates';
-import type {Task, TaskID} from '@mydoo/tasklens';
+import type {RepeatConfig, Task, TaskID} from '@mydoo/tasklens';
 import {useCallback, useEffect, useState} from 'react';
 
 interface TaskEditorModalProps {
@@ -46,7 +47,7 @@ interface TaskEditorModalProps {
   /** Callback to delete a task */
   onDelete: (taskId: TaskID, hasChildren: boolean) => void;
   /** Callback to handle creation of a new task */
-  onCreate?: (title: string, parentId: TaskID | undefined) => void;
+  onCreate?: (title: string, props?: Partial<Task>) => void;
   /** Explicit mode: 'create' or 'edit'. Defaults to inference if not provided (legacy). */
   mode?: 'create' | 'edit' | undefined;
   /** Callback to indent the task */
@@ -90,6 +91,8 @@ export function TaskEditorModal({
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [leadTimeDays, setLeadTimeDays] = useState<number | string>(7);
   const [notes, setNotes] = useState('');
+  const [frequency, setFrequency] = useState<string | null>(null);
+  const [interval, setInterval] = useState<number | string>(1);
 
   // Sync form state when task changes (Edit Mode) or clear it (Create Mode)
   useEffect(() => {
@@ -103,7 +106,9 @@ export function TaskEditorModal({
         setDueDate(null);
       }
       setLeadTimeDays(Math.round(task.schedule.leadTime / MS_PER_DAY));
-      setNotes('');
+      setNotes(task.notes || '');
+      setFrequency(task.repeatConfig?.frequency || null);
+      setInterval(task.repeatConfig?.interval || 1);
     } else {
       // Create Mode: Reset to defaults
       setTitle('');
@@ -112,10 +117,19 @@ export function TaskEditorModal({
       setDueDate(null);
       setLeadTimeDays(7);
       setNotes('');
+      setFrequency(null);
+      setInterval(1);
     }
   }, [task, opened]); // Also reset when opening in Create Mode
 
   const handleSave = useCallback(() => {
+    const repeatConfig: RepeatConfig | undefined = frequency
+      ? {
+          frequency: frequency as RepeatConfig['frequency'],
+          interval: Number(interval),
+        }
+      : undefined;
+
     if (task) {
       // Edit Mode
       const dueDateTimestamp = dueDate?.getTime();
@@ -124,8 +138,11 @@ export function TaskEditorModal({
         title,
         importance,
         creditIncrement: effort,
+        notes,
+        repeatConfig,
         schedule: {
           ...task.schedule,
+          type: repeatConfig ? 'Recurring' : 'Once',
           dueDate: dueDateTimestamp,
           leadTime: Number(leadTimeDays) * MS_PER_DAY,
         },
@@ -135,7 +152,19 @@ export function TaskEditorModal({
       onClose();
     } else if (onCreate) {
       // Create Mode
-      onCreate(title, undefined); // TaskEditorContainer will handle positioning via state
+      const newProps: Partial<Task> = {
+        importance,
+        creditIncrement: effort,
+        notes,
+        repeatConfig,
+        schedule: {
+          type: repeatConfig ? 'Recurring' : 'Once',
+          dueDate: dueDate?.getTime(),
+          leadTime: Number(leadTimeDays) * MS_PER_DAY,
+        },
+      };
+
+      onCreate(title, newProps);
       onClose();
     }
   }, [
@@ -143,6 +172,9 @@ export function TaskEditorModal({
     title,
     importance,
     effort,
+    notes,
+    frequency,
+    interval,
     dueDate,
     leadTimeDays,
     onSave,
@@ -307,7 +339,7 @@ export function TaskEditorModal({
         </Stack>
 
         {/* Scheduling */}
-        <Group grow>
+        <Group grow align="flex-end">
           <DatePickerInput
             clearable
             label="Due Date"
@@ -326,11 +358,38 @@ export function TaskEditorModal({
           />
         </Group>
 
-        {/* Notes (placeholder - schema doesn't have notes yet) */}
+        {/* Repetition */}
+        <Group grow>
+          <Select
+            id="repetition-frequency-select"
+            label="Repetition"
+            placeholder="None"
+            data={[
+              {value: 'daily', label: 'Daily'},
+              {value: 'weekly', label: 'Weekly'},
+              {value: 'monthly', label: 'Monthly'},
+              {value: 'yearly', label: 'Yearly'},
+            ]}
+            value={frequency}
+            onChange={setFrequency}
+            clearable
+          />
+          {frequency && (
+            <NumberInput
+              id="repetition-interval-input"
+              label="Every X units"
+              min={1}
+              value={interval}
+              onChange={setInterval}
+            />
+          )}
+        </Group>
+
+        {/* Notes */}
         <Textarea
+          id="task-notes-textarea"
           autosize
-          disabled
-          label="Notes (Coming Soon)"
+          label="Notes"
           minRows={3}
           onChange={e => setNotes(e.currentTarget.value)}
           placeholder="Additional details..."

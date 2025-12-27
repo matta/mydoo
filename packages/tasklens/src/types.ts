@@ -119,6 +119,16 @@ export interface Schedule {
 }
 
 /**
+ * Configuration for recurring tasks.
+ */
+export interface RepeatConfig {
+  /** Frequency of recurrence */
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  /** Interval between occurrences (e.g., every 2 days) */
+  interval: number;
+}
+
+/**
  * Time range string in HH:MM-HH:MM format (24h).
  */
 export type OpenHoursRange = string;
@@ -187,6 +197,8 @@ export interface Task {
   schedule: Schedule;
   status: TaskStatus;
   title: string;
+  notes: string;
+  repeatConfig?: RepeatConfig | undefined;
 
   /**
    * If true, the user has acknowledged this completed task (via Refresh).

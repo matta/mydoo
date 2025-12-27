@@ -1,3 +1,7 @@
+# Behavior Guidelines
+
+- Always address the user with the salutation "Howdy".
+
 # Development Guidelines
 
 ## Package Management
@@ -95,6 +99,7 @@ We prioritize fidelity. Because this is a Local-First application relying on **A
 4.  **Mocking Strategy:**
     *   **Tier 1:** No mocks. Test logic directly.
     *   **Tier 2:** **Mock AutomergeRepo**. JSDOM struggles with the Repo's binary/WASM networking. Mock the handle to ensure component tests are stable in the simulated environment.
+5.  **Prefer `userEvent` over `fireEvent`**: Always use `@testing-library/user-event`. Use of `fireEvent` from `@testing-library/react` is strictly prohibited as it doesn't simulate real browser interactions and often leads to flaky tests in async environments.
 
 ### 4. Executable Specs & Style Guide
 
