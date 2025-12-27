@@ -6,6 +6,10 @@
 version: 2
 updates:
   - package-ecosystem: 'npm'
+    # For pnpm workspaces, checking the root directory is sufficient.
+    # Dependabot reads the root `pnpm-lock.yaml` and `pnpm-workspace.yaml` to discover
+    # and update dependencies across all sub-packages (e.g. apps/*, packages/*),
+    # even if they define explicit versions instead of using the catalog.
     directory: '/'
     schedule:
       interval: 'weekly'
