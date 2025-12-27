@@ -32,7 +32,8 @@
     "build": "../../scripts/only-allow-turbo.sh build -- tsc --emitDeclarationOnly",
     "clean": "rm -rf dist",
     "generate-types": "json2ts ./specs/compliance/schemas/test_case.schema.json ./specs/compliance/schemas/test_case.d.ts && biome format --write ./specs/compliance/schemas/test_case.d.ts",
-    "test": "../../scripts/only-allow-turbo.sh test -- vitest run --coverage"
+    "test": "../../scripts/only-allow-turbo.sh test -- vitest run --coverage",
+    "typecheck": "tsc --noEmit"
   },
   "type": "module",
   "types": "./src/index.ts"

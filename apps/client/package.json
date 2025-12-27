@@ -44,7 +44,8 @@
     "dev": "vite",
     "preview": "vite preview",
     "test": "../../scripts/only-allow-turbo.sh test -- vitest run",
-    "test:e2e": "../../scripts/only-allow-turbo.sh test:e2e -- playwright test"
+    "test:e2e": "../../scripts/only-allow-turbo.sh test:e2e -- playwright test",
+    "typecheck": "tsc --noEmit"
   },
   "type": "module"
 }

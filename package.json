@@ -30,6 +30,6 @@
     "pre-commit": "./scripts/pre-commit.sh",
     "test": "turbo test",
     "test:e2e": "turbo test:e2e",
-    "typecheck": "tsc -b"
+    "typecheck": "turbo typecheck"
   }
 }

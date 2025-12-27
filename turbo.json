@@ -59,12 +59,12 @@
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "test": {
-      "dependsOn": ["lint", "build"],
+      "dependsOn": ["lint", "build", "typecheck"],
       "inputs": ["src/**/*", "tests/**/*", "test/**/*", "specs/**/*"],
       "outputs": []
     },
     "test:e2e": {
-      "dependsOn": ["lint", "build"],
+      "dependsOn": ["lint", "build", "typecheck"],
       "outputs": ["playwright-report/**", "test-results/**"],
       "cache": true
     },
