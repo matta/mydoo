@@ -78,7 +78,6 @@ cat <<EOF > "$GRANDFATHERED_FILE"
 ./apps/client/src/viewmodel/intents/useTaskIntents.ts
 ./apps/client/src/viewmodel/useTaskTree.ts
 ./apps/client/src/App.tsx
-./apps/client/src/Main.tsx
 ./apps/client/src/components/TodoItem.tsx
 ./apps/client/src/components/shell/AppShellContainer.tsx
 ./apps/client/src/components/TodoApp.tsx
