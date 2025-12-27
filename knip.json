@@ -1,0 +1,24 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignore": ["pnpm-workspace.yaml"],
+  "rules": {
+    "exports": "off",
+    "types": "off",
+    "nsExports": "off",
+    "classMembers": "off",
+    "duplicates": "off",
+    "enumMembers": "off",
+    "files": "off"
+  },
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.*"]
+    },
+    "packages/tasklens": {
+      "project": ["src/**/*.ts!"]
+    },
+    "apps/client": {
+      "ignoreDependencies": ["@vitest/browser"]
+    }
+  }
+}

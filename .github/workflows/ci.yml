@@ -42,6 +42,9 @@ jobs:
       - name: Biome Check
         run: pnpm lint
 
+      - name: Check Dependencies
+        run: pnpm exec turbo run "//#lint:deps"
+
       - name: Build
         run: pnpm build
 

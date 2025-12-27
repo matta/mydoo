@@ -16,7 +16,6 @@ catalogs:
     '@mantine/hooks': 8.3.10
     '@playwright/test': ^1.57.0
     '@tabler/icons-react': ^3.36.0
-    '@testing-library/jest-dom': ^6.6.3
     '@testing-library/react': ^16.3.1
     '@testing-library/user-event': ^14.6.1
     '@types/js-yaml': ^4.0.9
@@ -41,7 +40,7 @@ catalogs:
     react-dom: ^19.2.3
     syncpack: ^13.0.2
     turbo: ^2.7.1
-    typescript: ^5.9.3
+    typescript: 5.9.3
     typescript-eslint: ^8.49.0
     vite: ^7.2.4
     vite-plugin-pwa: ^1.2.0
