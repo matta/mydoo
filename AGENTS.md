@@ -52,7 +52,7 @@ For efforts spanning multiple sessions or commits, we maintain a root-level `ROL
   - **Agent:** Reads at new phase start (per Clean Tree Rule). Must keep rolling task lists up to date. May update other agent-designated sections autonomously.
 - **Contrast with System Artifacts:**
   - `task.md` / `implementation_plan.md`: The agent's _ephemeral, internal_ checklist for the immediate next step.
-  - `ROLLING_CONTEXT.md`: The _persistent, shared_ narrative of the broader effort.
+  - `ROLLING_CONTEXT.md`: The _persistent, shared_ narrative of the broader effort. It is not tracked in git.
 
 ## Testing Strategy
 
