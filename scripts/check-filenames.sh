@@ -13,17 +13,6 @@ trap 'rm -f "$GRANDFATHERED_FILE"' EXIT
 # Files to ignore (Grandfathered list)
 # We use a grep pattern file for this to handle the list cleanly
 cat <<EOF > "$GRANDFATHERED_FILE"
-./docs/design/architecture_variances.md
-./docs/plan/PHASE_3_CORE_INTERACTIONS.md
-./docs/plan/PHASE_3.5_TASK_DEFAULTS.md
-./docs/plan/PHASE_1_INFRA.md
-./docs/plan/PHASE_2_DO_VIEW.md
-./docs/plan/PHASE_5_PLAN_VIEW.md
-./docs/plan/MASTER_PLAN.md
-./docs/plan/PLAN_PHASE_5_STEP_6.md
-./docs/plan/PHASE_4_TASK_DETAILS.md
-./docs/plan/PLAN_PHASE_5_STEP_7.md
-./TODO.md
 ./packages/tasklens/specs/compliance/schemas/test_case.d.ts
 ./packages/tasklens/specs/compliance/schemas/test_case.schema.json
 ./packages/tasklens/specs/compliance/fixtures/zero_feedback.yaml
@@ -41,7 +30,6 @@ cat <<EOF > "$GRANDFATHERED_FILE"
 ./packages/tasklens/tests/unit/schemaValidation.test.ts
 ./packages/tasklens/tests/unit/createTaskDefaults.test.ts
 ./packages/tasklens/tests/unit/updateTask.test.ts
-./packages/tasklens/src/README.md
 ./packages/tasklens/src/domain/pass5Leadtime.ts
 ./packages/tasklens/src/domain/pass2Schedule.ts
 ./packages/tasklens/src/domain/pass6Priority.ts
@@ -49,11 +37,7 @@ cat <<EOF > "$GRANDFATHERED_FILE"
 ./packages/tasklens/src/domain/pass1Visibility.ts
 ./packages/tasklens/src/domain/pass4Weights.ts
 ./packages/tasklens/src/domain/pass7Container.ts
-./GEMINI.md
-./AGENTS.md
-./ROLLING_CONTEXT.md
 ./apps/client/tests/e2e/priorityList.spec.ts
-./apps/client/README.md
 ./apps/client/src/viewmodel/ui/useBreadcrumbs.test.tsx
 ./apps/client/src/viewmodel/ui/useNavigationState.tsx
 ./apps/client/src/viewmodel/ui/useBreadcrumbs.ts
@@ -132,13 +116,9 @@ VIOLATIONS=$(find . -type f \( \
   -not -path "./.turbo/*" \
   -not -path "*/.turbo/*" \
   -not -path "./.husky/*" \
-  -not -name "check-filenames.sh" \
-  -not -name "LICENSE" \
-  -not -name "README.md" \
-  -not -name "CONTRIBUTING.md" \
-  -not -name "Dockerfile" \
-  -not -name "Makefile" \
   | grep -E "/[^/]*[A-Z_][^/]*$" \
+  | grep -v -E "/[a-zA-Z0-9_.]+\.md$" \
+  | grep -v -E "/[a-zA-Z0-9_.]+\.sh$" \
   | grep -vFf "$GRANDFATHERED_FILE")
 
 if [ -n "$VIOLATIONS" ]; then
