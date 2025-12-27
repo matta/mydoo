@@ -119,6 +119,27 @@ export interface Schedule {
 }
 
 /**
+ * Time range string in HH:MM-HH:MM format (24h).
+ */
+export type OpenHoursRange = string;
+
+/**
+ * Defines the operating hours for a place.
+ */
+export interface OpenHours {
+  /**
+   * Operating mode: 'always_open', 'always_closed', or 'custom'.
+   */
+  mode: 'always_open' | 'always_closed' | 'custom';
+  /**
+   * Weekly schedule mapping days to time ranges (required if mode is 'custom').
+   */
+  schedule?: {
+    [day: string]: OpenHoursRange[];
+  };
+}
+
+/**
  * A unit of work in the task management system.
  *
  * Tasks form a tree hierarchy where each task can have child tasks.

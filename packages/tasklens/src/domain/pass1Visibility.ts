@@ -15,9 +15,9 @@
  * This pass runs before priority calculations, so only visible tasks are
  * considered for ranking.
  */
-import type {OpenHours} from '../../specs/compliance/schemas/test_case';
 import {
   ANYWHERE_PLACE_ID,
+  type OpenHours,
   type Place,
   type PlaceID,
   type Task,
