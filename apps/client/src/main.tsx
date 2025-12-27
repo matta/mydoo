@@ -2,7 +2,7 @@ import {MantineProvider} from '@mantine/core';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 
-import App from './App';
+import App from './app';
 import {RepoProvider} from './hooks/RepoProvider';
 
 import '@mantine/core/styles.css';
