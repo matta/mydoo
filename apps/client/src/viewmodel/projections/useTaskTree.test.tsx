@@ -49,6 +49,7 @@ const createMockTask = (
   title,
   parentId: parentId as TaskID | undefined,
   isAcknowledged: false,
+  notes: '',
 });
 
 describe('useTaskTree', () => {

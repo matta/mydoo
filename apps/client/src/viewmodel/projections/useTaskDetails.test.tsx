@@ -48,6 +48,7 @@ describe('useTaskDetails', () => {
       schedule: {leadTime: 0, type: 'Once'},
       isSequential: false,
       isAcknowledged: false,
+      notes: '',
     }) as Task;
 
   it('returns task details correctly', () => {

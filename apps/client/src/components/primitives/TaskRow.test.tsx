@@ -25,6 +25,7 @@ function createMockTask(overrides: Partial<Task> = {}): Task {
       type: 'Once',
       leadTime: 0,
     },
+    notes: '',
     ...overrides,
   };
 }

@@ -48,6 +48,7 @@ describe('useSystemIntents', () => {
           creditsTimestamp: 0,
           priorityTimestamp: 0,
           isSequential: false,
+          notes: '',
         };
         d.tasks['task2' as TaskID] = {
           id: 'task2' as TaskID,
@@ -63,6 +64,7 @@ describe('useSystemIntents', () => {
           creditsTimestamp: 0,
           priorityTimestamp: 0,
           isSequential: false,
+          notes: '',
         };
         d.tasks['task3' as TaskID] = {
           id: 'task3' as TaskID,
@@ -78,6 +80,7 @@ describe('useSystemIntents', () => {
           creditsTimestamp: 0,
           priorityTimestamp: 0,
           isSequential: false,
+          notes: '',
         };
       });
 

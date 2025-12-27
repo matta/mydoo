@@ -21,6 +21,7 @@ describe('TaskOutlineItem', () => {
     schedule: {type: 'Once', leadTime: 0},
     isAcknowledged: false,
     isSequential: false,
+    notes: '',
   };
 
   const defaultProps: TaskOutlineItemProps = {

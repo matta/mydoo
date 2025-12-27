@@ -56,6 +56,7 @@ const createMockTask = (
   status,
   title,
   isAcknowledged: false, // Default
+  notes: '',
 });
 
 describe('usePriorityList', () => {

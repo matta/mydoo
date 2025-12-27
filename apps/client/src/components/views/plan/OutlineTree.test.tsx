@@ -20,6 +20,7 @@ describe('OutlineTree', () => {
     schedule: {type: 'Once', leadTime: 0},
     isAcknowledged: false,
     isSequential: false,
+    notes: '',
   };
 
   const mockRoot: TunnelNode = {
