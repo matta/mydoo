@@ -1,94 +1,105 @@
 import type {Page} from '@playwright/test';
 import {test as base, expect} from '@playwright/test';
 
-// Define the custom fixture type
-type PlanFixture = {
+/**
+ * PlanFixture - The contract for E2E test helpers.
+ *
+ * This interface defines all actions available to tests via the `plan` fixture.
+ * PlanPage implements this interface, ensuring type safety and enabling
+ * click-through navigation from test call sites to implementations.
+ */
+interface PlanFixture {
+  // Core Task Operations
   createTask: (title: string) => Promise<void>;
   selectTask: (title: string) => Promise<void>;
   addChild: (title: string) => Promise<void>;
   openTaskEditor: (title: string) => Promise<void>;
   clickMoveButton: () => Promise<void>;
-  toggleExpand: (title: string) => Promise<void>;
+  toggleExpand: (title: string, shouldExpand?: boolean) => Promise<void>;
   completeTask: (title: string) => Promise<void>;
   clearCompletedTasks: () => Promise<void>;
+
+  // Verification Helpers
   verifyTaskVisible: (title: string) => Promise<void>;
   verifyTaskHidden: (title: string) => Promise<void>;
   verifyTaskCompleted: (title: string) => Promise<void>;
-};
 
-// Create the fixture class/helper
-class PlanPage {
+  // Mobile Helpers
+  mobileDrillDown: (title: string) => Promise<void>;
+  mobileNavigateUpLevel: () => Promise<void>;
+  mobileVerifyViewTitle: (title: string) => Promise<void>;
+  mobileVerifyMobileBottomBar: () => Promise<void>;
+
+  // Move Picker Helpers
+  openMovePicker: (title: string) => Promise<void>;
+  moveTaskTo: (targetTitle: string) => Promise<void>;
+  verifyMovePickerExcludes: (title: string) => Promise<void>;
+
+  // Navigation
+  switchToPlanView: () => Promise<void>;
+}
+
+/**
+ * PlanPage - Implementation of PlanFixture.
+ *
+ * This class implements all fixture methods. Using `implements PlanFixture` ensures:
+ * - TypeScript verifies all interface methods are implemented
+ * - Method signatures match exactly
+ * - Click-through navigation works from test sites to these implementations
+ */
+class PlanPage implements PlanFixture {
   private readonly page: Page;
+
   constructor(page: Page) {
     this.page = page;
   }
 
-  async createTask(title: string) {
-    await this.page.getByRole('button', {name: 'Plan'}).click();
+  // --- Core Task Operations ---
 
-    // Strategy: Open the Create Modal
+  async createTask(title: string): Promise<void> {
+    await this.switchToPlanView();
 
-    // 1. Try "Add First Task" button (Empty State)
     const addFirst = this.page.getByRole('button', {name: 'Add First Task'});
+    const appendRow = this.page.getByTestId('append-row-button');
+    const addTop = this.page.getByLabel('Add Task at Top');
+
     if (await addFirst.isVisible()) {
       await addFirst.click();
+    } else if (await appendRow.isVisible()) {
+      await appendRow.click();
+    } else if (await addTop.isVisible()) {
+      await addTop.click();
     } else {
-      // 2. Try "Append Row" (Bottom of list)
-      // We added data-testid="append-row-button" in PlanViewContainer
-      const appendRow = this.page.getByTestId('append-row-button');
-      if (await appendRow.isVisible()) {
-        await appendRow.click();
-      } else {
-        // 3. Try "Add Task at Top" (Mobile Bottom Bar)
-        const addTop = this.page.getByLabel('Add Task at Top');
-        if (await addTop.isVisible()) {
-          await addTop.click();
-        } else {
-          // 4. Fallback: Keyboard shortcut 'n' if implemented, or just 'Enter' on a selected task?
-          // If nothing matches, we might be in a state where we can't create.
-          // But let's try the keyboard as a last resort.
-          await this.page.keyboard.press('n');
-        }
-      }
+      throw new Error('No create task trigger found (Empty, Append, or Top)');
     }
 
-    // Modal should now be open. Wait for input.
-    const input = this.page.getByPlaceholder('What needs to be done?');
-    await input.waitFor({state: 'visible', timeout: 2000});
-    await input.fill(title);
-    await input.press('Enter');
+    await expect(
+      this.page.getByRole('heading', {name: 'Create Task'}),
+    ).toBeVisible();
 
-    // Wait for modal to close or input to clear?
-    // Usually "Enter" creates and keeps modal open for next task?
-    // If so, we are done. If it closes, we are done.
-    // Let's assume we want to close it if we only create one?
-    // Or just leave it. The next step usually selects something else.
-    // Ideally we close it to return to base state.
-    await this.page.keyboard.press('Escape');
+    await this.page.getByRole('textbox', {name: 'Title'}).fill(title);
+    await this.page.keyboard.press('Enter');
 
-    // VERIFY: Wait for the task to appear in the list
-    // This ensures subsequent steps don't fail due to race conditions.
-    await this.page
-      .locator(`[data-testid="task-item"]`, {hasText: title})
-      .first()
-      .waitFor();
+    // Wait for creation
+    await expect(
+      this.page.locator(`[data-testid="task-item"]`, {hasText: title}).first(),
+    ).toBeVisible();
   }
 
-  async selectTask(title: string) {
+  async selectTask(title: string): Promise<void> {
     // Wait for the task to be visible (important after tree expansions)
     const el = this.page.getByText(title, {exact: true}).first();
     await el.waitFor({state: 'visible', timeout: 5000});
     await el.click();
   }
 
-  async addChild(title: string) {
+  async addChild(title: string): Promise<void> {
     // Strategy: Assume Task Editor is open (via selectTask).
 
     // 1. Check if "Edit Task" modal is open and visible
     const editModal = this.page.getByRole('dialog', {name: 'Edit Task'});
 
     // We expect it to be visible because selectTask opens it.
-    // If explicit wait is needed:
     await editModal.waitFor({state: 'visible', timeout: 3000});
 
     // Click "Add Child" in the footer
@@ -101,51 +112,38 @@ class PlanPage {
     const input = createModal.getByPlaceholder('What needs to be done?');
     await input.waitFor({state: 'visible', timeout: 3000});
 
-    console.log('Fixture: Filling title Task B');
     await input.click();
     await input.fill(title);
-
-    console.log('Fixture: Pressing Enter');
     await input.press('Enter');
-    console.log('Fixture: Pressed Enter');
 
     // VERIFY: Check if task exists in list (should be visible if auto-expanded)
-    // Or at least check if parent now has children?
-    // We can't easily check visibility because it might be inside collapsed parent (on desktop).
-    // But on Desktop, handleCreate calls expandAll.
-    // So it SHOULD be visible.
     try {
       await this.page
         .getByText(title)
         .waitFor({state: 'visible', timeout: 2000});
-      console.log(
-        `Fixture: addChild - ${title} created and visible immediately.`,
-      );
-    } catch (_e) {
-      console.log(`Fixture: addChild - ${title} NOT visible immediately.`);
+    } catch {
+      // Task may be in collapsed parent
     }
 
-    // 4. Close Create Modal
+    // Close Create Modal
     await this.page.keyboard.press('Escape');
   }
 
-  // To keep it simple and robust for this step:
-  // I will assume `createTask` creates at root.
-  // `addChild` assumes we opened the editor for the parent? or explicitly finds the parent?
-  // Let's implement `openTaskEditor` properly.
-
-  async openTaskEditor(title: string) {
+  async openTaskEditor(title: string): Promise<void> {
     await this.page.getByText(title, {exact: true}).click();
     await expect(
       this.page.getByRole('dialog', {name: 'Edit Task'}),
     ).toBeVisible();
   }
 
-  async clickMoveButton() {
+  async clickMoveButton(): Promise<void> {
     await this.page.getByRole('button', {name: 'Move...'}).click();
   }
 
-  async toggleExpand(title: string) {
+  async toggleExpand(
+    title: string,
+    shouldExpand: boolean = true,
+  ): Promise<void> {
     // Find the task row first
     const row = this.page
       .locator(`[data-testid="task-item"]`, {hasText: title})
@@ -156,22 +154,16 @@ class PlanPage {
     const chevron = row.getByLabel('Toggle expansion');
 
     if (await chevron.isVisible()) {
-      console.log(`Fixture: toggleExpand checking ${title}.`);
-      // Check if valid first
-      const isExpanded = await chevron.getAttribute('data-expanded');
-      console.log(`Fixture: isExpanded attr: ${isExpanded}`);
-      if (isExpanded !== 'true') {
-        console.log(`Fixture: Clicking toggle for ${title}`);
+      const isExpandedAttr = await chevron.getAttribute('data-expanded');
+      const isExpanded = isExpandedAttr === 'true';
+
+      if (isExpanded !== shouldExpand) {
         await chevron.dispatchEvent('click', {bubbles: true});
-      } else {
-        console.log(`Fixture: Already expanded ${title}`);
       }
-    } else {
-      console.log(`Fixture: Chevron not visible for ${title}`);
     }
   }
 
-  async completeTask(title: string) {
+  async completeTask(title: string): Promise<void> {
     const taskRow = this.page
       .locator(`[data-testid="task-item"]`, {hasText: title})
       .first();
@@ -180,20 +172,22 @@ class PlanPage {
     await checkbox.click();
   }
 
-  async clearCompletedTasks() {
+  async clearCompletedTasks(): Promise<void> {
     await this.page.getByRole('button', {name: 'Do'}).click();
     await this.page.getByRole('button', {name: 'Refresh'}).click();
   }
 
-  async verifyTaskVisible(title: string) {
+  // --- Verification Helpers ---
+
+  async verifyTaskVisible(title: string): Promise<void> {
     await expect(this.page.getByText(title).first()).toBeVisible();
   }
 
-  async verifyTaskHidden(title: string) {
+  async verifyTaskHidden(title: string): Promise<void> {
     await expect(this.page.getByText(title).first()).toBeHidden();
   }
 
-  async verifyTaskCompleted(title: string) {
+  async verifyTaskCompleted(title: string): Promise<void> {
     const taskRow = this.page
       .locator(`[data-testid="task-item"]`, {hasText: title})
       .first();
@@ -202,26 +196,109 @@ class PlanPage {
     await expect(taskRow).toBeVisible();
     await expect(titleText).toHaveCSS('text-decoration-line', 'line-through');
   }
+
+  // --- Navigation ---
+
+  async switchToPlanView(): Promise<void> {
+    // Works for both Desktop (Sidebar) and Mobile (Footer)
+    // We target 'nav' (Desktop Navbar) or 'footer' (Mobile Bottom Bar) to exclude Breadcrumbs (in 'main')
+    // On Mobile: Navbar (Hidden), Footer (Visible). last() gets Footer.
+    // On Desktop: Navbar (Visible), Footer (Absent). last() gets Navbar.
+    await this.page
+      .locator('nav, footer')
+      .getByRole('button', {name: 'Plan'})
+      .last()
+      .click();
+  }
+
+  // --- Mobile Helpers ---
+
+  async mobileDrillDown(title: string): Promise<void> {
+    const taskRow = this.page
+      .locator(`[data-testid="task-item"]`, {hasText: title})
+      .first();
+    await taskRow.getByLabel('Drill down').click();
+  }
+
+  async mobileNavigateUpLevel(): Promise<void> {
+    await this.page.getByLabel('Up Level').click();
+  }
+
+  async mobileVerifyViewTitle(title: string): Promise<void> {
+    // In mobile drill-down, the title might be the breadcrumb button
+    await expect(this.page.getByRole('button', {name: title})).toBeVisible();
+  }
+
+  async mobileVerifyMobileBottomBar(): Promise<void> {
+    await expect(this.page.getByLabel('Add Task at Top')).toBeVisible();
+    await expect(this.page.getByLabel('Up Level')).toBeVisible();
+  }
+
+  // --- Move Picker Helpers ---
+
+  async openMovePicker(title: string): Promise<void> {
+    // Open task editor then click Move button
+    await this.openTaskEditor(title);
+    await this.clickMoveButton();
+    await expect(
+      this.page.getByRole('dialog', {name: /^Move "/}),
+    ).toBeVisible();
+  }
+
+  async moveTaskTo(targetTitle: string): Promise<void> {
+    const picker = this.page.getByRole('dialog', {name: /^Move "/});
+    await picker.getByText(targetTitle, {exact: true}).click();
+  }
+
+  async verifyMovePickerExcludes(title: string): Promise<void> {
+    // Verify a task is NOT visible as a valid move target (cycle prevention)
+    const picker = this.page.getByRole('dialog', {name: /^Move "/});
+    const target = picker.getByText(title, {exact: true});
+    await expect(target).not.toBeVisible();
+  }
 }
 
+/**
+ * PLAYWRIGHT FIXTURE EXTENSION PATTERN
+ *
+ * This creates a custom `test` function that includes our `plan` helper.
+ *
+ * WHAT IS A FIXTURE? (The Mechanics)
+ *
+ * Playwright calls your test function with a single object argument containing all fixtures.
+ * The object has property names matching fixture names, with values being the fixture instances.
+ *
+ * Example: When you write `test('...', async ({page, plan}) => {...})`:
+ *   - Playwright builds an object like: { page: <BrowserPage>, plan: <PlanFixture>, ... }
+ *   - Your `({page, plan})` destructures that object to extract the fixtures you need.
+ *   - You only receive fixtures you explicitly destructure (lazy initialization).
+ *
+ * HOW THIS CODE ADDS THE `plan` FIXTURE:
+ * 1. `base` is Playwright's built-in `test` function (imported as `test as base`).
+ * 2. `base.extend<{plan: PlanFixture}>({...})` creates a NEW test function that
+ *    includes everything `base` has (like `page`), PLUS our custom `plan` fixture.
+ * 3. The generic `<{plan: PlanFixture}>` tells TypeScript what type `plan` will be.
+ *
+ * INSIDE THE FIXTURE:
+ * - `{page}` destructures Playwright's built-in `page` fixture (the browser page).
+ * - `use` is a callback we MUST call to "provide" the fixture value to tests.
+ *    Think of it like: "here's the object tests will receive as `plan`".
+ * - Code BEFORE `await use(...)` runs as setup (before each test).
+ * - Code AFTER `await use(...)` would run as teardown (after each test).
+ *
+ * USAGE IN TESTS:
+ *   test('example', async ({plan}) => {
+ *     await plan.createTask('My Task');  // Uses our fixture!
+ *   });
+ *
+ * WHY `implements PlanFixture`?
+ * By having PlanPage implement the interface, TypeScript ensures all methods exist
+ * and have correct signatures. This eliminates the manual mapping that previously
+ * existed and enables click-through navigation from test call sites.
+ */
 export const test = base.extend<{plan: PlanFixture}>({
   plan: async ({page}, use) => {
-    const planPage = new PlanPage(page);
-
-    // Define the fixture methods using the helper class
-    await use({
-      createTask: title => planPage.createTask(title),
-      selectTask: title => planPage.selectTask(title),
-      addChild: title => planPage.addChild(title),
-      openTaskEditor: title => planPage.openTaskEditor(title),
-      clickMoveButton: () => planPage.clickMoveButton(),
-      toggleExpand: title => planPage.toggleExpand(title),
-      completeTask: title => planPage.completeTask(title),
-      clearCompletedTasks: () => planPage.clearCompletedTasks(),
-      verifyTaskVisible: title => planPage.verifyTaskVisible(title),
-      verifyTaskHidden: title => planPage.verifyTaskHidden(title),
-      verifyTaskCompleted: title => planPage.verifyTaskCompleted(title),
-    });
+    await use(new PlanPage(page));
   },
 });
 
