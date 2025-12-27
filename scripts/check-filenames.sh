@@ -13,17 +13,6 @@ trap 'rm -f "$GRANDFATHERED_FILE"' EXIT
 # Files to ignore (Grandfathered list)
 # We use a grep pattern file for this to handle the list cleanly
 cat <<EOF > "$GRANDFATHERED_FILE"
-./packages/tasklens/specs/compliance/fixtures/zero_feedback.yaml
-./packages/tasklens/specs/compliance/fixtures/tree_order.yaml
-./packages/tasklens/specs/compliance/fixtures/boost_lead_time.yaml
-./packages/tasklens/specs/compliance/fixtures/visibility_place_filtering.yaml
-./packages/tasklens/specs/compliance/fixtures/lead_time_edge_cases.yaml
-./packages/tasklens/specs/compliance/fixtures/sequential_flow.yaml
-./packages/tasklens/specs/compliance/fixtures/lead_time.yaml
-./packages/tasklens/specs/compliance/fixtures/tree_order_id_conflict.yaml
-./packages/tasklens/specs/compliance/fixtures/min_threshold.yaml
-./packages/tasklens/specs/compliance/fixtures/complex_mutation.yaml
-./packages/tasklens/specs/compliance/fixtures/boost_importance.yaml
 EOF
 
 # Find files that violate the convention

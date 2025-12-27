@@ -39,21 +39,21 @@ algorithm:
 | Fixture                           | Description                                                                |
 | :-------------------------------- | :------------------------------------------------------------------------- |
 | `balancing.yaml`                  | Tests the balancing logic for limiting active tasks.                       |
-| `boost_importance.yaml`           | Verifies the effect of importance boosts on task prioritization.           |
-| `boost_lead_time.yaml`            | Tests how lead time boosts affect task ordering.                           |
-| `complex_mutation.yaml`           | Covers complex scenarios involving state mutations during execution.       |
+| `boost-importance.yaml`           | Verifies the effect of importance boosts on task prioritization.           |
+| `boost-lead-time.yaml`            | Tests how lead time boosts affect task ordering.                           |
+| `complex-mutation.yaml`           | Covers complex scenarios involving state mutations during execution.       |
 | `decay.yaml`                      | Tests the decay of accumulated task value over time.                       |
-| `lead_time.yaml`                  | Verifies standard lead time calculations.                                  |
-| `lead_time_edge_cases.yaml`       | Tests edge cases for lead time, such as zero or infinite bounds.           |
-| `min_threshold.yaml`              | Tests minimum value thresholds for task activation.                        |
-| `sequential_flow.yaml`            | Verifies sequential task dependencies and blocking behavior.               |
+| `lead-time.yaml`                  | Verifies standard lead time calculations.                                  |
+| `lead-time-edge-cases.yaml`       | Tests edge cases for lead time, such as zero or infinite bounds.           |
+| `min-threshold.yaml`              | Tests minimum value thresholds for task activation.                        |
+| `sequential-flow.yaml`            | Verifies sequential task dependencies and blocking behavior.               |
 | `sorting.yaml`                    | Tests the primary sorting logic for the queue.                             |
 | `thermostat.yaml`                 | Tests feedback mechanisms that adjust system parameters.                   |
-| `tree_order.yaml`                 | Verifies that tree structure order is respected when priorities are equal. |
-| `tree_order_id_conflict.yaml`     | Detailed test for conflicts between ID sorting and tree order.             |
-| `visibility_place_filtering.yaml` | Tests filtering of tasks based on visibility and place contexts.           |
+| `tree-order.yaml`                 | Verifies that tree structure order is respected when priorities are equal. |
+| `tree-order-id-conflict.yaml`     | Detailed test for conflicts between ID sorting and tree order.             |
+| `visibility-place-filtering.yaml` | Tests filtering of tasks based on visibility and place contexts.           |
 | `weight.yaml`                     | Verifies the application of weights to task value.                         |
-| `zero_feedback.yaml`              | Tests behavior when feedback loops result in zero adjustments.             |
+| `zero-feedback.yaml`              | Tests behavior when feedback loops result in zero adjustments.             |
 
 ## Usage
 

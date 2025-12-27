@@ -39,9 +39,46 @@ const FIXTURES_PATH = path.join(
   'compliance',
   'fixtures',
 );
-const fixtureFiles = fs
+
+// Explicit list of fixtures to ensure no unexpected files are processed (or missed).
+const EXPECTED_FIXTURES = [
+  'balancing.yaml',
+  'boost-importance.yaml',
+  'boost-lead-time.yaml',
+  'complex-mutation.yaml',
+  'decay.yaml',
+  'lead-time-edge-cases.yaml',
+  'lead-time.yaml',
+  'min-threshold.yaml',
+  'sequential-flow.yaml',
+  'sorting.yaml',
+  'thermostat.yaml',
+  'tree-order-id-conflict.yaml',
+  'tree-order.yaml',
+  'visibility-place-filtering.yaml',
+  'weight.yaml',
+  'zero-feedback.yaml',
+].sort();
+
+// Validate that the directory matches exactly the expected list
+const actualFixtures = fs
   .readdirSync(FIXTURES_PATH)
-  .filter((f: string) => f.endsWith('.yaml'));
+  .filter((f: string) => f.endsWith('.yaml'))
+  .sort();
+
+// Simple equality check
+const missing = EXPECTED_FIXTURES.filter(f => !actualFixtures.includes(f));
+const extras = actualFixtures.filter(f => !EXPECTED_FIXTURES.includes(f));
+
+if (missing.length > 0 || extras.length > 0) {
+  throw new Error(
+    `Fixture mismatch!\nMissing: ${missing.join(', ')}\nExtras: ${extras.join(
+      ', ',
+    )}`,
+  );
+}
+
+const fixtureFiles = EXPECTED_FIXTURES;
 
 function parsePlaceInput(input: PlaceInput): Place {
   return {
