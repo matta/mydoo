@@ -7,13 +7,13 @@ import type {
   ViewFilter,
 } from '../types';
 import {getCurrentTimestamp} from '../utils/time';
-import {pass1ContextualVisibility} from './pass1Visibility';
-import {pass2ScheduleInheritance} from './pass2Schedule';
-import {pass3DeviationFeedback} from './pass3Thermostat';
-import {pass4WeightNormalization} from './pass4Weights';
-import {pass5LeadTimeRamp} from './pass5Leadtime';
-import {pass6FinalPriority} from './pass6Priority';
-import {pass7ContainerVisibility} from './pass7Container';
+import {pass1ContextualVisibility} from './pass1-visibility';
+import {pass2ScheduleInheritance} from './pass2-schedule';
+import {pass3DeviationFeedback} from './pass3-thermostat';
+import {pass4WeightNormalization} from './pass4-weights';
+import {pass5LeadTimeRamp} from './pass5-leadtime';
+import {pass6FinalPriority} from './pass6-priority';
+import {pass7ContainerVisibility} from './pass7-container';
 
 /**
  * Options to control which tasks are included in the prioritized output.

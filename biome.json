@@ -72,17 +72,6 @@
   "overrides": [
     {
       "includes": [
-        "packages/tasklens/tests/unit/deleteTaskCascade.test.ts",
-        "packages/tasklens/tests/unit/schemaValidation.test.ts",
-        "packages/tasklens/tests/unit/createTaskDefaults.test.ts",
-        "packages/tasklens/tests/unit/updateTask.test.ts",
-        "packages/tasklens/src/domain/pass5Leadtime.ts",
-        "packages/tasklens/src/domain/pass2Schedule.ts",
-        "packages/tasklens/src/domain/pass6Priority.ts",
-        "packages/tasklens/src/domain/pass3Thermostat.ts",
-        "packages/tasklens/src/domain/pass1Visibility.ts",
-        "packages/tasklens/src/domain/pass4Weights.ts",
-        "packages/tasklens/src/domain/pass7Container.ts",
         "apps/client/tests/e2e/priorityList.spec.ts",
         "apps/client/src/viewmodel/ui/useBreadcrumbs.test.tsx",
         "apps/client/src/viewmodel/ui/useNavigationState.tsx",
