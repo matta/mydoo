@@ -18,6 +18,8 @@ interface PlanFixture {
   toggleExpand: (title: string, shouldExpand?: boolean) => Promise<void>;
   completeTask: (title: string) => Promise<void>;
   clearCompletedTasks: () => Promise<void>;
+  editTaskTitle: (title: string, newTitle: string) => Promise<void>;
+  deleteTask: (title: string, expectedDescendants?: number) => Promise<void>;
 
   // Verification Helpers
   verifyTaskVisible: (title: string) => Promise<void>;
@@ -34,6 +36,9 @@ interface PlanFixture {
   openMovePicker: (title: string) => Promise<void>;
   moveTaskTo: (targetTitle: string) => Promise<void>;
   verifyMovePickerExcludes: (title: string) => Promise<void>;
+
+  // Plan View Specific
+  findInPlan: (title: string) => Promise<void>;
 
   // Navigation
   switchToPlanView: () => Promise<void>;
@@ -181,6 +186,32 @@ class PlanPage implements PlanFixture {
     await this.page.getByRole('button', {name: 'Refresh'}).click();
   }
 
+  async editTaskTitle(title: string, newTitle: string): Promise<void> {
+    await this.openTaskEditor(title);
+    const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
+    await modal.getByRole('textbox', {name: 'Title'}).fill(newTitle);
+    await modal.getByRole('button', {name: 'Save Changes'}).click();
+    await expect(modal).not.toBeVisible();
+  }
+
+  async deleteTask(title: string, expectedDescendants?: number): Promise<void> {
+    await this.openTaskEditor(title);
+    const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
+
+    // Setup dialog handler for cascade confirm
+    this.page.once('dialog', async dialog => {
+      if (expectedDescendants !== undefined) {
+        expect(dialog.message()).toContain(
+          `${expectedDescendants} descendants`,
+        );
+      }
+      await dialog.accept();
+    });
+
+    await modal.getByRole('button', {name: 'Delete'}).click();
+    await expect(modal).not.toBeVisible();
+  }
+
   // --- Verification Helpers ---
 
   async verifyTaskVisible(title: string): Promise<void> {
@@ -267,6 +298,15 @@ class PlanPage implements PlanFixture {
     const picker = this.page.getByRole('dialog', {name: /^Move "/});
     const target = picker.getByText(title, {exact: true});
     await expect(target).not.toBeVisible();
+  }
+
+  // --- Plan View Specific ---
+
+  async findInPlan(title: string): Promise<void> {
+    await this.openTaskEditor(title);
+    const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
+    await modal.getByRole('button', {name: 'Find in Plan'}).click();
+    await expect(modal).not.toBeVisible();
   }
 
   // --- Lifecycle / Setup ---
