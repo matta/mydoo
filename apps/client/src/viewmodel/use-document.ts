@@ -11,7 +11,7 @@ import {useState} from 'react';
  * 1. Retrieves the document ID (URL) from the window location hash.
  * 2. If no hash exists, creates a new Automerge document with an initial empty state.
  * 3. Updates the window hash to match the new document URL.
- * 4. Returns the Document URL for use by other hooks (e.g. useTunnel).
+ * 4. Returns the Document URL for use by the TaskLensProvider.
  *
  * @returns {DocumentHandle} The URL of the current Automerge document.
  */

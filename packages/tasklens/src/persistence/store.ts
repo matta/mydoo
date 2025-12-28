@@ -3,7 +3,7 @@
  *
  * This class provides a higher-level API for managing the task state, primarily
  * used in unit tests for the prioritization algorithm. For UI integration,
- * use the `useTunnel` hook from `react.ts` instead.
+ * use the Redux-backed hooks exported from the root.
  *
  * Key concepts:
  * - **Automerge.from(state)**: Creates a new Automerge document from an initial
@@ -34,8 +34,8 @@ import * as TunnelOps from './ops';
  * A store that wraps an Automerge document containing task state.
  *
  * This class is designed for use in unit tests and algorithm development.
- * For React applications, use the `useTunnel` hook instead, which provides
- * reactive updates when the document changes.
+ * For React applications, use the Redux-backed hooks from `@mydoo/tasklens`,
+ * which provide reactive updates when the Redux store changes.
  *
  * @example
  * ```typescript

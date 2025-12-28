@@ -27,7 +27,6 @@ import {
   ANYWHERE_PLACE_ID,
   type CreateTaskOptions,
   type PersistedTask,
-  type PersistedTunnelNode,
   type Schedule,
   type TaskID,
   TaskStatus,
@@ -426,35 +425,6 @@ export function getChildren(
     : state.rootTaskIds;
   if (!ids) return [];
   return ids.map(id => state.tasks[id]).filter((t): t is PersistedTask => !!t);
-}
-
-/**
- * Builds the complete task tree from the flat state.
- *
- * This function recursively constructs a tree structure where each TunnelNode
- * contains its resolved children. This is useful for rendering the task
- * hierarchy in a user interface.
- *
- * @param state - The application state to read from.
- * @returns An array of root-level TunnelNodes, each with nested children.
- *
- * @remarks
- * The function performs a depth-first traversal starting from `rootTaskIds`.
- * Tasks that don't exist in the state (e.g., corrupted references) are
- * filtered out to maintain a valid tree structure.
- */
-export function getTaskTree(state: TunnelState): PersistedTunnelNode[] {
-  const buildNode = (taskId: TaskID): PersistedTunnelNode | undefined => {
-    const task = state.tasks[taskId];
-    if (!task) return undefined;
-    const children = task.childTaskIds
-      .map(buildNode)
-      .filter((n): n is PersistedTunnelNode => !!n);
-    return {...task, children};
-  };
-  return state.rootTaskIds
-    .map(buildNode)
-    .filter((n): n is PersistedTunnelNode => !!n);
 }
 
 /**
