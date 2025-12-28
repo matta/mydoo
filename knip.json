@@ -4,10 +4,10 @@
   "rules": {
     "exports": "warn",
     "types": "warn",
-    "nsExports": "off",
-    "classMembers": "off",
-    "duplicates": "off",
-    "enumMembers": "off",
+    "nsExports": "warn",
+    "classMembers": "warn",
+    "duplicates": "warn",
+    "enumMembers": "warn",
     "files": "error",
     "dependencies": "warn",
     "devDependencies": "warn"
