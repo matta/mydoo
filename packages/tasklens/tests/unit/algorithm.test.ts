@@ -162,6 +162,136 @@ function parseTaskInput(
   return tasks;
 }
 
+/**
+ * Applies time advancement mutation to the store.
+ */
+function applyTimeAdvancement(advanceSeconds: number): void {
+  const newTime = getCurrentTimestamp() + advanceSeconds * 1000;
+  mockCurrentTimestamp(newTime);
+}
+
+/**
+ * Applies credit updates mutation to the store.
+ */
+function applyCreditUpdates(
+  store: TunnelStore,
+  updates: Record<string, number>,
+): void {
+  for (const [taskId, credits] of Object.entries(updates)) {
+    store.updateTask(taskId as TaskID, {
+      credits,
+      creditsTimestamp: getCurrentTimestamp(),
+    });
+  }
+}
+
+/**
+ * Applies task property updates mutation to the store.
+ */
+function applyTaskUpdates(
+  store: TunnelStore,
+  updates: Array<{
+    id: string;
+    status?: string;
+    credits?: number;
+    desired_credits?: number;
+    importance?: number;
+    due_date?: string | null | undefined;
+  }>,
+): void {
+  for (const update of updates) {
+    const {id, ...props} = update;
+
+    if (props.status === 'Done') {
+      store.completeTask(id as TaskID);
+      continue;
+    }
+
+    const taskProps: Partial<PersistedTask> = {};
+
+    if (props.status) {
+      taskProps.status =
+        StoreTaskStatus[props.status as keyof typeof StoreTaskStatus];
+    }
+    if (props.credits !== undefined) {
+      taskProps.credits = props.credits;
+    }
+    if (props.desired_credits !== undefined) {
+      taskProps.desiredCredits = props.desired_credits;
+    }
+    if (props.importance !== undefined) {
+      taskProps.importance = props.importance;
+    }
+    if (props.due_date !== undefined) {
+      const existingTask = store.getTask(id as TaskID);
+      if (existingTask) {
+        taskProps.schedule = {
+          ...existingTask.schedule,
+          dueDate: props.due_date
+            ? new Date(props.due_date).getTime()
+            : undefined,
+        };
+      }
+    }
+
+    store.updateTask(id as TaskID, taskProps);
+  }
+}
+
+/**
+ * Parses view filter from test step.
+ */
+function parseViewFilter(filterInput?: string): ViewFilter {
+  if (!filterInput) {
+    return {placeId: 'All'};
+  }
+  return {
+    placeId: filterInput === 'All Places' ? 'All' : (filterInput as PlaceID),
+  };
+}
+
+/**
+ * Asserts expected task properties against computed tasks.
+ */
+function assertExpectedProps(
+  computedMap: Map<TaskID, EnrichedTask>,
+  expectedProps: Array<{
+    id: string;
+    score?: number;
+    effective_credits?: number;
+    normalized_importance?: number;
+  }>,
+): void {
+  for (const expected of expectedProps) {
+    const task = computedMap.get(expected.id as TaskID);
+    expect(
+      task,
+      `Task ${expected.id} should be in computed results`,
+    ).toBeDefined();
+
+    if (!task) continue;
+
+    if (expected.score !== undefined) {
+      expect(task.priority, `Task ${expected.id} priority`).toBeCloseTo(
+        expected.score,
+        4,
+      );
+    }
+    if (expected.effective_credits !== undefined) {
+      expect(
+        task.effectiveCredits,
+        `Task ${expected.id} effectiveCredits`,
+      ).toBeCloseTo(expected.effective_credits, 4);
+    }
+    if (expected.normalized_importance !== undefined) {
+      expect(
+        task.normalizedImportance,
+        `Task ${expected.id} normalizedImportance`,
+      ).toBeCloseTo(expected.normalized_importance, 4);
+    }
+  }
+}
+
 describe('Algorithm Test Suite', () => {
   for (const fixtureFile of fixtureFiles) {
     const fixtureName = path.basename(fixtureFile, '.yaml');
@@ -224,106 +354,31 @@ describe('Algorithm Test Suite', () => {
       });
 
       for (const [stepIndex, step] of validTestCase.steps.entries()) {
-        // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: test helper
         it(`Step ${String(stepIndex + 1)}: ${step.name}`, () => {
-          // Perform Step
+          // Apply mutations
           if (step.mutation?.advance_time_seconds) {
-            const newTime =
-              getCurrentTimestamp() + step.mutation.advance_time_seconds * 1000;
-            mockCurrentTimestamp(newTime);
+            applyTimeAdvancement(step.mutation.advance_time_seconds);
           }
 
           if (step.mutation?.update_credits) {
-            for (const [taskId, credits] of Object.entries(
-              step.mutation.update_credits,
-            )) {
-              store.updateTask(taskId as TaskID, {
-                credits,
-                creditsTimestamp: getCurrentTimestamp(),
-              });
-            }
+            applyCreditUpdates(store, step.mutation.update_credits);
           }
 
           if (step.mutation?.task_updates) {
-            for (const update of step.mutation.task_updates) {
-              const {id, ...props} = update;
-              if (props.status === 'Done') {
-                store.completeTask(id as TaskID);
-              } else {
-                const taskProps: Partial<PersistedTask> = {};
-                if (props.status)
-                  taskProps.status =
-                    StoreTaskStatus[
-                      props.status as keyof typeof StoreTaskStatus
-                    ];
-                if (props.credits !== undefined)
-                  taskProps.credits = props.credits;
-                if (props.desired_credits !== undefined)
-                  taskProps.desiredCredits = props.desired_credits;
-                if (props.importance !== undefined)
-                  taskProps.importance = props.importance;
-                if (props.due_date !== undefined) {
-                  const existingTask = store.getTask(id as TaskID);
-                  if (existingTask) {
-                    taskProps.schedule = {
-                      ...existingTask.schedule,
-                      dueDate: props.due_date
-                        ? new Date(props.due_date).getTime()
-                        : undefined,
-                    };
-                  }
-                }
-                store.updateTask(id as TaskID, taskProps);
-              }
-            }
+            applyTaskUpdates(store, step.mutation.task_updates);
           }
 
-          // Recalculate
-          let viewFilter: ViewFilter = {placeId: 'All'};
-          if (step.view_filter) {
-            viewFilter = {
-              placeId:
-                step.view_filter === 'All Places'
-                  ? 'All'
-                  : (step.view_filter as PlaceID),
-            };
-          }
+          // Compute results
+          const viewFilter = parseViewFilter(step.view_filter);
           const computedTasks = store.dumpCalculatedState(viewFilter);
           const computedMap = new Map<TaskID, EnrichedTask>();
           for (const t of computedTasks) {
             computedMap.set(t.id, t as unknown as EnrichedTask);
           }
 
-          // Assert
+          // Assert expectations
           if (step.expected_props) {
-            for (const expected of step.expected_props) {
-              const task = computedMap.get(expected.id as TaskID);
-              expect(
-                task,
-                `Task ${expected.id} should be in computed results`,
-              ).toBeDefined();
-
-              if (task) {
-                if (expected.score !== undefined) {
-                  expect(
-                    task.priority,
-                    `Task ${expected.id} priority`,
-                  ).toBeCloseTo(expected.score, 4);
-                }
-                if (expected.effective_credits !== undefined) {
-                  expect(
-                    task.effectiveCredits,
-                    `Task ${expected.id} effectiveCredits`,
-                  ).toBeCloseTo(expected.effective_credits, 4);
-                }
-                if (expected.normalized_importance !== undefined) {
-                  expect(
-                    task.normalizedImportance,
-                    `Task ${expected.id} normalizedImportance`,
-                  ).toBeCloseTo(expected.normalized_importance, 4);
-                }
-              }
-            }
+            assertExpectedProps(computedMap, step.expected_props);
           }
         });
       }
