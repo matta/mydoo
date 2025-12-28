@@ -7,11 +7,13 @@ import {
 import {
   type DocumentHandle,
   type TaskID,
+  TaskLensSynchronizer,
   TaskStatus,
   type TunnelNode,
   type TunnelState,
 } from '@mydoo/tasklens';
 import {renderHook, waitFor} from '@testing-library/react';
+import type React from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {createTestWrapper} from '../../test/setup';
 import {usePriorityList} from './use-priority-list';
@@ -79,6 +81,17 @@ describe('usePriorityList', () => {
     docUrl = handle.url as unknown as DocumentHandle;
   });
 
+  const renderWithSync = () => {
+    const BaseWrapper = createTestWrapper(repo);
+    const Wrapper = ({children}: {children: React.ReactNode}) => (
+      <BaseWrapper>
+        <TaskLensSynchronizer docHandle={handle} />
+        {children}
+      </BaseWrapper>
+    );
+    return renderHook(() => usePriorityList(docUrl), {wrapper: Wrapper});
+  };
+
   it('filters out completed tasks that are acknowledged', async () => {
     handle.change((doc: TunnelState) => {
       const task1 = createMockTask('1', 'Todo 1', TaskStatus.Pending, 0.5);
@@ -88,16 +101,14 @@ describe('usePriorityList', () => {
       doc.rootTaskIds = ['1' as TaskID, '2' as TaskID];
     });
 
-    const {result} = renderHook(() => usePriorityList(docUrl), {
-      wrapper: createTestWrapper(repo),
-    });
+    const {result} = renderWithSync();
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.tasks).toHaveLength(1);
     });
 
-    expect(result.current.tasks).toHaveLength(1);
     expect(result.current.tasks[0]?.id).toBe('1');
+    expect(result.current.isLoading).toBe(false);
   });
 
   it('includes completed tasks that are NOT acknowledged', async () => {
@@ -115,15 +126,12 @@ describe('usePriorityList', () => {
       doc.rootTaskIds = ['1' as TaskID, '2' as TaskID];
     });
 
-    const {result} = renderHook(() => usePriorityList(docUrl), {
-      wrapper: createTestWrapper(repo),
-    });
+    const {result} = renderWithSync();
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.tasks).toHaveLength(2);
     });
 
-    expect(result.current.tasks).toHaveLength(2);
     expect(result.current.tasks.map(t => t.id)).toEqual(
       expect.arrayContaining(['1', '2']),
     );
@@ -155,12 +163,10 @@ describe('usePriorityList', () => {
       doc.rootTaskIds = ['1' as TaskID, '2' as TaskID, '3' as TaskID];
     });
 
-    const {result} = renderHook(() => usePriorityList(docUrl), {
-      wrapper: createTestWrapper(repo),
-    });
+    const {result} = renderWithSync();
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.tasks).toHaveLength(3);
     });
 
     expect(result.current.tasks).toMatchObject([
@@ -171,10 +177,8 @@ describe('usePriorityList', () => {
   });
 
   it('returns loading state initially', () => {
-    const {result} = renderHook(() => usePriorityList(docUrl), {
-      wrapper: createTestWrapper(repo),
-    });
-    // Initial state before doc loads
+    const {result} = renderWithSync();
+    // Initial state before sync/doc loads (empty)
     expect(result.current.tasks).toEqual([]);
   });
 });

@@ -1,21 +1,26 @@
-import type {AnyDocumentId} from '@automerge/automerge-repo';
-import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
+import type {
+  DocHandle,
+  DocHandleChangePayload,
+} from '@automerge/automerge-repo';
 import type React from 'react';
 import {useEffect} from 'react';
 import {Provider, useDispatch} from 'react-redux';
 import type {AppDispatch} from '../store';
 import {store} from '../store';
 import {syncDoc} from '../store/slices/tasks-slice';
-import type {DocumentHandle, TunnelState} from '../types';
+import type {TunnelState} from '../types';
 
 /**
  * Props for the TaskLensProvider component.
  *
- * @property docId - The Automerge document handle to synchronize with.
+ * @property docHandle - The Automerge document handle object to synchronize with.
+ *                     If null or undefined, the Redux store will stop receiving updates
+ *                     from the Automerge document ("disconnected" state).
+ *                     Synchronization automatically resumes when a valid handle is provided.
  * @property children - React children to render within the provider.
  */
 interface Props {
-  docId: DocumentHandle;
+  docHandle: DocHandle<TunnelState> | null | undefined;
   children: React.ReactNode;
 }
 
@@ -26,30 +31,50 @@ interface Props {
  * Uses handle.on('change') to subscribe to document changes, ensuring
  * we capture all mutations including local changes.
  */
-function TaskLensSync({docId}: {docId: DocumentHandle}) {
+export function TaskLensSynchronizer({
+  docHandle,
+}: {
+  docHandle: DocHandle<TunnelState> | null | undefined;
+}) {
   const dispatch = useDispatch<AppDispatch>();
-  const handle = useDocHandle<TunnelState>(docId as unknown as AnyDocumentId);
 
   useEffect(() => {
-    if (!handle) return;
+    if (!docHandle) return;
 
-    const syncFromHandle = () => {
-      const doc = handle.docSync();
-      if (doc) {
-        dispatch(syncDoc(doc as TunnelState));
+    // Use specific event payload type to access 'doc' directly
+    const onHandleChange = ({doc}: DocHandleChangePayload<TunnelState>) => {
+      dispatch(syncDoc(doc));
+    };
+
+    const initialSync = async () => {
+      // doc() might be synchronous or return a Promise depending on version/state,
+      // though types say synchronous. We handle both for robustness.
+      // docSync() is deprecated.
+      const docOrPromise = docHandle.doc();
+
+      // Handle potential Promise check safely
+      if (
+        docOrPromise &&
+        typeof (docOrPromise as unknown as Promise<TunnelState>).then ===
+          'function'
+      ) {
+        const doc = await (docOrPromise as unknown as Promise<TunnelState>);
+        if (doc) dispatch(syncDoc(doc));
+      } else if (docOrPromise) {
+        dispatch(syncDoc(docOrPromise as TunnelState));
       }
     };
 
     // Initial sync
-    syncFromHandle();
+    initialSync();
 
     // Subscribe to future changes
-    handle.on('change', syncFromHandle);
+    docHandle.on('change', onHandleChange);
 
     return () => {
-      handle.off('change', syncFromHandle);
+      docHandle.off('change', onHandleChange);
     };
-  }, [handle, dispatch]);
+  }, [docHandle, dispatch]);
 
   return null;
 }
@@ -64,19 +89,20 @@ function TaskLensSync({docId}: {docId: DocumentHandle}) {
  * @example
  * ```tsx
  * function App() {
- *   const docId = useDocument();
+ *   const docUrl = useDocument();
+ *   const handle = useDocHandle(docUrl);
  *   return (
- *     <TaskLensProvider docId={docId}>
+ *     <TaskLensProvider docHandle={handle}>
  *       <MyApp />
  *     </TaskLensProvider>
  *   );
  * }
  * ```
  */
-export function TaskLensProvider({docId, children}: Props) {
+export function TaskLensProvider({docHandle, children}: Props) {
   return (
     <Provider store={store}>
-      <TaskLensSync docId={docId} />
+      <TaskLensSynchronizer docHandle={docHandle} />
       {children}
     </Provider>
   );

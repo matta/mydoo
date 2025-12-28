@@ -8,10 +8,9 @@ import {useMemo} from 'react';
 /**
  * Hook to retrieve a prioritized list of pending tasks.
  *
- * Uses the Automerge document directly via useTunnel for real-time updates.
+ * Uses direct Automerge access via useTunnel for reliability until Redux sync is verified.
  *
- * TODO: Migrate to Redux-based useTodoList once the RepoContext singleton
- * issue in production builds is resolved (see ROLLING_CONTEXT.md).
+ * @param docUrl - The document URL.
  */
 export function usePriorityList(docUrl: DocumentHandle) {
   const {doc} = useTunnel(docUrl);
