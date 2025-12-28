@@ -9,7 +9,7 @@ import {renderHook} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
 import {createTestWrapper} from '../../test/setup';
-import {usePriorityList} from './usePriorityList';
+import {usePriorityList} from './use-priority-list';
 
 // Mock @mydoo/tasklens
 const mockUseTunnel = vi.fn();

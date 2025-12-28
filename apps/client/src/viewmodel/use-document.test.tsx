@@ -6,7 +6,7 @@ import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
 import {createTestWrapper} from '../test/setup';
 
-import {useDocument} from './useDocument';
+import {useDocument} from './use-document';
 
 describe('useDocument', () => {
   let repo: Repo;

@@ -4,9 +4,9 @@ import type {DocumentHandle, TunnelState} from '@mydoo/tasklens';
 import {act, renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import {createTestWrapper} from '../../test/setup';
-import {useTaskIntents} from '../intents/useTaskIntents';
-import {useDocument} from '../useDocument';
-import {useBreadcrumbs} from './useBreadcrumbs';
+import {useTaskIntents} from '../intents/use-task-intents';
+import {useDocument} from '../use-document';
+import {useBreadcrumbs} from './use-breadcrumbs';
 
 describe('useBreadcrumbs', () => {
   let repo: Repo;

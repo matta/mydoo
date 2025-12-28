@@ -16,10 +16,10 @@ import {
 } from '@mydoo/tasklens';
 import {IconArrowLeft, IconMenu, IconPlus} from '@tabler/icons-react';
 import {useEffect, useMemo} from 'react';
-import {useTaskIntents} from '../../../viewmodel/intents/useTaskIntents';
-import {useTaskTree} from '../../../viewmodel/projections/useTaskTree';
-import {useBreadcrumbs} from '../../../viewmodel/ui/useBreadcrumbs';
-import {useNavigationState} from '../../../viewmodel/ui/useNavigationState';
+import {useTaskIntents} from '../../../viewmodel/intents/use-task-intents';
+import {useTaskTree} from '../../../viewmodel/projections/use-task-tree';
+import {useBreadcrumbs} from '../../../viewmodel/ui/use-breadcrumbs';
+import {useNavigationState} from '../../../viewmodel/ui/use-navigation-state';
 import {OutlineTree} from './OutlineTree';
 
 /**

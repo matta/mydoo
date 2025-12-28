@@ -1,1 +1,1 @@
-export * from './useTaskIntents';
+export * from './use-task-intents';

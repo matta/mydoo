@@ -2,10 +2,10 @@ import type {TaskID} from '@mydoo/tasklens';
 import {useTunnel} from '@mydoo/tasklens';
 import {useCallback} from 'react';
 import {MovePickerModal} from '../../components/modals/move-picker-modal';
-import {useTaskIntents} from '../intents/useTaskIntents';
+import {useTaskIntents} from '../intents/use-task-intents';
 import {useValidParentTargets} from '../projections/use-valid-parent-targets';
-import {useNavigationState} from '../ui/useNavigationState';
-import {useDocument} from '../useDocument';
+import {useNavigationState} from '../ui/use-navigation-state';
+import {useDocument} from '../use-document';
 
 export function MovePickerContainer() {
   const {modal, closeModal} = useNavigationState();

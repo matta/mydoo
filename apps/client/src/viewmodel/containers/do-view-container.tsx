@@ -12,10 +12,10 @@ import {useCallback} from 'react';
 
 import {PriorityTaskList} from '../../components/composites/PriorityTaskList';
 import {QuickAddInput} from '../../components/primitives/QuickAddInput';
-import {useSystemIntents} from '../intents/useSystemIntents';
-import {useTaskIntents} from '../intents/useTaskIntents';
-import {usePriorityList} from '../projections/usePriorityList';
-import {useNavigationState} from '../ui/useNavigationState';
+import {useSystemIntents} from '../intents/use-system-intents';
+import {useTaskIntents} from '../intents/use-task-intents';
+import {usePriorityList} from '../projections/use-priority-list';
+import {useNavigationState} from '../ui/use-navigation-state';
 
 export interface DoViewContainerProps {
   docUrl: DocumentHandle;

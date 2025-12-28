@@ -45,7 +45,7 @@ vi.mock('@mantine/hooks', async () => {
   };
 });
 
-vi.mock('../../../viewmodel/intents/useTaskIntents', () => ({
+vi.mock('../../../viewmodel/intents/use-task-intents', () => ({
   useTaskIntents: () => ({
     createTask: vi.fn(),
     toggleTask: vi.fn(),
@@ -55,21 +55,25 @@ vi.mock('../../../viewmodel/intents/useTaskIntents', () => ({
   }),
 }));
 
-vi.mock('../../../viewmodel/projections/useTaskTree', () => ({
+vi.mock('../../../viewmodel/projections/use-task-tree', () => ({
   useTaskTree: () => mocks.useTaskTree,
 }));
 
-vi.mock('../../../viewmodel/ui/useNavigationState', () => ({
+vi.mock('../../../viewmodel/ui/use-navigation-state', () => ({
   useNavigationState: () => mocks.mockUseNavigationState,
 }));
 
-vi.mock('../../../viewmodel/ui/useBreadcrumbs', () => ({
+vi.mock('../../../viewmodel/ui/use-breadcrumbs', () => ({
   useBreadcrumbs: () => [],
 }));
 
-vi.mock('@mydoo/tasklens', () => ({
-  useTunnel: () => ({doc: {tasks: {}}}),
-}));
+vi.mock('@mydoo/tasklens', async importOriginal => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    useTunnel: () => ({doc: {tasks: {}}}),
+  };
+});
 
 // Mock OutlineTree to simplify rendering
 vi.mock('./OutlineTree', () => ({

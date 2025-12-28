@@ -4,7 +4,7 @@ import type {ReactNode} from 'react';
 import {describe, expect, it} from 'vitest';
 
 import {createTestWrapper} from '../../test/setup';
-import {NavigationProvider, useNavigationState} from './useNavigationState';
+import {NavigationProvider, useNavigationState} from './use-navigation-state';
 
 describe('useNavigationState', () => {
   const TestWrapper = createTestWrapper();

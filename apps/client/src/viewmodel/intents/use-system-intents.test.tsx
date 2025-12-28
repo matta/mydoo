@@ -5,8 +5,8 @@ import {act, renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
 import {createTestWrapper} from '../../test/setup';
-import {useDocument} from '../useDocument';
-import {useSystemIntents} from './useSystemIntents';
+import {useDocument} from '../use-document';
+import {useSystemIntents} from './use-system-intents';
 
 describe('useSystemIntents', () => {
   let repo: Repo;

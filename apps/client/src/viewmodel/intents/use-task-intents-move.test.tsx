@@ -5,8 +5,8 @@ import {act, renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
 import {createTestWrapper} from '../../test/setup';
-import {useDocument} from '../useDocument';
-import {useTaskIntents} from './useTaskIntents';
+import {useDocument} from '../use-document';
+import {useTaskIntents} from './use-task-intents';
 
 describe('useTaskIntents (Move Interactions)', () => {
   let repo: Repo;

@@ -9,10 +9,10 @@ import {
   IconSeeding,
 } from '@tabler/icons-react';
 import {seedHierarchicalData} from '../../dev/SeedData';
-import {DoViewContainer} from '../../viewmodel/containers/DoViewContainer';
+import {DoViewContainer} from '../../viewmodel/containers/do-view-container';
 import {MovePickerContainer} from '../../viewmodel/containers/move-picker-container';
-import {TaskEditorContainer} from '../../viewmodel/containers/TaskEditorContainer';
-import {useNavigationState} from '../../viewmodel/ui/useNavigationState';
+import {TaskEditorContainer} from '../../viewmodel/containers/task-editor-container';
+import {useNavigationState} from '../../viewmodel/ui/use-navigation-state';
 import {PlanViewContainer} from '../views/plan/PlanViewContainer';
 
 // Height of the header and footer constants for consistent layout
