@@ -8,8 +8,18 @@ import wasm from 'vite-plugin-wasm';
 
 export default defineConfig({
   resolve: {
+    dedupe: [
+      '@automerge/automerge-repo-react-hooks',
+      'react',
+      'react-dom',
+      'react-redux',
+    ],
     alias: {
       '@mydoo/tasklens': path.resolve(__dirname, '../../packages/tasklens/src'),
+      '@automerge/automerge-repo-react-hooks': path.resolve(
+        __dirname,
+        'node_modules/@automerge/automerge-repo-react-hooks',
+      ),
     },
   },
   plugins: [

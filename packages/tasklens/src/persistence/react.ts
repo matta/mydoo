@@ -130,7 +130,13 @@ export function useTunnel(docId: DocumentHandle): TunnelHookResult {
   const tasks = useMemo(() => {
     // Runtime validation for read
     const result = TunnelStateSchema.safeParse(doc);
-    if (!result.success) return [];
+    if (!result.success) {
+      console.error(
+        '[TaskLens] Document validation failed:',
+        result.error.format(),
+      );
+      return [];
+    }
 
     const rawTree = TunnelOps.getTaskTree(result.data);
 
