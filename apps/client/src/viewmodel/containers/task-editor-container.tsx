@@ -1,5 +1,5 @@
 import {useMediaQuery} from '@mantine/hooks';
-import {type RootState, type Task, type TaskID} from '@mydoo/tasklens';
+import type {RootState, Task, TaskID} from '@mydoo/tasklens';
 import {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 

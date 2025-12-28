@@ -1,4 +1,4 @@
-import {type RootState, type TaskID} from '@mydoo/tasklens';
+import type {RootState, TaskID} from '@mydoo/tasklens';
 import {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 import {MovePickerModal} from '../../components/modals/move-picker-modal';
