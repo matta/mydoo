@@ -73,12 +73,13 @@ const mockRepo = new Repo({network: []});
  */
 
 import {
+  createEmptyTunnelState,
   createStore,
   type DocumentHandle,
   TaskLensProvider,
 } from '@mydoo/tasklens';
 
-const defaultDocHandle = mockRepo.create();
+const defaultDocHandle = mockRepo.create(createEmptyTunnelState());
 const defaultDocId = defaultDocHandle.url as unknown as DocumentHandle;
 
 export function createTestWrapper(
