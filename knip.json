@@ -8,7 +8,7 @@
     "classMembers": "off",
     "duplicates": "off",
     "enumMembers": "off",
-    "files": "off"
+    "files": "error"
   },
   "workspaces": {
     ".": {
