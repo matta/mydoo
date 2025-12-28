@@ -17,9 +17,9 @@ export function pass4WeightNormalization(
   const rootTasks = tasks.filter(task => task.parentId === undefined);
 
   // Set NormalizedImportance for root tasks
-  rootTasks.forEach(root => {
+  for (const root of rootTasks) {
     root.normalizedImportance = 1.0; // Root Goals compete via Feedback, not Weight.
-  });
+  }
 
   // Recursively calculate normalizedImportance for children
   function calculateChildImportance(parent: EnrichedTask) {
@@ -34,7 +34,7 @@ export function pass4WeightNormalization(
       0,
     );
 
-    children.forEach(child => {
+    for (const child of children) {
       // Avoid division by zero if all children have 0 importance, though importance is 0.0-1.0
       const childImportance = child.importance; // Default to 1.0 if not set
       const parentNormalizedImportance = parent.normalizedImportance ?? 0;
@@ -49,11 +49,11 @@ export function pass4WeightNormalization(
           parentNormalizedImportance;
       }
       calculateChildImportance(child); // Recurse for children
-    });
+    }
   }
 
   // Start recursion from root tasks
-  rootTasks.forEach(root => {
+  for (const root of rootTasks) {
     calculateChildImportance(root);
-  });
+  }
 }

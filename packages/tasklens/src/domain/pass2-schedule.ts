@@ -21,9 +21,9 @@ export function pass2ScheduleInheritance(tasks: EnrichedTask[]): void {
 
   // Create a map for faster access to tasks by ID
   const taskMap = new Map<string, EnrichedTask>();
-  tasks.forEach(task => {
+  for (const task of tasks) {
     taskMap.set(task.id, task);
-  });
+  }
 
   // Sort tasks by parentId (roots first)
   const sortedTasks = [...tasks].sort((a, b) => {

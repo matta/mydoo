@@ -154,16 +154,16 @@ function parseTaskInput(
   tasks.push(task);
 
   if (input.children) {
-    input.children.forEach(child => {
+    for (const child of input.children) {
       tasks.push(...parseTaskInput(child, testStartDate, task.id));
-    });
+    }
   }
 
   return tasks;
 }
 
 describe('Algorithm Test Suite', () => {
-  fixtureFiles.forEach((fixtureFile: string) => {
+  for (const fixtureFile of fixtureFiles) {
     const fixtureName = path.basename(fixtureFile, '.yaml');
     const yamlContent = fs.readFileSync(
       path.join(FIXTURES_PATH, fixtureFile),
@@ -191,19 +191,19 @@ describe('Algorithm Test Suite', () => {
         // Initialize Store with initial state
         const initialTasks: Record<string, PersistedTask> = {};
 
-        validTestCase.initial_state.tasks.forEach(taskInput => {
+        for (const taskInput of validTestCase.initial_state.tasks) {
           const parsedTasks = parseTaskInput(taskInput, testStartDate);
-          parsedTasks.forEach(t => {
+          for (const t of parsedTasks) {
             initialTasks[t.id] = t;
-          });
-        });
+          }
+        }
 
         const initialPlaces: Record<string, Place> = {};
         if (validTestCase.initial_state.places) {
-          validTestCase.initial_state.places.forEach(p => {
+          for (const p of validTestCase.initial_state.places) {
             const place = parsePlaceInput(p);
             initialPlaces[place.id] = place;
-          });
+          }
         }
 
         const rootTaskIds = Object.values(initialTasks)
@@ -213,8 +213,6 @@ describe('Algorithm Test Suite', () => {
         store = new TunnelStore({
           tasks: initialTasks,
           places: initialPlaces,
-          // rootTaskIds must be manually provided for TunnelStore constructor.
-          // The parseTaskInput helper doesn't track roots, so we calculate them here.
           rootTaskIds,
           nextTaskId: 1,
           nextPlaceId: 1,
@@ -225,16 +223,16 @@ describe('Algorithm Test Suite', () => {
         resetCurrentTimestampMock();
       });
 
-      validTestCase.steps.forEach((step, stepIndex) => {
+      for (const [stepIndex, step] of validTestCase.steps.entries()) {
+        // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: test helper
         it(`Step ${String(stepIndex + 1)}: ${step.name}`, () => {
-          // 1. Advance Time
+          // Perform Step
           if (step.mutation?.advance_time_seconds) {
             const newTime =
               getCurrentTimestamp() + step.mutation.advance_time_seconds * 1000;
             mockCurrentTimestamp(newTime);
           }
 
-          // 2. Update Credits (Manual Override)
           if (step.mutation?.update_credits) {
             for (const [taskId, credits] of Object.entries(
               step.mutation.update_credits,
@@ -246,13 +244,10 @@ describe('Algorithm Test Suite', () => {
             }
           }
 
-          // 3. Task Updates (Status, etc.)
           if (step.mutation?.task_updates) {
-            // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: test helper
-            step.mutation.task_updates.forEach(update => {
+            for (const update of step.mutation.task_updates) {
               const {id, ...props} = update;
               if (props.status === 'Done') {
-                // 'Done' status update handled via completeTask
                 store.completeTask(id as TaskID);
               } else {
                 const taskProps: Partial<PersistedTask> = {};
@@ -278,36 +273,30 @@ describe('Algorithm Test Suite', () => {
                     };
                   }
                 }
-
                 store.updateTask(id as TaskID, taskProps);
               }
-            });
-          }
-
-          // 4. Recalculate Scores
-          let viewFilter: ViewFilter = {placeId: 'All'};
-          if (step.view_filter) {
-            if (step.view_filter === 'All Places') {
-              viewFilter = {placeId: 'All'};
-            } else {
-              viewFilter = {placeId: step.view_filter as PlaceID};
             }
           }
-          // Get the transient computed result
-          // Use dumpCalculatedState to inspect internal values even if hidden/done
+
+          // Recalculate
+          let viewFilter: ViewFilter = {placeId: 'All'};
+          if (step.view_filter) {
+            viewFilter = {
+              placeId:
+                step.view_filter === 'All Places'
+                  ? 'All'
+                  : (step.view_filter as PlaceID),
+            };
+          }
           const computedTasks = store.dumpCalculatedState(viewFilter);
-
-          // Map for easy assertion lookup
-          // Cast to EnrichedTask for testing hidden fields
           const computedMap = new Map<TaskID, EnrichedTask>();
-          computedTasks.forEach(t => {
+          for (const t of computedTasks) {
             computedMap.set(t.id, t as unknown as EnrichedTask);
-          });
+          }
 
-          // 5. Assertions
+          // Assert
           if (step.expected_props) {
-            step.expected_props.forEach(expected => {
-              // We check against the COMPUTED result, not the store (which is persisted only)
+            for (const expected of step.expected_props) {
               const task = computedMap.get(expected.id as TaskID);
               expect(
                 task,
@@ -334,10 +323,10 @@ describe('Algorithm Test Suite', () => {
                   ).toBeCloseTo(expected.normalized_importance, 4);
                 }
               }
-            });
+            }
           }
         });
-      });
+      }
     });
-  });
+  }
 });

@@ -40,16 +40,16 @@ export function pass3DeviationFeedback(
     task.effectiveCredits = task.credits * 0.5 ** (timeDelta / halfLifeMillis);
   }
 
-  rootGoals.forEach(root => {
+  for (const root of rootGoals) {
     totalDesiredCredits += root.desiredCredits;
     totalEffectiveCredits += root.effectiveCredits ?? 0; // Use 0 if not calculated
-  });
+  }
 
-  rootGoals.forEach(root => {
+  for (const root of rootGoals) {
     if (totalDesiredCredits === 0) {
       // If no desired credits across all roots, feedback is neutral
       root.feedbackFactor = 1.0;
-      return;
+      continue;
     }
 
     const targetPercent = root.desiredCredits / totalDesiredCredits;
@@ -69,7 +69,7 @@ export function pass3DeviationFeedback(
     deviationRatio = Math.min(deviationRatio, 1000.0);
 
     root.feedbackFactor = deviationRatio ** k;
-  });
+  }
 }
 
 // getCurrentTimestamp is not available directly in this file

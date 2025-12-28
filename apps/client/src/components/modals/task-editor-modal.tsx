@@ -120,7 +120,7 @@ export function TaskEditorModal({
       setFrequency(null);
       setInterval(1);
     }
-  }, [task, opened]); // Also reset when opening in Create Mode
+  }, [task]); // Also reset when opening in Create Mode
 
   const handleSave = useCallback(() => {
     const repeatConfig: RepeatConfig | undefined = frequency

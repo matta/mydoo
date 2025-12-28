@@ -34,11 +34,11 @@ export function pass7ContainerVisibility(
   }
 
   // Iterate through container tasks and apply visibility rule
-  containerTasks.forEach(container => {
+  for (const container of containerTasks) {
     // Only hide if it has visible descendants
     if (hasVisibleDescendant(container)) {
       container.visibility = false;
       container.priority = 0.0;
     }
-  });
+  }
 }

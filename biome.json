@@ -40,17 +40,20 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "error"
+        "noExplicitAny": "error",
+        "noDoubleEquals": "error"
       },
       "complexity": {
         "noExcessiveCognitiveComplexity": {
           "level": "error",
           "options": { "maxAllowedComplexity": 40 }
-        }
+        },
+        "noForEach": "error"
       },
       "correctness": {
         "noUnusedImports": "error",
-        "noUnusedVariables": "error"
+        "noUnusedVariables": "error",
+        "useExhaustiveDependencies": "error"
       },
       "style": {
         "noNonNullAssertion": "error",
@@ -58,7 +61,10 @@
           "level": "error",
           "options": { "filenameCases": ["kebab-case"] }
         },
-        "useImportType": "error"
+        "useImportType": "error",
+        "useConst": "error",
+        "useTemplate": "error",
+        "useConsistentArrayType": "error"
       }
     }
   },

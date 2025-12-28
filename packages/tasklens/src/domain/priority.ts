@@ -31,9 +31,9 @@ export function recalculatePriorities(
   // Create Lookup Maps for Helpers
   // Performance: O(N) to build map, but enables O(1) lookups in passes.
   const taskMap = new Map<TaskID, EnrichedTask>();
-  enrichedTasks.forEach(t => {
+  for (const t of enrichedTasks) {
     taskMap.set(t.id, t);
-  });
+  }
 
   // Helpers
   const getTaskFromMap = (id: TaskID) => taskMap.get(id);

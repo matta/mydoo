@@ -16,7 +16,7 @@ export function pass6FinalPriority(
   tasks: EnrichedTask[],
   getAncestorsFromMap: (id: TaskID) => EnrichedTask[],
 ): void {
-  tasks.forEach(task => {
+  for (const task of tasks) {
     const ancestors = getAncestorsFromMap(task.id);
     const rootTask = ancestors[0] ?? task;
 
@@ -30,5 +30,5 @@ export function pass6FinalPriority(
       normalizedImportanceFactor *
       feedbackFactor *
       leadTimeFactor;
-  });
+  }
 }

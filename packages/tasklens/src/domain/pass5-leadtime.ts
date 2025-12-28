@@ -13,7 +13,7 @@ export function pass5LeadTimeRamp(
   tasks: EnrichedTask[],
   currentTime: number,
 ): void {
-  tasks.forEach(task => {
+  for (const task of tasks) {
     task.leadTimeFactor = calculateLeadTimeFactor(task.schedule, currentTime);
-  });
+  }
 }
