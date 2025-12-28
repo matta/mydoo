@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 
 import {renderWithTestProviders} from '../../test/setup';
-import {TaskRow} from './TaskRow';
+import {TaskRow} from './task-row';
 
 function createMockTask(overrides: Partial<Task> = {}): Task {
   return {

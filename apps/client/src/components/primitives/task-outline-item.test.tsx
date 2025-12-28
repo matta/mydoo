@@ -3,7 +3,7 @@ import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 import {renderWithTestProviders} from '../../test/setup';
-import {TaskOutlineItem, type TaskOutlineItemProps} from './TaskOutlineItem';
+import {TaskOutlineItem, type TaskOutlineItemProps} from './task-outline-item';
 
 describe('TaskOutlineItem', () => {
   const mockNode: TunnelNode = {

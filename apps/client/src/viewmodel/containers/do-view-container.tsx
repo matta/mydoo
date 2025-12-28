@@ -11,7 +11,7 @@ import {IconRefresh} from '@tabler/icons-react';
 import {useCallback} from 'react';
 
 import {PriorityTaskList} from '../../components/composites/PriorityTaskList';
-import {QuickAddInput} from '../../components/primitives/QuickAddInput';
+import {QuickAddInput} from '../../components/primitives/quick-add-input';
 import {useSystemIntents} from '../intents/use-system-intents';
 import {useTaskIntents} from '../intents/use-task-intents';
 import {usePriorityList} from '../projections/use-priority-list';

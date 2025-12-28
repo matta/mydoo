@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 
 import {renderWithTestProviders} from '../../test/setup';
-import {QuickAddInput} from './QuickAddInput';
+import {QuickAddInput} from './quick-add-input';
 
 describe('QuickAddInput', () => {
   it('renders with placeholder', () => {

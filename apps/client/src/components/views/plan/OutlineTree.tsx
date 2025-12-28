@@ -1,7 +1,7 @@
 import {Stack} from '@mantine/core';
 import type {TaskID, TunnelNode} from '@mydoo/tasklens';
 
-import {TaskOutlineItem} from '../../primitives/TaskOutlineItem';
+import {TaskOutlineItem} from '../../primitives/task-outline-item';
 
 /**
  * Props for the OutlineTree component.
