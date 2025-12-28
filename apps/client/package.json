@@ -39,6 +39,7 @@
   "private": true,
   "scripts": {
     "build": "../../scripts/only-allow-turbo.sh build -- vite build",
+    "lint": "biome check .",
     "clean": "rm -rf dist",
     "dev": "vite",
     "preview": "vite preview",

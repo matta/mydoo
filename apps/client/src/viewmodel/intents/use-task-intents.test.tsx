@@ -2,6 +2,7 @@ import {Repo} from '@automerge/automerge-repo';
 import {
   createStore,
   type DocumentHandle,
+  type TaskID,
   type TunnelState,
 } from '@mydoo/tasklens';
 import {act, renderHook, waitFor} from '@testing-library/react';
@@ -77,7 +78,7 @@ describe('useTaskIntents', () => {
     const {result} = renderHook(() => useObserver(), {wrapper});
 
     // 3. Create Task
-    let taskId: any;
+    let taskId: TaskID;
     act(() => {
       taskId = result.current.intents.createTask('Walk Dog');
     });

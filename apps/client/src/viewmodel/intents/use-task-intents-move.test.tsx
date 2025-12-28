@@ -2,6 +2,7 @@ import {type DocHandle, Repo} from '@automerge/automerge-repo';
 import {
   createStore,
   type DocumentHandle,
+  type TaskID,
   type TunnelState,
 } from '@mydoo/tasklens';
 import {act, renderHook, waitFor} from '@testing-library/react';
@@ -37,8 +38,8 @@ describe('useTaskIntents (Move Interactions)', () => {
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
     // Setup: Root -> [Sibling, Target]
-    let siblingId: any;
-    let targetId: any;
+    let siblingId: TaskID;
+    let targetId: TaskID;
     act(() => {
       siblingId = result.current.createTask('Sibling');
       targetId = result.current.createTask('Target');
@@ -77,8 +78,8 @@ describe('useTaskIntents (Move Interactions)', () => {
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
     // Setup: Root -> Parent -> Child
-    let parentId: any;
-    let childId: any;
+    let parentId: TaskID;
+    let childId: TaskID;
     act(() => {
       parentId = result.current.createTask('Parent');
     });
@@ -118,7 +119,7 @@ describe('useTaskIntents (Move Interactions)', () => {
     const wrapper = createTestWrapper(repo, store, docId);
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
-    let id: any;
+    let id: TaskID;
     act(() => {
       id = result.current.createTask('Solo');
     });

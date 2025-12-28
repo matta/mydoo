@@ -19,7 +19,7 @@ const createMockTask = (
   parentId?: string,
   children: string[] = [],
 ): TunnelNode => {
-  const node: any = {
+  const node: TunnelNode = {
     childTaskIds: children as TaskID[],
     children: [],
     creditIncrement: 1,

@@ -2,6 +2,7 @@ import {type DocHandle, Repo} from '@automerge/automerge-repo';
 import {
   createStore,
   type DocumentHandle,
+  type PersistedTask,
   type TaskID,
   TaskStatus,
   type TunnelState,
@@ -17,7 +18,7 @@ const createMockTask = (
   title: string,
   status: TaskStatus,
   isAcknowledged: boolean,
-): any => ({
+): PersistedTask => ({
   id: id as TaskID,
   title,
   status,

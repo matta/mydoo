@@ -2,6 +2,7 @@ import {type DocHandle, Repo} from '@automerge/automerge-repo';
 import {
   createStore,
   type DocumentHandle,
+  type TaskID,
   type TunnelState,
 } from '@mydoo/tasklens';
 import {act, renderHook, waitFor} from '@testing-library/react';
@@ -48,7 +49,7 @@ describe('useBreadcrumbs', () => {
       wrapper,
     });
 
-    let parentId: any;
+    let parentId: TaskID;
     act(() => {
       parentId = intents.current.createTask('Parent');
     });
@@ -60,7 +61,7 @@ describe('useBreadcrumbs', () => {
         throw new Error('Parent not in store');
     });
 
-    let childId: any;
+    let childId: TaskID;
     act(() => {
       childId = intents.current.createTask('Child', parentId);
     });

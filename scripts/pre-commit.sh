@@ -5,7 +5,7 @@ set -e
 # Dispatch based on environment
 if [ -n "$ANTIGRAVITY_AGENT" ] || [ -n "$GEMINI_CLI" ]; then
   echo "🤖 Agent detected. Running full quality gates (Turbo)..."
-  pnpm exec turbo run "//#check:staged" "//#lint:deps" test test:e2e typecheck
+  pnpm exec turbo run "//#check:staged" "//#lint:staged" "//#lint:deps" test test:e2e typecheck
 else
   echo "👤 Human detected. Running fast checks (Turbo)..."
   pnpm exec turbo run "//#check:staged" "//#lint:staged" "//#lint:deps" typecheck
