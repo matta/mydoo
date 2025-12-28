@@ -95,6 +95,16 @@ export interface ViewFilter {
 }
 
 /**
+ * Options to control which tasks are included in the prioritized output.
+ */
+export interface PriorityOptions {
+  /** If true, include tasks with `visibility: false`. Defaults to false. */
+  includeHidden?: boolean;
+  /** If true, include acknowledged done tasks. Defaults to false. */
+  includeDone?: boolean;
+}
+
+/**
  * Runtime context for algorithm calculations.
  *
  * @property currentTime - Current timestamp in milliseconds since Unix epoch.

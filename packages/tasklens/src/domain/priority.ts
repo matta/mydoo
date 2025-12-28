@@ -2,6 +2,7 @@ import type {
   ComputedTask,
   Context,
   EnrichedTask,
+  PriorityOptions,
   TaskID,
   TunnelState,
   ViewFilter,
@@ -14,16 +15,6 @@ import {pass4WeightNormalization} from './pass4-weights';
 import {pass5LeadTimeRamp} from './pass5-leadtime';
 import {pass6FinalPriority} from './pass6-priority';
 import {pass7ContainerVisibility} from './pass7-container';
-
-/**
- * Options to control which tasks are included in the prioritized output.
- */
-export interface PriorityOptions {
-  /** If true, include tasks with `visibility: false`. Defaults to false. */
-  includeHidden?: boolean;
-  /** If true, include acknowledged done tasks. Defaults to false. */
-  includeDone?: boolean;
-}
 
 /**
  * Runs the prioritization algorithm on the mutable EnrichedTask objects.
