@@ -205,24 +205,6 @@ export class TunnelStore {
   // --- Algorithm Operations ---
 
   /**
-   * Runs the prioritization algorithm to recalculate task scores.
-   *
-   * This updates computed properties like `priority`, `visibility`, and
-   * `effectiveCredits` on all tasks based on the current state and context.
-   *
-   * @param viewFilter - Filter criteria for which tasks to include.
-   * @param context - Optional runtime context (current time, location).
-   */
-  recalculateScores(
-    viewFilter: ViewFilter = {},
-    _context?: Context,
-  ): ComputedTask[] {
-    // Scores are now computed transiently and NOT stored in the doc.
-    // Use getPrioritizedTasks to get the computed list.
-    return getPrioritizedTasks(this.doc, viewFilter);
-  }
-
-  /**
    * Returns a sorted list of visible tasks for display.
    *
    * Tasks are filtered to only those with `visibility: true` and a positive
