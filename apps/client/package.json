@@ -45,7 +45,9 @@
     "preview": "vite preview",
     "test": "../../scripts/only-allow-turbo.sh test -- vitest run",
     "test:e2e": "../../scripts/only-allow-turbo.sh test:e2e -- playwright test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "presubmit:agent": "true",
+    "presubmit:human": "true"
   },
   "type": "module"
 }

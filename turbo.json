@@ -14,6 +14,37 @@
     "//#lint:staged": {
       "cache": false
     },
+    "//#lint:root": {
+      "cache": true,
+      "inputs": [
+        "biome.json",
+        "package.json",
+        "pnpm-workspace.yaml",
+        "*.json",
+        "scripts/**/*"
+      ],
+      "outputs": []
+    },
+    "presubmit:agent": {
+      "dependsOn": [
+        "//#check:staged",
+        "//#lint:staged",
+        "//#lint:deps",
+        "test",
+        "test:e2e",
+        "typecheck"
+      ],
+      "cache": false
+    },
+    "presubmit:human": {
+      "dependsOn": [
+        "//#check:staged",
+        "//#lint:staged",
+        "//#lint:deps",
+        "typecheck"
+      ],
+      "cache": false
+    },
     "//#lint:deps": {
       "inputs": [
         "package.json",
