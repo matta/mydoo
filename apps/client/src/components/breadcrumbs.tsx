@@ -1,6 +1,6 @@
 import type {TaskID} from '@mydoo/tasklens';
 
-import type {BreadcrumbItem} from '../lib/todoUtils';
+import type {BreadcrumbItem} from '../lib/todo-utils';
 
 /**
  * Props for the Breadcrumbs component.

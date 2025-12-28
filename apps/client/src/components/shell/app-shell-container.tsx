@@ -8,12 +8,12 @@ import {
   IconListTree,
   IconSeeding,
 } from '@tabler/icons-react';
-import {seedHierarchicalData} from '../../dev/SeedData';
+import {seedHierarchicalData} from '../../dev/seed-data';
 import {DoViewContainer} from '../../viewmodel/containers/do-view-container';
 import {MovePickerContainer} from '../../viewmodel/containers/move-picker-container';
 import {TaskEditorContainer} from '../../viewmodel/containers/task-editor-container';
 import {useNavigationState} from '../../viewmodel/ui/use-navigation-state';
-import {PlanViewContainer} from '../views/plan/PlanViewContainer';
+import {PlanViewContainer} from '../views/plan/plan-view-container';
 
 // Height of the header and footer constants for consistent layout
 const HEADER_HEIGHT = 60;

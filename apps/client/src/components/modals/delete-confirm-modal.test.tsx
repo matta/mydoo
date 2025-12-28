@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 
 import {renderWithTestProviders} from '../../test/setup';
-import {DeleteConfirmModal} from './DeleteConfirmModal';
+import {DeleteConfirmModal} from './delete-confirm-modal';
 
 describe('DeleteConfirmModal', () => {
   it('renders task title and descendant count', () => {

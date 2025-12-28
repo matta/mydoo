@@ -20,7 +20,7 @@ import {useTaskIntents} from '../../../viewmodel/intents/use-task-intents';
 import {useTaskTree} from '../../../viewmodel/projections/use-task-tree';
 import {useBreadcrumbs} from '../../../viewmodel/ui/use-breadcrumbs';
 import {useNavigationState} from '../../../viewmodel/ui/use-navigation-state';
-import {OutlineTree} from './OutlineTree';
+import {OutlineTree} from './outline-tree';
 
 /**
  * Props for PlanViewContainer.

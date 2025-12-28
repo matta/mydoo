@@ -3,7 +3,7 @@ import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 
 import App from './app';
-import {RepoProvider} from './hooks/RepoProvider';
+import {RepoProvider} from './hooks/repo-provider';
 
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';

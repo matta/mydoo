@@ -17,8 +17,8 @@ import type {TaskID, TunnelNode} from '@mydoo/tasklens';
  */
 import {useState} from 'react';
 
-import {InlineInput} from './InlineInput';
-import {TodoItem} from './TodoItem';
+import {InlineInput} from './inline-input';
+import {TodoItem} from './todo-item';
 
 /**
  * Props for the TodoList component.

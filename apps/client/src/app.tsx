@@ -1,7 +1,7 @@
 import {MantineProvider} from '@mantine/core';
 
-import {AppShellContainer} from './components/shell/AppShellContainer';
-import {SeedData} from './dev/SeedData';
+import {AppShellContainer} from './components/shell/app-shell-container';
+import {SeedData} from './dev/seed-data';
 import {NavigationProvider} from './viewmodel/ui/use-navigation-state';
 import {useDocument} from './viewmodel/use-document';
 

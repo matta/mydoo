@@ -8,7 +8,7 @@ import {
 } from '@mydoo/tasklens';
 import {useCallback} from 'react';
 
-import {TaskEditorModal} from '../../components/modals/TaskEditorModal';
+import {TaskEditorModal} from '../../components/modals/task-editor-modal';
 import {useTaskIntents} from '../intents/use-task-intents';
 import {useTaskDetails} from '../projections/use-task-details';
 import {useNavigationState} from '../ui/use-navigation-state';

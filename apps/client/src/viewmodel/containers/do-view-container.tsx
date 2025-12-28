@@ -10,7 +10,7 @@ import type {DocumentHandle, TaskID} from '@mydoo/tasklens';
 import {IconRefresh} from '@tabler/icons-react';
 import {useCallback} from 'react';
 
-import {PriorityTaskList} from '../../components/composites/PriorityTaskList';
+import {PriorityTaskList} from '../../components/composites/priority-task-list';
 import {QuickAddInput} from '../../components/primitives/quick-add-input';
 import {useSystemIntents} from '../intents/use-system-intents';
 import {useTaskIntents} from '../intents/use-task-intents';

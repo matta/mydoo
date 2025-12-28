@@ -12,8 +12,8 @@
 import {ActionIcon, Checkbox, Group, Text} from '@mantine/core';
 import {type TaskID, TaskStatus, type TunnelNode} from '@mydoo/tasklens';
 
-import {canMarkDone} from '../lib/todoUtils';
-import {InlineInput} from './InlineInput';
+import {canMarkDone} from '../lib/todo-utils';
+import {InlineInput} from './inline-input';
 
 /**
  * Props for the TodoItem component.

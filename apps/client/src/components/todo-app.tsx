@@ -9,8 +9,8 @@ import {
   useTaskTree,
   useTodoList,
 } from '../viewmodel';
-import {Breadcrumbs} from './Breadcrumbs';
-import {TodoList} from './TodoList';
+import {Breadcrumbs} from './breadcrumbs';
+import {TodoList} from './todo-list';
 
 export function TodoApp() {
   const docUrl = useDocument();

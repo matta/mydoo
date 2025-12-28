@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 import {renderWithTestProviders} from '../../test/setup';
 
-import {TaskEditorModal} from './TaskEditorModal';
+import {TaskEditorModal} from './task-editor-modal';
 
 const mockTask: Task = {
   id: 'task-1' as TaskID,

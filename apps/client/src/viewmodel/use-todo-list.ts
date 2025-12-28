@@ -1,7 +1,7 @@
 import type {TaskID, TunnelNode} from '@mydoo/tasklens';
 import {useMemo} from 'react';
 
-import {getListAtPath} from '../lib/todoUtils';
+import {getListAtPath} from '../lib/todo-utils';
 
 /**
  * ViewModel hook for projecting a specific todo list view.

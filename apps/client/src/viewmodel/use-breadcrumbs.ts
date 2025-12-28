@@ -1,7 +1,7 @@
 import type {TaskID, TunnelNode} from '@mydoo/tasklens';
 import {useMemo} from 'react';
 
-import {getBreadcrumbs} from '../lib/todoUtils';
+import {getBreadcrumbs} from '../lib/todo-utils';
 
 /**
  * ViewModel hook for generating breadcrumb navigation.

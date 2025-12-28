@@ -2,7 +2,7 @@ import type {TaskID, TunnelNode} from '@mydoo/tasklens';
 import {screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {renderWithTestProviders} from '../../../test/setup';
-import {OutlineTree, type OutlineTreeProps} from './OutlineTree';
+import {OutlineTree, type OutlineTreeProps} from './outline-tree';
 
 describe('OutlineTree', () => {
   const mockChild: TunnelNode = {

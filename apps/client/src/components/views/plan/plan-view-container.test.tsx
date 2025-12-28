@@ -3,7 +3,7 @@ import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 import {renderWithTestProviders} from '../../../test/setup';
-import {PlanViewContainer} from './PlanViewContainer';
+import {PlanViewContainer} from './plan-view-container';
 
 // Mock dependencies (removed old manual mocks)
 const mocks = vi.hoisted(() => ({
@@ -76,7 +76,7 @@ vi.mock('@mydoo/tasklens', async importOriginal => {
 });
 
 // Mock OutlineTree to simplify rendering
-vi.mock('./OutlineTree', () => ({
+vi.mock('./outline-tree', () => ({
   OutlineTree: () => <div data-testid="outline-tree" />,
 }));
 
