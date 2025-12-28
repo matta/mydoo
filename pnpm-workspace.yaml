@@ -37,7 +37,9 @@ catalogs:
     postcss-preset-mantine: 1.18.0
     postcss-simple-vars: 7.0.1
     react: ^19.2.3
+    react-redux: ^9.2.0
     react-dom: ^19.2.3
+    '@reduxjs/toolkit': ^2.5.0
     syncpack: ^13.0.2
     turbo: ^2.7.1
     typescript: 5.9.3

@@ -5,4 +5,5 @@ export * as TunnelOps from './persistence/ops';
 export * from './persistence/react';
 export * from './persistence/schemas';
 export {TunnelStore} from './persistence/store';
+export * from './react/task-lens-provider';
 export * from './types';
