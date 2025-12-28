@@ -43,7 +43,9 @@ export function TaskLensSynchronizer({
 
     // Use specific event payload type to access 'doc' directly
     const onHandleChange = ({doc}: DocHandleChangePayload<TunnelState>) => {
-      dispatch(syncDoc(doc));
+      dispatch(syncDoc(doc)).catch(err => {
+        console.error('[TaskLensSynchronizer] syncDoc failed', err);
+      });
     };
 
     const initialSync = async () => {
@@ -61,12 +63,16 @@ export function TaskLensSynchronizer({
         const doc = await (docOrPromise as unknown as Promise<TunnelState>);
         if (doc) dispatch(syncDoc(doc));
       } else if (docOrPromise) {
-        dispatch(syncDoc(docOrPromise as TunnelState));
+        dispatch(syncDoc(docOrPromise as TunnelState)).catch(err => {
+          console.error('[TaskLensSynchronizer] syncDoc failed', err);
+        });
       }
     };
 
     // Initial sync
-    initialSync();
+    initialSync().catch(err => {
+      console.error('[TaskLensSynchronizer] initialSync failed', err);
+    });
 
     // Subscribe to future changes
     docHandle.on('change', onHandleChange);

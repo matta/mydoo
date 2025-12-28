@@ -2,6 +2,7 @@ packages:
   - apps/*
   - packages/*
 
+
 catalogs:
   default:
     '@automerge/automerge': ^3.2.1

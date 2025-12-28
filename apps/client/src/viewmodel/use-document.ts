@@ -23,7 +23,7 @@ export function useDocument() {
     if (hash) return hash as unknown as DocumentHandle;
 
     const handle = repo.create<TunnelState>();
-    handle.change(doc => {
+    handle.change((doc: TunnelState) => {
       doc.tasks = {};
       doc.places = {};
       doc.rootTaskIds = [];

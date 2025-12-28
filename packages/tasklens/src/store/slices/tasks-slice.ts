@@ -1,5 +1,6 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import {getPrioritizedTasks} from '../../domain/priority';
+import {TunnelStateSchema} from '../../persistence/schemas';
 import type {ComputedTask, TaskID, TunnelState} from '../../types';
 
 /**
@@ -26,12 +27,28 @@ const initialState: TasksState = {
  * Syncs the Redux store with a new Automerge document state.
  *
  * It runs the prioritization algorithm and then performs a reference stabilization
- * pass to ensure that React components don't re-render if the task data hasn't
- * changed in the underlying document.
+ * pass.
+ *
+ * NOTE: This thunk strictly parses the incoming Automerge Document into a POJO
+ * via Zod before invoking the domain logic, ensuring no Proxies leak into the algorithm.
  */
 export const syncDoc = createAsyncThunk(
   'tasks/syncDoc',
-  async (newDoc: TunnelState, {getState}) => {
+  async (newDocRaw: TunnelState, {getState}) => {
+    // Validate and sanitize the document (convert Proxy to POJO).
+    // This is crucial because Redux passes the raw Automerge Proxy by default,
+    // while the domain logic expects standard JS objects.
+    const validation = TunnelStateSchema.safeParse(newDocRaw);
+    if (!validation.success) {
+      console.warn('[tasks-slice] Invalid document structure ignored.');
+      return {
+        entities: (getState() as {tasks: TasksState}).tasks.entities,
+        todoListIds: (getState() as {tasks: TasksState}).tasks.todoListIds,
+        newDoc: (getState() as {tasks: TasksState}).tasks.lastDoc,
+      };
+    }
+    const newDoc = validation.data;
+
     const state = (getState() as {tasks: TasksState}).tasks;
     const oldDoc = state.lastDoc;
     const oldEntities = state.entities;
@@ -49,7 +66,13 @@ export const syncDoc = createAsyncThunk(
 
       // If the task exists in the old doc and its reference is identical,
       // and it exists in our current Redux entities, reuse the old entity.
-      if (oldDoc && oldDoc.tasks[id] === newDoc.tasks[id] && oldEntities[id]) {
+      // NOTE: We check using newDocRaw (the input Automerge Proxy) because it guarantees
+      // reference stability for unchanged objects. newDoc (the POJO) is always fresh.
+      if (
+        oldDoc &&
+        oldDoc.tasks[id] === newDocRaw.tasks[id] &&
+        oldEntities[id]
+      ) {
         newEntities[id] = oldEntities[id];
       } else {
         newEntities[id] = task;
@@ -59,7 +82,7 @@ export const syncDoc = createAsyncThunk(
     return {
       entities: newEntities,
       todoListIds,
-      newDoc,
+      newDoc: newDocRaw, // Store the Raw Proxy for next comparison
     };
   },
 );
@@ -76,5 +99,8 @@ export const tasksSlice = createSlice({
     });
   },
 });
+
+export const selectIsReady = (state: {tasks: TasksState}) =>
+  state.tasks.lastDoc !== null;
 
 export default tasksSlice.reducer;

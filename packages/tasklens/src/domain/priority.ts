@@ -80,7 +80,8 @@ export function recalculatePriorities(
  * 2. Process (Run Algorithm)
  * 3. Sanitize (Enriched -> Computed)
  *
- * @param state The raw Automerge state (Read-Only).
+ * @param state The raw Automerge state. MUST BE A PLAIN OBJECT (POJO), NOT AN AUTOMERGE PROXY.
+ *              Passes relying on spread syntax (...) or Object.keys will fail on Proxies.
  * @param viewFilter Filter criteria.
  * @returns Sorted, filtered list of tasks for the View.
  */

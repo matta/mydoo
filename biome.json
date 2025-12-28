@@ -17,7 +17,8 @@
       "!**/.vercel",
       "!**/node_modules",
       "!**/pnpm-lock.yaml",
-      "!**/*.d.ts"
+      "!**/*.d.ts",
+      "!packages/automerge-repo-react-hooks"
     ]
   },
   "formatter": {
