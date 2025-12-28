@@ -2,8 +2,8 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "ignore": ["pnpm-workspace.yaml"],
   "rules": {
-    "exports": "off",
-    "types": "off",
+    "exports": "warn",
+    "types": "warn",
     "nsExports": "off",
     "classMembers": "off",
     "duplicates": "off",

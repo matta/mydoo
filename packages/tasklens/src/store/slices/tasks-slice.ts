@@ -88,7 +88,7 @@ export const syncDoc = createAsyncThunk(
   },
 );
 
-export const tasksSlice = createSlice({
+const tasksSlice = createSlice({
   name: 'tasks',
   initialState,
   reducers: {},

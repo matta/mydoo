@@ -3,7 +3,7 @@ import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
 import type React from 'react';
 import {createContext, useContext, useEffect} from 'react';
 import {Provider, useDispatch} from 'react-redux';
-import {type AppDispatch, type AppStore, store as defaultStore} from '../store';
+import {store as defaultStore} from '../store';
 import {syncDoc} from '../store/slices/tasks-slice';
 import type {DocumentHandle, TunnelState} from '../types';
 
@@ -35,7 +35,7 @@ export function useTaskLensDocId(): DocumentHandle {
  */
 interface Props {
   docId: DocumentHandle;
-  store?: AppStore;
+  store?: typeof defaultStore;
   children: React.ReactNode;
 }
 
@@ -47,7 +47,7 @@ interface Props {
  * we capture all mutations including local changes.
  */
 function TaskLensSync({docId}: {docId: DocumentHandle}) {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useDispatch<typeof defaultStore.dispatch>();
   const handle = useDocHandle<TunnelState>(docId as unknown as AnyDocumentId);
 
   useEffect(() => {

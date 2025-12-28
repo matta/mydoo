@@ -373,5 +373,3 @@ export const test = base.extend<{plan: PlanFixture}>({
     await use(new PlanPage(page));
   },
 });
-
-export {expect} from '@playwright/test';
