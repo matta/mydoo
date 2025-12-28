@@ -8,7 +8,9 @@
     "classMembers": "off",
     "duplicates": "off",
     "enumMembers": "off",
-    "files": "error"
+    "files": "error",
+    "dependencies": "warn",
+    "devDependencies": "warn"
   },
   "workspaces": {
     ".": {
