@@ -13,7 +13,8 @@
     "@tabler/icons-react": "catalog:",
     "dayjs": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "react-redux": "catalog:"
   },
   "devDependencies": {
     "@playwright/test": "catalog:",

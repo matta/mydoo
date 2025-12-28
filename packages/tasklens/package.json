@@ -5,11 +5,13 @@
   "author": "",
   "dependencies": {
     "@automerge/automerge-repo": "catalog:",
-    "@automerge/automerge-repo-react-hooks": "catalog:",
     "@reduxjs/toolkit": "catalog:",
-    "react": "catalog:",
-    "react-redux": "catalog:",
     "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "@automerge/automerge-repo-react-hooks": "catalog:",
+    "react": "catalog:",
+    "react-redux": "catalog:"
   },
   "devDependencies": {
     "@automerge/automerge": "catalog:",

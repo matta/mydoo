@@ -30,7 +30,7 @@ export interface DoViewContainerProps {
  * - Task editing via global TaskEditorContainer (triggered via navigation state)
  */
 export function DoViewContainer({docUrl}: DoViewContainerProps) {
-  const {tasks, isLoading} = usePriorityList(docUrl);
+  const {tasks, isLoading} = usePriorityList();
   const {createTask, toggleTask} = useTaskIntents(docUrl);
   const {refreshTaskList} = useSystemIntents(docUrl);
   const {openEditModal} = useNavigationState();

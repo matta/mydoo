@@ -1,25 +1,16 @@
-import {
-  type DocumentHandle,
-  getPrioritizedTasks,
-  useTunnel,
-} from '@mydoo/tasklens';
-import {useMemo} from 'react';
+import {useTasksStatus, useTodoList} from '@mydoo/tasklens';
 
 /**
  * Hook to retrieve a prioritized list of pending tasks.
  *
- * Uses pure domain projection logic from the tasklens package.
+ * Uses the Redux store populated by TaskLensProvider for stable, memoized access.
  */
-export function usePriorityList(docUrl: DocumentHandle) {
-  const {doc} = useTunnel(docUrl);
-
-  const tasks = useMemo(() => {
-    if (!doc) return [];
-    return getPrioritizedTasks(doc);
-  }, [doc]);
+export function usePriorityList() {
+  const tasks = useTodoList();
+  const {isReady} = useTasksStatus();
 
   return {
     tasks,
-    isLoading: doc === undefined,
+    isLoading: !isReady,
   };
 }

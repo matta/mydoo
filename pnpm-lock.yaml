@@ -97,7 +97,7 @@ catalogs:
       specifier: ^19.2.3
       version: 19.2.3
     react-redux:
-      specifier: ^9.2.0
+      specifier: 9.2.0
       version: 9.2.0
     typescript:
       specifier: 5.9.3
@@ -182,6 +182,9 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.2.3(react@19.2.3)
+      react-redux:
+        specifier: 'catalog:'
+        version: 9.2.0(@types/react@19.2.7)(react@19.2.3)(redux@5.0.1)
     devDependencies:
       '@playwright/test':
         specifier: 'catalog:'

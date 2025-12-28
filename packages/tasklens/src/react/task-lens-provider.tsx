@@ -1,5 +1,5 @@
 import type {AnyDocumentId} from '@automerge/automerge-repo';
-import {useDocument} from '@automerge/automerge-repo-react-hooks';
+import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
 import type React from 'react';
 import {useEffect} from 'react';
 import {Provider, useDispatch} from 'react-redux';
@@ -22,17 +22,34 @@ interface Props {
 /**
  * Internal component to handle synchronization.
  * Must be child of Redux Provider to use useDispatch.
+ *
+ * Uses handle.on('change') to subscribe to document changes, ensuring
+ * we capture all mutations including local changes.
  */
 function TaskLensSync({docId}: {docId: DocumentHandle}) {
   const dispatch = useDispatch<AppDispatch>();
-  const [doc] = useDocument<TunnelState>(docId as unknown as AnyDocumentId);
+  const handle = useDocHandle<TunnelState>(docId as unknown as AnyDocumentId);
 
   useEffect(() => {
-    if (doc) {
-      // Dispatch syncDoc thunk to update Redux entities and preserve reference stability
-      dispatch(syncDoc(doc as TunnelState));
-    }
-  }, [doc, dispatch]);
+    if (!handle) return;
+
+    const syncFromHandle = () => {
+      const doc = handle.docSync();
+      if (doc) {
+        dispatch(syncDoc(doc as TunnelState));
+      }
+    };
+
+    // Initial sync
+    syncFromHandle();
+
+    // Subscribe to future changes
+    handle.on('change', syncFromHandle);
+
+    return () => {
+      handle.off('change', syncFromHandle);
+    };
+  }, [handle, dispatch]);
 
   return null;
 }
