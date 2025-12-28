@@ -1,11 +1,6 @@
+import {type DocHandle, Repo} from '@automerge/automerge-repo';
 import {
-  type DocHandle,
-  Repo,
-  type StorageAdapterInterface,
-  type StorageKey,
-} from '@automerge/automerge-repo';
-
-import {
+  createStore,
   type DocumentHandle,
   type TaskID,
   TaskStatus,
@@ -18,32 +13,15 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {createTestWrapper} from '../../test/setup';
 import {useTaskTree} from './use-task-tree';
 
-// Dummy Storage Adapter (same as PlanViewContainer)
-class DummyStorageAdapter implements StorageAdapterInterface {
-  async load(_key: StorageKey): Promise<Uint8Array | undefined> {
-    return undefined;
-  }
-  async save(_key: StorageKey, _data: Uint8Array): Promise<void> {}
-  async remove(_key: StorageKey): Promise<void> {}
-  async loadRange(
-    _keyPrefix: StorageKey,
-  ): Promise<{data: Uint8Array; key: StorageKey}[]> {
-    return [];
-  }
-  async removeRange(_keyPrefix: StorageKey): Promise<void> {}
-}
-
 const createMockTask = (
   id: string,
   title: string,
   parentId?: string,
   children: string[] = [],
 ): TunnelNode => {
-  // TODO: Move this to @mydoo/tasklens/test-utils (see ROLLING_CONTEXT.md)
-  // biome-ignore lint/suspicious/noExplicitAny: Building mock object incrementally
   const node: any = {
     childTaskIds: children as TaskID[],
-    children: [], // TunnelNode extra prop, harmless in Automerge if just stored
+    children: [],
     creditIncrement: 1,
     credits: 0,
     creditsTimestamp: Date.now(),
@@ -70,19 +48,18 @@ const createMockTask = (
 };
 
 describe('useTaskTree', () => {
-  let docUrl: DocumentHandle;
   let handle: DocHandle<TunnelState>;
   let repo: Repo;
+  let docId: DocumentHandle;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    repo = new Repo({network: [], storage: new DummyStorageAdapter()});
+    repo = new Repo({network: []});
     handle = repo.create({tasks: {}, rootTaskIds: [], places: {}});
-    docUrl = handle.url as unknown as DocumentHandle;
+    docId = handle.url as unknown as DocumentHandle;
   });
 
   it('builds a task tree from rootTaskIds', async () => {
-    // Populate the real doc
     handle.change((doc: TunnelState) => {
       doc.rootTaskIds = ['root1' as TaskID, 'root2' as TaskID];
 
@@ -97,16 +74,20 @@ describe('useTaskTree', () => {
       doc.tasks['child1' as TaskID] = child1;
     });
 
-    const {result} = renderHook(() => useTaskTree(docUrl), {
-      wrapper: createTestWrapper(repo),
+    const store = createStore();
+    const wrapper = createTestWrapper(repo, store, docId);
+    const {result} = renderHook(() => useTaskTree(), {
+      wrapper,
     });
 
-    // Wait for the hook to load the doc
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await waitFor(
+      () => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.roots).toHaveLength(2);
+      },
+      {timeout: 2000},
+    );
 
-    expect(result.current.roots).toHaveLength(2);
     expect(result.current.roots[0]?.id).toBe('root1');
     expect(result.current.roots[1]?.id).toBe('root2');
 
@@ -117,19 +98,16 @@ describe('useTaskTree', () => {
   });
 
   it('handles loading state initially', async () => {
-    // We can't easily force "loading" forever with real repo,
-    // but we can check initial state before wait
-    const {result} = renderHook(() => useTaskTree(docUrl), {
-      wrapper: createTestWrapper(repo),
+    const store = createStore();
+    const wrapper = createTestWrapper(repo, store, docId);
+    const {result} = renderHook(() => useTaskTree(), {
+      wrapper,
     });
 
     // Initial state might be loading or empty depending on speed,
-    // but typically useTunne starts loading.
-    // However, with real repo, "doc" becomes available quickly.
-    // Let's assert that eventually it settles.
+    // so we don't strictly assert true/false here to avoid flakes.
     expect(result.current.roots).toEqual([]);
 
-    // We check that it eventually works (sanity check)
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });

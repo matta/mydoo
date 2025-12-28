@@ -1,21 +1,12 @@
 import {useMediaQuery} from '@mantine/hooks';
-import {
-  type DocumentHandle,
-  type Task,
-  type TaskID,
-  toComputedTask,
-  useTunnel,
-} from '@mydoo/tasklens';
+import {type RootState, type Task, type TaskID} from '@mydoo/tasklens';
 import {useCallback} from 'react';
+import {useSelector} from 'react-redux';
 
 import {TaskEditorModal} from '../../components/modals/task-editor-modal';
 import {useTaskIntents} from '../intents/use-task-intents';
 import {useTaskDetails} from '../projections/use-task-details';
 import {useNavigationState} from '../ui/use-navigation-state';
-
-interface TaskEditorContainerProps {
-  docUrl: DocumentHandle;
-}
 
 /**
  * Container that connects the TaskEditorModal to the application state.
@@ -25,7 +16,7 @@ interface TaskEditorContainerProps {
  * - Fetches task data using `useTaskDetails`.
  * - Provides action handlers (save, add sibling, add child, delete) via `useTaskIntents`.
  */
-export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
+export function TaskEditorContainer() {
   const {
     modal,
     closeModal,
@@ -43,16 +34,15 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
   const editingTaskId = modal?.type === 'edit' ? modal.taskId : undefined;
 
   const {task, parentTitle, descendantCount} = useTaskDetails(
-    docUrl,
     editingTaskId ?? ('' as TaskID),
   );
   const {updateTask, createTask, deleteTask, indentTask, outdentTask} =
-    useTaskIntents(docUrl);
+    useTaskIntents();
 
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   // Resolve parent title for Create Mode
-  const {doc} = useTunnel(docUrl);
+  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
   let resolvedParentTitle = parentTitle;
 
   // We need to pass a ComputedTask to the modal, but our internal state in Editor
@@ -64,18 +54,19 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
   const editorState = useCallback(() => {
     if (modal?.type === 'create') {
       if (!modal.parentId) return {task: null, parent: null};
-      // Assuming 'tasks' is available from 'doc'
       const tasks = doc?.tasks || {};
       return {task: null, parent: tasks[modal.parentId] || null};
     }
+
     // Edit mode
-    if (!modal?.taskId) return {task: null, parent: null};
-    // computedTask is already derived from 'task' which comes from doc.tasks[modal.taskId]
-    const computedTask = task ? toComputedTask(task) : null;
+    const editingTask = task as Task | null;
+    if (!editingTask) return {task: null, parent: null};
+
     const tasks = doc?.tasks || {};
+    const parentId = editingTask.parentId;
     return {
-      task: computedTask,
-      parent: task?.parentId ? tasks[task.parentId] : null,
+      task: editingTask,
+      parent: parentId ? (tasks[parentId] as Task) : null,
     };
   }, [doc, modal, task]);
 
@@ -135,7 +126,6 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
 
   /**
    * Deletes a task, with confirmation for tasks that have children.
-   * TODO: Replace browser confirm() with Mantine modal (deferred polish).
    * @param taskId - The ID of the task to delete.
    * @param hasChildren - Whether the task has child tasks.
    */
@@ -212,15 +202,6 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
 
   /**
    * Outdents the task to become a sibling of its parent.
-   *
-   * **Mobile Edge Case**: If the user is zoomed into the parent context,
-   * outdenting moves the task out of view. We auto-navigate up one level
-   * before executing the move to keep the task visible after the operation.
-   *
-   * **Timing Note**: We check `task.parentId` from current React state (before
-   * the Automerge operation), then navigate synchronously. The outdent operation
-   * applies asynchronously, so the task data is stable during our check.
-   *
    * @param taskId - The ID of the task to outdent.
    */
   const handleOutdent = (taskId: TaskID) => {
@@ -235,15 +216,7 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
   };
 
   const handleMove = (taskId: TaskID) => {
-    // We are currently in the edit modal. We want to switch to the move modal.
-    // openMoveModal(taskId) will update the 'modal' state to { type: 'move' ... }
-    // This will cause TaskEditorContainer to render null (because isOpen check fails)
-    // and MovePickerContainer to render (because its isOpen check passes).
-    // Perfect.
     if (taskId) {
-      // Import this from hook if it's not exposed?
-      // useNavigationState exposes openMoveModal.
-      // But I need to destructure it first.
       openMoveModal(taskId);
     }
   };
@@ -269,12 +242,9 @@ export function TaskEditorContainer({docUrl}: TaskEditorContainerProps) {
       // Desktop: Expand all ancestors so the tree opens up
       expandAll(ancestors);
       // Reset view path (if we were drilled down elsewhere) so we can see the full tree
-      // (Optional: only do this if the ancestors aren't visible? For robustness, reset to root)
       setViewPath([]);
     } else {
       // Mobile: drill down to the parent
-      // This sets the view path to [grandparent, parent]
-      // So the list view shows the siblings of the target task.
       setViewPath(ancestors);
     }
 

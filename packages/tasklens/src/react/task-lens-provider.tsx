@@ -1,21 +1,41 @@
 import type {AnyDocumentId} from '@automerge/automerge-repo';
 import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
 import type React from 'react';
-import {useEffect} from 'react';
+import {createContext, useContext, useEffect} from 'react';
 import {Provider, useDispatch} from 'react-redux';
-import type {AppDispatch} from '../store';
-import {store} from '../store';
+import {type AppDispatch, type AppStore, store as defaultStore} from '../store';
 import {syncDoc} from '../store/slices/tasks-slice';
 import type {DocumentHandle, TunnelState} from '../types';
+
+/**
+ * Context to provide the Automerge document handle to hooks.
+ */
+const TaskLensContext = createContext<DocumentHandle | null>(null);
+
+/**
+ * Hook to access the current DocumentHandle from context.
+ *
+ * @returns The DocumentHandle provided by TaskLensProvider.
+ * @throws Error if used outside of TaskLensProvider.
+ */
+export function useTaskLensDocId(): DocumentHandle {
+  const docId = useContext(TaskLensContext);
+  if (!docId) {
+    throw new Error('useTaskLensDocId must be used within a TaskLensProvider');
+  }
+  return docId;
+}
 
 /**
  * Props for the TaskLensProvider component.
  *
  * @property docId - The Automerge document handle to synchronize with.
+ * @property store - Optional Redux store to use (useful for tests).
  * @property children - React children to render within the provider.
  */
 interface Props {
   docId: DocumentHandle;
+  store?: AppStore;
   children: React.ReactNode;
 }
 
@@ -73,11 +93,17 @@ function TaskLensSync({docId}: {docId: DocumentHandle}) {
  * }
  * ```
  */
-export function TaskLensProvider({docId, children}: Props) {
+export function TaskLensProvider({
+  docId,
+  store = defaultStore,
+  children,
+}: Props) {
   return (
-    <Provider store={store}>
-      <TaskLensSync docId={docId} />
-      {children}
-    </Provider>
+    <TaskLensContext.Provider value={docId}>
+      <Provider store={store}>
+        <TaskLensSync docId={docId} />
+        {children}
+      </Provider>
+    </TaskLensContext.Provider>
   );
 }

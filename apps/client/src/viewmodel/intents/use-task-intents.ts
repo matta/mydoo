@@ -1,22 +1,30 @@
 import {
   type CreateTaskOptions,
-  type DocumentHandle,
+  type RootState,
   type Task,
   type TaskID,
   TaskStatus,
-  useTunnel,
+  useTaskActions,
 } from '@mydoo/tasklens';
-
 import {useCallback} from 'react';
+import {useSelector} from 'react-redux';
 
 /**
  * Hook to manage user intentions for Tasks.
  *
- * This hook acts as a facade over the generic `useTunnel` operations,
+ * This hook acts as a facade over the generic Redux-backed operations,
  * providing domain-specific actions like "createTask" and "toggleTaskCompletion".
  */
-export function useTaskIntents(docUrl: DocumentHandle) {
-  const {doc, ops} = useTunnel(docUrl);
+export function useTaskIntents() {
+  const {
+    createTask: baseCreateTask,
+    updateTask,
+    deleteTask,
+    moveTask,
+  } = useTaskActions();
+
+  // We need the data from Redux to perform logic like "indent" and "toggle"
+  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
 
   const createTask = useCallback(
     (
@@ -25,54 +33,15 @@ export function useTaskIntents(docUrl: DocumentHandle) {
       options?: CreateTaskOptions,
       props?: Partial<Task>,
     ): TaskID => {
-      // Generate ID client-side so we can return it and use it for navigation/highlight
-      const newTaskId = crypto.randomUUID() as TaskID;
-      ops.add({id: newTaskId, title, parentId, ...props}, options);
-      return newTaskId;
+      return baseCreateTask(title, parentId, options, props);
     },
-    [ops],
-  );
-
-  const deleteTask = useCallback(
-    (id: TaskID) => {
-      ops.delete(id);
-    },
-    [ops],
-  );
-
-  const updateTask = useCallback(
-    (id: TaskID, updates: Partial<Task>) => {
-      ops.update(id, updates);
-    },
-    [ops],
-  );
-
-  /**
-   * Moves a task to a new parent and/or position.
-   */
-  const moveTask = useCallback(
-    (
-      id: TaskID,
-      newParentId: TaskID | undefined,
-      afterTaskId: TaskID | undefined,
-    ) => {
-      ops.move(id, newParentId, afterTaskId);
-    },
-    [ops],
+    [baseCreateTask],
   );
 
   /**
    * Demotes a task to become a child of its previous sibling.
    *
    * @param id - The ID of the task to indent.
-   *
-   * @remarks
-   * This operation reparents the task to the previous sibling node, appending it
-   * to that node's existing children.
-   *
-   * Constraints:
-   * - Cannot indent the first child in a list (no previous sibling).
-   * - The task becomes the last child of the new parent.
    */
   const indentTask = useCallback(
     (id: TaskID) => {
@@ -105,23 +74,15 @@ export function useTaskIntents(docUrl: DocumentHandle) {
           ? prevSibling.childTaskIds[prevSibling.childTaskIds.length - 1]
           : undefined;
 
-      ops.move(id, prevSiblingId, newParentLastChildId);
+      moveTask(id, prevSiblingId, newParentLastChildId);
     },
-    [doc, ops],
+    [doc, moveTask],
   );
 
   /**
    * Promotes a task to be a sibling of its current parent.
    *
    * @param id - The ID of the task to outdent.
-   *
-   * @remarks
-   * This operation moves the task to the level of its parent, placing it immediately
-   * after the parent in the sibling order.
-   *
-   * Constraints:
-   * - Cannot outdent a root task (has no parent).
-   * - Finds the parent and reparents the task to the parent's parent (or root).
    */
   const outdentTask = useCallback(
     (id: TaskID) => {
@@ -137,9 +98,9 @@ export function useTaskIntents(docUrl: DocumentHandle) {
       if (!parent) return;
 
       // Move to be a sibling of the parent, immediately following it.
-      ops.move(id, parent.parentId, parentId);
+      moveTask(id, parent.parentId, parentId);
     },
-    [doc, ops],
+    [doc, moveTask],
   );
 
   /**

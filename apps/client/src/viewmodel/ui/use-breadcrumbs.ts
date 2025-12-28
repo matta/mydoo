@@ -1,11 +1,6 @@
-import type {
-  DocumentHandle,
-  PersistedTask,
-  TaskID,
-  TunnelState,
-} from '@mydoo/tasklens';
-import {useTunnel} from '@mydoo/tasklens';
+import type {PersistedTask, RootState, TaskID} from '@mydoo/tasklens';
 import {useMemo} from 'react';
+import {useSelector} from 'react-redux';
 
 /**
  * Represents a single segment in the navigation breadcrumb trail.
@@ -18,21 +13,13 @@ export interface BreadcrumbItem {
 /**
  * Derives the navigation path from the root to the specified task.
  *
- * @param docUrl - The DocumentHandle for the active Automerge document.
  * @param currentViewId - The TaskID of the currently focused task, or undefined if viewing the root.
  * @returns An ordered array of `BreadcrumbItem`s representing the ancestry path.
- *
- * @remarks
- * - The returned path excludes the logic checks for root/home; it purely represents the specific
- *   task hierarchy leading to `currentViewId`.
- * - Includes a safety mechanism to halt traversal if the depth exceeds `MAX_DEPTH` (50),
- *   preventing infinite loops in the event of cyclic data structures.
  */
 export function useBreadcrumbs(
-  docUrl: DocumentHandle,
   currentViewId: TaskID | undefined,
 ): BreadcrumbItem[] {
-  const {doc}: {doc: TunnelState | undefined} = useTunnel(docUrl);
+  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
 
   const breadcrumbs = useMemo(() => {
     if (!doc || !currentViewId) return [];

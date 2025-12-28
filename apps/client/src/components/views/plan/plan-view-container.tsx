@@ -8,27 +8,15 @@ import {
   Text,
 } from '@mantine/core';
 import {useMediaQuery} from '@mantine/hooks';
-import {
-  type DocumentHandle,
-  type TaskID,
-  type TunnelNode,
-  useTunnel,
-} from '@mydoo/tasklens';
+import type {RootState, TaskID, TunnelNode} from '@mydoo/tasklens';
 import {IconArrowLeft, IconMenu, IconPlus} from '@tabler/icons-react';
 import {useEffect, useMemo} from 'react';
+import {useSelector} from 'react-redux';
 import {useTaskIntents} from '../../../viewmodel/intents/use-task-intents';
 import {useTaskTree} from '../../../viewmodel/projections/use-task-tree';
 import {useBreadcrumbs} from '../../../viewmodel/ui/use-breadcrumbs';
 import {useNavigationState} from '../../../viewmodel/ui/use-navigation-state';
 import {OutlineTree} from './outline-tree';
-
-/**
- * Props for PlanViewContainer.
- */
-export interface PlanViewContainerProps {
-  /** The Automerge document URL. */
-  docUrl: DocumentHandle;
-}
 
 /**
  * The primary container for the "Plan" view.
@@ -41,8 +29,8 @@ export interface PlanViewContainerProps {
  * - **Navigation**: Calculates and renders breadcrumbs via `useBreadcrumbs`.
  * - **Responsiveness**: Switches between Tree Mode (Desktop) and Drill-Down Mode (Mobile).
  */
-export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
-  const {roots, isLoading} = useTaskTree(docUrl);
+export function PlanViewContainer() {
+  const {roots, isLoading} = useTaskTree();
   const {
     currentViewId,
     expandedIds,
@@ -57,11 +45,10 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
     viewPath,
     lastCreatedTaskId,
   } = useNavigationState();
-  const {doc} = useTunnel(docUrl);
+  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
 
-  const {toggleTask, deleteTask, indentTask, outdentTask} =
-    useTaskIntents(docUrl);
-  const breadcrumbs = useBreadcrumbs(docUrl, currentViewId);
+  const {toggleTask, deleteTask, indentTask, outdentTask} = useTaskIntents();
+  const breadcrumbs = useBreadcrumbs(currentViewId);
 
   /**
    * Opens the create modal to add a sibling task after the specified task.
@@ -110,7 +97,6 @@ export function PlanViewContainer({docUrl}: PlanViewContainerProps) {
       // Mobile -> Desktop: Reset viewPath to empty (show full tree)
       resetView();
     }
-    // Desktop -> Mobile: Start at root for simplicity as per plan
   }, [isDesktop, viewPath, resetView]);
 
   // Derive the subset of roots to display based on the current "drill-down" view.

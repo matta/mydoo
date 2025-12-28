@@ -41,6 +41,11 @@ export const store = createStore();
 export type RootState = ReturnType<typeof store.getState>;
 
 /**
+ * The store type for the TaskLens Redux store.
+ */
+export type AppStore = typeof store;
+
+/**
  * The dispatch type for the TaskLens Redux store.
  * Use this type when dispatching actions or thunks.
  */

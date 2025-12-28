@@ -1,28 +1,30 @@
-import type {DocHandle, DocumentId} from '@automerge/automerge-repo';
-import {Repo} from '@automerge/automerge-repo';
-import type {DocumentHandle, TunnelState} from '@mydoo/tasklens';
-import {act, renderHook} from '@testing-library/react';
+import {type DocHandle, Repo} from '@automerge/automerge-repo';
+import {
+  createStore,
+  type DocumentHandle,
+  type TunnelState,
+} from '@mydoo/tasklens';
+import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
 import {createTestWrapper} from '../../test/setup';
-import {useDocument} from '../use-document';
 import {useTaskIntents} from './use-task-intents';
 
 describe('useTaskIntents (Move Interactions)', () => {
   let repo: Repo;
-  let docUrl: DocumentHandle;
   let handle: DocHandle<TunnelState>;
+  let docId: DocumentHandle;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     repo = new Repo({network: []});
     window.location.hash = '';
 
-    const wrapper = createTestWrapper(repo);
-
-    const {result} = renderHook(() => useDocument(), {wrapper});
-    docUrl = result.current;
-    handle = await repo.find<TunnelState>(docUrl as unknown as DocumentId);
-    await handle.whenReady();
+    handle = repo.create<TunnelState>({
+      tasks: {},
+      rootTaskIds: [],
+      places: {},
+    });
+    docId = handle.url as unknown as DocumentHandle;
   });
 
   afterEach(() => {
@@ -30,110 +32,113 @@ describe('useTaskIntents (Move Interactions)', () => {
   });
 
   it('should indent a task (become child of previous sibling)', async () => {
-    const wrapper = createTestWrapper(repo);
-    const {result} = renderHook(() => useTaskIntents(docUrl), {wrapper});
+    const store = createStore();
+    const wrapper = createTestWrapper(repo, store, docId);
+    const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
-    // Setup: Root -> [Target, Sibling]
-    // 1. Create Target -> [Target]
-    // 2. Create Sibling -> [Sibling, Target]
-    // Sibling is at 0, Target is at 1. Target's previous sibling is Sibling.
-
+    // Setup: Root -> [Sibling, Target]
+    let siblingId: any;
+    let targetId: any;
     act(() => {
-      result.current.createTask('Sibling');
-      result.current.createTask('Target');
+      siblingId = result.current.createTask('Sibling');
+      targetId = result.current.createTask('Target');
     });
 
-    const doc = handle.doc();
-    const roots = doc.rootTaskIds;
-    expect(roots).toHaveLength(2);
-    // [Sibling, Target]
-    const siblingId = doc.rootTaskIds[0];
-    if (!siblingId) throw new Error('Sibling ID not found');
-    const targetId = doc.rootTaskIds[1];
-    if (!targetId) throw new Error('Target ID not found');
-
-    const siblingTask = doc.tasks[siblingId];
-    if (!siblingTask) throw new Error('Sibling task not found');
-    expect(siblingTask.title).toBe('Sibling');
-
-    const targetTask = doc.tasks[targetId];
-    if (!targetTask) throw new Error('Target task not found');
-    expect(targetTask.title).toBe('Target');
+    // Wait for Redux to sync the tasks
+    await waitFor(() => {
+      const state = store.getState();
+      if (!state.tasks.entities[siblingId])
+        throw new Error('Sibling not in store');
+      if (!state.tasks.entities[targetId])
+        throw new Error('Target not in store');
+    });
 
     // Indent target to be child of sibling
-    await act(async () => {
+    act(() => {
       result.current.indentTask(targetId);
     });
 
-    const docAfter = handle.doc();
-    // Validate structure: Sibling should now have Target as child
-    const sibling = docAfter.tasks[siblingId];
-    if (!sibling) throw new Error('Sibling task not found');
-    expect(sibling.childTaskIds).toContain(targetId);
+    // Validate structure
+    await waitFor(() => {
+      const docAfter = handle.doc();
+      const sibling = docAfter.tasks[siblingId];
+      if (!sibling) throw new Error('Sibling task not found');
+      expect(sibling.childTaskIds).toContain(targetId);
 
-    const target = docAfter.tasks[targetId];
-    if (!target) throw new Error('Target task not found');
-    expect(target.parentId).toBe(siblingId);
+      const target = docAfter.tasks[targetId];
+      if (!target) throw new Error('Target task not found');
+      expect(target.parentId).toBe(siblingId);
+    });
   });
 
   it('should outdent a task (become sibling of parent)', async () => {
-    const wrapper = createTestWrapper(repo);
-    const {result} = renderHook(() => useTaskIntents(docUrl), {wrapper});
+    const store = createStore();
+    const wrapper = createTestWrapper(repo, store, docId);
+    const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
     // Setup: Root -> Parent -> Child
+    let parentId: any;
+    let childId: any;
     act(() => {
-      result.current.createTask('Parent');
-    });
-    const parentId = handle.doc().rootTaskIds[0];
-    if (!parentId) throw new Error('Parent ID not found');
-
-    act(() => {
-      result.current.createTask('Child', parentId);
+      parentId = result.current.createTask('Parent');
     });
 
-    const doc = handle.doc();
-    const parent = doc.tasks[parentId];
-    if (!parent) throw new Error('Parent task not found');
+    // Wait for parent
+    await waitFor(() => {
+      const state = store.getState();
+      if (!state.tasks.entities[parentId])
+        throw new Error('Parent not in store');
+    });
 
-    const childId = parent.childTaskIds[0];
-    if (!childId) throw new Error('Child ID not found');
+    act(() => {
+      childId = result.current.createTask('Child', parentId);
+    });
 
-    await act(async () => {
+    // Wait for child
+    await waitFor(() => {
+      const state = store.getState();
+      if (!state.tasks.entities[childId]) throw new Error('Child not in store');
+    });
+
+    act(() => {
       result.current.outdentTask(childId);
     });
 
-    const docAfter = handle.doc();
-    // We relax order check if needed, but checking existence is key.
-    const roots = docAfter.rootTaskIds;
-    expect(roots).toContain(childId);
-
-    const child = docAfter.tasks[childId];
-    if (!child) throw new Error('Child task not found');
-    expect(child.parentId).toBeUndefined();
+    await waitFor(() => {
+      const docAfter = handle.doc();
+      expect(docAfter.rootTaskIds).toContain(childId);
+      const child = docAfter.tasks[childId];
+      if (!child) throw new Error('Child task not found');
+      expect(child.parentId).toBeUndefined();
+    });
   });
 
   it('should not indent if no previous sibling', async () => {
-    const wrapper = createTestWrapper(repo);
-    const {result} = renderHook(() => useTaskIntents(docUrl), {wrapper});
+    const store = createStore();
+    const wrapper = createTestWrapper(repo, store, docId);
+    const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
+    let id: any;
     act(() => {
-      result.current.createTask('Solo');
+      id = result.current.createTask('Solo');
     });
-    const id = handle.doc().rootTaskIds[0];
-    if (!id) throw new Error('ID not found');
+
+    // Wait for solo task
+    await waitFor(() => {
+      const state = store.getState();
+      if (!state.tasks.entities[id]) throw new Error('Solo task not in store');
+    });
 
     act(() => {
       result.current.indentTask(id);
     });
 
-    const doc = handle.doc();
-    if (doc.rootTaskIds.length === 0) throw new Error('No root tasks found');
-    expect(doc.rootTaskIds).toHaveLength(1);
-
-    // Check task existence
-    if (!id) throw new Error('ID not found');
-    const task = doc.tasks[id];
-    if (!task) throw new Error('Task not found');
-    expect(task.parentId).toBeUndefined();
+    await waitFor(() => {
+      const doc = handle.doc();
+      expect(doc.rootTaskIds).toHaveLength(1);
+      const task = doc.tasks[id];
+      if (!task) throw new Error('Task not found');
+      expect(task.parentId).toBeUndefined();
+    });
   });
 });

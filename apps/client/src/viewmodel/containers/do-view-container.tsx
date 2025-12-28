@@ -6,7 +6,7 @@ import {
   Stack,
   Title,
 } from '@mantine/core';
-import type {DocumentHandle, TaskID} from '@mydoo/tasklens';
+import type {TaskID} from '@mydoo/tasklens';
 import {IconRefresh} from '@tabler/icons-react';
 import {useCallback} from 'react';
 
@@ -17,22 +17,13 @@ import {useTaskIntents} from '../intents/use-task-intents';
 import {usePriorityList} from '../projections/use-priority-list';
 import {useNavigationState} from '../ui/use-navigation-state';
 
-export interface DoViewContainerProps {
-  docUrl: DocumentHandle;
-}
-
 /**
  * DoViewContainer: Main container for the "Do" view (priority list).
- *
- * Orchestrates:
- * - Task list display via usePriorityList
- * - Quick task creation
- * - Task editing via global TaskEditorContainer (triggered via navigation state)
  */
-export function DoViewContainer({docUrl}: DoViewContainerProps) {
+export function DoViewContainer() {
   const {tasks, isLoading} = usePriorityList();
-  const {createTask, toggleTask} = useTaskIntents(docUrl);
-  const {refreshTaskList} = useSystemIntents(docUrl);
+  const {createTask, toggleTask} = useTaskIntents();
+  const {refreshTaskList} = useSystemIntents();
   const {openEditModal} = useNavigationState();
 
   const handleToggle = useCallback(

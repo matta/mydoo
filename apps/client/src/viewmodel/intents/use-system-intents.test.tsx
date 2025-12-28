@@ -1,19 +1,49 @@
-import type {DocumentId} from '@automerge/automerge-repo';
-import {Repo} from '@automerge/automerge-repo';
-import {type TaskID, TaskStatus, type TunnelState} from '@mydoo/tasklens';
-import {act, renderHook} from '@testing-library/react';
+import {type DocHandle, Repo} from '@automerge/automerge-repo';
+import {
+  createStore,
+  type DocumentHandle,
+  type TaskID,
+  TaskStatus,
+  type TunnelState,
+} from '@mydoo/tasklens';
+import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
 import {createTestWrapper} from '../../test/setup';
-import {useDocument} from '../use-document';
 import {useSystemIntents} from './use-system-intents';
+
+const createMockTask = (
+  id: string,
+  title: string,
+  status: TaskStatus,
+  isAcknowledged: boolean,
+): any => ({
+  id: id as TaskID,
+  title,
+  status,
+  isAcknowledged,
+  childTaskIds: [],
+  schedule: {type: 'Once', leadTime: 0},
+  importance: 0.5,
+  credits: 0,
+  desiredCredits: 0,
+  creditIncrement: 1,
+  creditsTimestamp: 0,
+  priorityTimestamp: 0,
+  isSequential: false,
+  notes: '',
+});
 
 describe('useSystemIntents', () => {
   let repo: Repo;
+  let handle: DocHandle<TunnelState>;
+  let docId: DocumentHandle;
 
   beforeEach(() => {
     repo = new Repo({network: []});
     window.location.hash = '';
+    handle = repo.create({tasks: {}, rootTaskIds: [], places: {}});
+    docId = handle.url as unknown as DocumentHandle;
   });
 
   afterEach(() => {
@@ -22,85 +52,62 @@ describe('useSystemIntents', () => {
 
   describe('refreshTaskList', () => {
     it('should acknowledge completed tasks', async () => {
-      // 1. Setup Document
-      const wrapper = createTestWrapper(repo);
-      const {result: docResult} = renderHook(() => useDocument(), {wrapper});
-      const docUrl = docResult.current;
-
-      const handle = await repo.find<TunnelState>(
-        docUrl as unknown as DocumentId,
-      );
-      await handle.whenReady();
-
-      // 2. Seed Data
+      // 1. Seed Data
       handle.change(d => {
-        d.tasks['task1' as TaskID] = {
-          id: 'task1' as TaskID,
-          title: 'Pending',
-          status: TaskStatus.Pending,
-          isAcknowledged: false,
-          childTaskIds: [],
-          schedule: {type: 'Once', leadTime: 0},
-          importance: 0.5,
-          credits: 0,
-          desiredCredits: 0,
-          creditIncrement: 1,
-          creditsTimestamp: 0,
-          priorityTimestamp: 0,
-          isSequential: false,
-          notes: '',
-        };
-        d.tasks['task2' as TaskID] = {
-          id: 'task2' as TaskID,
-          title: 'Done Unacked',
-          status: TaskStatus.Done,
-          isAcknowledged: false,
-          childTaskIds: [],
-          schedule: {type: 'Once', leadTime: 0},
-          importance: 0.5,
-          credits: 0,
-          desiredCredits: 0,
-          creditIncrement: 1,
-          creditsTimestamp: 0,
-          priorityTimestamp: 0,
-          isSequential: false,
-          notes: '',
-        };
-        d.tasks['task3' as TaskID] = {
-          id: 'task3' as TaskID,
-          title: 'Done Acked',
-          status: TaskStatus.Done,
-          isAcknowledged: true,
-          childTaskIds: [],
-          schedule: {type: 'Once', leadTime: 0},
-          importance: 0.5,
-          credits: 0,
-          desiredCredits: 0,
-          creditIncrement: 1,
-          creditsTimestamp: 0,
-          priorityTimestamp: 0,
-          isSequential: false,
-          notes: '',
-        };
+        d.tasks['task1' as TaskID] = createMockTask(
+          'task1',
+          'Pending',
+          TaskStatus.Pending,
+          false,
+        );
+        d.tasks['task2' as TaskID] = createMockTask(
+          'task2',
+          'Done Unacked',
+          TaskStatus.Done,
+          false,
+        );
+        d.tasks['task3' as TaskID] = createMockTask(
+          'task3',
+          'Done Acked',
+          TaskStatus.Done,
+          true,
+        );
+        d.rootTaskIds = [
+          'task1' as TaskID,
+          'task2' as TaskID,
+          'task3' as TaskID,
+        ];
       });
 
-      // 3. Setup Hook
-      const {result} = renderHook(() => useSystemIntents(docUrl), {wrapper});
+      // 2. Setup Hook
+      const store = createStore();
+      const wrapper = createTestWrapper(repo, store, docId);
+      const {result} = renderHook(() => useSystemIntents(), {wrapper});
 
-      // 4. Act
+      // Wait for Redux to have the tasks (to avoid race conditions in intents)
+      await waitFor(() => {
+        const state = store.getState();
+        if (!state.tasks.entities['task1' as TaskID])
+          throw new Error('Task1 not in store');
+      });
+
+      // 3. Act
       act(() => {
         result.current.refreshTaskList();
       });
 
-      // 5. Verify
-      const doc = handle.doc();
-      const t1 = doc.tasks['task1' as TaskID];
-      const t2 = doc.tasks['task2' as TaskID];
-      const t3 = doc.tasks['task3' as TaskID];
+      // 4. Verify in Doc
+      await waitFor(() => {
+        const doc = handle.doc();
+        const t1 = doc.tasks['task1' as TaskID];
+        const t2 = doc.tasks['task2' as TaskID];
+        const t3 = doc.tasks['task3' as TaskID];
 
-      expect(t1?.isAcknowledged).toBe(false);
-      expect(t2?.isAcknowledged).toBe(true); // Changed!
-      expect(t3?.isAcknowledged).toBe(true);
+        if (!t1 || !t2 || !t3) throw new Error('Tasks missing in final doc');
+        expect(t1.isAcknowledged).toBe(false);
+        expect(t2.isAcknowledged).toBe(true); // Changed!
+        expect(t3.isAcknowledged).toBe(true);
+      });
     });
   });
 });

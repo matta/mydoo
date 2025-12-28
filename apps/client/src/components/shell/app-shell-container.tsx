@@ -1,7 +1,6 @@
 import {AppShell, Burger, Button, Group, Menu, Title} from '@mantine/core';
 import {useDisclosure, useMediaQuery} from '@mantine/hooks';
-import type {DocumentHandle} from '@mydoo/tasklens';
-import {useTunnel} from '@mydoo/tasklens';
+import {useTaskActions} from '@mydoo/tasklens';
 import {
   IconCheckbox,
   IconDotsVertical,
@@ -21,31 +20,18 @@ const FOOTER_HEIGHT = 60;
 
 /**
  * The main application shell component that provides the persistent layout structure.
- *
- * Responsibilities:
- * 1. **Layout Management**: Uses Mantine's `AppShell` to orchestrate the Header, Navbar (Sidebar),
- *    Main content area, and Footer via a responsive design.
- * 2. **Navigation State**: Connects to `useNavigationState` to switch between primary views
- *    ('Do' vs 'Plan') and manages the mobile navigation drawer state.
- * 3. **Responsive Adaptation**:
- *    - **Desktop**: Shows a persistent sidebar for navigation.
- *    - **Mobile**: Hides the sidebar (drawer) and shows a bottom tab bar for quick access.
- * 4. **Dev Tools**: In development mode, provides access to data seeding utilities.
- *
- * @param props.docUrl - The Automerge document handle, passed down to view containers.
  */
-export function AppShellContainer({docUrl}: {docUrl: DocumentHandle}) {
+export function AppShellContainer() {
   // Global navigation state (Do vs Plan)
   const {activeTab, setActiveTab} = useNavigationState();
 
   // Mobile drawer state (Burger menu)
   const [mobileNavOpened, {toggle: toggleMobileNav}] = useDisclosure();
 
-  // Access ops for the Dev Tools menu actions (e.g. Seeding)
-  const {ops} = useTunnel(docUrl);
+  // Access actions for the Dev Tools menu actions (e.g. Seeding)
+  const actions = useTaskActions();
 
   // Responsive Breakpoint: 768px (sm)
-  // Used to conditionally render the bottom footer on mobile and toggle sidebar visibility logic.
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   return (
@@ -59,7 +45,7 @@ export function AppShellContainer({docUrl}: {docUrl: DocumentHandle}) {
       // Footer is only for mobile tab bar
       footer={{
         height: FOOTER_HEIGHT,
-        collapsed: !!isDesktop, // Show on mobile (collapsed=false), hide on desktop (collapsed=true)
+        collapsed: !!isDesktop,
       }}
       padding="md"
     >
@@ -93,7 +79,7 @@ export function AppShellContainer({docUrl}: {docUrl: DocumentHandle}) {
                 <Menu.Label>Development</Menu.Label>
                 <Menu.Item
                   leftSection={<IconSeeding size={14} />}
-                  onClick={() => seedHierarchicalData(ops)}
+                  onClick={() => seedHierarchicalData(actions)}
                 >
                   Seed Data
                 </Menu.Item>
@@ -131,9 +117,9 @@ export function AppShellContainer({docUrl}: {docUrl: DocumentHandle}) {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        {activeTab === 'do' && <DoViewContainer docUrl={docUrl} />}
-        {activeTab === 'plan' && <PlanViewContainer docUrl={docUrl} />}
-        <TaskEditorContainer docUrl={docUrl} />
+        {activeTab === 'do' && <DoViewContainer />}
+        {activeTab === 'plan' && <PlanViewContainer />}
+        <TaskEditorContainer />
         <MovePickerContainer />
       </AppShell.Main>
 

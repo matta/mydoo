@@ -1,11 +1,11 @@
 import {
   buildTunnelTree,
-  type DocumentHandle,
+  type RootState,
   type TaskID,
   type TunnelNode,
-  useTunnel,
 } from '@mydoo/tasklens';
 import {useMemo} from 'react';
+import {useSelector} from 'react-redux';
 
 export interface ValidTargets {
   isLoading: boolean;
@@ -18,17 +18,13 @@ export interface ValidTargets {
  * Excludes the task being moved and all its descendants to prevent cycles.
  */
 export function useValidParentTargets(
-  docUrl: DocumentHandle,
   movedTaskId: TaskID | undefined,
 ): ValidTargets {
-  const {doc} = useTunnel(docUrl);
+  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
 
   const roots = useMemo(() => {
     if (!doc || !movedTaskId) {
       if (!doc) return [];
-      // If no task is being moved, technically all are valid, but usually we call this with a task.
-      // If movedTaskId is undefined, just return full tree or empty?
-      // Let's return full tree if no movedTaskId provided (though unlikely case for this hook).
       return buildTunnelTree(doc.rootTaskIds, doc.tasks);
     }
 
@@ -47,7 +43,6 @@ export function useValidParentTargets(
         .filter((n): n is TunnelNode => n !== null);
 
       // Return new node with filtered children
-      // We must create a new object to avoid mutating the original tree memo
       return {
         ...node,
         children: filteredChildren,

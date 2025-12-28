@@ -1,11 +1,14 @@
-import type {DocumentId} from '@automerge/automerge-repo';
 import {Repo} from '@automerge/automerge-repo';
-import type {TunnelState} from '@mydoo/tasklens';
-import {act, renderHook} from '@testing-library/react';
+import {
+  createStore,
+  type DocumentHandle,
+  type TunnelState,
+} from '@mydoo/tasklens';
+import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
 import {createTestWrapper} from '../../test/setup';
-import {useDocument} from '../use-document';
+import {useTaskDetails} from '../projections/use-task-details';
 import {useTaskIntents} from './use-task-intents';
 
 describe('useTaskIntents', () => {
@@ -22,26 +25,25 @@ describe('useTaskIntents', () => {
 
   it('should create a task', async () => {
     // 1. Setup Document
-    const wrapper = createTestWrapper(repo);
-    const {result: docResult} = renderHook(() => useDocument(), {wrapper});
-    const docUrl = docResult.current;
-
-    // Wait for doc to be ready
-    const handle = await repo.find<TunnelState>(
-      docUrl as unknown as DocumentId,
-    );
-    await handle.whenReady();
+    const handle = repo.create<TunnelState>({
+      tasks: {},
+      rootTaskIds: [],
+      places: {},
+    });
+    const docId = handle.url as unknown as DocumentHandle;
+    const wrapper = createTestWrapper(repo, undefined, docId);
 
     // 2. Setup Intents Hook
-    const {result} = renderHook(() => useTaskIntents(docUrl), {wrapper});
+    const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
     // 3. Create Task
     act(() => {
       result.current.createTask('Buy Milk');
     });
 
-    // 4. Verify in Repo
-    const doc = handle.doc();
+    // 4. Verify in Repo - use docSync for immediate verification after act()
+    const doc = handle.docSync();
+    if (!doc) throw new Error('Doc missing');
     const tasks = Object.values(doc.tasks);
 
     expect(tasks).toHaveLength(1);
@@ -55,76 +57,84 @@ describe('useTaskIntents', () => {
 
   it('should toggle task completion', async () => {
     // 1. Setup Document
-    const wrapper = createTestWrapper(repo);
-    const {result: docResult} = renderHook(() => useDocument(), {wrapper});
-    const docUrl = docResult.current;
+    const handle = repo.create<TunnelState>({
+      tasks: {},
+      rootTaskIds: [],
+      places: {},
+    });
+    const docId = handle.url as unknown as DocumentHandle;
+    const store = createStore();
+    const wrapper = createTestWrapper(repo, store, docId);
 
-    const handle = await repo.find<TunnelState>(
-      docUrl as unknown as DocumentId,
-    );
-    await handle.whenReady();
+    // 2. Setup observer hook to wait for reactive state
+    const useObserver = () => {
+      const intents = useTaskIntents();
+      // This will cause re-render when ANY task in the store updates
+      const details = useTaskDetails(undefined);
+      return {intents, details};
+    };
 
-    // 2. Setup Intents Hook
-    const {result} = renderHook(() => useTaskIntents(docUrl), {wrapper});
+    const {result} = renderHook(() => useObserver(), {wrapper});
 
     // 3. Create Task
+    let taskId: any;
     act(() => {
-      result.current.createTask('Walk Dog');
+      taskId = result.current.intents.createTask('Walk Dog');
     });
 
-    const docBefore = handle.doc();
-    const task = Object.values(docBefore.tasks)[0];
-
-    if (!task) throw new Error('Task not found');
-    expect(task.status).toBe('Pending');
-    const taskId = task.id;
+    // Wait until the hook sees the task in Redux entities
+    await waitFor(() => {
+      const state = store.getState();
+      if (!state.tasks.entities[taskId])
+        throw new Error('Task not in store yet');
+    });
 
     // 4. Toggle Completion
     act(() => {
-      result.current.toggleTask(taskId);
+      result.current.intents.toggleTask(taskId);
     });
 
     // 5. Verify
-    const docAfter = handle.doc();
-
-    const taskAfter = docAfter.tasks[taskId];
-
-    if (!taskAfter) throw new Error('Task missing in update');
-    expect(taskAfter.status).toBe('Done');
+    await waitFor(() => {
+      const docAfter = handle.doc();
+      const taskAfter = docAfter.tasks[taskId];
+      if (!taskAfter) throw new Error('Task missing in update');
+      expect(taskAfter.status).toBe('Done');
+    });
 
     // 6. Toggle Back
     act(() => {
-      result.current.toggleTask(taskId);
+      result.current.intents.toggleTask(taskId);
     });
 
-    const docFinal = handle.doc();
-
-    const taskFinal = docFinal.tasks[taskId];
-
-    if (!taskFinal) throw new Error('Task missing in final');
-    expect(taskFinal.status).toBe('Pending');
+    await waitFor(() => {
+      const docFinal = handle.doc();
+      const taskFinal = docFinal.tasks[taskId];
+      if (!taskFinal) throw new Error('Task missing in final');
+      expect(taskFinal.status).toBe('Pending');
+    });
   });
 
   it('should create a child task with parentId', async () => {
     // 1. Setup Document
-    const wrapper = createTestWrapper(repo);
-    const {result: docResult} = renderHook(() => useDocument(), {wrapper});
-    const docUrl = docResult.current;
-
-    const handle = await repo.find<TunnelState>(
-      docUrl as unknown as DocumentId,
-    );
-    await handle.whenReady();
+    const handle = repo.create<TunnelState>({
+      tasks: {},
+      rootTaskIds: [],
+      places: {},
+    });
+    const docId = handle.url as unknown as DocumentHandle;
+    const wrapper = createTestWrapper(repo, undefined, docId);
 
     // 2. Setup Intents Hook
-    const {result} = renderHook(() => useTaskIntents(docUrl), {wrapper});
+    const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
     // 3. Create Parent Task
     act(() => {
       result.current.createTask('Parent Task');
     });
 
-    const docAfterParent = handle.doc();
+    const docAfterParent = handle.docSync();
+    if (!docAfterParent) throw new Error('Doc missing after parent creation');
     const parentTask = Object.values(docAfterParent.tasks)[0];
     if (!parentTask) throw new Error('Parent task not found');
 
@@ -134,7 +144,8 @@ describe('useTaskIntents', () => {
     });
 
     // 5. Verify Child Task
-    const docFinal = handle.doc();
+    const docFinal = handle.docSync();
+    if (!docFinal) throw new Error('Doc missing final');
     const tasks = Object.values(docFinal.tasks);
     expect(tasks).toHaveLength(2);
 

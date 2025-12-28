@@ -1,28 +1,30 @@
-import type {DocHandle, DocumentId} from '@automerge/automerge-repo';
-import {Repo} from '@automerge/automerge-repo';
-import type {DocumentHandle, TunnelState} from '@mydoo/tasklens';
-import {act, renderHook} from '@testing-library/react';
+import {type DocHandle, Repo} from '@automerge/automerge-repo';
+import {
+  createStore,
+  type DocumentHandle,
+  type TunnelState,
+} from '@mydoo/tasklens';
+import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import {createTestWrapper} from '../../test/setup';
 import {useTaskIntents} from '../intents/use-task-intents';
-import {useDocument} from '../use-document';
 import {useBreadcrumbs} from './use-breadcrumbs';
 
 describe('useBreadcrumbs', () => {
   let repo: Repo;
-  let docUrl: DocumentHandle;
   let handle: DocHandle<TunnelState>;
+  let docId: DocumentHandle;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     repo = new Repo({network: []});
     window.location.hash = '';
 
-    const wrapper = createTestWrapper(repo);
-
-    const {result} = renderHook(() => useDocument(), {wrapper});
-    docUrl = result.current;
-    handle = await repo.find<TunnelState>(docUrl as unknown as DocumentId);
-    await handle.whenReady();
+    handle = repo.create<TunnelState>({
+      tasks: {},
+      rootTaskIds: [],
+      places: {},
+    });
+    docId = handle.url as unknown as DocumentHandle;
   });
 
   afterEach(() => {
@@ -30,8 +32,9 @@ describe('useBreadcrumbs', () => {
   });
 
   it('should return empty array for root view', () => {
-    const wrapper = createTestWrapper(repo);
-    const {result} = renderHook(() => useBreadcrumbs(docUrl, undefined), {
+    const store = createStore();
+    const wrapper = createTestWrapper(repo, store, docId);
+    const {result} = renderHook(() => useBreadcrumbs(undefined), {
       wrapper,
     });
     expect(result.current).toEqual([]);
@@ -39,36 +42,47 @@ describe('useBreadcrumbs', () => {
 
   it('should return path for nested task', async () => {
     // 1. Setup Data: Root -> Parent -> Child
-    const wrapper = createTestWrapper(repo);
-    const {result: intents} = renderHook(() => useTaskIntents(docUrl), {
+    const store = createStore();
+    const wrapper = createTestWrapper(repo, store, docId);
+    const {result: intents} = renderHook(() => useTaskIntents(), {
       wrapper,
     });
 
+    let parentId: any;
     act(() => {
-      intents.current.createTask('Parent');
+      parentId = intents.current.createTask('Parent');
     });
-    const parentId = handle.doc().rootTaskIds[0];
-    if (!parentId) throw new Error('Parent ID not found');
 
-    act(() => {
-      intents.current.createTask('Child', parentId);
+    // Wait for parent in Redux
+    await waitFor(() => {
+      const state = store.getState();
+      if (!state.tasks.entities[parentId])
+        throw new Error('Parent not in store');
     });
-    const parent = handle.doc().tasks[parentId];
-    if (!parent) throw new Error('Parent task not found');
-    const childId = parent.childTaskIds[0];
-    if (!childId) throw new Error('Child ID not found');
+
+    let childId: any;
+    act(() => {
+      childId = intents.current.createTask('Child', parentId);
+    });
+
+    // Wait for child in Redux
+    await waitFor(() => {
+      const state = store.getState();
+      if (!state.tasks.entities[childId]) throw new Error('Child not in store');
+    });
 
     // 2. Test Breadcrumbs when focused on Child
-    // wrapper is already defined above
-    const {result} = renderHook(() => useBreadcrumbs(docUrl, childId), {
+    const {result} = renderHook(() => useBreadcrumbs(childId), {
       wrapper,
     });
 
     // Should be [Parent, Child]
-    expect(result.current).toHaveLength(2);
-    expect(result.current[0]?.title).toBe('Parent');
-    expect(result.current[1]?.title).toBe('Child');
-    expect(result.current[0]?.id).toBe(parentId);
-    expect(result.current[1]?.id).toBe(childId);
+    await waitFor(() => {
+      expect(result.current).toHaveLength(2);
+      expect(result.current[0]?.title).toBe('Parent');
+      expect(result.current[1]?.title).toBe('Child');
+      expect(result.current[0]?.id).toBe(parentId);
+      expect(result.current[1]?.id).toBe(childId);
+    });
   });
 });

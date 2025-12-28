@@ -36,8 +36,6 @@ export const syncDoc = createAsyncThunk(
   'tasks/syncDoc',
   async (newDocRaw: TunnelState, {getState}) => {
     // Validate and sanitize the document (convert Proxy to POJO).
-    // This is crucial because Redux passes the raw Automerge Proxy by default,
-    // while the domain logic expects standard JS objects.
     const validation = TunnelStateSchema.safeParse(newDocRaw);
     if (!validation.success) {
       console.warn('[tasks-slice] Invalid document structure ignored.');
@@ -53,21 +51,20 @@ export const syncDoc = createAsyncThunk(
     const oldDoc = state.lastDoc;
     const oldEntities = state.entities;
 
-    // 1. Run the prioritization algorithm
-    const prioritizedTasks = getPrioritizedTasks(newDoc);
+    // 1. Get ALL tasks with computed properties for entities
+    // We call getPrioritizedTasks with inclusive options to get the full map.
+    const allTasksComputed = getPrioritizedTasks(
+      newDoc,
+      {},
+      {
+        includeHidden: true,
+        includeDone: true,
+      },
+    );
 
-    // 2. Stabilize references
     const newEntities: Record<TaskID, ComputedTask> = {};
-    const todoListIds: TaskID[] = [];
-
-    for (const task of prioritizedTasks) {
+    for (const task of allTasksComputed) {
       const id = task.id;
-      todoListIds.push(id);
-
-      // If the task exists in the old doc and its reference is identical,
-      // and it exists in our current Redux entities, reuse the old entity.
-      // NOTE: We check using newDocRaw (the input Automerge Proxy) because it guarantees
-      // reference stability for unchanged objects. newDoc (the POJO) is always fresh.
       if (
         oldDoc &&
         oldDoc.tasks[id] === newDocRaw.tasks[id] &&
@@ -79,10 +76,14 @@ export const syncDoc = createAsyncThunk(
       }
     }
 
+    // 2. Get the prioritized list for the "Do" view
+    const prioritizedTasks = getPrioritizedTasks(newDoc);
+    const todoListIds = prioritizedTasks.map(t => t.id);
+
     return {
       entities: newEntities,
       todoListIds,
-      newDoc: newDocRaw, // Store the Raw Proxy for next comparison
+      newDoc: newDocRaw,
     };
   },
 );

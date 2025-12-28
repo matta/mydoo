@@ -19,7 +19,6 @@ class DummyStorageAdapter implements StorageAdapterInterface {
   async removeRange(_keyPrefix: StorageKey): Promise<void> {}
 }
 
-import type {DocumentHandle} from '@mydoo/tasklens';
 import {act, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
@@ -96,15 +95,13 @@ describe('PlanViewContainer', () => {
     vi.mocked(useMediaQuery).mockReturnValue(isDesktop);
   };
 
-  let docUrl: DocumentHandle;
   let repo: Repo;
 
   // Reset mocks before each test
   beforeEach(() => {
     vi.clearAllMocks();
     repo = new Repo({network: [], storage: new DummyStorageAdapter()});
-    const handle = repo.create({tasks: {}, rootTaskIds: [], places: {}});
-    docUrl = handle.url as unknown as DocumentHandle;
+    repo.create({tasks: {}, rootTaskIds: [], places: {}});
   });
 
   it('renders "Add First Task" button when task list is empty', async () => {
@@ -114,7 +111,7 @@ describe('PlanViewContainer', () => {
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
-      renderWithTestProviders(<PlanViewContainer docUrl={docUrl} />, {repo});
+      renderWithTestProviders(<PlanViewContainer />, {repo});
     });
 
     expect(screen.getByText('No tasks found.')).toBeInTheDocument();
@@ -136,7 +133,7 @@ describe('PlanViewContainer', () => {
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
-      renderWithTestProviders(<PlanViewContainer docUrl={docUrl} />, {repo});
+      renderWithTestProviders(<PlanViewContainer />, {repo});
     });
 
     expect(screen.getByLabelText('Add Task at Top')).toBeInTheDocument();
@@ -150,7 +147,7 @@ describe('PlanViewContainer', () => {
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
-      renderWithTestProviders(<PlanViewContainer docUrl={docUrl} />, {repo});
+      renderWithTestProviders(<PlanViewContainer />, {repo});
     });
 
     expect(screen.queryByLabelText('Add Task at Top')).not.toBeInTheDocument();
@@ -163,7 +160,7 @@ describe('PlanViewContainer', () => {
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
-      renderWithTestProviders(<PlanViewContainer docUrl={docUrl} />, {repo});
+      renderWithTestProviders(<PlanViewContainer />, {repo});
     });
 
     // The append button is an ActionIcon with an IconPlus, but no text.
@@ -181,7 +178,7 @@ describe('PlanViewContainer', () => {
     mocks.useTaskTree.roots = [{id: '1'} as any];
     mocks.useTaskTree.isLoading = false;
     await act(async () => {
-      renderWithTestProviders(<PlanViewContainer docUrl={docUrl} />, {repo});
+      renderWithTestProviders(<PlanViewContainer />, {repo});
     });
 
     const topPlus = screen.getByLabelText('Add Task at Top');

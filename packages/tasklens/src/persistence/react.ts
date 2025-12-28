@@ -123,6 +123,14 @@ const enrichNode = (node: PersistedTunnelNode): TunnelNode => ({
 });
 
 export function useTunnel(docId: DocumentHandle): TunnelHookResult {
+  if (
+    typeof window !== 'undefined' &&
+    (window as any).process?.env?.NODE_ENV !== 'production'
+  ) {
+    console.warn(
+      '[tasklens] useTunnel is deprecated. Use useTask, useTaskActions, or other facade hooks instead.',
+    );
+  }
   // Cast the opaque handle back to AnyDocumentId for the internal library
   const docUrl = docId as unknown as AnyDocumentId;
   const [doc, changeDoc] = useDocument(docUrl);

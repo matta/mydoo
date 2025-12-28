@@ -72,19 +72,26 @@ const mockRepo = new Repo({network: []});
  * Use this instead of @testing-library/react's render for Mantine components.
  */
 
-import {createStore} from '@mydoo/tasklens';
-import {Provider} from 'react-redux';
+import {
+  createStore,
+  type DocumentHandle,
+  TaskLensProvider,
+} from '@mydoo/tasklens';
+
+const defaultDocHandle = mockRepo.create();
+const defaultDocId = defaultDocHandle.url as unknown as DocumentHandle;
 
 export function createTestWrapper(
   repo: Repo = mockRepo,
   store = createStore(),
+  docId: DocumentHandle = defaultDocId,
 ) {
   return function TestWrapper({children}: PropsWithChildren) {
     return (
       <RepoContext.Provider value={repo}>
-        <Provider store={store}>
+        <TaskLensProvider docId={docId} store={store}>
           <MantineProvider theme={testingTheme}>{children}</MantineProvider>
-        </Provider>
+        </TaskLensProvider>
       </RepoContext.Provider>
     );
   };
@@ -96,6 +103,8 @@ export function createTestWrapper(
  */
 export interface TestRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   repo?: Repo;
+  store?: ReturnType<typeof createStore>;
+  docId?: DocumentHandle;
 }
 
 /**
@@ -107,9 +116,9 @@ export function renderWithTestProviders(
   ui: React.ReactNode,
   options: TestRenderOptions = {},
 ): RenderResult {
-  const {repo, ...renderOptions} = options;
+  const {repo, store, docId, ...renderOptions} = options;
   return testingLibraryRender(ui, {
-    wrapper: createTestWrapper(repo),
+    wrapper: createTestWrapper(repo, store, docId),
     ...renderOptions,
   });
 }

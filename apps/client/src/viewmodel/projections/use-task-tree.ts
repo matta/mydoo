@@ -1,10 +1,10 @@
 import {
   buildTunnelTree,
-  type DocumentHandle,
+  type RootState,
   type TunnelNode,
-  useTunnel,
 } from '@mydoo/tasklens';
 import {useMemo} from 'react';
+import {useSelector} from 'react-redux';
 
 export interface TaskTree {
   isLoading: boolean;
@@ -17,8 +17,8 @@ export interface TaskTree {
  * Respects the manual ordering defined in `rootTaskIds` and `childTaskIds`.
  * Returns all tasks regardless of status (view filters should handle visibility).
  */
-export function useTaskTree(docUrl: DocumentHandle): TaskTree {
-  const {doc} = useTunnel(docUrl);
+export function useTaskTree(): TaskTree {
+  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
 
   const roots = useMemo(() => {
     if (!doc) return [];
