@@ -57,7 +57,8 @@
         "useFilenamingConvention": {
           "level": "error",
           "options": { "filenameCases": ["kebab-case"] }
-        }
+        },
+        "useImportType": "error"
       }
     }
   },
