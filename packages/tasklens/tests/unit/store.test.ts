@@ -24,7 +24,7 @@ describe('TunnelStore', () => {
       expect(task.importance).toBe(1.0);
       expect(task.creditIncrement).toBe(0.5);
       expect(task.credits).toBe(0.0);
-      expect(task.desiredCredits).toBe(0.0);
+      expect(task.desiredCredits).toBe(1.0);
       expect(task.isSequential).toBe(false);
       expect(task.childTaskIds).toEqual([]);
       expect(task.notes).toBe('');

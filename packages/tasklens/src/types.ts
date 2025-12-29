@@ -87,6 +87,12 @@ export function asAutomergeUrl(id: DocumentHandle): AutomergeUrl {
 export const ANYWHERE_PLACE_ID = 'Anywhere' as PlaceID;
 
 /**
+ * Reserved Task ID for the system Inbox.
+ * Items in the inbox are excluded from balance calculations.
+ */
+export const ROOT_INBOX_ID = 'root:inbox' as TaskID;
+
+/**
  * Possible states for a Task.
  *
  * This is a "const object" pattern used in TypeScript to create an enum-like
@@ -198,7 +204,11 @@ export interface OpenHours {
  * @property importance - User-assigned priority from 0.0 (lowest) to 1.0 (highest).
  * @property creditIncrement - Points awarded when this task is completed.
  * @property credits - Accumulated points from completing this task and its children.
- * @property desiredCredits - Target allocation for this task tree (used in prioritization).
+ * @property desiredCredits - Target allocation for this goal.
+ *   - Relevance: Root-level tasks only.
+ *   - Semantics: A weight representing the desired share of total effort.
+ *     (Calculated as `desiredCredits / sum(all root credits)`).
+ *   - Default: 1.0.
  * @property creditsTimestamp - When credits were last modified (for decay calculations).
  * @property priorityTimestamp - When priority was last recalculated.
  * @property schedule - Due date and recurrence information.
@@ -361,6 +371,15 @@ export interface EnrichedTask extends PersistedTask {
  * to prevent the UI from relying on implementation details.
  */
 export interface ComputedTask extends PersistedTask {
+  /**
+   * The timestamp-decayed value of the task's accumulated credits.
+   *
+   * - Semantic Meaning: Represents "Recent Effort". Higher values mean the task
+   *   (or its children) has been worked on recently.
+   * - Exposed Via: `ComputedTask`
+   */
+  readonly effectiveCredits: number;
+
   /**
    * Indicates if this task is a parent node.
    *

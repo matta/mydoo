@@ -5,6 +5,7 @@ import {
   type StorageKey,
 } from '@automerge/automerge-repo';
 import {
+  createMockTask as createSharedMockTask,
   createStore,
   syncDoc,
   type TaskID,
@@ -39,33 +40,17 @@ const createMockTask = (
   importance: number,
   isAcknowledged = false,
 ): TunnelNode => {
-  // TODO: Move this to @mydoo/tasklens/test-utils (see ROLLING_CONTEXT.md)
-  // biome-ignore lint/suspicious/noExplicitAny: Building mock object incrementally
-  const node: any = {
-    childTaskIds: [],
+  return {
+    ...createSharedMockTask({
+      id: id as TaskID,
+      title,
+      status,
+      importance,
+      isAcknowledged,
+      isPending: status === TaskStatus.Pending,
+    }),
     children: [],
-    creditIncrement: 1,
-    credits: 0,
-    creditsTimestamp: Date.now(),
-    desiredCredits: 0,
-    id: id as TaskID,
-    importance,
-    isContainer: false,
-    isPending: status === TaskStatus.Pending,
-    isReady: true,
-    isSequential: false,
-    priorityTimestamp: Date.now(),
-    schedule: {
-      leadTime: 0,
-      type: 'Once' as const,
-      dueDate: Date.now() + 86400000,
-    },
-    status,
-    title,
-    isAcknowledged,
-    notes: '',
   };
-  return node as TunnelNode;
 };
 
 describe('usePriorityList', () => {

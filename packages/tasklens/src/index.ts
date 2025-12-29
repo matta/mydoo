@@ -6,6 +6,7 @@ export * from './persistence/schemas';
 export {TunnelStore} from './persistence/store';
 export * from './react/hooks/use-task';
 export * from './react/hooks/use-task-actions';
+export * from './react/hooks/use-task-entities';
 export * from './react/hooks/use-tasks-status';
 export * from './react/hooks/use-todo-list';
 export * from './react/task-lens-provider';

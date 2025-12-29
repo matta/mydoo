@@ -1,4 +1,5 @@
 import type {TaskID, TunnelNode} from '@mydoo/tasklens';
+import {createMockTask} from '@mydoo/tasklens';
 import {screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {renderWithTestProviders} from '../../../test/setup';
@@ -6,24 +7,11 @@ import {OutlineTree, type OutlineTreeProps} from './outline-tree';
 
 describe('OutlineTree', () => {
   const mockChild: TunnelNode = {
-    id: 'child-1' as TaskID,
-    title: 'Child Task',
-    status: 'Pending',
-    importance: 0.5,
+    ...createMockTask({
+      id: 'child-1' as TaskID,
+      title: 'Child Task',
+    }),
     children: [],
-    childTaskIds: [],
-    creditIncrement: 1,
-    credits: 0,
-    creditsTimestamp: 0,
-    desiredCredits: 0,
-    priorityTimestamp: 0,
-    schedule: {type: 'Once', leadTime: 0},
-    isAcknowledged: false,
-    isSequential: false,
-    notes: '',
-    isContainer: false,
-    isPending: true,
-    isReady: true,
   };
 
   const mockRoot: TunnelNode = {

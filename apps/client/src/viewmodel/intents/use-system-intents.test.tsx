@@ -1,5 +1,6 @@
 import {type DocHandle, Repo} from '@automerge/automerge-repo';
 import {
+  createMockTask as createSharedMockTask,
   createStore,
   type DocumentHandle,
   type PersistedTask,
@@ -18,22 +19,15 @@ const createMockTask = (
   title: string,
   status: TaskStatus,
   isAcknowledged: boolean,
-): PersistedTask => ({
-  id: id as TaskID,
-  title,
-  status,
-  isAcknowledged,
-  childTaskIds: [],
-  schedule: {type: 'Once', leadTime: 0},
-  importance: 0.5,
-  credits: 0,
-  desiredCredits: 0,
-  creditIncrement: 1,
-  creditsTimestamp: 0,
-  priorityTimestamp: 0,
-  isSequential: false,
-  notes: '',
-});
+): PersistedTask => {
+  return createSharedMockTask({
+    id: id as TaskID,
+    title,
+    status,
+    isAcknowledged,
+    isPending: status === TaskStatus.Pending,
+  });
+};
 
 describe('useSystemIntents', () => {
   let repo: Repo;

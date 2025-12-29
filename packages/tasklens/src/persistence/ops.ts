@@ -22,6 +22,7 @@
  * object in tests). The `state.tasks` Record uses plain objects because
  * Automerge cannot proxy JavaScript Map or Set types.
  */
+import {CREDITS_HALF_LIFE_MILLIS} from '../domain/constants';
 import {validateDepth, validateNoCycle} from '../domain/invariants';
 import {
   ANYWHERE_PLACE_ID,
@@ -83,7 +84,7 @@ export function createTask(
     importance: props.importance ?? 1.0,
     creditIncrement: props.creditIncrement ?? 0.5,
     credits: props.credits ?? 0.0,
-    desiredCredits: props.desiredCredits ?? 0.0,
+    desiredCredits: props.desiredCredits ?? 1.0,
     creditsTimestamp: props.creditsTimestamp ?? getCurrentTimestamp(),
     priorityTimestamp: props.priorityTimestamp ?? getCurrentTimestamp(),
     schedule: props.schedule ?? defaultSchedule,
@@ -166,13 +167,34 @@ export function updateTask(
   const task = state.tasks[id];
   if (!task) throw new Error(`Task with ID ${id} not found.`);
 
-  // Handle parentId change if it exists in props and is different
-  if (props.parentId !== undefined && props.parentId !== task.parentId) {
-    moveTask(state, id, props.parentId, undefined); // Move to top of new parent
-    // Note: moveTask updates task.parentId in place.
+  // Validate numeric props first
+  validateNumericProps(props);
+
+  // Handle status change for credit attribution before updating the task status
+  const isCompleting =
+    props.status === TaskStatus.Done && task.status !== TaskStatus.Done;
+  if (isCompleting) {
+    attributeCredits(state, id, task.creditIncrement);
   }
 
-  // Validation for numeric props
+  if (props.parentId !== undefined && props.parentId !== task.parentId) {
+    // Handle parentId change
+    moveTask(state, id, props.parentId, undefined);
+  }
+
+  // Assign properties
+  assignTaskProperties(task, props);
+
+  // Handle nested objects
+  handleNestedProperties(task, props);
+
+  return task;
+}
+
+/**
+ * Validates numeric properties of a task.
+ */
+function validateNumericProps(props: Partial<PersistedTask>): void {
   if (props.desiredCredits !== undefined && props.desiredCredits < 0) {
     throw new Error('DesiredCredits cannot be negative.');
   }
@@ -185,9 +207,15 @@ export function updateTask(
   ) {
     throw new Error('Importance must be between 0.0 and 1.0.');
   }
+}
 
-  // Idiomatic Automerge: Mutate the proxy directly
-  // This should trigger the change detection.
+/**
+ * Assigns top-level properties from props to task.
+ */
+function assignTaskProperties(
+  task: PersistedTask,
+  props: Partial<PersistedTask>,
+): void {
   if (props.title !== undefined) task.title = props.title;
   if (props.status !== undefined) task.status = props.status;
   if (props.importance !== undefined) task.importance = props.importance;
@@ -204,8 +232,15 @@ export function updateTask(
   if (props.isAcknowledged !== undefined)
     task.isAcknowledged = props.isAcknowledged;
   if (props.notes !== undefined) task.notes = props.notes;
+}
 
-  // Handle nested objects carefully
+/**
+ * Handles nested or conditional properties during update.
+ */
+function handleNestedProperties(
+  task: PersistedTask,
+  props: Partial<PersistedTask>,
+): void {
   if (props.repeatConfig !== undefined) {
     task.repeatConfig = props.repeatConfig;
   } else if ('repeatConfig' in props) {
@@ -217,7 +252,6 @@ export function updateTask(
     if (props.schedule.leadTime !== undefined)
       task.schedule.leadTime = props.schedule.leadTime;
 
-    // Only delete dueDate if explicitly passed as undefined (use 'in' check)
     if ('dueDate' in props.schedule) {
       if (props.schedule.dueDate === undefined) {
         delete task.schedule.dueDate;
@@ -227,13 +261,8 @@ export function updateTask(
     }
   }
 
-  // Handle optional properties that can be unset (Automerge requires delete, not undefined)
   if (props.parentId === undefined && 'parentId' in props) {
     delete task.parentId;
-    // Note: If we just nullified parentId but didn't call moveTask, the task
-    // might still be in the old parent's child list.
-    // However, the earlier check `if (props.parentId !== undefined ...)` handles explicit moves.
-    // If user passed explicit `parentId: undefined`, that block handles moving to root.
   }
 
   if (props.placeId === undefined && 'placeId' in props) {
@@ -241,7 +270,6 @@ export function updateTask(
   } else if (props.placeId !== undefined) {
     task.placeId = props.placeId;
   }
-  return task;
 }
 
 /**
@@ -337,9 +365,43 @@ export function moveTask(
  * @param id - The ID of the task to complete.
  */
 export function completeTask(state: TunnelState, id: TaskID): void {
-  const task = state.tasks[id];
-  if (!task) return;
-  task.status = TaskStatus.Done;
+  updateTask(state, id, {status: TaskStatus.Done});
+}
+
+/**
+ * Higher-level internal helper to attribute credits up the tree.
+ * Follows the Algorithm Spec: Bring History to Present (Decay) then Accrue.
+ *
+ * @param state The application state.
+ * @param taskId The ID of the task being completed.
+ * @param increment The amount of credit to add.
+ */
+function attributeCredits(
+  state: TunnelState,
+  taskId: TaskID,
+  increment: number,
+): void {
+  const currentTime = getCurrentTimestamp();
+  let currentId: TaskID | undefined = taskId;
+
+  while (currentId) {
+    const t: PersistedTask | undefined = state.tasks[currentId];
+    if (!t) break;
+
+    // 1. Bring History to Present (Decay)
+    const timeDelta = currentTime - t.creditsTimestamp;
+    const decayedCredits =
+      t.credits * 0.5 ** (timeDelta / CREDITS_HALF_LIFE_MILLIS);
+
+    // 2. Accrue Credit
+    t.credits = decayedCredits + increment;
+
+    // 3. Checkpoint Time
+    t.creditsTimestamp = currentTime;
+
+    // Move up
+    currentId = t.parentId;
+  }
 }
 
 /**

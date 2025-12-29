@@ -5,6 +5,7 @@ import {
   IconCheckbox,
   IconDotsVertical,
   IconListTree,
+  IconScale,
   IconSeeding,
 } from '@tabler/icons-react';
 import {seedHierarchicalData} from '../../dev/seed-data';
@@ -12,6 +13,7 @@ import {DoViewContainer} from '../../viewmodel/containers/do-view-container';
 import {MovePickerContainer} from '../../viewmodel/containers/move-picker-container';
 import {TaskEditorContainer} from '../../viewmodel/containers/task-editor-container';
 import {useNavigationState} from '../../viewmodel/ui/use-navigation-state';
+import {BalanceViewContainer} from '../views/balance/balance-view-container';
 import {PlanViewContainer} from '../views/plan/plan-view-container';
 
 // Height of the header and footer constants for consistent layout
@@ -111,14 +113,27 @@ export function AppShellContainer() {
             setActiveTab('plan');
             toggleMobileNav();
           }}
+          mb="xs"
         >
           Plan
+        </Button>
+        <Button
+          justify="flex-start"
+          variant={activeTab === 'balance' ? 'light' : 'subtle'}
+          leftSection={<IconScale size={20} />}
+          onClick={() => {
+            setActiveTab('balance');
+            toggleMobileNav();
+          }}
+        >
+          Balance
         </Button>
       </AppShell.Navbar>
 
       <AppShell.Main>
         {activeTab === 'do' && <DoViewContainer />}
         {activeTab === 'plan' && <PlanViewContainer />}
+        {activeTab === 'balance' && <BalanceViewContainer />}
         <TaskEditorContainer />
         <MovePickerContainer />
       </AppShell.Main>
@@ -148,6 +163,18 @@ export function AppShellContainer() {
             <Group gap={4} style={{flexDirection: 'column'}}>
               <IconListTree size={20} />
               <span style={{fontSize: '10px'}}>Plan</span>
+            </Group>
+          </Button>
+          <Button
+            flex={1}
+            variant={activeTab === 'balance' ? 'light' : 'subtle'}
+            radius={0}
+            h="100%"
+            onClick={() => setActiveTab('balance')}
+          >
+            <Group gap={4} style={{flexDirection: 'column'}}>
+              <IconScale size={20} />
+              <span style={{fontSize: '10px'}}>Balance</span>
             </Group>
           </Button>
         </AppShell.Footer>

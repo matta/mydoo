@@ -1,4 +1,5 @@
 import type {TaskID, TunnelNode} from '@mydoo/tasklens';
+import {createMockTask} from '@mydoo/tasklens';
 import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
@@ -7,24 +8,11 @@ import {TaskOutlineItem, type TaskOutlineItemProps} from './task-outline-item';
 
 describe('TaskOutlineItem', () => {
   const mockNode: TunnelNode = {
-    id: 'task-1' as TaskID,
-    title: 'Test Task',
-    status: 'Pending',
-    importance: 0.5,
+    ...createMockTask({
+      id: 'task-1' as TaskID,
+      title: 'Test Task',
+    }),
     children: [],
-    childTaskIds: [],
-    creditIncrement: 1,
-    credits: 0,
-    creditsTimestamp: 0,
-    desiredCredits: 0,
-    priorityTimestamp: 0,
-    schedule: {type: 'Once', leadTime: 0},
-    isAcknowledged: false,
-    isSequential: false,
-    notes: '',
-    isContainer: false,
-    isPending: true,
-    isReady: true,
   };
 
   const defaultProps: TaskOutlineItemProps = {

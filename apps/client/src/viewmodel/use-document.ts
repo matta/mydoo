@@ -2,6 +2,8 @@ import {useRepo} from '@automerge/automerge-repo-react-hooks';
 import {
   asDocumentHandle,
   type DocumentHandle,
+  ROOT_INBOX_ID,
+  TaskStatus,
   type TunnelState,
 } from '@mydoo/tasklens';
 import {useState} from 'react';
@@ -30,9 +32,27 @@ export function useDocument() {
     handle.change((doc: TunnelState) => {
       doc.tasks = {};
       doc.places = {};
-      doc.rootTaskIds = [];
+      doc.rootTaskIds = [ROOT_INBOX_ID];
       doc.nextTaskId = 1;
       doc.nextPlaceId = 1;
+
+      // Initialize Inbox
+      doc.tasks[ROOT_INBOX_ID] = {
+        id: ROOT_INBOX_ID,
+        title: 'Inbox',
+        status: TaskStatus.Pending,
+        importance: 1,
+        childTaskIds: [],
+        creditIncrement: 1,
+        credits: 0,
+        creditsTimestamp: Date.now(),
+        desiredCredits: 0,
+        priorityTimestamp: Date.now(),
+        schedule: {type: 'Once', leadTime: 0},
+        isSequential: false,
+        notes: '',
+        isAcknowledged: false,
+      };
     });
     const url = handle.url;
     window.location.hash = url;

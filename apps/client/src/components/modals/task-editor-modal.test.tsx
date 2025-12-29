@@ -1,4 +1,5 @@
 import type {Task, TaskID} from '@mydoo/tasklens';
+import {createMockTask} from '@mydoo/tasklens';
 import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
@@ -6,28 +7,16 @@ import {renderWithTestProviders} from '../../test/setup';
 
 import {TaskEditorModal} from './task-editor-modal';
 
-const mockTask: Task = {
+const mockTask: Task = createMockTask({
   id: 'task-1' as TaskID,
   title: 'Test Task',
-  status: 'Pending',
   importance: 0.7,
   creditIncrement: 3,
-  credits: 0,
-  desiredCredits: 0,
-  creditsTimestamp: Date.now(),
-  priorityTimestamp: Date.now(),
   schedule: {
     type: 'Once',
     leadTime: 7 * 24 * 60 * 60 * 1000, // 7 days
   },
-  isSequential: false,
-  childTaskIds: [],
-  isAcknowledged: false,
-  notes: '',
-  isContainer: false,
-  isPending: true,
-  isReady: true,
-};
+});
 
 describe('TaskEditorModal', () => {
   it('renders task title in input', () => {

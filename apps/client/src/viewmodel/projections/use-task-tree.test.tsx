@@ -1,9 +1,9 @@
 import {type DocHandle, Repo} from '@automerge/automerge-repo';
 import {
+  createMockTask as createSharedMockTask,
   createStore,
   type DocumentHandle,
   type TaskID,
-  TaskStatus,
   type TunnelNode,
   type TunnelState,
 } from '@mydoo/tasklens';
@@ -19,32 +19,16 @@ const createMockTask = (
   parentId?: string,
   children: string[] = [],
 ): TunnelNode => {
-  const node: TunnelNode = {
-    childTaskIds: children as TaskID[],
+  return {
+    ...createSharedMockTask({
+      id: id as TaskID,
+      title,
+      parentId: parentId as TaskID | undefined,
+      childTaskIds: children as TaskID[],
+      isContainer: children.length > 0,
+    }),
     children: [],
-    creditIncrement: 1,
-    credits: 0,
-    creditsTimestamp: Date.now(),
-    desiredCredits: 0,
-    id: id as TaskID,
-    importance: 1,
-    isContainer: children.length > 0,
-    isPending: true,
-    isReady: true,
-    isSequential: false,
-    priorityTimestamp: Date.now(),
-    schedule: {leadTime: 0, type: 'Once', dueDate: Date.now() + 86400000},
-    status: TaskStatus.Pending,
-    title,
-    isAcknowledged: false,
-    notes: '',
   };
-
-  if (parentId) {
-    node.parentId = parentId as TaskID;
-  }
-
-  return node as TunnelNode;
 };
 
 describe('useTaskTree', () => {

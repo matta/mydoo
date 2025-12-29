@@ -31,10 +31,10 @@ export type ModalState =
  */
 export interface NavigationState {
   /** The currently active tab in the application shell. */
-  activeTab: 'do' | 'plan';
+  activeTab: 'do' | 'plan' | 'balance';
 
   /** Set the active tab. */
-  setActiveTab: (tab: 'do' | 'plan') => void;
+  setActiveTab: (tab: 'do' | 'plan' | 'balance') => void;
 
   /** Collapse all currently expanded nodes. */
   collapseAll: () => void;
@@ -114,7 +114,7 @@ const NavigationContext = createContext<NavigationState | null>(null);
  */
 export function NavigationProvider({children}: {children: ReactNode}) {
   // Active tab state
-  const [activeTab, setActiveTab] = useState<'do' | 'plan'>('do');
+  const [activeTab, setActiveTab] = useState<'do' | 'plan' | 'balance'>('do');
 
   // Set of ID strings for expanded nodes
   const [expandedIds, setExpandedIds] = useState<Set<TaskID>>(new Set());
