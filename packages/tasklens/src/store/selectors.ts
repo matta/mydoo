@@ -1,3 +1,4 @@
+import {createSelector} from '@reduxjs/toolkit';
 import type {ComputedTask, TaskID} from '../types';
 import type {RootState} from './index';
 
@@ -25,16 +26,38 @@ export function selectLastDoc(state: RootState) {
 }
 
 /**
- * Selector for the prioritized "Do" list.
- * NOTE: This currently returns a new array on every call and requires memoization.
- * It is named for diagnostic purposes.
+ * Redux selector for the prioritized "Do" list.
+ *
+ * @param state - The global Redux state.
+ * @returns A referentially stable array of ComputedTask objects representing the current "Do" list.
+ *
+ * Computed by resolving the list of task IDs in the `todoListIds` slice to their
+ * corresponding entities. Memoized to prevent unnecessary re-renders.
  */
-export function selectTodoList(state: RootState): ComputedTask[] {
-  const entities = selectTaskEntities(state);
-  const todoListIds = selectTodoListIds(state);
-  return todoListIds
-    .map(id => entities[id])
-    .filter((task): task is ComputedTask => !!task);
+export const selectTodoList = createSelector(
+  // Input selectors: when these change, the selector will re-run the projection
+  // function below.
+  [selectTaskEntities, selectTodoListIds],
+  projectTodoList,
+);
+
+/**
+ * Pure projection function to resolve IDs to entity tasks.
+ */
+function projectTodoList(
+  entities: Record<TaskID, ComputedTask>,
+  todoListIds: TaskID[],
+): ComputedTask[] {
+  const todoList: ComputedTask[] = [];
+
+  for (const id of todoListIds) {
+    const task = entities[id];
+    if (task) {
+      todoList.push(task);
+    }
+  }
+
+  return todoList;
 }
 
 /**
