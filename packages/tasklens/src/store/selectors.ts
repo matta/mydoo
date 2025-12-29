@@ -1,4 +1,5 @@
 import {createSelector} from '@reduxjs/toolkit';
+import {calculateBalanceData} from '../domain/balance';
 import type {ComputedTask, TaskID} from '../types';
 import type {RootState} from './index';
 
@@ -70,3 +71,14 @@ export function selectTaskById(id: TaskID | undefined) {
     return state.tasks.entities[id];
   };
 }
+
+/**
+ * Selector for Balance View data.
+ *
+ * Computes the balance allocation for all root goals (excluding Inbox).
+ * Returns targetPercent, actualPercent, and isStarving for each goal.
+ */
+export const selectBalanceData = createSelector(
+  [selectTaskEntities],
+  entities => calculateBalanceData(Object.values(entities)),
+);

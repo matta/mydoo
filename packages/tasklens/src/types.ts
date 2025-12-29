@@ -487,3 +487,16 @@ export interface TunnelState {
   rootTaskIds: TaskID[];
   tasks: Record<TaskID, PersistedTask>;
 }
+
+/**
+ * Data structure for an item in the Balance View.
+ */
+export interface BalanceItemData {
+  id: TaskID;
+  title: string;
+  desiredCredits: number;
+  effectiveCredits: number;
+  targetPercent: number;
+  actualPercent: number;
+  isStarving: boolean;
+}

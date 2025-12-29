@@ -188,11 +188,11 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 ### Steps
 
-- [ ] **Step 6.1: Refactor `useBalanceData`**
-  - [ ] Extract aggregation logic to `packages/tasklens/src/domain/balance.ts` (or similar).
-  - [ ] Create `calculateBalanceData(tasks: ComputedTask[]): BalanceItemData[]`.
-  - [ ] Unit test the new function.
-  - [ ] Simplify hook to use the new function.
+- [x] **Step 6.1: Refactor `useBalanceData`**
+  - [x] Extract aggregation logic to `packages/tasklens/src/domain/balance.ts` (or similar).
+  - [x] Create `calculateBalanceData(tasks: ComputedTask[]): BalanceItemData[]`.
+  - [x] Unit test the new function.
+  - [x] Simplify hook to use the new function.
 
 - [ ] **Step 6.2: Refactor `BalanceViewContainer` Logic**
   - [ ] Extract "Drain/Fill" distribution logic to `packages/tasklens/src/domain/balance-distribution.ts`.

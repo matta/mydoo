@@ -1,6 +1,5 @@
 import {Group, Paper, Progress, Slider, Stack, Text} from '@mantine/core';
-import type {TaskID} from '@mydoo/tasklens';
-import type {BalanceItemData} from '../../../hooks/use-balance-data';
+import type {BalanceItemData, TaskID} from '@mydoo/tasklens';
 
 interface BalanceItemProps {
   item: BalanceItemData;

@@ -1,71 +1,12 @@
-import type {TaskID} from '@mydoo/tasklens';
-import {ROOT_INBOX_ID, useTaskEntities} from '@mydoo/tasklens';
-import {useMemo} from 'react';
-
-/**
- * The percentage of target credit allocation below which a goal is considered "starving".
- * A value of 0.9 means the goal is starving if it has received less than 90% of its
- * intended attention.
- */
-const STARVING_THRESHOLD = 0.9;
-
-export interface BalanceItemData {
-  id: TaskID;
-  title: string;
-  desiredCredits: number;
-  effectiveCredits: number;
-  targetPercent: number;
-  actualPercent: number;
-  isStarving: boolean;
-}
+import {selectBalanceData} from '@mydoo/tasklens';
+import {useSelector} from 'react-redux';
 
 /**
  * useBalanceData Hook
  *
- * Computes the data necessary for the Balance View by aggregating all root tasks
- * (excluding the system Inbox).
- *
- * It calculates the relative percentage of "Desired Credits" (what the user wants
- * to focus on) versus "Effective Credits" (what they have actually worked on).
+ * Provides the balance allocation data for the Balance View.
+ * Uses the Redux selector for global memoization.
  */
-export function useBalanceData(): BalanceItemData[] {
-  const entities = useTaskEntities();
-
-  return useMemo(() => {
-    const tasks = Object.values(entities);
-
-    // Filter for root tasks, excluding the Inbox
-    const rootGoals = tasks.filter(
-      task => task.parentId === undefined && task.id !== ROOT_INBOX_ID,
-    );
-
-    let totalDesired = 0;
-    let totalActual = 0;
-
-    for (const goal of rootGoals) {
-      totalDesired += goal.desiredCredits;
-      totalActual += goal.effectiveCredits;
-    }
-
-    return rootGoals.map(goal => {
-      const targetPercent =
-        totalDesired > 0 ? (goal.desiredCredits / totalDesired) * 100 : 0;
-      const actualPercent =
-        totalActual > 0 ? (goal.effectiveCredits / totalActual) * 100 : 0;
-
-      // A goal is "starving" if Actual is significantly lower than Target.
-      const isStarving =
-        targetPercent > 0 && actualPercent < targetPercent * STARVING_THRESHOLD;
-
-      return {
-        id: goal.id,
-        title: goal.title,
-        desiredCredits: goal.desiredCredits,
-        effectiveCredits: goal.effectiveCredits,
-        targetPercent,
-        actualPercent,
-        isStarving,
-      };
-    });
-  }, [entities]);
+export function useBalanceData() {
+  return useSelector(selectBalanceData);
 }
