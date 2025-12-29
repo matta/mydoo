@@ -139,7 +139,7 @@ describe('useTaskDetails', () => {
     );
   });
 
-  it('returns loading state initially', () => {
+  it('returns loading state initially', async () => {
     const store = createStore();
     const wrapper = createTestWrapper(repo, store, docId);
     const {result} = renderHook(() => useTaskDetails('any-task' as TaskID), {
@@ -149,5 +149,10 @@ describe('useTaskDetails', () => {
     // Initial state should be loading
     expect(result.current.isLoading).toBe(true);
     expect(result.current.task).toBeNull();
+
+    // Wait for Redux sync to complete to avoid act() warning
+    await waitFor(() => {
+      expect(store.getState().tasks.lastDoc).toBeDefined();
+    });
   });
 });

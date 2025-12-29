@@ -32,12 +32,18 @@ describe('useBreadcrumbs', () => {
     window.location.hash = '';
   });
 
-  it('should return empty array for root view', () => {
+  it('should return empty array for root view', async () => {
     const store = createStore();
     const wrapper = createTestWrapper(repo, store, docId);
     const {result} = renderHook(() => useBreadcrumbs(undefined), {
       wrapper,
     });
+
+    // Wait for initial Redux sync to complete
+    await waitFor(() => {
+      expect(store.getState().tasks.lastDoc).toBeDefined();
+    });
+
     expect(result.current).toEqual([]);
   });
 

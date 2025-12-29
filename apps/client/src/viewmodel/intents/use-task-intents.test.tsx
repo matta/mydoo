@@ -32,14 +32,28 @@ describe('useTaskIntents', () => {
       places: {},
     });
     const docId = handle.url as unknown as DocumentHandle;
-    const wrapper = createTestWrapper(repo, undefined, docId);
+    const store = createStore();
+    const wrapper = createTestWrapper(repo, store, docId);
 
     // 2. Setup Intents Hook
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
+    // Wait for initial Redux sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastDoc).toBeDefined();
+    });
+
     // 3. Create Task
+    let taskId: TaskID;
     act(() => {
-      result.current.createTask('Buy Milk');
+      taskId = result.current.createTask('Buy Milk');
+    });
+
+    // Wait for Redux to sync the new task
+    await waitFor(() => {
+      const state = store.getState();
+      if (!state.tasks.entities[taskId])
+        throw new Error('Task not in Redux yet');
     });
 
     // 4. Verify in Repo - use docSync for immediate verification after act()
@@ -124,14 +138,28 @@ describe('useTaskIntents', () => {
       places: {},
     });
     const docId = handle.url as unknown as DocumentHandle;
-    const wrapper = createTestWrapper(repo, undefined, docId);
+    const store = createStore();
+    const wrapper = createTestWrapper(repo, store, docId);
 
     // 2. Setup Intents Hook
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
+    // Wait for initial Redux sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastDoc).toBeDefined();
+    });
+
     // 3. Create Parent Task
+    let parentId: TaskID;
     act(() => {
-      result.current.createTask('Parent Task');
+      parentId = result.current.createTask('Parent Task');
+    });
+
+    // Wait for parent task to sync to Redux
+    await waitFor(() => {
+      const state = store.getState();
+      if (!state.tasks.entities[parentId])
+        throw new Error('Parent not in Redux yet');
     });
 
     const docAfterParent = handle.docSync();
@@ -140,8 +168,16 @@ describe('useTaskIntents', () => {
     if (!parentTask) throw new Error('Parent task not found');
 
     // 4. Create Child Task
+    let childId: TaskID;
     act(() => {
-      result.current.createTask('Child Task', parentTask.id);
+      childId = result.current.createTask('Child Task', parentTask.id);
+    });
+
+    // Wait for child task to sync to Redux
+    await waitFor(() => {
+      const state = store.getState();
+      if (!state.tasks.entities[childId])
+        throw new Error('Child not in Redux yet');
     });
 
     // 5. Verify Child Task
