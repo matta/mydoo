@@ -52,18 +52,18 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
 ## Phase 6: TaskLens Type Rationalization
 **Rationale**: Clarifies the boundary between Persisted State (DB) and Computed View State. Prevents accidental mutation of CRDT history with transient scores. Makes the data flow explicit: `DB -> Algo -> View`.
 
-- [ ] **Define Exact Types**:
-  - `PersistedTask` (Schema properties only): `id`, `title`, `status`, `importance`, `schedule`, `isAcknowledged`, etc.
-  - `ComputedTask` (Immutable Veneer): `Readonly<PersistedTask & ComputedProps>`
+- [x] **Define Exact Types**:
+  - [x] `PersistedTask` (Schema properties only): `id`, `title`, `status`, `importance`, `schedule`, `isAcknowledged`, etc.
+  - [x] `ComputedTask` (Immutable Veneer): `Readonly<PersistedTask & ComputedProps>`
     - `ComputedProps`: **REQUIRED** `priority`, `visibility`, `effectiveCredits`, `normalizedImportance`, `feedbackFactor`.
     - **Goal**: View layer receives guaranteed immutable objects. No accidental invalidation of Automerge proxies.
-- [ ] **Refactor Algorithm**:
-  - Input: `Readonly<PersistedTask>[]`
-  - Output: `ComputedTask[]` (New objects, not modified proxies)
-  - `recalculatePriorities` becomes a pure function returning the veneer types.
-- [ ] **Strict Enforcement**:
-  - Update `TunnelState` to strictly use `PersistedTask` record.
-  - Fix all TS errors resulting from the split.
+- [x] **Refactor Algorithm**:
+  - [x] Input: `Readonly<PersistedTask>[]`
+  - [x] Output: `ComputedTask[]` (New objects, not modified proxies)
+  - [x] `recalculatePriorities` becomes a pure function returning the veneer types.
+- [x] **Strict Enforcement**:
+  - [x] Update `TunnelState` to strictly use `PersistedTask` record.
+  - [x] Fix all TS errors resulting from the split.
 
 ## Phase 7: The Balance View
 **Goal**: Implement the "Life Balance" algorithm visualization.
