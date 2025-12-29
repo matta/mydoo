@@ -1,5 +1,5 @@
 import {Container, Paper, Stack, Text, Title} from '@mantine/core';
-import {type TaskID, useTaskActions} from '@mydoo/tasklens';
+import {distributeCredits, type TaskID, useTaskActions} from '@mydoo/tasklens';
 import {useBalanceData} from '../../../hooks/use-balance-data';
 import {BalanceItem} from './balance-item';
 
@@ -19,101 +19,13 @@ export function BalanceViewContainer() {
   const maxCredits = Math.max(n - (n - 1) * minCredits, minCredits);
 
   const handleDesiredCreditsChange = (targetId: TaskID, newValue: number) => {
-    // 1. Identify "The Others"
-    const otherItems = items.filter(i => i.id !== targetId);
-
-    // If N=1, force 1.0 (ignore slider).
-    if (otherItems.length === 0) {
-      if (newValue !== 1.0) {
-        updateTask(targetId, {desiredCredits: 1.0});
-      }
-      return;
-    }
-
-    // 2. Validate & Clamp New Value against Min/Max
-    // The slider should already visually clamp, but we enforce here too.
-    const clampedNewValue = Math.max(
-      minCredits,
-      Math.min(newValue, maxCredits),
-    );
-
-    // 3. Distribution Strategy (Drain/Fill from Surplus/Deficit)
-    const targetItem = items.find(i => i.id === targetId);
-    const oldValue = targetItem?.desiredCredits ?? 0;
-
-    // Calculate Delta (How much we are CHANGING the target)
-    const delta = clampedNewValue - oldValue;
-
-    // Precision clamp: If delta is effectively zero, do nothing
-    if (Math.abs(delta) < 0.000001) return;
-
-    const updates: {id: TaskID; val: number}[] = [];
-    updates.push({id: targetId, val: clampedNewValue});
-
-    if (delta > 0) {
-      // TAKING BUDGET (Target grows)
-      // We must remove 'delta' from others without violating their Min.
-      // We drain proportionally from their "Surplus" (Current - Min).
-
-      const surpluses = otherItems.map(i => ({
-        id: i.id,
-        surplus: Math.max(0, i.desiredCredits - minCredits),
-      }));
-
-      const totalSurplus = surpluses.reduce((acc, s) => acc + s.surplus, 0);
-
-      // Verification: Can we afford this delta?
-      // Since Max constraint ensures NewVal <= Total - Min * (N-1),
-      // effectively Sum(Others) >= Min * (N-1).
-      // So TotalSurplus >= Delta SHOULD hold true mathematically.
-
-      if (totalSurplus === 0) {
-        // Edge case: Everyone else is at floor. We can't increase target.
-        // This implies target is already at Max (or near it).
-        // Check failed? Clamp target to (Total - Sum(others)).
-        // But we already clamped to Max. So strict math says this shouldn't happen unless float errors.
-        return;
-      }
-
-      for (const item of otherItems) {
-        // Find item's surplus
-        const s = surpluses.find(x => x.id === item.id)?.surplus ?? 0;
-        // Proportion of the "Tax" this item pays
-        const tax = delta * (s / totalSurplus);
-        updates.push({id: item.id, val: item.desiredCredits - tax});
-      }
-    } else {
-      // GIVING BUDGET (Target shrinks)
-      // We must distribute -delta (positive amount) to others.
-      // We can distribute based on current size (proportional growth).
-      // Since we are Adding, we won't violate Min.
-      // Will we violate Max? No, because budget constraint holds.
-
-      const budgetToAdd = -delta;
-
-      // Weight by current desiredCredits.
-      const totalWeight = otherItems.reduce(
-        (acc, i) => acc + i.desiredCredits,
-        0,
-      );
-
-      if (totalWeight === 0) {
-        // Edge: All others are 0 (shouldn't happen with min=0.01*N, but handled).
-        const split = budgetToAdd / otherItems.length;
-        for (const item of otherItems) {
-          updates.push({id: item.id, val: item.desiredCredits + split});
-        }
-      } else {
-        for (const item of otherItems) {
-          const share = budgetToAdd * (item.desiredCredits / totalWeight);
-          updates.push({id: item.id, val: item.desiredCredits + share});
-        }
-      }
-    }
-
-    // 5. Apply Updates
+    const updates = distributeCredits(targetId, newValue, items);
+    // TODO: SAFETY CRITICAL: This loop causes multiple Automerge commits for a
+    // single user action. This breaks "Undo" functionality (user has to undo 5
+    // times to undo 1 drag) and pollutes history. We strictly need a
+    // `updateTasks(updates)` action that wraps these in one `doc.change`.
     for (const update of updates) {
-      updateTask(update.id, {desiredCredits: update.val});
+      updateTask(update.id, {desiredCredits: update.desiredCredits});
     }
   };
 

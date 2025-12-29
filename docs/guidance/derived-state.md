@@ -4,18 +4,20 @@ This document provides guidance on when to use Redux Selectors versus React Hook
 
 ## Decision Criteria
 
-### Prefer Selectors when:
-1.  The derived data is used by **more than one component** (or might be in the future).
-2.  The data represents a **domain concept** (e.g., "Balance Allocation," "Top Priority Tasks"), not a UI-specific transform.
-3.  The calculation is **expensive** and benefits from global memoization.
-4.  You need to **compose** this derived data into further derivations.
-5.  You need the data outside React (e.g., in middleware, for logging, or for server sync logic).
+### Prefer Selectors when
 
-### Prefer Hooks with `useMemo` when:
-1.  The logic is **tightly coupled to local UI state** (e.g., a search filter, a sort toggle).
-2.  The transformation is **trivial** (e.g., `tasks.filter(t => t.isReady)`).
-3.  The data is only ever needed by **a single component instance**.
-4.  You're prototyping and want to move fast before deciding on the "right place."
+1. The derived data is used by **more than one component** (or might be in the future).
+2. The data represents a **domain concept** (e.g., "Balance Allocation," "Top Priority Tasks"), not a UI-specific transform.
+3. The calculation is **expensive** and benefits from global memoization.
+4. You need to **compose** this derived data into further derivations.
+5. You need the data outside React (e.g., in middleware, for logging, or for server sync logic).
+
+### Prefer Hooks with `useMemo` when
+
+1. The logic is **tightly coupled to local UI state** (e.g., a search filter, a sort toggle).
+2. The transformation is **trivial** (e.g., `tasks.filter(t => t.isReady)`).
+3. The data is only ever needed by **a single component instance**.
+4. You're prototyping and want to move fast before deciding on the "right place."
 
 ## Comparison Table
 
@@ -32,6 +34,7 @@ This document provides guidance on when to use Redux Selectors versus React Hook
 ## Common Patterns
 
 ### Domain-level derived state (use Selector)
+
 ```typescript
 // In store/selectors.ts
 export const selectBalanceData = createSelector(
@@ -44,6 +47,7 @@ const balanceData = useSelector(selectBalanceData);
 ```
 
 ### UI-specific derived state (use Hook)
+
 ```typescript
 // In component
 const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -60,8 +64,9 @@ const sortedTasks = useMemo(
 ## Migration Path
 
 If you start with a hook and later realize it should be a selector:
-1.  Extract the pure logic into a domain function (e.g., `domain/balance.ts`).
-2.  Create a selector that calls the domain function.
-3.  Simplify the hook to just call `useSelector(selectX)`.
+
+1. Extract the pure logic into a domain function (e.g., `domain/balance.ts`).
+2. Create a selector that calls the domain function.
+3. Simplify the hook to just call `useSelector(selectX)`.
 
 This "pure function first" approach keeps logic testable regardless of where it's called from.

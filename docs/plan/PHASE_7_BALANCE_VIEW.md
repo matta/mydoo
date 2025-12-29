@@ -229,6 +229,11 @@ Items identified during code review (2024-12-29) for future cleanup.
   - **Fix**: Introduce local "virtual" state in `BalanceViewContainer`, update only on `onChangeEnd`.
   - See TODO comments in `balance-view-container.tsx` L121-131 and `balance-item.tsx` L46-47.
 
+- [ ] **Batch Automerge Updates**
+  - Currently, `distributeCredits` returns multiple updates, and we loop `updateTask` for each.
+  - This creates multiple history entries for a single re-balance action.
+  - **Fix**: Use `useTaskActions().updateTasks(updates)` (batch/atomic update).
+
 ### 7.2 Code Cleanup
 
 - [x] **Align `createMockTask` Default**
