@@ -17,6 +17,9 @@
  * type-safe enum-like structure. This allows both runtime value checking
  * and compile-time type safety.
  */
+
+import type {AutomergeUrl} from '@automerge/automerge-repo';
+import {isValidAutomergeUrl} from '@automerge/automerge-repo';
 import type {z} from 'zod';
 
 import type {PlaceIDSchema, TaskIDSchema} from './persistence/schemas';
@@ -54,6 +57,28 @@ export type PlaceID = z.infer<typeof PlaceIDSchema>;
  * from the public API, allowing consumers to pass document references without importing persistence types.
  */
 export type DocumentHandle = string & {__brand: 'DocumentHandle'};
+
+/**
+ * Casts a string to a DocumentHandle.
+ * Use this to satisfy the opaque type requirement when you have a valid document URL.
+ */
+export function asDocumentHandle(url: string): DocumentHandle {
+  if (!isValidAutomergeUrl(url)) {
+    throw new Error(`Invalid Automerge URL: '${url}'`);
+  }
+  return url as unknown as DocumentHandle;
+}
+
+/**
+ * Casts a DocumentHandle to an AutomergeUrl.
+ * Use this to satisfy the requirements of automerge-repo hooks.
+ */
+export function asAutomergeUrl(id: DocumentHandle): AutomergeUrl {
+  if (!isValidAutomergeUrl(id)) {
+    throw new Error(`Invalid Automerge URL: '${id}'`);
+  }
+  return id as unknown as AutomergeUrl;
+}
 
 /**
  * Reserved Place ID representing "any location".

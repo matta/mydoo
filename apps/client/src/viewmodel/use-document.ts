@@ -1,5 +1,9 @@
 import {useRepo} from '@automerge/automerge-repo-react-hooks';
-import type {DocumentHandle, TunnelState} from '@mydoo/tasklens';
+import {
+  asDocumentHandle,
+  type DocumentHandle,
+  type TunnelState,
+} from '@mydoo/tasklens';
 import {useState} from 'react';
 
 /**
@@ -20,7 +24,7 @@ export function useDocument() {
   const [docUrl] = useState<DocumentHandle>(() => {
     const hash = window.location.hash.slice(1);
     // Explicitly cast the hash string to our opaque type
-    if (hash) return hash as unknown as DocumentHandle;
+    if (hash) return asDocumentHandle(hash);
 
     const handle = repo.create<TunnelState>();
     handle.change((doc: TunnelState) => {
@@ -32,7 +36,7 @@ export function useDocument() {
     });
     const url = handle.url;
     window.location.hash = url;
-    return url as unknown as DocumentHandle;
+    return asDocumentHandle(url);
   });
 
   return docUrl;

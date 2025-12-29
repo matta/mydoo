@@ -1,11 +1,11 @@
-import type {AnyDocumentId} from '@automerge/automerge-repo';
+import type {DocHandleChangePayload} from '@automerge/automerge-repo';
 import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
 import type React from 'react';
 import {createContext, useContext, useEffect} from 'react';
 import {Provider, useDispatch} from 'react-redux';
 import {store as defaultStore} from '../store';
 import {syncDoc} from '../store/slices/tasks-slice';
-import type {DocumentHandle, TunnelState} from '../types';
+import {asAutomergeUrl, type DocumentHandle, type TunnelState} from '../types';
 
 /**
  * Context to provide the Automerge document handle to hooks.
@@ -48,26 +48,35 @@ interface Props {
  */
 function TaskLensSync({docId}: {docId: DocumentHandle}) {
   const dispatch = useDispatch<typeof defaultStore.dispatch>();
-  const handle = useDocHandle<TunnelState>(docId as unknown as AnyDocumentId);
+  // Cast to locally defined TypedDocHandle to ensure doc() and events are strictly typed
+  const handle = useDocHandle<TunnelState>(asAutomergeUrl(docId));
 
   useEffect(() => {
     if (!handle) return;
 
-    const syncFromHandle = () => {
-      const doc = handle.docSync();
+    // Initial sync
+    // We can safely call doc() because useDocHandle ensures the handle is ready when returned
+    try {
+      const doc = handle.doc();
       if (doc) {
         dispatch(syncDoc(doc as TunnelState));
       }
+    } catch (e) {
+      // Handle might not be ready in edge cases, though useDocHandle usually prevents this
+      console.warn('Failed to get initial doc:', e);
+    }
+
+    const onDocChange = ({doc}: DocHandleChangePayload<TunnelState>) => {
+      if (doc) {
+        dispatch(syncDoc(doc));
+      }
     };
 
-    // Initial sync
-    syncFromHandle();
-
     // Subscribe to future changes
-    handle.on('change', syncFromHandle);
+    handle.on('change', onDocChange);
 
     return () => {
-      handle.off('change', syncFromHandle);
+      handle.off('change', onDocChange);
     };
   }, [handle, dispatch]);
 

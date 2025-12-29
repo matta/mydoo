@@ -82,7 +82,7 @@ describe('usePriorityList', () => {
 
   const renderWithSync = async () => {
     // Sync the current doc state to Redux before rendering
-    const doc = handle.docSync();
+    const doc = handle.doc();
     if (doc) {
       await store.dispatch(syncDoc(doc));
     }

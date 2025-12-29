@@ -1,5 +1,5 @@
 import type {DocumentId} from '@automerge/automerge-repo';
-import {Repo} from '@automerge/automerge-repo';
+import {generateAutomergeUrl, Repo} from '@automerge/automerge-repo';
 import type {TunnelState} from '@mydoo/tasklens';
 import {renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
@@ -50,7 +50,7 @@ describe('useDocument', () => {
   });
 
   it('should use existing hash if present', () => {
-    const existingId = 'test-doc-id';
+    const existingId = generateAutomergeUrl();
     window.location.hash = `#${existingId}`;
 
     const wrapper = createTestWrapper(repo);

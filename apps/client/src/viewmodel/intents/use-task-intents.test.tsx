@@ -56,8 +56,8 @@ describe('useTaskIntents', () => {
         throw new Error('Task not in Redux yet');
     });
 
-    // 4. Verify in Repo - use docSync for immediate verification after act()
-    const doc = handle.docSync();
+    // 4. Verify in Repo - use doc() for immediate verification after act()
+    const doc = handle.doc();
     if (!doc) throw new Error('Doc missing');
     const tasks = Object.values(doc.tasks);
 
@@ -111,7 +111,9 @@ describe('useTaskIntents', () => {
 
     // 5. Verify
     await waitFor(() => {
+      // Verify the Automerge document reflects the update.
       const docAfter = handle.doc();
+      if (!docAfter) throw new Error('Doc missing in update');
       const taskAfter = docAfter.tasks[taskId];
       if (!taskAfter) throw new Error('Task missing in update');
       expect(taskAfter.status).toBe('Done');
@@ -124,6 +126,7 @@ describe('useTaskIntents', () => {
 
     await waitFor(() => {
       const docFinal = handle.doc();
+      if (!docFinal) throw new Error('Doc missing final');
       const taskFinal = docFinal.tasks[taskId];
       if (!taskFinal) throw new Error('Task missing in final');
       expect(taskFinal.status).toBe('Pending');
@@ -162,7 +165,7 @@ describe('useTaskIntents', () => {
         throw new Error('Parent not in Redux yet');
     });
 
-    const docAfterParent = handle.docSync();
+    const docAfterParent = handle.doc();
     if (!docAfterParent) throw new Error('Doc missing after parent creation');
     const parentTask = Object.values(docAfterParent.tasks)[0];
     if (!parentTask) throw new Error('Parent task not found');
@@ -181,7 +184,7 @@ describe('useTaskIntents', () => {
     });
 
     // 5. Verify Child Task
-    const docFinal = handle.docSync();
+    const docFinal = handle.doc();
     if (!docFinal) throw new Error('Doc missing final');
     const tasks = Object.values(docFinal.tasks);
     expect(tasks).toHaveLength(2);
