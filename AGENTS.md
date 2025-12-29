@@ -28,6 +28,7 @@
 - Do not remove comments from existing code unless asked to do so by the user.
 - Keep comments up to date.
 - **Code Review Guidance:** See [docs/guidance/code-review.md](docs/guidance/code-review.md) for best practices on TypeScript, React, Redux, and testing conventions.
+- **Markdown Style:** Use markdown bold and italics rarely.
 
 ## Testing Requirements
 

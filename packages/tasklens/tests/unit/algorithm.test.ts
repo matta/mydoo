@@ -50,6 +50,7 @@ const EXPECTED_FIXTURES = [
   'lead-time-edge-cases.yaml',
   'lead-time.yaml',
   'min-threshold.yaml',
+  'repro-stale-leadtime.yaml',
   'sequential-flow.yaml',
   'sorting.yaml',
   'thermostat.yaml',
@@ -260,6 +261,8 @@ function assertExpectedProps(
     score?: number;
     effective_credits?: number;
     normalized_importance?: number;
+    is_visible?: boolean;
+    is_ready?: boolean;
   }>,
 ): void {
   for (const expected of expectedProps) {
@@ -271,23 +274,43 @@ function assertExpectedProps(
 
     if (!task) continue;
 
-    if (expected.score !== undefined) {
-      expect(task.priority, `Task ${expected.id} priority`).toBeCloseTo(
-        expected.score,
-        4,
-      );
-    }
-    if (expected.effective_credits !== undefined) {
-      expect(
-        task.effectiveCredits,
-        `Task ${expected.id} effectiveCredits`,
-      ).toBeCloseTo(expected.effective_credits, 4);
-    }
-    if (expected.normalized_importance !== undefined) {
-      expect(
-        task.normalizedImportance,
-        `Task ${expected.id} normalizedImportance`,
-      ).toBeCloseTo(expected.normalized_importance, 4);
+    for (const key of Object.keys(expected) as Array<keyof typeof expected>) {
+      if (key === 'id') continue;
+
+      switch (key) {
+        case 'score':
+          expect(task.priority, `Task ${expected.id} priority`).toBeCloseTo(
+            expected.score as number,
+            4,
+          );
+          break;
+        case 'effective_credits':
+          expect(
+            task.effectiveCredits,
+            `Task ${expected.id} effectiveCredits`,
+          ).toBeCloseTo(expected.effective_credits as number, 4);
+          break;
+        case 'normalized_importance':
+          expect(
+            task.normalizedImportance,
+            `Task ${expected.id} normalizedImportance`,
+          ).toBeCloseTo(expected.normalized_importance as number, 4);
+          break;
+        case 'is_visible':
+          expect(task.visibility, `Task ${expected.id} is_visible`).toBe(
+            expected.is_visible as boolean,
+          );
+          break;
+        case 'is_ready':
+          expect(task.isReady, `Task ${expected.id} is_ready`).toBe(
+            expected.is_ready as boolean,
+          );
+          break;
+        default:
+          throw new Error(
+            `Unhandled expected property '${key}' in test fixture for task '${expected.id}'`,
+          );
+      }
     }
   }
 }

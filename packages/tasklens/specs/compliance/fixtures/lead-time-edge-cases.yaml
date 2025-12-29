@@ -7,7 +7,7 @@ description: >
 initial_state:
   current_time: '2025-01-01T00:00:00Z'
   tasks:
-    - id: Invisible
+    - id: TooEarly
       title: 2.1x Lead Time
       importance: 1
       desired_credits: 0.0
@@ -65,12 +65,14 @@ steps:
       - Quick
       - LongRef
     expected_props:
-      - id: Invisible
-        is_visible: false
+      - id: TooEarly
+        is_visible: true
         score: 0.0
+        is_ready: false
       - id: Edge
         score: 0.0
         is_visible: true
+        is_ready: false
       - id: Halfway
         score: 0.5
         is_visible: true

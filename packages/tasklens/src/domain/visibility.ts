@@ -1,13 +1,13 @@
 /**
- * Pass 1: Contextual Visibility Algorithm
+ * Contextual Visibility Algorithm
  *
- * This module implements the first pass of the task prioritization algorithm.
+ * This module implements the contextual visibility rules for the task prioritization algorithm.
  * It determines which tasks should be visible based on the user's current
  * physical context (location) and time.
  *
  * The algorithm:
  * 1. Resolves each task's "effective place" by walking up the parent chain
- *    until a place is found (tasks inherit their parent's place if not set).
+ *    until a place is found (tasks inherit their place if not set).
  * 2. Checks if the effective place is currently "open" based on its schedule.
  * 3. Checks if the task matches the current view filter (selected location).
  * 4. Sets `task.visibility = isOpen && filterMatch`.
@@ -90,15 +90,15 @@ function _isPlaceOpen(place: Place, currentTime: number): boolean {
 }
 
 /**
- * Pass 1: Contextual Visibility
+ * Contextual Visibility
  * Filters tasks by Physical Context and Time.
  * Updates the `visibility` property of each task.
- * @param _doc The current Automerge document state (mutable proxy).
+ * @param doc The current Automerge document state (mutable proxy).
  * @param tasks All tasks in the document (Mutable EnrichedTasks).
  * @param viewFilter The active view filter from the user.
  * @param currentTime The current timestamp in milliseconds.
  */
-export function pass1ContextualVisibility(
+export function calculateContextualVisibility(
   doc: TunnelState,
   tasks: EnrichedTask[],
   viewFilter: ViewFilter,

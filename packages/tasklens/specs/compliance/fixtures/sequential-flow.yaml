@@ -28,14 +28,16 @@ steps:
     expected_order: ['Step_A']
     expected_props:
       - id: Step_A
-        is_blocked: false
+        score: 1.0
+        is_ready: true
         is_visible: true
       - id: Step_B
-        is_blocked: true
-        is_visible: false
+        score: 0.0
+        is_ready: false
+        is_visible: true
       - id: Step_C
-        is_blocked: true
-        is_visible: false
+        is_ready: false
+        is_visible: true
 
   - name: Complete Step A
     mutation:
@@ -45,13 +47,15 @@ steps:
     expected_order: ['Step_B']
     expected_props:
       - id: Step_A
-        is_visible: false
+        score: 1.0 # Completed, but score remains high (just filtered out)
+        is_visible: true
       - id: Step_B
-        is_blocked: false
+        score: 1.0 # Unblocked!
+        is_ready: true
         is_visible: true
       - id: Step_C
-        is_blocked: true
-        is_visible: false
+        is_ready: false
+        is_visible: true
 
   - name: Complete Step B
     mutation:
@@ -61,7 +65,7 @@ steps:
     expected_order: ['Step_C']
     expected_props:
       - id: Step_B
-        is_visible: false
+        is_visible: true
       - id: Step_C
-        is_blocked: false
+        is_ready: true
         is_visible: true
