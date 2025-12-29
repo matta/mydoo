@@ -10,6 +10,7 @@ export * from './react/hooks/use-tasks-status';
 export * from './react/hooks/use-todo-list';
 export * from './react/task-lens-provider';
 export {createStore, type RootState, store} from './store/index';
+export * from './store/selectors';
 export {syncDoc} from './store/slices/tasks-slice';
 export * from './test-utils';
 export * from './types';

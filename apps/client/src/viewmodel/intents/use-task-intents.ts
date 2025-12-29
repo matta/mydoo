@@ -1,6 +1,6 @@
 import {
   type CreateTaskOptions,
-  type RootState,
+  selectLastDoc,
   type Task,
   type TaskID,
   TaskStatus,
@@ -24,7 +24,7 @@ export function useTaskIntents() {
   } = useTaskActions();
 
   // We need the data from Redux to perform logic like "indent" and "toggle"
-  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
+  const doc = useSelector(selectLastDoc);
 
   const createTask = useCallback(
     (

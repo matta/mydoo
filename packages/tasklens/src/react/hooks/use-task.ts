@@ -1,5 +1,5 @@
 import {useSelector} from 'react-redux';
-import type {RootState} from '../../store';
+import {selectTaskById} from '../../store/selectors';
 import type {ComputedTask, TaskID} from '../../types';
 
 /**
@@ -9,11 +9,8 @@ import type {ComputedTask, TaskID} from '../../types';
  * current state and derived properties.
  *
  * @param id - The ID of the task to retrieve.
- * @returns The ComputedTask object, or null if not found.
+ * @returns The ComputedTask object, or undefined if not found.
  */
-export function useTask(id: TaskID | undefined): ComputedTask | null {
-  return useSelector((state: RootState) => {
-    if (!id) return null;
-    return state.tasks.entities[id] || null;
-  });
+export function useTask(id: TaskID | undefined): ComputedTask | undefined {
+  return useSelector(selectTaskById(id));
 }

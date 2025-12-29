@@ -1,5 +1,5 @@
 import {useSelector} from 'react-redux';
-import type {RootState} from '../../store';
+import {selectTodoList} from '../../store/selectors';
 import type {ComputedTask} from '../../types';
 
 /**
@@ -11,10 +11,5 @@ import type {ComputedTask} from '../../types';
  * @returns Array of ComputedTask objects in the "Do" list.
  */
 export function useTodoList(): ComputedTask[] {
-  return useSelector((state: RootState) => {
-    const {todoListIds, entities} = state.tasks;
-    return todoListIds
-      .map(id => entities[id])
-      .filter((task): task is ComputedTask => !!task);
-  });
+  return useSelector(selectTodoList);
 }

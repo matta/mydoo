@@ -76,7 +76,7 @@ describe('TaskEditorModal', () => {
         onDelete={vi.fn()}
         onSave={vi.fn()}
         opened={true}
-        parentTitle={null}
+        parentTitle={undefined}
         task={mockTask}
       />,
     );
@@ -121,7 +121,7 @@ describe('TaskEditorModal', () => {
         onDelete={vi.fn()}
         onSave={vi.fn()}
         opened={true}
-        parentTitle={null}
+        parentTitle={undefined}
         task={mockTask}
       />,
     );
@@ -144,7 +144,7 @@ describe('TaskEditorModal', () => {
         onDelete={onDelete}
         onSave={vi.fn()}
         opened={true}
-        parentTitle={null}
+        parentTitle={undefined}
         task={mockTask}
       />,
     );
@@ -164,8 +164,8 @@ describe('TaskEditorModal', () => {
         onDelete={vi.fn()}
         onSave={vi.fn()}
         opened={true}
-        parentTitle={null}
-        task={null}
+        parentTitle={undefined}
+        task={undefined}
         mode="edit"
       />,
     );
@@ -183,7 +183,7 @@ describe('TaskEditorModal', () => {
         onDelete={vi.fn()}
         onSave={vi.fn()}
         opened={true}
-        parentTitle={null}
+        parentTitle={undefined}
         task={mockTask}
         canIndent={false}
       />,
@@ -203,7 +203,7 @@ describe('TaskEditorModal', () => {
         onDelete={vi.fn()}
         onSave={vi.fn()}
         opened={true}
-        parentTitle={null}
+        parentTitle={undefined}
         task={mockTask}
         canIndent={true}
       />,
@@ -225,7 +225,7 @@ describe('TaskEditorModal', () => {
         onDelete={vi.fn()}
         onSave={onSave}
         opened={true}
-        parentTitle={null}
+        parentTitle={undefined}
         task={mockTask}
       />,
     );
@@ -254,7 +254,7 @@ describe('TaskEditorModal', () => {
         onDelete={vi.fn()}
         onSave={onSave}
         opened={true}
-        parentTitle={null}
+        parentTitle={undefined}
         task={mockTask}
       />,
     );
@@ -319,7 +319,7 @@ describe('TaskEditorModal', () => {
         onDelete={vi.fn()}
         onSave={onSave}
         opened={true}
-        parentTitle={null}
+        parentTitle={undefined}
         task={taskWithRepeat}
       />,
     );

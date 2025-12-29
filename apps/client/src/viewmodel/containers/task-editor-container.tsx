@@ -1,5 +1,5 @@
 import {useMediaQuery} from '@mantine/hooks';
-import type {RootState, Task, TaskID} from '@mydoo/tasklens';
+import {selectLastDoc, type Task, type TaskID} from '@mydoo/tasklens';
 import {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
@@ -33,16 +33,14 @@ export function TaskEditorContainer() {
 
   const editingTaskId = modal?.type === 'edit' ? modal.taskId : undefined;
 
-  const {task, parentTitle, descendantCount} = useTaskDetails(
-    editingTaskId ?? ('' as TaskID),
-  );
+  const {task, parentTitle, descendantCount} = useTaskDetails(editingTaskId);
   const {updateTask, createTask, deleteTask, indentTask, outdentTask} =
     useTaskIntents();
 
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   // Resolve parent title for Create Mode
-  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
+  const doc = useSelector(selectLastDoc);
   let resolvedParentTitle = parentTitle;
 
   // We need to pass a ComputedTask to the modal, but our internal state in Editor
@@ -50,31 +48,32 @@ export function TaskEditorContainer() {
   // If we have a full task object from the doc, project it.
   // If we are creating, we pass null.
   // But if we have partial updates, we might need to handle that.
-  // TaskEditorModal expects `Task | null` (where Task is ComputedTask alias).
+  // TaskEditorModal expects `Task | undefined` (where Task is ComputedTask alias).
   const editorState = useCallback(() => {
     if (modal?.type === 'create') {
-      if (!modal.parentId) return {task: null, parent: null};
+      if (!modal.parentId) return {task: undefined, parent: undefined};
       const tasks = doc?.tasks || {};
-      return {task: null, parent: tasks[modal.parentId] || null};
+      return {task: undefined, parent: tasks[modal.parentId]};
     }
 
     // Edit mode
-    const editingTask = task as Task | null;
-    if (!editingTask) return {task: null, parent: null};
+    const editingTask = task as Task | undefined;
+    if (!editingTask) return {task: undefined, parent: undefined};
 
     const tasks = doc?.tasks || {};
     const parentId = editingTask.parentId;
     return {
       task: editingTask,
-      parent: parentId ? (tasks[parentId] as Task) : null,
+      parent: parentId ? (tasks[parentId] as Task) : undefined,
     };
   }, [doc, modal, task]);
 
   if (modal?.type === 'create' && doc) {
-    if (modal.parentId) {
-      resolvedParentTitle = doc.tasks[modal.parentId]?.title ?? null;
+    const parentId = modal.parentId;
+    if (parentId && doc.tasks[parentId]) {
+      resolvedParentTitle = doc.tasks[parentId].title;
     } else {
-      resolvedParentTitle = null; // Root
+      resolvedParentTitle = ''; // Root or unknown
     }
   }
 
@@ -264,7 +263,7 @@ export function TaskEditorContainer() {
     <TaskEditorModal
       opened={!!modal && (modal.type === 'create' || !!task)}
       onClose={handleClose}
-      task={currentEditorState.task} // Now correctly typed as computed task or null
+      task={currentEditorState.task} // Now correctly typed as computed task or undefined
       mode={
         modal?.type === 'create' || modal?.type === 'edit'
           ? modal.type

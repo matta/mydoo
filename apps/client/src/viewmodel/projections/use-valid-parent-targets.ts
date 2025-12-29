@@ -1,8 +1,9 @@
 import {
   buildTunnelTree,
-  type RootState,
+  selectLastDoc,
   type TaskID,
   type TunnelNode,
+  type TunnelState,
 } from '@mydoo/tasklens';
 import {useMemo} from 'react';
 import {useSelector} from 'react-redux';
@@ -13,47 +14,56 @@ export interface ValidTargets {
 }
 
 /**
- * Hook to retrieve the task tree filtered for valid reparenting targets.
- *
- * Excludes the task being moved and all its descendants to prevent cycles.
+ * Hook to find all tasks that could validly be the parent of a given task.
  */
 export function useValidParentTargets(
-  movedTaskId: TaskID | undefined,
+  taskId: TaskID | undefined,
 ): ValidTargets {
-  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
+  const doc = useSelector(selectLastDoc);
 
-  const roots = useMemo(() => {
-    if (!doc || !movedTaskId) {
-      if (!doc) return [];
-      return buildTunnelTree(doc.rootTaskIds, doc.tasks);
-    }
-
-    const fullTree = buildTunnelTree(doc.rootTaskIds, doc.tasks);
-
-    // Recursive filter function
-    const filterNode = (node: TunnelNode): TunnelNode | null => {
-      // If this is the task being moved, exclude it (and its subtree)
-      if (node.id === movedTaskId) {
-        return null;
-      }
-
-      // Filter children
-      const filteredChildren = node.children
-        .map(filterNode)
-        .filter((n): n is TunnelNode => n !== null);
-
-      // Return new node with filtered children
-      return {
-        ...node,
-        children: filteredChildren,
-      };
-    };
-
-    return fullTree.map(filterNode).filter((n): n is TunnelNode => n !== null);
-  }, [doc, movedTaskId]);
+  const roots = useMemo(() => projectValidTargets(doc, taskId), [doc, taskId]);
 
   return {
     roots,
-    isLoading: doc === undefined,
+    isLoading: doc === null,
   };
+}
+
+/**
+ * Pure projection function to compute valid parent targets.
+ * Factored out to keep useMemo body concise and comply with line limits.
+ */
+function projectValidTargets(
+  doc: TunnelState | null,
+  taskId: TaskID | undefined,
+): TunnelNode[] {
+  if (!doc || !taskId) {
+    if (!doc) return [];
+    return buildTunnelTree(doc.rootTaskIds, doc.tasks);
+  }
+
+  const fullTree = buildTunnelTree(doc.rootTaskIds, doc.tasks);
+
+  // Recursive filter function
+  const filterNode = (node: TunnelNode): TunnelNode | undefined => {
+    // If this is the task being moved, exclude it (and its subtree)
+    if (node.id === taskId) {
+      return undefined;
+    }
+
+    // Filter children
+    const filteredChildren = node.children
+      .map(filterNode)
+      .filter((n): n is TunnelNode => n !== undefined);
+
+    // Return new node with filtered children
+    return {
+      ...node,
+      children: filteredChildren,
+    };
+  };
+
+  return fullTree
+    .map(filterNode)
+    .filter((n): n is TunnelNode => n !== undefined);
 }

@@ -1,4 +1,4 @@
-import type {PersistedTask, RootState, TaskID} from '@mydoo/tasklens';
+import {type PersistedTask, selectLastDoc, type TaskID} from '@mydoo/tasklens';
 import {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
@@ -19,7 +19,7 @@ export interface BreadcrumbItem {
 export function useBreadcrumbs(
   currentViewId: TaskID | undefined,
 ): BreadcrumbItem[] {
-  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
+  const doc = useSelector(selectLastDoc);
 
   const breadcrumbs = useMemo(() => {
     if (!doc || !currentViewId) return [];

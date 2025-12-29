@@ -1,46 +1,66 @@
-import {type RootState, type TaskID, TunnelOps, useTask} from '@mydoo/tasklens';
+import {
+  selectLastDoc,
+  type Task,
+  type TaskID,
+  TunnelOps,
+  type TunnelState,
+  useTask,
+} from '@mydoo/tasklens';
 import {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 /**
- * Hook to retrieve full details for a specific task, suitable for the Editor Modal.
- *
- * Provides the task object, the title of its parent, and the total count of descendants.
+ * Result of the useTaskDetails hook.
  */
-export function useTaskDetails(taskId: TaskID | undefined) {
+export interface TaskDetails {
+  task: Task | undefined;
+  parentTitle: string | undefined;
+  descendantCount: number;
+  isLoading: boolean;
+}
+
+/**
+ * Hook to retrieve and compute hierarchical task details.
+ *
+ * @param taskId - The ID of the task to retrieve details for.
+ * @returns An object containing the computed task, its parent's title, and the count of its descendants.
+ */
+export function useTaskDetails(taskId: TaskID | undefined): TaskDetails {
   const task = useTask(taskId);
-  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
+  const doc = useSelector(selectLastDoc);
 
-  return useMemo(() => {
-    if (!doc) {
-      return {
-        task: null,
-        parentTitle: null,
-        descendantCount: 0,
-        isLoading: true,
-      };
-    }
+  return useMemo(
+    () => projectTaskDetails(doc, task, taskId),
+    [doc, task, taskId],
+  );
+}
 
-    if (!taskId || !task) {
-      return {
-        task: null,
-        parentTitle: null,
-        descendantCount: 0,
-        isLoading: false,
-      };
-    }
-
-    const parentId = task.parentId;
-    const parentTask = parentId ? doc.tasks[parentId] : null;
-    const parentTitle = parentTask ? parentTask.title : null;
-
-    const descendantCount = TunnelOps.getDescendantCount(doc, taskId);
-
+/**
+ * Pure projection function to compute task details from state.
+ * Factored out to keep useMemo body concise.
+ */
+function projectTaskDetails(
+  doc: TunnelState | null,
+  task: Task | undefined,
+  taskId: TaskID | undefined,
+): TaskDetails {
+  if (!task || !doc || !taskId) {
     return {
-      task,
-      parentTitle,
-      descendantCount,
-      isLoading: false,
+      task: undefined,
+      parentTitle: undefined,
+      descendantCount: 0,
+      isLoading: doc === null,
     };
-  }, [doc, task, taskId]);
+  }
+
+  const parentTask = task.parentId ? doc.tasks[task.parentId] : undefined;
+  const parentTitle = parentTask?.title;
+  const descendantCount = TunnelOps.getDescendantCount(doc, taskId);
+
+  return {
+    task,
+    parentTitle,
+    descendantCount,
+    isLoading: false,
+  };
 }

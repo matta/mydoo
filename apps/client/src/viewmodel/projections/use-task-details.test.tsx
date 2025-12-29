@@ -113,7 +113,7 @@ describe('useTaskDetails', () => {
       () => {
         expect(result.current.isLoading).toBe(false);
         expect(result.current.task?.title).toBe('Root Task');
-        expect(result.current.parentTitle).toBeNull();
+        expect(result.current.parentTitle).toBeUndefined();
         expect(result.current.descendantCount).toBe(0);
       },
       {timeout: 2000},
@@ -133,7 +133,7 @@ describe('useTaskDetails', () => {
     await waitFor(
       () => {
         expect(result.current.isLoading).toBe(false);
-        expect(result.current.task).toBeNull();
+        expect(result.current.task).toBeUndefined();
       },
       {timeout: 2000},
     );
@@ -148,7 +148,7 @@ describe('useTaskDetails', () => {
 
     // Initial state should be loading
     expect(result.current.isLoading).toBe(true);
-    expect(result.current.task).toBeNull();
+    expect(result.current.task).toBeUndefined();
 
     // Wait for Redux sync to complete to avoid act() warning
     await waitFor(() => {

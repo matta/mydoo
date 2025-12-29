@@ -1,4 +1,4 @@
-import type {RootState, TaskID} from '@mydoo/tasklens';
+import {selectLastDoc, type TaskID} from '@mydoo/tasklens';
 import {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 import {MovePickerModal} from '../../components/modals/move-picker-modal';
@@ -14,7 +14,7 @@ export function MovePickerContainer() {
 
   const {moveTask} = useTaskIntents();
   const {roots, isLoading} = useValidParentTargets(taskId);
-  const doc = useSelector((state: RootState) => state.tasks.lastDoc);
+  const doc = useSelector(selectLastDoc);
 
   const task = taskId && doc?.tasks ? doc.tasks[taskId] : undefined;
 

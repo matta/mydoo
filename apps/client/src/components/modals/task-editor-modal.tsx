@@ -33,9 +33,9 @@ interface TaskEditorModalProps {
   /** Callback to close the modal */
   onClose: () => void;
   /** The task being edited */
-  task: Task | null;
+  task: Task | undefined;
   /** Parent task title (read-only display) */
-  parentTitle: string | null;
+  parentTitle: string | undefined;
   /** Descendant count (for delete confirmation) */
   descendantCount: number;
   /** Callback to save changes */
