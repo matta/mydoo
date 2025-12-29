@@ -223,10 +223,21 @@ Items identified during code review (2024-12-29) for future cleanup.
 
 ### 7.1 Performance Optimization
 
-- [ ] **Defer Slider Writes to `onChangeEnd`**
+- [ ] **Architecture: Implement "Version Lock" for Interactions**
+  - **Problem**: Interactive states (dragging sliders, reordering lists) are vulnerable to "shifting sand" if the underlying Automerge document updates in the background during the interaction.
+  - **Requirement**: Establish a "Version Lock" pattern.
+    - When an interaction starts (e.g., drag start), "pin" the UI component to the specific Automerge DAG Head (Version A).
+    - Ignore all incoming sync/patches for that component while the lock is active.
+    - On interaction end (e.g., drop), commit the change *against Version A*.
+    - Let Automerge handle the merge of (Version A + Local Change) vs (Version B - incoming sync).
+  - **Scope**: This is a major architectural change affecting all "Write" interactions (Kanban, Balance, Todo List).
+  - **Status**: Deferred to Phase 8 (Architecture Hardening) or distinct "Interaction Stability" phase.
+
+- [ ] **Optimization: Defer Slider Writes to `onChangeEnd`**
+  - **Dependency**: Requires "Version Lock" architecture to be safe/stable.
   - Currently, `handleDesiredCreditsChange` fires on every `onChange` (every pixel drag).
   - Heavy on Automerge transaction history.
-  - **Fix**: Introduce local "virtual" state in `BalanceViewContainer`, update only on `onChangeEnd`.
+  - **Fix**: Using the Version Lock pattern, maintain local state during drag and commit massive batch on drop.
   - See TODO comments in `balance-view-container.tsx` L121-131 and `balance-item.tsx` L46-47.
 
 - [ ] **Batch Automerge Updates**
