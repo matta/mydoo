@@ -236,7 +236,7 @@ Items identified during code review (2024-12-29) for future cleanup.
   - **File**: `packages/tasklens/src/test-utils.ts` L51.
   - **Fix**: Change to `desiredCredits: 1.0`.
 
-- [ ] **Extract Starving Threshold Constant**
+- [x] **Extract Starving Threshold Constant**
   - Magic number `0.9` in `isStarving` calculation is unexplained.
   - **File**: `apps/client/src/hooks/use-balance-data.ts` L51-52.
   - **Fix**: Extract to `STARVING_THRESHOLD = 0.9` with documentation.
@@ -247,7 +247,7 @@ Items identified during code review (2024-12-29) for future cleanup.
   - Hook contains non-trivial aggregation logic (root filtering, totals, starving detection).
   - Could be tested as pure function after Step 6.1 refactor.
 
-- [ ] **Defensive Division Guard**
+- [x] **Defensive Division Guard**
   - `totalItems` could theoretically be 0 in slider label.
   - **File**: `apps/client/src/components/views/balance/balance-item.tsx` L52.
   - Low risk (parent guards with empty state), but defensive `totalItems > 0 ?` check is safer.

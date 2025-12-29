@@ -10,6 +10,14 @@ interface BalanceItemProps {
   totalItems: number;
 }
 
+/**
+ * Formats a value as a percentage of total items for display in a label.
+ */
+function formatPercentLabel(value: number, total: number): string {
+  if (total <= 0) return '0%';
+  return `${((value / total) * 100).toFixed(0)}%`;
+}
+
 export function BalanceItem({
   item,
   onChangeDesiredCredits,
@@ -40,7 +48,7 @@ export function BalanceItem({
             min={min}
             max={max}
             step={0.01}
-            label={val => `${((val / totalItems) * 100).toFixed(0)}%`}
+            label={val => formatPercentLabel(val, totalItems)}
           />
         </Stack>
 

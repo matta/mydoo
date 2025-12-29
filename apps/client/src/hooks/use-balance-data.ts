@@ -2,6 +2,13 @@ import type {TaskID} from '@mydoo/tasklens';
 import {ROOT_INBOX_ID, useTaskEntities} from '@mydoo/tasklens';
 import {useMemo} from 'react';
 
+/**
+ * The percentage of target credit allocation below which a goal is considered "starving".
+ * A value of 0.9 means the goal is starving if it has received less than 90% of its
+ * intended attention.
+ */
+const STARVING_THRESHOLD = 0.9;
+
 export interface BalanceItemData {
   id: TaskID;
   title: string;
@@ -47,9 +54,8 @@ export function useBalanceData(): BalanceItemData[] {
         totalActual > 0 ? (goal.effectiveCredits / totalActual) * 100 : 0;
 
       // A goal is "starving" if Actual is significantly lower than Target.
-      // We'll use a simple threshold for now.
       const isStarving =
-        targetPercent > 0 && actualPercent < targetPercent * 0.9;
+        targetPercent > 0 && actualPercent < targetPercent * STARVING_THRESHOLD;
 
       return {
         id: goal.id,
