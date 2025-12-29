@@ -3,6 +3,7 @@ import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 
 import App from './app';
+import {ErrorBoundary} from './components/error-boundary';
 import {RepoProvider} from './hooks/repo-provider';
 
 import '@mantine/core/styles.css';
@@ -14,9 +15,11 @@ if (!rootElement) throw new Error('Failed to find the root element');
 createRoot(rootElement).render(
   <StrictMode>
     <MantineProvider defaultColorScheme="auto">
-      <RepoProvider>
-        <App />
-      </RepoProvider>
+      <ErrorBoundary>
+        <RepoProvider>
+          <App />
+        </RepoProvider>
+      </ErrorBoundary>
     </MantineProvider>
   </StrictMode>,
 );
