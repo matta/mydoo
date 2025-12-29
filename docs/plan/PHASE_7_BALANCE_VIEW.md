@@ -231,11 +231,7 @@ Items identified during code review (2024-12-29) for future cleanup.
 
 ### 7.2 Code Cleanup
 
-- [ ] **Remove Unused Import**
-  - `IconStar` is imported but never used in `balance-item.tsx`.
-  - **File**: `apps/client/src/components/views/balance/balance-item.tsx` L11.
-
-- [ ] **Align `createMockTask` Default**
+- [x] **Align `createMockTask` Default**
   - `createMockTask` defaults `desiredCredits: 0`, but `createTask` defaults to `1.0`.
   - **File**: `packages/tasklens/src/test-utils.ts` L51.
   - **Fix**: Change to `desiredCredits: 1.0`.

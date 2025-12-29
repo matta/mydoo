@@ -48,7 +48,7 @@ export function createMockTask(
     creditIncrement: 1,
     credits: 0,
     creditsTimestamp: 0,
-    desiredCredits: 0,
+    desiredCredits: 1.0,
     priorityTimestamp: 0,
     effectiveCredits: 0,
     schedule: {type: 'Once', leadTime: 0},
