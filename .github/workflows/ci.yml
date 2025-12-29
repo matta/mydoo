@@ -7,9 +7,10 @@ on:
     branches: ['main', 'view']
 
 jobs:
-  build:
+  build-and-test:
     name: Build, Lint, and Test
     runs-on: ubuntu-latest
+    # Default permissions are read-only for contents, which is sufficient for testing.
 
     env:
       TURBO_CACHE_DIR: .turbo
@@ -65,3 +66,26 @@ jobs:
 
       - name: E2E Tests
         run: pnpm test:e2e
+
+  promote:
+    name: Promote to Deploy Branch
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # Required to push
+          persist-credentials: false
+
+      # Promote successful main builds to the deploy branch for deployment triggers.
+      # Force-push is intentional: deploy branch is a moving pointer, not a
+      # preserved history. Each push overwrites the previous branch tip.
+      - name: Promote to Deploy Branch
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git push https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git HEAD:deploy --force
