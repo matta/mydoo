@@ -87,11 +87,8 @@ export function SeedData() {
     const doc = handle.doc() as TunnelState | undefined;
     const params = new URLSearchParams(window.location.search);
     if (params.get('seed') === 'true' && doc && !seeded.current) {
-      const taskIds = Object.keys(doc.tasks || {});
-      const taskCount = taskIds.length;
-      // Allow seeding if the document is empty OR if it only contains the system Inbox
-      const isOnlyInbox = taskCount === 1 && taskIds[0] === 'root:inbox';
-      if (taskCount === 0 || isOnlyInbox) {
+      const taskCount = Object.keys(doc.tasks || {}).length;
+      if (taskCount === 0 && !seeded.current) {
         seeded.current = true;
         seedHierarchicalData(actions);
       }

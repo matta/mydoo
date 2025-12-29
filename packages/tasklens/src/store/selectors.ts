@@ -75,7 +75,7 @@ export function selectTaskById(id: TaskID | undefined) {
 /**
  * Selector for Balance View data.
  *
- * Computes the balance allocation for all root goals (excluding Inbox).
+ * Computes the balance allocation for all root goals.
  * Returns targetPercent, actualPercent, and isStarving for each goal.
  */
 export const selectBalanceData = createSelector(

@@ -1,22 +1,11 @@
 import {describe, expect, it} from 'vitest';
 import {createMockTask} from '../test-utils';
-import {ROOT_INBOX_ID, type TaskID} from '../types';
+import type {TaskID} from '../types';
 import {calculateBalanceData} from './balance';
 
 describe('calculateBalanceData', () => {
   it('should return empty array when no tasks are provided', () => {
     expect(calculateBalanceData([])).toEqual([]);
-  });
-
-  it('should exclude the root inbox', () => {
-    const tasks = [
-      createMockTask({id: ROOT_INBOX_ID, parentId: undefined}),
-      createMockTask({id: 'goal-1' as TaskID, parentId: undefined}),
-    ];
-    const data = calculateBalanceData(tasks);
-    expect(data).toHaveLength(1);
-    const [goal] = data;
-    expect(goal?.id).toBe('goal-1');
   });
 
   it('should exclude non-root tasks', () => {

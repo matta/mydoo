@@ -87,12 +87,6 @@ export function asAutomergeUrl(id: DocumentHandle): AutomergeUrl {
 export const ANYWHERE_PLACE_ID = 'Anywhere' as PlaceID;
 
 /**
- * Reserved Task ID for the system Inbox.
- * Items in the inbox are excluded from balance calculations.
- */
-export const ROOT_INBOX_ID = 'root:inbox' as TaskID;
-
-/**
  * Possible states for a Task.
  *
  * This is a "const object" pattern used in TypeScript to create an enum-like

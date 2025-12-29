@@ -1,9 +1,4 @@
-import {
-  buildTunnelTree,
-  ROOT_INBOX_ID,
-  selectLastDoc,
-  type TunnelNode,
-} from '@mydoo/tasklens';
+import {buildTunnelTree, selectLastDoc, type TunnelNode} from '@mydoo/tasklens';
 import {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
@@ -23,9 +18,7 @@ export function useTaskTree(): TaskTree {
 
   const roots = useMemo(() => {
     if (!doc) return [];
-    // Plan view excludes the system Inbox
-    const filteredRootIds = doc.rootTaskIds.filter(id => id !== ROOT_INBOX_ID);
-    return buildTunnelTree(filteredRootIds, doc.tasks);
+    return buildTunnelTree(doc.rootTaskIds, doc.tasks);
   }, [doc]);
 
   return {

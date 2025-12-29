@@ -1,4 +1,4 @@
-import {type BalanceItemData, type ComputedTask, ROOT_INBOX_ID} from '../types';
+import type {BalanceItemData, ComputedTask} from '../types';
 
 /**
  * The percentage of target credit allocation below which a goal is considered "starving".
@@ -12,13 +12,11 @@ export const STARVING_THRESHOLD = 0.9;
  *
  * It calculates the relative percentage of "Desired Credits" (what the user wants
  * to focus on) versus "Effective Credits" (what they have actually worked on)
- * for all root-level tasks (goals), excluding the system Inbox.
+ * for all root-level tasks (goals).
  */
 export function calculateBalanceData(tasks: ComputedTask[]): BalanceItemData[] {
-  // Filter for root tasks, excluding the Inbox
-  const rootGoals = tasks.filter(
-    task => task.parentId === undefined && task.id !== ROOT_INBOX_ID,
-  );
+  // Filter for root tasks
+  const rootGoals = tasks.filter(task => task.parentId === undefined);
 
   let totalDesired = 0;
   let totalActual = 0;
