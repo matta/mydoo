@@ -1,6 +1,6 @@
 import {AppShell, Burger, Button, Group, Menu, Title} from '@mantine/core';
 import {useDisclosure, useMediaQuery} from '@mantine/hooks';
-import {useTaskActions} from '@mydoo/tasklens';
+import {isValidDocumentHandle, useTaskActions} from '@mydoo/tasklens';
 import {
   IconCheckbox,
   IconDotsVertical,
@@ -172,6 +172,16 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
           onClose={closeConnectionModal}
           currentUrl={docUrl}
           onReset={handleReset}
+          onConnect={url => {
+            if (isValidDocumentHandle(url)) {
+              localStorage.setItem('mydoo:doc_id', url);
+              window.location.reload();
+            } else {
+              console.error(
+                `ConnectionModal: Invalid DocumentHandle from user input: '${url}'`,
+              );
+            }
+          }}
         />
       </AppShell.Main>
 

@@ -63,10 +63,18 @@ export type DocumentHandle = string & {__brand: 'DocumentHandle'};
  * Use this to satisfy the opaque type requirement when you have a valid document URL.
  */
 export function asDocumentHandle(url: string): DocumentHandle {
-  if (!isValidAutomergeUrl(url)) {
-    throw new Error(`Invalid Automerge URL: '${url}'`);
+  if (!isValidDocumentHandle(url)) {
+    throw new Error(`Invalid DocumentHandle: '${url}'`);
   }
   return url as unknown as DocumentHandle;
+}
+
+/**
+ * Validates if the given string is a valid Automerge URL.
+ * Used for user input validation.
+ */
+export function isValidDocumentHandle(url: string): boolean {
+  return isValidAutomergeUrl(url);
 }
 
 /**

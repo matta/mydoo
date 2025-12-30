@@ -1,4 +1,14 @@
-import {Button, Code, Modal, Stack, Text} from '@mantine/core';
+import {
+  Button,
+  Code,
+  Group,
+  Modal,
+  Stack,
+  Text,
+  TextInput,
+} from '@mantine/core';
+import {isValidDocumentHandle} from '@mydoo/tasklens';
+import {useState} from 'react';
 
 /**
  * Props for the ConnectionModal component.
@@ -12,6 +22,8 @@ interface ConnectionModalProps {
   currentUrl: string;
   /** Callback fired when the user requests to reset/create a new document. */
   onReset: () => void;
+  /** Callback fired when the user requests to connect to a specific document ID. */
+  onConnect: (url: string) => void;
 }
 
 /**
@@ -28,7 +40,19 @@ export function ConnectionModal({
   onClose,
   currentUrl,
   onReset,
+  onConnect,
 }: ConnectionModalProps) {
+  const [inputValue, setInputValue] = useState('');
+
+  const isValid = isValidDocumentHandle(inputValue.trim());
+  const showError = inputValue.trim() !== '' && !isValid;
+
+  const handleConnect = () => {
+    if (isValid) {
+      onConnect(inputValue.trim());
+    }
+  };
+
   return (
     <Modal opened={opened} onClose={onClose} title="Connection Info">
       <Stack>
@@ -48,6 +72,28 @@ export function ConnectionModal({
         >
           Create New Document
         </Button>
+
+        <Text size="sm" mt="md" fw={500}>
+          Switch Document
+        </Text>
+        <Group align="flex-end">
+          <TextInput
+            placeholder="automerge:..."
+            label="Document ID"
+            value={inputValue}
+            onChange={e => setInputValue(e.currentTarget.value)}
+            style={{flex: 1}}
+            data-testid="connect-document-input"
+            error={showError ? 'Invalid Automerge URI format' : null}
+          />
+          <Button
+            onClick={handleConnect}
+            disabled={!isValid}
+            data-testid="connect-document-button"
+          >
+            Connect
+          </Button>
+        </Group>
 
         <Button fullWidth onClick={onClose}>
           Close

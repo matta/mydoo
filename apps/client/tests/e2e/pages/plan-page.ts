@@ -51,6 +51,7 @@ export interface PlanFixture {
   // Document Management
   getCurrentDocumentId: () => Promise<string | undefined>;
   createNewDocument: () => Promise<void>;
+  switchToDocument: (id: string) => Promise<void>;
 }
 
 /**
@@ -373,6 +374,31 @@ export class PlanPage implements PlanFixture {
 
     // Click "Create New Document"
     await modal.getByTestId('reset-document-button').click();
+
+    await expect(
+      this.page
+        .locator('nav, footer')
+        .getByRole('button', {name: 'Plan'})
+        .last(),
+    ).toBeVisible();
+  }
+
+  async switchToDocument(id: string): Promise<void> {
+    // Open Options menu
+    await this.page.getByRole('button', {name: 'Options'}).click();
+
+    // Click Connection
+    await this.page.getByRole('menuitem', {name: 'Connection'}).click();
+
+    // Find the modal
+    const modal = this.page.getByRole('dialog', {name: 'Connection Info'});
+    await expect(modal).toBeVisible();
+
+    // Fill the ID
+    await modal.getByTestId('connect-document-input').fill(id);
+
+    // Click "Connect"
+    await modal.getByTestId('connect-document-button').click();
 
     // The page should reload. Wait for the app to be ready.
     await expect(

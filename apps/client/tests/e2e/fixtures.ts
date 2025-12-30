@@ -6,7 +6,7 @@ export {expect};
 
 type DocumentContextFixture = {
   documentContext: {
-    previousDocId: string | undefined;
+    documents: Map<string, string>;
   };
 };
 
@@ -23,8 +23,8 @@ export const test = bddTest.extend<MyFixtures>({
   documentContext: async (
     // biome-ignore lint/correctness/noEmptyPattern: playwright-bdd requires destructuring pattern
     {},
-    use: (r: {previousDocId: string | undefined}) => Promise<void>,
+    use: (r: {documents: Map<string, string>}) => Promise<void>,
   ) => {
-    await use({previousDocId: undefined});
+    await use({documents: new Map()});
   },
 });
