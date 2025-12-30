@@ -60,7 +60,7 @@ The scope of files.
 | **Apply Format** | `format` | `fix-format` | Command: Make the formatting correct. |
 | **Type Check** | `typecheck` | `check-types` | Query: Are types correct? |
 | **Dependency Check** | `lint-deps` | `check-deps` | Query: Are deps correct? |
-| **Pre-commit** | `lint-staged` | `fix-staged` | Command: Fix the staged files. |
+| **Pre-commit** | `lint-staged` | `check-staged` | Command: Verify the staged files. |
 | **CI Validation** | `ci` | `check` | Query: Is everything correct? |
 
 ## 5. Exemptions

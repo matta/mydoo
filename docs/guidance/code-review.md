@@ -128,7 +128,7 @@ Casting through `unknown` (e.g., `foo as unknown as Bar`) is just as suspicious 
 **Always** run the following before committing:
 
 ```bash
-pnpm fix && pnpm pre-commit
+pnpm fix && pnpm check
 ```
 
 This ensures linting, formatting, and all tests pass.

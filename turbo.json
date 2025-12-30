@@ -4,17 +4,24 @@
     "package.json",
     "pnpm-workspace.yaml",
     "tsconfig.base.json",
-    "biome.json"
+    "biome.json",
+    "eslint.config.js"
   ],
   "globalPassThroughEnv": ["ANTIGRAVITY_AGENT", "GEMINI_CLI", "CI"],
   "tasks": {
-    "//#check:staged": {
+    "//#check-biome-staged": {
       "cache": false
     },
-    "//#lint:staged": {
+    "//#check-eslint-staged": {
       "cache": false
     },
-    "//#lint:root": {
+    "//#check-filenames-staged": {
+      "cache": false
+    },
+    "//#check-context-staged": {
+      "cache": false
+    },
+    "//#check-biome:root": {
       "cache": true,
       "inputs": [
         "biome.json",
@@ -27,25 +34,29 @@
     },
     "presubmit:agent": {
       "dependsOn": [
-        "//#check:staged",
-        "//#lint:staged",
-        "//#lint:deps",
+        "//#check-biome-staged",
+        "//#check-eslint-staged",
+        "//#check-filenames-staged",
+        "//#check-context-staged",
+        "//#check-deps",
         "test",
         "test:e2e",
-        "typecheck"
+        "check-types"
       ],
       "cache": false
     },
     "presubmit:human": {
       "dependsOn": [
-        "//#check:staged",
-        "//#lint:staged",
-        "//#lint:deps",
-        "typecheck"
+        "//#check-biome-staged",
+        "//#check-eslint-staged",
+        "//#check-filenames-staged",
+        "//#check-context-staged",
+        "//#check-deps",
+        "check-types"
       ],
       "cache": false
     },
-    "//#lint:deps": {
+    "//#check-deps": {
       "inputs": [
         "package.json",
         "**/package.json",
@@ -60,7 +71,7 @@
       "outputs": [],
       "cache": true
     },
-    "//#lint:filenames": {
+    "//#check-filenames": {
       "inputs": [
         "**/*.md",
         "**/*.sh",
@@ -74,11 +85,37 @@
       ],
       "outputs": []
     },
-    "lint": {
-      "dependsOn": ["//#lint:filenames"],
+    "check-biome": {
+      "inputs": [
+        "src/**/*",
+        "tests/**/*",
+        "specs/**/*",
+        "**/*.json",
+        "biome.json"
+      ],
       "outputs": []
     },
-    "typecheck": {
+    "check-eslint": {
+      "inputs": [
+        "src/**/*",
+        "tests/**/*",
+        "specs/**/*",
+        "*.config.js",
+        "*.config.ts",
+        "eslint.config.js"
+      ],
+      "outputs": []
+    },
+    "check-style": {
+      "dependsOn": [
+        "check-biome",
+        "check-eslint",
+        "//#check-biome:root",
+        "//#check-filenames"
+      ],
+      "outputs": []
+    },
+    "check-types": {
       "dependsOn": ["^build"],
       "inputs": [
         "src/**/*.ts",
@@ -91,8 +128,26 @@
       ],
       "outputs": []
     },
+    "check": {
+      "dependsOn": ["check-style", "check-types", "//#check-deps"],
+      "outputs": []
+    },
+    "fix-biome": {
+      "cache": false
+    },
+    "fix-eslint": {
+      "cache": false
+    },
+    "fix-style": {
+      "dependsOn": ["fix-biome", "fix-eslint"],
+      "cache": false
+    },
+    "fix": {
+      "dependsOn": ["fix-style"],
+      "cache": false
+    },
     "build": {
-      "dependsOn": ["lint", "^build"],
+      "dependsOn": ["check-style", "^build"],
       "inputs": [
         "src/**/*",
         "public/**/*",
@@ -105,12 +160,12 @@
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "test": {
-      "dependsOn": ["lint", "build", "typecheck"],
+      "dependsOn": ["check-style", "build", "check-types"],
       "inputs": ["src/**/*", "tests/**/*", "test/**/*", "specs/**/*"],
       "outputs": []
     },
     "test:e2e": {
-      "dependsOn": ["lint", "build", "typecheck"],
+      "dependsOn": ["check-style", "build", "check-types"],
       "outputs": ["playwright-report/**", "test-results/**"],
       "cache": true
     },
