@@ -31,7 +31,10 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] **Fidelity First**: Does the testing plan avoid JSDOM for logic? (Tier 1/3 focus)
+- [ ] **Local-First**: Is offline capability and conflict resolution (CRDTs) considered?
+- [ ] **Architecture**: Does the design respect the Client-Centric / No-Block-on-Network rule?
+- [ ] **State Separation**: Are domain selectors and UI hooks clearly distinguished?
 
 ## Project Structure
 
