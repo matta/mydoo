@@ -10,7 +10,7 @@ The "Balance" algorithm relies on `effectiveCredits` (decayed effort) and `feedb
 
 Additionally, `ROOT_INBOX_ID` is referenced in designs but missing from the implementation.
 
-### Steps
+### Step 1.1 Steps
 
 - [x] **Step 1.1: Expose Computed Metrics**
   - [x] **[MODIFY]** `packages/tasklens/src/types.ts`:
@@ -19,12 +19,12 @@ Additionally, `ROOT_INBOX_ID` is referenced in designs but missing from the impl
       - [x] `effectiveCredits: number` (for Actual % calculation)
       - [x] `desiredCredits: number` (already in PersistedTask, but ensure visibility)
 
-**Quality Gates**
+#### Quality Gates (1.1)
 
 - [ ] `pnpm fix && pnpm pre-commit` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
-**Completion**
+#### Completion (1.1)
 
 - [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
@@ -48,19 +48,19 @@ Currently, our logic lives in the database layer. The UI needs a way to "read" t
 
 This hook acts as the translator, grabbing the raw task data and doing the math so the UI can just draw the bars.
 
-### Steps
+### Step 2.1 Steps
 
 - [x] **Step 2.1: Implement `useTaskEntities` Hook**
   - [x] **[NEW]** `packages/tasklens/src/react/hooks/use-task-entities.ts`:
     - [x] Create simple wrapper around `useSelector(selectTaskEntities)`.
     - [x] Export from index.
 
-**Quality Gates**
+#### Quality Gates (2.1)
 
 - [ ] `pnpm fix && pnpm pre-commit` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
-**Completion**
+#### Completion (2.1)
 
 - [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
@@ -82,12 +82,12 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
       - [x] Calculate `totalEffectiveCredits`.
       - [x] Return normalized list.
 
-**Quality Gates**
+#### Quality Gates (2.2)
 
 - [ ] `pnpm fix && pnpm pre-commit` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
-**Completion**
+#### Completion (2.2)
 
 - [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
@@ -101,7 +101,7 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 ## 3. Balance UI Components
 
-### Steps
+### Step 3.1 Steps
 
 - [x] Step 3.1: Balance Item Component
   - [x] **[NEW]** `apps/client/src/components/views/balance/balance-item.tsx`:
@@ -112,12 +112,12 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
       - [x] Progress Bar for `actualPercent` (vs `targetPercent`).
       - [x] Visual "Starving" indicator if `actual << target`.
 
-**Quality Gates**
+#### Quality Gates (3.1)
 
 - [x] `pnpm fix && pnpm pre-commit` -> Pass
 - [x] **EVIDENCE**: [Walkthrough and Terminal Output](walkthrough.md)
 
-**Completion**
+#### Completion (3.1)
 
 - [x] ✅ **CLEAN LISTS**: All tasks and tests are passing.
 - [x] 🛑 **TRUST BUT VERIFY**: All commands run and verified.
@@ -131,12 +131,12 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
     - [x] Use `useTaskActions` to dispatch updates.
     - [x] Render List of `BalanceItem`s.
 
-**Quality Gates**
+#### Quality Gates (3.2)
 
 - [x] `pnpm fix && pnpm pre-commit` -> Pass
 - [x] **EVIDENCE**: [Walkthrough and Terminal Output](walkthrough.md)
 
-**Completion**
+#### Completion (3.2)
 
 - [x] ✅ **CLEAN LISTS**: All tasks and tests are passing.
 - [x] 🛑 **TRUST BUT VERIFY**: All commands run and verified.
@@ -146,7 +146,7 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 ## 4. Integration
 
-### Steps
+### Step 4.1 Steps
 
 - [x] **Step 4.1: Add to Navigation**
   - [x] **[MODIFY]** `apps/client/src/viewmodel/ui/use-navigation-state.ts`:
@@ -156,12 +156,12 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
     - [x] Add "Balance" Button to Mobile Bottom Bar.
     - [x] Render `<BalanceViewContainer />` when active.
 
-**Quality Gates**
+#### Quality Gates (4.1)
 
 - [x] `pnpm fix && pnpm pre-commit` -> Pass
 - [x] **EVIDENCE**: [Walkthrough and Terminal Output](walkthrough.md)
 
-**Completion**
+#### Completion (4.1)
 
 - [x] ✅ **CLEAN LISTS**: All tasks and tests are passing.
 - [x] 🛑 **TRUST BUT VERIFY**: All commands run and verified.
@@ -171,13 +171,15 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 ## 5. Bug Fixes
 
+### Step 5.1 Steps
+
 - [x] **Step 5.1: Fix Credit Attribution**
   - [x] Implement TDD test case in `credits.test.ts`.
   - [x] Implement recursion/decay in `ops.ts`.
   - [x] Refactor `updateTask` to reduce complexity.
   - [x] Verify UI Projection in `projections.ts`.
 
-**Quality Gates**
+#### Quality Gates (5.1)
 
 - [x] `pnpm fix && pnpm pre-commit` -> Pass
 - [x] **EVIDENCE**: [Walkthrough and Terminal Output](walkthrough.md)
@@ -186,7 +188,7 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 **Goal**: Extract complex logic from React components/hooks into pure, testable domain functions.
 
-### Steps
+### Section 6 Steps
 
 - [x] **Step 6.1: Refactor `useBalanceData`**
   - [x] Extract aggregation logic to `packages/tasklens/src/domain/balance.ts` (or similar).
@@ -200,12 +202,12 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
   - [ ] Unit test the new function.
   - [ ] Simplify component to use the new function.
 
-**Quality Gates**
+#### Quality Gates (6.1)
 
 - [ ] `pnpm fix && pnpm pre-commit` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
-**Completion**
+#### Completion (6.1)
 
 - [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
@@ -228,7 +230,7 @@ Items identified during code review (2024-12-29) for future cleanup.
   - **Requirement**: Establish a "Version Lock" pattern.
     - When an interaction starts (e.g., drag start), "pin" the UI component to the specific Automerge DAG Head (Version A).
     - Ignore all incoming sync/patches for that component while the lock is active.
-    - On interaction end (e.g., drop), commit the change *against Version A*.
+    - On interaction end (e.g., drop), commit the change _against Version A_.
     - Let Automerge handle the merge of (Version A + Local Change) vs (Version B - incoming sync).
   - **Scope**: This is a major architectural change affecting all "Write" interactions (Kanban, Balance, Todo List).
   - **Status**: Deferred to Phase 8 (Architecture Hardening) or distinct "Interaction Stability" phase.
