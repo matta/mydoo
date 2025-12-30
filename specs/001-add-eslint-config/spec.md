@@ -111,7 +111,7 @@ The build system needs to execute linting efficiently, utilizing caching to prev
 - **FR-011**: The style checking process MUST exit with code 0 when only warnings are present.
 - **FR-012**: Turbo MUST execute style checking by delegating to individual `check-<tool>` scripts in each package's `package.json`, ensuring granular caching per tool and package.
 - **FR-013**: The `check-style` task in `turbo.json` MUST be configured with an empty `outputs` array to indicate that only console output should be cached.
-- **FR-014**: ESLint and the `eslint-plugin-import` MUST be installed as development dependencies in the repository root (workspace root).
+- **FR-014**: ESLint and the `eslint-plugin-import-x` (for v9 compatibility) MUST be installed as development dependencies in the repository root (workspace root).
 - **FR-015**: The root `package.json` MUST contain a `check-style` script that executes `turbo run check-style`.
 - **FR-016**: Common ignore patterns (e.g., `dist`, `node_modules`, build artifacts) MUST be centralized in the root `eslint.config.js`.
 - **FR-017**: The root `check-style` command MUST trigger parallel execution of all configured style checkers via distinct Turbo tasks (e.g., `check-eslint`, `check-biome`).
@@ -125,7 +125,7 @@ The build system needs to execute linting efficiently, utilizing caching to prev
 - **FR-025**: Staged style checking tasks MUST be executed sequentially in the root `check-staged` script to ensure reliable execution on transient git state.
 - **FR-026**: The existing `check-staged` script MUST be renamed to `check-context-staged` to follow the project naming guidance.
 - **FR-027**: The root `check-filenames-staged` script MUST be created to run the filename convention check on staged files.
-- **FR-028**: All project documentation (e.g., `AGENTS.md`, `docs/guidance/*.md`) and scripts referencing quality gates MUST be updated to match the new `kebab-case` segment-based task names (e.g., replacing `lint` with `check-style`, `pre-commit` with `check-staged`, `typecheck` with `check-types`, `lint:deps` with `check-deps`). The `pre-commit` script MUST be removed.
+- **FR-028**: All project documentation (e.g., `AGENTS.md`, `docs/guidance/*.md`), CI workflows (e.g., `.github/workflows/ci.yml`), IDE configurations (e.g., `.vscode/settings.json`), and scripts referencing quality gates MUST be updated to match the new `kebab-case` segment-based task names (e.g., replacing `lint` with `check-style`, `pre-commit` with `check-staged`, `typecheck` with `check-types`, `lint:deps` with `check-deps`). The `pre-commit` script MUST be removed.
 - **FR-029**: System MUST provide top-level `check` and `fix` scripts in the root `package.json` and in each package's `package.json`.
 - **FR-030**: The top-level `check` command MUST aggregate and execute all read-only validation tasks (e.g., `check-style`, `check-types`, `check-deps`) in parallel.
 - **FR-031**: The top-level `fix` command MUST aggregate and execute all mutation tasks (e.g., `fix-style`, `fix-format`) sequentially to avoid race conditions.
@@ -134,7 +134,7 @@ The build system needs to execute linting efficiently, utilizing caching to prev
 ### Edge Cases
 
 - **New Packages**: New packages added to the monorepo should easily adopt the standard config.
-- **Plugin Dependencies**: Ensuring `eslint-plugin-import` is available to all packages consuming the config.
+- **Plugin Dependencies**: Ensuring `eslint-plugin-import-x` is available to all packages consuming the config.
 
 ## Success Criteria *(mandatory)*
 

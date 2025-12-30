@@ -28,7 +28,14 @@ import {
   type TunnelState,
   type ViewFilter,
 } from '../types';
-import * as TunnelOps from './ops';
+import {
+  completeTask,
+  createTask,
+  deleteTask,
+  getChildren,
+  getTask,
+  updateTask,
+} from './ops';
 
 /**
  * A store that wraps an Automerge document containing task state.
@@ -100,7 +107,7 @@ export class TunnelStore {
    * @returns The Task object, or undefined if not found.
    */
   getTask(id: TaskID): PersistedTask | undefined {
-    return TunnelOps.getTask(this.doc, id);
+    return getTask(this.doc, id);
   }
 
   /**
@@ -110,7 +117,7 @@ export class TunnelStore {
    * @returns An array of child Task objects in display order.
    */
   getChildren(parentId: TaskID | undefined): PersistedTask[] {
-    return TunnelOps.getChildren(this.doc, parentId);
+    return getChildren(this.doc, parentId);
   }
 
   /**
@@ -151,11 +158,11 @@ export class TunnelStore {
   createTask(props: Partial<PersistedTask>): PersistedTask {
     let newTask: PersistedTask | undefined;
     this.doc = Automerge.change(this.doc, 'Create task', doc => {
-      newTask = TunnelOps.createTask(doc, props);
+      newTask = createTask(doc, props);
     });
     if (!newTask) throw new Error('Failed to create task');
 
-    const task = TunnelOps.getTask(this.doc, newTask.id);
+    const task = getTask(this.doc, newTask.id);
     if (!task) throw new Error('Retrieved task is undefined');
     return task;
   }
@@ -170,9 +177,9 @@ export class TunnelStore {
    */
   updateTask(id: TaskID, props: Partial<PersistedTask>): PersistedTask {
     this.doc = Automerge.change(this.doc, `Update task ${id}`, doc => {
-      TunnelOps.updateTask(doc, id, props);
+      updateTask(doc, id, props);
     });
-    const task = TunnelOps.getTask(this.doc, id);
+    const task = getTask(this.doc, id);
     if (!task) throw new Error('Retrieved task is undefined');
     return task;
   }
@@ -184,7 +191,7 @@ export class TunnelStore {
    */
   completeTask(id: TaskID): void {
     this.doc = Automerge.change(this.doc, `Complete task ${id}`, doc => {
-      TunnelOps.completeTask(doc, id);
+      completeTask(doc, id);
     });
   }
 
@@ -197,7 +204,7 @@ export class TunnelStore {
   deleteTask(id: TaskID): number {
     let deletedCount = 0;
     this.doc = Automerge.change(this.doc, `Delete task ${id}`, doc => {
-      deletedCount = TunnelOps.deleteTask(doc, id);
+      deletedCount = deleteTask(doc, id);
     });
     return deletedCount;
   }

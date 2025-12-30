@@ -4,55 +4,68 @@
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo "Checking filenames for kebab-case compliance..."
+STAGED_MODE=false
+if [ "$1" = "--staged" ]; then
+  STAGED_MODE=true
+  echo "Checking staged filenames for kebab-case compliance..."
+else
+  echo "Checking filenames for kebab-case compliance..."
+fi
 
-# Create a temporary file for the grandfathered list
-GRANDFATHERED_FILE=$(mktemp "${TMPDIR:-/tmp}/grandfathered_files.XXXXXX") || exit 1
-trap 'rm -f "$GRANDFATHERED_FILE"' EXIT
+# Function to get files to check
+get_files() {
+  if [ "$STAGED_MODE" = true ]; then
+    git diff --name-only --cached --diff-filter=ACMR
+  else
+    find . -type f \( \
+        -name "*.md" -o \
+        -name "*.sh" -o \
+        -name "*.yaml" -o \
+        -name "*.yml" -o \
+        -name "*.toml" -o \
+        -name "*.config.js" -o \
+        -name "*.config.ts" \
+      \) \
+      -not -path "./.git/*" \
+      -not -path "*/.git/*" \
+      -not -path "./node_modules/*" \
+      -not -path "*/node_modules/*" \
+      -not -path "./dist/*" \
+      -not -path "*/dist/*" \
+      -not -path "./dev-dist/*" \
+      -not -path "*/dev-dist/*" \
+      -not -path "./build/*" \
+      -not -path "*/build/*" \
+      -not -path "./coverage/*" \
+      -not -path "*/coverage/*" \
+      -not -path "./.turbo/*" \
+      -not -path "*/.turbo/*" \
+      -not -path "./.husky/*" | sed 's|^./||'
+  fi
+}
 
-# Files to ignore (Grandfathered list)
-# We use a grep pattern file for this to handle the list cleanly
-cat <<EOF > "$GRANDFATHERED_FILE"
-EOF
-
-# Find files that violate the convention
-#
-# Exclusions Strategy:
-# 1. System/Generated: .git, node_modules, build artifacts (dist, coverage) - Not source code.
-# 2. Source Code: Delegated to Biome.
-#    Biome is configured to enforce `kebab-case` for ts, js, json, etc.
-#    See `biome.json` > linter > rules > style > useFilenamingConvention.
-VIOLATIONS=$(find . -type f \( \
-    -name "*.md" -o \
-    -name "*.sh" -o \
-    -name "*.yaml" -o \
-    -name "*.yml" -o \
-    -name "*.toml" -o \
-    -name "*.config.js" -o \
-    -name "*.config.ts" \
-  \) \
-  -not -path "./.git/*" \
-  -not -path "*/.git/*" \
-  -not -path "./node_modules/*" \
-  -not -path "*/node_modules/*" \
-  -not -path "./dist/*" \
-  -not -path "*/dist/*" \
-  -not -path "./dev-dist/*" \
-  -not -path "*/dev-dist/*" \
-  -not -path "./build/*" \
-  -not -path "*/build/*" \
-  -not -path "./coverage/*" \
-  -not -path "*/coverage/*" \
-  -not -path "./.turbo/*" \
-  -not -path "*/.turbo/*" \
-  -not -path "./.husky/*" \
-  | grep -E "/[^/]*[A-Z_][^/]*$" \
-  | grep -v -E "/[a-zA-Z0-9_.]+\.md$" \
-  | grep -v -E "/[a-zA-Z0-9_.]+\.sh$" \
-  | grep -vFf "$GRANDFATHERED_FILE")
+# The core logic:
+# 1. Find all relevant files.
+# 2. Filter for those that have Uppercase or Underscore in the filename itself.
+# 3. Exclude (grep -v) specifically allowed patterns.
+VIOLATIONS=$(get_files | grep -E "/?[^/]+[A-Z_][^/]*$" | \
+  grep -v -E "/?AGENTS.md$" | \
+  grep -v -E "/?README.md$" | \
+  grep -v -E "/?CONTRIBUTING.md$" | \
+  grep -v -E "/?TODO.md$" | \
+  grep -v -E "/?GEMINI.md$" | \
+  grep -v -E "/?ROLLING_CONTEXT.md$" | \
+  grep -v -E "/?MASTER_PLAN.md$" | \
+  grep -v -E "/?PHASE_[0-9]+_[A-Z_]+\.md$" | \
+  grep -v -E "/?architecture_variances.md$" | \
+  grep -v -E "/?test_case\.d\.ts$")
 
 if [ -n "$VIOLATIONS" ]; then
-  echo "${RED}❌ Error: The following files do not follow the kebab-case naming convention:${NC}"
+  if [ "$STAGED_MODE" = true ]; then
+    echo "${RED}❌ Error: The following staged files do not follow the kebab-case naming convention:${NC}"
+  else
+    echo "${RED}❌ Error: The following files do not follow the kebab-case naming convention:${NC}"
+  fi
   echo "$VIOLATIONS"
   echo "${RED}Please rename them to kebab-case (e.g., my-file.ts).${NC}"
   exit 1

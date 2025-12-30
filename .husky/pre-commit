@@ -1,4 +1,4 @@
 #!/bin/sh
 
 export PRE_COMMIT_SECRET_REQUIRED=1
-pnpm pre-commit
+pnpm check-staged

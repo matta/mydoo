@@ -21,14 +21,14 @@ Additionally, `ROOT_INBOX_ID` is referenced in designs but missing from the impl
 
 #### Quality Gates (1.1)
 
-- [ ] `pnpm fix && pnpm pre-commit` -> Pass
+- [ ] `pnpm fix && pnpm check` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
 #### Completion (1.1)
 
 - [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`). They must all pass in sequence against the same repository state.
+- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm check`). They must all pass in sequence against the same repository state.
 - [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
 - [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
 - [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint).
@@ -57,14 +57,14 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 #### Quality Gates (2.1)
 
-- [ ] `pnpm fix && pnpm pre-commit` -> Pass
+- [ ] `pnpm fix && pnpm check-staged` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
 #### Completion (2.1)
 
 - [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`). They must all pass in sequence against the same repository state.
+- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm check-staged`). They must all pass in sequence against the same repository state.
 - [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
 - [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
 - [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint).
@@ -84,14 +84,14 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 #### Quality Gates (2.2)
 
-- [ ] `pnpm fix && pnpm pre-commit` -> Pass
+- [ ] `pnpm fix && pnpm check-staged` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
 #### Completion (2.2)
 
 - [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`). They must all pass in sequence against the same repository state.
+- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm check-staged`). They must all pass in sequence against the same repository state.
 - [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
 - [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
 - [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint).
@@ -114,7 +114,7 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 #### Quality Gates (3.1)
 
-- [x] `pnpm fix && pnpm pre-commit` -> Pass
+- [x] `pnpm fix && pnpm check-staged` -> Pass
 - [x] **EVIDENCE**: [Walkthrough and Terminal Output](walkthrough.md)
 
 #### Completion (3.1)
@@ -133,7 +133,7 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 #### Quality Gates (3.2)
 
-- [x] `pnpm fix && pnpm pre-commit` -> Pass
+- [x] `pnpm fix && pnpm check-staged` -> Pass
 - [x] **EVIDENCE**: [Walkthrough and Terminal Output](walkthrough.md)
 
 #### Completion (3.2)
@@ -158,7 +158,7 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 #### Quality Gates (4.1)
 
-- [x] `pnpm fix && pnpm pre-commit` -> Pass
+- [x] `pnpm fix && pnpm check-staged` -> Pass
 - [x] **EVIDENCE**: [Walkthrough and Terminal Output](walkthrough.md)
 
 #### Completion (4.1)
@@ -181,7 +181,7 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 #### Quality Gates (5.1)
 
-- [x] `pnpm fix && pnpm pre-commit` -> Pass
+- [x] `pnpm fix && pnpm check-staged` -> Pass
 - [x] **EVIDENCE**: [Walkthrough and Terminal Output](walkthrough.md)
 
 ## 6. Refactor & Optimization
@@ -204,14 +204,14 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 #### Quality Gates (6.1)
 
-- [ ] `pnpm fix && pnpm pre-commit` -> Pass
+- [ ] `pnpm fix && pnpm check-staged` -> Pass
 - [ ] **EVIDENCE**: Show terminal output of passing tests.
 
 #### Completion (6.1)
 
 - [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
 - [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm pre-commit`). They must all pass in sequence against the same repository state.
+- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm fix && pnpm check-staged`). They must all pass in sequence against the same repository state.
 - [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
 - [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
 - [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint).

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import * as TunnelOps from '../../src/persistence/ops';
+import {completeTask, createTask} from '../../src/persistence/ops';
 import type {TaskID, TunnelState} from '../../src/types';
 import {TaskStatus} from '../../src/types';
 import {
@@ -27,11 +27,11 @@ describe('Credit Attribution & Decay', () => {
     const state = createBaseState();
 
     // Setup: Goal G (root) -> Task T (child)
-    const goal = TunnelOps.createTask(state, {
+    const goal = createTask(state, {
       title: 'Goal G',
       creditIncrement: 1.0,
     });
-    const task = TunnelOps.createTask(state, {
+    const task = createTask(state, {
       title: 'Task T',
       parentId: goal.id,
       creditIncrement: 0.5,
@@ -41,7 +41,7 @@ describe('Credit Attribution & Decay', () => {
     expect(getTask(state, task.id).credits).toBe(0);
 
     // Action: Complete Task T
-    TunnelOps.completeTask(state, task.id);
+    completeTask(state, task.id);
 
     // Assert: T should have credits added, and G should inherit them
     expect(getTask(state, task.id).status).toBe(TaskStatus.Done);
@@ -54,12 +54,12 @@ describe('Credit Attribution & Decay', () => {
     const T0 = 1000000;
     mockCurrentTimestamp(T0);
 
-    const goal = TunnelOps.createTask(state, {
+    const goal = createTask(state, {
       title: 'Goal G',
       credits: 100,
       creditsTimestamp: T0,
     });
-    const task = TunnelOps.createTask(state, {
+    const task = createTask(state, {
       title: 'Task T',
       parentId: goal.id,
       creditIncrement: 10,
@@ -70,7 +70,7 @@ describe('Credit Attribution & Decay', () => {
     mockCurrentTimestamp(T1);
 
     // Action: Complete Task T
-    TunnelOps.completeTask(state, task.id);
+    completeTask(state, task.id);
 
     // Assert:
     // Goal credits should be: (100 * 0.5) + 10 = 60

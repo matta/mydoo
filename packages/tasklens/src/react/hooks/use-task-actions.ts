@@ -1,6 +1,11 @@
 import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
 import {useCallback} from 'react';
-import * as TunnelOps from '../../persistence/ops';
+import {
+  createTask as createTaskOp,
+  deleteTask as deleteTaskOp,
+  moveTask as moveTaskOp,
+  updateTask as updateTaskOp,
+} from '../../persistence/ops';
 import type {CreateTaskOptions, Task, TaskID, TunnelState} from '../../types';
 import {TaskStatus} from '../../types';
 import {useTaskLensDocId} from '../task-lens-provider';
@@ -36,11 +41,7 @@ export function useTaskActions() {
     ): TaskID => {
       const newTaskId = crypto.randomUUID() as TaskID;
       mutate(d => {
-        TunnelOps.createTask(
-          d,
-          {id: newTaskId, title, parentId, ...props},
-          options,
-        );
+        createTaskOp(d, {id: newTaskId, title, parentId, ...props}, options);
       });
       return newTaskId;
     },
@@ -50,7 +51,7 @@ export function useTaskActions() {
   const updateTask = useCallback(
     (id: TaskID, updates: Partial<Task>) => {
       mutate(d => {
-        TunnelOps.updateTask(d, id, updates);
+        updateTaskOp(d, id, updates);
       });
     },
     [mutate],
@@ -59,7 +60,7 @@ export function useTaskActions() {
   const deleteTask = useCallback(
     (id: TaskID) => {
       mutate(d => {
-        TunnelOps.deleteTask(d, id);
+        deleteTaskOp(d, id);
       });
     },
     [mutate],
@@ -72,7 +73,7 @@ export function useTaskActions() {
       afterTaskId: TaskID | undefined,
     ) => {
       mutate(d => {
-        TunnelOps.moveTask(d, id, newParentId, afterTaskId);
+        moveTaskOp(d, id, newParentId, afterTaskId);
       });
     },
     [mutate],

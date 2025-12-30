@@ -70,7 +70,7 @@ export function asDocumentHandle(url: string): DocumentHandle {
 }
 
 /**
- * Validates if the given string is a valid Automerge URL.
+ * Validates if the given string is a valid DocumentHandle.
  * Used for user input validation.
  */
 export function isValidDocumentHandle(url: string): boolean {

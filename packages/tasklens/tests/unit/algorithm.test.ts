@@ -1,8 +1,8 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import {readdirSync, readFileSync} from 'node:fs';
+import {basename, join} from 'node:path';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import * as yaml from 'js-yaml';
+import {load} from 'js-yaml';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 
 import type {
@@ -33,12 +33,7 @@ const ajv = new Ajv();
 addFormats(ajv);
 const validate = ajv.compile(schemaJson);
 
-const FIXTURES_PATH = path.join(
-  process.cwd(),
-  'specs',
-  'compliance',
-  'fixtures',
-);
+const FIXTURES_PATH = join(process.cwd(), 'specs', 'compliance', 'fixtures');
 
 // Explicit list of fixtures to ensure no unexpected files are processed (or missed).
 const EXPECTED_FIXTURES = [
@@ -62,8 +57,7 @@ const EXPECTED_FIXTURES = [
 ].sort();
 
 // Validate that the directory matches exactly the expected list
-const actualFixtures = fs
-  .readdirSync(FIXTURES_PATH)
+const actualFixtures = readdirSync(FIXTURES_PATH)
   .filter((f: string) => f.endsWith('.yaml'))
   .sort();
 
@@ -317,12 +311,9 @@ function assertExpectedProps(
 
 describe('Algorithm Test Suite', () => {
   for (const fixtureFile of fixtureFiles) {
-    const fixtureName = path.basename(fixtureFile, '.yaml');
-    const yamlContent = fs.readFileSync(
-      path.join(FIXTURES_PATH, fixtureFile),
-      'utf8',
-    );
-    const testCase = yaml.load(yamlContent);
+    const fixtureName = basename(fixtureFile, '.yaml');
+    const yamlContent = readFileSync(join(FIXTURES_PATH, fixtureFile), 'utf8');
+    const testCase = load(yamlContent);
 
     if (!validate(testCase)) {
       throw new Error(

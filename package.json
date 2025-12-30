@@ -6,10 +6,13 @@
   "devDependencies": {
     "@biomejs/biome": "^2.3.10",
     "@commitlint/cli": "^20.2.0",
+    "eslint": "catalog:",
+    "eslint-plugin-import-x": "catalog:",
     "husky": "catalog:",
     "knip": "^5.78.0",
     "turbo": "^2.7.2",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:"
   },
   "engines": {
     "node": ">=24"
@@ -18,21 +21,29 @@
   "license": "ISC",
   "packageManager": "pnpm@10.26.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "fix": "biome check --write .",
+    "check": "turbo run check --filter=!//",
+    "fix": "turbo run fix --filter=!//",
+    "fix-biome": "turbo run fix-biome --filter=!//",
+    "fix-biome:root": "biome check --write .",
     "format": "biome format .",
-    "lint": "turbo lint //#lint:root",
-    "lint:root": "biome check .",
-    "lint:deps": "knip",
-    "lint:staged": "biome check --staged --no-errors-on-unmatched",
-    "lint:filenames": "./scripts/check-filenames.sh",
+    "check-biome": "turbo check-biome --filter=!//",
+    "check-biome:root": "biome check .",
+    "check-eslint": "turbo check-eslint --filter=!//",
+    "check-style": "turbo check-style --filter=!//",
+    "check-deps": "knip",
+    "check-biome-staged": "biome check --staged --no-errors-on-unmatched",
+    "check-eslint-staged": "./scripts/check-eslint-staged.sh",
+    "check-filenames-staged": "./scripts/check-filenames.sh --staged",
+    "check-staged": "./scripts/check-staged.sh",
+    "check-filenames": "./scripts/check-filenames.sh",
     "prepare": "husky",
-    "check:staged": "./scripts/check-staged.sh",
-    "pre-commit": "./scripts/pre-commit.sh",
+    "check-context-staged": "./scripts/check-context-staged.sh",
     "test": "turbo test",
     "test:e2e": "turbo test:e2e",
-    "typecheck": "turbo typecheck"
+    "check-types": "turbo check-types --filter=!//"
   }
 }
