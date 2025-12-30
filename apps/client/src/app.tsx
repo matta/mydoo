@@ -17,7 +17,7 @@ function App() {
         {docUrl ? (
           <TaskLensProvider docId={docUrl}>
             <SeedData />
-            <AppShellContainer />
+            <AppShellContainer docUrl={docUrl} />
           </TaskLensProvider>
         ) : (
           // biome-ignore lint/complexity/noUselessFragments: unblocks TS build

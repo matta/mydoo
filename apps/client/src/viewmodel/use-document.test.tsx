@@ -1,7 +1,7 @@
 import type {DocumentId} from '@automerge/automerge-repo';
 import {generateAutomergeUrl, Repo} from '@automerge/automerge-repo';
 import type {TunnelState} from '@mydoo/tasklens';
-import {renderHook} from '@testing-library/react';
+import {renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
 import {createTestWrapper} from '../test/setup';
@@ -17,45 +17,49 @@ describe('useDocument', () => {
       network: [], // No network for tests
     });
 
-    // Mock window.location
-    window.location.hash = '';
+    // Clear localStorage
+    localStorage.clear();
   });
 
   afterEach(() => {
-    window.location.hash = '';
+    localStorage.clear();
   });
 
-  it('should create a new document if no hash is present', async () => {
+  it('should create a new document if no ID in storage', async () => {
     const wrapper = createTestWrapper(repo);
     const {result} = renderHook(() => useDocument(), {wrapper});
 
+    // Wait for effect to create document and update state
+    await waitFor(() => {
+      expect(result.current).toBeTruthy();
+    });
+
     // It should generate a handle (opaque string)
-    expect(result.current).toBeTruthy();
     expect(typeof result.current).toBe('string');
 
-    // Hash should be updated
-    expect(window.location.hash).toBe(`#${result.current}`);
+    // Storage should be updated
+    expect(localStorage.getItem('mydoo:doc_id')).toBe(result.current);
 
     // Document should be initialized
-
     const handle = await repo.find<TunnelState>(
       result.current as unknown as DocumentId,
     );
 
     await handle.whenReady();
-
     const doc = handle.doc();
-
     expect(doc.nextTaskId).toBe(1);
   });
 
-  it('should use existing hash if present', () => {
+  it('should use existing ID from storage if present', async () => {
     const existingId = generateAutomergeUrl();
-    window.location.hash = `#${existingId}`;
+    localStorage.setItem('mydoo:doc_id', existingId);
 
     const wrapper = createTestWrapper(repo);
     const {result} = renderHook(() => useDocument(), {wrapper});
 
-    expect(result.current).toBe(existingId);
+    // Even if it's synchronous in this branch, it's safer to be consistent
+    await waitFor(() => {
+      expect(result.current).toBe(existingId);
+    });
   });
 });

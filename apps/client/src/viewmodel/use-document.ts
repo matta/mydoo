@@ -1,43 +1,66 @@
+import {isValidAutomergeUrl} from '@automerge/automerge-repo';
 import {useRepo} from '@automerge/automerge-repo-react-hooks';
-import {
-  asDocumentHandle,
-  type DocumentHandle,
-  type TunnelState,
-} from '@mydoo/tasklens';
-import {useState} from 'react';
+import {asDocumentHandle, type DocumentHandle} from '@mydoo/tasklens';
+import {useEffect, useState} from 'react';
+import {createNewDocument} from './document-utils';
+
+const STORAGE_KEY = 'mydoo:doc_id';
 
 /**
  * useDocument Hook
  *
- * Managing the Automerge document lifecycle for the application.
+ * Manages the lifecycle of the primary Automerge document for the application.
  *
- * Responsibilities:
- * 1. Retrieves the document ID (URL) from the window location hash.
- * 2. If no hash exists, creates a new Automerge document with an initial empty state.
- * 3. Updates the window hash to match the new document URL.
- * 4. Returns the Document URL for use by the TaskLensProvider.
+ * Behavior:
+ * 1. Checks `localStorage` for a persisted Document ID.
+ * 2. If a valid ID exists, returns it immediately.
+ * 3. If no ID exists (first run), creates a new initialized document via the Repo.
+ * 4. Persists the new Document ID to `localStorage` for future sessions.
  *
- * @returns {DocumentHandle} The URL of the current Automerge document.
+ * @returns {DocumentHandle | undefined} The handle (URL) of the current document.
+ *
+ * **Return Value States:**
+ * - `DocumentHandle`: The system found a valid ID in `localStorage` or finished creating a new one.
+ * - `undefined`: The system is in the **Bootstrap Phase**. No ID was found in storage.
+ *
+ * **The Bootstrap Mechanism:**
+ * When `undefined` is returned, a side-effect (`useEffect`) immediately triggers:
+ * 1. Calls `repo.create<TunnelState>()` to generate a new UUID.
+ * 2. Applies the default schema (empty `tasks` and `places` maps) via `initializeTunnelState`.
+ * 3. Persists the new ID to `localStorage`.
+ * 4. Updates state to trigger a re-render with the valid `DocumentHandle`.
+ *
+ * **Why is initialization async?**
+ * Why not create the document synchronously in `useState`?
+ * - **React Purity:** State initializers must be pure. Creating a document mutates the
+ *   Automerge Repo and `localStorage`, which are side effects.
+ * - **Concurrent Mode:** In valid React code, the initializer might run multiple times
+ *   before a commit, potentially creating orphaned documents if done synchronously.
+ * - **Separation:** Reading from storage is pure (no mutations), so it's safe
+ *   in the initializer. Creating new resources is impure (mutates the Repo),
+ *   so it must live in a `useEffect`.
  */
-export function useDocument() {
+export function useDocument(): DocumentHandle | undefined {
   const repo = useRepo();
-  const [docUrl] = useState<DocumentHandle>(() => {
-    const hash = window.location.hash.slice(1);
-    // Explicitly cast the hash string to our opaque type
-    if (hash) return asDocumentHandle(hash);
+  const [docUrl, setDocUrl] = useState<DocumentHandle | undefined>(() => {
+    // Initial state setup (runs once)
+    const storedId = localStorage.getItem(STORAGE_KEY);
 
-    const handle = repo.create<TunnelState>();
-    handle.change((doc: TunnelState) => {
-      doc.tasks = {};
-      doc.places = {};
-      doc.rootTaskIds = [];
-      doc.nextTaskId = 1;
-      doc.nextPlaceId = 1;
-    });
-    const url = handle.url;
-    window.location.hash = url;
-    return asDocumentHandle(url);
+    if (storedId && isValidAutomergeUrl(storedId)) {
+      return asDocumentHandle(storedId);
+    }
+
+    // Return undefined to indicate initialization needed
+    return undefined;
   });
+
+  useEffect(() => {
+    if (!docUrl) {
+      const handle = createNewDocument(repo);
+      localStorage.setItem(STORAGE_KEY, handle);
+      setDocUrl(handle);
+    }
+  }, [docUrl, repo]);
 
   return docUrl;
 }

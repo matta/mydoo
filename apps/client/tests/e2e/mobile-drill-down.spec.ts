@@ -5,14 +5,10 @@ test.describe('Mobile Drill-Down Navigation', () => {
   test.use({viewport: {width: 375, height: 667}});
 
   test.beforeEach(async ({page}) => {
-    // Seed data (assuming seed utility is available or default state)
-    // For now, we rely on default state or dev seeding if exposed.
-    // Ideally we should use a clean slate or known state.
-    // The app seems to start blank or with local storage.
-    // We can use the creation UI to make structure if needed,
-    // or assume we can inject data.
-    // Let's assume we start fresh and create some tasks.
+    // Clear localStorage and navigate with seed parameter to ensure clean, seeded state
     await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+    await page.goto('/?seed=true');
 
     // Switch to Plan View via mobile tab bar
     const planTab = page.getByRole('button', {name: 'Plan'}).last(); // Footer is last usually
@@ -23,17 +19,7 @@ test.describe('Mobile Drill-Down Navigation', () => {
   test('Strict Viewport Mode: Mobile shows arrows, no chevrons', async ({
     page,
   }) => {
-    // Seed Data
-    const devButton = page.getByRole('button', {name: 'Dev'});
-    if (await devButton.isVisible()) {
-      await devButton.click();
-      await page.getByText('Seed Data').click();
-    } else {
-      // Fallback: create manually if feasible, or skip if we can't seed
-      console.log('Dev menu not found, skipping seed');
-    }
-
-    // Now we should have "Deep Work Project", etc.
+    // Data is seeded via ?seed=true in beforeEach
     const rootTask = page
       .getByText('Deep Work Project', {exact: false})
       .first();
@@ -50,13 +36,7 @@ test.describe('Mobile Drill-Down Navigation', () => {
   });
 
   test('Drill-down interaction', async ({page}) => {
-    // Seed Data
-    const devButton = page.getByRole('button', {name: 'Dev'});
-    if (await devButton.isVisible()) {
-      await devButton.click();
-      await page.getByText('Seed Data').click();
-    }
-
+    // Data is seeded via ?seed=true in beforeEach
     // Find a parent task
     const parentRow = page
       .locator('[data-testid="task-item"]')
@@ -88,11 +68,7 @@ test.describe('Mobile Drill-Down Navigation', () => {
   });
 
   test('4-level deep navigation', async ({page}) => {
-    const devButton = page.getByRole('button', {name: 'Dev'});
-    if (await devButton.isVisible()) {
-      await devButton.click();
-      await page.getByText('Seed Data').click();
-    }
+    // Data is seeded via ?seed=true in beforeEach
 
     // 1. Deep Work Project
     await page

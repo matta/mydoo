@@ -319,6 +319,11 @@ class PlanPage implements PlanFixture {
   // --- Lifecycle / Setup ---
 
   async primeWithSampleData(): Promise<void> {
+    // Clear localStorage first to ensure clean state
+    await this.page.goto('/');
+    await this.page.evaluate(() => localStorage.clear());
+
+    // Now navigate to seed URL
     await this.page.goto('/?seed=true');
     // Ensure the app is loaded by waiting for the Plan button
     await expect(

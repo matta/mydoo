@@ -5,6 +5,7 @@ import {
   IconCheckbox,
   IconDotsVertical,
   IconListTree,
+  IconNetwork,
   IconScale,
   IconSeeding,
 } from '@tabler/icons-react';
@@ -15,20 +16,34 @@ import {TaskEditorContainer} from '../../viewmodel/containers/task-editor-contai
 import {useNavigationState} from '../../viewmodel/ui/use-navigation-state';
 import {BalanceViewContainer} from '../views/balance/balance-view-container';
 import {PlanViewContainer} from '../views/plan/plan-view-container';
+import {ConnectionModal} from './connection-modal';
 
 // Height of the header and footer constants for consistent layout
 const HEADER_HEIGHT = 60;
 const FOOTER_HEIGHT = 60;
 
 /**
+ * Props for the AppShellContainer.
+ */
+interface AppShellContainerProps {
+  /** The current Automerge document URL. */
+  docUrl: string;
+}
+
+/**
  * The main application shell component that provides the persistent layout structure.
  */
-export function AppShellContainer() {
+export function AppShellContainer({docUrl}: AppShellContainerProps) {
   // Global navigation state (Do vs Plan)
   const {activeTab, setActiveTab} = useNavigationState();
 
   // Mobile drawer state (Burger menu)
   const [mobileNavOpened, {toggle: toggleMobileNav}] = useDisclosure();
+
+  const [
+    connectionModalOpened,
+    {open: openConnectionModal, close: closeConnectionModal},
+  ] = useDisclosure(false);
 
   // Access actions for the Dev Tools menu actions (e.g. Seeding)
   const actions = useTaskActions();
@@ -63,31 +78,42 @@ export function AppShellContainer() {
             <Title order={3}>Mydoo</Title>
           </Group>
 
-          {/* Dev Tools Menu: Only visible in development mode */}
-          {import.meta.env.DEV && (
-            <Menu shadow="md" width={200}>
-              <Menu.Target>
-                <Button
-                  variant="subtle"
-                  size="sm"
-                  px={4}
-                  leftSection={<IconDotsVertical size={20} />}
-                >
-                  Dev
-                </Button>
-              </Menu.Target>
+          {/* Options Menu */}
+          <Menu shadow="md" width={200}>
+            <Menu.Target>
+              <Button
+                variant="subtle"
+                size="sm"
+                px={4}
+                leftSection={<IconDotsVertical size={20} />}
+              >
+                Options
+              </Button>
+            </Menu.Target>
 
-              <Menu.Dropdown>
-                <Menu.Label>Development</Menu.Label>
-                <Menu.Item
-                  leftSection={<IconSeeding size={14} />}
-                  onClick={() => seedHierarchicalData(actions)}
-                >
-                  Seed Data
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          )}
+            <Menu.Dropdown>
+              <Menu.Label>General</Menu.Label>
+              <Menu.Item
+                leftSection={<IconNetwork size={14} />}
+                onClick={openConnectionModal}
+              >
+                Connection
+              </Menu.Item>
+
+              {import.meta.env.DEV && (
+                <>
+                  <Menu.Divider />
+                  <Menu.Label>Development</Menu.Label>
+                  <Menu.Item
+                    leftSection={<IconSeeding size={14} />}
+                    onClick={() => seedHierarchicalData(actions)}
+                  >
+                    Seed Data
+                  </Menu.Item>
+                </>
+              )}
+            </Menu.Dropdown>
+          </Menu>
         </Group>
       </AppShell.Header>
 
@@ -136,6 +162,11 @@ export function AppShellContainer() {
         {activeTab === 'balance' && <BalanceViewContainer />}
         <TaskEditorContainer />
         <MovePickerContainer />
+        <ConnectionModal
+          opened={connectionModalOpened}
+          onClose={closeConnectionModal}
+          currentUrl={docUrl}
+        />
       </AppShell.Main>
 
       {/* Mobile Bottom Tab Bar: Only visible on small screens */}
