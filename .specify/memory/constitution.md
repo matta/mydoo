@@ -1,19 +1,10 @@
 <!--
 Sync Impact Report:
-- Version Change: 0.0.0 (New) -> 1.0.0
-- Added Principles:
-  - I. Fidelity First (Testing Strategy)
-  - II. Executable Specifications (BDD/Ubiquitous Language)
-  - III. Local-First Architecture (Offline/CRDTs)
-  - IV. Strict Git Hygiene (Workflow)
-  - V. Derived State Separation (Architecture)
-- Added Sections:
-  - Testing Strategy (3-Tier)
-  - Development Workflow
+- Version Change: 1.0.0 -> 1.1.0
+- Modified Sections:
+  - Development Workflow > Package Management: Renamed `pre-commit` to `check-staged`.
 - Templates requiring updates:
-  - .specify/templates/plan-template.md (Check for constitution alignment)
-  - .specify/templates/spec-template.md (Check for Executable Specs alignment)
-  - .specify/templates/tasks-template.md (Check for task types)
+  - None (validated via search)
 -->
 # mydoo Constitution
 
@@ -57,7 +48,7 @@ Clear separation between Domain State and UI State.
 
 ### Package Management
 *   Use `pnpm` for all operations.
-*   Run `pnpm fix && pnpm pre-commit` before any commit request.
+*   Run `pnpm fix && pnpm check-staged` before any commit request.
 
 ### Documentation
 *   New code requires documentation comments explaining *why*, not just *what*.
@@ -76,4 +67,4 @@ This Constitution supersedes all other practices. Conflicts must be resolved by 
 ### Compliance
 All Pull Requests and architectural decisions must be verified against these principles.
 
-**Version**: 1.0.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2025-12-30
+**Version**: 1.1.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2025-12-30
