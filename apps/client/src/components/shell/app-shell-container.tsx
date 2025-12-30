@@ -51,6 +51,11 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
   // Responsive Breakpoint: 768px (sm)
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
+  const handleReset = () => {
+    localStorage.removeItem('mydoo:doc_id');
+    window.location.href = '/';
+  };
+
   return (
     <AppShell
       header={{height: HEADER_HEIGHT}}
@@ -166,6 +171,7 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
           opened={connectionModalOpened}
           onClose={closeConnectionModal}
           currentUrl={docUrl}
+          onReset={handleReset}
         />
       </AppShell.Main>
 

@@ -107,6 +107,20 @@ expect(result.current.task).toBeNull();
 
 ---
 
+## Linting
+
+### Suppression is a Last Resort
+
+Suppressing lint errors is a last resort -- there is almost always a better way.
+
+**Rationale**: Bypassing checks strictly reduces the safety and maintainability of the codebase.
+
+### Avoid Casting through `unknown`
+
+Casting through `unknown` (e.g., `foo as unknown as Bar`) is just as suspicious as suppressing a lint. Use this as a last resort; there is almost always a better way.
+
+---
+
 ## General
 
 ### Verification Before Commit

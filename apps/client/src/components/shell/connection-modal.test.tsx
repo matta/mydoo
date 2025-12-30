@@ -15,6 +15,7 @@ describe('ConnectionModal', () => {
         opened={true}
         onClose={() => {}}
         currentUrl={currentUrl}
+        onReset={() => {}}
       />,
       {wrapper},
     );
@@ -34,6 +35,7 @@ describe('ConnectionModal', () => {
         opened={true}
         onClose={onClose}
         currentUrl={currentUrl}
+        onReset={() => {}}
       />,
       {wrapper},
     );
@@ -42,5 +44,30 @@ describe('ConnectionModal', () => {
     await userEvent.click(closeButton);
 
     expect(closed).toBe(true);
+  });
+
+  it('should call onReset when Create New Document button is clicked', async () => {
+    const wrapper = createTestWrapper();
+    let reset = false;
+    const onReset = () => {
+      reset = true;
+    };
+
+    render(
+      <ConnectionModal
+        opened={true}
+        onClose={() => {}}
+        currentUrl={currentUrl}
+        onReset={onReset}
+      />,
+      {wrapper},
+    );
+
+    const resetButton = screen.getByRole('button', {
+      name: /create new document/i,
+    });
+    await userEvent.click(resetButton);
+
+    expect(reset).toBe(true);
   });
 });

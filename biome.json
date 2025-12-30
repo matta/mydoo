@@ -17,6 +17,7 @@
       "!**/.vercel",
       "!**/node_modules",
       "!**/pnpm-lock.yaml",
+      "!**/.features-gen",
       "!**/*.d.ts"
     ]
   },

@@ -10,6 +10,8 @@ interface ConnectionModalProps {
   onClose: () => void;
   /** The current Automerge document URL. */
   currentUrl: string;
+  /** Callback fired when the user requests to reset/create a new document. */
+  onReset: () => void;
 }
 
 /**
@@ -25,6 +27,7 @@ export function ConnectionModal({
   opened,
   onClose,
   currentUrl,
+  onReset,
 }: ConnectionModalProps) {
   return (
     <Modal opened={opened} onClose={onClose} title="Connection Info">
@@ -33,7 +36,18 @@ export function ConnectionModal({
           Your data is stored locally. This is your Document ID:
         </Text>
 
-        <Code block>{currentUrl}</Code>
+        <Code block data-testid="document-id">
+          {currentUrl}
+        </Code>
+
+        <Button
+          variant="outline"
+          color="red"
+          onClick={onReset}
+          data-testid="reset-document-button"
+        >
+          Create New Document
+        </Button>
 
         <Button fullWidth onClick={onClose}>
           Close

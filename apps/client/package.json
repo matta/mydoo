@@ -26,6 +26,7 @@
     "@vitejs/plugin-react": "catalog:",
     "@vitest/browser": "^4.0.16",
     "@vitest/browser-playwright": "^4.0.16",
+    "playwright-bdd": "^8.4.2",
     "postcss": "catalog:",
     "postcss-preset-mantine": "catalog:",
     "postcss-simple-vars": "catalog:",
