@@ -1,50 +1,79 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+- Version Change: 0.0.0 (New) -> 1.0.0
+- Added Principles:
+  - I. Fidelity First (Testing Strategy)
+  - II. Executable Specifications (BDD/Ubiquitous Language)
+  - III. Local-First Architecture (Offline/CRDTs)
+  - IV. Strict Git Hygiene (Workflow)
+  - V. Derived State Separation (Architecture)
+- Added Sections:
+  - Testing Strategy (3-Tier)
+  - Development Workflow
+- Templates requiring updates:
+  - .specify/templates/plan-template.md (Check for constitution alignment)
+  - .specify/templates/spec-template.md (Check for Executable Specs alignment)
+  - .specify/templates/tasks-template.md (Check for task types)
+-->
+# mydoo Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Fidelity First
+Test environments must mirror production reality as closely as possible. Avoid simulated environments (like JSDOM) for core logic.
+*   **Tier 1 (Logic):** Node.js (Native WASM performance).
+*   **Tier 2 (Components):** Vitest Browser Mode (Real `IndexedDB`/`TextEncoder`).
+*   **Tier 3 (Journeys):** Playwright (Full multi-tab sync, offline simulation).
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Executable Specifications
+Tests are high-level narratives using the project's Ubiquitous Language.
+*   **Ubiquitous Language:** ALWAYS use domain terms (`Inbox`, `Plan`, `Do`, `Balance`, `Context`). Reject implementation terms (`click`, `button`) in spec layers.
+*   **Structure:** Use Gherkin-style `Given/When/Then` comments or steps to define intent clearly.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Local-First Architecture
+The application is client-centric, offline-capable, and relies on CRDTs (Automerge) for state.
+*   **State:** Trust the local store (IndexedDB) as the source of truth.
+*   **Sync:** Synchronization is a background process; the UI never blocks on network.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Strict Git Hygiene
+Git operations must be explicit and safe.
+*   **Clean Tree:** No work begins without a clean working directory.
+*   **Explicit Commands:** `git commit` and `git push` REQUIRE explicit user command. No inference.
+*   **Foreground Only:** Commits run synchronously to ensure hooks pass.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Derived State Separation
+Clear separation between Domain State and UI State.
+*   **Selectors:** Use for domain concepts, shared data, or expensive calculations (Global).
+*   **Hooks:** Use for tightly coupled local UI state or trivial transformations (Local).
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Testing Strategy
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### 3-Tier Architecture
+1.  **Pure Logic:** Test strictly in Node.js.
+2.  **Components:** Test in Browser Mode (Goal). Mock `AutomergeRepo` networking if needed.
+3.  **E2E:** Full journeys in Playwright.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### Package Management
+*   Use `pnpm` for all operations.
+*   Run `pnpm fix && pnpm pre-commit` before any commit request.
+
+### Documentation
+*   New code requires documentation comments explaining *why*, not just *what*.
+*   Maintain `ROLLING_CONTEXT.md` for cross-session memory.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### Supremacy
+This Constitution supersedes all other practices. Conflicts must be resolved by amending this document.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+### Amendments
+*   **Major (X.0.0):** Principle removals or redefinitions.
+*   **Minor (0.X.0):** New principles or guidance expansion.
+*   **Patch (0.0.X):** Clarifications and fixes.
+
+### Compliance
+All Pull Requests and architectural decisions must be verified against these principles.
+
+**Version**: 1.0.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2025-12-30

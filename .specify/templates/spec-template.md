@@ -26,11 +26,11 @@
 
 **Why this priority**: [Explain the value and why it has this priority level]
 
-**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
+**Independent Test**: [Describe how this can be tested independently]
 
-**Acceptance Scenarios**:
+**Acceptance Scenarios** (Use Ubiquitous Language & Gherkin style):
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** [Domain State, e.g., "a task in Inbox"], **When** [Action], **Then** [Outcome]
 2. **Given** [initial state], **When** [action], **Then** [expected outcome]
 
 ---
