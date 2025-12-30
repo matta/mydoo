@@ -26,7 +26,7 @@ export default tseslint.config(
       sourceType: 'module',
     },
     rules: {
-      'import-x/no-namespace': 'warn',
+      'import-x/no-namespace': 'error',
     },
   },
 );

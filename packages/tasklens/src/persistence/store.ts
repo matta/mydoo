@@ -16,8 +16,13 @@
  *
  * The store delegates actual mutations to the pure functions in `ops.ts`.
  */
-import * as Automerge from '@automerge/automerge';
-
+import {
+  change,
+  type Doc,
+  from as fromState,
+  load,
+  save,
+} from '@automerge/automerge';
 import {getPrioritizedTasks} from '../domain/priority';
 import {
   ANYWHERE_PLACE_ID,
@@ -64,7 +69,7 @@ export class TunnelStore {
    * The underlying Automerge document.
    * This is a proxy object that tracks mutations for synchronization.
    */
-  public doc: Automerge.Doc<TunnelState>;
+  public doc: Doc<TunnelState>;
 
   /**
    * Creates a new TunnelStore.
@@ -80,9 +85,9 @@ export class TunnelStore {
           `'${ANYWHERE_PLACE_ID}' is a reserved Place ID and cannot be defined.`,
         );
       }
-      this.doc = Automerge.from(initialState);
+      this.doc = fromState(initialState);
     } else {
-      this.doc = Automerge.from({
+      this.doc = fromState({
         tasks: {},
         places: {},
         rootTaskIds: [],
@@ -157,7 +162,7 @@ export class TunnelStore {
    */
   createTask(props: Partial<PersistedTask>): PersistedTask {
     let newTask: PersistedTask | undefined;
-    this.doc = Automerge.change(this.doc, 'Create task', doc => {
+    this.doc = change(this.doc, 'Create task', doc => {
       newTask = createTask(doc, props);
     });
     if (!newTask) throw new Error('Failed to create task');
@@ -176,7 +181,7 @@ export class TunnelStore {
    * @throws Error if the task does not exist.
    */
   updateTask(id: TaskID, props: Partial<PersistedTask>): PersistedTask {
-    this.doc = Automerge.change(this.doc, `Update task ${id}`, doc => {
+    this.doc = change(this.doc, `Update task ${id}`, doc => {
       updateTask(doc, id, props);
     });
     const task = getTask(this.doc, id);
@@ -190,7 +195,7 @@ export class TunnelStore {
    * @param id - The ID of the task to complete.
    */
   completeTask(id: TaskID): void {
-    this.doc = Automerge.change(this.doc, `Complete task ${id}`, doc => {
+    this.doc = change(this.doc, `Complete task ${id}`, doc => {
       completeTask(doc, id);
     });
   }
@@ -203,7 +208,7 @@ export class TunnelStore {
    */
   deleteTask(id: TaskID): number {
     let deletedCount = 0;
-    this.doc = Automerge.change(this.doc, `Delete task ${id}`, doc => {
+    this.doc = change(this.doc, `Delete task ${id}`, doc => {
       deletedCount = deleteTask(doc, id);
     });
     return deletedCount;
@@ -247,7 +252,7 @@ export class TunnelStore {
    * @returns A Uint8Array containing the serialized document.
    */
   save(): Uint8Array {
-    return Automerge.save(this.doc);
+    return save(this.doc);
   }
 
   /**
@@ -261,7 +266,7 @@ export class TunnelStore {
    * const restoredStore = TunnelStore.load(bytes);
    */
   static load(data: Uint8Array): TunnelStore {
-    const doc = Automerge.load<TunnelState>(data);
+    const doc = load<TunnelState>(data);
     const store = new TunnelStore();
     store.doc = doc;
     return store;
