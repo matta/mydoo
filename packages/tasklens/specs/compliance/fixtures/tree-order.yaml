@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schemas/test_case.schema.json
+# yaml-language-server: $schema=../schemas/test-case.schema.json
 name: Tree Order
 description: >
   Verifies that the default tie-breaker for tasks with identical scores is their

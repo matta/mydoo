@@ -93,8 +93,12 @@ export interface ViewFilter {
 export interface PriorityOptions {
   /** If true, include tasks with `visibility: false`. Defaults to false. */
   includeHidden?: boolean;
-  /** If true, include acknowledged done tasks. Defaults to false. */
-  includeDone?: boolean;
+  /**
+   * Filter mode for determining which tasks to include.
+   * - 'do-list' (default): Hides "Done" tasks unless they are unacknowledged.
+   * - 'plan-outline': Shows all tasks regardless of status/acknowledgement.
+   */
+  mode?: 'do-list' | 'plan-outline';
 }
 
 /**

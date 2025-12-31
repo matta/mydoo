@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schemas/test_case.schema.json
+# yaml-language-server: $schema=../schemas/test-case.schema.json
 name: Visibility Logic
 description: >
   Tests complex visibility logic involving Place contexts, Operating Hours, and

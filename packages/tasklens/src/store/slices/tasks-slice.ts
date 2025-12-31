@@ -58,7 +58,7 @@ export const syncDoc = createAsyncThunk(
       {},
       {
         includeHidden: true,
-        includeDone: true,
+        mode: 'plan-outline',
       },
     );
 

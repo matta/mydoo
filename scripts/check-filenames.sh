@@ -58,7 +58,7 @@ VIOLATIONS=$(get_files | grep -E "/?[^/]+[A-Z_][^/]*$" | \
   grep -v -E "/?MASTER_PLAN.md$" | \
   grep -v -E "/?PHASE_[0-9]+_[A-Z_]+\.md$" | \
   grep -v -E "/?architecture_variances.md$" | \
-  grep -v -E "/?test_case\.d\.ts$")
+  grep -v -E "/?test-case\.d\.ts$")
 
 if [ -n "$VIOLATIONS" ]; then
   if [ "$STAGED_MODE" = true ]; then

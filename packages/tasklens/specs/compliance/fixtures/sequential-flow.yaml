@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schemas/test_case.schema.json
+# yaml-language-server: $schema=../schemas/test-case.schema.json
 name: Sequential Blocking
 description:
   Verify that in a sequential group, only the first pending task is active
@@ -44,7 +44,8 @@ steps:
       task_updates:
         - id: Step_A
           status: Done
-    expected_order: ['Step_A', 'Step_B']
+          is_acknowledged: true
+    expected_order: ['Step_B']
     expected_props:
       - id: Step_A
         score: 1.0 # Completed, but score remains high (just filtered out)
@@ -62,7 +63,8 @@ steps:
       task_updates:
         - id: Step_B
           status: Done
-    expected_order: ['Step_A', 'Step_B', 'Step_C']
+          is_acknowledged: true
+    expected_order: ['Step_C']
     expected_props:
       - id: Step_B
         is_visible: true

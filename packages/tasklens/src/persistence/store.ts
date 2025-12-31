@@ -240,7 +240,7 @@ export class TunnelStore {
   ): ComputedTask[] {
     return getPrioritizedTasks(this.doc, viewFilter, {
       includeHidden: true,
-      includeDone: true,
+      mode: 'plan-outline',
       ...options,
     });
   }

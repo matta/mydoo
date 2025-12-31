@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schemas/test_case.schema.json
+# yaml-language-server: $schema=../schemas/test-case.schema.json
 name: Root Level Importance Reproduction
 description: >
   Verifies that a higher importance root task's children appear before a lower importance

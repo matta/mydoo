@@ -180,6 +180,9 @@
                   "due_date": {
                     "type": ["string", "null"],
                     "format": "date-time"
+                  },
+                  "is_acknowledged": {
+                    "type": "boolean"
                   }
                 }
               }

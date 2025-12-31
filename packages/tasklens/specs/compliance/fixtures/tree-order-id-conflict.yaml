@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schemas/test_case.schema.json
+# yaml-language-server: $schema=../schemas/test-case.schema.json
 name: Tree Order vs ID Order (Robust)
 description:
   Verify that siblings appear in the order defined in the hierarchy (Tree

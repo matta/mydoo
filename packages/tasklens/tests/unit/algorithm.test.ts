@@ -9,8 +9,8 @@ import type {
   Place as PlaceInput,
   TaskInput,
   TunnelAlgorithmTestCaseSchema,
-} from '../../specs/compliance/schemas/test_case';
-import schemaJson from '../../specs/compliance/schemas/test_case.schema.json';
+} from '../../specs/compliance/schemas/test-case';
+import schemaJson from '../../specs/compliance/schemas/test-case.schema.json';
 import {TunnelStore} from '../../src/persistence/store';
 import {
   type EnrichedTask,
@@ -41,6 +41,7 @@ const EXPECTED_FIXTURES = [
   'boost-importance.yaml',
   'boost-lead-time.yaml',
   'complex-mutation.yaml',
+  'completion-acknowledgement.yaml',
   'decay.yaml',
   'lead-time-edge-cases.yaml',
   'lead-time.yaml',
@@ -194,15 +195,11 @@ function applyTaskUpdates(
     desired_credits?: number;
     importance?: number;
     due_date?: string | null | undefined;
+    is_acknowledged?: boolean;
   }>,
 ): void {
   for (const update of updates) {
     const {id, ...props} = update;
-
-    if (props.status === 'Done') {
-      store.completeTask(id as TaskID);
-      continue;
-    }
 
     const taskProps: Partial<PersistedTask> = {};
 
@@ -229,6 +226,10 @@ function applyTaskUpdates(
             : undefined,
         };
       }
+    }
+
+    if (props.is_acknowledged !== undefined) {
+      taskProps.isAcknowledged = props.is_acknowledged;
     }
 
     store.updateTask(id as TaskID, taskProps);
@@ -389,7 +390,7 @@ describe('Algorithm Test Suite', () => {
           // Get ALL tasks to verify properties (even on hidden/zero-priority tasks)
           const allTasks = store.dumpCalculatedStateForTest(viewFilter, {
             includeHidden: true,
-            includeDone: true,
+            mode: 'plan-outline',
           });
 
           const computedMap = new Map<TaskID, EnrichedTask>();

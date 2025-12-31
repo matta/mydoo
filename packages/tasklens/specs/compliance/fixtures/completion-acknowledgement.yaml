@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=../schemas/test-case.schema.json
+name: Completion Acknowledgement
+description: >
+  Verifies that tasks marked as "Done" remain visible until they are explicitly
+  acknowledged, at which point they disappear from the active "Do List".
+
+initial_state:
+  current_time: '2025-01-01T09:00:00Z'
+  tasks:
+    - id: Task_A
+      title: Task A
+      status: Pending
+      importance: 1.0
+    - id: Task_B
+      title: Task B
+      status: Pending
+      importance: 0.5
+
+steps:
+  - name: 1. Initial State (Both Pending)
+    expected_order:
+      - Task_A
+      - Task_B
+
+  - name: 2. Complete Task A (Unacknowledged)
+    mutation:
+      task_updates:
+        - id: Task_A
+          status: Done
+          is_acknowledged: false
+    expected_order:
+      - Task_A # Still visible because it's not acknowledged!
+      - Task_B
+
+  - name: 3. Acknowledge Task A
+    mutation:
+      task_updates:
+        - id: Task_A
+          is_acknowledged: true
+    expected_order:
+      - Task_B # Task A disappears now
+
+  - name: 4. Reopen Task A
+    mutation:
+      task_updates:
+        - id: Task_A
+          status: Pending
+          is_acknowledged: false
+    expected_order:
+      - Task_A # Reappears
+      - Task_B

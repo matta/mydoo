@@ -21,7 +21,7 @@ The test suite is organized as follows:
 ## Schema
 
 The test cases are defined using a JSON schema located at
-`../../packages/tasklens/specs/compliance/schemas/test_case.schema.json`. This schema defines the structure of a
+`../../packages/tasklens/specs/compliance/schemas/test-case.schema.json`. This schema defines the structure of a
 "Scenario", which consists of:
 
 - `initial_state`: The state of the system before any steps are executed.
@@ -59,7 +59,7 @@ algorithm:
 
 To use this suite for conformance testing:
 
-1.  **Load Schema**: Load `../../packages/tasklens/specs/compliance/schemas/test_case.schema.json` to understand
+1.  **Load Schema**: Load `../../packages/tasklens/specs/compliance/schemas/test-case.schema.json` to understand
     the data model.
 2.  **Load Fixtures**: Parse each `.yaml` file in `../../packages/tasklens/specs/compliance/fixtures/`.
 3.  **Execute**: For each scenario:

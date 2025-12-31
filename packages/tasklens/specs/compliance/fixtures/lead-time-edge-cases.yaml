@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schemas/test_case.schema.json
+# yaml-language-server: $schema=../schemas/test-case.schema.json
 name: Lead Time Edge Cases
 description: >
   Strictly validates the boundary conditions of the Lead Time Ramp, including

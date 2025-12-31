@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schemas/test_case.schema.json
+# yaml-language-server: $schema=../schemas/test-case.schema.json
 name: 'Scenario 7.1: The Thermostat'
 description: >
   Demonstrates the self-correcting 'Thermostat' mechanism where neglected areas

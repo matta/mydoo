@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schemas/test_case.schema.json
+# yaml-language-server: $schema=../schemas/test-case.schema.json
 name: Balancing
 description: >
   Tests the dynamic balancing of parent tasks ('Projects') based on their child
@@ -37,22 +37,21 @@ steps:
       task_updates:
         - id: AlphaTaskOne
           status: Done
+          is_acknowledged: true
       update_credits:
         ProjectAlpha: 50.0
     expected_order:
       - BetaTaskOne
       - BetaTaskTwo
-      - AlphaTaskOne
       - AlphaTaskTwo
   - name: 3. Finish B1 (B Catches Up)
     mutation:
       task_updates:
         - id: BetaTaskOne
           status: Done
+          is_acknowledged: true
       update_credits:
         ProjectBeta: 50.0
     expected_order:
-      - AlphaTaskOne
       - AlphaTaskTwo
-      - BetaTaskOne
       - BetaTaskTwo

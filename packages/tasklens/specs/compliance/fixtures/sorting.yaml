@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schemas/test_case.schema.json
+# yaml-language-server: $schema=../schemas/test-case.schema.json
 name: Sorting
 description: >
   Verifies the fundamental sorting logic: tasks are ranked by Priority

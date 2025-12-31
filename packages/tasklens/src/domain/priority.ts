@@ -309,8 +309,15 @@ export function getPrioritizedTasks(
       if (!options.includeHidden && !t.visibility) return false;
 
       // 2. Status Check
-      if (!options.includeDone) {
-        if (t.status === 'Done' && t.isAcknowledged) return false;
+      if (options.mode === 'plan-outline') {
+        // In "Plan Outline" mode (Inventory), we show everything that passed visibility
+        // (including Done tasks).
+      } else {
+        // Default "Do List" mode:
+        // Hide "Done" tasks UNLESS they are waiting for acknowledgement.
+        if (t.status === 'Done' && t.isAcknowledged) {
+          return false;
+        }
       }
 
       // 3. Priority Threshold (Focus Mode)
