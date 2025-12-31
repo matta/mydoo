@@ -1,8 +1,11 @@
-import {type DocHandle, Repo} from '@automerge/automerge-repo';
+import {
+  type AutomergeUrl,
+  type DocHandle,
+  Repo,
+} from '@automerge/automerge-repo';
 import {
   createMockTask as createSharedMockTask,
   createStore,
-  type DocumentHandle,
   type PersistedTask,
   type TaskID,
   TaskStatus,
@@ -32,13 +35,13 @@ const createMockTask = (
 describe('useSystemIntents', () => {
   let repo: Repo;
   let handle: DocHandle<TunnelState>;
-  let docId: DocumentHandle;
+  let docUrl: AutomergeUrl;
 
   beforeEach(() => {
     repo = new Repo({network: []});
     window.location.hash = '';
     handle = repo.create({tasks: {}, rootTaskIds: [], places: {}});
-    docId = handle.url as unknown as DocumentHandle;
+    docUrl = handle.url;
   });
 
   afterEach(() => {
@@ -76,7 +79,7 @@ describe('useSystemIntents', () => {
 
       // 2. Setup Hook
       const store = createStore();
-      const wrapper = createTestWrapper(repo, store, docId);
+      const wrapper = createTestWrapper(repo, store, docUrl);
       const {result} = renderHook(() => useSystemIntents(), {wrapper});
 
       // Wait for Redux to have the tasks (to avoid race conditions in intents)

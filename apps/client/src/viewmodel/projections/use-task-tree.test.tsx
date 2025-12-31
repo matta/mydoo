@@ -1,8 +1,11 @@
-import {type DocHandle, Repo} from '@automerge/automerge-repo';
+import {
+  type AutomergeUrl,
+  type DocHandle,
+  Repo,
+} from '@automerge/automerge-repo';
 import {
   createMockTask as createSharedMockTask,
   createStore,
-  type DocumentHandle,
   type TaskID,
   type TunnelNode,
   type TunnelState,
@@ -34,13 +37,13 @@ const createMockTask = (
 describe('useTaskTree', () => {
   let handle: DocHandle<TunnelState>;
   let repo: Repo;
-  let docId: DocumentHandle;
+  let docUrl: AutomergeUrl;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repo = new Repo({network: []});
     handle = repo.create({tasks: {}, rootTaskIds: [], places: {}});
-    docId = handle.url as unknown as DocumentHandle;
+    docUrl = handle.url;
   });
 
   it('builds a task tree from rootTaskIds', async () => {
@@ -59,7 +62,7 @@ describe('useTaskTree', () => {
     });
 
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, docUrl);
     const {result} = renderHook(() => useTaskTree(), {
       wrapper,
     });
@@ -83,7 +86,7 @@ describe('useTaskTree', () => {
 
   it('handles loading state initially', async () => {
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, docUrl);
     const {result} = renderHook(() => useTaskTree(), {
       wrapper,
     });

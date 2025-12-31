@@ -1,10 +1,9 @@
-import {type DocHandle, Repo} from '@automerge/automerge-repo';
 import {
-  createStore,
-  type DocumentHandle,
-  type TaskID,
-  type TunnelState,
-} from '@mydoo/tasklens';
+  type AutomergeUrl,
+  type DocHandle,
+  Repo,
+} from '@automerge/automerge-repo';
+import {createStore, type TaskID, type TunnelState} from '@mydoo/tasklens';
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
@@ -14,7 +13,7 @@ import {useTaskIntents} from './use-task-intents';
 describe('useTaskIntents (Move Interactions)', () => {
   let repo: Repo;
   let handle: DocHandle<TunnelState>;
-  let docId: DocumentHandle;
+  let docUrl: AutomergeUrl;
 
   beforeEach(() => {
     repo = new Repo({network: []});
@@ -25,7 +24,7 @@ describe('useTaskIntents (Move Interactions)', () => {
       rootTaskIds: [],
       places: {},
     });
-    docId = handle.url as unknown as DocumentHandle;
+    docUrl = handle.url;
   });
 
   afterEach(() => {
@@ -34,7 +33,7 @@ describe('useTaskIntents (Move Interactions)', () => {
 
   it('should indent a task (become child of previous sibling)', async () => {
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, docUrl);
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
     // Setup: Root -> [Sibling, Target]
@@ -74,7 +73,7 @@ describe('useTaskIntents (Move Interactions)', () => {
 
   it('should outdent a task (become sibling of parent)', async () => {
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, docUrl);
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
     // Setup: Root -> Parent -> Child
@@ -116,7 +115,7 @@ describe('useTaskIntents (Move Interactions)', () => {
 
   it('should not indent if no previous sibling', async () => {
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, docUrl);
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
     let id: TaskID;

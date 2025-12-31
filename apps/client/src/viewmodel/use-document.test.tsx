@@ -1,5 +1,8 @@
-import type {DocumentId} from '@automerge/automerge-repo';
-import {generateAutomergeUrl, Repo} from '@automerge/automerge-repo';
+import {
+  type DocumentId,
+  generateAutomergeUrl,
+  Repo,
+} from '@automerge/automerge-repo';
 import type {TunnelState} from '@mydoo/tasklens';
 import {renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
@@ -28,21 +31,19 @@ describe('useDocument', () => {
   it('should create a new document if no ID in storage', async () => {
     const wrapper = createTestWrapper(repo);
     const {result} = renderHook(() => useDocument(), {wrapper});
+    if (!result.current) throw new Error('Document ID not found');
 
     // Wait for effect to create document and update state
     await waitFor(() => {
       expect(result.current).toBeTruthy();
     });
 
-    // It should generate a handle (opaque string)
-    expect(typeof result.current).toBe('string');
-
     // Storage should be updated
     expect(localStorage.getItem('mydoo:doc_id')).toBe(result.current);
 
     // Document should be initialized
     const handle = await repo.find<TunnelState>(
-      result.current as unknown as DocumentId,
+      result.current as string as DocumentId,
     );
 
     await handle.whenReady();

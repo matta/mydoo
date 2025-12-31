@@ -2,7 +2,7 @@ import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
 import {
   type TunnelState,
   useTaskActions,
-  useTaskLensDocId,
+  useTaskLensDocUrl,
 } from '@mydoo/tasklens';
 import {useEffect, useRef} from 'react';
 
@@ -75,9 +75,9 @@ export function seedHierarchicalData(
  */
 export function SeedData() {
   const actions = useTaskActions();
-  const docId = useTaskLensDocId();
+  const docUrl = useTaskLensDocUrl();
   // biome-ignore lint/suspicious/noExplicitAny: internal type erasure
-  const handle = useDocHandle(docId as any);
+  const handle = useDocHandle(docUrl as any);
   const seeded = useRef(false);
 
   useEffect(() => {

@@ -32,6 +32,9 @@
       ],
       "outputs": []
     },
+    "//#fix-biome:root": {
+      "cache": false
+    },
     "presubmit:agent": {
       "dependsOn": [
         "//#check-biome-staged",
@@ -139,7 +142,7 @@
       "cache": false
     },
     "fix-style": {
-      "dependsOn": ["fix-biome", "fix-eslint"],
+      "dependsOn": ["fix-biome", "fix-eslint", "//#fix-biome:root"],
       "cache": false
     },
     "fix": {

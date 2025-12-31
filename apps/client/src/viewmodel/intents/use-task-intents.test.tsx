@@ -1,10 +1,5 @@
 import {Repo} from '@automerge/automerge-repo';
-import {
-  createStore,
-  type DocumentHandle,
-  type TaskID,
-  type TunnelState,
-} from '@mydoo/tasklens';
+import {createStore, type TaskID, type TunnelState} from '@mydoo/tasklens';
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
@@ -31,9 +26,9 @@ describe('useTaskIntents', () => {
       rootTaskIds: [],
       places: {},
     });
-    const docId = handle.url as unknown as DocumentHandle;
+    const docUrl = handle.url;
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, docUrl);
 
     // 2. Setup Intents Hook
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
@@ -77,9 +72,9 @@ describe('useTaskIntents', () => {
       rootTaskIds: [],
       places: {},
     });
-    const docId = handle.url as unknown as DocumentHandle;
+    const docUrl = handle.url;
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, docUrl);
 
     // 2. Setup observer hook to wait for reactive state
     const useObserver = () => {
@@ -140,9 +135,9 @@ describe('useTaskIntents', () => {
       rootTaskIds: [],
       places: {},
     });
-    const docId = handle.url as unknown as DocumentHandle;
+    const docUrl = handle.url;
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, docUrl);
 
     // 2. Setup Intents Hook
     const {result} = renderHook(() => useTaskIntents(), {wrapper});

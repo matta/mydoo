@@ -1,4 +1,4 @@
-import {Repo} from '@automerge/automerge-repo';
+import {type AutomergeUrl, Repo} from '@automerge/automerge-repo';
 import {RepoContext} from '@automerge/automerge-repo-react-hooks';
 import {
   createTheme,
@@ -75,22 +75,21 @@ const mockRepo = new Repo({network: []});
 import {
   createEmptyTunnelState,
   createStore,
-  type DocumentHandle,
   TaskLensProvider,
 } from '@mydoo/tasklens';
 
 const defaultDocHandle = mockRepo.create(createEmptyTunnelState());
-const defaultDocId = defaultDocHandle.url as unknown as DocumentHandle;
+const defaultDocUrl = defaultDocHandle.url;
 
 export function createTestWrapper(
   repo: Repo = mockRepo,
   store = createStore(),
-  docId: DocumentHandle = defaultDocId,
+  docUrl: AutomergeUrl = defaultDocUrl,
 ) {
   return function TestWrapper({children}: PropsWithChildren) {
     return (
       <RepoContext.Provider value={repo}>
-        <TaskLensProvider docId={docId} store={store}>
+        <TaskLensProvider docUrl={docUrl} store={store}>
           <MantineProvider theme={testingTheme}>{children}</MantineProvider>
         </TaskLensProvider>
       </RepoContext.Provider>
@@ -105,7 +104,7 @@ export function createTestWrapper(
 export interface TestRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   repo?: Repo;
   store?: ReturnType<typeof createStore>;
-  docId?: DocumentHandle;
+  url?: AutomergeUrl;
 }
 
 /**
@@ -117,9 +116,9 @@ export function renderWithTestProviders(
   ui: React.ReactNode,
   options: TestRenderOptions = {},
 ): RenderResult {
-  const {repo, store, docId, ...renderOptions} = options;
+  const {repo, store, url, ...renderOptions} = options;
   return testingLibraryRender(ui, {
-    wrapper: createTestWrapper(repo, store, docId),
+    wrapper: createTestWrapper(repo, store, url),
     ...renderOptions,
   });
 }

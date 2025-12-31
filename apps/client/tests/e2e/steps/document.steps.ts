@@ -5,9 +5,9 @@ const {Given, When, Then} = createBdd(test);
 
 Given('the user is on a document', async ({plan, documentContext}) => {
   await plan.primeWithSampleData();
-  const docId = await plan.getCurrentDocumentId();
-  if (!docId) throw new Error('Failed to get document ID');
-  documentContext.documents.set('original', docId);
+  const docUrl = await plan.getCurrentDocumentId();
+  if (!docUrl) throw new Error('Failed to get document ID');
+  documentContext.documents.set('original', docUrl);
 });
 
 When('the user creates a new document', async ({plan}) => {
@@ -35,27 +35,27 @@ Given(
     }
 
     await plan.createTask(task);
-    const docId = await plan.getCurrentDocumentId();
-    if (!docId) throw new Error('Failed to get document ID');
-    documentContext.documents.set(name, docId);
+    const docUrl = await plan.getCurrentDocumentId();
+    if (!docUrl) throw new Error('Failed to get document URL');
+    documentContext.documents.set(name, docUrl);
   },
 );
 
 When(
   'the user switches to document {string} by its ID',
   async ({plan, documentContext}, name: string) => {
-    const id = documentContext.documents.get(name);
-    if (!id) throw new Error(`Document ${name} not found in context`);
-    await plan.switchToDocument(id);
+    const docUrl = documentContext.documents.get(name);
+    if (!docUrl) throw new Error(`Document ${name} not found in context`);
+    await plan.switchToDocument(docUrl);
   },
 );
 
 Then(
   'the document ID should be the ID of {string}',
   async ({plan, documentContext}, name: string) => {
-    const expectedId = documentContext.documents.get(name);
-    const actualId = await plan.getCurrentDocumentId();
-    expect(actualId).toBe(expectedId);
+    const expectedUrl = documentContext.documents.get(name);
+    const actualUrl = await plan.getCurrentDocumentId();
+    expect(actualUrl).toBe(expectedUrl);
   },
 );
 

@@ -18,8 +18,6 @@
  * and compile-time type safety.
  */
 
-import type {AutomergeUrl} from '@automerge/automerge-repo';
-import {isValidAutomergeUrl} from '@automerge/automerge-repo';
 import type {z} from 'zod';
 
 import type {PlaceIDSchema, TaskIDSchema} from './persistence/schemas';
@@ -49,44 +47,6 @@ export type TaskID = z.infer<typeof TaskIDSchema>;
  * The type is derived from the Zod schema.
  */
 export type PlaceID = z.infer<typeof PlaceIDSchema>;
-
-/**
- * Opaque handle for a Tunnel Document.
- *
- * This type erases the underlying persistence implementation details (e.g. Automerge AnyDocumentId)
- * from the public API, allowing consumers to pass document references without importing persistence types.
- */
-export type DocumentHandle = string & {__brand: 'DocumentHandle'};
-
-/**
- * Casts a string to a DocumentHandle.
- * Use this to satisfy the opaque type requirement when you have a valid document URL.
- */
-export function asDocumentHandle(url: string): DocumentHandle {
-  if (!isValidDocumentHandle(url)) {
-    throw new Error(`Invalid DocumentHandle: '${url}'`);
-  }
-  return url as unknown as DocumentHandle;
-}
-
-/**
- * Validates if the given string is a valid DocumentHandle.
- * Used for user input validation.
- */
-export function isValidDocumentHandle(url: string): boolean {
-  return isValidAutomergeUrl(url);
-}
-
-/**
- * Casts a DocumentHandle to an AutomergeUrl.
- * Use this to satisfy the requirements of automerge-repo hooks.
- */
-export function asAutomergeUrl(id: DocumentHandle): AutomergeUrl {
-  if (!isValidAutomergeUrl(id)) {
-    throw new Error(`Invalid Automerge URL: '${id}'`);
-  }
-  return id as unknown as AutomergeUrl;
-}
 
 /**
  * Reserved Place ID representing "any location".

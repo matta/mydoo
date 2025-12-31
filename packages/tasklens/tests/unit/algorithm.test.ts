@@ -387,7 +387,7 @@ describe('Algorithm Test Suite', () => {
           const computedTasks = store.dumpCalculatedState(viewFilter);
           const computedMap = new Map<TaskID, EnrichedTask>();
           for (const t of computedTasks) {
-            computedMap.set(t.id, t as unknown as EnrichedTask);
+            computedMap.set(t.id, t as EnrichedTask);
           }
 
           // Assert expectations

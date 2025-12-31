@@ -1,40 +1,43 @@
-import type {DocHandleChangePayload} from '@automerge/automerge-repo';
+import type {
+  AutomergeUrl,
+  DocHandleChangePayload,
+} from '@automerge/automerge-repo';
 import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
 import type React from 'react';
 import {createContext, useContext, useEffect} from 'react';
 import {Provider, useDispatch} from 'react-redux';
 import {store as defaultStore} from '../store';
 import {syncDoc} from '../store/slices/tasks-slice';
-import {asAutomergeUrl, type DocumentHandle, type TunnelState} from '../types';
+import type {TunnelState} from '../types';
 
 /**
  * Context to provide the Automerge document handle to hooks.
  */
-const TaskLensContext = createContext<DocumentHandle | null>(null);
+const TaskLensContext = createContext<AutomergeUrl | null>(null);
 
 /**
- * Hook to access the current DocumentHandle from context.
+ * Hook to access the current AutomergeUrl from context.
  *
- * @returns The DocumentHandle provided by TaskLensProvider.
+ * @returns The AutomergeUrl provided by TaskLensProvider.
  * @throws Error if used outside of TaskLensProvider.
  */
-export function useTaskLensDocId(): DocumentHandle {
-  const docId = useContext(TaskLensContext);
-  if (!docId) {
-    throw new Error('useTaskLensDocId must be used within a TaskLensProvider');
+export function useTaskLensDocUrl(): AutomergeUrl {
+  const docUrl = useContext(TaskLensContext);
+  if (!docUrl) {
+    throw new Error('useTaskLensDocUrl must be used within a TaskLensProvider');
   }
-  return docId;
+  return docUrl;
 }
 
 /**
  * Props for the TaskLensProvider component.
  *
- * @property docId - The Automerge document handle to synchronize with.
+ * @property docUrl - The Automerge document URL to synchronize with.
  * @property store - Optional Redux store to use (useful for tests).
  * @property children - React children to render within the provider.
  */
 interface Props {
-  docId: DocumentHandle;
+  docUrl: AutomergeUrl;
   store?: typeof defaultStore;
   children: React.ReactNode;
 }
@@ -46,10 +49,10 @@ interface Props {
  * Uses handle.on('change') to subscribe to document changes, ensuring
  * we capture all mutations including local changes.
  */
-function TaskLensSync({docId}: {docId: DocumentHandle}) {
+function TaskLensSync({docUrl}: {docUrl: AutomergeUrl}) {
   const dispatch = useDispatch<typeof defaultStore.dispatch>();
   // Cast to locally defined TypedDocHandle to ensure doc() and events are strictly typed
-  const handle = useDocHandle<TunnelState>(asAutomergeUrl(docId));
+  const handle = useDocHandle<TunnelState>(docUrl);
 
   useEffect(() => {
     if (!handle) return;
@@ -93,9 +96,9 @@ function TaskLensSync({docId}: {docId: DocumentHandle}) {
  * @example
  * ```tsx
  * function App() {
- *   const docId = useDocument();
+ *   const docUrl = useDocument();
  *   return (
- *     <TaskLensProvider docId={docId}>
+ *     <TaskLensProvider docUrl={docUrl}>
  *       <MyApp />
  *     </TaskLensProvider>
  *   );
@@ -103,14 +106,14 @@ function TaskLensSync({docId}: {docId: DocumentHandle}) {
  * ```
  */
 export function TaskLensProvider({
-  docId,
+  docUrl,
   store = defaultStore,
   children,
 }: Props) {
   return (
-    <TaskLensContext.Provider value={docId}>
+    <TaskLensContext.Provider value={docUrl}>
       <Provider store={store}>
-        <TaskLensSync docId={docId} />
+        <TaskLensSync docUrl={docUrl} />
         {children}
       </Provider>
     </TaskLensContext.Provider>

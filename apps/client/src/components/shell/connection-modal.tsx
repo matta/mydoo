@@ -1,3 +1,4 @@
+import {isValidAutomergeUrl} from '@automerge/automerge-repo';
 import {
   Button,
   Code,
@@ -7,7 +8,6 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
-import {isValidDocumentHandle} from '@mydoo/tasklens';
 import {useState} from 'react';
 
 /**
@@ -44,12 +44,13 @@ export function ConnectionModal({
 }: ConnectionModalProps) {
   const [inputValue, setInputValue] = useState('');
 
-  const isValid = isValidDocumentHandle(inputValue.trim());
-  const showError = inputValue.trim() !== '' && !isValid;
+  const urlString = inputValue.trim();
+  const isValid = isValidAutomergeUrl(urlString);
+  const showError = urlString !== '' && !isValid;
 
   const handleConnect = () => {
     if (isValid) {
-      onConnect(inputValue.trim());
+      onConnect(urlString);
     }
   };
 

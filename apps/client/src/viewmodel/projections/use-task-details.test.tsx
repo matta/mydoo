@@ -1,8 +1,11 @@
-import {type DocHandle, Repo} from '@automerge/automerge-repo';
+import {
+  type AutomergeUrl,
+  type DocHandle,
+  Repo,
+} from '@automerge/automerge-repo';
 import {
   createMockTask as createSharedMockTask,
   createStore,
-  type DocumentHandle,
   type TaskID,
   type TunnelNode,
   type TunnelState,
@@ -34,13 +37,13 @@ const createMockTask = (
 describe('useTaskDetails', () => {
   let handle: DocHandle<TunnelState>;
   let repo: Repo;
-  let docId: DocumentHandle;
+  let url: AutomergeUrl;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repo = new Repo({network: []});
     handle = repo.create({tasks: {}, rootTaskIds: [], places: {}});
-    docId = handle.url as unknown as DocumentHandle;
+    url = handle.url;
   });
 
   it('returns task details correctly', async () => {
@@ -64,7 +67,7 @@ describe('useTaskDetails', () => {
     });
 
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, url);
     const {result} = renderHook(() => useTaskDetails('child-id' as TaskID), {
       wrapper,
     });
@@ -88,7 +91,7 @@ describe('useTaskDetails', () => {
     });
 
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, url);
     const {result} = renderHook(() => useTaskDetails('root-id' as TaskID), {
       wrapper,
     });
@@ -106,7 +109,7 @@ describe('useTaskDetails', () => {
 
   it('returns null when task not found', async () => {
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, url);
     const {result} = renderHook(
       () => useTaskDetails('non-existent' as TaskID),
       {
@@ -125,7 +128,7 @@ describe('useTaskDetails', () => {
 
   it('returns loading state initially', async () => {
     const store = createStore();
-    const wrapper = createTestWrapper(repo, store, docId);
+    const wrapper = createTestWrapper(repo, store, url);
     const {result} = renderHook(() => useTaskDetails('any-task' as TaskID), {
       wrapper,
     });

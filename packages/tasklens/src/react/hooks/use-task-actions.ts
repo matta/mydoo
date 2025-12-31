@@ -8,7 +8,7 @@ import {
 } from '../../persistence/ops';
 import type {CreateTaskOptions, Task, TaskID, TunnelState} from '../../types';
 import {TaskStatus} from '../../types';
-import {useTaskLensDocId} from '../task-lens-provider';
+import {useTaskLensDocUrl} from '../task-lens-provider';
 
 /**
  * Hook to perform mutations on the TaskLens document.
@@ -18,9 +18,9 @@ import {useTaskLensDocId} from '../task-lens-provider';
  * transaction lifecycle.
  */
 export function useTaskActions() {
-  const docId = useTaskLensDocId();
+  const docUrl = useTaskLensDocUrl();
   // biome-ignore lint/suspicious/noExplicitAny: internal handle type erasure
-  const handle = useDocHandle<TunnelState>(docId as any);
+  const handle = useDocHandle<TunnelState>(docUrl as any);
 
   const mutate = useCallback(
     (callback: (d: TunnelState) => void) => {

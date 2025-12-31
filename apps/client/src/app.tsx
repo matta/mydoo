@@ -15,7 +15,7 @@ function App() {
     <MantineProvider>
       <NavigationProvider>
         {docUrl ? (
-          <TaskLensProvider docId={docUrl}>
+          <TaskLensProvider docUrl={docUrl}>
             <SeedData />
             <AppShellContainer docUrl={docUrl} />
           </TaskLensProvider>

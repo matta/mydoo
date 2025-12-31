@@ -161,20 +161,20 @@ Projection hooks transform raw `TunnelState` into UI-ready shapes. They are **pu
 **Purpose**: Provide the opaque document handle (URL) for the current session.
 
 ```typescript
-function useDocument(): DocumentHandle;
+function useDocument(): AutomergeUrl;
 ```
 
 **Behavior:**
 
 - On first load, checks `localStorage` for existing document URL
 - If none exists, creates new document via `RepoContext`
-- Returns stable `DocumentHandle` for downstream hooks
+- Returns stable `AutomergeUrl` for downstream hooks
 
 **Location**: `apps/client/src/viewmodel/useDocument.ts`
 
 ---
 
-### 3.2 `useTaskTree(docUrl: DocumentHandle)`
+### 3.2 `useTaskTree(docUrl: AutomergeUrl)`
 
 **Purpose**: Project flat task map into nested tree structure.
 
@@ -185,7 +185,7 @@ interface UseTaskTreeResult {
   isLoading: boolean;
 }
 
-function useTaskTree(docUrl: DocumentHandle): UseTaskTreeResult;
+function useTaskTree(docUrl: AutomergeUrl): UseTaskTreeResult;
 ```
 
 **Memoization**: Tree construction should be memoized on `doc` identity.
@@ -194,7 +194,7 @@ function useTaskTree(docUrl: DocumentHandle): UseTaskTreeResult;
 
 ---
 
-### 3.3 `usePriorityList(docUrl: DocumentHandle, filter: ViewFilter)`
+### 3.3 `usePriorityList(docUrl: AutomergeUrl, filter: ViewFilter)`
 
 **Purpose**: Project tasks into a **sorted, filtered** list for the "Do" view.
 
@@ -213,7 +213,7 @@ interface UsePriorityListResult {
 }
 
 function usePriorityList(
-  docUrl: DocumentHandle,
+  docUrl: AutomergeUrl,
   filter: ViewFilter,
 ): UsePriorityListResult;
 ```
@@ -274,7 +274,7 @@ function useBreadcrumbs(
 
 ---
 
-### 3.6 `useBalanceData(docUrl: DocumentHandle)`
+### 3.6 `useBalanceData(docUrl: AutomergeUrl)`
 
 **Purpose**: Compute "Balance" view data (target vs actual effort per TLI).
 
@@ -293,14 +293,14 @@ interface UseBalanceDataResult {
   isLoading: boolean;
 }
 
-function useBalanceData(docUrl: DocumentHandle): UseBalanceDataResult;
+function useBalanceData(docUrl: AutomergeUrl): UseBalanceDataResult;
 ```
 
 **Location**: `apps/client/src/viewmodel/useBalanceData.ts` (NEW)
 
 ---
 
-### 3.7 `usePlaces(docUrl: DocumentHandle)`
+### 3.7 `usePlaces(docUrl: AutomergeUrl)`
 
 **Purpose**: Provide list of places for filtering and assignment.
 
@@ -311,14 +311,14 @@ interface UsePlacesResult {
   isLoading: boolean;
 }
 
-function usePlaces(docUrl: DocumentHandle): UsePlacesResult;
+function usePlaces(docUrl: AutomergeUrl): UsePlacesResult;
 ```
 
 **Location**: `apps/client/src/viewmodel/usePlaces.ts` (NEW)
 
 ---
 
-### 3.8 `useTaskDetails(docUrl: DocumentHandle, taskId: TaskID | undefined)`
+### 3.8 `useTaskDetails(docUrl: AutomergeUrl, taskId: TaskID | undefined)`
 
 **Purpose**: Provide full task details for the editing modal.
 
@@ -337,7 +337,7 @@ interface UseTaskDetailsResult {
 }
 
 function useTaskDetails(
-  docUrl: DocumentHandle,
+  docUrl: AutomergeUrl,
   taskId: TaskID | undefined,
 ): UseTaskDetailsResult;
 ```
@@ -346,13 +346,13 @@ function useTaskDetails(
 
 ---
 
-### 3.9 `useValidParentTargets(docUrl: DocumentHandle, excludedTaskId: TaskID | undefined)`
+### 3.9 `useValidParentTargets(docUrl: AutomergeUrl, excludedTaskId: TaskID | undefined)`
 
 **Purpose**: Calculate valid parent candidates for reparenting (excluding self and descendants to prevent cycles).
 
 ```typescript
 function useValidParentTargets(
-  docUrl: DocumentHandle, 
+  docUrl: AutomergeUrl, 
   excludedTaskId: TaskID | undefined
 ): TunnelNode[];
 ```
@@ -371,7 +371,7 @@ In traditional programming, you might write mutations as free functions:
 
 ```typescript
 // ❌ This DOES NOT WORK in React
-function completeTask(docUrl: DocumentHandle, id: TaskID) {
+function completeTask(docUrl: AutomergeUrl, id: TaskID) {
   const doc = getDocumentSomehow(docUrl); // Where does this come from?
   doc.change(d => {
     d.tasks[id].status = 'Done';
@@ -392,7 +392,7 @@ function completeTask(docUrl: DocumentHandle, id: TaskID) {
 
 ```typescript
 // ✅ This WORKS in React
-function useTaskIntents(docUrl: DocumentHandle): TaskIntents {
+function useTaskIntents(docUrl: AutomergeUrl): TaskIntents {
   // This hook internally calls another hook to get the Automerge operations
   const {ops} = useTunnel(docUrl);
 
@@ -424,7 +424,7 @@ You asked: _"Why are all the intents under an interface? Is this to allow mockin
 | **Consistency**          | All intent functions share the same document handle, ensuring they operate on the same data.                                               |
 | **Discoverability**      | TypeScript can autocomplete `taskIntents.` and show all available methods.                                                                 |
 
-### 4.1 `useTaskIntents(docUrl: DocumentHandle)`
+### 4.1 `useTaskIntents(docUrl: AutomergeUrl)`
 
 **Purpose**: Provide task mutation intents.
 
@@ -436,7 +436,7 @@ You asked: _"Why are all the intents under an interface? Is this to allow mockin
 import {useTunnel} from '@mydoo/tasklens';
 import {useCallback, useMemo} from 'react';
 
-export function useTaskIntents(docUrl: DocumentHandle): TaskIntents {
+export function useTaskIntents(docUrl: AutomergeUrl): TaskIntents {
   // 1. Get access to the Automerge document operations
   //    useTunnel is a hook from @mydoo/tasklens that provides:
   //    - state: the current document snapshot
@@ -536,7 +536,7 @@ interface TaskIntents {
   updateTask: (id: TaskID, changes: Partial<Task>) => void;
 }
 
-function useTaskIntents(docUrl: DocumentHandle): TaskIntents;
+function useTaskIntents(docUrl: AutomergeUrl): TaskIntents;
 ```
 
 **How It's Used in a Component**:
@@ -561,7 +561,7 @@ function TaskRow({task}: {task: TaskDisplayItem}) {
 
 ---
 
-### 4.2 `usePlaceIntents(docUrl: DocumentHandle)`
+### 4.2 `usePlaceIntents(docUrl: AutomergeUrl)`
 
 **Purpose**: Manage places/contexts.
 
@@ -584,14 +584,14 @@ interface PlaceIntents {
   selectPlace: (id: PlaceID | undefined) => void;
 }
 
-function usePlaceIntents(docUrl: DocumentHandle): PlaceIntents;
+function usePlaceIntents(docUrl: AutomergeUrl): PlaceIntents;
 ```
 
 **Location**: `apps/client/src/viewmodel/usePlaceIntents.ts` (NEW)
 
 ---
 
-### 4.3 `useSystemIntents(docUrl: DocumentHandle)`
+### 4.3 `useSystemIntents(docUrl: AutomergeUrl)`
 
 **Purpose**: Trigger system-level maintenance operations.
 
@@ -603,7 +603,7 @@ interface SystemIntents {
   refreshTaskList: () => void;
 }
 
-function useSystemIntents(docUrl: DocumentHandle): SystemIntents;
+function useSystemIntents(docUrl: AutomergeUrl): SystemIntents;
 ```
 
 **Location**: `apps/client/src/viewmodel/useSystemIntents.ts` (NEW)

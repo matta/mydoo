@@ -51,5 +51,10 @@ catalogs:
     vitest: 4.0.16
     zod: ^4.2.1
 
+ignoredBuiltDependencies:
+  - '@swc/core'
+  - cbor-extract
+  - unrs-resolver
+
 onlyBuiltDependencies:
   - esbuild

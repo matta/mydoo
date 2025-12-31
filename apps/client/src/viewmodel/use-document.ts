@@ -1,6 +1,8 @@
-import {isValidAutomergeUrl} from '@automerge/automerge-repo';
+import {
+  type AutomergeUrl,
+  isValidAutomergeUrl,
+} from '@automerge/automerge-repo';
 import {useRepo} from '@automerge/automerge-repo-react-hooks';
-import {asDocumentHandle, type DocumentHandle} from '@mydoo/tasklens';
 import {useEffect, useState} from 'react';
 import {createNewDocument} from './document-utils';
 
@@ -17,10 +19,10 @@ const STORAGE_KEY = 'mydoo:doc_id';
  * 3. If no ID exists (first run), creates a new initialized document via the Repo.
  * 4. Persists the new Document ID to `localStorage` for future sessions.
  *
- * @returns {DocumentHandle | undefined} The handle (URL) of the current document.
+ * @returns {AutomergeUrl | undefined} The handle (URL) of the current document.
  *
  * **Return Value States:**
- * - `DocumentHandle`: The system found a valid ID in `localStorage` or finished creating a new one.
+ * - `AutomergeUrl`: The system found a valid ID in `localStorage` or finished creating a new one.
  * - `undefined`: The system is in the **Bootstrap Phase**. No ID was found in storage.
  *
  * **The Bootstrap Mechanism:**
@@ -28,7 +30,7 @@ const STORAGE_KEY = 'mydoo:doc_id';
  * 1. Calls `repo.create<TunnelState>()` to generate a new UUID.
  * 2. Applies the default schema (empty `tasks` and `places` maps) via `initializeTunnelState`.
  * 3. Persists the new ID to `localStorage`.
- * 4. Updates state to trigger a re-render with the valid `DocumentHandle`.
+ * 4. Updates state to trigger a re-render with the valid `AutomergeUrl`.
  *
  * **Why is initialization async?**
  * Why not create the document synchronously in `useState`?
@@ -40,14 +42,14 @@ const STORAGE_KEY = 'mydoo:doc_id';
  *   in the initializer. Creating new resources is impure (mutates the Repo),
  *   so it must live in a `useEffect`.
  */
-export function useDocument(): DocumentHandle | undefined {
+export function useDocument(): AutomergeUrl | undefined {
   const repo = useRepo();
-  const [docUrl, setDocUrl] = useState<DocumentHandle | undefined>(() => {
+  const [docUrl, setDocUrl] = useState<AutomergeUrl | undefined>(() => {
     // Initial state setup (runs once)
     const storedId = localStorage.getItem(STORAGE_KEY);
 
     if (storedId && isValidAutomergeUrl(storedId)) {
-      return asDocumentHandle(storedId);
+      return storedId as AutomergeUrl;
     }
 
     // Return undefined to indicate initialization needed

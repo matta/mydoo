@@ -1,6 +1,7 @@
+import {isValidAutomergeUrl} from '@automerge/automerge-repo';
 import {AppShell, Burger, Button, Group, Menu, Title} from '@mantine/core';
 import {useDisclosure, useMediaQuery} from '@mantine/hooks';
-import {isValidDocumentHandle, useTaskActions} from '@mydoo/tasklens';
+import {useTaskActions} from '@mydoo/tasklens';
 import {
   IconCheckbox,
   IconDotsVertical,
@@ -173,12 +174,12 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
           currentUrl={docUrl}
           onReset={handleReset}
           onConnect={url => {
-            if (isValidDocumentHandle(url)) {
+            if (isValidAutomergeUrl(url)) {
               localStorage.setItem('mydoo:doc_id', url);
               window.location.reload();
             } else {
               console.error(
-                `ConnectionModal: Invalid DocumentHandle from user input: '${url}'`,
+                `ConnectionModal: Invalid AutomergeUrl from user input: '${url}'`,
               );
             }
           }}
