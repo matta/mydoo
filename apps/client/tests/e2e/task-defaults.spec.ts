@@ -40,8 +40,8 @@ test.describe('Task Creation with Defaults', () => {
     await plan.verifyTaskVisible('Second Task');
   });
 
-  // TODO: This test is currently deferred to Phase 5 due to seed parameter issues on reload.
-  test.skip('should persist task after page reload', async ({plan, page}) => {
+
+  test('should persist task after page reload', async ({plan, page}) => {
     await plan.primeWithSampleData();
     await plan.switchToDoView();
 
