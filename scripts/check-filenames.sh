@@ -38,8 +38,8 @@ get_files() {
       -not -path "*/build/*" \
       -not -path "./coverage/*" \
       -not -path "*/coverage/*" \
-      -not -path "./.turbo/*" \
-      -not -path "*/.turbo/*" \
+      -not -path "./.moon/*" \
+      -not -path "*/.moon/*" \
       -not -path "./.husky/*" | sed 's|^./||'
   fi
 }

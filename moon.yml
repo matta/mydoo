@@ -1,0 +1,74 @@
+tasks:
+  check-deps:
+    command: 'knip'
+    inputs:
+      - 'package.json'
+      - '**/package.json'
+      - 'pnpm-lock.yaml'
+      - 'knip.json'
+      - '**/*.ts'
+      - '**/*.tsx'
+      - '**/*.js'
+      - '**/*.mjs'
+      - '**/*.cjs'
+    options:
+      cache: true
+
+  check-filenames:
+    command: 'bash ./scripts/check-filenames.sh'
+    inputs:
+      - '**/*.md'
+      - '**/*.sh'
+      - '**/*.yaml'
+      - '**/*.yml'
+      - '**/*.toml'
+      - '**/*.config.js'
+      - '**/*.config.ts'
+      - '.moon/*.yml'
+    options:
+      cache: true
+
+  check-biome-staged:
+    command: 'biome check --staged --no-errors-on-unmatched'
+    options:
+      cache: false
+
+  check-eslint-staged:
+    command: 'bash ./scripts/check-eslint-staged.sh'
+    options:
+      cache: false
+
+  check-filenames-staged:
+    command: 'bash ./scripts/check-filenames.sh --staged'
+    options:
+      cache: false
+
+  check-context-staged:
+    command: 'bash ./scripts/check-context-staged.sh'
+    options:
+      cache: false
+
+  presubmit-agent:
+    deps:
+      - '~:check-biome-staged'
+      - '~:check-eslint-staged'
+      - '~:check-filenames-staged'
+      - '~:check-context-staged'
+      - '~:check-deps'
+      - 'client:test'
+      - 'client:test-e2e'
+      - 'tasklens:test'
+      - '~:typecheck'
+    options:
+      cache: false
+
+  presubmit-human:
+    deps:
+      - '~:check-biome-staged'
+      - '~:check-eslint-staged'
+      - '~:check-filenames-staged'
+      - '~:check-context-staged'
+      - '~:check-deps'
+      - '~:typecheck'
+    options:
+      cache: false

@@ -1,0 +1,87 @@
+fileGroups:
+  sources:
+    - 'src/**/*'
+    - 'types/**/*'
+    - 'specs/**/*'
+  tests:
+    - 'tests/**/*'
+    - '**/tests/**/*'
+    - '**/test/**/*'
+  configs:
+    - '*.config.*'
+    - 'package.json'
+    - 'tsconfig.json'
+    - 'biome.json'
+    - 'eslint.config.js'
+
+tasks:
+  lint:
+    command: 'biome check .'
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+    options:
+      cache: true
+
+  format:
+    command: 'biome format .'
+    inputs:
+      - '@group(sources)'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+    options:
+      cache: false
+
+  typecheck:
+    command: 'tsc --noEmit'
+    inputs:
+      - '@group(sources)'
+      - 'tsconfig.json'
+      - 'tsconfig.base.json'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+    options:
+      cache: true
+
+  check-eslint:
+    command: 'eslint .'
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+    options:
+      cache: true
+
+  check:
+    deps:
+      - '~:lint'
+      - '~:check-eslint'
+      - '~:typecheck'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+
+  fix:
+    command: 'biome check --write .'
+    inputs:
+      - '@group(sources)'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+    options:
+      cache: false
+    deps:
+      - '~:format'

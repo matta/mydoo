@@ -19,4 +19,4 @@ We plan to implement a split testing workspace to better support WASM and pure l
 - `--project=logic` — Runs in Node.js (pure logic tests)
 - `--project=browser` — Runs in Vitest Browser Mode (component/integration tests)
 
-> **Note:** This is aspirational. Currently, we use a single `turbo test` pipeline with JSDOM.
+> **Note:** This is aspirational. Currently, we use a single `moon test` pipeline with JSDOM.

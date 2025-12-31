@@ -4,7 +4,7 @@ set -e
 
 # Dispatch based on environment
 if [ -n "$ANTIGRAVITY_AGENT" ] || [ -n "$GEMINI_CLI" ]; then
-  echo "🤖 Agent detected. Running full quality gates (Turbo)..."
+  echo "🤖 Agent detected. Running full quality gates (Moon)..."
   
   # The .husky/pre-commit hook sets PRE_COMMIT_SECRET_REQUIRED=1 to signal a real git commit.
   # - If PRE_COMMIT_SECRET_REQUIRED is set: require the secret.
@@ -24,8 +24,8 @@ if [ -n "$ANTIGRAVITY_AGENT" ] || [ -n "$GEMINI_CLI" ]; then
     fi
   fi
   
-  pnpm exec turbo run presubmit:agent
+  pnpm moon run root:presubmit-agent
 else
-  echo "👤 Human detected. Running staged quality gates (Turbo)..."
-  pnpm exec turbo run presubmit:human
+  echo "👤 Human detected. Running staged quality gates (Moon)..."
+  pnpm moon run root:presubmit-human
 fi

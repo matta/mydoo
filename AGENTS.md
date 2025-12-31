@@ -34,7 +34,7 @@
 
 - We use Vitest for testing.
 - All new code must have tests.
-- **Strict Verification:** ALWAYS run `pnpm fix && pnpm check` before certifying a change. You MAY use targeted `turbo` commands during development, but you MUST run the full `pnpm fix && pnpm check` sequence before asking the user to commit.
+- **Strict Verification:** ALWAYS run `pnpm fix && pnpm check` before certifying a change. You MAY use targeted `moon` commands during development, but you MUST run the full `pnpm fix && pnpm check` sequence before asking the user to commit.
 
 ### Test Commands
 
@@ -46,12 +46,13 @@ pnpm test
 pnpm test:e2e
 
 # All unit tests in a specific package
-pnpm exec turbo run test --filter <package>
-# e.g. pnpm exec turbo run test --filter @mydoo/client
+pnpm moon run <package>:test
+# e.g. pnpm moon run client:test
 
 # Specific test file within a package
-pnpm exec turbo run test --filter <package> -- <TestFile>
-# e.g. pnpm exec turbo run test --filter @mydoo/client -- PlanViewContainer
+# (Use Vitest direct if needed, or pass through moon)
+pnpm moon run <package>:test -- <TestFile>
+# e.g. pnpm moon run client:test -- PlanViewContainer
 ```
 
 ## Context Convention: `ROLLING_CONTEXT.md`

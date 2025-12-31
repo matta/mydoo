@@ -3,6 +3,8 @@ import {defineBddConfig} from 'playwright-bdd';
 
 const isAgent = !!process.env.ANTIGRAVITY_AGENT || !!process.env.GEMINI_CLI;
 
+const PORT = process.env.PLAYWRIGHT_TEST_PORT || '5179';
+
 const testDir = defineBddConfig({
   features: 'tests/e2e/features/*.feature',
   steps: 'tests/e2e/{steps/*.steps.ts,fixtures.ts}',
@@ -16,12 +18,12 @@ export default defineConfig({
   ...(process.env.CI ? {workers: 1} : {}),
   reporter: isAgent || process.env.CI ? [['html', {open: 'never'}]] : 'html',
   use: {
-    baseURL: 'http://localhost:5179',
+    baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'pnpm run dev --port 5179 --strictPort',
-    url: 'http://localhost:5179',
+    command: `pnpm run dev --port ${PORT} --strictPort`,
+    url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
   },
   projects: [
