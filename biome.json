@@ -22,7 +22,7 @@
     ]
   },
   "formatter": {
-    "enabled": true,
+    "enabled": false,
     "indentStyle": "space",
     "lineWidth": 80
   },
