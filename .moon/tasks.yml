@@ -15,9 +15,33 @@ fileGroups:
     - 'eslint.config.js'
 
 tasks:
+  # --- Format (Prettier) ---
+  check-format:
+    command: 'prettier --check .'
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+    options:
+      cache: true
 
+  fix-format:
+    command: 'prettier --write .'
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+    options:
+      cache: false
 
-  typecheck:
+  # --- Types (TSC) ---
+  check-types:
     command: 'tsc --noEmit'
     inputs:
       - '@group(sources)'
@@ -30,6 +54,7 @@ tasks:
     options:
       cache: true
 
+  # --- ESLint ---
   check-eslint:
     command: 'eslint .'
     inputs:
@@ -42,7 +67,7 @@ tasks:
     options:
       cache: true
     deps:
-      - 'root:lint'
+      - 'root:check-biome'
 
   fix-eslint:
     command: 'eslint . --fix'
@@ -56,9 +81,10 @@ tasks:
     options:
       cache: false
 
+  # --- Aggregates ---
   check-style:
     deps:
-      - 'root:lint'
+      - 'root:check-biome'
       - '~:check-eslint'
     env:
       ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
@@ -67,7 +93,7 @@ tasks:
 
   fix-style:
     deps:
-      - 'root:fix'
+      - 'root:fix-biome'
       - '~:fix-eslint'
     env:
       ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
@@ -76,9 +102,9 @@ tasks:
 
   check:
     deps:
-      - 'root:lint'
-      - '~:check-eslint'
-      - '~:typecheck'
+      - '~:check-style'
+      - '~:check-format'
+      - '~:check-types'
     env:
       ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
       GEMINI_CLI: 'GEMINI_CLI'
@@ -86,8 +112,8 @@ tasks:
 
   fix:
     deps:
-      - 'root:fix'
-      - '~:fix-eslint'
+      - '~:fix-style'
+      - '~:fix-format'
     env:
       ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
       GEMINI_CLI: 'GEMINI_CLI'

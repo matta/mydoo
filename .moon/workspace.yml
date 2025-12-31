@@ -3,8 +3,6 @@ projects:
   client: 'apps/client'
   tasklens: 'packages/tasklens'
 
-
 vcs:
   manager: 'git'
   defaultBranch: 'main'
-

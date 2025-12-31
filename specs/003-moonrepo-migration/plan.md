@@ -8,6 +8,7 @@
 ## Summary
 
 The goal is to replace the `turbo` build system with `moonrepo` while preserving the exact same developer workflow (commands, scripts) and CI verification rigor. This involves:
+
 1.  Initializing moonrepo configuration (`.moon` directory) to manage the workspace.
 2.  Configuring toolchain management for Node.js and pnpm to ensure environmental consistency.
 3.  Migrating all tasks from `turbo.json` (build, test, check, etc.) to moon's `tasks.yml` or project-specific `moon.yml` files.
@@ -29,12 +30,12 @@ The goal is to replace the `turbo` build system with `moonrepo` while preserving
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-- [x] **Fidelity First**: Does the testing plan avoid JSDOM for logic? (Tier 1/3 focus) - *N/A: Migration doesn't change test environments, just orchestration.*
-- [x] **Local-First**: Is offline capability and conflict resolution (CRDTs) considered? - *N/A: Build system change.*
-- [x] **Architecture**: Does the design respect the Client-Centric / No-Block-on-Network rule? - *N/A: Build system change.*
-- [x] **State Separation**: Are domain selectors and UI hooks clearly distinguished? - *N/A: Build system change.*
+- [x] **Fidelity First**: Does the testing plan avoid JSDOM for logic? (Tier 1/3 focus) - _N/A: Migration doesn't change test environments, just orchestration._
+- [x] **Local-First**: Is offline capability and conflict resolution (CRDTs) considered? - _N/A: Build system change._
+- [x] **Architecture**: Does the design respect the Client-Centric / No-Block-on-Network rule? - _N/A: Build system change._
+- [x] **State Separation**: Are domain selectors and UI hooks clearly distinguished? - _N/A: Build system change._
 
 ## Project Structure
 
@@ -78,5 +79,5 @@ packages/
 ## Complexity Tracking
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| N/A | | |
+| --------- | ---------- | ------------------------------------ |
+| N/A       |            |                                      |

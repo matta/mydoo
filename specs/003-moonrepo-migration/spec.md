@@ -8,13 +8,14 @@
 ## Clarifications
 
 ### Session 2025-12-30
+
 - Q: Should moonrepo manage the Node.js/pnpm toolchain? → A: Yes, moonrepo will manage Node.js and pnpm versions to ensure consistency.
 - Q: How should CI artifacts be cached? → A: Use GitHub Actions Cache (via standard actions) to store moon artifacts.
-- Q: Should the .moon configuration directory be committed to git? → A: Yes, all moon configuration files (.moon/*.yml) will be tracked in version control.
+- Q: Should the .moon configuration directory be committed to git? → A: Yes, all moon configuration files (.moon/\*.yml) will be tracked in version control.
 - Q: Should the moon CLI version be pinned? → A: Yes, the moon version will be pinned (e.g., via .prototools) to ensure toolchain stability.
 - Q: Should turbo files be removed immediately? → A: Yes, turbo.json and the turbo dependency will be removed as part of the migration.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Developer Standard Workflow (Priority: P1)
 
@@ -62,18 +63,18 @@ As an AI Agent or Developer, I want to run the rigorous `presubmit:agent` and `p
 ### Edge Cases
 
 - **Developer missing binary**: What happens if the developer does not have the `moon` binary installed globally?
-    - *Expectation*: The project relies on `proto` and moon's managed toolchain. The setup scripts or `pnpm` wrappers must ensure the toolchain is bootstrapped automatically, avoiding manual global install requirements.
+  - _Expectation_: The project relies on `proto` and moon's managed toolchain. The setup scripts or `pnpm` wrappers must ensure the toolchain is bootstrapped automatically, avoiding manual global install requirements.
 - **Cache invalidation**: How does the system handle the transition of cache artifacts?
-    - *Expectation*: Old turbo caches will be ignored; new moonrepo caches will be generated. First run will be slower.
+  - _Expectation_: Old turbo caches will be ignored; new moonrepo caches will be generated. First run will be slower.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 - **FR-001**: The system MUST replace the `turbo` build system with `moonrepo` for all task orchestration.
 - **FR-002**: The system MUST preserve the behavior of all existing `pnpm` script commands (e.g., `build`, `test`, `check`, `fix`, `presubmit:agent`).
 - **FR-003**: The system MUST implement a moonrepo configuration that mirrors the dependency graph, inputs, outputs, and caching behavior of the existing `turbo.json`.
-    - *Note*: This includes complex root-level tasks like `//#check-deps` and `//#check-filenames`.
+  - _Note_: This includes complex root-level tasks like `//#check-deps` and `//#check-filenames`.
 - **FR-004**: The system MUST update `.github/workflows/ci.yml` to utilize moonrepo for the `ci` job, replacing turbo invocations.
 - **FR-005**: The system MUST respect existing file exclusions (ignore patterns) when calculating file hashes for caching.
 - **FR-006**: The system MUST support "pass-through" environment variables (e.g., `ANTIGRAVITY_AGENT`, `GEMINI_CLI`, `CI`) as currently configured.
@@ -88,7 +89,7 @@ As an AI Agent or Developer, I want to run the rigorous `presubmit:agent` and `p
 - **Task Configuration**: The definition of tasks (inputs, outputs, commands, dependencies) currently residing in `turbo.json`, to be migrated to moonrepo's configuration format.
 - **CI Workflow**: The definition of the automated build pipeline.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

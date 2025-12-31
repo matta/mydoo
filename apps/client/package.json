@@ -40,12 +40,10 @@
   "private": true,
   "scripts": {
     "build": "moon run client:build",
-    "check-biome": "moon run root:lint",
-    "fix-biome": "moon run root:fix",
-    "check-eslint": "moon run root:check-eslint",
-    "fix-eslint": "moon run root:fix-eslint",
     "check-style": "moon run client:check-style",
     "fix-style": "moon run client:fix-style",
+    "check-format": "moon run client:check-format",
+    "fix-format": "moon run client:fix-format",
     "check": "moon run client:check",
     "fix": "moon run client:fix",
     "clean": "rm -rf dist",
@@ -55,7 +53,7 @@
     "test-e2e": "moon run client:test-e2e",
     "test-e2e-desktop": "moon run client:test-e2e-desktop",
     "test-e2e-mobile": "moon run client:test-e2e-mobile",
-    "check-types": "moon run client:typecheck",
+    "check-types": "moon run client:check-types",
     "presubmit:agent": "true",
     "presubmit:human": "true"
   },
