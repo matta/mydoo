@@ -20,7 +20,7 @@ describe('Quickstart Integration', () => {
     });
 
     // 3. Get Todo List (Calculates scores on demand)
-    const todos = store.getTodoList({currentTime: Date.now()});
+    const todos = store.getTodoListForTest({});
 
     // Email should be visible and sorted
     expect(todos.length).toBeGreaterThan(0);

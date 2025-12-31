@@ -14,11 +14,14 @@ import {calculateLeadTimeFactor} from './readiness';
 import {calculateContextualVisibility} from './visibility';
 
 /**
- * Builds O(1) lookup indexes for tasks.
+ * Builds O(1) lookup indexes for tasks and sorts children based on explicit order logic.
  * @returns taskMap (ID -> Task) and childrenIndex (ParentID -> Children[]).
  *          The 'undefined' key in childrenIndex holds root tasks.
  */
-function buildIndexes(enrichedTasks: EnrichedTask[]): {
+function buildIndexes(
+  state: TunnelState,
+  enrichedTasks: EnrichedTask[],
+): {
   taskMap: Map<TaskID, EnrichedTask>;
   childrenIndex: Map<TaskID | undefined, EnrichedTask[]>;
 } {
@@ -28,12 +31,58 @@ function buildIndexes(enrichedTasks: EnrichedTask[]): {
   for (const task of enrichedTasks) {
     taskMap.set(task.id, task);
 
-    const siblings = childrenIndex.get(task.parentId) ?? [];
+    const parentId = task.parentId;
+    const siblings = childrenIndex.get(parentId) ?? [];
     siblings.push(task);
-    childrenIndex.set(task.parentId, siblings);
+    childrenIndex.set(parentId, siblings);
+  }
+
+  // --- Sort Children based on preserved order ---
+  // 1. Sort Root Tasks
+  const rootTasks = childrenIndex.get(undefined);
+  if (rootTasks) {
+    const rootOrderMap = new Map(state.rootTaskIds.map((id, i) => [id, i]));
+    rootTasks.sort((a, b) => {
+      const idxA = rootOrderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+      const idxB = rootOrderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+      return idxA - idxB;
+    });
+  }
+
+  // 2. Sort Children of each parent
+  for (const [parentId, children] of childrenIndex) {
+    if (parentId === undefined) continue;
+    const parent = taskMap.get(parentId);
+    if (parent) {
+      const childOrderMap = new Map(parent.childTaskIds.map((id, i) => [id, i]));
+      children.sort((a, b) => {
+        const idxA = childOrderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const idxB = childOrderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+        return idxA - idxB;
+      });
+    }
   }
 
   return {taskMap, childrenIndex};
+}
+
+/**
+ * Assigns outlineIndex via DFS traversal.
+ */
+function assignOutlineIndexes(
+  childrenIndex: Map<TaskID | undefined, EnrichedTask[]>
+): void {
+  let currentIndex = 0;
+
+  function traverse(parentId: TaskID | undefined) {
+    const children = childrenIndex.get(parentId) ?? [];
+    for (const child of children) {
+      child.outlineIndex = currentIndex++;
+      traverse(child.id);
+    }
+  }
+
+  traverse(undefined);
 }
 
 /**
@@ -48,8 +97,9 @@ export function recalculatePriorities(
 ): void {
   const currentTime = context?.currentTime ?? getCurrentTimestamp();
 
-  // --- Phase 0: Build Indexes ---
-  const {childrenIndex} = buildIndexes(enrichedTasks);
+  // --- Phase 0: Build Indexes & Outline Order ---
+  const {childrenIndex} = buildIndexes(state, enrichedTasks);
+  assignOutlineIndexes(childrenIndex);
 
   // --- Phase 1: Linear Local Computation ---
   calculateContextualVisibility(state, enrichedTasks, viewFilter, currentTime);
@@ -57,6 +107,11 @@ export function recalculatePriorities(
   // Compute LeadTimeFactor for all tasks
   for (const task of enrichedTasks) {
     task.leadTimeFactor = calculateLeadTimeFactor(task.schedule, currentTime);
+    
+    // Safety check for NaN
+    if (Number.isNaN(task.leadTimeFactor)) {
+      task.leadTimeFactor = 0; 
+    }
   }
 
   // Compute EffectiveCredits for all tasks (required by feedback)
@@ -71,8 +126,14 @@ export function recalculatePriorities(
 
   // --- Phase 2: Unified DFS Traversal ---
   const roots = childrenIndex.get(undefined) ?? [];
+  
+  // Distribute importance among roots
   for (const root of roots) {
-    root.normalizedImportance = 1.0;
+    // Roots start with their raw importance. They are not normalized against each other
+    // to preserve absolute scoring for independent trees (which existing tests rely on),
+    // while still allowing higher-importance roots to dominate lower-importance ones.
+    root.normalizedImportance = root.importance;
+    
     evaluateTaskRecursive(root, undefined, childrenIndex, currentTime);
   }
 }
@@ -138,6 +199,11 @@ function evaluateTaskRecursive(
     // Compute LeadTimeFactor (Must occur after Schedule Inheritance)
     // (Note: Blocked sequential tasks already set to 0 and skipped via continue above)
     child.leadTimeFactor = calculateLeadTimeFactor(child.schedule, currentTime);
+    
+    // Safety check for NaN again (in case inheritance caused issues)
+    if (Number.isNaN(child.leadTimeFactor)) {
+      child.leadTimeFactor = 0;
+    }
   }
 
   // --- Recurse ---
@@ -157,11 +223,18 @@ function evaluateTaskRecursive(
     // Compute Final Priority
     const visibilityFactor = task.visibility ? 1.0 : 0.0;
     const feedbackFactor = effectiveRoot.feedbackFactor ?? 1.0;
+    const leadTimeFactor = task.leadTimeFactor ?? 0;
+    const normalizedImportance = task.normalizedImportance ?? 0;
+    
+    // Protection against NaNs propagating
+    const safeLeadTime = Number.isNaN(leadTimeFactor) ? 0 : leadTimeFactor;
+    const safeImportance = Number.isNaN(normalizedImportance) ? 0 : normalizedImportance;
+
     task.priority =
       visibilityFactor *
-      (task.normalizedImportance ?? 0) *
+      safeImportance *
       feedbackFactor *
-      (task.leadTimeFactor ?? 0);
+      safeLeadTime;
   }
 
   return task.visibility || hasVisibleDescendant;
@@ -180,6 +253,9 @@ function evaluateTaskRecursive(
  * @param viewFilter Filter criteria.
  * @returns Sorted, filtered list of tasks for the View.
  */
+const MIN_PRIORITY = 0.001;
+const PRIORITY_EPSILON = 0.000001;
+
 export function getPrioritizedTasks(
   state: TunnelState,
   viewFilter: ViewFilter = {},
@@ -203,6 +279,7 @@ export function getPrioritizedTasks(
         isContainer,
         isPending,
         isReady: false,
+        outlineIndex: 0,
       };
     },
   );
@@ -212,23 +289,38 @@ export function getPrioritizedTasks(
 
   // --- Stage 3: Sanitize & Sort ---
 
-  // Sort by Priority (Desc) -> Importance -> ID
+  // Sort by Priority (Desc) -> Importance (Desc) -> Outline Order (Asc)
   enrichedTasks.sort((a, b) => {
     const pA = a.priority ?? 0;
     const pB = b.priority ?? 0;
-    if (pA !== pB) return pB - pA;
-    return (b.importance ?? 0) - (a.importance ?? 0);
+    if (Math.abs(pA - pB) > PRIORITY_EPSILON) return pB - pA;
+    
+    const impA = a.importance ?? 0;
+    const impB = b.importance ?? 0;
+    if (impA !== impB) return impB - impA;
+    
+    return (a.outlineIndex ?? 0) - (b.outlineIndex ?? 0);
   });
 
   return enrichedTasks
     .filter(t => {
+      // 1. Visibility Check (Explicit & Hierarchy)
       if (!options.includeHidden && !t.visibility) return false;
 
+      // 2. Status Check
       if (!options.includeDone) {
-        return (
-          t.status === 'Pending' || (t.status === 'Done' && !t.isAcknowledged)
-        );
+        if (t.status === 'Done') return false;
       }
+
+      // 3. Priority Threshold (Focus Mode)
+      // Hidden tasks or explicit dump requests bypass this.
+      if (!options.includeHidden) {
+         const p = t.priority ?? 0;
+         if (p <= MIN_PRIORITY) {
+             return false;
+         }
+      }
+
       return true;
     })
     .map(enriched => {
@@ -246,3 +338,4 @@ export function getPrioritizedTasks(
       return computed;
     });
 }
+

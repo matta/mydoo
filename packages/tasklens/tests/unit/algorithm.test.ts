@@ -46,6 +46,7 @@ const EXPECTED_FIXTURES = [
   'lead-time.yaml',
   'min-threshold.yaml',
   'repro-stale-leadtime.yaml',
+  'root-importance.yaml',
   'sequential-flow.yaml',
   'sorting.yaml',
   'thermostat.yaml',
@@ -150,6 +151,7 @@ function parseTaskInput(
 
   if (input.children) {
     for (const child of input.children) {
+      task.childTaskIds.push(child.id as TaskID);
       tasks.push(...parseTaskInput(child, testStartDate, task.id));
     }
   }
@@ -384,15 +386,29 @@ describe('Algorithm Test Suite', () => {
 
           // Compute results
           const viewFilter = parseViewFilter(step.view_filter);
-          const computedTasks = store.dumpCalculatedState(viewFilter);
+          // Get ALL tasks to verify properties (even on hidden/zero-priority tasks)
+          const allTasks = store.dumpCalculatedStateForTest(viewFilter, {
+            includeHidden: true,
+            includeDone: true,
+          });
+          
           const computedMap = new Map<TaskID, EnrichedTask>();
-          for (const t of computedTasks) {
+          for (const t of allTasks) {
             computedMap.set(t.id, t as EnrichedTask);
           }
 
-          // Assert expectations
           if (step.expected_props) {
+            // Assert expectations on any task (visible or hidden)
             assertExpectedProps(computedMap, step.expected_props);
+          }
+
+          if (step.expected_order) {
+            // Filter to what the user would actually see (The "Do List")
+            // Use the Store's public API which respects domain rules logic (including thresholds)
+            const visibleTasks = store.getTodoListForTest(viewFilter);
+            const visibleIds = visibleTasks.map(t => t.id);
+
+            expect(visibleIds).toEqual(step.expected_order);
           }
         });
       }

@@ -287,6 +287,15 @@ export interface EnrichedTask extends PersistedTask {
    */
   visibility: boolean;
 
+  /**
+   * The order of the task in the user's outline (0-based index).
+   *
+   * - Semantic Meaning: "User Definition Order".
+   *   Used as a deterministic tie-breaker when priorities are equal.
+   * - "Do" List Impact: Secondary sort key (ascending).
+   */
+  outlineIndex: number;
+
   // =========================================================================
   // Public Computed Properties
   // These fields are exposed to the UI via the `ComputedTask` interface.

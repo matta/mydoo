@@ -18,7 +18,7 @@ initial_state:
           # Should inherit "10 days from now" and be NOT ready (factor 0.0)
 steps:
   - name: 'Verify Inheritance'
-    expected_order: ['parent-1', 'child-1']
+    expected_order: [] # Should be hidden due to 0 score (Not Ready)
     expected_props:
       - id: 'parent-1'
         score: 0.0
