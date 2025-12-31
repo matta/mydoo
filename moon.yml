@@ -14,6 +14,41 @@ tasks:
     options:
       cache: true
 
+  lint:
+    command: 'biome check .'
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+    options:
+      cache: true
+
+  format:
+    command: 'biome format --write .'
+    inputs:
+      - '@group(sources)'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+    options:
+      cache: false
+
+  fix:
+    command: 'biome check --write .'
+    inputs:
+      - '@group(sources)'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+    options:
+      cache: false
+    deps:
+      - '~:format'
   check-filenames:
     command: 'bash ./scripts/check-filenames.sh'
     inputs:
@@ -40,6 +75,11 @@ tasks:
 
   check-filenames-staged:
     command: 'bash ./scripts/check-filenames.sh --staged'
+    options:
+      cache: false
+
+  check-staged:
+    command: 'bash ./scripts/check-staged.sh'
     options:
       cache: false
 

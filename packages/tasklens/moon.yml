@@ -15,3 +15,10 @@ tasks:
       - 'tests/**/*'
     deps:
       - '~:build'
+
+  generate-types:
+    command: 'json2ts ./specs/compliance/schemas/test-case.schema.json ./specs/compliance/schemas/test-case.d.ts && biome format --write ./specs/compliance/schemas/test-case.d.ts'
+    inputs:
+      - 'specs/compliance/schemas/test-case.schema.json'
+    outputs:
+      - 'specs/compliance/schemas/test-case.d.ts'

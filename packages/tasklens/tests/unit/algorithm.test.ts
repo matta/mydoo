@@ -4,7 +4,6 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import {load} from 'js-yaml';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
-
 import type {
   Place as PlaceInput,
   TaskInput,

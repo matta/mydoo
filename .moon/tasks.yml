@@ -15,28 +15,7 @@ fileGroups:
     - 'eslint.config.js'
 
 tasks:
-  lint:
-    command: 'biome check .'
-    inputs:
-      - '@group(sources)'
-      - '@group(configs)'
-    env:
-      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
-      GEMINI_CLI: 'GEMINI_CLI'
-      CI: 'CI'
-    options:
-      cache: true
 
-  format:
-    command: 'biome format .'
-    inputs:
-      - '@group(sources)'
-    env:
-      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
-      GEMINI_CLI: 'GEMINI_CLI'
-      CI: 'CI'
-    options:
-      cache: false
 
   typecheck:
     command: 'tsc --noEmit'
@@ -62,10 +41,42 @@ tasks:
       CI: 'CI'
     options:
       cache: true
+    deps:
+      - 'root:lint'
+
+  fix-eslint:
+    command: 'eslint . --fix'
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+    options:
+      cache: false
+
+  check-style:
+    deps:
+      - 'root:lint'
+      - '~:check-eslint'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
+
+  fix-style:
+    deps:
+      - 'root:fix'
+      - '~:fix-eslint'
+    env:
+      ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
+      GEMINI_CLI: 'GEMINI_CLI'
+      CI: 'CI'
 
   check:
     deps:
-      - '~:lint'
+      - 'root:lint'
       - '~:check-eslint'
       - '~:typecheck'
     env:
@@ -74,14 +85,10 @@ tasks:
       CI: 'CI'
 
   fix:
-    command: 'biome check --write .'
-    inputs:
-      - '@group(sources)'
+    deps:
+      - 'root:fix'
+      - '~:fix-eslint'
     env:
       ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
       GEMINI_CLI: 'GEMINI_CLI'
       CI: 'CI'
-    options:
-      cache: false
-    deps:
-      - '~:format'

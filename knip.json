@@ -19,7 +19,10 @@
     },
     "packages/tasklens": {
       "project": ["src/**/*.ts!"],
-      "ignoreDependencies": ["@automerge/automerge-repo"]
+      "ignoreDependencies": [
+        "json-schema-to-typescript",
+        "@automerge/automerge-repo"
+      ]
     },
     "apps/client": {
       "entry": [

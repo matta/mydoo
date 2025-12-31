@@ -12,7 +12,7 @@ export type OpenHoursRange = string;
 /**
  * Enumeration of possible task states.
  */
-export type TaskStatus = 'Pending' | 'Done' | 'Deleted';
+export type TaskStatus = "Pending" | "Done" | "Deleted";
 
 export interface TunnelAlgorithmTestCaseSchema {
   /**
@@ -73,7 +73,7 @@ export interface OpenHours {
   /**
    * Operating mode: 'always_open', 'always_closed', or 'custom'.
    */
-  mode: 'always_open' | 'always_closed' | 'custom';
+  mode: "always_open" | "always_closed" | "custom";
   /**
    * Weekly schedule mapping days to time ranges (required if mode is 'custom').
    */
@@ -108,7 +108,7 @@ export interface TaskInput {
   /**
    * Current state ({ Pending, Done, Deleted }). Used to derive IsPending.
    */
-  status?: 'Pending' | 'Done' | 'Deleted';
+  status?: "Pending" | "Done" | "Deleted";
   /**
    * Current total of decayed credit history for this task/subtree.
    */
@@ -116,7 +116,7 @@ export interface TaskInput {
   /**
    * Timestamp of last credit modification (t0 for decay calculations).
    */
-  credits_timestamp?: string | undefined;
+  credits_timestamp?: string | null;
   /**
    * Target allocation value (only valid for Root Goals).
    */
@@ -124,11 +124,11 @@ export interface TaskInput {
   /**
    * Due Date for the task.
    */
-  due_date?: string | undefined;
+  due_date?: string | null;
   /**
    * Link to the Place this task belongs to. Inherits from Parent if Null.
    */
-  place_id?: string | undefined;
+  place_id?: string | null;
   /**
    * Lead time in seconds. Defaults to 7 days (604800).
    */
@@ -174,7 +174,8 @@ export interface Step {
       credits?: number;
       desired_credits?: number;
       importance?: number;
-      due_date?: string | undefined;
+      due_date?: string | null;
+      is_acknowledged?: boolean;
       [k: string]: unknown;
     }[];
     [k: string]: unknown;
