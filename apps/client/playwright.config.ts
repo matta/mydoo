@@ -26,9 +26,14 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'bdd',
+      name: 'bdd-desktop',
       testDir,
       use: {...devices['Desktop Chrome']},
+    },
+    {
+      name: 'bdd-mobile',
+      testDir,
+      use: {...devices['Pixel 7']},
     },
     {
       name: 'e2e',

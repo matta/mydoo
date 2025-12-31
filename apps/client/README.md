@@ -59,15 +59,48 @@ export default defineConfig([
       // Enable lint rules for React
       reactX.configs['recommended-typescript'],
       // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
       // other options...
     },
   },
 ]);
+
+## E2E Testing (Playwright)
+
+We use Playwright for End-to-End (E2E) testing. The configuration supports both Desktop (Chrome) and Mobile (Pixel 7 emulation) environments.
+
+### Running Tests
+
+Run all E2E tests (Desktop + Mobile):
+```bash
+pnpm test:e2e
+```
+
+Run Desktop tests only:
+```bash
+pnpm test:e2e:desktop
+```
+
+Run Mobile tests only:
+```bash
+pnpm test:e2e:mobile
+```
+
+### Debugging
+
+To run tests with the Playwright Inspector (UI mode):
+
+```bash
+pnpm exec playwright test --project='bdd-desktop' --ui
+# or
+pnpm exec playwright test --project='bdd-mobile' --ui
+```
+
+### Reports
+
+After running tests, an HTML report is generated in `playwright-report/`. To view it:
+
+```bash
+pnpm exec playwright show-report
+```
+
 ```
