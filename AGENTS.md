@@ -47,11 +47,11 @@ pnpm test:e2e
 
 # All unit tests in a specific package
 pnpm exec turbo run test --filter <package>
-# e.g. pnpm exec turbo run test --filter client
+# e.g. pnpm exec turbo run test --filter @mydoo/client
 
 # Specific test file within a package
 pnpm exec turbo run test --filter <package> -- <TestFile>
-# e.g. pnpm exec turbo run test --filter client -- PlanViewContainer
+# e.g. pnpm exec turbo run test --filter @mydoo/client -- PlanViewContainer
 ```
 
 ## Context Convention: `ROLLING_CONTEXT.md`

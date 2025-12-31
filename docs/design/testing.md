@@ -57,7 +57,7 @@ These tests verify React hooks, view models, and component interactions using **
 
 **How to Run:**
 ```bash
-pnpm --filter client test
+pnpm --filter @mydoo/client test
 ```
 
 ---
@@ -78,7 +78,7 @@ These tests verify the full application stack in a real browser, including Index
 
 **How to Run:**
 ```bash
-pnpm --filter client test:e2e
+pnpm --filter @mydoo/client test:e2e
 ```
 
 ---
