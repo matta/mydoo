@@ -36,6 +36,7 @@ tasks:
       CI: 'CI'
     options:
       cache: false
+      runInCI: false
 
   check-filenames:
     command: 'bash ./scripts/check-filenames.sh'

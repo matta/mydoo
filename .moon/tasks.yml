@@ -39,6 +39,7 @@ tasks:
       CI: 'CI'
     options:
       cache: false
+      runInCI: false
 
   # --- Types (TSC) ---
   check-types:
@@ -80,6 +81,7 @@ tasks:
       CI: 'CI'
     options:
       cache: false
+      runInCI: false
 
   # --- Aggregates ---
   check-style:
@@ -99,6 +101,8 @@ tasks:
       ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
       GEMINI_CLI: 'GEMINI_CLI'
       CI: 'CI'
+    options:
+      runInCI: false
 
   check:
     deps:
@@ -118,3 +122,5 @@ tasks:
       ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
       GEMINI_CLI: 'GEMINI_CLI'
       CI: 'CI'
+    options:
+      runInCI: false
