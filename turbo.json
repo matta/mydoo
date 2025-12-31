@@ -83,18 +83,28 @@
         "**/*.toml",
         "**/*.config.js",
         "**/*.config.ts",
+        "!**/test-results/**",
         "!**/playwright-report/**",
-        "!**/test-results/**"
+        "!**/coverage/**",
+        "!**/dist/**",
+        "!**/.turbo/**",
+        "!**/node_modules/**"
       ],
       "outputs": []
     },
     "check-biome": {
       "inputs": [
+        "biome.json",
         "src/**/*",
         "tests/**/*",
         "specs/**/*",
         "**/*.json",
-        "biome.json"
+        "!**/test-results/**",
+        "!**/playwright-report/**",
+        "!**/coverage/**",
+        "!**/dist/**",
+        "!**/.turbo/**",
+        "!**/node_modules/**"
       ],
       "outputs": []
     },
