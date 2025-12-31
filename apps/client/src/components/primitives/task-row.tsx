@@ -25,7 +25,7 @@ export interface TaskRowProps {
   style?: React.CSSProperties;
 
   /**
-   * The task data to display. Contains title, status, importance, etc.
+   * The task data to display. Contains title, status, etc.
    */
   task: Task;
 }
@@ -36,7 +36,6 @@ export interface TaskRowProps {
  * Displays a task with:
  * - A checkbox to toggle completion status
  * - A clickable title that opens the TaskEditorModal (if onTitleTap provided)
- * - The task's importance score
  *
  * @example
  * <TaskRow
@@ -68,10 +67,6 @@ export function TaskRow({task, onToggle, onTitleTap, style}: TaskRowProps) {
           }}
         >
           {task.title}
-        </Text>
-
-        <Text c="dimmed" size="xs">
-          {task.importance.toFixed(2)}
         </Text>
       </Group>
     </Paper>

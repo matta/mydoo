@@ -52,11 +52,4 @@ describe('TaskRow', () => {
     const checkbox = screen.getByRole('checkbox');
     expect(checkbox).toBeChecked();
   });
-
-  it('displays task importance', () => {
-    const task = createLocalMockTask({importance: 0.75});
-    renderWithTestProviders(<TaskRow onToggle={vi.fn()} task={task} />);
-
-    expect(screen.getByText('0.75')).toBeInTheDocument();
-  });
 });

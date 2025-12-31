@@ -157,46 +157,47 @@ export interface OpenHours {
  *
  * This interface represents the raw data stored in the database (Automerge).
  * Unlike the legacy `Task` type, it does NOT contain computed properties.
- *
- * @property id - Unique identifier for this task.
- * @property title - Human-readable name or description of the task.
- * @property parentId - ID of the parent task, or undefined if this is a root task.
- * @property placeId - Location where this task should be done, or undefined to inherit from parent.
- * @property status - Current state: Pending, Done, or Deleted.
- * @property importance - User-assigned priority from 0.0 (lowest) to 1.0 (highest).
- * @property creditIncrement - Points awarded when this task is completed.
- * @property credits - Accumulated points from completing this task and its children.
- * @property desiredCredits - Target allocation for this goal.
- *   - Relevance: Root-level tasks only.
- *   - Semantics: A weight representing the desired share of total effort.
- *     (Calculated as `desiredCredits / sum(all root credits)`).
- *   - Default: 1.0.
- * @property creditsTimestamp - When credits were last modified (for decay calculations).
- * @property priorityTimestamp - When priority was last recalculated.
- * @property schedule - Due date and recurrence information.
- * @property isSequential - If true, children must be completed in order.
- * @property childTaskIds - Ordered list of child task IDs.
- * @property notes - Markdown notes attached to the task.
- * @property repeatConfig - Configuration for recurring tasks.
- * @property isAcknowledged - If true, completed task is hidden from "Do" view.
  */
 export interface PersistedTask {
+  /** Ordered list of child task IDs. */
   childTaskIds: TaskID[];
+  /** Points awarded when this task is completed. */
   creditIncrement: number;
+  /** Accumulated points from completing this task and its children. */
   credits: number;
+  /** When credits were last modified (for decay calculations). */
   creditsTimestamp: number;
+  /**
+   * Target allocation for this goal.
+   * - Relevance: Root-level tasks only.
+   * - Semantics: A weight representing the desired share of total effort.
+   *   (Calculated as `desiredCredits / sum(all root credits)`).
+   * - Default: 1.0.
+   */
   desiredCredits: number;
+  /** Unique identifier for this task. */
   id: TaskID;
+  /** User-assigned priority from 0.0 (lowest) to 1.0 (highest). */
   importance: number;
+  /** If true, children must be completed in order. */
   isSequential: boolean;
+  /** ID of the parent task, or undefined if this is a root task. */
   parentId?: TaskID | undefined;
+  /** Location where this task should be done, or undefined to inherit from parent. */
   placeId?: PlaceID | undefined;
+  /** When priority was last recalculated. */
   priorityTimestamp: number;
+  /** Due date and recurrence information. */
   schedule: Schedule;
+  /** Current state: Pending, Done, or Deleted. */
   status: TaskStatus;
+  /** Human-readable name or description of the task. */
   title: string;
+  /** Markdown notes attached to the task. */
   notes: string;
+  /** Configuration for recurring tasks. */
   repeatConfig?: RepeatConfig | undefined;
+  /** If true, completed task is hidden from "Do" view. */
   isAcknowledged: boolean;
 }
 
