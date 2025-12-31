@@ -172,6 +172,16 @@
       "outputs": ["playwright-report/**", "test-results/**"],
       "cache": true
     },
+    "test:e2e:desktop": {
+      "dependsOn": ["check-style", "build", "check-types"],
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "cache": true
+    },
+    "test:e2e:mobile": {
+      "dependsOn": ["check-style", "build", "check-types"],
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "cache": true
+    },
     "dev": {
       "cache": false,
       "persistent": true
