@@ -72,17 +72,17 @@ We use Playwright for End-to-End (E2E) testing. The configuration supports both 
 
 Run all E2E tests (Desktop + Mobile):
 ```bash
-pnpm test:e2e
+pnpm test-e2e
 ```
 
 Run Desktop tests only:
 ```bash
-pnpm test:e2e:desktop
+pnpm test-e2e-desktop
 ```
 
 Run Mobile tests only:
 ```bash
-pnpm test:e2e:mobile
+pnpm test-e2e-mobile
 ```
 
 ### Debugging

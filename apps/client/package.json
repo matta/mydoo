@@ -52,9 +52,9 @@
     "dev": "vite",
     "preview": "vite preview",
     "test": "../../scripts/only-allow-turbo.sh test -- vitest run",
-    "test:e2e": "../../scripts/only-allow-turbo.sh test:e2e -- playwright test",
-    "test:e2e:desktop": "../../scripts/only-allow-turbo.sh test:e2e -- playwright test --project='bdd-desktop'",
-    "test:e2e:mobile": "../../scripts/only-allow-turbo.sh test:e2e -- playwright test --project='bdd-mobile'",
+    "test-e2e": "../../scripts/only-allow-turbo.sh test-e2e -- playwright test",
+    "test-e2e-desktop": "../../scripts/only-allow-turbo.sh test-e2e -- playwright test --project='bdd-desktop'",
+    "test-e2e-mobile": "../../scripts/only-allow-turbo.sh test-e2e -- playwright test --project='bdd-mobile'",
     "check-types": "tsc --noEmit",
     "presubmit:agent": "true",
     "presubmit:human": "true"
