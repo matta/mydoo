@@ -1,0 +1,17 @@
+tasks:
+  build:
+    command: 'pnpm tsc --emitDeclarationOnly'
+    inputs:
+      - 'src/**/*'
+      - 'package.json'
+      - 'tsconfig.json'
+    outputs:
+      - 'dist'
+
+  test:
+    command: 'pnpm vitest run --coverage'
+    inputs:
+      - 'src/**/*'
+      - 'tests/**/*'
+    deps:
+      - '~:build'

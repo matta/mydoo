@@ -23,7 +23,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.turbo
+.moon/cache
+.proto
 
 # Test Artifacts
 playwright-report

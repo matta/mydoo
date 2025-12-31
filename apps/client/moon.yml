@@ -1,0 +1,66 @@
+tasks:
+  build:
+    command: 'pnpm vite build'
+    inputs:
+      - 'src/**/*'
+      - 'public/**/*'
+      - 'package.json'
+      - 'tsconfig.json'
+      - 'vite.config.ts'
+      - 'index.html'
+    outputs:
+      - 'dist'
+
+  test:
+    command: 'pnpm vitest run'
+    inputs:
+      - 'src/**/*'
+      - 'tests/**/*'
+    deps:
+      - '~:build'
+
+  test-e2e:
+    command: 'pnpm playwright test'
+    inputs:
+      - 'src/**/*'
+      - 'tests/**/*'
+      - 'playwright.config.ts'
+    outputs:
+      - 'playwright-report'
+      - 'test-results'
+    deps:
+      - '~:build'
+    env:
+      PLAYWRIGHT_TEST_PORT: '5179'
+
+  test-e2e-desktop:
+    command: 'pnpm playwright test --project="bdd-desktop"'
+    inputs:
+      - 'src/**/*'
+      - 'tests/**/*'
+      - 'playwright.config.ts'
+    outputs:
+      - 'playwright-report'
+      - 'test-results'
+    deps:
+      - '~:build'
+    env:
+      PLAYWRIGHT_TEST_PORT: '5180'
+
+  test-e2e-mobile:
+    command: 'pnpm playwright test --project="bdd-mobile"'
+    inputs:
+      - 'src/**/*'
+      - 'tests/**/*'
+      - 'playwright.config.ts'
+    outputs:
+      - 'playwright-report'
+      - 'test-results'
+    deps:
+      - '~:build'
+    env:
+      PLAYWRIGHT_TEST_PORT: '5181'
+
+  dev:
+    command: 'pnpm vite'
+    local: true
