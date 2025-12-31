@@ -43,7 +43,7 @@
     "prepare": "husky",
     "check-context-staged": "./scripts/check-context-staged.sh",
     "test": "turbo test",
-    "test:e2e": "turbo test:e2e",
+    "test-e2e": "turbo test-e2e",
     "check-types": "turbo check-types --filter=!//"
   }
 }

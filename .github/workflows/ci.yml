@@ -61,11 +61,8 @@ jobs:
       - name: Test
         run: pnpm test
 
-      - name: E2E Tests (Desktop)
-        run: pnpm test:e2e:desktop
-
-      - name: E2E Tests (Mobile)
-        run: pnpm test:e2e:mobile
+      - name: E2E Tests
+        run: pnpm test-e2e
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
