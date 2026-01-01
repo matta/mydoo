@@ -8,11 +8,20 @@
 
 - Use `pnpm` for all package management and scripts.
 
-
 ## Environment Initialization
 
+<<<<<<< HEAD
 - **Dependency Installation:** Run `pnpm install`.
 - **Clean Install:** If you need to clean the environment, use `scripts/aggressive-git-clean.sh` followed by `pnpm install`.
+=======
+- **Toolchain Setup:** Run `moon setup` to install the correct Node.js and pnpm versions managed by proto.
+- **Dependency Installation:** NEVER run system `pnpm install`. Always use the moon-managed toolchain:
+  ```bash
+  $(moon bin pnpm) install
+  ```
+- **Clean Install:** If you need to clean the environment, use `scripts/aggressive-git-clean.sh` followed by the installation commands above.
+
+>>>>>>> bb328c9 (Fix CI failures and harden presubmit checks)
 ## Git Workflow
 
 - **Clean Tree Rule:** Before starting unrelated work or a new development phase, run `git status`. If the working tree is not clean, STOP and notify the user.
@@ -139,3 +148,17 @@ test("User can organize tasks", async ({ plan }) => {
   });
 });
 ```
+
+### 5. BDD Support (Playwright)
+
+We use `playwright-bdd` to generate Playwright tests from Gherkin `.feature` files.
+
+1.  **Generation Step:** BDD tests MUST be generated before execution.
+    ```bash
+    # Generate BDD tests for the client
+    pnpm --filter @mydoo/client bddgen
+    # Or manually via pnpm (requires playwright-bdd/bddgen)
+    pnpm bddgen
+    ```
+2.  **Output Location:** Generated tests are stored in `tests/e2e/.features-gen` (split by profile, e.g., `/desktop`, `/mobile`). These files are ignored by git and Prettier.
+3.  **CI/Presubmit:** The `generate-e2e-bdd` task is a dependency of `test-e2e`. Always ensure your Turbo inputs/outputs reflect this dependency to avoid "No tests found" errors in clean environments.
