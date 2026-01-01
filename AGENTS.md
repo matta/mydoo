@@ -10,18 +10,9 @@
 
 ## Environment Initialization
 
-<<<<<<< HEAD
 - **Dependency Installation:** Run `pnpm install`.
 - **Clean Install:** If you need to clean the environment, use `scripts/aggressive-git-clean.sh` followed by `pnpm install`.
-=======
-- **Toolchain Setup:** Run `moon setup` to install the correct Node.js and pnpm versions managed by proto.
-- **Dependency Installation:** NEVER run system `pnpm install`. Always use the moon-managed toolchain:
-  ```bash
-  $(moon bin pnpm) install
-  ```
-- **Clean Install:** If you need to clean the environment, use `scripts/aggressive-git-clean.sh` followed by the installation commands above.
 
->>>>>>> bb328c9 (Fix CI failures and harden presubmit checks)
 ## Git Workflow
 
 - **Clean Tree Rule:** Before starting unrelated work or a new development phase, run `git status`. If the working tree is not clean, STOP and notify the user.
