@@ -24,8 +24,8 @@ if [ -n "$ANTIGRAVITY_AGENT" ] || [ -n "$GEMINI_CLI" ]; then
     fi
   fi
   
-  pnpm exec turbo run presubmit:agent
+  pnpm exec turbo run check-agent
 else
   echo "👤 Human detected. Running staged quality gates (Turbo)..."
-  pnpm exec turbo run presubmit:human
+  pnpm exec turbo run check-human
 fi

@@ -21,6 +21,9 @@
     "//#check-context-staged": {
       "cache": false
     },
+    "//#check-format-staged": {
+      "cache": false
+    },
     "//#check-biome:root": {
       "cache": true,
       "inputs": [
@@ -35,12 +38,13 @@
     "//#fix-biome:root": {
       "cache": false
     },
-    "presubmit:agent": {
+    "check-agent": {
       "dependsOn": [
         "//#check-biome-staged",
         "//#check-eslint-staged",
         "//#check-filenames-staged",
         "//#check-context-staged",
+        "//#check-format-staged",
         "//#check-deps",
         "test",
         "test-e2e",
@@ -48,12 +52,13 @@
       ],
       "cache": false
     },
-    "presubmit:human": {
+    "check-human": {
       "dependsOn": [
         "//#check-biome-staged",
         "//#check-eslint-staged",
         "//#check-filenames-staged",
         "//#check-context-staged",
+        "//#check-format-staged",
         "//#check-deps",
         "check-types"
       ],

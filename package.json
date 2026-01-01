@@ -45,6 +45,9 @@
     "check-filenames": "./scripts/check-filenames.sh",
     "prepare": "husky",
     "check-context-staged": "./scripts/check-context-staged.sh",
+    "check-agent": "turbo run check-agent",
+    "check-human": "turbo run check-human",
+    "check-format-staged": "./scripts/check-format-staged.sh",
     "test": "turbo test",
     "test-e2e": "turbo test-e2e",
     "check-types": "turbo check-types --filter=!//"

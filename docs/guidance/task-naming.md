@@ -68,6 +68,12 @@ The scope of files.
 | **Pre-commit**       | `lint-staged`      | `check-staged`   | Command: Verify the staged files.     |
 | **CI Validation**    | `ci`               | `check`          | Query: Is everything correct?         |
 
-## 5. Exemptions
+## 5. Technical Syntax Markers
+
+Some build systems use specific syntax markers that are technically required and exempt from naming rules:
+
+- **Turborepo Root Task Prefix (`//#`):** In `turbo.json`, tasks defined in the root `package.json` must be prefixed with `//#` (e.g., `//#check-style`). The **name following the prefix** must still conform to all naming rules (kebab-case, segment hierarchy). This prefix is considered a technical address and not part of the semantic task name.
+
+## 6. Exemptions
 
 Common task names endemic to the npm/Node ecosystem are exempt when not explicitly banned above. Examples: `dev`, `start`, `serve`, `clean`, `prepare`, `prepublishOnly`.
