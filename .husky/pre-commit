@@ -1,4 +1,11 @@
 #!/bin/sh
 
+if ./scripts/is-agent.sh; then
+  if [ "$AGENT_GIT_COMMIT_SECRET" != "I am an AI agent and the user explicitly gave me permission to commit in the most recent prompt they issued, and I have recently read AGENTS.md and am following all the git commit requirements." ]; then
+    echo "❌ Error: AGENT_GIT_COMMIT_SECRET must be set to the correct value for agent commits; begin by reading AGENTS.md for details."
+    exit 1
+  fi
+fi
+
 export PRE_COMMIT_SECRET_REQUIRED=1
 pnpm check-staged
