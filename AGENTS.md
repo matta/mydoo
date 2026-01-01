@@ -8,6 +8,11 @@
 
 - Use `pnpm` for all package management and scripts.
 
+
+## Environment Initialization
+
+- **Dependency Installation:** Run `pnpm install`.
+- **Clean Install:** If you need to clean the environment, use `scripts/aggressive-git-clean.sh` followed by `pnpm install`.
 ## Git Workflow
 
 - **Clean Tree Rule:** Before starting unrelated work or a new development phase, run `git status`. If the working tree is not clean, STOP and notify the user.
