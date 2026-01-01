@@ -264,9 +264,6 @@ importers:
 
   packages/tasklens:
     dependencies:
-      '@automerge/automerge-repo':
-        specifier: 'catalog:'
-        version: 2.5.1
       '@automerge/automerge-repo-react-hooks':
         specifier: 'catalog:'
         version: 2.5.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -286,6 +283,9 @@ importers:
       '@automerge/automerge':
         specifier: 'catalog:'
         version: 3.2.1
+      '@automerge/automerge-repo':
+        specifier: 'catalog:'
+        version: 2.5.1
       '@types/js-yaml':
         specifier: 'catalog:'
         version: 4.0.9

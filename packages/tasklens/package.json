@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "author": "",
   "dependencies": {
-    "@automerge/automerge-repo": "catalog:",
     "@reduxjs/toolkit": "catalog:",
     "zod": "catalog:"
   },
@@ -15,6 +14,7 @@
   },
   "devDependencies": {
     "@automerge/automerge": "catalog:",
+    "@automerge/automerge-repo": "catalog:",
     "@types/js-yaml": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",

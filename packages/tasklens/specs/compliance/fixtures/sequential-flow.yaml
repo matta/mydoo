@@ -44,7 +44,7 @@ steps:
       task_updates:
         - id: Step_A
           status: Done
-    expected_order: ['Step_B']
+    expected_order: ['Step_A', 'Step_B']
     expected_props:
       - id: Step_A
         score: 1.0 # Completed, but score remains high (just filtered out)
@@ -62,7 +62,7 @@ steps:
       task_updates:
         - id: Step_B
           status: Done
-    expected_order: ['Step_C']
+    expected_order: ['Step_A', 'Step_B', 'Step_C']
     expected_props:
       - id: Step_B
         is_visible: true

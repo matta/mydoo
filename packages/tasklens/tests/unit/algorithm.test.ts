@@ -391,7 +391,7 @@ describe('Algorithm Test Suite', () => {
             includeHidden: true,
             includeDone: true,
           });
-          
+
           const computedMap = new Map<TaskID, EnrichedTask>();
           for (const t of allTasks) {
             computedMap.set(t.id, t as EnrichedTask);

@@ -54,7 +54,9 @@ function buildIndexes(
     if (parentId === undefined) continue;
     const parent = taskMap.get(parentId);
     if (parent) {
-      const childOrderMap = new Map(parent.childTaskIds.map((id, i) => [id, i]));
+      const childOrderMap = new Map(
+        parent.childTaskIds.map((id, i) => [id, i]),
+      );
       children.sort((a, b) => {
         const idxA = childOrderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
         const idxB = childOrderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER;
@@ -70,7 +72,7 @@ function buildIndexes(
  * Assigns outlineIndex via DFS traversal.
  */
 function assignOutlineIndexes(
-  childrenIndex: Map<TaskID | undefined, EnrichedTask[]>
+  childrenIndex: Map<TaskID | undefined, EnrichedTask[]>,
 ): void {
   let currentIndex = 0;
 
@@ -107,10 +109,10 @@ export function recalculatePriorities(
   // Compute LeadTimeFactor for all tasks
   for (const task of enrichedTasks) {
     task.leadTimeFactor = calculateLeadTimeFactor(task.schedule, currentTime);
-    
+
     // Safety check for NaN
     if (Number.isNaN(task.leadTimeFactor)) {
-      task.leadTimeFactor = 0; 
+      task.leadTimeFactor = 0;
     }
   }
 
@@ -126,14 +128,14 @@ export function recalculatePriorities(
 
   // --- Phase 2: Unified DFS Traversal ---
   const roots = childrenIndex.get(undefined) ?? [];
-  
+
   // Distribute importance among roots
   for (const root of roots) {
     // Roots start with their raw importance. They are not normalized against each other
     // to preserve absolute scoring for independent trees (which existing tests rely on),
     // while still allowing higher-importance roots to dominate lower-importance ones.
     root.normalizedImportance = root.importance;
-    
+
     evaluateTaskRecursive(root, undefined, childrenIndex, currentTime);
   }
 }
@@ -199,7 +201,7 @@ function evaluateTaskRecursive(
     // Compute LeadTimeFactor (Must occur after Schedule Inheritance)
     // (Note: Blocked sequential tasks already set to 0 and skipped via continue above)
     child.leadTimeFactor = calculateLeadTimeFactor(child.schedule, currentTime);
-    
+
     // Safety check for NaN again (in case inheritance caused issues)
     if (Number.isNaN(child.leadTimeFactor)) {
       child.leadTimeFactor = 0;
@@ -225,16 +227,15 @@ function evaluateTaskRecursive(
     const feedbackFactor = effectiveRoot.feedbackFactor ?? 1.0;
     const leadTimeFactor = task.leadTimeFactor ?? 0;
     const normalizedImportance = task.normalizedImportance ?? 0;
-    
+
     // Protection against NaNs propagating
     const safeLeadTime = Number.isNaN(leadTimeFactor) ? 0 : leadTimeFactor;
-    const safeImportance = Number.isNaN(normalizedImportance) ? 0 : normalizedImportance;
+    const safeImportance = Number.isNaN(normalizedImportance)
+      ? 0
+      : normalizedImportance;
 
     task.priority =
-      visibilityFactor *
-      safeImportance *
-      feedbackFactor *
-      safeLeadTime;
+      visibilityFactor * safeImportance * feedbackFactor * safeLeadTime;
   }
 
   return task.visibility || hasVisibleDescendant;
@@ -294,11 +295,11 @@ export function getPrioritizedTasks(
     const pA = a.priority ?? 0;
     const pB = b.priority ?? 0;
     if (Math.abs(pA - pB) > PRIORITY_EPSILON) return pB - pA;
-    
+
     const impA = a.importance ?? 0;
     const impB = b.importance ?? 0;
     if (impA !== impB) return impB - impA;
-    
+
     return (a.outlineIndex ?? 0) - (b.outlineIndex ?? 0);
   });
 
@@ -309,16 +310,16 @@ export function getPrioritizedTasks(
 
       // 2. Status Check
       if (!options.includeDone) {
-        if (t.status === 'Done') return false;
+        if (t.status === 'Done' && t.isAcknowledged) return false;
       }
 
       // 3. Priority Threshold (Focus Mode)
       // Hidden tasks or explicit dump requests bypass this.
       if (!options.includeHidden) {
-         const p = t.priority ?? 0;
-         if (p <= MIN_PRIORITY) {
-             return false;
-         }
+        const p = t.priority ?? 0;
+        if (p <= MIN_PRIORITY) {
+          return false;
+        }
       }
 
       return true;
@@ -338,4 +339,3 @@ export function getPrioritizedTasks(
       return computed;
     });
 }
-
