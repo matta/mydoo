@@ -51,6 +51,9 @@ test.describe('Task Creation with Defaults', () => {
 
     await plan.verifyTaskVisible('Persistent Task');
 
+    // Wait for persistence to flush
+    await page.waitForTimeout(1000);
+
     // Reload the page
     await page.reload();
     await plan.switchToDoView();

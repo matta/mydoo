@@ -3,10 +3,19 @@ import {defineBddConfig} from 'playwright-bdd';
 
 const isAgent = !!process.env.ANTIGRAVITY_AGENT || !!process.env.GEMINI_CLI;
 
-const testDir = defineBddConfig({
+const bddCommon = {
   features: 'tests/e2e/features/*.feature',
   steps: 'tests/e2e/{steps/*.steps.ts,fixtures.ts}',
-  outputDir: 'tests/e2e/.features-gen',
+};
+
+const testDirDesktop = defineBddConfig({
+  ...bddCommon,
+  outputDir: 'tests/e2e/.features-gen/desktop',
+});
+
+const testDirMobile = defineBddConfig({
+  ...bddCommon,
+  outputDir: 'tests/e2e/.features-gen/mobile',
 });
 
 export default defineConfig({
@@ -27,18 +36,18 @@ export default defineConfig({
   projects: [
     {
       name: 'bdd-desktop',
-      testDir,
+      testDir: testDirDesktop,
       use: {...devices['Desktop Chrome']},
     },
     {
       name: 'bdd-mobile',
-      testDir,
+      testDir: testDirMobile,
       use: {...devices['Pixel 7']},
     },
     {
       name: 'e2e',
       testDir: 'tests/e2e',
-      testIgnore: ['features/**', 'steps/**', '.features-gen/**'],
+      testIgnore: ['features/**', 'steps/**', '.features-gen*/**'],
       use: {...devices['Desktop Chrome']},
     },
   ],

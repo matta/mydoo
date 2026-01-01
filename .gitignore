@@ -32,3 +32,4 @@ test-results
 coverage
 ROLLING_CONTEXT.md
 **/__screenshots__
+**/.features-gen
