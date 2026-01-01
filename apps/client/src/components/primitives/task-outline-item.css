@@ -6,7 +6,7 @@
 /* Reveal menu trigger on row hover, focus, or when menu is active */
 .task-row:hover .task-menu-trigger,
 .task-menu-trigger:focus,
-.task-menu-trigger[aria-expanded="true"] {
+.task-menu-trigger[aria-expanded='true'] {
   opacity: 1;
 }
 

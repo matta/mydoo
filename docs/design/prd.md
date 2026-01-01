@@ -145,7 +145,6 @@ This logic runs client-side on the flattened task list derived from the Automerg
 - **Filter Logic:** Shows tasks where `Visibility = True` per [ALGORITHM.md](./algorithm.md) Pass 1.
 - **Context Filter:** Header dropdown (e.g., "Home", "Work"). Place filtering logic is defined in ALGORITHM.md §3.2.
 - **Task Row Elements:**
-
   - **Left:** Checkbox.
   - **Center:** Task Title + Small Metadata text (Parent Project Name, Due Date icon).
   - **Visual Cues:**
@@ -201,7 +200,6 @@ Since there is no "selection" state on mobile, tapping any task text opens a ful
 
 1. **Title:** Text input.
 2. **Navigation & Hierarchy (Edit Mode Only):**
-
    - **Parent:** Read-only label showing current parent.
    - **Hierarchy Controls:**
      - `[← Outdent]`: Moves task up one level (becomes sibling of parent).

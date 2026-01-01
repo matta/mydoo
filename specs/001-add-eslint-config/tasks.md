@@ -5,13 +5,15 @@
 **Spec**: [spec.md](./spec.md)
 
 ## Phase 1: Setup
-*Initialize project dependencies and configuration.*
+
+_Initialize project dependencies and configuration._
 
 - [x] T001 Install `eslint`, `typescript-eslint`, `eslint-plugin-import-x` as dev dependencies in `package.json`
 - [x] T002 Create `eslint.config.js` at root with `import/no-namespace` rule configured as warning and centralize ignore patterns
 
 ## Phase 2: Foundational
-*Blocking prerequisites: Global renaming of scripts to align with new naming convention.*
+
+_Blocking prerequisites: Global renaming of scripts to align with new naming convention._
 
 - [x] T003 [P] Rename `lint` script to `check-biome` in `apps/client/package.json`
 - [x] T004 [P] Rename `lint` script to `check-biome` in `packages/tasklens/package.json`
@@ -23,8 +25,9 @@
 - [x] T010 Rename `check-staged` script to `check-context-staged` in `package.json` (root)
 
 ## Phase 3: User Story 1 - Developer runs linting locally (P1)
-*Goal: Developer can run `pnpm check-style` to see unified linting results.*
-*Independent Test: Run `pnpm check-style` and verify output contains only expected warnings.*
+
+_Goal: Developer can run `pnpm check-style` to see unified linting results._
+_Independent Test: Run `pnpm check-style` and verify output contains only expected warnings._
 
 - [x] T011 [P] [US1] Add `check-eslint` script (running `eslint .`) to `apps/client/package.json`
 - [x] T012 [P] [US1] Add `check-eslint` script (running `eslint .`) to `packages/tasklens/package.json`
@@ -33,8 +36,9 @@
 - [x] T015 [US1] Manual verification: Run `pnpm check-style` and ensure `import/no-namespace` warnings appear
 
 ## Phase 4: User Story 2 - Turbo Build Integration & Caching (P1)
-*Goal: Linting is efficiently cached and integrated into the global build pipeline.*
-*Independent Test: Run `pnpm check-style` twice; second run should be `FULL TURBO`.*
+
+_Goal: Linting is efficiently cached and integrated into the global build pipeline._
+_Independent Test: Run `pnpm check-style` twice; second run should be `FULL TURBO`._
 
 - [x] T016 [US2] Define `check-eslint` task in `turbo.json` with `eslint.config.js` as global input
 - [x] T017 [US2] Define `check-style` aggregate task in `turbo.json` (depends on `check-biome`, `check-eslint`)
@@ -47,7 +51,8 @@
 - [x] T021 [US2] Manual verification: Run `pnpm check-style` twice to confirm Turbo caching
 
 ## Phase 5: Polish & Cross-Cutting
-*Staged checks and documentation updates.*
+
+_Staged checks and documentation updates._
 
 - [x] T022 Implement `check-filenames-staged` script in `package.json` (root)
 - [x] T023 Implement `check-eslint-staged` script in `package.json` (root)

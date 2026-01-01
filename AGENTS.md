@@ -88,28 +88,31 @@ We prioritize fidelity. Because this is a Local-First application relying on **A
 
 ### 1. The 3-Tier Architecture (Goal State)
 
-| Tier | Scope | Target Infrastructure | Rationale |
-| :--- | :--- | :--- | :--- |
-| **Tier 1** | Pure Logic | **Node.js** | Native WASM performance; no DOM pollution. |
+| Tier       | Scope      | Target Infrastructure   | Rationale                                          |
+| :--------- | :--------- | :---------------------- | :------------------------------------------------- |
+| **Tier 1** | Pure Logic | **Node.js**             | Native WASM performance; no DOM pollution.         |
 | **Tier 2** | Components | **Vitest Browser Mode** | Real `IndexedDB` and `TextEncoder` implementation. |
-| **Tier 3** | Journeys | **Playwright** | Full multi-tab sync and offline/online simulation. |
+| **Tier 3** | Journeys   | **Playwright**          | Full multi-tab sync and offline/online simulation. |
 
 ### 2. Current Implementation Status
 
 > **Note:** We are largely in **JSDOM** today. Use the rules below for daily development.
 
 **Tier 1 (Packages/Logic):**
-*   **Status:** Runs in **Node**.
-*   **Command:** `pnpm test` (via Turbo).
+
+- **Status:** Runs in **Node**.
+- **Command:** `pnpm test` (via Turbo).
 
 **Tier 2 (Client Components):**
-*   **Status:** Runs in **JSDOM**.
-*   **Command:** `pnpm test` (via Turbo).
-*   **Aspiration:** We will migrate this to Browser Mode (`--project=browser`).
+
+- **Status:** Runs in **JSDOM**.
+- **Command:** `pnpm test` (via Turbo).
+- **Aspiration:** We will migrate this to Browser Mode (`--project=browser`).
 
 **Tier 3 (E2E):**
-*   **Status:** Runs in **Chromium**.
-*   **Command:** `pnpm test:e2e`.
+
+- **Status:** Runs in **Chromium**.
+- **Command:** `pnpm test:e2e`.
 
 ### 3. AI Agent Instructions
 
@@ -117,8 +120,8 @@ We prioritize fidelity. Because this is a Local-First application relying on **A
 2.  **Generate Compatible Tests:** Write component tests using `@testing-library/react` that pass in JSDOM.
 3.  **Respect the Goal:** Avoid relying on JSDOM-specific APIs (`jest-dom` extensions are okay, but don't access `window.` internals directly if a standard API exists).
 4.  **Mocking Strategy:**
-    *   **Tier 1:** No mocks. Test logic directly.
-    *   **Tier 2:** **Mock AutomergeRepo**. JSDOM struggles with the Repo's binary/WASM networking. Mock the handle to ensure component tests are stable in the simulated environment.
+    - **Tier 1:** No mocks. Test logic directly.
+    - **Tier 2:** **Mock AutomergeRepo**. JSDOM struggles with the Repo's binary/WASM networking. Mock the handle to ensure component tests are stable in the simulated environment.
 5.  **Prefer `userEvent` over `fireEvent`**: Always use `@testing-library/user-event`. Use of `fireEvent` from `@testing-library/react` is strictly prohibited as it doesn't simulate real browser interactions and often leads to flaky tests in async environments.
 
 ### 4. Executable Specs & Style Guide
@@ -139,11 +142,11 @@ Tests are **Executable Specifications**. They should read as high-level narrativ
 **Example:**
 
 ```typescript
-test("User can organize tasks", async ({ plan }) => {
-  await test.step("Create task", async () => {
+test('User can organize tasks', async ({plan}) => {
+  await test.step('Create task', async () => {
     // Given the user is on the Plan view
     // When they create a new task
-    await plan.createTask("Buy Milk");
+    await plan.createTask('Buy Milk');
     // Then the task appears in the list
   });
 });

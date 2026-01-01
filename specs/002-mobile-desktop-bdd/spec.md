@@ -6,14 +6,16 @@
 **Input**: User description: "all BDD scenarios are run on both a mobile configuration (mobile screen size, touch screen interface) and a desktop configuration (desktop browser size, mouse interface, keyboard available)"
 
 ## Clarifications
+
 ### Session 2025-12-30
+
 - Q: Handling platform-impossible scenarios? → A: Refactor Only (Mandate platform-agnostic tests).
 - Q: CI Execution Strategy? → A: Sequential Execution (Run Desktop then Mobile).
 - Q: Target Browsers/Emulation? → A: Chrome Desktop & Mobile Emulation (Pixel 7).
 - Q: Report Consolidation? → A: Combined Report (One report, distinct sections).
 - Q: Configuration Management? → A: Single playwright.config.ts using Projects.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Desktop Verification (Priority: P1)
 
@@ -63,7 +65,7 @@ As a maintainer, I need the Continuous Integration system to enforce cross-platf
 - **Platform-Specific Limitations**: If a test scenario relies on hardware/interaction specific to one platform (e.g., hover), it MUST be refactored to use platform-agnostic abstractions or equivalent interactions (e.g., tap for mobile). **Skipping tests based on platform is explicitly PROHIBITED.**
 - How does the system handle responsive layout changes where elements disappear on mobile? (Tests relying on hidden elements should fail or be adjusted).
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -75,11 +77,11 @@ As a maintainer, I need the Continuous Integration system to enforce cross-platf
 - **FR-006**: All BDD scenarios MUST be compatible with both Desktop and Mobile interactions; platform-specific logic within tests must be handled via polymorphic abstractions, not by skipping.
 - **FR-007**: Multi-platform configuration MUST be managed using Playwright "Projects" within a single `playwright.config.ts`.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - N/A - This is a configuration and infrastructure change.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

@@ -20,7 +20,7 @@ import {
 } from '@tabler/icons-react';
 import {memo, useEffect, useRef} from 'react';
 
-import './TaskOutlineItem.css';
+import './task-outline-item.css';
 
 /**
  * Props for the TaskOutlineItem component.

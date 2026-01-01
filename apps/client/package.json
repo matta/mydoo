@@ -39,6 +39,7 @@
   },
   "private": true,
   "scripts": {
+
     "build": "../../scripts/only-allow-turbo.sh build -- vite build",
     "check-biome": "biome check .",
     "fix-biome": "biome check --write .",

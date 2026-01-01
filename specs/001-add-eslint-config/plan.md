@@ -6,24 +6,24 @@
 
 ## Technical Context
 
-| Category | Details | Status |
-| :--- | :--- | :--- |
-| **Languages** | TypeScript, JavaScript | Clear |
-| **Frameworks** | ESLint (v9.x), TurboRepo | Clear |
-| **Infrastructure** | Local-only (config files) | Clear |
-| **Data** | N/A (Static Analysis) | Clear |
-| **Integrations** | Turbo (`check`, `fix`), Git Hooks (`check-staged`) | Clear |
-| **Security** | N/A | Clear |
+| Category           | Details                                            | Status |
+| :----------------- | :------------------------------------------------- | :----- |
+| **Languages**      | TypeScript, JavaScript                             | Clear  |
+| **Frameworks**     | ESLint (v9.x), TurboRepo                           | Clear  |
+| **Infrastructure** | Local-only (config files)                          | Clear  |
+| **Data**           | N/A (Static Analysis)                              | Clear  |
+| **Integrations**   | Turbo (`check`, `fix`), Git Hooks (`check-staged`) | Clear  |
+| **Security**       | N/A                                                | Clear  |
 
 ## Constitution Check
 
-| Principle | Evaluation | Decision |
-| :--- | :--- | :--- |
-| **Fidelity First** | N/A (Tooling) | Pass |
-| **Executable Specs** | Tests defined in spec scenarios | Pass |
-| **Local-First** | N/A (Tooling) | Pass |
-| **Strict Git Hygiene** | Improves hygiene via stricter pre-commit checks and standard aggregates | Pass |
-| **Derived State** | N/A | Pass |
+| Principle              | Evaluation                                                              | Decision |
+| :--------------------- | :---------------------------------------------------------------------- | :------- |
+| **Fidelity First**     | N/A (Tooling)                                                           | Pass     |
+| **Executable Specs**   | Tests defined in spec scenarios                                         | Pass     |
+| **Local-First**        | N/A (Tooling)                                                           | Pass     |
+| **Strict Git Hygiene** | Improves hygiene via stricter pre-commit checks and standard aggregates | Pass     |
+| **Derived State**      | N/A                                                                     | Pass     |
 
 ## Phases
 
@@ -32,9 +32,9 @@
 #### 1. Unknowns & Dependencies
 
 - **Unknown 1**: Exact syntax for flat config with `typescript-eslint` + `eslint-plugin-import-x`.
-    - *Research*: Resolved in `research.md`.
+  - _Research_: Resolved in `research.md`.
 - **Unknown 2**: `turbo` configuration for sequential execution of `fix`.
-    - *Research*: Resolved. Use `--concurrency=1` or chain scripts in `package.json`.
+  - _Research_: Resolved. Use `--concurrency=1` or chain scripts in `package.json`.
 
 #### 2. Research Findings (`research.md`)
 
@@ -47,15 +47,15 @@
 
 #### 1. Data Model (`data-model.md`)
 
-*N/A - Infrastructure change.*
+_N/A - Infrastructure change._
 
 #### 2. Contracts
 
 - **CLI Contract (Root & Packages)**:
-    - `pnpm check`: Aggregate gate (Parallel).
-    - `pnpm fix`: Aggregate gate (Sequential).
-    - `pnpm check-style`: ESLint + Biome aggregate.
-    - `pnpm check-staged`: Pre-commit aggregate.
+  - `pnpm check`: Aggregate gate (Parallel).
+  - `pnpm fix`: Aggregate gate (Sequential).
+  - `pnpm check-style`: ESLint + Biome aggregate.
+  - `pnpm check-staged`: Pre-commit aggregate.
 
 ### Phase 2: Implementation
 

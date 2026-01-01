@@ -40,5 +40,5 @@
     "playwright.config.ts"
   ],
   "exclude": ["node_modules", "dist"],
-  "references": [{ "path": "../../packages/tasklens" }]
+  "references": [{"path": "../../packages/tasklens"}]
 }

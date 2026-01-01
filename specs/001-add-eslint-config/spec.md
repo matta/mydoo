@@ -8,6 +8,7 @@
 ## Clarifications
 
 ### Session 2025-12-30
+
 - Q: ESLint Configuration Format → A: Flat Config (`eslint.config.js`)
 - Q: ESLint Version Constraint → A: Latest Stable (v9.x)
 - Q: Linting File Scope → A: TypeScript & JavaScript (.ts, .tsx, .js, .jsx)
@@ -20,6 +21,7 @@
 - Q: Configuration of Include/Exclude Patterns → A: Centralized in root `eslint.config.js`
 
 ### Session 2025-12-30 (Part 2)
+
 - Q: Lint Script Composition → A: Top-level `lint` runs `turbo` tasks (`lint-root`, `lint-eslint`) in parallel
 - Q: Turbo Task Definition for ESLint → A: `lint` task aggregates independent tasks (`lint-eslint`, `lint-biome`, etc.) via `dependsOn`
 - Q: Existing Linter Migration → A: Rename existing package `lint` scripts to `lint-<tool>` (e.g., `lint-biome`)
@@ -27,10 +29,12 @@
 - Q: Caching Grain for `eslint.config.js` → A: Root `eslint.config.js` is a global input for all `lint-eslint` tasks
 
 ### Session 2025-12-30 (Part 3)
+
 - Q: `lint-root` and `turbo lint` Aggregation → A: Aggregation via `turbo.json` (lint depends on `//#lint-root`, etc.)
 - Q: ESLint Integration with Staged Linting → A: Update root `lint-staged` to include ESLint check
 
 ### Session 2025-12-30 (Part 4)
+
 - Q: Naming Convention for Staged Lint Tasks → A: `lint-<tool>-staged` (e.g., `lint-biome-staged`)
 - Q: Orchestration of Staged Linting → A: Sequential execution in root `lint-staged` script
 - Q: Handling ROLLING_CONTEXT.md in Staged Checks → A: Rename `check-staged` to `check-context-staged`
@@ -38,31 +42,37 @@
 - Q: Scope of Linter Scaffolding → A: ESLint only (plus orchestration infrastructure)
 
 ### Session 2025-12-30 (Part 5)
+
 - Q: Confirm Task Renaming to `kebab-case` → A: Rename all tasks to hyphenated format (e.g., `lint-biome`, `lint-eslint-staged`) per `docs/guidance/task-naming.md`
 - Q: Turbo Task Topology with Aggregates → A: Use `lint` as the top-level aggregate task name
 
 ### Session 2025-12-30 (Part 6)
+
 - Q: Renaming the `pre-commit` task → A: `lint-staged` (Canonical name for pre-commit aggregate check)
 - Q: Script renaming for `lint-deps` (Knip) → A: `lint-deps-check` (Action: lint, Subject: deps, Mode: check)
 - Q: Renaming the `typecheck` task → A: `check-types` (Action: check, Subject: types)
 
 ### Session 2025-12-30 (Part 7)
+
 - Q: Primary Task Renaming → A: `check-style` (Replacing `lint` per new guidance synonyms ban)
 - Q: Staged Check Aggregate Renaming → A: `check-staged` (Action: check, State: staged)
 - Q: Tool-Specific Staged Check Renaming → A: `check-eslint-staged`, `check-biome-staged`, etc.
 
 ### Session 2025-12-30 (Part 8)
+
 - Q: Naming the Staged Aggregate Task → A: `check-staged` (Aligned with Safety Rule for read-only validation)
 - Q: Domain Aggregate Naming for Style Checking → A: Use `check-style` as the aggregate for ESLint and Biome
 
 ### Session 2025-12-30 (Part 9)
+
 - Q: Scope of `check` and `fix` Aggregates → A: `check` = All static analysis (Style + Types + Deps); `fix` = Autofixers
 - Q: Parallelism for `check` and `fix` → A: `check` (parallel); `fix` (sequential)
 
 ### Session 2025-12-30 (Part 10)
+
 - Q: Scope of Caching Verification in Test Protocols → A: Verify caching for all major aggregate commands (`check`, `check-style`, `fix`)
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Developer runs linting locally (Priority: P1)
 
@@ -94,7 +104,7 @@ The build system needs to execute linting efficiently, utilizing caching to prev
 2. **Given** a successful previous check run, **When** `pnpm check-style`, `pnpm check`, or `pnpm fix` (if idempotent) is run again without code changes, **Then** Turbo reports the task as `FULL TURBO` (cached) and executes nearly instantly.
 3. **Given** a new package is added, **When** it extends the root configuration, **Then** it inherits the unified rules.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -136,7 +146,7 @@ The build system needs to execute linting efficiently, utilizing caching to prev
 - **New Packages**: New packages added to the monorepo should easily adopt the standard config.
 - **Plugin Dependencies**: Ensuring `eslint-plugin-import-x` is available to all packages consuming the config.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

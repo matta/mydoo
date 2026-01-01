@@ -1,26 +1,26 @@
 # BDD & Gherkin Guidance: The Opus
 
-> **TL;DR:** Gherkin is an *executable specification language*, not a test automation framework. Use it sparingly for core behavioral rules. Keep steps thin, platform-neutral, and delegated to action layers. This document synthesizes project-specific patterns with general BDD best practices.
+> **TL;DR:** Gherkin is an _executable specification language_, not a test automation framework. Use it sparingly for core behavioral rules. Keep steps thin, platform-neutral, and delegated to action layers. This document synthesizes project-specific patterns with general BDD best practices.
 
 ---
 
 ## 1. Why Gherkin for a Solo Dev?
 
-The common objection: *"Gherkin is for business stakeholders—a solo dev doesn't need it."*
+The common objection: _"Gherkin is for business stakeholders—a solo dev doesn't need it."_
 
 This assumes human communication is the primary value. For this project, the stakeholder is **future-you** and **AI agents**. The calculus changes:
 
-| Consumer | Gherkin Value |
-|:---|:---|
-| Future-you | Cognitive compression—scan specs in seconds instead of parsing TypeScript |
-| AI Agents | Explicit architectural seams for reasoning about intent without implementation noise |
-| Refactoring | UI churn hurts less when behavioral intent is stable |
+| Consumer    | Gherkin Value                                                                        |
+| :---------- | :----------------------------------------------------------------------------------- |
+| Future-you  | Cognitive compression—scan specs in seconds instead of parsing TypeScript            |
+| AI Agents   | Explicit architectural seams for reasoning about intent without implementation noise |
+| Refactoring | UI churn hurts less when behavioral intent is stable                                 |
 
 ### The Core Insight
 
 You want:
 
-- A **semantic layer** that states *what* the system does
+- A **semantic layer** that states _what_ the system does
 - Separated from the **mechanical layer** that drives browsers (`page.click()`, `expect(locator)`)
 
 Gherkin is one of the few tools that:
@@ -48,12 +48,12 @@ graph TD
 
 ### Layer Responsibilities
 
-| Layer | Purpose | Example |
-|:---|:---|:---|
-| Gherkin | Declarative behavioral intent | `When the user completes the task` |
-| Step Definition | Thin binding (1-line) | `await actions.tasks.complete()` |
-| Action Facade | Platform-aware routing | `if (mobile) swipe() else click()` |
-| Driver | Raw Playwright mechanics | `page.click('.checkbox')` |
+| Layer           | Purpose                       | Example                            |
+| :-------------- | :---------------------------- | :--------------------------------- |
+| Gherkin         | Declarative behavioral intent | `When the user completes the task` |
+| Step Definition | Thin binding (1-line)         | `await actions.tasks.complete()`   |
+| Action Facade   | Platform-aware routing        | `if (mobile) swipe() else click()` |
+| Driver          | Raw Playwright mechanics      | `page.click('.checkbox')`          |
 
 ### The Golden Rule
 
@@ -67,11 +67,11 @@ Gherkin becomes a liability if it sprawls. Enforce these limits:
 
 ### Global Limits
 
-| Dimension | Budget |
-|:---|:---|
-| Feature files | ≤ 5–7 (one per domain concept) |
-| Scenarios per feature | ≤ 5–7 |
-| Steps per scenario | ≤ 6 |
+| Dimension             | Budget                         |
+| :-------------------- | :----------------------------- |
+| Feature files         | ≤ 5–7 (one per domain concept) |
+| Scenarios per feature | ≤ 5–7                          |
+| Steps per scenario    | ≤ 6                            |
 
 ### What Belongs in Gherkin
 
@@ -96,13 +96,13 @@ Before adding a scenario:
 3. **Could I explain this behavior without mentioning screens or gestures?** If yes → Gherkin
 4. **Will I care if this breaks six months from now?** If yes → Gherkin
 
-| Question | If yes | If no |
-|:---|:---|:---|
-| Describes user-visible behavior? | Gherkin | TS |
-| Likely stable for years? | Gherkin | TS |
-| Would appear in docs? | Gherkin | TS |
-| Requires DOM knowledge to explain? | TS | Gherkin |
-| Mostly about UI choreography? | TS | Gherkin |
+| Question                           | If yes  | If no   |
+| :--------------------------------- | :------ | :------ |
+| Describes user-visible behavior?   | Gherkin | TS      |
+| Likely stable for years?           | Gherkin | TS      |
+| Would appear in docs?              | Gherkin | TS      |
+| Requires DOM knowledge to explain? | TS      | Gherkin |
+| Mostly about UI choreography?      | TS      | Gherkin |
 
 ---
 
@@ -114,15 +114,15 @@ The most subtle budget dimension. Gherkin vocabulary must use **domain terms**, 
 
 See [prd.md](../design/prd.md) for the complete dictionary.
 
-| Domain Term | Meaning |
-|:---|:---|
-| **Inbox** | Special TLI for unfiled tasks (excluded from Balance) |
-| **Plan** (View) | Hierarchical outline tree |
-| **Do** (View) | Computed, prioritized execution list |
-| **Balance** (View) | Pie chart for Target vs. Actual effort allocation |
-| **Context** / **Place** | Location-based filtering (Home, Work, Anywhere) |
-| **Task** | The atomic unit of work |
-| **TLI** | Top-Level Item (root tasks like Goals) |
+| Domain Term             | Meaning                                               |
+| :---------------------- | :---------------------------------------------------- |
+| **Inbox**               | Special TLI for unfiled tasks (excluded from Balance) |
+| **Plan** (View)         | Hierarchical outline tree                             |
+| **Do** (View)           | Computed, prioritized execution list                  |
+| **Balance** (View)      | Pie chart for Target vs. Actual effort allocation     |
+| **Context** / **Place** | Location-based filtering (Home, Work, Anywhere)       |
+| **Task**                | The atomic unit of work                               |
+| **TLI**                 | Top-Level Item (root tasks like Goals)                |
 
 ### Prohibited Vocabulary (Red Flags)
 
@@ -132,11 +132,11 @@ See [prd.md](../design/prd.md) for the complete dictionary.
 
 ### Good vs. Bad Examples
 
-| Bad | Good |
-|:---|:---|
-| When I *tap* the task | When I *select* the task |
-| When I *click* the submit button | When I *submit* the form |
-| Then the checkbox is checked | Then the task is marked as completed |
+| Bad                              | Good                                 |
+| :------------------------------- | :----------------------------------- |
+| When I _tap_ the task            | When I _select_ the task             |
+| When I _click_ the submit button | When I _submit_ the form             |
+| Then the checkbox is checked     | Then the task is marked as completed |
 
 ---
 
@@ -144,7 +144,7 @@ See [prd.md](../design/prd.md) for the complete dictionary.
 
 ### Rule 1: Declarative Over Imperative
 
-Gherkin describes *what the user is doing*, not *how* they do it.
+Gherkin describes _what the user is doing_, not _how_ they do it.
 
 ```gherkin
 # ❌ Imperative (Low Level)
@@ -162,12 +162,12 @@ Then I should be granted access
 
 ```typescript
 // ❌ Bad: Playwright leaking into step layer
-When('I click submit', async ({ page }) => {
+When('I click submit', async ({page}) => {
   await page.click('#submit');
 });
 
 // ✅ Good: Delegating to action layer
-When('the user submits the form', async ({ actions }) => {
+When('the user submits the form', async ({actions}) => {
   await actions.form.submit();
 });
 ```
@@ -185,7 +185,7 @@ Then the task is marked as completed
 Implementation delegates to the assertion layer:
 
 ```typescript
-Then('the task is marked as completed', async ({ assertions }) => {
+Then('the task is marked as completed', async ({assertions}) => {
   await assertions.tasks.expectCompleted();
 });
 ```
@@ -240,7 +240,7 @@ class TaskActions {
   constructor(
     private platform: Platform,
     private mobileDriver: MobileTaskDriver,
-    private desktopDriver: DesktopTaskDriver
+    private desktopDriver: DesktopTaskDriver,
   ) {}
 
   async completeCurrentTask() {
@@ -271,11 +271,11 @@ function detectPlatform(page: Page): Platform {
 
 From [AGENTS.md](../../AGENTS.md):
 
-| Tier | Scope | Infrastructure | Command |
-|:---|:---|:---|:---|
-| **Tier 1** | Pure Logic (`tasklens`) | Node.js | `pnpm test` |
-| **Tier 2** | Components (React) | JSDOM (migrating to Browser Mode) | `pnpm test` |
-| **Tier 3** | E2E Journeys | Playwright Chromium | `pnpm test:e2e` |
+| Tier       | Scope                   | Infrastructure                    | Command         |
+| :--------- | :---------------------- | :-------------------------------- | :-------------- |
+| **Tier 1** | Pure Logic (`tasklens`) | Node.js                           | `pnpm test`     |
+| **Tier 2** | Components (React)      | JSDOM (migrating to Browser Mode) | `pnpm test`     |
+| **Tier 3** | E2E Journeys            | Playwright Chromium               | `pnpm test:e2e` |
 
 Gherkin applies to **Tier 3 only**—behavioral journeys across the full stack.
 
@@ -293,7 +293,7 @@ The project uses a `PlanFixture` interface (see [fixtures.ts](../../apps/client/
 Until playwright-bdd is adopted, use **Inline Gherkin comments** in `test.step()` blocks:
 
 ```typescript
-test('User can complete tasks', async ({ plan }) => {
+test('User can complete tasks', async ({plan}) => {
   await test.step('Setup', async () => {
     // Given a pending task in Do mode
     await plan.primeWithSampleData();
@@ -303,7 +303,7 @@ test('User can complete tasks', async ({ plan }) => {
   await test.step('Complete task', async () => {
     // When the user completes the task
     await plan.completeTask('Research Requirements');
-    
+
     // Then the task is marked as completed
     await plan.verifyTaskCompleted('Research Requirements');
   });
@@ -316,13 +316,13 @@ test('User can complete tasks', async ({ plan }) => {
 
 Based on the domain concepts in [prd.md](../design/prd.md):
 
-| Feature File | Scenarios |
-|:---|:---|
-| `planning.feature` | Create task, Rename task, Add sibling/child, Delete with cascade |
-| `execution.feature` | Complete task, Acknowledge completed tasks, Filtering by Context |
-| `balance.feature` | Adjust target percentages, Thermostat feedback |
-| `sync.feature` | Offline edits merge, Healer deduplication |
-| `persistence.feature` | Data survives reload, IndexedDB integrity |
+| Feature File          | Scenarios                                                        |
+| :-------------------- | :--------------------------------------------------------------- |
+| `planning.feature`    | Create task, Rename task, Add sibling/child, Delete with cascade |
+| `execution.feature`   | Complete task, Acknowledge completed tasks, Filtering by Context |
+| `balance.feature`     | Adjust target percentages, Thermostat feedback                   |
+| `sync.feature`        | Offline edits merge, Healer deduplication                        |
+| `persistence.feature` | Data survives reload, IndexedDB integrity                        |
 
 ### Scenarios to Exclude (Test in Playwright Directly)
 
@@ -346,19 +346,19 @@ Traditional Page Object Model breaks down in SPAs because "pages" aren't discret
 // Component representing a reusable Modal
 class UserSettingsModal {
   constructor(private root: Locator) {}
-  
+
   async changeEmail(newEmail: string) {
     await this.root.getByLabel('Email').fill(newEmail);
-    await this.root.getByRole('button', { name: 'Save' }).click();
+    await this.root.getByRole('button', {name: 'Save'}).click();
   }
 }
 
 // Page Object assembles components
 class ProfilePage {
   settingsModal = new UserSettingsModal(this.page.locator('.modal-container'));
-  
+
   async openSettings(): Promise<UserSettingsModal> {
-    await this.page.getByRole('button', { name: 'Settings' }).click();
+    await this.page.getByRole('button', {name: 'Settings'}).click();
     return this.settingsModal;
   }
 }

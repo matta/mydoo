@@ -11,6 +11,7 @@
     "husky": "catalog:",
     "knip": "^5.78.0",
     "turbo": "^2.7.2",
+    "prettier": "^3.4.2",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
   },
@@ -29,7 +30,9 @@
     "fix": "turbo run fix --filter=!//",
     "fix-biome": "turbo run fix-biome --filter=!//",
     "fix-biome:root": "biome check --write .",
-    "format": "biome format .",
+    "check-format": "prettier --check .",
+    "fix-format": "prettier --write .",
+    "format": "prettier --write .",
     "check-biome": "turbo check-biome --filter=!//",
     "check-biome:root": "biome check .",
     "check-eslint": "turbo check-eslint --filter=!//",

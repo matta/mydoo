@@ -6,9 +6,9 @@
 
 ## Content Quality
 
-- [x] No implementation details (languages, frameworks, APIs) - *Exception: Feature is explicitly about infrastructure configuration (ESLint/Turbo).*
+- [x] No implementation details (languages, frameworks, APIs) - _Exception: Feature is explicitly about infrastructure configuration (ESLint/Turbo)._
 - [x] Focused on user value and business needs
-- [x] Written for non-technical stakeholders - *Target audience is Developers.*
+- [x] Written for non-technical stakeholders - _Target audience is Developers._
 - [x] All mandatory sections completed
 
 ## Requirement Completeness
@@ -16,7 +16,7 @@
 - [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
-- [x] Success criteria are technology-agnostic (no implementation details) - *Exception: Task defines specific tool usage.*
+- [x] Success criteria are technology-agnostic (no implementation details) - _Exception: Task defines specific tool usage._
 - [x] All acceptance scenarios are defined
 - [x] Edge cases are identified
 - [x] Scope is clearly bounded

@@ -21,15 +21,15 @@ This document provides guidance on when to use Redux Selectors versus React Hook
 
 ## Comparison Table
 
-| Criterion | Hook + `useMemo` | Redux Selector |
-|---|---|---|
-| Memoization Scope | Per-component instance | Global singleton |
-| Cache Invalidation | Lost on unmount | Persistent for app lifetime |
-| Composition | Awkward, nested hooks | First-class with `createSelector` |
-| Testability | Requires `renderHook` | Pure function, no React needed |
-| DevTools Visibility | Invisible | Visible in Redux DevTools |
-| Dependency on React | Yes | No |
-| Local UI State Integration | Natural | Requires parameterized selectors |
+| Criterion                  | Hook + `useMemo`       | Redux Selector                    |
+| -------------------------- | ---------------------- | --------------------------------- |
+| Memoization Scope          | Per-component instance | Global singleton                  |
+| Cache Invalidation         | Lost on unmount        | Persistent for app lifetime       |
+| Composition                | Awkward, nested hooks  | First-class with `createSelector` |
+| Testability                | Requires `renderHook`  | Pure function, no React needed    |
+| DevTools Visibility        | Invisible              | Visible in Redux DevTools         |
+| Dependency on React        | Yes                    | No                                |
+| Local UI State Integration | Natural                | Requires parameterized selectors  |
 
 ## Common Patterns
 
@@ -39,7 +39,7 @@ This document provides guidance on when to use Redux Selectors versus React Hook
 // In store/selectors.ts
 export const selectBalanceData = createSelector(
   [selectTaskEntities],
-  entities => calculateBalanceData(Object.values(entities))
+  entities => calculateBalanceData(Object.values(entities)),
 );
 
 // In component
@@ -54,10 +54,11 @@ const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 const tasks = useTaskList();
 
 const sortedTasks = useMemo(
-  () => [...tasks].sort((a, b) => 
-    sortOrder === 'asc' ? a.priority - b.priority : b.priority - a.priority
-  ),
-  [tasks, sortOrder]
+  () =>
+    [...tasks].sort((a, b) =>
+      sortOrder === 'asc' ? a.priority - b.priority : b.priority - a.priority,
+    ),
+  [tasks, sortOrder],
 );
 ```
 

@@ -7,7 +7,6 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
 ## Workflow Rules (Strict Enforcement)
 
 1.  **Phase Documentation**: Before starting any phase, you **MUST** create a detailed `docs/plan/PHASE_<N>_<NAME>.md` document. This document must strictly adhere to the following structure:
-
     - **Clean Git State**: Before starting any step, you **MUST** verify that `git status` is clean (no uncommitted changes).
     - **Discrete Steps**: The Phase Doc must break the work down into discrete, atomic steps (e.g., "Implement one hook").
     - **Test Coverage**: All logic changes must be covered by tests as specified in [`docs/design/test-suite.md`](../design/test-suite.md).
@@ -50,6 +49,7 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
 ---
 
 ## Phase 6: TaskLens Type Rationalization
+
 **Rationale**: Clarifies the boundary between Persisted State (DB) and Computed View State. Prevents accidental mutation of CRDT history with transient scores. Makes the data flow explicit: `DB -> Algo -> View`.
 
 - [x] **Define Exact Types**:
@@ -66,6 +66,7 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
   - [x] Fix all TS errors resulting from the split.
 
 ## Phase 7: The Balance View
+
 **Goal**: Implement the "Life Balance" algorithm visualization.
 
 **PRD References**: [§4.4 Balance View](../design/prd.md)
@@ -79,6 +80,7 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
   - [ ] **Verification**: E2E for adjusting Desired Credits.
 
 ## Phase 8: Contexts & Places
+
 **Goal**: Manage spatial and temporal contexts to filter the "Do" list.
 
 **PRD References**: [§4.1 Global Nav](../design/prd.md), [§4.2 Do View (Filter)](../design/prd.md), [ALGORITHM.md §3.2 Places](../design/algorithm.md)
@@ -103,6 +105,7 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
   - [ ] **Verification**: E2E: Create Place -> Assign Task -> Filter View -> Verify Visibility.
 
 ## Phase 9: Accessibility & Final Polish
+
 **Goal**: Ensure the app is accessible and production-ready.
 
 - [ ] Audit semantic HTML and ARIA labels
@@ -111,7 +114,7 @@ This document tracks the rollout of the `mydoo` View Layer. The implementation i
 - [ ] Mobile PWA Manifest & Icon verification
 
 **Nits (Low Priority)**:
+
 - [ ] Improve E2E test seeding reliability (currently relies on Dev menu visibility)
 - [ ] Consider memoization for large OutlineTree lists
 - [ ] Refactor `TaskOutlineItem` props: 12 props is approaching threshold; consider grouping callbacks (e.g., `actions: TaskActions`) or using context
-

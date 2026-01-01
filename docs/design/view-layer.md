@@ -352,8 +352,8 @@ function useTaskDetails(
 
 ```typescript
 function useValidParentTargets(
-  docUrl: AutomergeUrl, 
-  excludedTaskId: TaskID | undefined
+  docUrl: AutomergeUrl,
+  excludedTaskId: TaskID | undefined,
 ): TunnelNode[];
 ```
 
@@ -501,10 +501,10 @@ interface TaskIntents {
   createTask: (
     title: string,
     parentId?: TaskID,
-    options?: 
+    options?:
       | {position: 'start'}
       | {position: 'end'}
-      | {position: 'after'; afterTaskId: TaskID}
+      | {position: 'after'; afterTaskId: TaskID},
   ) => TaskID;
 
   /** Intent: "I finished this task"
@@ -647,17 +647,17 @@ interface NavigationActions {
   navigateTo: (path: TaskID[]) => void;
   navigateUp: () => void;
   toggleExpanded: (id: TaskID) => void;
-  
+
   openTaskEditor: (id: TaskID) => void; // Edit Mode
   openCreateTask: (
     parentId: TaskID | null,
-    options?: {position?: 'start' | 'end' | 'after'; afterTaskId?: TaskID}
+    options?: {position?: 'start' | 'end' | 'after'; afterTaskId?: TaskID},
   ) => void; // Create Mode
   closeTaskEditor: () => void;
-  
+
   openMovePicker: (id: TaskID) => void;
   closeMovePicker: () => void;
-  
+
   setPlaceFilter: (placeId: PlaceID | 'all') => void;
   clearLastCreatedTaskId: () => void;
 }
@@ -739,9 +739,9 @@ function PlanViewContainer() {
 
 > [!NOTE]
 > **Mobile Layout**: The `PlanViewContainer` renders a persistent **Bottom Bar** on mobile viewports. This bar contains:
+>
 > - `[<]` Up Level (navigates up the stack)
 > - `[+]` Add Task (opens "Create Mode" targeting the current view/zoom level)
-
 
 **Location**: `apps/client/src/viewmodel/containers/PlanViewContainer.tsx` (NEW)
 
@@ -823,35 +823,32 @@ function TaskEditorContainer() {
       initialParentId={parentId}
       places={places}
       mode={isCreateMode ? 'create' : 'edit'}
-
       // Lifecycle
       opened={true}
       onClose={navActions.closeTaskEditor}
-
       // Actions
-      onSave={(data) => {
-         if (isCreateMode) {
-           taskIntents.createTask(data.title, parentId, {
-             position: nav.createTaskPosition,
-             afterTaskId: nav.createTaskAfterTaskId,
-           });
-         } else {
-           taskIntents.updateTask(task.id, data);
-         }
-         navActions.closeTaskEditor();
+      onSave={data => {
+        if (isCreateMode) {
+          taskIntents.createTask(data.title, parentId, {
+            position: nav.createTaskPosition,
+            afterTaskId: nav.createTaskAfterTaskId,
+          });
+        } else {
+          taskIntents.updateTask(task.id, data);
+        }
+        navActions.closeTaskEditor();
       }}
       onDelete={() => {
         taskIntents.deleteTask(task.id);
         navActions.closeTaskEditor();
       }}
-
       // Hierarchy (Exposed only in Edit Mode)
       onIndent={() => taskIntents.indentTask(task.id)}
       onOutdent={() => taskIntents.outdentTask(task.id)}
       onMove={() => navActions.openMovePicker(task.id)}
       onFindInPlan={() => {
-         navActions.closeTaskEditor();
-         navActions.navigateToTask(task.id);
+        navActions.closeTaskEditor();
+        navActions.navigateToTask(task.id);
       }}
     />
   );
@@ -985,12 +982,12 @@ These components receive all data as props and have no internal state except tra
 
 ### 6.1 Task Display Components
 
-| Component          | Props                                                    | Typical Implementation                    |
-| ------------------ | -------------------------------------------------------- | ----------------------------------------- |
-| `TaskRow`          | `task: PriorityTask`, `onToggle`, `onEdit`               | `Group`, `Checkbox`, `Text`, `Badge`      |
-| `TaskOutlineItem`  | `node`, `isExpanded`, `onToggle`, `onHoverMenu`          | `Group`, `Menu` (Desktop), `Checkbox`     |
-| `PriorityTaskList` | `tasks[]`, callbacks                                     | `Stack`, `ScrollArea`                     |
-| `OutlineTree`      | `nodes[]`, `expandedIds`, callbacks                      | `Stack` (recursive)                       |
+| Component          | Props                                           | Typical Implementation                |
+| ------------------ | ----------------------------------------------- | ------------------------------------- |
+| `TaskRow`          | `task: PriorityTask`, `onToggle`, `onEdit`      | `Group`, `Checkbox`, `Text`, `Badge`  |
+| `TaskOutlineItem`  | `node`, `isExpanded`, `onToggle`, `onHoverMenu` | `Group`, `Menu` (Desktop), `Checkbox` |
+| `PriorityTaskList` | `tasks[]`, callbacks                            | `Stack`, `ScrollArea`                 |
+| `OutlineTree`      | `nodes[]`, `expandedIds`, callbacks             | `Stack` (recursive)                   |
 
 ### 6.2 Navigation Components
 

@@ -45,7 +45,7 @@ export default defineConfig([
 
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
+````js
 // eslint.config.js
 import reactX from 'eslint-plugin-react-x';
 import reactDom from 'eslint-plugin-react-dom';
@@ -73,14 +73,16 @@ We use Playwright for End-to-End (E2E) testing. The configuration supports both 
 Run all E2E tests (Desktop + Mobile):
 ```bash
 pnpm test-e2e
-```
+````
 
 Run Desktop tests only:
+
 ```bash
 pnpm test-e2e-desktop
 ```
 
 Run Mobile tests only:
+
 ```bash
 pnpm test-e2e-mobile
 ```
@@ -101,6 +103,8 @@ After running tests, an HTML report is generated in `playwright-report/`. To vie
 
 ```bash
 pnpm exec playwright show-report
+```
+
 ```
 
 ```

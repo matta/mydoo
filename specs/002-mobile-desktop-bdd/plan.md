@@ -23,12 +23,12 @@ Implement cross-platform BDD test execution by configuring Playwright to run sce
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-- [x] **Fidelity First**: Does the testing plan avoid JSDOM for logic? (Tier 1/3 focus) - *Yes, uses real browsers via Playwright.*
-- [x] **Local-First**: Is offline capability and conflict resolution (CRDTs) considered? - *Yes, tests run against the local-first client.*
-- [x] **Architecture**: Does the design respect the Client-Centric / No-Block-on-Network rule? - *Yes, infrastructure change only.*
-- [x] **State Separation**: Are domain selectors and UI hooks clearly distinguished? - *N/A (Infrastructure).*
+- [x] **Fidelity First**: Does the testing plan avoid JSDOM for logic? (Tier 1/3 focus) - _Yes, uses real browsers via Playwright._
+- [x] **Local-First**: Is offline capability and conflict resolution (CRDTs) considered? - _Yes, tests run against the local-first client._
+- [x] **Architecture**: Does the design respect the Client-Centric / No-Block-on-Network rule? - _Yes, infrastructure change only._
+- [x] **State Separation**: Are domain selectors and UI hooks clearly distinguished? - _N/A (Infrastructure)._
 
 ## Project Structure
 
@@ -61,5 +61,5 @@ apps/client/
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| None | | |
+| --------- | ---------- | ------------------------------------ |
+| None      |            |                                      |

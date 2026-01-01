@@ -4,36 +4,42 @@
 **Status**: Pending
 
 ## Phase 1: Setup
-*Goal: Initialize configuration for multi-project support.*
+
+_Goal: Initialize configuration for multi-project support._
 
 - [x] T001 Update `playwright.config.ts` to implement `projects` array with 'Desktop Chrome' and 'Mobile Pixel 7' configurations in `apps/client/playwright.config.ts`
 - [x] T002 Update `package.json` scripts to support running specific projects (e.g., `test:e2e:mobile`, `test:e2e:desktop`) in `apps/client/package.json`
 
 ## Phase 2: Foundational
-*Goal: Ensure reporting and infrastructure can handle multiple test runs.*
+
+_Goal: Ensure reporting and infrastructure can handle multiple test runs._
 
 - [x] T003 Configure Playwright HTML reporter to support merged/grouped results in `apps/client/playwright.config.ts`
 - [x] T004 Validate that `playwright-bdd` generation is compatible with shared project execution (no code changes expected, verification step) in `apps/client/playwright.config.ts`
 
 ## Phase 3: Desktop Verification (US1)
-*Goal: Verify that existing functionality remains stable on Desktop.*
+
+_Goal: Verify that existing functionality remains stable on Desktop._
 
 - [x] T005 [US1] Run full BDD suite using `Desktop Chrome` project and verify all tests pass locally in `apps/client`
 
 ## Phase 4: Mobile Verification (US2)
-*Goal: Enable mobile emulation and ensure responsiveness.*
+
+_Goal: Enable mobile emulation and ensure responsiveness._
 
 - [x] T006 [US2] Run full BDD suite using `Mobile Pixel 7` project and identify any immediate layout/interaction failures in `apps/client`
 - [x] T007 [US2] [P] Refactor any failing tests to use platform-agnostic locators or interactions (polymorphic abstractions) if failures occur (placeholder for potential refactoring) in `apps/client/tests/e2e/steps/`
 
 ## Phase 5: CI Pipeline Validation (US3)
-*Goal: Enforce cross-platform checks in the build pipeline.*
+
+_Goal: Enforce cross-platform checks in the build pipeline._
 
 - [x] T008 [US3] Update `.github/workflows/ci.yml` to execute Desktop project then Mobile project sequentially
 - [x] T009 [US3] Configure CI artifact upload to preserve the combined HTML report in `.github/workflows/ci.yml`
 
 ## Phase 6: Polish
-*Goal: Documentation and final cleanup.*
+
+_Goal: Documentation and final cleanup._
 
 - [x] T010 Update project README to document new test commands and mobile debugging workflow in `apps/client/README.md`
 
