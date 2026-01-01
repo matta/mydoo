@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 
+import {getPrioritizedTasks} from '../../src/domain/priority';
 import {TunnelStore} from '../../src/persistence/store';
 
 describe('Quickstart Integration', () => {
@@ -20,7 +21,7 @@ describe('Quickstart Integration', () => {
     });
 
     // 3. Get Todo List (Calculates scores on demand)
-    const todos = store.getTodoListForTest({});
+    const todos = getPrioritizedTasks(store.doc, {});
 
     // Email should be visible and sorted
     expect(todos.length).toBeGreaterThan(0);

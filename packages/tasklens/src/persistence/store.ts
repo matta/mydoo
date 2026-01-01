@@ -23,15 +23,11 @@ import {
   load,
   save,
 } from '@automerge/automerge';
-import {getPrioritizedTasks} from '../domain/priority';
 import {
   ANYWHERE_PLACE_ID,
-  type ComputedTask,
   type PersistedTask,
-  type PriorityOptions,
   type TaskID,
   type TunnelState,
-  type ViewFilter,
 } from '../types';
 import {
   completeTask,
@@ -212,37 +208,6 @@ export class TunnelStore {
       deletedCount = deleteTask(doc, id);
     });
     return deletedCount;
-  }
-
-  // --- Algorithm Operations ---
-
-  /**
-   * Returns a sorted list of visible tasks for display.
-   *
-   * Tasks are filtered to only those with `visibility: true` and a positive
-   * priority score, then sorted by priority (highest first).
-   *
-   * @param viewFilter - Optional filter for location-based visibility.
-   * @returns An array of visible Tasks sorted by priority.
-   */
-  getTodoListForTest(viewFilter: ViewFilter = {}): ComputedTask[] {
-    // getPrioritizedTasks inherently returns the Todo List (Sorted + Filtered for Status/Visibility)
-    // Pass default filter if none provided
-    return getPrioritizedTasks(this.doc, viewFilter);
-  }
-
-  /**
-   * For Testing/Debugging: Get ALL calculated tasks including invalid/hidden ones.
-   */
-  dumpCalculatedStateForTest(
-    viewFilter: ViewFilter = {},
-    options: Partial<PriorityOptions> = {},
-  ): ComputedTask[] {
-    return getPrioritizedTasks(this.doc, viewFilter, {
-      includeHidden: true,
-      mode: 'plan-outline',
-      ...options,
-    });
   }
 
   // --- Persistence ---

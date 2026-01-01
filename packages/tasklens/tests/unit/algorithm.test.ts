@@ -11,6 +11,7 @@ import type {
   TunnelAlgorithmTestCaseSchema,
 } from '../../specs/compliance/schemas/test-case';
 import schemaJson from '../../specs/compliance/schemas/test-case.schema.json';
+import {getPrioritizedTasks} from '../../src/domain/priority';
 import {TunnelStore} from '../../src/persistence/store';
 import {
   type EnrichedTask,
@@ -388,7 +389,7 @@ describe('Algorithm Test Suite', () => {
           // Compute results
           const viewFilter = parseViewFilter(step.view_filter);
           // Get ALL tasks to verify properties (even on hidden/zero-priority tasks)
-          const allTasks = store.dumpCalculatedStateForTest(viewFilter, {
+          const allTasks = getPrioritizedTasks(store.doc, viewFilter, {
             includeHidden: true,
             mode: 'plan-outline',
           });
@@ -405,8 +406,7 @@ describe('Algorithm Test Suite', () => {
 
           if (step.expected_order) {
             // Filter to what the user would actually see (The "Do List")
-            // Use the Store's public API which respects domain rules logic (including thresholds)
-            const visibleTasks = store.getTodoListForTest(viewFilter);
+            const visibleTasks = getPrioritizedTasks(store.doc, viewFilter);
             const visibleIds = visibleTasks.map(t => t.id);
 
             expect(visibleIds).toEqual(step.expected_order);
