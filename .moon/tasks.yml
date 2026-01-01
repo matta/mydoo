@@ -48,6 +48,10 @@ tasks:
       - '@group(sources)'
       - 'tsconfig.json'
       - 'tsconfig.base.json'
+    deps:
+      # TypeScript Project References require upstream dependencies to be built
+      # (emitting .d.ts files) before the consumer can type-check against them.
+      - '^:build'
     env:
       ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
       GEMINI_CLI: 'GEMINI_CLI'
