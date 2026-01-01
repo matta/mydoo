@@ -17,7 +17,7 @@ tasks:
       - '~:build'
 
   generate-types:
-    command: 'json2ts ./specs/compliance/schemas/test-case.schema.json ./specs/compliance/schemas/test-case.d.ts && biome format --write ./specs/compliance/schemas/test-case.d.ts'
+    command: 'json2ts ./specs/compliance/schemas/test-case.schema.json ./specs/compliance/schemas/test-case.d.ts && pnpm prettier --write ./specs/compliance/schemas/test-case.d.ts'
     inputs:
       - 'specs/compliance/schemas/test-case.schema.json'
     outputs:

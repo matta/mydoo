@@ -58,27 +58,27 @@ tasks:
       cache: false
 
   check-eslint-staged:
-    command: 'bash ./scripts/check-eslint-staged.sh'
+    command: 'bash $workspaceRoot/scripts/check-eslint-staged.sh'
     options:
       cache: false
 
   check-filenames-staged:
-    command: 'bash ./scripts/check-filenames.sh --staged'
+    command: 'bash $workspaceRoot/scripts/check-filenames.sh --staged'
     options:
       cache: false
 
   check-staged:
-    command: 'bash ./scripts/check-staged.sh'
+    command: 'bash $workspaceRoot/scripts/check-staged.sh'
     options:
       cache: false
 
   check-context-staged:
-    command: 'bash ./scripts/check-context-staged.sh'
+    command: 'bash $workspaceRoot/scripts/check-context-staged.sh'
     options:
       cache: false
 
   check-format-staged:
-    command: 'bash ./scripts/check-format-staged.sh'
+    command: 'bash $workspaceRoot/scripts/check-format-staged.sh'
     options:
       cache: false
 

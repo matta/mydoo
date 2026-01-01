@@ -20,7 +20,7 @@ fileGroups:
 tasks:
   # --- Format (Prettier) ---
   check-format:
-    command: 'prettier --check .'
+    command: 'prettier --check . --ignore-path $workspaceRoot/.prettierignore'
     inputs:
       - '@group(sources)'
       - '@group(configs)'
@@ -33,7 +33,7 @@ tasks:
       cache: true
 
   fix-format:
-    command: 'prettier --write .'
+    command: 'prettier --write . --ignore-path $workspaceRoot/.prettierignore'
     inputs:
       - '@group(sources)'
       - '@group(configs)'
@@ -45,11 +45,6 @@ tasks:
     options:
       cache: false
       runInCI: false
-
-  check-format-staged:
-    command: 'bash ./scripts/check-format-staged.sh'
-    options:
-      cache: false
 
   # --- Types (TSC) ---
   check-types:
