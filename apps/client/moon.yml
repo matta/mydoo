@@ -30,6 +30,7 @@ tasks:
       - 'test-results'
     deps:
       - '~:build'
+      - '~:generate-e2e-bdd'
     env:
       PLAYWRIGHT_TEST_PORT: '5179'
 
@@ -44,6 +45,7 @@ tasks:
       - 'test-results'
     deps:
       - '~:build'
+      - '~:generate-e2e-bdd'
     env:
       PLAYWRIGHT_TEST_PORT: '5180'
 
@@ -58,8 +60,18 @@ tasks:
       - 'test-results'
     deps:
       - '~:build'
+      - '~:generate-e2e-bdd'
     env:
       PLAYWRIGHT_TEST_PORT: '5181'
+
+  generate-e2e-bdd:
+    command: 'pnpm bddgen'
+    inputs:
+      - 'tests/e2e/features/**/*.feature'
+      - 'tests/e2e/steps/**/*.steps.ts'
+      - 'playwright.config.ts'
+    outputs:
+      - 'tests/e2e/.features-gen'
 
   dev:
     command: 'pnpm vite'

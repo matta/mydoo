@@ -13,6 +13,9 @@ fileGroups:
     - 'tsconfig.json'
     - 'biome.json'
     - 'eslint.config.js'
+  docs:
+    - '*.md'
+    - 'docs/**/*.md'
 
 tasks:
   # --- Format (Prettier) ---
@@ -21,6 +24,7 @@ tasks:
     inputs:
       - '@group(sources)'
       - '@group(configs)'
+      - '@group(docs)'
     env:
       ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
       GEMINI_CLI: 'GEMINI_CLI'
@@ -33,6 +37,7 @@ tasks:
     inputs:
       - '@group(sources)'
       - '@group(configs)'
+      - '@group(docs)'
     env:
       ANTIGRAVITY_AGENT: 'ANTIGRAVITY_AGENT'
       GEMINI_CLI: 'GEMINI_CLI'
@@ -40,6 +45,11 @@ tasks:
     options:
       cache: false
       runInCI: false
+
+  check-format-staged:
+    command: 'bash ./scripts/check-format-staged.sh'
+    options:
+      cache: false
 
   # --- Types (TSC) ---
   check-types:

@@ -77,12 +77,18 @@ tasks:
     options:
       cache: false
 
+  check-format-staged:
+    command: 'bash ./scripts/check-format-staged.sh'
+    options:
+      cache: false
+
   presubmit-agent:
     deps:
       - '~:check-biome-staged'
       - '~:check-eslint-staged'
       - '~:check-filenames-staged'
       - '~:check-context-staged'
+      - '~:check-format-staged'
       - '~:check-deps'
       - 'client:test'
       - 'client:test-e2e'
@@ -97,6 +103,7 @@ tasks:
       - '~:check-eslint-staged'
       - '~:check-filenames-staged'
       - '~:check-context-staged'
+      - '~:check-format-staged'
       - '~:check-deps'
       - '~:check-types'
     options:
