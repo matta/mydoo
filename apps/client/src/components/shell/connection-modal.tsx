@@ -1,4 +1,7 @@
-import {isValidAutomergeUrl} from '@automerge/automerge-repo';
+import {
+  type AutomergeUrl,
+  isValidAutomergeUrl,
+} from '@automerge/automerge-repo';
 import {
   Button,
   Code,
@@ -19,11 +22,11 @@ interface ConnectionModalProps {
   /** Callback fired when the modal requests to close. */
   onClose: () => void;
   /** The current Automerge document URL. */
-  currentUrl: string;
+  currentUrl: AutomergeUrl;
   /** Callback fired when the user requests to reset/create a new document. */
   onReset: () => void;
   /** Callback fired when the user requests to connect to a specific document ID. */
-  onConnect: (url: string) => void;
+  onConnect: (url: AutomergeUrl) => void;
 }
 
 /**
@@ -50,7 +53,7 @@ export function ConnectionModal({
 
   const handleConnect = () => {
     if (isValid) {
-      onConnect(urlString);
+      onConnect(urlString as AutomergeUrl);
     }
   };
 

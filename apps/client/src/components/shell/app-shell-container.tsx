@@ -1,10 +1,12 @@
-import {isValidAutomergeUrl} from '@automerge/automerge-repo';
+import type {AutomergeUrl} from '@automerge/automerge-repo';
+import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
 import {AppShell, Burger, Button, Group, Menu, Title} from '@mantine/core';
 import {useDisclosure, useMediaQuery} from '@mantine/hooks';
-import {useTaskActions} from '@mydoo/tasklens';
+import {type TunnelState, useTaskActions} from '@mydoo/tasklens';
 import {
   IconCheckbox,
   IconDotsVertical,
+  IconDownload,
   IconListTree,
   IconNetwork,
   IconScale,
@@ -28,7 +30,7 @@ const FOOTER_HEIGHT = 60;
  */
 interface AppShellContainerProps {
   /** The current Automerge document URL. */
-  docUrl: string;
+  docUrl: AutomergeUrl;
 }
 
 /**
@@ -48,6 +50,9 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
 
   // Access actions for the Dev Tools menu actions (e.g. Seeding)
   const actions = useTaskActions();
+
+  // Get the document handle to access the data for download
+  const handle = useDocHandle<TunnelState>(docUrl);
 
   // Responsive Breakpoint: 768px (sm)
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -104,6 +109,25 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
                 onClick={openConnectionModal}
               >
                 Connection
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconDownload size={14} />}
+                onClick={() => {
+                  if (!handle) return;
+                  const doc = handle.doc();
+                  if (!doc) return;
+                  const blob = new Blob([JSON.stringify(doc, null, 2)], {
+                    type: 'application/json',
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `mydoo-backup-${new Date().toISOString()}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                Download JSON
               </Menu.Item>
 
               {import.meta.env.DEV && (
@@ -174,14 +198,8 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
           currentUrl={docUrl}
           onReset={handleReset}
           onConnect={url => {
-            if (isValidAutomergeUrl(url)) {
-              localStorage.setItem('mydoo:doc_id', url);
-              window.location.reload();
-            } else {
-              console.error(
-                `ConnectionModal: Invalid AutomergeUrl from user input: '${url}'`,
-              );
-            }
+            localStorage.setItem('mydoo:doc_id', url);
+            window.location.reload();
           }}
         />
       </AppShell.Main>

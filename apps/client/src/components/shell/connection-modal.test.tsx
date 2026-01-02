@@ -1,3 +1,4 @@
+import type {AutomergeUrl} from '@automerge/automerge-repo';
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it} from 'vitest';
@@ -6,7 +7,7 @@ import {createTestWrapper} from '../../test/setup';
 import {ConnectionModal} from './connection-modal';
 
 describe('ConnectionModal', () => {
-  const currentUrl = 'automerge:12345';
+  const currentUrl = 'automerge:12345' as AutomergeUrl;
 
   it('should render the current URL', () => {
     const wrapper = createTestWrapper();
