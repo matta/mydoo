@@ -5,7 +5,7 @@ import {
 } from '@automerge/automerge-repo';
 import {
   createMockTask as createSharedMockTask,
-  createStore,
+  createTaskLensStore,
   type PersistedTask,
   type TaskID,
   TaskStatus,
@@ -78,7 +78,7 @@ describe('useSystemIntents', () => {
       });
 
       // 2. Setup Hook
-      const store = createStore();
+      const store = createTaskLensStore();
       const wrapper = createTestWrapper(repo, store, docUrl);
       const {result} = renderHook(() => useSystemIntents(), {wrapper});
 

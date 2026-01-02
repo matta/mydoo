@@ -41,12 +41,40 @@ describe('TaskSchema extensions', () => {
       desiredCredits: 0,
       creditsTimestamp: Date.now(),
       priorityTimestamp: Date.now(),
-      schedule: {type: 'Recurring', leadTime: 1000},
+      schedule: {type: 'Routinely', leadTime: 1000},
       repeatConfig: {frequency: 'daily', interval: 1},
       isSequential: false,
       isAcknowledged: false,
     };
     const result = TaskSchema.safeParse(taskData);
+    expect(result.success).toBe(true);
+  });
+
+  it('should validate a recurring task', () => {
+    const task = {
+      id: 'task-recur',
+      title: 'Recur',
+      notes: '',
+      childTaskIds: [],
+      status: 'Pending',
+      importance: 0.5,
+      creditIncrement: 1,
+      credits: 0,
+      desiredCredits: 0,
+      creditsTimestamp: 0,
+      priorityTimestamp: 0,
+      isSequential: false,
+      isAcknowledged: false,
+      schedule: {
+        type: 'Routinely',
+        leadTime: 86400000,
+      },
+      repeatConfig: {
+        frequency: 'daily',
+        interval: 1,
+      },
+    };
+    const result = TaskSchema.safeParse(task);
     expect(result.success).toBe(true);
   });
 

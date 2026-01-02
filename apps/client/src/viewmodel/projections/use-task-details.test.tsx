@@ -5,7 +5,7 @@ import {
 } from '@automerge/automerge-repo';
 import {
   createMockTask as createSharedMockTask,
-  createStore,
+  createTaskLensStore,
   type TaskID,
   type TunnelNode,
   type TunnelState,
@@ -66,7 +66,7 @@ describe('useTaskDetails', () => {
       doc.tasks['grandchild-id' as TaskID] = grandchild;
     });
 
-    const store = createStore();
+    const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, url);
     const {result} = renderHook(() => useTaskDetails('child-id' as TaskID), {
       wrapper,
@@ -90,7 +90,7 @@ describe('useTaskDetails', () => {
       doc.tasks['root-id' as TaskID] = root;
     });
 
-    const store = createStore();
+    const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, url);
     const {result} = renderHook(() => useTaskDetails('root-id' as TaskID), {
       wrapper,
@@ -108,7 +108,7 @@ describe('useTaskDetails', () => {
   });
 
   it('returns null when task not found', async () => {
-    const store = createStore();
+    const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, url);
     const {result} = renderHook(
       () => useTaskDetails('non-existent' as TaskID),
@@ -127,7 +127,7 @@ describe('useTaskDetails', () => {
   });
 
   it('returns loading state initially', async () => {
-    const store = createStore();
+    const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, url);
     const {result} = renderHook(() => useTaskDetails('any-task' as TaskID), {
       wrapper,
@@ -139,7 +139,7 @@ describe('useTaskDetails', () => {
 
     // Wait for Redux sync to complete to avoid act() warning
     await waitFor(() => {
-      expect(store.getState().tasks.lastDoc).toBeDefined();
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
     });
   });
 });

@@ -1,5 +1,5 @@
 import {
-  selectLastDoc,
+  selectLastProxyDoc,
   type Task,
   type TaskID,
   TunnelOps,
@@ -27,7 +27,7 @@ export interface TaskDetails {
  */
 export function useTaskDetails(taskId: TaskID | undefined): TaskDetails {
   const task = useTask(taskId);
-  const doc = useSelector(selectLastDoc);
+  const doc = useSelector(selectLastProxyDoc);
 
   return useMemo(
     () => projectTaskDetails(doc, task, taskId),

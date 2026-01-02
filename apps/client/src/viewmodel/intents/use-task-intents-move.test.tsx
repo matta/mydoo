@@ -3,7 +3,11 @@ import {
   type DocHandle,
   Repo,
 } from '@automerge/automerge-repo';
-import {createStore, type TaskID, type TunnelState} from '@mydoo/tasklens';
+import {
+  createTaskLensStore,
+  type TaskID,
+  type TunnelState,
+} from '@mydoo/tasklens';
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
@@ -32,7 +36,7 @@ describe('useTaskIntents (Move Interactions)', () => {
   });
 
   it('should indent a task (become child of previous sibling)', async () => {
-    const store = createStore();
+    const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
@@ -72,7 +76,7 @@ describe('useTaskIntents (Move Interactions)', () => {
   });
 
   it('should outdent a task (become sibling of parent)', async () => {
-    const store = createStore();
+    const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
 
@@ -114,7 +118,7 @@ describe('useTaskIntents (Move Interactions)', () => {
   });
 
   it('should not indent if no previous sibling', async () => {
-    const store = createStore();
+    const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);
     const {result} = renderHook(() => useTaskIntents(), {wrapper});
 

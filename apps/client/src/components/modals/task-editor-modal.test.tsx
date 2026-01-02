@@ -284,7 +284,7 @@ describe('TaskEditorModal', () => {
       mockTask.id,
       expect.objectContaining({
         repeatConfig: {frequency: 'monthly', interval: 3},
-        schedule: expect.objectContaining({type: 'Recurring'}),
+        schedule: expect.objectContaining({type: 'Routinely'}),
       }),
     );
   });
@@ -296,7 +296,7 @@ describe('TaskEditorModal', () => {
     const taskWithRepeat: Task = {
       ...mockTask,
       repeatConfig: {frequency: 'daily', interval: 1},
-      schedule: {...mockTask.schedule, type: 'Recurring'},
+      schedule: {...mockTask.schedule, type: 'Routinely'},
     };
 
     renderWithTestProviders(

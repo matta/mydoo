@@ -4,10 +4,22 @@ import tasksReducer from './slices/tasks-slice';
 /**
  * Creates a fresh Redux store instance for TaskLens.
  *
- * This factory function is useful for ensuring test isolation,
- * preventing state leakage between test cases.
+ * @returns An configured Redux `EnhancedStore` holding the `RootState`.
+ *   - **State**: Contains the `tasks` slice (`TasksState`) managing Automerge
+ *     data.
+ *   - **Middleware**: In Redux, middleware provides a third-party extension point
+ *     between dispatching an action, and the moment it reaches the reducer.
+ *     We use it here to:
+ *       1. Handle async logic (Thunks).
+ *       2. Enforce immutability guarantees.
+ *       3. Check for non-serializable data (ignoring specific Automerge paths).
+ *
+ * We expose this as a factory function (rather than a singleton directly)
+ * to allow creating independent store instances for:
+ * 1. The main application (singleton), below.
+ * 2. Automated tests (ensuring isolation between tests).
  */
-export function createStore() {
+export function createTaskLensStore() {
   return configureStore({
     reducer: {
       tasks: tasksReducer,
@@ -32,10 +44,16 @@ export function createStore() {
  * The store is configured with serialization checks disabled for the
  * `lastDoc` path since TunnelState may contain Automerge-specific structures.
  */
-export const store = createStore();
+export const taskLensStore = createTaskLensStore();
 
 /**
  * The root state type for the TaskLens Redux store.
  * Use this type when accessing store state in selectors.
  */
-export type RootState = ReturnType<typeof store.getState>;
+export type TaskLensState = ReturnType<typeof taskLensStore.getState>;
+
+/**
+ * The dispatch type for the TaskLens Redux store.
+ * Use this type for strongly-typed dispatch in components and thunks.
+ */
+export type TaskLensDispatch = typeof taskLensStore.dispatch;

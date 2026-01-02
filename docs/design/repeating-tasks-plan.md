@@ -80,8 +80,8 @@ interface RepeatConfig {
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
   interval: number;
 
-  // Anchor for Calendar mode calculations
-  anchorDate?: number;
+  // anchorDate is DEFERRED.
+  // We rely on simple relative intervals (lastCompletedAt + interval) for MVP.
 }
 ```
 

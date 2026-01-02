@@ -1,6 +1,5 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import {getPrioritizedTasks} from '../../domain/priority';
-import {TunnelStateSchema} from '../../persistence/schemas';
 import type {ComputedTask, TaskID, TunnelState} from '../../types';
 
 /**
@@ -9,52 +8,51 @@ import type {ComputedTask, TaskID, TunnelState} from '../../types';
  * @property entities - Normalized map of TaskID to ComputedTask. These references
  *   are stabilized to prevent unnecessary re-renders.
  * @property todoListIds - Ordered list of task IDs representing the prioritized "Do" list.
- * @property lastDoc - The most recent TunnelState used for reference comparison.
+ * @property lastProxyDoc - The most recent raw Automerge Proxy, used for reference comparison.
  */
 export interface TasksState {
   entities: Record<TaskID, ComputedTask>;
   todoListIds: TaskID[];
-  lastDoc: TunnelState | null;
+  lastProxyDoc: TunnelState | null;
 }
 
 const initialState: TasksState = {
   entities: {},
   todoListIds: [],
-  lastDoc: null,
+  lastProxyDoc: null,
 };
+
+/**
+ * Payload for the syncDoc thunk.
+ *
+ * @property proxyDoc - The raw Automerge Proxy object, used for reference stability checks.
+ * @property parsedDoc - The Zod-validated POJO, used for data access.
+ */
+export interface SyncDocPayload {
+  proxyDoc: TunnelState;
+  parsedDoc: TunnelState;
+}
 
 /**
  * Syncs the Redux store with a new Automerge document state.
  *
  * It runs the prioritization algorithm and then performs a reference stabilization
- * pass.
+ * pass. The raw Automerge Proxy is used only for reference comparison; all data
+ * access uses the Zod-parsed POJO.
  *
- * NOTE: This thunk strictly parses the incoming Automerge Document into a POJO
- * via Zod before invoking the domain logic, ensuring no Proxies leak into the algorithm.
+ * NOTE: Validation happens at the boundary (TaskLensProvider), not here.
  */
 export const syncDoc = createAsyncThunk(
   'tasks/syncDoc',
-  async (newDocRaw: TunnelState, {getState}) => {
-    // Validate and sanitize the document (convert Proxy to POJO).
-    const validation = TunnelStateSchema.safeParse(newDocRaw);
-    if (!validation.success) {
-      console.warn('[tasks-slice] Invalid document structure ignored.');
-      return {
-        entities: (getState() as {tasks: TasksState}).tasks.entities,
-        todoListIds: (getState() as {tasks: TasksState}).tasks.todoListIds,
-        newDoc: (getState() as {tasks: TasksState}).tasks.lastDoc,
-      };
-    }
-    const newDoc = validation.data;
-
+  async ({proxyDoc: proxy, parsedDoc: parsed}: SyncDocPayload, {getState}) => {
     const state = (getState() as {tasks: TasksState}).tasks;
-    const oldDoc = state.lastDoc;
+    const oldProxyDoc = state.lastProxyDoc;
     const oldEntities = state.entities;
 
     // 1. Get ALL tasks with computed properties for entities
     // We call getPrioritizedTasks with inclusive options to get the full map.
     const allTasksComputed = getPrioritizedTasks(
-      newDoc,
+      parsed,
       {},
       {
         includeHidden: true,
@@ -65,9 +63,13 @@ export const syncDoc = createAsyncThunk(
     const newEntities: Record<TaskID, ComputedTask> = {};
     for (const task of allTasksComputed) {
       const id = task.id;
+      // Reference Stability Check:
+      // Compare the raw Automerge Proxy references to detect changes.
+      // If the task node reference hasn't changed in the raw document,
+      // we can reuse the existing ComputedTask entity to save React renders.
       if (
-        oldDoc &&
-        oldDoc.tasks[id] === newDocRaw.tasks[id] &&
+        oldProxyDoc &&
+        oldProxyDoc.tasks[id] === proxy.tasks[id] &&
         oldEntities[id]
       ) {
         newEntities[id] = oldEntities[id];
@@ -77,13 +79,13 @@ export const syncDoc = createAsyncThunk(
     }
 
     // 2. Get the prioritized list for the "Do" view
-    const prioritizedTasks = getPrioritizedTasks(newDoc);
+    const prioritizedTasks = getPrioritizedTasks(parsed);
     const todoListIds = prioritizedTasks.map(t => t.id);
 
     return {
       entities: newEntities,
       todoListIds,
-      newDoc: newDocRaw,
+      newProxyDoc: proxy,
     };
   },
 );
@@ -96,12 +98,12 @@ const tasksSlice = createSlice({
     builder.addCase(syncDoc.fulfilled, (state, action) => {
       state.entities = action.payload.entities;
       state.todoListIds = action.payload.todoListIds;
-      state.lastDoc = action.payload.newDoc;
+      state.lastProxyDoc = action.payload.newProxyDoc;
     });
   },
 });
 
 export const selectIsReady = (state: {tasks: TasksState}) =>
-  state.tasks.lastDoc !== null;
+  state.tasks.lastProxyDoc !== null;
 
 export default tasksSlice.reducer;

@@ -6,7 +6,7 @@ import {
 } from '@automerge/automerge-repo';
 import {
   createMockTask as createSharedMockTask,
-  createStore,
+  createTaskLensStore,
   syncDoc,
   type TaskID,
   TaskStatus,
@@ -56,20 +56,20 @@ const createMockTask = (
 describe('usePriorityList', () => {
   let handle: DocHandle<TunnelState>;
   let repo: Repo;
-  let store: ReturnType<typeof createStore>;
+  let store: ReturnType<typeof createTaskLensStore>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repo = new Repo({network: [], storage: new DummyStorageAdapter()});
     handle = repo.create({tasks: {}, rootTaskIds: [], places: {}});
-    store = createStore();
+    store = createTaskLensStore();
   });
 
   const renderWithSync = async () => {
     // Sync the current doc state to Redux before rendering
     const doc = handle.doc();
     if (doc) {
-      await store.dispatch(syncDoc(doc));
+      await store.dispatch(syncDoc({proxyDoc: doc, parsedDoc: doc}));
     }
     return renderHook(() => usePriorityList(), {
       wrapper: createTestWrapper(repo, store),

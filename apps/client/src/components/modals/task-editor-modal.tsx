@@ -142,7 +142,7 @@ export function TaskEditorModal({
         repeatConfig,
         schedule: {
           ...task.schedule,
-          type: repeatConfig ? 'Recurring' : 'Once',
+          type: repeatConfig ? 'Routinely' : 'Once',
           dueDate: dueDateTimestamp,
           leadTime: Number(leadTimeDays) * MS_PER_DAY,
         },
@@ -158,7 +158,7 @@ export function TaskEditorModal({
         notes,
         repeatConfig,
         schedule: {
-          type: repeatConfig ? 'Recurring' : 'Once',
+          type: repeatConfig ? 'Routinely' : 'Once',
           dueDate: dueDate?.getTime(),
           leadTime: Number(leadTimeDays) * MS_PER_DAY,
         },

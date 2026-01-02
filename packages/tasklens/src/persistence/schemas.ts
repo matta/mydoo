@@ -81,7 +81,7 @@ export const PlaceIDSchema = z.string().brand<'PlaceID'>();
  * @see Schedule in types.ts for the corresponding TypeScript interface.
  */
 export const ScheduleSchema = z.object({
-  type: z.enum(['Once', 'Recurring']),
+  type: z.enum(['Once', 'Routinely']),
   dueDate: z.number().optional(),
   leadTime: z.number(),
 });
@@ -122,6 +122,7 @@ export const TaskSchema = z.object({
   isSequential: z.boolean(),
   // Lifecycle state for visibility
   isAcknowledged: z.boolean().default(false),
+  lastCompletedAt: z.number().optional(),
 });
 
 /**

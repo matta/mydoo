@@ -155,9 +155,9 @@ describe('updateTask - Exhaustive Field Coverage', () => {
   describe('Nested Object: schedule', () => {
     it('should update schedule.type', () => {
       updateTask(store.state, baseTask.id, {
-        schedule: {type: 'Recurring', leadTime: 1000},
+        schedule: {type: 'Routinely', leadTime: 1000},
       });
-      expect(store.state.tasks[baseTask.id]?.schedule.type).toBe('Recurring');
+      expect(store.state.tasks[baseTask.id]?.schedule.type).toBe('Routinely');
     });
 
     it('should update schedule.leadTime', () => {
@@ -335,7 +335,7 @@ describe('updateTask - Round-Trip Serialization (Automerge)', () => {
       isSequential: true,
       isAcknowledged: true,
       schedule: {
-        type: 'Recurring',
+        type: 'Routinely',
         leadTime: 604800000, // 7 days
         dueDate: Date.now() + 86400000,
       },
@@ -434,7 +434,7 @@ describe('updateTask - Round-Trip Serialization (Automerge)', () => {
       isAcknowledged: true,
       placeId: 'ReflectionPlace' as PlaceID,
       schedule: {
-        type: 'Recurring',
+        type: 'Routinely',
         leadTime: 1000000,
         dueDate: 2000000,
       },

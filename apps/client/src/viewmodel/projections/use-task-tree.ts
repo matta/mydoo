@@ -1,4 +1,8 @@
-import {buildTunnelTree, selectLastDoc, type TunnelNode} from '@mydoo/tasklens';
+import {
+  buildTunnelTree,
+  selectLastProxyDoc,
+  type TunnelNode,
+} from '@mydoo/tasklens';
 import {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
@@ -14,7 +18,7 @@ export interface TaskTree {
  * Returns all tasks regardless of status (view filters should handle visibility).
  */
 export function useTaskTree(): TaskTree {
-  const doc = useSelector(selectLastDoc);
+  const doc = useSelector(selectLastProxyDoc);
 
   const roots = useMemo(() => {
     if (!doc) return [];

@@ -1,13 +1,13 @@
 import {createSelector} from '@reduxjs/toolkit';
 import {calculateBalanceData} from '../domain/balance';
 import type {ComputedTask, TaskID} from '../types';
-import type {RootState} from './index';
+import type {TaskLensState} from './index';
 
 /**
  * Selector for the task entities map.
  */
 export function selectTaskEntities(
-  state: RootState,
+  state: TaskLensState,
 ): Record<TaskID, ComputedTask> {
   return state.tasks.entities;
 }
@@ -15,15 +15,15 @@ export function selectTaskEntities(
 /**
  * Selector for the list of Todo IDs.
  */
-export function selectTodoListIds(state: RootState): TaskID[] {
+export function selectTodoListIds(state: TaskLensState): TaskID[] {
   return state.tasks.todoListIds;
 }
 
 /**
- * Selector for the last synchronized document.
+ * Selector for the last synchronized raw document (Automerge Proxy).
  */
-export function selectLastDoc(state: RootState) {
-  return state.tasks.lastDoc;
+export function selectLastProxyDoc(state: TaskLensState) {
+  return state.tasks.lastProxyDoc;
 }
 
 /**
@@ -66,7 +66,7 @@ function projectTodoList(
  * Returns a named function for better diagnostics in Redux DevTools/Warnings.
  */
 export function selectTaskById(id: TaskID | undefined) {
-  return function selectTask(state: RootState): ComputedTask | undefined {
+  return function selectTask(state: TaskLensState): ComputedTask | undefined {
     if (!id) return undefined;
     return state.tasks.entities[id];
   };

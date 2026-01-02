@@ -8,7 +8,11 @@ import {
   Text,
 } from '@mantine/core';
 import {useMediaQuery} from '@mantine/hooks';
-import {selectLastDoc, type TaskID, type TunnelNode} from '@mydoo/tasklens';
+import {
+  selectLastProxyDoc,
+  type TaskID,
+  type TunnelNode,
+} from '@mydoo/tasklens';
 import {IconArrowLeft, IconMenu, IconPlus} from '@tabler/icons-react';
 import {useEffect, useMemo} from 'react';
 import {useSelector} from 'react-redux';
@@ -45,7 +49,7 @@ export function PlanViewContainer() {
     viewPath,
     lastCreatedTaskId,
   } = useNavigationState();
-  const doc = useSelector(selectLastDoc);
+  const doc = useSelector(selectLastProxyDoc);
 
   const {toggleTask, deleteTask, indentTask, outdentTask} = useTaskIntents();
   const breadcrumbs = useBreadcrumbs(currentViewId);

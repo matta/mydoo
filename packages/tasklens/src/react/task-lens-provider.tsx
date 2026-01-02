@@ -1,14 +1,56 @@
 import type {
   AutomergeUrl,
+  DocHandle,
   DocHandleChangePayload,
 } from '@automerge/automerge-repo';
 import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
 import type React from 'react';
 import {createContext, useContext, useEffect} from 'react';
 import {Provider, useDispatch} from 'react-redux';
-import {store as defaultStore} from '../store';
+import {runReconciler} from '../domain/reconciler';
+import {TunnelStateSchema} from '../persistence/schemas';
+import type {TaskLensDispatch} from '../store';
+import {taskLensStore as defaultStore} from '../store';
 import {syncDoc} from '../store/slices/tasks-slice';
 import type {TunnelState} from '../types';
+
+/**
+ * Initializes the document by running reconcilers and syncing to Redux.
+ *
+ * Flow:
+ * 1. Get raw doc from Automerge (may contain legacy data)
+ * 2. Run reconciler to migrate legacy schemas
+ * 3. If reconciler mutated, abort (wait for change event)
+ * 4. Parse with Zod to get validated TunnelState
+ * 5. Dispatch to Redux
+ */
+function initDoc(handle: DocHandle<TunnelState>, dispatch: TaskLensDispatch) {
+  // Step 1: Get raw doc (may have legacy data)
+  const proxyDoc = handle.doc();
+  if (!proxyDoc) return;
+
+  // Step 2: Run reconciler on raw doc (mutates in place via handle.change)
+  const didMutate = runReconciler(handle);
+  if (didMutate) {
+    // Abort. The mutation triggers a change event with fresh data.
+    return;
+  }
+
+  // Step 3: Validate and convert to POJO.
+  // After reconciliation, the doc should conform to TunnelStateSchema.
+  // If it doesn't, that's a bug in the reconciler or a corrupted doc.
+  const parseResult = TunnelStateSchema.safeParse(proxyDoc);
+  if (!parseResult.success) {
+    console.error(
+      '[TaskLens] Doc failed validation after reconciliation:',
+      parseResult.error,
+    );
+    return;
+  }
+
+  // Step 4: Dispatch the validated, strongly-typed doc
+  dispatch(syncDoc({proxyDoc: proxyDoc, parsedDoc: parseResult.data}));
+}
 
 /**
  * Context to provide the Automerge document handle to hooks.
@@ -50,7 +92,7 @@ interface Props {
  * we capture all mutations including local changes.
  */
 function TaskLensSync({docUrl}: {docUrl: AutomergeUrl}) {
-  const dispatch = useDispatch<typeof defaultStore.dispatch>();
+  const dispatch = useDispatch<TaskLensDispatch>();
   // Cast to locally defined TypedDocHandle to ensure doc() and events are strictly typed
   const handle = useDocHandle<TunnelState>(docUrl);
 
@@ -60,10 +102,7 @@ function TaskLensSync({docUrl}: {docUrl: AutomergeUrl}) {
     // Initial sync
     // We can safely call doc() because useDocHandle ensures the handle is ready when returned
     try {
-      const doc = handle.doc();
-      if (doc) {
-        dispatch(syncDoc(doc as TunnelState));
-      }
+      initDoc(handle, dispatch);
     } catch (e) {
       // Handle might not be ready in edge cases, though useDocHandle usually prevents this
       console.warn('Failed to get initial doc:', e);
@@ -71,7 +110,7 @@ function TaskLensSync({docUrl}: {docUrl: AutomergeUrl}) {
 
     const onDocChange = ({doc}: DocHandleChangePayload<TunnelState>) => {
       if (doc) {
-        dispatch(syncDoc(doc));
+        initDoc(handle, dispatch);
       }
     };
 

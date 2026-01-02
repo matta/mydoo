@@ -5,7 +5,7 @@ import {
 } from '@automerge/automerge-repo';
 import {
   createMockTask as createSharedMockTask,
-  createStore,
+  createTaskLensStore,
   type TaskID,
   type TunnelNode,
   type TunnelState,
@@ -61,7 +61,7 @@ describe('useTaskTree', () => {
       doc.tasks['child1' as TaskID] = child1;
     });
 
-    const store = createStore();
+    const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);
     const {result} = renderHook(() => useTaskTree(), {
       wrapper,
@@ -85,7 +85,7 @@ describe('useTaskTree', () => {
   });
 
   it('handles loading state initially', async () => {
-    const store = createStore();
+    const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);
     const {result} = renderHook(() => useTaskTree(), {
       wrapper,

@@ -74,7 +74,7 @@ const mockRepo = new Repo({network: []});
 
 import {
   createEmptyTunnelState,
-  createStore,
+  createTaskLensStore,
   TaskLensProvider,
 } from '@mydoo/tasklens';
 
@@ -83,7 +83,7 @@ const defaultDocUrl = defaultDocHandle.url;
 
 export function createTestWrapper(
   repo: Repo = mockRepo,
-  store = createStore(),
+  store = createTaskLensStore(),
   docUrl: AutomergeUrl = defaultDocUrl,
 ) {
   return function TestWrapper({children}: PropsWithChildren) {
@@ -103,7 +103,7 @@ export function createTestWrapper(
  */
 export interface TestRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   repo?: Repo;
-  store?: ReturnType<typeof createStore>;
+  store?: ReturnType<typeof createTaskLensStore>;
   url?: AutomergeUrl;
 }
 

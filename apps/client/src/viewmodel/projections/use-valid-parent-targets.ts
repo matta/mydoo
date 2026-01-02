@@ -1,6 +1,6 @@
 import {
   buildTunnelTree,
-  selectLastDoc,
+  selectLastProxyDoc,
   type TaskID,
   type TunnelNode,
   type TunnelState,
@@ -19,7 +19,7 @@ export interface ValidTargets {
 export function useValidParentTargets(
   taskId: TaskID | undefined,
 ): ValidTargets {
-  const doc = useSelector(selectLastDoc);
+  const doc = useSelector(selectLastProxyDoc);
 
   const roots = useMemo(() => projectValidTargets(doc, taskId), [doc, taskId]);
 

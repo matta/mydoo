@@ -6,6 +6,14 @@ import tasksReducer, {
 } from '../../src/store/slices/tasks-slice';
 import {type TaskID, TaskStatus, type TunnelState} from '../../src/types';
 
+/**
+ * Helper to create a SyncDocPayload for tests.
+ * In tests, raw and parsed are the same (no Automerge Proxy distinction).
+ */
+function toPayload(doc: TunnelState) {
+  return {proxyDoc: doc, parsedDoc: doc};
+}
+
 describe('tasksSlice - syncDoc', () => {
   let store: ReturnType<typeof configureStore<{tasks: TasksState}>>;
 
@@ -51,7 +59,7 @@ describe('tasksSlice - syncDoc', () => {
     };
 
     // First sync
-    await store.dispatch(syncDoc(doc1));
+    await store.dispatch(syncDoc(toPayload(doc1)));
 
     const state1 = store.getState().tasks;
     const computedTask1_v1 = state1.entities['1' as TaskID];
@@ -67,7 +75,7 @@ describe('tasksSlice - syncDoc', () => {
       tasks: {['1' as TaskID]: task1, ['2' as TaskID]: updatedTask2},
     };
 
-    await store.dispatch(syncDoc(doc2));
+    await store.dispatch(syncDoc(toPayload(doc2)));
 
     const state2 = store.getState().tasks;
     const computedTask1_v2 = state2.entities['1' as TaskID];
@@ -92,7 +100,7 @@ describe('tasksSlice - syncDoc', () => {
       nextPlaceId: 1,
     };
 
-    await store.dispatch(syncDoc(doc1));
+    await store.dispatch(syncDoc(toPayload(doc1)));
     expect(store.getState().tasks.todoListIds).toEqual(['1']);
 
     const task2 = createMockTask('2', 'Task 2');
@@ -104,7 +112,7 @@ describe('tasksSlice - syncDoc', () => {
       nextPlaceId: 1,
     };
 
-    await store.dispatch(syncDoc(doc2));
+    await store.dispatch(syncDoc(toPayload(doc2)));
     expect(store.getState().tasks.todoListIds).toContain('1');
     expect(store.getState().tasks.todoListIds).toContain('2');
     expect(Object.keys(store.getState().tasks.entities)).toHaveLength(2);
@@ -117,14 +125,14 @@ describe('tasksSlice - syncDoc', () => {
       nextPlaceId: 1,
     };
 
-    await store.dispatch(syncDoc(doc3));
+    await store.dispatch(syncDoc(toPayload(doc3)));
     expect(store.getState().tasks.todoListIds).toEqual(['2']);
     expect(store.getState().tasks.entities['1' as TaskID]).toBeUndefined();
   });
 
-  it('should handle first sync when lastDoc is null', async () => {
+  it('should handle first sync when lastProxyDoc is null', async () => {
     // Verify initial state
-    expect(store.getState().tasks.lastDoc).toBeNull();
+    expect(store.getState().tasks.lastProxyDoc).toBeNull();
     expect(store.getState().tasks.todoListIds).toEqual([]);
 
     const task1 = createMockTask('1', 'Task 1');
@@ -136,10 +144,10 @@ describe('tasksSlice - syncDoc', () => {
       nextPlaceId: 1,
     };
 
-    await store.dispatch(syncDoc(doc1));
+    await store.dispatch(syncDoc(toPayload(doc1)));
 
     // After first sync, state should be populated
-    expect(store.getState().tasks.lastDoc).not.toBeNull();
+    expect(store.getState().tasks.lastProxyDoc).not.toBeNull();
     expect(store.getState().tasks.todoListIds).toEqual(['1']);
     expect(store.getState().tasks.entities['1' as TaskID]).toBeDefined();
   });
@@ -153,10 +161,10 @@ describe('tasksSlice - syncDoc', () => {
       nextPlaceId: 1,
     };
 
-    await store.dispatch(syncDoc(emptyDoc));
+    await store.dispatch(syncDoc(toPayload(emptyDoc)));
 
     expect(store.getState().tasks.todoListIds).toEqual([]);
     expect(Object.keys(store.getState().tasks.entities)).toHaveLength(0);
-    expect(store.getState().tasks.lastDoc).not.toBeNull();
+    expect(store.getState().tasks.lastProxyDoc).not.toBeNull();
   });
 });

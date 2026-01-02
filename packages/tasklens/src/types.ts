@@ -115,14 +115,14 @@ export interface Context {
 /**
  * Scheduling information for a task.
  *
- * @property type - "Once" for one-time tasks, "Recurring" for repeating tasks.
+ * @property type - "Once" for one-time tasks, "Routinely" for repeating tasks.
  * @property dueDate - Unix timestamp (ms) when the task is due, or undefined if no deadline.
  * @property leadTime - How far in advance (in ms) the task should appear before its due date.
  */
 export interface Schedule {
   dueDate?: number | undefined;
   leadTime: number;
-  type: 'Once' | 'Recurring';
+  type: 'Once' | 'Routinely';
 }
 
 /**
@@ -203,6 +203,8 @@ export interface PersistedTask {
   repeatConfig?: RepeatConfig | undefined;
   /** If true, completed task is hidden from "Do" view. */
   isAcknowledged: boolean;
+  /** Timestamp when the task was last completed (for Routinely tasks). */
+  lastCompletedAt?: number | undefined;
 }
 
 /**

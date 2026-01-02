@@ -1,5 +1,5 @@
 import {useMediaQuery} from '@mantine/hooks';
-import {selectLastDoc, type Task, type TaskID} from '@mydoo/tasklens';
+import {selectLastProxyDoc, type Task, type TaskID} from '@mydoo/tasklens';
 import {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
@@ -40,7 +40,7 @@ export function TaskEditorContainer() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   // Resolve parent title for Create Mode
-  const doc = useSelector(selectLastDoc);
+  const doc = useSelector(selectLastProxyDoc);
   let resolvedParentTitle = parentTitle;
 
   // We need to pass a ComputedTask to the modal, but our internal state in Editor
