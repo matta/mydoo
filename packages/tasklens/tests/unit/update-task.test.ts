@@ -210,6 +210,25 @@ describe('updateTask - Exhaustive Field Coverage', () => {
     });
   });
 
+  describe('Initialization Logic', () => {
+    it('should default dueDate to Now when switching to "Routinely"', () => {
+      updateTask(store.state, baseTask.id, {
+        schedule: {type: 'Routinely', leadTime: 1000},
+      });
+      const task = store.state.tasks[baseTask.id];
+      expect(task?.schedule.dueDate).toBeDefined();
+      expect(task?.schedule.dueDate).toBeLessThanOrEqual(Date.now());
+    });
+
+    it('should NOT overwrite existing dueDate when switching to "Routinely"', () => {
+      const future = Date.now() + 10000;
+      updateTask(store.state, baseTask.id, {
+        schedule: {type: 'Routinely', leadTime: 1000, dueDate: future},
+      });
+      expect(store.state.tasks[baseTask.id]?.schedule.dueDate).toBe(future);
+    });
+  });
+
   describe('Optional Fields: parentId', () => {
     it('should not modify parentId if not passed', () => {
       const child = createTask(store.state, {

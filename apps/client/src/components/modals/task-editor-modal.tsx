@@ -64,6 +64,37 @@ interface TaskEditorModalProps {
 
 /** Milliseconds per day for lead time conversion */
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const MS_PER_HOUR = 1000 * 60 * 60;
+const MS_PER_MINUTE = 1000 * 60;
+
+/**
+ * Converts a lead time in milliseconds to a scalar value and unit.
+ */
+function parseLeadTime(totalMs: number): {scalar: number; unit: string} {
+  if (totalMs % MS_PER_DAY === 0) {
+    return {scalar: totalMs / MS_PER_DAY, unit: 'Days'};
+  }
+  if (totalMs % MS_PER_HOUR === 0) {
+    return {scalar: totalMs / MS_PER_HOUR, unit: 'Hours'};
+  }
+  return {scalar: Math.round(totalMs / MS_PER_MINUTE), unit: 'Minutes'};
+}
+
+/**
+ * Converts a lead time scalar and unit back to milliseconds.
+ */
+function leadTimeToMs(scalar: number, unit: string): number {
+  switch (unit) {
+    case 'Days':
+      return scalar * MS_PER_DAY;
+    case 'Hours':
+      return scalar * MS_PER_HOUR;
+    case 'Minutes':
+      return scalar * MS_PER_MINUTE;
+    default:
+      return scalar * MS_PER_DAY;
+  }
+}
 
 export function TaskEditorModal({
   opened,
@@ -89,7 +120,11 @@ export function TaskEditorModal({
   const [importance, setImportance] = useState(0.5);
   const [effort, setEffort] = useState(0.5);
   const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [leadTimeDays, setLeadTimeDays] = useState<number | string>(7);
+
+  // Lead Time State
+  const [leadTimeScalar, setLeadTimeScalar] = useState<number | string>(7);
+  const [leadTimeUnit, setLeadTimeUnit] = useState<string>('Days');
+
   const [notes, setNotes] = useState('');
   const [frequency, setFrequency] = useState<string | null>(null);
   const [interval, setInterval] = useState<number | string>(1);
@@ -105,7 +140,12 @@ export function TaskEditorModal({
       } else {
         setDueDate(null);
       }
-      setLeadTimeDays(Math.round(task.schedule.leadTime / MS_PER_DAY));
+
+      // Parse Lead Time
+      const {scalar, unit} = parseLeadTime(task.schedule.leadTime);
+      setLeadTimeScalar(scalar);
+      setLeadTimeUnit(unit);
+
       setNotes(task.notes || '');
       setFrequency(task.repeatConfig?.frequency || null);
       setInterval(task.repeatConfig?.interval || 1);
@@ -115,7 +155,9 @@ export function TaskEditorModal({
       setImportance(0.5);
       setEffort(0.5);
       setDueDate(null);
-      setLeadTimeDays(7);
+      // Default: 7 Days
+      setLeadTimeScalar(7);
+      setLeadTimeUnit('Days');
       setNotes('');
       setFrequency(null);
       setInterval(1);
@@ -129,6 +171,9 @@ export function TaskEditorModal({
           interval: Number(interval),
         }
       : undefined;
+
+    // Calculate Lead Time in MS
+    const leadTimeMs = leadTimeToMs(Number(leadTimeScalar), leadTimeUnit);
 
     if (task) {
       // Edit Mode
@@ -144,7 +189,7 @@ export function TaskEditorModal({
           ...task.schedule,
           type: repeatConfig ? 'Routinely' : 'Once',
           dueDate: dueDateTimestamp,
-          leadTime: Number(leadTimeDays) * MS_PER_DAY,
+          leadTime: leadTimeMs,
         },
       };
 
@@ -160,7 +205,7 @@ export function TaskEditorModal({
         schedule: {
           type: repeatConfig ? 'Routinely' : 'Once',
           dueDate: dueDate?.getTime(),
-          leadTime: Number(leadTimeDays) * MS_PER_DAY,
+          leadTime: leadTimeMs,
         },
       };
 
@@ -176,7 +221,8 @@ export function TaskEditorModal({
     frequency,
     interval,
     dueDate,
-    leadTimeDays,
+    leadTimeScalar,
+    leadTimeUnit,
     onSave,
     onCreate,
     onClose,
@@ -350,12 +396,23 @@ export function TaskEditorModal({
             placeholder="Pick a date"
             value={dueDate}
           />
-          <NumberInput
-            label="Lead Time (days)"
-            min={0}
-            onChange={setLeadTimeDays}
-            value={leadTimeDays}
-          />
+          <Group gap="xs" style={{flexGrow: 1}}>
+            <NumberInput
+              label="Lead Time"
+              min={0}
+              onChange={setLeadTimeScalar}
+              value={leadTimeScalar}
+              style={{flex: 1}}
+            />
+            <Select
+              label="Unit"
+              data={['Minutes', 'Hours', 'Days']}
+              value={leadTimeUnit}
+              onChange={val => val && setLeadTimeUnit(val)}
+              style={{width: '100px'}}
+              allowDeselect={false}
+            />
+          </Group>
         </Group>
 
         {/* Repetition */}
@@ -365,6 +422,8 @@ export function TaskEditorModal({
             label="Repetition"
             placeholder="None"
             data={[
+              {value: 'minutes', label: 'Minutes'},
+              {value: 'hours', label: 'Hours'},
               {value: 'daily', label: 'Daily'},
               {value: 'weekly', label: 'Weekly'},
               {value: 'monthly', label: 'Monthly'},

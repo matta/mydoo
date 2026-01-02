@@ -99,6 +99,20 @@ describe('createTask - Default Values and Inheritance', () => {
     expect(updatedParent?.childTaskIds).toContain(child.id);
   });
 
+  it('should default dueDate to Now for "Routinely" tasks if not provided', () => {
+    const store = new TunnelStore();
+    const task = createTask(store.state, {
+      title: 'Routine Task',
+      schedule: {
+        type: 'Routinely',
+        leadTime: 1000,
+      },
+    });
+
+    expect(task.schedule.dueDate).toBeDefined();
+    expect(task.schedule.dueDate).toBeLessThanOrEqual(Date.now());
+  });
+
   describe('Positioning', () => {
     it('should add child to end by default', () => {
       const store = new TunnelStore();

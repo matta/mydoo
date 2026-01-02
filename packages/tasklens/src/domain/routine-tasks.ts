@@ -51,12 +51,18 @@ export function wakeUpRoutineTasks(handle: DocHandle<TunnelState>) {
  * Note: simplified logic for MVP (ignoring leap years/DST nuances for basic "days/weeks").
  */
 function getIntervalMs(
-  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly',
+  frequency: 'minutes' | 'hours' | 'daily' | 'weekly' | 'monthly' | 'yearly',
   interval: number,
 ): number {
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+  const ONE_HOUR_MS = 60 * 60 * 1000;
+  const ONE_MINUTE_MS = 60 * 1000;
 
   switch (frequency) {
+    case 'minutes':
+      return interval * ONE_MINUTE_MS;
+    case 'hours':
+      return interval * ONE_HOUR_MS;
     case 'daily':
       return interval * ONE_DAY_MS;
     case 'weekly':

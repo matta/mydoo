@@ -120,4 +120,92 @@ describe('wakeUpRoutineTasks', () => {
     expect(task?.status).toBe(TaskStatus.Done);
     expect(task?.isAcknowledged).toBe(true);
   });
+
+  it('should wake up a task with MINUTE frequency', () => {
+    const repo = new Repo({network: [], storage: new DummyStorageAdapter()});
+    const handle = repo.create<TunnelState>();
+
+    handle.change(doc => {
+      doc.tasks = {
+        ['task-min' as TaskID]: {
+          id: 'task-min' as TaskID,
+          title: 'Minute Task',
+          status: TaskStatus.Done,
+          isAcknowledged: true,
+          schedule: {
+            type: 'Routinely',
+            leadTime: 1000,
+            dueDate: 1000,
+          },
+          repeatConfig: {
+            frequency: 'minutes',
+            interval: 5,
+          },
+          // Dummy props
+          childTaskIds: [],
+          creditIncrement: 0,
+          credits: 0,
+          creditsTimestamp: 0,
+          desiredCredits: 0,
+          importance: 0,
+          isSequential: false,
+          priorityTimestamp: 0,
+          notes: '',
+          // Completed 6 minutes ago
+          lastCompletedAt: Date.now() - 1000 * 60 * 6,
+        } as PersistedTask,
+      };
+    });
+
+    wakeUpRoutineTasks(handle);
+
+    const doc = handle.docSync();
+    const task = doc?.tasks['task-min' as TaskID];
+
+    expect(task?.status).toBe(TaskStatus.Pending);
+  });
+
+  it('should wake up a task with HOUR frequency', () => {
+    const repo = new Repo({network: [], storage: new DummyStorageAdapter()});
+    const handle = repo.create<TunnelState>();
+
+    handle.change(doc => {
+      doc.tasks = {
+        ['task-hour' as TaskID]: {
+          id: 'task-hour' as TaskID,
+          title: 'Hour Task',
+          status: TaskStatus.Done,
+          isAcknowledged: true,
+          schedule: {
+            type: 'Routinely',
+            leadTime: 1000,
+            dueDate: 1000,
+          },
+          repeatConfig: {
+            frequency: 'hours',
+            interval: 2,
+          },
+          // Dummy props
+          childTaskIds: [],
+          creditIncrement: 0,
+          credits: 0,
+          creditsTimestamp: 0,
+          desiredCredits: 0,
+          importance: 0,
+          isSequential: false,
+          priorityTimestamp: 0,
+          notes: '',
+          // Completed 2.1 hours ago
+          lastCompletedAt: Date.now() - 1000 * 60 * 60 * 2.1,
+        } as PersistedTask,
+      };
+    });
+
+    wakeUpRoutineTasks(handle);
+
+    const doc = handle.docSync();
+    const task = doc?.tasks['task-hour' as TaskID];
+
+    expect(task?.status).toBe(TaskStatus.Pending);
+  });
 });

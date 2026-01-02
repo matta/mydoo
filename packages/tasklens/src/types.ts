@@ -130,7 +130,7 @@ export interface Schedule {
  */
 export interface RepeatConfig {
   /** Frequency of recurrence */
-  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  frequency: 'minutes' | 'hours' | 'daily' | 'weekly' | 'monthly' | 'yearly';
   /** Interval between occurrences (e.g., every 2 days) */
   interval: number;
 }

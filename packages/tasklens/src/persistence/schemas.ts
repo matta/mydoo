@@ -90,7 +90,14 @@ export const ScheduleSchema = z.object({
  * Schema for validating RepeatConfig.
  */
 export const RepeatConfigSchema = z.object({
-  frequency: z.enum(['daily', 'weekly', 'monthly', 'yearly']),
+  frequency: z.enum([
+    'minutes',
+    'hours',
+    'daily',
+    'weekly',
+    'monthly',
+    'yearly',
+  ]),
   interval: z.number().min(1),
 });
 

@@ -99,6 +99,14 @@ export function createTask(
   if (newTask.parentId === undefined) delete newTask.parentId;
   // placeId now always has a value from inheritance logic, but check anyway
   if (newTask.placeId === undefined) delete newTask.placeId;
+  // Enforce Routine Task Default (Immediate Initialization)
+  if (
+    newTask.schedule.type === 'Routinely' &&
+    newTask.schedule.dueDate === undefined
+  ) {
+    newTask.schedule.dueDate = getCurrentTimestamp();
+  }
+
   if (newTask.schedule.dueDate === undefined) delete newTask.schedule.dueDate;
 
   // Validations for numbers
@@ -269,6 +277,15 @@ function handleNestedProperties(
     delete task.placeId;
   } else if (props.placeId !== undefined) {
     task.placeId = props.placeId;
+  }
+
+  // Enforce Routine Task Default (Immediate Initialization)
+  // If we switched to Routinely (or were already) and have no eligible due date, force it to Now.
+  if (
+    task.schedule.type === 'Routinely' &&
+    task.schedule.dueDate === undefined
+  ) {
+    task.schedule.dueDate = getCurrentTimestamp();
   }
 }
 
