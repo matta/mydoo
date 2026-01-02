@@ -1,6 +1,7 @@
 export * from './domain/index';
 export * from './domain/initialization';
 export * from './domain/projections';
+export * from './domain/routine-tasks';
 export * from './domain/tree';
 export * as TunnelOps from './persistence/ops';
 export * from './persistence/schemas';

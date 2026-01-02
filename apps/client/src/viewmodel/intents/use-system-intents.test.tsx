@@ -107,5 +107,57 @@ describe('useSystemIntents', () => {
         expect(t3.isAcknowledged).toBe(true);
       });
     });
+
+    it('should wake up routine tasks', async () => {
+      // 1. Seed Data with a routine task ready to wake up
+      handle.change(d => {
+        const routineTaskId = 'routine-task' as TaskID;
+        d.tasks[routineTaskId] = createSharedMockTask({
+          id: routineTaskId,
+          title: 'Morning Routine',
+          status: TaskStatus.Done,
+          isAcknowledged: true,
+          schedule: {
+            type: 'Routinely',
+            leadTime: 3600000,
+            dueDate: 1000,
+          },
+          repeatConfig: {
+            frequency: 'daily',
+            interval: 1,
+          },
+          lastCompletedAt: Date.now() - 1000 * 60 * 60 * 25, // 25 hours ago
+        });
+        d.rootTaskIds = [routineTaskId];
+      });
+
+      // 2. Setup Hook
+      const store = createTaskLensStore();
+      const wrapper = createTestWrapper(repo, store, docUrl);
+      const {result} = renderHook(() => useSystemIntents(), {wrapper});
+
+      // Wait for Redux
+      await waitFor(() => {
+        const state = store.getState();
+        if (!state.tasks.entities['routine-task' as TaskID])
+          throw new Error('Task not in store');
+      });
+
+      // 3. Act
+      act(() => {
+        result.current.refreshTaskList();
+      });
+
+      // 4. Verify in Doc
+      await waitFor(() => {
+        const doc = handle.doc();
+        const t = doc.tasks['routine-task' as TaskID];
+        if (!t) throw new Error('Task missing');
+
+        // Should be woken up (Pending and Unacknowledged)
+        expect(t.status).toBe(TaskStatus.Pending);
+        expect(t.isAcknowledged).toBe(false);
+      });
+    });
   });
 });

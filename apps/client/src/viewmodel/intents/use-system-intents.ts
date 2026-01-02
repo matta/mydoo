@@ -1,4 +1,10 @@
-import {useTaskActions} from '@mydoo/tasklens';
+import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
+import {
+  type TunnelState,
+  useTaskActions,
+  useTaskLensDocUrl,
+  wakeUpRoutineTasks,
+} from '@mydoo/tasklens';
 import {useCallback, useMemo} from 'react';
 
 export interface SystemIntents {
@@ -7,10 +13,15 @@ export interface SystemIntents {
 
 export function useSystemIntents(): SystemIntents {
   const {acknowledgeAllDoneTasks} = useTaskActions();
+  const docUrl = useTaskLensDocUrl();
+  const handle = useDocHandle<TunnelState>(docUrl);
 
   const refreshTaskList = useCallback(() => {
+    if (handle) {
+      wakeUpRoutineTasks(handle);
+    }
     acknowledgeAllDoneTasks();
-  }, [acknowledgeAllDoneTasks]);
+  }, [acknowledgeAllDoneTasks, handle]);
 
   return useMemo(
     () => ({
