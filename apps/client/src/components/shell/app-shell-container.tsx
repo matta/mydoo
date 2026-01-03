@@ -142,6 +142,16 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
                   </Menu.Item>
                 </>
               )}
+
+              <Menu.Divider />
+              <Menu.Label>
+                Build: {__BUILD_INFO__.hash}
+                {!__BUILD_INFO__.clean && ' (dirty)'}
+                {import.meta.env.DEV && ' (dev)'}
+                <div style={{fontWeight: 400, opacity: 0.5}}>
+                  {new Date(__BUILD_INFO__.date).toLocaleString()}
+                </div>
+              </Menu.Label>
             </Menu.Dropdown>
           </Menu>
         </Group>

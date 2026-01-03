@@ -29,6 +29,13 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 });
 
+// Mock Build Info for tests
+globalThis.__BUILD_INFO__ = {
+  hash: 'test-hash',
+  date: new Date().toISOString(),
+  clean: true,
+};
+
 // Mock ResizeObserver - required by Mantine's modal and floating components
 class MockResizeObserver {
   observe() {}

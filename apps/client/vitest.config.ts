@@ -6,6 +6,13 @@ import {defineConfig} from 'vitest/config';
 
 export default defineConfig({
   plugins: [react(), wasm(), topLevelAwait()],
+  define: {
+    __BUILD_INFO__: JSON.stringify({
+      hash: 'test-hash',
+      date: new Date().toISOString(),
+      clean: true,
+    }),
+  },
   test: {
     browser: {
       provider: playwright(),
