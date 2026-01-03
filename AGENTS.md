@@ -57,6 +57,9 @@ pnpm exec turbo run test --filter <package>
 # Specific test file within a package
 pnpm exec turbo run test --filter <package> -- <TestFile>
 # e.g. pnpm exec turbo run test --filter @mydoo/client -- PlanViewContainer
+
+# Fully build everything and re-run all tests including e2e (monorepo-wide), ignoring cache
+TURBO_FORCE=true pnpm exec turbo run check-agent
 ```
 
 ## Context Convention: `ROLLING_CONTEXT.md`
