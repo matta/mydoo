@@ -6,6 +6,8 @@ import App from './app';
 import {ErrorBoundary} from './components/error-boundary';
 import {RepoProvider} from './hooks/repo-provider';
 
+import {theme} from './theme';
+
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 
@@ -14,7 +16,7 @@ if (!rootElement) throw new Error('Failed to find the root element');
 
 createRoot(rootElement).render(
   <StrictMode>
-    <MantineProvider defaultColorScheme="auto">
+    <MantineProvider defaultColorScheme="auto" theme={theme}>
       <ErrorBoundary>
         <RepoProvider>
           <App />
