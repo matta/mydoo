@@ -413,6 +413,12 @@ export function TaskEditorModal({
               onChange={val => val && setLeadTimeUnit(val)}
               style={{width: '100px'}}
               allowDeselect={false}
+              comboboxProps={{
+                // Force the dropdown to render inside the Modal to avoid
+                // FocusTrap conflicts (wedging) caused by Portals in
+                // full-screen mode on mobile.
+                withinPortal: false,
+              }}
             />
           </Group>
         </Group>
@@ -434,6 +440,12 @@ export function TaskEditorModal({
             value={frequency}
             onChange={setFrequency}
             clearable
+            comboboxProps={{
+              // Force the dropdown to render inside the Modal to avoid
+              // FocusTrap conflicts (wedging) caused by Portals in full-screen
+              // mode on mobile.
+              withinPortal: false,
+            }}
           />
           {frequency && (
             <NumberInput
