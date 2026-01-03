@@ -20,6 +20,17 @@ export interface PlanFixture {
   clearCompletedTasks: () => Promise<void>;
   editTaskTitle: (title: string, newTitle: string) => Promise<void>;
   deleteTask: (title: string, expectedDescendants?: number) => Promise<void>;
+  createRoutineTask: (
+    title: string,
+    config: {
+      frequency: string;
+      interval: number;
+      leadTimeVal: number;
+      leadTimeUnit: string;
+    },
+  ) => Promise<void>;
+  refreshDoList: () => Promise<void>;
+  advanceTime: (minutes: number) => Promise<void>;
 
   // Verification Helpers
   verifyTaskVisible: (title: string) => Promise<void>;
@@ -47,6 +58,7 @@ export interface PlanFixture {
 
   // Lifecycle / Setup
   primeWithSampleData: () => Promise<void>;
+  setupClock: () => Promise<void>;
 
   // Document Management
   getCurrentDocumentId: () => Promise<string | undefined>;
@@ -217,6 +229,71 @@ export class PlanPage implements PlanFixture {
     await expect(modal).not.toBeVisible();
   }
 
+  async createRoutineTask(
+    title: string,
+    config: {
+      frequency: string;
+      interval: number;
+      leadTimeVal: number;
+      leadTimeUnit: string;
+    },
+  ): Promise<void> {
+    await this.createTask(title);
+    await this.openTaskEditor(title);
+
+    // Fill Repetition
+    // Map frequency values to labels
+    const freqLabels: Record<string, string> = {
+      minutes: 'Minutes',
+      hours: 'Hours',
+      daily: 'Daily',
+      weekly: 'Weekly',
+      monthly: 'Monthly',
+      yearly: 'Yearly',
+    } as const;
+    const optionName = freqLabels[config.frequency] || '';
+
+    // On mobile, ensure the page is stable
+    await this.page.waitForLoadState('networkidle');
+
+    // Select the option from the portal
+    await this.page.locator('#repetition-frequency-select').click();
+    await this.page.getByRole('option', {name: optionName}).click();
+
+    // Fill Interval "Every X units"
+    // Only visible if frequency is set, which it is now.
+    await this.page
+      .locator('#repetition-interval-input')
+      .fill(config.interval.toString());
+
+    // Fill Lead Time
+    // "Lead Time" NumberInput using ID
+    await this.page
+      .locator('#lead-time-scalar-input')
+      .fill(config.leadTimeVal.toString());
+
+    // "Unit" Select for Lead Time
+    // Click the input directly by ID
+    await this.page.locator('#lead-time-unit-select').click();
+    await this.page.getByRole('option', {name: config.leadTimeUnit}).click();
+
+    // Save
+    await this.page.getByRole('button', {name: 'Save Changes'}).click();
+    await expect(
+      this.page.getByRole('dialog', {name: 'Edit Task'}),
+    ).not.toBeVisible();
+  }
+
+  async refreshDoList(): Promise<void> {
+    await this.page.getByRole('button', {name: 'Refresh'}).click();
+  }
+
+  async advanceTime(minutes: number): Promise<void> {
+    // This requires that the page clock is installed and controllable.
+    // We assume the test runner or fixture handles install(), or we try to fastForward.
+    await this.page.clock.fastForward(minutes * 60 * 1000);
+  }
+
   // --- Verification Helpers ---
 
   async verifyTaskVisible(title: string): Promise<void> {
@@ -321,6 +398,16 @@ export class PlanPage implements PlanFixture {
   }
 
   // --- Lifecycle / Setup ---
+
+  async setupClock(): Promise<void> {
+    try {
+      await this.page.clock.install();
+    } catch (e: unknown) {
+      if (!(e instanceof Error && e.message?.includes('already installed'))) {
+        throw e;
+      }
+    }
+  }
 
   async primeWithSampleData(): Promise<void> {
     // Clear localStorage first to ensure clean state

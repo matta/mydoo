@@ -183,6 +183,7 @@ export function updateTask(
     props.status === TaskStatus.Done && task.status !== TaskStatus.Done;
   if (isCompleting) {
     attributeCredits(state, id, task.creditIncrement);
+    task.lastCompletedAt = getCurrentTimestamp();
   }
 
   if (props.parentId !== undefined && props.parentId !== task.parentId) {

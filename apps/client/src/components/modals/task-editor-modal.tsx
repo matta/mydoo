@@ -398,6 +398,7 @@ export function TaskEditorModal({
           />
           <Group gap="xs" style={{flexGrow: 1}}>
             <NumberInput
+              id="lead-time-scalar-input"
               label="Lead Time"
               min={0}
               onChange={setLeadTimeScalar}
@@ -405,6 +406,7 @@ export function TaskEditorModal({
               style={{flex: 1}}
             />
             <Select
+              id="lead-time-unit-select"
               label="Unit"
               data={['Minutes', 'Hours', 'Days']}
               value={leadTimeUnit}

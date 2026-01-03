@@ -46,7 +46,7 @@ export interface TaskRowProps {
  */
 export function TaskRow({task, onToggle, onTitleTap, style}: TaskRowProps) {
   return (
-    <Paper p="xs" shadow="xs" style={style} withBorder>
+    <Paper p="xs" shadow="xs" style={style} withBorder data-testid="task-item">
       <Group align="center" gap="sm" wrap="nowrap">
         <Checkbox
           aria-label={`Complete ${task.title}`}

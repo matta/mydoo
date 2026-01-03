@@ -43,6 +43,7 @@ export default defineConfig({
       name: 'bdd-mobile',
       testDir: testDirMobile,
       use: {...devices['Pixel 7']},
+      grepInvert: /@skip-mobile/,
     },
     {
       name: 'e2e',

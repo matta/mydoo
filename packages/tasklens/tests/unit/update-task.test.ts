@@ -43,9 +43,13 @@ describe('updateTask - Exhaustive Field Coverage', () => {
       expect(store.state.tasks[baseTask.id]?.title).toBe('Updated Title');
     });
 
-    it('should update status to Done', () => {
+    it('should update status to Done and set lastCompletedAt', () => {
+      const before = Date.now();
       updateTask(store.state, baseTask.id, {status: TaskStatus.Done});
-      expect(store.state.tasks[baseTask.id]?.status).toBe(TaskStatus.Done);
+      const task = store.state.tasks[baseTask.id];
+      expect(task?.status).toBe(TaskStatus.Done);
+      expect(task?.lastCompletedAt).toBeDefined();
+      expect(task?.lastCompletedAt).toBeGreaterThanOrEqual(before);
     });
 
     it('should update status to Pending', () => {
@@ -480,6 +484,7 @@ describe('updateTask - Round-Trip Serialization (Automerge)', () => {
       'placeId',
       'schedule',
       'childTaskIds',
+      'lastCompletedAt',
     ];
 
     for (const key of expectedKeys) {
