@@ -55,8 +55,13 @@ pnpm exec turbo run test --filter <package>
 # e.g. pnpm exec turbo run test --filter @mydoo/client
 
 # Specific test file within a package
-pnpm exec turbo run test --filter <package> -- <TestFile>
-# e.g. pnpm exec turbo run test --filter @mydoo/client -- PlanViewContainer
+pnpm exec turbo run test --filter <package> -- <RelativePathToTestFile>
+# e.g. pnpm exec turbo run test --filter @mydoo/client -- src/test/utils/date-formatter.test.ts
+
+# Specific E2E feature or test with Playwright/BDD
+# Note: Always run bddgen first if modifying .feature files
+pnpm exec turbo run test-e2e --filter <package> -- --project=<project> -g <pattern>
+# e.g. pnpm exec turbo run test-e2e --filter @mydoo/client -- --project='bdd-desktop' -g 'Due Dates'
 
 # Fully build everything and re-run all tests including e2e (monorepo-wide), ignoring cache
 TURBO_FORCE=true pnpm exec turbo run check-agent

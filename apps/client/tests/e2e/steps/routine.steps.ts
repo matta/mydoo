@@ -1,4 +1,5 @@
 import {createBdd} from 'playwright-bdd';
+import {parseDuration} from '../../../src/test/utils/duration-parser';
 import {test} from '../fixtures';
 
 const {Given, When, Then} = createBdd(test);
@@ -8,47 +9,27 @@ Given(
   async ({plan}, title, repeatStr, leadTimeStr) => {
     await plan.setupClock();
     await plan.primeWithSampleData();
-    // Parse duration strings (e.g., "2 days", "8 hours")
-    // Simple parser for now
-    const parseDuration = (str: string) => {
-      const parts = str.split(' ');
-      const val = parseInt(parts[0] || '0', 10);
-      const unit = parts[1]?.toLowerCase() || '';
-      // Unit mapping to UI expectations or logic
-      // UI has "Minutes", "Hours", "Days"
-      let uiUnit = 'Days';
-      if (unit.startsWith('minute')) uiUnit = 'Minutes';
-      if (unit.startsWith('hour')) uiUnit = 'Hours';
-      if (unit.startsWith('day')) uiUnit = 'Days';
-
-      return {val, uiUnit, rawUnit: unit};
-    };
 
     const repeat = parseDuration(repeatStr);
     const lead = parseDuration(leadTimeStr);
 
-    // Map repeat unit to frequency value expected by UI Select
-    // UI data: 'minutes', 'hours', 'daily', 'weekly', 'monthly', 'yearly'
-    // Map "Days" -> "daily" if interval is 1? Or does UI support "Every 2 Days"?
-    // Looking at TaskEditorModal:
-    // data={[ {value: 'minutes', label: 'Minutes'}, {value: 'hours', label: 'Hours'}, {value: 'daily', label: 'Daily'} ... ]}
-    // and "Every X units" input appears if frequency is set.
-    // If it's "2 days", we might need to select "Daily" and interval 2.
-    // Wait, the UI has "Daily" which implies 1 day.
-    // Does it support interval for Daily?
-    // Code says: {frequency && ( <NumberInput label="Every X units" ... /> )}
-    // So yes, if frequency is selected, interval input is shown.
-
-    let freqValue = 'daily';
-    if (repeat.uiUnit === 'Minutes') freqValue = 'minutes';
-    if (repeat.uiUnit === 'Hours') freqValue = 'hours';
-    if (repeat.uiUnit === 'Days') freqValue = 'daily';
-    // TODO: Handle weeks/months if needed, but test only uses days/hours/minutes
+    // Map UI unit to frequency value expected by the Select component
+    const freqMap: Record<string, string> = {
+      Minutes: 'minutes',
+      Hours: 'hours',
+      Days: 'daily',
+    };
+    const freqValue = freqMap[repeat.uiUnit];
+    if (!freqValue) {
+      throw new Error(
+        `Unsupported repeat unit: "${repeat.uiUnit}". Expected: Minutes, Hours, or Days.`,
+      );
+    }
 
     await plan.createRoutineTask(title, {
       frequency: freqValue,
-      interval: repeat.val,
-      leadTimeVal: lead.val,
+      interval: repeat.value,
+      leadTimeVal: lead.value,
       leadTimeUnit: lead.uiUnit,
     });
   },

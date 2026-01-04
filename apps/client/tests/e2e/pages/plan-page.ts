@@ -31,6 +31,12 @@ export interface PlanFixture {
   ) => Promise<void>;
   refreshDoList: () => Promise<void>;
   advanceTime: (minutes: number) => Promise<void>;
+  setDueDate: (dateString: string) => Promise<void>;
+  setLeadTime: (value: number, unit: string) => Promise<void>;
+  createTaskWithDueDate: (
+    title: string,
+    config: {dueDate: string; leadTimeVal: number; leadTimeUnit: string},
+  ) => Promise<void>;
 
   // Verification Helpers
   verifyTaskVisible: (title: string) => Promise<void>;
@@ -292,6 +298,32 @@ export class PlanPage implements PlanFixture {
     // This requires that the page clock is installed and controllable.
     // We assume the test runner or fixture handles install(), or we try to fastForward.
     await this.page.clock.fastForward(minutes * 60 * 1000);
+  }
+
+  async setDueDate(dateString: string): Promise<void> {
+    // Assumes the Task Editor modal is already open
+    await this.page.getByLabel('Due Date').fill(dateString);
+  }
+
+  async setLeadTime(value: number, unit: string): Promise<void> {
+    // Assumes the Task Editor modal is already open
+    await this.page.locator('#lead-time-scalar-input').fill(value.toString());
+    await this.page.locator('#lead-time-unit-select').click();
+    await this.page.getByRole('option', {name: unit}).click();
+  }
+
+  async createTaskWithDueDate(
+    title: string,
+    config: {dueDate: string; leadTimeVal: number; leadTimeUnit: string},
+  ): Promise<void> {
+    await this.createTask(title);
+    await this.openTaskEditor(title);
+    await this.setDueDate(config.dueDate);
+    await this.setLeadTime(config.leadTimeVal, config.leadTimeUnit);
+    await this.page.getByRole('button', {name: 'Save Changes'}).click();
+    await expect(
+      this.page.getByRole('dialog', {name: 'Edit Task'}),
+    ).not.toBeVisible();
   }
 
   // --- Verification Helpers ---
