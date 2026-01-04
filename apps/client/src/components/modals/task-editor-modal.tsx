@@ -110,7 +110,6 @@ export function TaskEditorModal({
   mode,
   onIndent,
   onOutdent,
-
   onMove,
   onFindInPlan,
   canIndent = false,
@@ -129,8 +128,10 @@ export function TaskEditorModal({
   const [frequency, setFrequency] = useState<string | null>(null);
   const [interval, setInterval] = useState<number | string>(1);
 
-  // Sync form state when task changes (Edit Mode) or clear it (Create Mode)
+  // Sync form state when the modal opens or the task changes
   useEffect(() => {
+    if (!opened) return;
+
     if (task) {
       setTitle(task.title);
       setImportance(task.importance);
@@ -162,7 +163,7 @@ export function TaskEditorModal({
       setFrequency(null);
       setInterval(1);
     }
-  }, [task]); // Also reset when opening in Create Mode
+  }, [task, opened]); // Sync form state when the modal opens or the task changes
 
   const handleSave = useCallback(() => {
     const repeatConfig: RepeatConfig | undefined = frequency

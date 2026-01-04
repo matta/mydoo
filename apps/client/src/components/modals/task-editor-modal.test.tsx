@@ -315,4 +315,57 @@ describe('TaskEditorModal', () => {
 
     // Test skipped due to clear button interaction issues in browser environment
   });
+
+  it('resets form state when reopened in Create mode', async () => {
+    const user = userEvent.setup();
+    const {rerender} = renderWithTestProviders(
+      <TaskEditorModal
+        descendantCount={0}
+        onAddChild={vi.fn()}
+        onAddSibling={vi.fn()}
+        onClose={vi.fn()}
+        onDelete={vi.fn()}
+        onSave={vi.fn()}
+        opened={true}
+        parentTitle={undefined}
+        task={undefined} // Create mode
+      />,
+    );
+
+    const titleInput = screen.getByPlaceholderText('What needs to be done?');
+    await user.type(titleInput, 'Draft Title');
+
+    // Close the modal
+    rerender(
+      <TaskEditorModal
+        descendantCount={0}
+        onAddChild={vi.fn()}
+        onAddSibling={vi.fn()}
+        onClose={vi.fn()}
+        onDelete={vi.fn()}
+        onSave={vi.fn()}
+        opened={false} // Closed
+        parentTitle={undefined}
+        task={undefined}
+      />,
+    );
+
+    // Reopen the modal in Create mode
+    rerender(
+      <TaskEditorModal
+        descendantCount={0}
+        onAddChild={vi.fn()}
+        onAddSibling={vi.fn()}
+        onClose={vi.fn()}
+        onDelete={vi.fn()}
+        onSave={vi.fn()}
+        opened={true} // Reopened
+        parentTitle={undefined}
+        task={undefined}
+      />,
+    );
+
+    // Expect title to be empty again
+    expect(titleInput).toHaveValue('');
+  });
 });
