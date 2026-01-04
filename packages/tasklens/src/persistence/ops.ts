@@ -33,7 +33,7 @@ import {
   TaskStatus,
   type TunnelState,
 } from '../types';
-import {daysToMilliseconds, getCurrentTimestamp} from '../utils/time';
+import {getCurrentTimestamp, hoursToMilliseconds} from '../utils/time';
 
 // --- Mutators ---
 
@@ -67,7 +67,7 @@ export function createTask(
   const defaultSchedule: Schedule = {
     type: 'Once',
     dueDate: undefined,
-    leadTime: daysToMilliseconds(7),
+    leadTime: hoursToMilliseconds(8),
   };
   const newTask: PersistedTask = {
     id: newTaskId,

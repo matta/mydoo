@@ -36,3 +36,11 @@ export function resetCurrentTimestampMock(): void {
 export function daysToMilliseconds(days: number): number {
   return days * 24 * 60 * 60 * 1000;
 }
+
+/**
+ * Converts hours to milliseconds.
+ * @param hours Number of hours.
+ */
+export function hoursToMilliseconds(hours: number): number {
+  return hours * 60 * 60 * 1000;
+}
