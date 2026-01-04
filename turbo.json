@@ -12,6 +12,23 @@
     "//#check-biome-staged": {
       "cache": false
     },
+    "//#check-format": {
+      "inputs": [
+        "**/*",
+        "!**/.git/**",
+        "!**/node_modules/**",
+        "!**/dist/**",
+        "!**/coverage/**",
+        "!**/.turbo/**",
+        "!**/test-results/**",
+        "!**/playwright-report/**"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "//#fix-format": {
+      "cache": false
+    },
     "//#check-eslint-staged": {
       "cache": false
     },
@@ -129,7 +146,8 @@
         "check-biome",
         "check-eslint",
         "//#check-biome:root",
-        "//#check-filenames"
+        "//#check-filenames",
+        "//#check-format"
       ],
       "outputs": []
     },
@@ -157,7 +175,12 @@
       "cache": false
     },
     "fix-style": {
-      "dependsOn": ["fix-biome", "fix-eslint", "//#fix-biome:root"],
+      "dependsOn": [
+        "fix-biome",
+        "fix-eslint",
+        "//#fix-biome:root",
+        "//#fix-format"
+      ],
       "cache": false
     },
     "fix": {
