@@ -10,7 +10,6 @@ import {RepoProvider} from './hooks/repo-provider';
 import {theme} from './theme';
 
 import '@mantine/core/styles.css';
-import '@mantine/dates/styles.css';
 import '@mantine/notifications/styles.css';
 
 const rootElement = document.getElementById('root');

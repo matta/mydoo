@@ -6,9 +6,6 @@ settings:
 
 catalogs:
   default:
-    '@automerge/automerge':
-      specifier: ^3.2.1
-      version: 3.2.1
     '@automerge/automerge-repo':
       specifier: ^2.5.1
       version: 2.5.1
@@ -24,18 +21,12 @@ catalogs:
     '@mantine/core':
       specifier: 8.3.10
       version: 8.3.10
-    '@mantine/dates':
-      specifier: 8.3.10
-      version: 8.3.10
     '@mantine/hooks':
       specifier: 8.3.10
       version: 8.3.10
     '@playwright/test':
       specifier: ^1.57.0
       version: 1.57.0
-    '@reduxjs/toolkit':
-      specifier: ^2.5.0
-      version: 2.11.2
     '@tabler/icons-react':
       specifier: ^3.36.0
       version: 3.36.0
@@ -45,9 +36,6 @@ catalogs:
     '@testing-library/user-event':
       specifier: ^14.6.1
       version: 14.6.1
-    '@types/js-yaml':
-      specifier: ^4.0.9
-      version: 4.0.9
     '@types/node':
       specifier: 25.0.3
       version: 25.0.3
@@ -60,33 +48,9 @@ catalogs:
     '@vitejs/plugin-react':
       specifier: ^5.1.1
       version: 5.1.2
-    '@vitest/coverage-v8':
-      specifier: ^4.0.16
-      version: 4.0.16
-    ajv:
-      specifier: ^8.17.1
-      version: 8.17.1
-    ajv-formats:
-      specifier: ^3.0.1
-      version: 3.0.1
     dayjs:
       specifier: ^1.11.19
       version: 1.11.19
-    eslint:
-      specifier: ^9.39.2
-      version: 9.39.2
-    eslint-plugin-import-x:
-      specifier: ^4.16.1
-      version: 4.16.1
-    husky:
-      specifier: ^9.1.7
-      version: 9.1.7
-    js-yaml:
-      specifier: ^4.1.1
-      version: 4.1.1
-    json-schema-to-typescript:
-      specifier: ^15.0.4
-      version: 15.0.4
     postcss:
       specifier: 8.5.6
       version: 8.5.6
@@ -108,9 +72,6 @@ catalogs:
     typescript:
       specifier: 5.9.3
       version: 5.9.3
-    typescript-eslint:
-      specifier: ^8.51.0
-      version: 8.51.0
     vite:
       specifier: ^7.2.4
       version: 7.3.0
@@ -126,9 +87,6 @@ catalogs:
     vitest:
       specifier: 4.0.16
       version: 4.0.16
-    zod:
-      specifier: ^4.2.1
-      version: 4.2.1
 
 importers:
 
@@ -182,9 +140,6 @@ importers:
       '@mantine/core':
         specifier: 'catalog:'
         version: 8.3.10(@mantine/hooks@8.3.10(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@mantine/dates':
-        specifier: 'catalog:'
-        version: 8.3.10(@mantine/core@8.3.10(@mantine/hooks@8.3.10(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mantine/hooks@8.3.10(react@19.2.3))(dayjs@1.11.19)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@mantine/hooks':
         specifier: 'catalog:'
         version: 8.3.10(react@19.2.3)
@@ -1334,15 +1289,6 @@ packages:
     resolution: {integrity: sha512-aKQFETN14v6GtM07b/G5yJneMM1yrgf9mNrTah6GVy5DvQM0AeutITT7toHqh5gxxwzdg/DoY+HQsv5zhqnc5g==}
     peerDependencies:
       '@mantine/hooks': 8.3.10
-      react: ^18.x || ^19.x
-      react-dom: ^18.x || ^19.x
-
-  '@mantine/dates@8.3.10':
-    resolution: {integrity: sha512-P1uZ+alYGp7fsmkfd+7Fur4AGrqT0X6BWLiVTomzrbyykA+m4TSwPyQjKfsDc7XRqaqx992br/U65T82zy+qGQ==}
-    peerDependencies:
-      '@mantine/core': 8.3.10
-      '@mantine/hooks': 8.3.10
-      dayjs: '>=1.0.0'
       react: ^18.x || ^19.x
       react-dom: ^18.x || ^19.x
 
@@ -5391,15 +5337,6 @@ snapshots:
       type-fest: 4.41.0
     transitivePeerDependencies:
       - '@types/react'
-
-  '@mantine/dates@8.3.10(@mantine/core@8.3.10(@mantine/hooks@8.3.10(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mantine/hooks@8.3.10(react@19.2.3))(dayjs@1.11.19)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
-    dependencies:
-      '@mantine/core': 8.3.10(@mantine/hooks@8.3.10(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@mantine/hooks': 8.3.10(react@19.2.3)
-      clsx: 2.1.1
-      dayjs: 1.11.19
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
 
   '@mantine/hooks@8.3.10(react@19.2.3)':
     dependencies:

@@ -23,9 +23,9 @@ import {
   Textarea,
   TextInput,
 } from '@mantine/core';
-import {DatePickerInput} from '@mantine/dates';
 import type {RepeatConfig, Task, TaskID} from '@mydoo/tasklens';
 import {useCallback, useEffect, useState} from 'react';
+import {DateInput} from '../ui/date-input';
 
 interface TaskEditorModalProps {
   /** Whether the modal is open */
@@ -387,13 +387,9 @@ export function TaskEditorModal({
 
         {/* Scheduling */}
         <Group grow align="flex-end">
-          <DatePickerInput
-            clearable
+          <DateInput
             label="Due Date"
-            onChange={value => {
-              // DatePickerInput returns string | null in v8.x
-              setDueDate(value ? new Date(value) : null);
-            }}
+            onChange={setDueDate}
             placeholder="Pick a date"
             value={dueDate}
           />

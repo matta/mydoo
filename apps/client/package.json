@@ -7,7 +7,6 @@
     "@automerge/automerge-repo-react-hooks": "catalog:",
     "@automerge/automerge-repo-storage-indexeddb": "catalog:",
     "@mantine/core": "catalog:",
-    "@mantine/dates": "catalog:",
     "@mantine/hooks": "catalog:",
     "@mantine/notifications": "^8.3.10",
     "@mydoo/tasklens": "workspace:*",
