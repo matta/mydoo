@@ -133,7 +133,7 @@ export default defineConfig({
         // or hard-refresh to see changes. The "normal" Vite HMR for your React
         // components still works fine, but the SW itself is a separate entity
         // that lives outside the HMR cycle.
-        enabled: false,
+        enabled: process.env.VITE_PWA_DEV === 'true',
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4MB

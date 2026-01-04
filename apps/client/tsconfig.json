@@ -24,7 +24,13 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Mixed Environment Support (Node + DOM) */
-    "types": ["node", "vite/client", "vitest/globals"],
+    "types": [
+      "node",
+      "vite/client",
+      "vitest/globals",
+      "vite-plugin-pwa/info",
+      "vite-plugin-pwa/client"
+    ],
 
     /* Monorepo Paths */
     "paths": {

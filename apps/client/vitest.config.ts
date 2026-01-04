@@ -1,3 +1,4 @@
+import path from 'node:path';
 import react from '@vitejs/plugin-react';
 import {playwright} from '@vitest/browser-playwright';
 import topLevelAwait from 'vite-plugin-top-level-await';
@@ -12,6 +13,17 @@ export default defineConfig({
       date: new Date().toISOString(),
       clean: true,
     }),
+  },
+  resolve: {
+    alias: {
+      // Mock the PWA virtual module.
+      // vite-plugin-pwa uses virtual modules (e.g. virtual:pwa-register/react)
+      // which don't exist on disk. For tests, we must alias this to a real file.
+      'virtual:pwa-register/react': path.resolve(
+        __dirname,
+        './src/test/mocks/pwa-register.ts',
+      ),
+    },
   },
   test: {
     browser: {

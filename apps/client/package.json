@@ -9,6 +9,7 @@
     "@mantine/core": "catalog:",
     "@mantine/dates": "catalog:",
     "@mantine/hooks": "catalog:",
+    "@mantine/notifications": "^8.3.10",
     "@mydoo/tasklens": "workspace:*",
     "@tabler/icons-react": "catalog:",
     "dayjs": "catalog:",
@@ -35,7 +36,8 @@
     "vite-plugin-pwa": "catalog:",
     "vite-plugin-top-level-await": "catalog:",
     "vite-plugin-wasm": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "workbox-window": "^7.4.0"
   },
   "private": true,
   "scripts": {
