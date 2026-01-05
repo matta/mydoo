@@ -67,7 +67,6 @@ The scope of files being acted upon.
 | **Apply Format**     | `format`            | `fix-format`     | Command: Make the formatting correct. |
 | **Type Check**       | `typecheck`         | `check-types`    | Query: Are types correct?             |
 | **Dependency Check** | `lint-deps`         | `check-deps`     | Query: Are deps correct?              |
-| **Pre-commit**       | `lint-staged`       | `check-staged`   | Command: Verify the staged files.     |
 | **CI Validation**    | `ci`                | `check`          | Query: Is everything correct?         |
 | **Generate Code**    | `codegen`, `bddgen` | `generate`       | Command: Generate source files.       |
 
@@ -92,4 +91,4 @@ The `//#` prefix is a technical address and not part of the semantic task name.
 
 ## 6. Exemptions
 
-Common task names endemic to the npm/Node ecosystem are exempt when not explicitly banned above. Examples: `dev`, `start`, `serve`, `clean`, `prepare`, `prepublishOnly`, `lint-staged`.
+Common task names endemic to the npm/Node ecosystem are exempt when not explicitly banned above. Examples: `dev`, `start`, `serve`, `clean`, `prepare`, `prepublishOnly`.

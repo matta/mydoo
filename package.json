@@ -45,9 +45,9 @@
     "check-biome-root": "biome check .",
     "check-deps-root": "knip",
     "check-filenames-root": "./scripts/check-filenames.sh",
-    "check-format-root": "prettier --check \"*.{json,md,yaml,yml,js,mjs,cjs,ts,tsx}\"",
+    "check-format-root": "prettier --check \"*.{json,md,yaml,yml,js,mjs,cjs,ts,tsx,jsx,css,html}\"",
     "fix-biome-root": "biome check --write .",
-    "fix-format-root": "prettier --write \"*.{json,md,yaml,yml,js,mjs,cjs,ts,tsx}\"",
+    "fix-format-root": "prettier --write \"*.{json,md,yaml,yml,js,mjs,cjs,ts,tsx,jsx,css,html}\"",
     "lint-staged": "lint-staged",
     "check-staged": "./scripts/check-staged.sh"
   }

@@ -51,4 +51,4 @@ if ./scripts/is-agent.sh; then
 fi
 
 export PRE_COMMIT_SECRET_REQUIRED=1
-pnpm check-staged
+pnpm exec lint-staged --concurrent false

@@ -9,9 +9,6 @@
   ],
   "globalPassThroughEnv": ["ANTIGRAVITY_AGENT", "GEMINI_CLI", "CI"],
   "tasks": {
-    "//#lint-staged": {
-      "cache": false
-    },
     "//#check-format-root": {
       "inputs": ["*"],
       "outputs": [],
@@ -29,17 +26,11 @@
       "cache": false
     },
     "check-agent": {
-      "dependsOn": [
-        "//#lint-staged",
-        "//#check-deps-root",
-        "test",
-        "test-e2e",
-        "check-types"
-      ],
+      "dependsOn": ["//#check-deps-root", "test", "test-e2e", "check-types"],
       "cache": false
     },
     "check-human": {
-      "dependsOn": ["//#lint-staged", "//#check-deps-root", "check-types"],
+      "dependsOn": ["//#check-deps-root", "check-types"],
       "cache": false
     },
     "//#check-deps-root": {
