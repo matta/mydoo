@@ -5,9 +5,9 @@ export default {
     'biome check --write --no-errors-on-unmatched',
   '*.{js,ts,tsx,jsx,cjs,mjs,config.js,config.ts}': 'eslint --fix',
   '*.{json,md,yaml,yml,js,mjs,cjs,ts,tsx,jsx,css,html}': 'prettier --write',
-  // Run check-filenames on all files.
+  // Run ls-lint on all files.
   // We use '*' to match all files. lint-staged handles chunking automatically for string commands.
-  '*': './scripts/check-filenames.sh --files',
+  '*': 'ls-lint',
 
   // Run check-staged on the entire batch.
   // We use '**' (recursive wildcard) to match ALL files in the repo, ensuring this runs if any file is staged.

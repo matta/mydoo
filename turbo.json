@@ -57,6 +57,7 @@
         "**/*.toml",
         "**/*.config.js",
         "**/*.config.ts",
+        ".ls-lint.yml",
         "!**/test-results/**",
         "!**/playwright-report/**",
         "!**/coverage/**",

@@ -1,0 +1,19 @@
+ls:
+  .*: kebab-case
+  .md: kebab-case | SCREAMING_SNAKE_CASE
+
+ignore:
+  - .gemini
+  - .git
+  - .github
+  - .husky
+  - .moon
+  - .specify
+  - .turbo
+  - .vscode
+  - '**/__screenshots__'
+  - '**/build'
+  - '**/coverage'
+  - '**/dev-dist'
+  - '**/dist'
+  - '**/node_modules'
