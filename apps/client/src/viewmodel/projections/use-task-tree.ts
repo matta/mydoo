@@ -1,6 +1,8 @@
 import {
   buildTunnelTree,
-  selectLastProxyDoc,
+  selectRootTaskIds,
+  selectStoreReady,
+  selectTaskEntities,
   type TunnelNode,
 } from '@mydoo/tasklens';
 import {useMemo} from 'react';
@@ -18,15 +20,17 @@ export interface TaskTree {
  * Returns all tasks regardless of status (view filters should handle visibility).
  */
 export function useTaskTree(): TaskTree {
-  const doc = useSelector(selectLastProxyDoc);
+  const tasks = useSelector(selectTaskEntities);
+  const rootTaskIds = useSelector(selectRootTaskIds);
+  const isReady = useSelector(selectStoreReady);
 
   const roots = useMemo(() => {
-    if (!doc) return [];
-    return buildTunnelTree(doc.rootTaskIds, doc.tasks);
-  }, [doc]);
+    if (!isReady) return [];
+    return buildTunnelTree(rootTaskIds, tasks);
+  }, [isReady, rootTaskIds, tasks]);
 
   return {
     roots,
-    isLoading: doc === null,
+    isLoading: !isReady,
   };
 }

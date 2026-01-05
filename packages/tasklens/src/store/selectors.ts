@@ -82,3 +82,18 @@ export const selectBalanceData = createSelector(
   [selectTaskEntities],
   entities => calculateBalanceData(Object.values(entities)),
 );
+
+/**
+ * Selector for root task IDs, derived from entities.
+ * Returns sorted list of tasks with no parent.
+ */
+export function selectRootTaskIds(state: TaskLensState): TaskID[] {
+  return state.tasks.rootTaskIds;
+}
+
+/**
+ * Selector to check if the store has been initialized with data.
+ */
+export function selectStoreReady(state: TaskLensState): boolean {
+  return state.tasks.lastProxyDoc !== null;
+}

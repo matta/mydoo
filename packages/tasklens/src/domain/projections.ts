@@ -1,4 +1,4 @@
-import type {ComputedTask, PersistedTask} from '../types';
+import type {ComputedTask, PersistedTask, TaskID} from '../types';
 import {getCurrentTimestamp} from '../utils/time';
 import {CREDITS_HALF_LIFE_MILLIS} from './constants';
 import {isTaskReady} from './readiness';
@@ -30,4 +30,28 @@ export function toComputedTask(task: PersistedTask): ComputedTask {
     isPending,
     isReady,
   };
+}
+
+/**
+ * Calculates the total number of descendants for a given task from an entities record.
+ *
+ * This is a pure function that works with a normalized entities map, suitable for
+ * use in React components that consume Redux state directly.
+ *
+ * @param entities - The normalized map of TaskID to task objects.
+ * @param taskId - The ID of the task to count descendants for.
+ * @returns The total number of sub-tasks (children, grandchildren, etc.).
+ */
+export function getDescendantCountFromEntities(
+  entities: Record<TaskID, ComputedTask | PersistedTask>,
+  taskId: TaskID,
+): number {
+  const task = entities[taskId];
+  if (!task) return 0;
+
+  let count = task.childTaskIds.length;
+  for (const childId of task.childTaskIds) {
+    count += getDescendantCountFromEntities(entities, childId);
+  }
+  return count;
 }

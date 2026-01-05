@@ -1,6 +1,7 @@
 import {
   type CreateTaskOptions,
-  selectLastProxyDoc,
+  selectRootTaskIds,
+  selectTaskEntities,
   type Task,
   type TaskID,
   TaskStatus,
@@ -24,7 +25,8 @@ export function useTaskIntents() {
   } = useTaskActions();
 
   // We need the data from Redux to perform logic like "indent" and "toggle"
-  const doc = useSelector(selectLastProxyDoc);
+  const tasks = useSelector(selectTaskEntities);
+  const rootTaskIds = useSelector(selectRootTaskIds);
 
   const createTask = useCallback(
     (
@@ -45,15 +47,13 @@ export function useTaskIntents() {
    */
   const indentTask = useCallback(
     (id: TaskID) => {
-      if (!doc) return;
-
-      const task = doc.tasks[id];
+      const task = tasks[id];
       if (!task) return;
 
       // Determine the list of siblings to find the predecessor
       const siblings = task.parentId
-        ? doc.tasks[task.parentId]?.childTaskIds
-        : doc.rootTaskIds;
+        ? tasks[task.parentId]?.childTaskIds
+        : rootTaskIds;
 
       if (!siblings) return;
 
@@ -64,7 +64,7 @@ export function useTaskIntents() {
       const prevSiblingId = siblings[idx - 1];
       if (!prevSiblingId) return;
 
-      const prevSibling = doc.tasks[prevSiblingId];
+      const prevSibling = tasks[prevSiblingId];
       if (!prevSibling) return;
 
       // Move to become the last child of the previous sibling
@@ -76,7 +76,7 @@ export function useTaskIntents() {
 
       moveTask(id, prevSiblingId, newParentLastChildId);
     },
-    [doc, moveTask],
+    [tasks, rootTaskIds, moveTask],
   );
 
   /**
@@ -86,21 +86,19 @@ export function useTaskIntents() {
    */
   const outdentTask = useCallback(
     (id: TaskID) => {
-      if (!doc) return;
-
-      const task = doc.tasks[id];
+      const task = tasks[id];
       if (!task) return;
 
       const parentId = task.parentId;
       if (!parentId) return; // Already at root, cannot outdent
 
-      const parent = doc.tasks[parentId];
+      const parent = tasks[parentId];
       if (!parent) return;
 
       // Move to be a sibling of the parent, immediately following it.
       moveTask(id, parent.parentId, parentId);
     },
-    [doc, moveTask],
+    [tasks, moveTask],
   );
 
   /**
@@ -109,15 +107,14 @@ export function useTaskIntents() {
    */
   const toggleTask = useCallback(
     (id: TaskID) => {
-      if (!doc) return;
-      const task = doc.tasks[id];
+      const task = tasks[id];
       if (!task) return;
 
       const newStatus =
         task.status === TaskStatus.Done ? TaskStatus.Pending : TaskStatus.Done;
       updateTask(id, {status: newStatus});
     },
-    [doc, updateTask],
+    [tasks, updateTask],
   );
 
   return {

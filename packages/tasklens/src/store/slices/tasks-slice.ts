@@ -7,17 +7,20 @@ import type {ComputedTask, TaskID, TunnelState} from '../../types';
  *
  * @property entities - Normalized map of TaskID to ComputedTask. These references
  *   are stabilized to prevent unnecessary re-renders.
+ * @property rootTaskIds - Ordered list of top-level task IDs (tree view order).
  * @property todoListIds - Ordered list of task IDs representing the prioritized "Do" list.
  * @property lastProxyDoc - The most recent raw Automerge Proxy, used for reference comparison.
  */
 export interface TasksState {
   entities: Record<TaskID, ComputedTask>;
+  rootTaskIds: TaskID[];
   todoListIds: TaskID[];
   lastProxyDoc: TunnelState | null;
 }
 
 const initialState: TasksState = {
   entities: {},
+  rootTaskIds: [],
   todoListIds: [],
   lastProxyDoc: null,
 };
@@ -84,6 +87,7 @@ export const syncDoc = createAsyncThunk(
 
     return {
       entities: newEntities,
+      rootTaskIds: parsed.rootTaskIds,
       todoListIds,
       newProxyDoc: proxy,
     };
@@ -97,6 +101,7 @@ const tasksSlice = createSlice({
   extraReducers: builder => {
     builder.addCase(syncDoc.fulfilled, (state, action) => {
       state.entities = action.payload.entities;
+      state.rootTaskIds = action.payload.rootTaskIds;
       state.todoListIds = action.payload.todoListIds;
       state.lastProxyDoc = action.payload.newProxyDoc;
     });

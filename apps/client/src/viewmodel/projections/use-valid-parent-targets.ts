@@ -1,9 +1,11 @@
 import {
   buildTunnelTree,
-  selectLastProxyDoc,
+  type ComputedTask,
+  selectRootTaskIds,
+  selectStoreReady,
+  selectTaskEntities,
   type TaskID,
   type TunnelNode,
-  type TunnelState,
 } from '@mydoo/tasklens';
 import {useMemo} from 'react';
 import {useSelector} from 'react-redux';
@@ -19,13 +21,18 @@ export interface ValidTargets {
 export function useValidParentTargets(
   taskId: TaskID | undefined,
 ): ValidTargets {
-  const doc = useSelector(selectLastProxyDoc);
+  const tasks = useSelector(selectTaskEntities);
+  const rootTaskIds = useSelector(selectRootTaskIds);
+  const isReady = useSelector(selectStoreReady);
 
-  const roots = useMemo(() => projectValidTargets(doc, taskId), [doc, taskId]);
+  const roots = useMemo(
+    () => projectValidTargets(tasks, rootTaskIds, isReady, taskId),
+    [tasks, rootTaskIds, isReady, taskId],
+  );
 
   return {
     roots,
-    isLoading: doc === null,
+    isLoading: !isReady,
   };
 }
 
@@ -34,15 +41,18 @@ export function useValidParentTargets(
  * Factored out to keep useMemo body concise and comply with line limits.
  */
 function projectValidTargets(
-  doc: TunnelState | null,
+  tasks: Record<TaskID, ComputedTask>,
+  rootTaskIds: TaskID[],
+  isReady: boolean,
   taskId: TaskID | undefined,
 ): TunnelNode[] {
-  if (!doc || !taskId) {
-    if (!doc) return [];
-    return buildTunnelTree(doc.rootTaskIds, doc.tasks);
-  }
+  if (!isReady) return [];
 
-  const fullTree = buildTunnelTree(doc.rootTaskIds, doc.tasks);
+  const fullTree = buildTunnelTree(rootTaskIds, tasks);
+
+  if (!taskId) {
+    return fullTree;
+  }
 
   // Recursive filter function
   const filterNode = (node: TunnelNode): TunnelNode | undefined => {

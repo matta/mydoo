@@ -1,6 +1,7 @@
 import {
-  type PersistedTask,
-  selectLastProxyDoc,
+  type ComputedTask,
+  selectStoreReady,
+  selectTaskEntities,
   type TaskID,
 } from '@mydoo/tasklens';
 import {useMemo} from 'react';
@@ -23,10 +24,11 @@ export interface BreadcrumbItem {
 export function useBreadcrumbs(
   currentViewId: TaskID | undefined,
 ): BreadcrumbItem[] {
-  const doc = useSelector(selectLastProxyDoc);
+  const tasks = useSelector(selectTaskEntities);
+  const isReady = useSelector(selectStoreReady);
 
   const breadcrumbs = useMemo(() => {
-    if (!doc || !currentViewId) return [];
+    if (!isReady || !currentViewId) return [];
 
     const path: BreadcrumbItem[] = [];
     let currentId: TaskID | undefined = currentViewId;
@@ -36,8 +38,7 @@ export function useBreadcrumbs(
     const MAX_DEPTH = 50;
 
     while (currentId && safetyCounter < MAX_DEPTH) {
-      if (!doc) break; // Defensive check
-      const task: PersistedTask | undefined = doc.tasks[currentId];
+      const task: ComputedTask | undefined = tasks[currentId];
       if (!task) break;
 
       path.unshift({
@@ -50,7 +51,7 @@ export function useBreadcrumbs(
     }
 
     return path;
-  }, [doc, currentViewId]);
+  }, [tasks, currentViewId, isReady]);
 
   return breadcrumbs;
 }

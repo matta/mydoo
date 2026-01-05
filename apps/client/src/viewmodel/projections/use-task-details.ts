@@ -1,9 +1,10 @@
 import {
-  selectLastProxyDoc,
+  type ComputedTask,
+  getDescendantCountFromEntities,
+  selectStoreReady,
+  selectTaskEntities,
   type Task,
   type TaskID,
-  TunnelOps,
-  type TunnelState,
   useTask,
 } from '@mydoo/tasklens';
 import {useMemo} from 'react';
@@ -27,11 +28,12 @@ export interface TaskDetails {
  */
 export function useTaskDetails(taskId: TaskID | undefined): TaskDetails {
   const task = useTask(taskId);
-  const doc = useSelector(selectLastProxyDoc);
+  const tasks = useSelector(selectTaskEntities);
+  const isReady = useSelector(selectStoreReady);
 
   return useMemo(
-    () => projectTaskDetails(doc, task, taskId),
-    [doc, task, taskId],
+    () => projectTaskDetails(tasks, task, taskId, isReady),
+    [tasks, task, taskId, isReady],
   );
 }
 
@@ -40,22 +42,32 @@ export function useTaskDetails(taskId: TaskID | undefined): TaskDetails {
  * Factored out to keep useMemo body concise.
  */
 function projectTaskDetails(
-  doc: TunnelState | null,
+  tasks: Record<TaskID, ComputedTask>,
   task: Task | undefined,
   taskId: TaskID | undefined,
+  isReady: boolean,
 ): TaskDetails {
-  if (!task || !doc || !taskId) {
+  if (!isReady) {
     return {
       task: undefined,
       parentTitle: undefined,
       descendantCount: 0,
-      isLoading: doc === null,
+      isLoading: true,
     };
   }
 
-  const parentTask = task.parentId ? doc.tasks[task.parentId] : undefined;
+  if (!task || !taskId) {
+    return {
+      task: undefined,
+      parentTitle: undefined,
+      descendantCount: 0,
+      isLoading: false,
+    };
+  }
+
+  const parentTask = task.parentId ? tasks[task.parentId] : undefined;
   const parentTitle = parentTask?.title;
-  const descendantCount = TunnelOps.getDescendantCount(doc, taskId);
+  const descendantCount = getDescendantCountFromEntities(tasks, taskId);
 
   return {
     task,

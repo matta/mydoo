@@ -9,7 +9,7 @@ import {
 } from '@mantine/core';
 import {useMediaQuery} from '@mantine/hooks';
 import {
-  selectLastProxyDoc,
+  selectTaskEntities,
   type TaskID,
   type TunnelNode,
 } from '@mydoo/tasklens';
@@ -49,18 +49,27 @@ export function PlanViewContainer() {
     viewPath,
     lastCreatedTaskId,
   } = useNavigationState();
-  const doc = useSelector(selectLastProxyDoc);
+  const tasks = useSelector(selectTaskEntities);
 
   const {toggleTask, deleteTask, indentTask, outdentTask} = useTaskIntents();
   const breadcrumbs = useBreadcrumbs(currentViewId);
+
+  // Auto-redirect if current view target is missing (deleted remotely)
+  useEffect(() => {
+    if (currentViewId && !isLoading && !tasks[currentViewId]) {
+      // Task deleted while drilled down. Pop view.
+      // We might want to find the nearest valid ancestor, but popping one level is a safe start.
+      // If the parent is also deleted, the next render will trigger this effect again.
+      popView();
+    }
+  }, [currentViewId, tasks, isLoading, popView]);
 
   /**
    * Opens the create modal to add a sibling task after the specified task.
    * @param id - The reference task; the new sibling will be inserted after this task.
    */
   const handleAddSibling = (id: TaskID) => {
-    if (!doc) return;
-    const task = doc.tasks[id];
+    const task = tasks[id];
     if (task) {
       openCreateModal(task.parentId, id);
     }

@@ -1,6 +1,11 @@
 import {useMediaQuery} from '@mantine/hooks';
-import {selectLastProxyDoc, type Task, type TaskID} from '@mydoo/tasklens';
-import {useCallback} from 'react';
+import {
+  selectRootTaskIds,
+  selectTaskEntities,
+  type Task,
+  type TaskID,
+} from '@mydoo/tasklens';
+import {useCallback, useEffect} from 'react';
 import {useSelector} from 'react-redux';
 
 import {TaskEditorModal} from '../../components/modals/task-editor-modal';
@@ -33,14 +38,24 @@ export function TaskEditorContainer() {
 
   const editingTaskId = modal?.type === 'edit' ? modal.taskId : undefined;
 
-  const {task, parentTitle, descendantCount} = useTaskDetails(editingTaskId);
+  const {task, parentTitle, descendantCount, isLoading} =
+    useTaskDetails(editingTaskId);
   const {updateTask, createTask, deleteTask, indentTask, outdentTask} =
     useTaskIntents();
+
+  // Auto-close if task is missing (deleted remotely)
+  useEffect(() => {
+    if (editingTaskId && !task && !isLoading && modal?.type === 'edit') {
+      closeModal();
+    }
+  }, [editingTaskId, task, isLoading, modal?.type, closeModal]);
 
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   // Resolve parent title for Create Mode
-  const doc = useSelector(selectLastProxyDoc);
+  const tasks = useSelector(selectTaskEntities);
+  const rootTaskIds = useSelector(selectRootTaskIds);
+
   let resolvedParentTitle = parentTitle;
 
   // We need to pass a ComputedTask to the modal, but our internal state in Editor
@@ -52,7 +67,6 @@ export function TaskEditorContainer() {
   const editorState = useCallback(() => {
     if (modal?.type === 'create') {
       if (!modal.parentId) return {task: undefined, parent: undefined};
-      const tasks = doc?.tasks || {};
       return {task: undefined, parent: tasks[modal.parentId]};
     }
 
@@ -60,18 +74,17 @@ export function TaskEditorContainer() {
     const editingTask = task as Task | undefined;
     if (!editingTask) return {task: undefined, parent: undefined};
 
-    const tasks = doc?.tasks || {};
     const parentId = editingTask.parentId;
     return {
       task: editingTask,
       parent: parentId ? (tasks[parentId] as Task) : undefined,
     };
-  }, [doc, modal, task]);
+  }, [tasks, modal, task]);
 
-  if (modal?.type === 'create' && doc) {
+  if (modal?.type === 'create') {
     const parentId = modal.parentId;
-    if (parentId && doc.tasks[parentId]) {
-      resolvedParentTitle = doc.tasks[parentId].title;
+    if (parentId && tasks[parentId]) {
+      resolvedParentTitle = tasks[parentId].title;
     } else {
       resolvedParentTitle = ''; // Root or unknown
     }
@@ -83,10 +96,10 @@ export function TaskEditorContainer() {
    * This duplicates logic from useTaskIntents.indentTask() for UI state purposes.
    */
   let canIndent = false;
-  if (task && doc) {
+  if (task) {
     const siblings = task.parentId
-      ? doc.tasks[task.parentId]?.childTaskIds
-      : doc.rootTaskIds;
+      ? tasks[task.parentId]?.childTaskIds
+      : rootTaskIds;
 
     if (siblings && siblings.length > 0) {
       // Only enable if we have siblings and this task is not first
@@ -226,14 +239,12 @@ export function TaskEditorContainer() {
    * and highlights the task (scroll + flash).
    */
   const handleFindInPlan = (taskId: TaskID) => {
-    if (!doc) return;
-
     // 1. Calculate ancestry path
     const ancestors: TaskID[] = [];
-    let currentId = doc.tasks[taskId]?.parentId;
-    while (currentId && doc.tasks[currentId]) {
+    let currentId = tasks[taskId]?.parentId;
+    while (currentId && tasks[currentId]) {
       ancestors.unshift(currentId);
-      currentId = doc.tasks[currentId]?.parentId;
+      currentId = tasks[currentId]?.parentId;
     }
 
     // 2. Ensure visibility based on viewport mode

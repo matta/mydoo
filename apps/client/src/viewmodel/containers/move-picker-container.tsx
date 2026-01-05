@@ -1,4 +1,4 @@
-import {selectLastProxyDoc, type TaskID} from '@mydoo/tasklens';
+import {selectTaskEntities, type TaskID} from '@mydoo/tasklens';
 import {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 import {MovePickerModal} from '../../components/modals/move-picker-modal';
@@ -14,9 +14,9 @@ export function MovePickerContainer() {
 
   const {moveTask} = useTaskIntents();
   const {roots, isLoading} = useValidParentTargets(taskId);
-  const doc = useSelector(selectLastProxyDoc);
+  const tasks = useSelector(selectTaskEntities);
 
-  const task = taskId && doc?.tasks ? doc.tasks[taskId] : undefined;
+  const task = taskId ? tasks[taskId] : undefined;
 
   const handleSelect = useCallback(
     (newParentId: TaskID | undefined) => {
