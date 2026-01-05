@@ -44,10 +44,11 @@ Default to Domain names. When multiple tools cover one domain, name individual t
 
 ### III. State (Optional)
 
-The scope of files.
+The scope of files being acted upon.
 
-- **staged:** Git index.
-- **changed:** Git diff.
+- **staged:** Git index only.
+- **changed:** Git diff only.
+- **root:** Root-level files only (for Turbo root tasks, see §5).
 
 ## 3. The "One Way" Rules
 
@@ -72,7 +73,20 @@ The scope of files.
 
 Some build systems use specific syntax markers that are technically required and exempt from naming rules:
 
-- **Turborepo Root Task Prefix (`//#`):** In `turbo.json`, tasks defined in the root `package.json` must be prefixed with `//#` (e.g., `//#check-style`). The **name following the prefix** must still conform to all naming rules (kebab-case, segment hierarchy). This prefix is considered a technical address and not part of the semantic task name.
+### Turborepo Root Task Prefix (`//#`)
+
+In `turbo.json`, tasks defined in the root `package.json` must be prefixed with `//#` (e.g., `//#check-biome-root`). The **name following the prefix** must still conform to all naming rules (kebab-case, segment hierarchy).
+
+Root tasks use the `-root` state suffix to indicate they operate on root-level files rather than package files:
+
+| Turbo Task Name        | package.json Script |
+| :--------------------- | :------------------ |
+| `//#check-biome-root`  | `check-biome-root`  |
+| `//#fix-biome-root`    | `fix-biome-root`    |
+| `//#check-format-root` | `check-format-root` |
+| `//#fix-format-root`   | `fix-format-root`   |
+
+The `//#` prefix is a technical address and not part of the semantic task name.
 
 ## 6. Exemptions
 
