@@ -10,8 +10,9 @@
     "eslint-plugin-import-x": "catalog:",
     "husky": "catalog:",
     "knip": "^5.78.0",
-    "turbo": "^2.7.2",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.4.2",
+    "turbo": "^2.7.2",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
   },
@@ -47,12 +48,7 @@
     "check-format-root": "prettier --check \"*.{json,md,yaml,yml,js,mjs,cjs,ts,tsx}\"",
     "fix-biome-root": "biome check --write .",
     "fix-format-root": "prettier --write \"*.{json,md,yaml,yml,js,mjs,cjs,ts,tsx}\"",
-    "// FIXME: scripts below are unclassified or suspect": "",
-    "check-biome-staged": "biome check --staged --no-errors-on-unmatched",
-    "check-context-staged": "./scripts/check-context-staged.sh",
-    "check-eslint-staged": "./scripts/check-eslint-staged.sh",
-    "check-filenames-staged": "./scripts/check-filenames.sh --staged",
-    "check-format-staged": "./scripts/check-format-staged.sh",
+    "lint-staged": "lint-staged",
     "check-staged": "./scripts/check-staged.sh"
   }
 }

@@ -4,7 +4,7 @@ set -e
 
 # Dispatch based on environment
 if ./scripts/is-agent.sh; then
-  echo "🤖 Agent detected. Running full quality gates (Turbo)..."
+  echo "🤖 Agent detected. Running full quality gates..."
 
   # If NOT running as a git hook (signaled by PRE_COMMIT_SECRET_REQUIRED),
   # forbid the secret (to train agents not to set it unnecessarily).
@@ -16,6 +16,6 @@ if ./scripts/is-agent.sh; then
 
   pnpm exec turbo run check-agent
 else
-  echo "👤 Human detected. Running staged quality gates (Turbo)..."
+  echo "👤 Human detected. Running partial quality gates..."
   pnpm exec turbo run check-human
 fi

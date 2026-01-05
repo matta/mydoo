@@ -1,0 +1,7 @@
+{
+  "*.{js,ts,tsx,jsx,json,css,cjs,mjs}": ["biome check --write --no-errors-on-unmatched"],
+  "*.{js,ts,tsx,jsx,cjs,mjs,config.js,config.ts}": ["eslint --fix"],
+  "*.{md,yaml,yml}": ["prettier --write"],
+  "ROLLING_CONTEXT.md": ["echo '❌ Error: ROLLING_CONTEXT.md is staged for commit.' && exit 1"],
+  "*": ["./scripts/check-filenames.sh --files"]
+}

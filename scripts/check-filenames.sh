@@ -14,7 +14,14 @@ fi
 
 # Function to get files to check
 get_files() {
-  if [ "$STAGED_MODE" = true ]; then
+  if [ "$1" = "--files" ]; then
+    shift
+    # Echo back the remaining arguments (files passed from lint-staged)
+    # Echo each on a new line
+    for file in "$@"; do
+      echo "$file"
+    done
+  elif [ "$STAGED_MODE" = true ]; then
     git diff --name-only --cached --diff-filter=ACMR
   else
     find . -type f \( \
@@ -48,7 +55,7 @@ get_files() {
 # 1. Find all relevant files.
 # 2. Filter for those that have Uppercase or Underscore in the filename itself.
 # 3. Exclude (grep -v) specifically allowed patterns.
-VIOLATIONS=$(get_files | grep -E "/?[^/]+[A-Z_][^/]*$" | \
+VIOLATIONS=$(get_files "$@" | grep -E "/?[^/]+[A-Z_][^/]*$" | \
   grep -v -E "/?AGENTS.md$" | \
   grep -v -E "/?README.md$" | \
   grep -v -E "/?CONTRIBUTING.md$" | \

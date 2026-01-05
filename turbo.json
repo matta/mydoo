@@ -9,38 +9,20 @@
   ],
   "globalPassThroughEnv": ["ANTIGRAVITY_AGENT", "GEMINI_CLI", "CI"],
   "tasks": {
-    "//#check-biome-staged": {
+    "//#lint-staged": {
       "cache": false
     },
     "//#check-format-root": {
-      "inputs": ["*.json", "*.md", "*.yaml", "*.yml"],
+      "inputs": ["*"],
       "outputs": [],
       "cache": true
     },
     "//#fix-format-root": {
       "cache": false
     },
-    "//#check-eslint-staged": {
-      "cache": false
-    },
-    "//#check-filenames-staged": {
-      "cache": false
-    },
-    "//#check-context-staged": {
-      "cache": false
-    },
-    "//#check-format-staged": {
-      "cache": false
-    },
     "//#check-biome-root": {
       "cache": true,
-      "inputs": [
-        "biome.json",
-        "package.json",
-        "pnpm-workspace.yaml",
-        "*.json",
-        "scripts/**/*"
-      ],
+      "inputs": ["*"],
       "outputs": []
     },
     "//#fix-biome-root": {
@@ -48,11 +30,7 @@
     },
     "check-agent": {
       "dependsOn": [
-        "//#check-biome-staged",
-        "//#check-eslint-staged",
-        "//#check-filenames-staged",
-        "//#check-context-staged",
-        "//#check-format-staged",
+        "//#lint-staged",
         "//#check-deps-root",
         "test",
         "test-e2e",
@@ -61,15 +39,7 @@
       "cache": false
     },
     "check-human": {
-      "dependsOn": [
-        "//#check-biome-staged",
-        "//#check-eslint-staged",
-        "//#check-filenames-staged",
-        "//#check-context-staged",
-        "//#check-format-staged",
-        "//#check-deps-root",
-        "check-types"
-      ],
+      "dependsOn": ["//#lint-staged", "//#check-deps-root", "check-types"],
       "cache": false
     },
     "//#check-deps-root": {
@@ -210,7 +180,7 @@
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "test": {
-      "dependsOn": ["check-style", "build", "check-types"],
+      "dependsOn": ["check-style", "build", "check-types", "generate"],
       "inputs": ["src/**/*", "tests/**/*", "test/**/*", "specs/**/*"],
       "outputs": []
     },

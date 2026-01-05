@@ -92,4 +92,4 @@ The `//#` prefix is a technical address and not part of the semantic task name.
 
 ## 6. Exemptions
 
-Common task names endemic to the npm/Node ecosystem are exempt when not explicitly banned above. Examples: `dev`, `start`, `serve`, `clean`, `prepare`, `prepublishOnly`.
+Common task names endemic to the npm/Node ecosystem are exempt when not explicitly banned above. Examples: `dev`, `start`, `serve`, `clean`, `prepare`, `prepublishOnly`, `lint-staged`.
