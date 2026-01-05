@@ -42,23 +42,23 @@
   "scripts": {
     "build": "../../scripts/only-allow-turbo.sh build -- vite build",
     "check-biome": "biome check .",
-    "fix-biome": "biome check --write .",
     "check-eslint": "eslint .",
-    "fix-eslint": "eslint . --fix",
+    "check-format": "prettier --check . --ignore-path ../../.prettierignore",
     "check-style": "../../scripts/only-allow-turbo.sh check-style -- true",
-    "fix-style": "../../scripts/only-allow-turbo.sh fix-style -- true",
+    "check-types": "tsc --noEmit",
     "check": "../../scripts/only-allow-turbo.sh check -- true",
-    "fix": "../../scripts/only-allow-turbo.sh fix -- true",
     "clean": "rm -rf dist",
     "dev": "vite",
+    "fix-biome": "biome check --write .",
+    "fix-eslint": "eslint . --fix",
+    "fix-format": "prettier --write . --ignore-path ../../.prettierignore",
+    "fix-style": "../../scripts/only-allow-turbo.sh fix-style -- true",
+    "fix": "../../scripts/only-allow-turbo.sh fix -- true",
     "preview": "vite preview",
-    "test": "../../scripts/only-allow-turbo.sh test -- vitest run",
-    "test-e2e": "../../scripts/only-allow-turbo.sh test-e2e -- playwright test",
     "test-e2e-desktop": "../../scripts/only-allow-turbo.sh test-e2e -- playwright test --project='bdd-desktop'",
     "test-e2e-mobile": "../../scripts/only-allow-turbo.sh test-e2e -- playwright test --project='bdd-mobile'",
-    "check-types": "tsc --noEmit",
-    "presubmit:agent": "true",
-    "presubmit:human": "true"
+    "test-e2e": "../../scripts/only-allow-turbo.sh test-e2e -- playwright test",
+    "test": "../../scripts/only-allow-turbo.sh test -- vitest run"
   },
   "type": "module"
 }

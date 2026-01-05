@@ -226,6 +226,8 @@ importers:
         specifier: ^7.4.0
         version: 7.4.0
 
+  docs: {}
+
   packages/tasklens:
     dependencies:
       '@automerge/automerge-repo-react-hooks':

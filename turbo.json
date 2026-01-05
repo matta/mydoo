@@ -12,21 +12,12 @@
     "//#check-biome-staged": {
       "cache": false
     },
-    "//#check-format": {
-      "inputs": [
-        "**/*",
-        "!**/.git/**",
-        "!**/node_modules/**",
-        "!**/dist/**",
-        "!**/coverage/**",
-        "!**/.turbo/**",
-        "!**/test-results/**",
-        "!**/playwright-report/**"
-      ],
+    "//#check-format-root": {
+      "inputs": ["*.json", "*.md", "*.yaml", "*.yml"],
       "outputs": [],
       "cache": true
     },
-    "//#fix-format": {
+    "//#fix-format-root": {
       "cache": false
     },
     "//#check-eslint-staged": {
@@ -41,7 +32,7 @@
     "//#check-format-staged": {
       "cache": false
     },
-    "//#check-biome:root": {
+    "//#check-biome-root": {
       "cache": true,
       "inputs": [
         "biome.json",
@@ -52,7 +43,7 @@
       ],
       "outputs": []
     },
-    "//#fix-biome:root": {
+    "//#fix-biome-root": {
       "cache": false
     },
     "check-agent": {
@@ -62,7 +53,7 @@
         "//#check-filenames-staged",
         "//#check-context-staged",
         "//#check-format-staged",
-        "//#check-deps",
+        "//#check-deps-root",
         "test",
         "test-e2e",
         "check-types"
@@ -76,12 +67,12 @@
         "//#check-filenames-staged",
         "//#check-context-staged",
         "//#check-format-staged",
-        "//#check-deps",
+        "//#check-deps-root",
         "check-types"
       ],
       "cache": false
     },
-    "//#check-deps": {
+    "//#check-deps-root": {
       "inputs": [
         "package.json",
         "**/package.json",
@@ -96,7 +87,7 @@
       "outputs": [],
       "cache": true
     },
-    "//#check-filenames": {
+    "//#check-filenames-root": {
       "inputs": [
         "**/*.md",
         "**/*.sh",
@@ -141,13 +132,26 @@
       ],
       "outputs": []
     },
+    "check-format": {
+      "inputs": [
+        "**/*.md",
+        "**/*.json",
+        "**/*.yaml",
+        "**/*.yml",
+        "src/**/*",
+        "tests/**/*",
+        "specs/**/*"
+      ],
+      "outputs": []
+    },
     "check-style": {
       "dependsOn": [
         "check-biome",
         "check-eslint",
-        "//#check-biome:root",
-        "//#check-filenames",
-        "//#check-format"
+        "check-format",
+        "//#check-biome-root",
+        "//#check-filenames-root",
+        "//#check-format-root"
       ],
       "outputs": []
     },
@@ -165,7 +169,7 @@
       "outputs": []
     },
     "check": {
-      "dependsOn": ["check-style", "check-types", "//#check-deps"],
+      "dependsOn": ["check-style", "check-types", "//#check-deps-root"],
       "outputs": []
     },
     "fix-biome": {
@@ -174,12 +178,16 @@
     "fix-eslint": {
       "cache": false
     },
+    "fix-format": {
+      "cache": false
+    },
     "fix-style": {
       "dependsOn": [
         "fix-biome",
         "fix-eslint",
-        "//#fix-biome:root",
-        "//#fix-format"
+        "fix-format",
+        "//#fix-biome-root",
+        "//#fix-format-root"
       ],
       "cache": false
     },
