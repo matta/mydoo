@@ -14,6 +14,7 @@ export * from './react/hooks/use-todo-list';
 export * from './react/task-lens-provider';
 export {
   createTaskLensStore,
+  type TaskLensDispatch,
   type TaskLensState,
   taskLensStore,
 } from './store/index';

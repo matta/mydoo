@@ -2,24 +2,11 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "ignore": ["pnpm-workspace.yaml"],
   "ignoreBinaries": [],
-  "rules": {
-    "exports": "warn",
-    "types": "warn",
-    "nsExports": "warn",
-    "classMembers": "warn",
-    "duplicates": "warn",
-    "enumMembers": "warn",
-    "files": "error",
-    "dependencies": "warn",
-    "devDependencies": "warn"
-  },
   "workspaces": {
-    ".": {
-      "entry": ["scripts/*.*"]
-    },
+    ".": {},
+    "scripts": {},
     "packages/tasklens": {
-      "project": ["src/**/*.ts!"],
-      "ignoreDependencies": ["@automerge/automerge-repo"]
+      "project": ["src/**/*.ts!"]
     },
     "apps/client": {
       "entry": [
