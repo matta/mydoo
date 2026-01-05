@@ -10,6 +10,7 @@
   "globalPassThroughEnv": ["ANTIGRAVITY_AGENT", "GEMINI_CLI", "CI"],
   "tasks": {
     "//#check-format-root": {
+      "outputLogs": "new-only",
       "inputs": ["*"],
       "outputs": [],
       "cache": true
@@ -18,7 +19,7 @@
       "cache": false
     },
     "//#check-biome-root": {
-      "cache": true,
+      "outputLogs": "new-only",
       "inputs": ["*"],
       "outputs": []
     },
@@ -26,12 +27,15 @@
       "cache": false
     },
     "check-agent": {
+      "outputLogs": "new-only",
       "dependsOn": ["//#check-deps-root", "test", "test-e2e", "check-types"]
     },
     "check-human": {
+      "outputLogs": "new-only",
       "dependsOn": ["//#check-deps-root", "check-types"]
     },
     "//#check-deps-root": {
+      "outputLogs": "new-only",
       "inputs": [
         "package.json",
         "**/package.json",
@@ -59,6 +63,7 @@
       "cache": true
     },
     "//#check-filenames-root": {
+      "outputLogs": "new-only",
       "inputs": [
         "**/*.md",
         "**/*.sh",
@@ -84,6 +89,7 @@
       "outputs": []
     },
     "check-biome": {
+      "outputLogs": "new-only",
       "inputs": [
         "biome.json",
         "src/**/*",
@@ -106,6 +112,7 @@
       "outputs": []
     },
     "check-eslint": {
+      "outputLogs": "new-only",
       "inputs": [
         "src/**/*",
         "tests/**/*",
@@ -129,6 +136,7 @@
       "outputs": []
     },
     "check-format": {
+      "outputLogs": "new-only",
       "inputs": [
         "**/*.md",
         "**/*.json",
@@ -153,6 +161,7 @@
       "outputs": []
     },
     "check-style": {
+      "outputLogs": "new-only",
       "dependsOn": [
         "check-biome",
         "check-eslint",
@@ -164,8 +173,11 @@
       ],
       "outputs": []
     },
-    "generate": {},
+    "generate": {
+      "outputLogs": "new-only"
+    },
     "check-types": {
+      "outputLogs": "new-only",
       "dependsOn": ["^build", "generate"],
       "inputs": [
         "src/**/*.ts",
@@ -191,6 +203,7 @@
       "outputs": []
     },
     "check": {
+      "outputLogs": "new-only",
       "dependsOn": ["check-style", "check-types", "//#check-deps-root"],
       "outputs": []
     },
@@ -216,6 +229,7 @@
       "dependsOn": ["fix-style"]
     },
     "build": {
+      "outputLogs": "new-only",
       "dependsOn": ["check-style", "^build"],
       "inputs": [
         "src/**/*",
@@ -241,6 +255,7 @@
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "test": {
+      "outputLogs": "new-only",
       "dependsOn": ["check-style", "build", "check-types", "generate"],
       "inputs": [
         "src/**/*",
@@ -263,25 +278,26 @@
       "outputs": []
     },
     "test-e2e": {
+      "outputLogs": "new-only",
       "dependsOn": ["check-style", "build", "check-types", "generate"],
-      "outputs": ["playwright-report/**", "test-results/**"],
-      "cache": true
+      "outputs": ["playwright-report/**", "test-results/**"]
     },
     "test-e2e-desktop": {
+      "outputLogs": "new-only",
       "dependsOn": ["check-style", "build", "check-types", "generate"],
-      "outputs": ["playwright-report/**", "test-results/**"],
-      "cache": true
+      "outputs": ["playwright-report/**", "test-results/**"]
     },
     "test-e2e-mobile": {
+      "outputLogs": "new-only",
       "dependsOn": ["check-style", "build", "check-types", "generate"],
-      "outputs": ["playwright-report/**", "test-results/**"],
-      "cache": true
+      "outputs": ["playwright-report/**", "test-results/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "//#check-turbo-root": {
+      "outputLogs": "new-only",
       "inputs": [
         "turbo.json",
         "**/turbo.json",
