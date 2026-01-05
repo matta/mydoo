@@ -1,6 +1,8 @@
 Here is the updated **Product Requirements Document (v1.6)**.
 
-I have updated the **Schema** (Section 2.2) and the **Healer Routine** (Section 3.4) to explicitly handle Automerge array conflicts by enforcing a "First-Occurrence-Wins" deduplication strategy for `rootTaskIds` and `childIds`.
+I have updated the **Schema** (Section 2.2) and the **Healer Routine** (Section
+3.4) to explicitly handle Automerge array conflicts by enforcing a
+"First-Occurrence-Wins" deduplication strategy for `rootTaskIds` and `childIds`.
 
 ---
 
@@ -8,7 +10,10 @@ I have updated the **Schema** (Section 2.2) and the **Healer Routine** (Section 
 
 ## 1. Core Philosophy
 
-A local-first, synchronization-agnostic task management system. It eliminates "list rot" by dynamically promoting tasks based on a "Life Balance" algorithm (Target vs. Actual effort) and "Autofocus" principles (surfacing neglected tasks). The device is the source of truth.
+A local-first, synchronization-agnostic task management system. It eliminates
+"list rot" by dynamically promoting tasks based on a "Life Balance" algorithm
+(Target vs. Actual effort) and "Autofocus" principles (surfacing neglected
+tasks). The device is the source of truth.
 
 ## 2. Technical Architecture
 
@@ -22,16 +27,22 @@ A local-first, synchronization-agnostic task management system. It eliminates "l
 
 ### 2.2 Data Schema
 
-The Automerge document structure is specified in **[automerge-schema.md](./automerge-schema.md)**.
+The Automerge document structure is specified in
+**[automerge-schema.md](./automerge-schema.md)**.
 
-> **Key Principle**: Automerge serves exclusively as the storage and merge layer. The rest of the application consumes plain TypeScript objects—never Automerge proxies directly.
+> **Key Principle**: Automerge serves exclusively as the storage and merge
+> layer. The rest of the application consumes plain TypeScript objects—never
+> Automerge proxies directly.
 
 ## 3. The Logic Specification
 
 ### 3.1 The Inbox Logic
 
-- **Structure:** The Inbox is a special **Top-Level Item (TLI)** with a reserved ID (`ROOT_INBOX_ID`). It sits at the same level as Goals (Health, Career).
-- **Balance Exclusion:** Unlike other TLIs, the Inbox is **excluded** from the "Pie Chart" balance calculation. Items inside it do not get a "Balance" boost or penalty.
+- **Structure:** The Inbox is a special **Top-Level Item (TLI)** with a reserved
+  ID (`ROOT_INBOX_ID`). It sits at the same level as Goals (Health, Career).
+- **Balance Exclusion:** Unlike other TLIs, the Inbox is **excluded** from the
+  "Pie Chart" balance calculation. Items inside it do not get a "Balance" boost
+  or penalty.
 - **Protection:** It cannot be deleted or renamed.
 
 ### 3.2 Default Values for New Tasks
@@ -52,12 +63,15 @@ When creating a new task, apply the following defaults:
 
 ### 3.3 ID Generation Strategy (Duplicate Prevention)
 
-To prevent duplicates when two devices complete the same recurring task offline, we use **Deterministic IDs**:
+To prevent duplicates when two devices complete the same recurring task offline,
+we use **Deterministic IDs**:
 
 1. **Standard Tasks:** Random UUID (v4).
-2. **Recurring Tasks:** `repeatConfig.seriesId + ":" + repeatConfig.iterationIndex`.
+2. **Recurring Tasks:**
+   `repeatConfig.seriesId + ":" + repeatConfig.iterationIndex`.
 
-- _Effect:_ If two devices generate the next instance of "Laundry" offline, Automerge will merge them into a single entry (Last-Write-Wins).
+- _Effect:_ If two devices generate the next instance of "Laundry" offline,
+  Automerge will merge them into a single entry (Last-Write-Wins).
 
 ### 3.4 Repetition Logic
 
@@ -68,8 +82,11 @@ To prevent duplicates when two devices complete the same recurring task offline,
 2. For each, generate the _Next Task_:
 
 - **Routinely:** `Next.dueDate = CompletionDate + intervalDays`.
-- **Calendar:** `Next.dueDate = Previous.dueDate + intervalDays` (anchored to original schedule, even if past-due. Future enhancement: option to skip forward to next future occurrence).
-- **Common:** `Next.repeatConfig.iterationIndex = Previous.repeatConfig.iterationIndex + 1`.
+- **Calendar:** `Next.dueDate = Previous.dueDate + intervalDays` (anchored to
+  original schedule, even if past-due. Future enhancement: option to skip
+  forward to next future occurrence).
+- **Common:**
+  `Next.repeatConfig.iterationIndex = Previous.repeatConfig.iterationIndex + 1`.
 - **ID:** Uses the Deterministic ID formula.
 
 3. Insert _Next Task_ into `tasks` map.
@@ -77,18 +94,22 @@ To prevent duplicates when two devices complete the same recurring task offline,
 
 ### 3.5 Data Integrity: The "Healer" Routine
 
-The Healer runs on **Application Load** and **Post-Sync** to correct data anomalies caused by complex merges.
+The Healer runs on **Application Load** and **Post-Sync** to correct data
+anomalies caused by complex merges.
 
-**Part A: Array Sanitization (Duplicate Removal)**
-Automerge merges concurrent array insertions by keeping both. This creates duplicates in ordered lists (e.g., `['A', 'B', 'B', 'C']`).
+**Part A: Array Sanitization (Duplicate Removal)** Automerge merges concurrent
+array insertions by keeping both. This creates duplicates in ordered lists
+(e.g., `['A', 'B', 'B', 'C']`).
 
 - **Target:** `RootDoc.rootTaskIds` and every `Task.childIds`.
 - **Strategy:** "Keep First Occurrence".
 - Iterate through the array. Maintain a set of `seenIds`.
 - If an ID is encountered for the first time, add to set.
-- If an ID is encountered again (it is in `seenIds`), **delete** it from the array.
+- If an ID is encountered again (it is in `seenIds`), **delete** it from the
+  array.
 
-- **Safety:** Since all replicas agree to keep the first occurrence, no ID is ever completely lost, ensuring the structure remains intact.
+- **Safety:** Since all replicas agree to keep the first occurrence, no ID is
+  ever completely lost, ensuring the structure remains intact.
 
 **Part B: Recurring Task Deduplication**
 
@@ -106,21 +127,29 @@ Automerge merges concurrent array insertions by keeping both. This creates dupli
 
 When a user deletes a task that has children:
 
-1. **Warning:** UI MUST present a confirmation dialog showing the count of descendants that will also be deleted (e.g., "Delete 'Project X' and 12 sub-tasks?").
-2. **On Confirm:** Remove the target task AND all descendants from the `tasks` map (hard-delete). Also removes from `childTaskIds` and `rootTaskIds`.
+1. **Warning:** UI MUST present a confirmation dialog showing the count of
+   descendants that will also be deleted (e.g., "Delete 'Project X' and 12
+   sub-tasks?").
+2. **On Confirm:** Remove the target task AND all descendants from the `tasks`
+   map (hard-delete). Also removes from `childTaskIds` and `rootTaskIds`.
 3. **On Cancel:** No changes.
 
-**Note:** Deleted tasks are permanently removed. Undo functionality (if needed) is handled via Automerge's native history features, not via a soft-delete status.
+**Note:** Deleted tasks are permanently removed. Undo functionality (if needed)
+is handled via Automerge's native history features, not via a soft-delete
+status.
 
 ### 3.7 The Scoring Algorithm (Computed View)
 
 The prioritization logic is fully specified in external documents:
 
-- **[ALGORITHM.md](./algorithm.md):** Core 7-pass scoring algorithm (Credit tracking, Feedback/"Thermostat", Weight normalization, Lead time urgency).
-- **[STALENESS.md](./staleness.md):** Autofocus/neglect mechanics and `lastReviewTimestamp` update rules.
+- **[ALGORITHM.md](./algorithm.md):** Core 7-pass scoring algorithm (Credit
+  tracking, Feedback/"Thermostat", Weight normalization, Lead time urgency).
+- **[STALENESS.md](./staleness.md):** Autofocus/neglect mechanics and
+  `lastReviewTimestamp` update rules.
 - **[ALGORITHM_TEST_SUITE.md](./test-suite.md):** Compliance test fixtures.
 
-This logic runs client-side on the flattened task list derived from the Automerge document.
+This logic runs client-side on the flattened task list derived from the
+Automerge document.
 
 ## 4. UX/UI Specification
 
@@ -141,59 +170,91 @@ This logic runs client-side on the flattened task list derived from the Automerg
 
 ### 4.2 The "Do" View (Primary)
 
-- **Visual Structure:** A flat list of tasks sorted **purely by computed priority score**. There are no section headers or temporal groupings (e.g., "Overdue", "Today", "Later"). Overdue items, items due today, and items due later are intermixed—their position in the list is determined solely by the algorithm's priority calculation.
-- **Filter Logic:** Shows tasks where `Visibility = True` per [ALGORITHM.md](./algorithm.md) Pass 1.
-- **Context Filter:** Header dropdown (e.g., "Home", "Work"). Place filtering logic is defined in ALGORITHM.md §3.2.
+- **Visual Structure:** A flat list of tasks sorted **purely by computed
+  priority score**. There are no section headers or temporal groupings (e.g.,
+  "Overdue", "Today", "Later"). Overdue items, items due today, and items due
+  later are intermixed—their position in the list is determined solely by the
+  algorithm's priority calculation.
+- **Filter Logic:** Shows tasks where `Visibility = True` per
+  [ALGORITHM.md](./algorithm.md) Pass 1.
+- **Context Filter:** Header dropdown (e.g., "Home", "Work"). Place filtering
+  logic is defined in ALGORITHM.md §3.2.
 - **Task Row Elements:**
   - **Left:** Checkbox.
-  - **Center:** Task Title + Small Metadata text (Parent Project Name, Due Date icon).
+  - **Center:** Task Title + Small Metadata text (Parent Project Name, Due Date
+    icon).
   - **Visual Cues:**
     - **Overdue:** Red text/accent.
-    - **Neglected/Stale:** Per [STALENESS.md](./staleness.md), show visual indicator when `StalenessFactor > 1.5`.
+    - **Neglected/Stale:** Per [STALENESS.md](./staleness.md), show visual
+      indicator when `StalenessFactor > 1.5`.
     - **Inbox:** Distinct border to denote unfiled status.
 
 - **Interactions:**
-  - **Checkbox:** Toggles task status. Checking sets `status = 'Done'` and triggers credit attribution. Unchecking reverts to `status = 'Pending'`.
-  - **"Update/Refresh" Button:** Runs Repetition Logic (generates next instances), triggers "Healer", and **acknowledges completed tasks** (removing them from the Do list).
-  - **Floating Action Button (Mobile):** Adds a new task directly to the **Inbox**.
+  - **Checkbox:** Toggles task status. Checking sets `status = 'Done'` and
+    triggers credit attribution. Unchecking reverts to `status = 'Pending'`.
+  - **"Update/Refresh" Button:** Runs Repetition Logic (generates next
+    instances), triggers "Healer", and **acknowledges completed tasks**
+    (removing them from the Do list).
+  - **Floating Action Button (Mobile):** Adds a new task directly to the
+    **Inbox**.
 
 > [!IMPORTANT] > **Completed Task Visibility Lifecycle**
 >
-> When a task is marked "Done", it remains visible in the Do list with a strikethrough until acknowledged. This allows the user to see what they accomplished and to undo accidental completions.
+> When a task is marked "Done", it remains visible in the Do list with a
+> strikethrough until acknowledged. This allows the user to see what they
+> accomplished and to undo accidental completions.
 >
-> **The acknowledgment occurs when the user presses the Refresh button**, which sets `isAcknowledged = true` on finished tasks. Tasks with `isAcknowledged` are hidden from the Do view but remain in the document for history and the Balance view's credit tracking.
+> **The acknowledgment occurs when the user presses the Refresh button**, which
+> sets `isAcknowledged = true` on finished tasks. Tasks with `isAcknowledged`
+> are hidden from the Do view but remain in the document for history and the
+> Balance view's credit tracking.
 >
-> **Persisted State**: The `isAcknowledged` flag is stored in the Automerge document (synced across devices).
+> **Persisted State**: The `isAcknowledged` flag is stored in the Automerge
+> document (synced across devices).
 
 ### 4.3 The "Plan" View (Outline)
 
 - **Structure:** Indented tree view. Infinite nesting supported.
 - **Root Nodes:** Fixed "Inbox" node (pinned at top) + User TLIs.
 - **Navigation (Hybrid)**:
-  - **Desktop (Tree Mode):** Full outline visible with expand/collapse chevrons (`>`).
-  - **Mobile (Drill-Down Mode):** Drill-down navigation only. Tapping a parent's **arrow icon** "zooms in" to show only its children. A **breadcrumb trail** at the top shows the current path.
+  - **Desktop (Tree Mode):** Full outline visible with expand/collapse chevrons
+    (`>`).
+  - **Mobile (Drill-Down Mode):** Drill-down navigation only. Tapping a parent's
+    **arrow icon** "zooms in" to show only its children. A **breadcrumb trail**
+    at the top shows the current path.
 - **Interaction & Creation:**
-  - **Desktop (Hover Menu):** Hovering a row reveals a `•••` menu trigger (replacing the bullet). Menu options: "Add Sibling", "Add Child", "Delete".
-  - **Mobile (Bottom Bar):** Persistent toolbar at the bottom of the Plan view (above global nav). Contains `[<]` (Up Level) and `[+]` (Add to Top of current view).
-  - **Append Row:** A `[ + ]` row at the very bottom of the list (Desktop & Mobile) allows adding tasks to the end of the current zoom level.
+  - **Desktop (Hover Menu):** Hovering a row reveals a `•••` menu trigger
+    (replacing the bullet). Menu options: "Add Sibling", "Add Child", "Delete".
+  - **Mobile (Bottom Bar):** Persistent toolbar at the bottom of the Plan view
+    (above global nav). Contains `[<]` (Up Level) and `[+]` (Add to Top of
+    current view).
+  - **Append Row:** A `[ + ]` row at the very bottom of the list (Desktop &
+    Mobile) allows adding tasks to the end of the current zoom level.
   - **Navigation Feedback:** Creating a task triggers \"Highlight & Reveal\":
-    - **Desktop**: Auto-expands parent, auto-scrolls to new task row, new task row flashes yellow.
-    - **Mobile**: Auto-drills into the parent task (showing its children, including the new one), auto-scrolls to new task row, new task row flashes yellow.
+    - **Desktop**: Auto-expands parent, auto-scrolls to new task row, new task
+      row flashes yellow.
+    - **Mobile**: Auto-drills into the parent task (showing its children,
+      including the new one), auto-scrolls to new task row, new task row flashes
+      yellow.
   - **Edit Task:** Tap task **Title or Row** to open Edit modal.
 
 ### 4.4 The "Balance" View
 
 - **UI:** List of Top-Level Items (excluding Inbox).
 - **Controls:** Slider for "Desired %".
-- **Feedback:** Visual bar for "Actual %" (computed from `effort` history). If Actual < Target, the row is highlighted to show it is "Starving" (boosting priority).
+- **Feedback:** Visual bar for "Actual %" (computed from `effort` history). If
+  Actual < Target, the row is highlighted to show it is "Starving" (boosting
+  priority).
 
 ### 4.5 Task Editing (The "Details Modal")
 
-Since there is no "selection" state on mobile, tapping any task text opens a full-screen modal (Mobile) or centered Popup (Desktop).
+Since there is no "selection" state on mobile, tapping any task text opens a
+full-screen modal (Mobile) or centered Popup (Desktop).
 
 **Modes:**
 
-- **Create Mode:** Opens with empty fields. Hierarchy controls are hidden. "Save" creates the task and closes the modal.
+- **Create Mode:** Opens with empty fields. Hierarchy controls are hidden.
+  "Save" creates the task and closes the modal.
 - **Edit Mode:** Opens with existing data. Hierarchy controls are visible.
 
 **Modal Contents:**
@@ -203,10 +264,14 @@ Since there is no "selection" state on mobile, tapping any task text opens a ful
    - **Parent:** Read-only label showing current parent.
    - **Hierarchy Controls:**
      - `[← Outdent]`: Moves task up one level (becomes sibling of parent).
-       - **Edge Case (Mobile)**: If the task is a direct child of the current zoom context, outdenting moves it out of view. In this case, the system **MUST** auto-navigate up one level so the task remains visible.
+       - **Edge Case (Mobile)**: If the task is a direct child of the current
+         zoom context, outdenting moves it out of view. In this case, the system
+         **MUST** auto-navigate up one level so the task remains visible.
      - `[Indent →]`: Moves task to become child of previous sibling.
-     - **"Move..." Button**: Opens a picker modal for precise reparenting (step 7).
-     - **Note**: Hierarchy actions (Indent, Outdent, Move) are applied **immediately** to the database.
+     - **"Move..." Button**: Opens a picker modal for precise reparenting (step
+       7).
+     - **Note**: Hierarchy actions (Indent, Outdent, Move) are applied
+       **immediately** to the database.
    - **"Find in Plan" Button:** Closes modal and navigates to task in Plan view.
 
 3. **Status/Logic:**
@@ -233,7 +298,8 @@ Since there is no "selection" state on mobile, tapping any task text opens a ful
 
 ### 4.6 Visual Feedback & Sync Strategy
 
-- **Priority differentiation:** Avoid showing raw scores. Order implies priority.
+- **Priority differentiation:** Avoid showing raw scores. Order implies
+  priority.
 - **Sync State:** A subtle indicator (dot/cloud):
 - _Green:_ Synced.
 - _Yellow:_ Local changes, syncing...
@@ -241,11 +307,15 @@ Since there is no "selection" state on mobile, tapping any task text opens a ful
 
 ## 5. Future Enhancements (Out of Scope for MVP)
 
-The following features are explicitly deferred to post-MVP releases. This is not a complete list, nor are these features guaranteed to ever be implemented:
+The following features are explicitly deferred to post-MVP releases. This is not
+a complete list, nor are these features guaranteed to ever be implemented:
 
-1. **Snooze/Defer Task**: "Hide this task until a specific date." Would require a `snoozeUntil` field and priority suppression logic.
-2. **Drag-and-Drop Reorganization**: Direct manipulation of task hierarchy in the Plan view. MVP uses the Move picker instead.
-3. **Archive/Cleanup Completed Tasks**: Bulk deletion of tasks completed more than N days ago.
+1. **Snooze/Defer Task**: "Hide this task until a specific date." Would require
+   a `snoozeUntil` field and priority suppression logic.
+2. **Drag-and-Drop Reorganization**: Direct manipulation of task hierarchy in
+   the Plan view. MVP uses the Move picker instead.
+3. **Archive/Cleanup Completed Tasks**: Bulk deletion of tasks completed more
+   than N days ago.
 4. **Calendar View**: Visual timeline of tasks with due dates.
 5. **Search**: Full-text search across task titles and notes.
 6. **Tags/Labels**: Additional categorization beyond Places.
@@ -258,10 +328,13 @@ The following features are explicitly deferred to post-MVP releases. This is not
 
 See [automerge-schema.md](./automerge-schema.md) for schema documentation.
 
-The canonical TypeScript implementation is in [`@mydoo/tasklens`](file:///Users/matt/src/mydoo/packages/tasklens):
+The canonical TypeScript implementation is in
+[`@mydoo/tasklens`](file:///Users/matt/src/mydoo/packages/tasklens):
 
-- [`types.ts`](file:///Users/matt/src/mydoo/packages/tasklens/src/types.ts) — TypeScript interfaces
-- [`schemas.ts`](file:///Users/matt/src/mydoo/packages/tasklens/src/schemas.ts) — Zod validation
+- [`types.ts`](file:///Users/matt/src/mydoo/packages/tasklens/src/types.ts) —
+  TypeScript interfaces
+- [`schemas.ts`](file:///Users/matt/src/mydoo/packages/tasklens/src/schemas.ts)
+  — Zod validation
 
 ### 6.2 Automerge Provider (`src/contexts/AutomergeContext.tsx`)
 

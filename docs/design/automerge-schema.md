@@ -1,8 +1,13 @@
 # Automerge Document Schema
 
-> **Abstraction Layer**: Automerge serves exclusively as the **storage and merge layer**. The rest of the application should be entirely decoupled from Automerge internals. Business logic, UI rendering, and algorithm calculations consume plain TypeScript objects—never Automerge proxies or documents directly.
+> **Abstraction Layer**: Automerge serves exclusively as the **storage and merge
+> layer**. The rest of the application should be entirely decoupled from
+> Automerge internals. Business logic, UI rendering, and algorithm calculations
+> consume plain TypeScript objects—never Automerge proxies or documents
+> directly.
 
-This document specifies the **exact structure** of the Automerge CRDT document, field by field.
+This document specifies the **exact structure** of the Automerge CRDT document,
+field by field.
 
 ---
 
@@ -57,7 +62,9 @@ Each task stored in `tasks[id]` has the following fields:
 | `placeId`        | `string`  | Place ID for location context. **Absent** to inherit from parent.                                      |
 | `isAcknowledged` | `boolean` | `true` when completed task has been acknowledged (hidden from Do list). **Absent** = not acknowledged. |
 
-> **CRITICAL**: Automerge does not support `undefined` values. Optional fields are represented by **absence** (using the `delete` operator), not by setting to `undefined` or `null`.
+> **CRITICAL**: Automerge does not support `undefined` values. Optional fields
+> are represented by **absence** (using the `delete` operator), not by setting
+> to `undefined` or `null`.
 
 ### Schedule Sub-Object
 
@@ -76,16 +83,20 @@ The `schedule` field is always present and contains:
 
 Non-recurring task. Temporal behavior is **polymorphic**:
 
-- If an ancestor has a schedule with a deadline, this task inherits that constraint
-- If no ancestor has a deadline, availability is determined by `importance` and `place` only
+- If an ancestor has a schedule with a deadline, this task inherits that
+  constraint
+- If no ancestor has a deadline, availability is determined by `importance` and
+  `place` only
 - On completion, task stays done (no regeneration)
 
 **`"Routinely"` (Interval-Based / Floating)**
 
-Maintenance tasks where next occurrence is relative to _completion_ time, not scheduled time.
+Maintenance tasks where next occurrence is relative to _completion_ time, not
+scheduled time.
 
 - **Recurrence**: `t_next = t_completion + period`
-- **Initialization**: New routines default to `dueDate = now` (immediate urgency) until first completion
+- **Initialization**: New routines default to `dueDate = now` (immediate
+  urgency) until first completion
 - **Priority Ramp** (driven by `leadTime`):
   - **Hidden**: `t_current < (dueDate - 2×leadTime)`
   - **Soon**: `(dueDate - 2×leadTime) ≤ t_current < (dueDate - leadTime)`
@@ -114,7 +125,8 @@ Each place stored in `places[id]` has:
 
 ### Reserved Place ID
 
-`"Anywhere"` is a reserved virtual place. Tasks visible regardless of location filter.
+`"Anywhere"` is a reserved virtual place. Tasks visible regardless of location
+filter.
 
 ---
 
@@ -141,20 +153,26 @@ When reading, absent fields are treated as `undefined` by the TypeScript layer.
 
 ### Array Deduplication
 
-Automerge arrays can accumulate duplicates during concurrent insertions. The application sanitizes:
+Automerge arrays can accumulate duplicates during concurrent insertions. The
+application sanitizes:
 
 - **`rootTaskIds`** — First-occurrence-wins deduplication on load/sync
 - **`childTaskIds`** — First-occurrence-wins deduplication on load/sync
 
 ### Object Maps
 
-The `tasks` and `places` maps resolve concurrent writes **deterministically** using Automerge's internal operation ordering (counter + actorId), not wall-clock time. While a single "winning" value is returned by default, Automerge preserves all conflicting values in a multi-value register accessible via `Automerge.getConflicts()`.
+The `tasks` and `places` maps resolve concurrent writes **deterministically**
+using Automerge's internal operation ordering (counter + actorId), not
+wall-clock time. While a single "winning" value is returned by default,
+Automerge preserves all conflicting values in a multi-value register accessible
+via `Automerge.getConflicts()`.
 
 ---
 
 ## Computed Fields (NOT Stored)
 
-The TypeScript `Task` interface includes computed properties populated by the algorithm. These are **never written** to the Automerge document:
+The TypeScript `Task` interface includes computed properties populated by the
+algorithm. These are **never written** to the Automerge document:
 
 - `effectiveCredits`, `feedbackFactor`, `isContainer`, `isPending`
 - `isReady`, `leadTimeFactor`, `normalizedImportance`

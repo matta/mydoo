@@ -1,8 +1,11 @@
 # Application Layer Architecture
 
-> **Goal**: Maximize testability of core algorithms, minimize business logic in the UI, and decouple Automerge from business logic.
+> **Goal**: Maximize testability of core algorithms, minimize business logic in
+> the UI, and decouple Automerge from business logic.
 
-This document defines the high-level architecture for the mydoo task management system. It establishes a clean separation between the user interface, view logic, domain rules, and data persistence.
+This document defines the high-level architecture for the mydoo task management
+system. It establishes a clean separation between the user interface, view
+logic, domain rules, and data persistence.
 
 ---
 
@@ -11,7 +14,8 @@ This document defines the high-level architecture for the mydoo task management 
 The system is composed of four logical layers.
 
 - **UI Implementation**: The visible surface React components.
-- **View Projection**: The translation layer that adapts raw data for the screen.
+- **View Projection**: The translation layer that adapts raw data for the
+  screen.
 - **Domain Logic**: The "Brain" – pure algorithms and business rules.
 - **Persistence Store**: The "Memory" – storage and synchronization.
 
@@ -48,10 +52,15 @@ flowchart TD
 
 ## Design Principles
 
-1.  **Dependency Rule**: Dependencies point "inwards" or "downwards". The UI depends on the ViewModel, which depends on the Store. The Domain is pure and depends on nothing.
-2.  **Unidirectional Data Flow**: Data flows up (Store → ViewModel → UI). Commands flow down (UI → ViewModel → Store).
-3.  **Pure Domain**: The core business logic (prioritization, validation) operates on plain data structures and is unaware of React or Automerge.
-4.  **Service-Oriented Logic**: Complex operations are encapsulated in "Services" (Domain functions) rather than scattered in UI code.
+1.  **Dependency Rule**: Dependencies point "inwards" or "downwards". The UI
+    depends on the ViewModel, which depends on the Store. The Domain is pure and
+    depends on nothing.
+2.  **Unidirectional Data Flow**: Data flows up (Store → ViewModel → UI).
+    Commands flow down (UI → ViewModel → Store).
+3.  **Pure Domain**: The core business logic (prioritization, validation)
+    operates on plain data structures and is unaware of React or Automerge.
+4.  **Service-Oriented Logic**: Complex operations are encapsulated in
+    "Services" (Domain functions) rather than scattered in UI code.
 
 ---
 
@@ -59,9 +68,12 @@ flowchart TD
 
 ### 1. Persistence Store ("The Memory")
 
-**Responsibility**: Encapsulate all Automerge operations. This is the **only** layer that imports `@automerge/*`. It manages the Automerge document, handles serialization/sync, and gates all writes.
+**Responsibility**: Encapsulate all Automerge operations. This is the **only**
+layer that imports `@automerge/*`. It manages the Automerge document, handles
+serialization/sync, and gates all writes.
 
-The Store calls Domain functions synchronously inside mutation transactions. It notifies the ViewModel of changes via subscriptions, which trigger re-renders.
+The Store calls Domain functions synchronously inside mutation transactions. It
+notifies the ViewModel of changes via subscriptions, which trigger re-renders.
 
 **Pseudocode API**:
 
@@ -88,9 +100,12 @@ interface PersistenceStore {
 
 ### 2. Domain Logic ("The Brain")
 
-**Responsibility**: Enforcing invariants, calculating derived data (like priority scores), and ensuring data integrity. This layer consists of pure functions.
+**Responsibility**: Enforcing invariants, calculating derived data (like
+priority scores), and ensuring data integrity. This layer consists of pure
+functions.
 
-The Domain does not initiate communication. Its pure functions are called by the Store inside transactions.
+The Domain does not initiate communication. Its pure functions are called by the
+Store inside transactions.
 
 **Pseudocode API**:
 
@@ -107,7 +122,8 @@ interface Invariants {
 }
 ```
 
-**Key Principle**: Domain functions are called _inside_ Store transactions. This enables atomic operations while keeping domain logic Automerge-free:
+**Key Principle**: Domain functions are called _inside_ Store transactions. This
+enables atomic operations while keeping domain logic Automerge-free:
 
 ```python
 def recalculate_scores(self):
@@ -121,11 +137,19 @@ def recalculate_scores(self):
 
 ### 3. View Projection ("The Translator")
 
-**Responsibility**: Transforming raw domain data into shapes optimized for UI rendering (e.g., trees, breadcrumbs) and orchestrating user actions into storage mutations.
+**Responsibility**: Transforming raw domain data into shapes optimized for UI
+rendering (e.g., trees, breadcrumbs) and orchestrating user actions into storage
+mutations.
 
-The ViewModel initiates writes by calling Store methods. It projects calculated data and action callbacks to UI components as props, often through a hierarchy of intermediate Container Components.
+The ViewModel initiates writes by calling Store methods. It projects calculated
+data and action callbacks to UI components as props, often through a hierarchy
+of intermediate Container Components.
 
-_Note: In React, the View Projection layer often includes **container components**—components that subscribe to the Store, compute derived state, and pass pre-processed data and callbacks down to pure UI primitives. The UI Implementation layer then contains only **presentational components** that receive everything they need as arguments and contain no business logic._
+_Note: In React, the View Projection layer often includes **container
+components**—components that subscribe to the Store, compute derived state, and
+pass pre-processed data and callbacks down to pure UI primitives. The UI
+Implementation layer then contains only **presentational components** that
+receive everything they need as arguments and contain no business logic._
 
 **Pseudocode API**:
 
@@ -172,9 +196,17 @@ def dispatch_move(task_id, target):
 
 ### 4. UI Implementation ("The Face")
 
-**Responsibility**: Rendering visual components based _only_ on the data provided by the ViewModel. It contains no state other than transient UI state (like hover or input focus).
+**Responsibility**: Rendering visual components based _only_ on the data
+provided by the ViewModel. It contains no state other than transient UI state
+(like hover or input focus).
 
-The UI receives data from the ViewModel as _props_ (arguments passed to component functions), including the task tree, sorted lists, and current selection state. The ViewModel also provides callback functions as props; when a user interacts with the interface—clicking, dragging, or typing—the UI calls these callbacks (e.g., `actions.complete(id)`) to notify the ViewModel of the user's intent. The UI itself performs no business logic; it simply renders what it receives and invokes the callbacks it was given.
+The UI receives data from the ViewModel as _props_ (arguments passed to
+component functions), including the task tree, sorted lists, and current
+selection state. The ViewModel also provides callback functions as props; when a
+user interacts with the interface—clicking, dragging, or typing—the UI calls
+these callbacks (e.g., `actions.complete(id)`) to notify the ViewModel of the
+user's intent. The UI itself performs no business logic; it simply renders what
+it receives and invokes the callbacks it was given.
 
 **Pseudocode Presentational Components**:
 
@@ -244,7 +276,8 @@ apps/client/src/              # "The App" (Thick Client)
 ### Phase 3: Create ViewModel Layer (in `apps/client`)
 
 1. Create `apps/client/src/viewmodel/`
-2. Move `getTaskTree()` logic from `tasklens` to `client/viewmodel/useTaskTree.ts`
+2. Move `getTaskTree()` logic from `tasklens` to
+   `client/viewmodel/useTaskTree.ts`
 3. Create `client/viewmodel/useTaskActions.ts` to orchestrate writes
 4. Keep `tasklens/src/react.ts` as a thin Automerge data provider (Context/Hook)
 
@@ -265,7 +298,8 @@ apps/client/src/              # "The App" (Thick Client)
 | Persistence | Integration tests | ✅ Yes                   |
 | UI          | Component tests   | ❌ No — mock ViewModel   |
 
-This architecture ensures the core algorithm is **100% testable** without Automerge overhead.
+This architecture ensures the core algorithm is **100% testable** without
+Automerge overhead.
 
 ---
 
@@ -279,16 +313,20 @@ This architecture ensures the core algorithm is **100% testable** without Autome
 
 ## Appendix: Reference Implementation (TypeScript)
 
-This appendix contains concrete examples of how the pseudocode above maps to actual TypeScript implementation.
+This appendix contains concrete examples of how the pseudocode above maps to
+actual TypeScript implementation.
 
 ### A. Persistence Layer
 
 **Current Files** (in `@mydoo/tasklens`):
 
-- [`store.ts`](../../packages/tasklens/src/store.ts) — `TunnelStore` class wrapping `Automerge.Doc`
+- [`store.ts`](../../packages/tasklens/src/store.ts) — `TunnelStore` class
+  wrapping `Automerge.Doc`
 - [`ops.ts`](../../packages/tasklens/src/ops.ts) — Low-level CRUD mutations
-- [`schemas.ts`](../../packages/tasklens/src/schemas.ts) — Zod runtime validation
-- [`react.ts`](../../packages/tasklens/src/react.ts) — `useTunnel` hook (Automerge-React bridge)
+- [`schemas.ts`](../../packages/tasklens/src/schemas.ts) — Zod runtime
+  validation
+- [`react.ts`](../../packages/tasklens/src/react.ts) — `useTunnel` hook
+  (Automerge-React bridge)
 
 ```typescript
 // persistence/store.ts
@@ -439,7 +477,9 @@ function TaskItem({task, actions}: {task: TunnelNode; actions: TaskActions}) {
 
 ### E. Enforcement (ESLint)
 
-We can strictly enforce these architectural boundaries using ESLint (specifically `no-restricted-imports`), avoiding the overhead of separate packages.
+We can strictly enforce these architectural boundaries using ESLint
+(specifically `no-restricted-imports`), avoiding the overhead of separate
+packages.
 
 | Rule               | ESLint Configuration                                  | Reasoning                                                                  |
 | :----------------- | :---------------------------------------------------- | :------------------------------------------------------------------------- |

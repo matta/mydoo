@@ -12,7 +12,8 @@
 
 ### I. Action (Required & Mutually Exclusive)
 
-For static analysis and code hygiene, the `check` and `fix` actions distinguish read-only validation from mutation:
+For static analysis and code hygiene, the `check` and `fix` actions distinguish
+read-only validation from mutation:
 
 - **check:** READ-ONLY validation. Never modifies files.
 - **fix:** MUTATION. Modifies source files to correct issues.
@@ -41,7 +42,9 @@ Or, when specificity is needed, name by tool:
 - **tsc** (for types)
 - **knip** (for deps)
 
-Default to Domain names. When a single tool covers a domain, the Domain task should invoke that tool directly. When multiple tools cover one domain, name individual tasks by Tool and create an aggregate task using the Domain name.
+Default to Domain names. When a single tool covers a domain, the Domain task
+should invoke that tool directly. When multiple tools cover one domain, name
+individual tasks by Tool and create an aggregate task using the Domain name.
 
 ### III. State (Optional)
 
@@ -53,9 +56,13 @@ The scope of files being acted upon.
 
 ## 3. The "One Way" Rules
 
-1. **The Safety Rule:** For static analysis and code hygiene, distinguish safety explicitly. Use `fix` if the task modifies source files, and `check` if it is read-only.
-2. **The Synonym Ban:** `lint` and `format` are banned as Actions. They are replaced by `check-style` / `fix-style` and `check-format` / `fix-format`.
-3. **The Hybrid Ban:** `check-*-fix` is forbidden. A task cannot be both a check and a fix.
+1. **The Safety Rule:** For static analysis and code hygiene, distinguish safety
+   explicitly. Use `fix` if the task modifies source files, and `check` if it is
+   read-only.
+2. **The Synonym Ban:** `lint` and `format` are banned as Actions. They are
+   replaced by `check-style` / `fix-style` and `check-format` / `fix-format`.
+3. **The Hybrid Ban:** `check-*-fix` is forbidden. A task cannot be both a check
+   and a fix.
 
 ## 4. Canonical Examples
 
@@ -72,13 +79,17 @@ The scope of files being acted upon.
 
 ## 5. Technical Syntax Markers
 
-Some build systems use specific syntax markers that are technically required and exempt from naming rules:
+Some build systems use specific syntax markers that are technically required and
+exempt from naming rules:
 
 ### Turborepo Root Task Prefix (`//#`)
 
-In `turbo.json`, tasks defined in the root `package.json` must be prefixed with `//#` (e.g., `//#check-biome-root`). The **name following the prefix** must still conform to all naming rules (kebab-case, segment hierarchy).
+In `turbo.json`, tasks defined in the root `package.json` must be prefixed with
+`//#` (e.g., `//#check-biome-root`). The **name following the prefix** must
+still conform to all naming rules (kebab-case, segment hierarchy).
 
-Root tasks use the `-root` state suffix to indicate they operate on root-level files rather than package files:
+Root tasks use the `-root` state suffix to indicate they operate on root-level
+files rather than package files:
 
 | Turbo Task Name        | package.json Script |
 | :--------------------- | :------------------ |
@@ -91,4 +102,6 @@ The `//#` prefix is a technical address and not part of the semantic task name.
 
 ## 6. Exemptions
 
-Common task names endemic to the npm/Node ecosystem are exempt when not explicitly banned above. Examples: `dev`, `start`, `serve`, `clean`, `prepare`, `prepublishOnly`.
+Common task names endemic to the npm/Node ecosystem are exempt when not
+explicitly banned above. Examples: `dev`, `start`, `serve`, `clean`, `prepare`,
+`prepublishOnly`.

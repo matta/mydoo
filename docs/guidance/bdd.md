@@ -1,14 +1,19 @@
 # BDD & Gherkin Guidance: The Opus
 
-> **TL;DR:** Gherkin is an _executable specification language_, not a test automation framework. Use it sparingly for core behavioral rules. Keep steps thin, platform-neutral, and delegated to action layers. This document synthesizes project-specific patterns with general BDD best practices.
+> **TL;DR:** Gherkin is an _executable specification language_, not a test
+> automation framework. Use it sparingly for core behavioral rules. Keep steps
+> thin, platform-neutral, and delegated to action layers. This document
+> synthesizes project-specific patterns with general BDD best practices.
 
 ---
 
 ## 1. Why Gherkin for a Solo Dev?
 
-The common objection: _"Gherkin is for business stakeholders—a solo dev doesn't need it."_
+The common objection: _"Gherkin is for business stakeholders—a solo dev doesn't
+need it."_
 
-This assumes human communication is the primary value. For this project, the stakeholder is **future-you** and **AI agents**. The calculus changes:
+This assumes human communication is the primary value. For this project, the
+stakeholder is **future-you** and **AI agents**. The calculus changes:
 
 | Consumer    | Gherkin Value                                                                        |
 | :---------- | :----------------------------------------------------------------------------------- |
@@ -21,7 +26,8 @@ This assumes human communication is the primary value. For this project, the sta
 You want:
 
 - A **semantic layer** that states _what_ the system does
-- Separated from the **mechanical layer** that drives browsers (`page.click()`, `expect(locator)`)
+- Separated from the **mechanical layer** that drives browsers (`page.click()`,
+  `expect(locator)`)
 
 Gherkin is one of the few tools that:
 
@@ -34,7 +40,8 @@ Gherkin is one of the few tools that:
 
 ## 2. The Onion Architecture
 
-Platform divergence (Mobile vs. Desktop) is handled at the **Action** layer, never in Gherkin.
+Platform divergence (Mobile vs. Desktop) is handled at the **Action** layer,
+never in Gherkin.
 
 ```mermaid
 graph TD
@@ -57,7 +64,8 @@ graph TD
 
 ### The Golden Rule
 
-> **Step definitions must be boring.** If a step has branching, loops, or assertions beyond delegation—it's doing too much.
+> **Step definitions must be boring.** If a step has branching, loops, or
+> assertions beyond delegation—it's doing too much.
 
 ---
 
@@ -92,8 +100,10 @@ Gherkin becomes a liability if it sprawls. Enforce these limits:
 Before adding a scenario:
 
 1. **Would this appear in a design doc or README?** If yes → Gherkin
-2. **If I rewrote the UI from scratch, would this still be true?** If yes → Gherkin
-3. **Could I explain this behavior without mentioning screens or gestures?** If yes → Gherkin
+2. **If I rewrote the UI from scratch, would this still be true?** If yes →
+   Gherkin
+3. **Could I explain this behavior without mentioning screens or gestures?** If
+   yes → Gherkin
 4. **Will I care if this breaks six months from now?** If yes → Gherkin
 
 | Question                           | If yes  | If no   |
@@ -108,7 +118,8 @@ Before adding a scenario:
 
 ## 4. The Vocabulary Constraint
 
-The most subtle budget dimension. Gherkin vocabulary must use **domain terms**, never platform or gesture terms.
+The most subtle budget dimension. Gherkin vocabulary must use **domain terms**,
+never platform or gesture terms.
 
 ### This Project's Domain Vocabulary
 
@@ -281,16 +292,21 @@ Gherkin applies to **Tier 3 only**—behavioral journeys across the full stack.
 
 ### Existing Fixture Pattern
 
-The project uses a `PlanFixture` interface (see [fixtures.ts](../../apps/client/tests/e2e/fixtures.ts)) implementing these action categories:
+The project uses a `PlanFixture` interface (see
+[fixtures.ts](../../apps/client/tests/e2e/fixtures.ts)) implementing these
+action categories:
 
-- **Core Task Operations:** `createTask`, `addChild`, `addSibling`, `completeTask`, `deleteTask`
-- **Verification Helpers:** `verifyTaskVisible`, `verifyTaskHidden`, `verifyTaskCompleted`
+- **Core Task Operations:** `createTask`, `addChild`, `addSibling`,
+  `completeTask`, `deleteTask`
+- **Verification Helpers:** `verifyTaskVisible`, `verifyTaskHidden`,
+  `verifyTaskCompleted`
 - **Mobile Helpers:** `mobileDrillDown`, `mobileNavigateUpLevel`
 - **Navigation:** `switchToPlanView`, `switchToDoView`
 
 ### Inline Gherkin (Current Pattern)
 
-Until playwright-bdd is adopted, use **Inline Gherkin comments** in `test.step()` blocks:
+Until playwright-bdd is adopted, use **Inline Gherkin comments** in
+`test.step()` blocks:
 
 ```typescript
 test('User can complete tasks', async ({plan}) => {
@@ -338,7 +354,8 @@ Based on the domain concepts in [prd.md](../design/prd.md):
 
 From [docs/design/bdd.md](../design/bdd.md):
 
-Traditional Page Object Model breaks down in SPAs because "pages" aren't discrete. Use a **Component Object Model** instead:
+Traditional Page Object Model breaks down in SPAs because "pages" aren't
+discrete. Use a **Component Object Model** instead:
 
 ### Pattern
 
@@ -368,8 +385,10 @@ class ProfilePage {
 
 Dialogs float on top of multiple pages—don't "own" them in a single Page Object.
 
-- **Return Values:** When a method opens a dialog, return the Dialog component instance.
-- **Global Registry:** Store common dialogs (Confirmation, Error) in a shared location.
+- **Return Values:** When a method opens a dialog, return the Dialog component
+  instance.
+- **Global Registry:** Store common dialogs (Confirmation, Error) in a shared
+  location.
 
 ---
 
@@ -377,7 +396,8 @@ Dialogs float on top of multiple pages—don't "own" them in a single Page Objec
 
 Before writing any scenario, ask:
 
-> **"If I rewrote the mobile UI from scratch, would this scenario still be true?"**
+> **"If I rewrote the mobile UI from scratch, would this scenario still be
+> true?"**
 
 - If **yes** → It belongs in Gherkin
 - If **no** → It belongs in Playwright directly
@@ -392,4 +412,5 @@ This question cuts through almost every ambiguity.
 - [docs/design/bdd.md](../design/bdd.md) — Component Object Model patterns
 - [docs/design/algorithm.md](../design/algorithm.md) — Core prioritization logic
 - [AGENTS.md](../../AGENTS.md) — 3-Tier testing architecture
-- [fixtures.ts](../../apps/client/tests/e2e/fixtures.ts) — Existing E2E action layer
+- [fixtures.ts](../../apps/client/tests/e2e/fixtures.ts) — Existing E2E action
+  layer

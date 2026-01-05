@@ -1,10 +1,12 @@
 # Testing Strategy
 
-This document defines the testing strategy for `mydoo`, ensuring robust progression and safe AI-led iteration.
+This document defines the testing strategy for `mydoo`, ensuring robust
+progression and safe AI-led iteration.
 
 ## The Testing Pyramid
 
-We adhere to a 3-tier testing approach tailored for our Local-First PWA architecture:
+We adhere to a 3-tier testing approach tailored for our Local-First PWA
+architecture:
 
 | Tier               | Tool                    | Scope                             | Speed     |
 | ------------------ | ----------------------- | --------------------------------- | --------- |
@@ -16,10 +18,10 @@ We adhere to a 3-tier testing approach tailored for our Local-First PWA architec
 
 ## 1. Unit Logic Tests (`@mydoo/tasklens`)
 
-These tests verify the domain "brain" of the application—pure logic with no React dependencies.
+These tests verify the domain "brain" of the application—pure logic with no
+React dependencies.
 
-**Location:** `packages/tasklens/tests/**`
-**Runner:** `vitest`
+**Location:** `packages/tasklens/tests/**` **Runner:** `vitest`
 
 ### What to Test:
 
@@ -37,12 +39,14 @@ pnpm --filter @mydoo/tasklens test
 
 ## 2. Integration & Component Tests (`apps/client`)
 
-These tests verify React hooks, view models, and component interactions using **Vitest Browser Mode** (Chromium).
+These tests verify React hooks, view models, and component interactions using
+**Vitest Browser Mode** (Chromium).
 
-**Location:** `apps/client/src/**/*.test.tsx`
-**Runner:** `vitest` with `@vitest/browser` (Chromium via Playwright)
+**Location:** `apps/client/src/**/*.test.tsx` **Runner:** `vitest` with
+`@vitest/browser` (Chromium via Playwright)
 
-> **Note:** We use Vitest Browser Mode instead of jsdom for higher fidelity. Tests run in a real Chromium instance.
+> **Note:** We use Vitest Browser Mode instead of jsdom for higher fidelity.
+> Tests run in a real Chromium instance.
 
 ### What to Test:
 
@@ -52,12 +56,15 @@ These tests verify React hooks, view models, and component interactions using **
 - **Containers**:
   - `DoViewContainer` renders prioritized tasks and handles interactions.
 - **Redux Integration**:
-  - Tests dispatch `syncDoc` directly to populate the Redux store before rendering hooks.
+  - Tests dispatch `syncDoc` directly to populate the Redux store before
+    rendering hooks.
 
 **Test Setup:**
 
-- `createTestWrapper(repo, store)` provides `RepoContext`, Redux `Provider`, and `MantineProvider`.
-- For Redux-consuming hooks, dispatch `syncDoc` with the current doc state before assertions.
+- `createTestWrapper(repo, store)` provides `RepoContext`, Redux `Provider`, and
+  `MantineProvider`.
+- For Redux-consuming hooks, dispatch `syncDoc` with the current doc state
+  before assertions.
 
 **How to Run:**
 
@@ -69,16 +76,17 @@ pnpm --filter @mydoo/client test
 
 ## 3. End-to-End (E2E) Tests (`apps/client`)
 
-These tests verify the full application stack in a real browser, including IndexedDB persistence.
+These tests verify the full application stack in a real browser, including
+IndexedDB persistence.
 
-**Location:** `apps/client/e2e/**`
-**Runner:** `Playwright`
+**Location:** `apps/client/e2e/**` **Runner:** `Playwright`
 
 ### Critical User Flows:
 
 1. **First Run**: Load app, see empty "Do" list, create a task via Quick Add.
 2. **Persistence**: Reload page, verify task is still there.
-3. **Task Defaults**: Create task and verify default values (status, notes, schedule).
+3. **Task Defaults**: Create task and verify default values (status, notes,
+   schedule).
 4. **Priority View**: Create tasks with different priorities, verify ordering.
 5. **Move Picker**: Open hierarchical move modal, reparent a task.
 

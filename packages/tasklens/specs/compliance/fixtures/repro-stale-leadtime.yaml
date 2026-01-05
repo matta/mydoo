@@ -1,5 +1,7 @@
 name: Repro Stale Lead Time Inheritance
-description: 'Verify that children inherit lead time correctly and use it for their own readiness calculation'
+description:
+  'Verify that children inherit lead time correctly and use it for their own
+  readiness calculation'
 initial_state:
   current_time: '2023-01-01T12:00:00Z'
   tasks:

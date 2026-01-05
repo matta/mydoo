@@ -1,31 +1,40 @@
 # Monorepo Architecture: The Switchboard Pattern
 
-This architecture strictly separates **Orchestration** (Root) from **Execution** (Leaves). It eliminates "split-brain" where the root relies on manual scripts while packages rely on Turbo.
+This architecture strictly separates **Orchestration** (Root) from **Execution**
+(Leaves). It eliminates "split-brain" where the root relies on manual scripts
+while packages rely on Turbo.
 
-> [!NOTE]
-> This document describes an ideal architectural pattern, not a prescriptive implementation. The actual `turbo.json` in this repository may have additional complexity or variation for pragmatic reasons.
+> [!NOTE] This document describes an ideal architectural pattern, not a
+> prescriptive implementation. The actual `turbo.json` in this repository may
+> have additional complexity or variation for pragmatic reasons.
 
 ## 1. Core Philosophy
 
-1.  **The Root is the Interface:** The root `package.json` is for Humans and CI. It contains NO logic. Every script delegates to `turbo`.
-2.  **The Leaf is the Implementation:** Package `package.json` files contain the raw tools (`vite`, `tsc`, `biome`).
-3.  **Everything is a Node:** `docs`, code, and configuration are all treated as nodes in the execution graph.
+1.  **The Root is the Interface:** The root `package.json` is for Humans and CI.
+    It contains NO logic. Every script delegates to `turbo`.
+2.  **The Leaf is the Implementation:** Package `package.json` files contain the
+    raw tools (`vite`, `tsc`, `biome`).
+3.  **Everything is a Node:** `docs`, code, and configuration are all treated as
+    nodes in the execution graph.
 
 ## 2. The Standard Verbs
 
-Standardize these across the entire repo. If a package doesn't support a verb, it simply omits the script.
+Standardize these across the entire repo. If a package doesn't support a verb,
+it simply omits the script.
 
 - **`dev`**: Start development servers (watch mode).
 - **`build`**: Compile/transpile for production.
 - **`test`**: Run unit/integration tests.
-- **`check`**: Read-only validation (Lint, Typecheck, Format Check). Safe for CI. Exits 1 on error.
+- **`check`**: Read-only validation (Lint, Typecheck, Format Check). Safe for
+  CI. Exits 1 on error.
 - **`fix`**: Write/Modify validation (Auto-format, Auto-fix). Safe for Local.
 
 ---
 
 ## 3. Execution Flow Diagram
 
-The following diagram illustrates how a single `pnpm check` command fans out through Turbo's task graph:
+The following diagram illustrates how a single `pnpm check` command fans out
+through Turbo's task graph:
 
 ```mermaid
 flowchart TD
@@ -76,7 +85,9 @@ flowchart TD
 
 ### A. The Root `package.json` (The Interface)
 
-**Rationale:** Acts as the entry point. It captures intents, not tools. The `--filter=!//` flag excludes the root package itself, ensuring only leaf packages are targeted.
+**Rationale:** Acts as the entry point. It captures intents, not tools. The
+`--filter=!//` flag excludes the root package itself, ensuring only leaf
+packages are targeted.
 
 ```json
 {
@@ -97,8 +108,10 @@ flowchart TD
 
 **Rationale:** Defines the task dependency graph.
 
-- **Root Tasks (`//#`)**: Handle root-level files (config, READMEs) that aren't part of any leaf package.
-- **Leaf Tasks**: Discovered automatically in packages that define the corresponding script.
+- **Root Tasks (`//#`)**: Handle root-level files (config, READMEs) that aren't
+  part of any leaf package.
+- **Leaf Tasks**: Discovered automatically in packages that define the
+  corresponding script.
 
 ```jsonc
 {
@@ -144,8 +157,8 @@ flowchart TD
 
 ### C. The Leaf `package.json` (The Code)
 
-**Location:** `apps/client`, `packages/ui`
-**Rationale:** Raw tool execution. No "turbo" commands allowed here.
+**Location:** `apps/client`, `packages/ui` **Rationale:** Raw tool execution. No
+"turbo" commands allowed here.
 
 ```jsonc
 {
@@ -165,13 +178,14 @@ flowchart TD
 }
 ```
 
-> [!NOTE]
-> This example uses `npm-run-all` (`run-p`) to run sub-tasks in parallel. The leaf package runs its own linters on its own `src/` directory, while root tasks handle root-level files.
+> [!NOTE] This example uses `npm-run-all` (`run-p`) to run sub-tasks in
+> parallel. The leaf package runs its own linters on its own `src/` directory,
+> while root tasks handle root-level files.
 
 ### D. The Docs `package.json` (The Content)
 
-**Location:** `docs/package.json`
-**Rationale:** Makes the `docs` directory a legitimate citizen of the build graph.
+**Location:** `docs/package.json` **Rationale:** Makes the `docs` directory a
+legitimate citizen of the build graph.
 
 ```jsonc
 {
@@ -190,9 +204,14 @@ flowchart TD
 
 ### Handling Root Files
 
-Root-level files (`README.md`, `eslint.config.js`, `turbo.json`, etc.) are not part of any leaf package, so they require explicit Turbo **Root Tasks** (`//#task-name`) to be processed.
+Root-level files (`README.md`, `eslint.config.js`, `turbo.json`, etc.) are not
+part of any leaf package, so they require explicit Turbo **Root Tasks**
+(`//#task-name`) to be processed.
 
-The pattern uses multiple root tasks—one per tool—that are wired as dependencies of the main `check` and `fix` tasks. Task names use the `-root` state suffix per the [task-naming guidelines](file:///Users/matt/src/mydoo/docs/guidance/task-naming.md):
+The pattern uses multiple root tasks—one per tool—that are wired as dependencies
+of the main `check` and `fix` tasks. Task names use the `-root` state suffix per
+the
+[task-naming guidelines](file:///Users/matt/src/mydoo/docs/guidance/task-naming.md):
 
 ```jsonc
 {
@@ -252,7 +271,8 @@ The pattern uses multiple root tasks—one per tool—that are wired as dependen
 }
 ```
 
-The corresponding scripts in the root `package.json` provide the actual commands:
+The corresponding scripts in the root `package.json` provide the actual
+commands:
 
 ```jsonc
 {
@@ -278,26 +298,34 @@ The corresponding scripts in the root `package.json` provide the actual commands
 
 - Each tool gets its own root task with appropriate `inputs` for caching.
 - The main `check` and `fix` tasks depend on all relevant root tasks.
-- Leaf packages still use `--filter=!//`, but root tasks are explicitly wired via `dependsOn`.
-- This avoids running the same tool twice on the same files (once globally, once per-package).
+- Leaf packages still use `--filter=!//`, but root tasks are explicitly wired
+  via `dependsOn`.
+- This avoids running the same tool twice on the same files (once globally, once
+  per-package).
 
 ### The `scripts/` Directory
 
-A `scripts/` directory containing shell scripts (`.sh`) does not require linting by Biome or ESLint—those tools are for JS/TS. There are two approaches:
+A `scripts/` directory containing shell scripts (`.sh`) does not require linting
+by Biome or ESLint—those tools are for JS/TS. There are two approaches:
 
 **If `scripts/` contains only shell scripts:**
 
-- No action needed. ShellCheck or similar tools can be invoked via a dedicated root task (`//#check-shellcheck-root`) if desired.
+- No action needed. ShellCheck or similar tools can be invoked via a dedicated
+  root task (`//#check-shellcheck-root`) if desired.
 - Do **not** add `scripts/` to Biome or ESLint root tasks.
 
 **If `scripts/` contains JavaScript or TypeScript:**
 
-- Per the "Everything is a Node" philosophy, add a `scripts/package.json` to make it a proper workspace member.
-- Define its own `check` and `fix` scripts, which Turbo will discover automatically.
+- Per the "Everything is a Node" philosophy, add a `scripts/package.json` to
+  make it a proper workspace member.
+- Define its own `check` and `fix` scripts, which Turbo will discover
+  automatically.
 
 ### Subdirectories (`docs/`, `scripts/`, etc.)
 
-Any subdirectory that contains lintable files **should have its own `package.json`** to become a proper workspace member. This follows the "Everything is a Node" philosophy and ensures:
+Any subdirectory that contains lintable files **should have its own
+`package.json`** to become a proper workspace member. This follows the
+"Everything is a Node" philosophy and ensures:
 
 - The directory participates in Turbo's task graph
 - Caching works correctly at the directory level
@@ -318,7 +346,11 @@ Example for `docs/`:
 
 ### Root Filtering with `--filter=!//`
 
-The root `package.json` scripts use `--filter=!//` to exclude the root package from _package-level_ task discovery. This prevents Turbo from attempting to run a script (like `check`) on the root itself.
+The root `package.json` scripts use `--filter=!//` to exclude the root package
+from _package-level_ task discovery. This prevents Turbo from attempting to run
+a script (like `check`) on the root itself.
 
-> [!IMPORTANT]
-> This filter does **not** prevent root tasks (`//#*`) from running. Root tasks are explicitly wired via `dependsOn` and execute regardless of the filter. The filter only affects which _packages_ are included in the task run.
+> [!IMPORTANT] This filter does **not** prevent root tasks (`//#*`) from
+> running. Root tasks are explicitly wired via `dependsOn` and execute
+> regardless of the filter. The filter only affects which _packages_ are
+> included in the task run.

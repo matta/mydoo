@@ -1,14 +1,21 @@
 # Phase 7: The Balance View
 
-**Goal**: Implement the "Life Balance" visualization to allow users to adjust target effort (`desiredCredits`) for Top-Level Goals and see their actual effort distribution.
+**Goal**: Implement the "Life Balance" visualization to allow users to adjust
+target effort (`desiredCredits`) for Top-Level Goals and see their actual effort
+distribution.
 
 **Status**: [ ] Not Started
 
 ## 1. Prerequisites & Type Rationalization
 
-The "Balance" algorithm relies on `effectiveCredits` (decayed effort) and `feedbackFactor`. These are currently calculated in the domain logic but strictly "internal" to `EnrichedTask` and not exposed on `ComputedTask`. To visualize "Actual %" vs "Target %", we must expose these computed metrics to the View Layer.
+The "Balance" algorithm relies on `effectiveCredits` (decayed effort) and
+`feedbackFactor`. These are currently calculated in the domain logic but
+strictly "internal" to `EnrichedTask` and not exposed on `ComputedTask`. To
+visualize "Actual %" vs "Target %", we must expose these computed metrics to the
+View Layer.
 
-Additionally, `ROOT_INBOX_ID` is referenced in designs but missing from the implementation.
+Additionally, `ROOT_INBOX_ID` is referenced in designs but missing from the
+implementation.
 
 ### Step 1.1 Steps
 
@@ -17,7 +24,8 @@ Additionally, `ROOT_INBOX_ID` is referenced in designs but missing from the impl
     - [x] Add `export const ROOT_INBOX_ID = 'root:inbox' as TaskID;`
     - [x] Update `ComputedTask` to include readonly properties:
       - [x] `effectiveCredits: number` (for Actual % calculation)
-      - [x] `desiredCredits: number` (already in PersistedTask, but ensure visibility)
+      - [x] `desiredCredits: number` (already in PersistedTask, but ensure
+            visibility)
 
 #### Quality Gates (1.1)
 
@@ -26,27 +34,44 @@ Additionally, `ROOT_INBOX_ID` is referenced in designs but missing from the impl
 
 #### Completion (1.1)
 
-- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
-- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm verify`). They must all pass in sequence against the same repository state.
+- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before
+      stopping and asking for human review.
+- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes
+      until the corresponding command has actually been run. **CRITICAL**: Do
+      not assume success of one command based on the success of another (e.g., a
+      passing `test` run does NOT guarantee a clean `lint` check).
+- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in
+      any quality gate, you **MUST** uncheck ALL boxes and restart verification
+      from the very first gate (`pnpm verify`). They must all pass in sequence
+      against the same repository state.
 - [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint).
-  - **ACTION**: You **MUST** check the terminal output and exit code of `git commit` immediately after running it.
-  - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g., shorten commit message, fix linting), and **RETRY** the commit until it succeeds.
-  - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT" step until `git log` confirms the new commit exists and `git status` is clean.
+- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user
+      responds with the single word **"commit"**. Any other response (e.g.,
+      "yes", "lgtm", "go ahead") is NOT sufficient.
+- [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks
+      (lint-staged, commitlint).
+  - **ACTION**: You **MUST** check the terminal output and exit code of
+    `git commit` immediately after running it.
+  - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g.,
+    shorten commit message, fix linting), and **RETRY** the commit until it
+    succeeds.
+  - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT"
+    step until `git log` confirms the new commit exists and `git status` is
+    clean.
 
 ## 2. Balance Logic (Client Hook)
 
 We need a bespoke hook to calculate the "Pie Chart" percentages.
 
-**Plain English Explanation**:
-Currently, our logic lives in the database layer. The UI needs a way to "read" the current state of tasks from our local "file cabinet" (Redux Store) and calculate two numbers for every Top Level Goal:
+**Plain English Explanation**: Currently, our logic lives in the database layer.
+The UI needs a way to "read" the current state of tasks from our local "file
+cabinet" (Redux Store) and calculate two numbers for every Top Level Goal:
 
 1. **Target**: How much effort you _want_ to spend (User set).
 2. **Actual**: How much effort you _actually_ spent (Calculated from history).
 
-This hook acts as the translator, grabbing the raw task data and doing the math so the UI can just draw the bars.
+This hook acts as the translator, grabbing the raw task data and doing the math
+so the UI can just draw the bars.
 
 ### Step 2.1 Steps
 
@@ -62,22 +87,38 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 #### Completion (2.1)
 
-- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
-- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm verify`). They must all pass in sequence against the same repository state.
+- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before
+      stopping and asking for human review.
+- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes
+      until the corresponding command has actually been run. **CRITICAL**: Do
+      not assume success of one command based on the success of another (e.g., a
+      passing `test` run does NOT guarantee a clean `lint` check).
+- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in
+      any quality gate, you **MUST** uncheck ALL boxes and restart verification
+      from the very first gate (`pnpm verify`). They must all pass in sequence
+      against the same repository state.
 - [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint).
-  - **ACTION**: You **MUST** check the terminal output and exit code of `git commit` immediately after running it.
-  - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g., shorten commit message, fix linting), and **RETRY** the commit until it succeeds.
-  - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT" step until `git log` confirms the new commit exists and `git status` is clean.
+- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user
+      responds with the single word **"commit"**. Any other response (e.g.,
+      "yes", "lgtm", "go ahead") is NOT sufficient.
+- [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks
+      (lint-staged, commitlint).
+  - **ACTION**: You **MUST** check the terminal output and exit code of
+    `git commit` immediately after running it.
+  - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g.,
+    shorten commit message, fix linting), and **RETRY** the commit until it
+    succeeds.
+  - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT"
+    step until `git log` confirms the new commit exists and `git status` is
+    clean.
 
 - [x] **Step 2.2: Implement `useBalanceData` Hook**
   - [x] **[NEW]** `apps/client/src/hooks/use-balance-data.ts`:
     - [x] Import `useTaskEntities` (Redux access).
     - [x] Logic:
       - [x] Get all tasks where `parentId` is `undefined` (Roots).
-      - [x] **Exclude** `ROOT_INBOX_ID` (we will ensure this ID is used for the Inbox).
+      - [x] **Exclude** `ROOT_INBOX_ID` (we will ensure this ID is used for the
+            Inbox).
       - [x] Calculate `totalDesiredCredits`.
       - [x] Calculate `totalEffectiveCredits`.
       - [x] Return normalized list.
@@ -89,15 +130,30 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 #### Completion (2.2)
 
-- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
-- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm verify`). They must all pass in sequence against the same repository state.
+- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before
+      stopping and asking for human review.
+- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes
+      until the corresponding command has actually been run. **CRITICAL**: Do
+      not assume success of one command based on the success of another (e.g., a
+      passing `test` run does NOT guarantee a clean `lint` check).
+- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in
+      any quality gate, you **MUST** uncheck ALL boxes and restart verification
+      from the very first gate (`pnpm verify`). They must all pass in sequence
+      against the same repository state.
 - [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint).
-  - **ACTION**: You **MUST** check the terminal output and exit code of `git commit` immediately after running it.
-  - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g., shorten commit message, fix linting), and **RETRY** the commit until it succeeds.
-  - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT" step until `git log` confirms the new commit exists and `git status` is clean.
+- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user
+      responds with the single word **"commit"**. Any other response (e.g.,
+      "yes", "lgtm", "go ahead") is NOT sufficient.
+- [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks
+      (lint-staged, commitlint).
+  - **ACTION**: You **MUST** check the terminal output and exit code of
+    `git commit` immediately after running it.
+  - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g.,
+    shorten commit message, fix linting), and **RETRY** the commit until it
+    succeeds.
+  - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT"
+    step until `git log` confirms the new commit exists and `git status` is
+    clean.
 
 ## 3. Balance UI Components
 
@@ -123,10 +179,12 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 - [x] 🛑 **TRUST BUT VERIFY**: All commands run and verified.
 - [x] 🛑 **RESTART ON EDIT**: No pending edits.
 - [x] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**.
+- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user
+      responds with the single word **"commit"**.
 
 - [x] **Step 3.2: Balance View Container**
-  - [x] **[NEW]** `apps/client/src/components/views/balance/balance-view-container.tsx`:
+  - [x] **[NEW]**
+        `apps/client/src/components/views/balance/balance-view-container.tsx`:
     - [x] Use `useBalanceData`.
     - [x] Use `useTaskActions` to dispatch updates.
     - [x] Render List of `BalanceItem`s.
@@ -142,7 +200,8 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 - [x] 🛑 **TRUST BUT VERIFY**: All commands run and verified.
 - [x] 🛑 **RESTART ON EDIT**: No pending edits.
 - [x] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**.
+- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user
+      responds with the single word **"commit"**.
 
 ## 4. Integration
 
@@ -167,7 +226,8 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 - [x] 🛑 **TRUST BUT VERIFY**: All commands run and verified.
 - [x] 🛑 **RESTART ON EDIT**: No pending edits.
 - [x] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**.
+- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user
+      responds with the single word **"commit"**.
 
 ## 5. Bug Fixes
 
@@ -186,18 +246,21 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 ## 6. Refactor & Optimization
 
-**Goal**: Extract complex logic from React components/hooks into pure, testable domain functions.
+**Goal**: Extract complex logic from React components/hooks into pure, testable
+domain functions.
 
 ### Section 6 Steps
 
 - [x] **Step 6.1: Refactor `useBalanceData`**
-  - [x] Extract aggregation logic to `packages/tasklens/src/domain/balance.ts` (or similar).
+  - [x] Extract aggregation logic to `packages/tasklens/src/domain/balance.ts`
+        (or similar).
   - [x] Create `calculateBalanceData(tasks: ComputedTask[]): BalanceItemData[]`.
   - [x] Unit test the new function.
   - [x] Simplify hook to use the new function.
 
 - [ ] **Step 6.2: Refactor `BalanceViewContainer` Logic**
-  - [ ] Extract "Drain/Fill" distribution logic to `packages/tasklens/src/domain/balance-distribution.ts`.
+  - [ ] Extract "Drain/Fill" distribution logic to
+        `packages/tasklens/src/domain/balance-distribution.ts`.
   - [ ] Create `distributeCredits(targetId, newValue, items): UpdateOp[]`.
   - [ ] Unit test the new function.
   - [ ] Simplify component to use the new function.
@@ -209,15 +272,30 @@ This hook acts as the translator, grabbing the raw task data and doing the math 
 
 #### Completion (6.1)
 
-- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before stopping and asking for human review.
-- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes until the corresponding command has actually been run. **CRITICAL**: Do not assume success of one command based on the success of another (e.g., a passing `test` run does NOT guarantee a clean `lint` check).
-- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in any quality gate, you **MUST** uncheck ALL boxes and restart verification from the very first gate (`pnpm verify`). They must all pass in sequence against the same repository state.
+- [ ] ✅ **CLEAN LISTS**: **MUST** clean up all TODO lists and plans before
+      stopping and asking for human review.
+- [ ] 🛑 **TRUST BUT VERIFY**: You **MUST NOT** check any of the above boxes
+      until the corresponding command has actually been run. **CRITICAL**: Do
+      not assume success of one command based on the success of another (e.g., a
+      passing `test` run does NOT guarantee a clean `lint` check).
+- [ ] 🛑 **RESTART ON EDIT**: If you make ANY code changes to fix a failure in
+      any quality gate, you **MUST** uncheck ALL boxes and restart verification
+      from the very first gate (`pnpm verify`). They must all pass in sequence
+      against the same repository state.
 - [ ] 🛑 STOP and prompt for user review with the EVIDENCE.
-- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user responds with the single word **"commit"**. Any other response (e.g., "yes", "lgtm", "go ahead") is NOT sufficient.
-- [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks (lint-staged, commitlint).
-  - **ACTION**: You **MUST** check the terminal output and exit code of `git commit` immediately after running it.
-  - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g., shorten commit message, fix linting), and **RETRY** the commit until it succeeds.
-  - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT" step until `git log` confirms the new commit exists and `git status` is clean.
+- [ ] 💾 **COMMIT GATE**: You **MUST NOT** run `git commit` until the user
+      responds with the single word **"commit"**. Any other response (e.g.,
+      "yes", "lgtm", "go ahead") is NOT sufficient.
+- [ ] 🛑 **VERIFY COMMIT SUCCESS**: The repo has strict presubmit hooks
+      (lint-staged, commitlint).
+  - **ACTION**: You **MUST** check the terminal output and exit code of
+    `git commit` immediately after running it.
+  - **IF FAILED**: You **MUST** read the error message, fix the issue (e.g.,
+    shorten commit message, fix linting), and **RETRY** the commit until it
+    succeeds.
+  - **CRITICAL**: Do NOT mark the step as done or proceed to the "STOP AND WAIT"
+    step until `git log` confirms the new commit exists and `git status` is
+    clean.
 
 ## 7. Future Work (Code Review Findings)
 
@@ -226,31 +304,43 @@ Items identified during code review (2024-12-29) for future cleanup.
 ### 7.1 Performance Optimization
 
 - [ ] **Architecture: Implement "Version Lock" for Interactions**
-  - **Problem**: Interactive states (dragging sliders, reordering lists) are vulnerable to "shifting sand" if the underlying Automerge document updates in the background during the interaction.
+  - **Problem**: Interactive states (dragging sliders, reordering lists) are
+    vulnerable to "shifting sand" if the underlying Automerge document updates
+    in the background during the interaction.
   - **Requirement**: Establish a "Version Lock" pattern.
-    - When an interaction starts (e.g., drag start), "pin" the UI component to the specific Automerge DAG Head (Version A).
-    - Ignore all incoming sync/patches for that component while the lock is active.
+    - When an interaction starts (e.g., drag start), "pin" the UI component to
+      the specific Automerge DAG Head (Version A).
+    - Ignore all incoming sync/patches for that component while the lock is
+      active.
     - On interaction end (e.g., drop), commit the change _against Version A_.
-    - Let Automerge handle the merge of (Version A + Local Change) vs (Version B - incoming sync).
-  - **Scope**: This is a major architectural change affecting all "Write" interactions (Kanban, Balance, Todo List).
-  - **Status**: Deferred to Phase 8 (Architecture Hardening) or distinct "Interaction Stability" phase.
+    - Let Automerge handle the merge of (Version A + Local Change) vs (Version
+      B - incoming sync).
+  - **Scope**: This is a major architectural change affecting all "Write"
+    interactions (Kanban, Balance, Todo List).
+  - **Status**: Deferred to Phase 8 (Architecture Hardening) or distinct
+    "Interaction Stability" phase.
 
 - [ ] **Optimization: Defer Slider Writes to `onChangeEnd`**
   - **Dependency**: Requires "Version Lock" architecture to be safe/stable.
-  - Currently, `handleDesiredCreditsChange` fires on every `onChange` (every pixel drag).
+  - Currently, `handleDesiredCreditsChange` fires on every `onChange` (every
+    pixel drag).
   - Heavy on Automerge transaction history.
-  - **Fix**: Using the Version Lock pattern, maintain local state during drag and commit massive batch on drop.
-  - See TODO comments in `balance-view-container.tsx` L121-131 and `balance-item.tsx` L46-47.
+  - **Fix**: Using the Version Lock pattern, maintain local state during drag
+    and commit massive batch on drop.
+  - See TODO comments in `balance-view-container.tsx` L121-131 and
+    `balance-item.tsx` L46-47.
 
 - [ ] **Batch Automerge Updates**
-  - Currently, `distributeCredits` returns multiple updates, and we loop `updateTask` for each.
+  - Currently, `distributeCredits` returns multiple updates, and we loop
+    `updateTask` for each.
   - This creates multiple history entries for a single re-balance action.
   - **Fix**: Use `useTaskActions().updateTasks(updates)` (batch/atomic update).
 
 ### 7.2 Code Cleanup
 
 - [x] **Align `createMockTask` Default**
-  - `createMockTask` defaults `desiredCredits: 0`, but `createTask` defaults to `1.0`.
+  - `createMockTask` defaults `desiredCredits: 0`, but `createTask` defaults to
+    `1.0`.
   - **File**: `packages/tasklens/src/test-utils.ts` L51.
   - **Fix**: Change to `desiredCredits: 1.0`.
 
@@ -262,10 +352,12 @@ Items identified during code review (2024-12-29) for future cleanup.
 ### 7.3 Testing
 
 - [ ] **Add Unit Tests for `useBalanceData`**
-  - Hook contains non-trivial aggregation logic (root filtering, totals, starving detection).
+  - Hook contains non-trivial aggregation logic (root filtering, totals,
+    starving detection).
   - Could be tested as pure function after Step 6.1 refactor.
 
 - [x] **Defensive Division Guard**
   - `totalItems` could theoretically be 0 in slider label.
   - **File**: `apps/client/src/components/views/balance/balance-item.tsx` L52.
-  - Low risk (parent guards with empty state), but defensive `totalItems > 0 ?` check is safer.
+  - Low risk (parent guards with empty state), but defensive `totalItems > 0 ?`
+    check is safer.

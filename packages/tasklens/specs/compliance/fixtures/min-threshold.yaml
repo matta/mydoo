@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=../schemas/test-case.schema.json
 name: Minimum Priority Threshold
-description: Verify that tasks with priority <= 0.001 are filtered out of the sorted list.
+description:
+  Verify that tasks with priority <= 0.001 are filtered out of the sorted list.
 
 initial_state:
   current_time: '2023-01-01T12:00:00+00:00'

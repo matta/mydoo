@@ -1,14 +1,20 @@
 # Code Review Guidance
 
-This document captures best practices for code review in the mydoo repository. It is intended for **human and AI reviewers** to ensure consistency, maintainability, and type safety across the codebase.
+This document captures best practices for code review in the mydoo repository.
+It is intended for **human and AI reviewers** to ensure consistency,
+maintainability, and type safety across the codebase.
 
 ## TypeScript Conventions
 
 ### Prefer `undefined` over `null`
 
-Use `undefined` to represent the absence of a value. Reserve `null` only when interfacing with APIs that idiomatically use it (e.g., React `useState<Date | null>(null)` for date pickers).
+Use `undefined` to represent the absence of a value. Reserve `null` only when
+interfacing with APIs that idiomatically use it (e.g., React
+`useState<Date | null>(null)` for date pickers).
 
-**Rationale**: `undefined` is TypeScript's natural sentinel for "no value" and simplifies optional chaining. Mixing `null` and `undefined` leads to verbose guards like `value !== null && value !== undefined`.
+**Rationale**: `undefined` is TypeScript's natural sentinel for "no value" and
+simplifies optional chaining. Mixing `null` and `undefined` leads to verbose
+guards like `value !== null && value !== undefined`.
 
 ```typescript
 // ✅ Good
@@ -28,9 +34,12 @@ function getTask(id: TaskID): Task | null {
 
 ### Keep `useMemo` and `useCallback` Bodies Concise
 
-The total line count for the arguments to a `useMemo` or `useCallback` call should be **less than 5 lines**. Factor complex logic into named helper functions.
+The total line count for the arguments to a `useMemo` or `useCallback` call
+should be **less than 5 lines**. Factor complex logic into named helper
+functions.
 
-**Rationale**: Concise hook bodies improve readability and make dependency arrays easier to audit.
+**Rationale**: Concise hook bodies improve readability and make dependency
+arrays easier to audit.
 
 ```typescript
 // ✅ Good
@@ -57,9 +66,12 @@ const details = useMemo(() => {
 
 ### Always Name Selectors
 
-Redux selectors passed to `useSelector` **must be named functions**. Anonymous inline selectors make debugging difficult and trigger "Selector unknown" warnings in React DevTools.
+Redux selectors passed to `useSelector` **must be named functions**. Anonymous
+inline selectors make debugging difficult and trigger "Selector unknown"
+warnings in React DevTools.
 
-**Rationale**: Named selectors provide clear stack traces and enable better diagnostics.
+**Rationale**: Named selectors provide clear stack traces and enable better
+diagnostics.
 
 ```typescript
 // ✅ Good
@@ -73,7 +85,8 @@ const doc = useSelector(selectLastDoc);
 const doc = useSelector(state => state.tasks.lastDoc);
 ```
 
-For parameterized selectors, use factory functions that return named inner functions:
+For parameterized selectors, use factory functions that return named inner
+functions:
 
 ```typescript
 // ✅ Good
@@ -91,7 +104,8 @@ export function selectTaskById(id: TaskID | undefined) {
 
 ### Fidelity First
 
-Prefer **Browser Mode** over JSDOM for component tests. Browser Mode provides higher fidelity and catches issues that JSDOM misses.
+Prefer **Browser Mode** over JSDOM for component tests. Browser Mode provides
+higher fidelity and catches issues that JSDOM misses.
 
 ### Use `toBeUndefined()` Not `toBeNull()`
 
@@ -113,13 +127,18 @@ expect(result.current.task).toBeNull();
 
 Suppressing lint errors is a last resort -- there is almost always a better way.
 
-**Rationale**: Bypassing checks strictly reduces the safety and maintainability of the codebase.
+**Rationale**: Bypassing checks strictly reduces the safety and maintainability
+of the codebase.
 
 ### Avoid Casting through `unknown`
 
-Casting through `unknown` (e.g., `foo as unknown as Bar`) is banned. This pattern disables the compiler and hides contract violations that surface as cryptic runtime errors.
+Casting through `unknown` (e.g., `foo as unknown as Bar`) is banned. This
+pattern disables the compiler and hides contract violations that surface as
+cryptic runtime errors.
 
-For test mocks specifically, see [Type-Safe Mocking Strategies](type-safe-mocking.md) for approved alternatives including interface segregation and the `strictMock` utility.
+For test mocks specifically, see
+[Type-Safe Mocking Strategies](type-safe-mocking.md) for approved alternatives
+including interface segregation and the `strictMock` utility.
 
 ---
 

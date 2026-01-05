@@ -1,7 +1,7 @@
 # TaskLens (TypeScript Core)
 
-The core algorithm and data store implementation for the TaskLens prioritization engine, written in
-TypeScript.
+The core algorithm and data store implementation for the TaskLens prioritization
+engine, written in TypeScript.
 
 ## Features
 
@@ -9,5 +9,5 @@ TypeScript.
   calculating task priority.
 - **Automerge Backing**: Uses `automerge` CRDT for local-first data storage and
   synchronization.
-- **Strict Typing**: Fully typed with TypeScript matching the [`ALGORITHM.md`](../../../docs/design/algorithm.md)
-  specification.
+- **Strict Typing**: Fully typed with TypeScript matching the
+  [`ALGORITHM.md`](../../../docs/design/algorithm.md) specification.

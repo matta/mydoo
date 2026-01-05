@@ -60,35 +60,33 @@ A `Task` represents a unit of work or a container of work.
 
 #### 3.1.2 Computed/Runtime Properties
 
-**`Task.IsContainer`** (`Boolean`) _Source: Metadata_
-: Structure Flag. True if the task has children.
+**`Task.IsContainer`** (`Boolean`) _Source: Metadata_ : Structure Flag. True if
+the task has children.
 
-**`Task.IsPending`** (`Boolean`) _Source: State_
-: Completion Status. True if `Task.Status != Done`.
+**`Task.IsPending`** (`Boolean`) _Source: State_ : Completion Status. True if
+`Task.Status != Done`.
 
-**`Task.IsReady`** (`Boolean`) _Source: Time_
-: Start Constraint. True if `CurrentTime >= Task.DueDate - (2 * Task.LeadTime)`.
+**`Task.IsReady`** (`Boolean`) _Source: Time_ : Start Constraint. True if
+`CurrentTime >= Task.DueDate - (2 * Task.LeadTime)`.
 
-**`Task.NormalizedImportance`** (`Float`) _Source: Tree_
-: Normalized Tree Weight. The fraction of the Root Task's total weight
-allocated to this task.
+**`Task.NormalizedImportance`** (`Float`) _Source: Tree_ : Normalized Tree
+Weight. The fraction of the Root Task's total weight allocated to this task.
 _Every Root Task starts with a `NormalizedImportance` of `1.0`. This value flows
-down the tree, divided among siblings based on their `Importance`._
-Formula: `Task.Importance / Sum(Siblings.Importance) * Parent.NormalizedImportance`.
+down the tree, divided among siblings based on their `Importance`._ Formula:
+`Task.Importance / Sum(Siblings.Importance) * Parent.NormalizedImportance`.
 
-**`Task.EffectiveCredits`** (`Float`) _Source: Algorithm_
-: Decayed History. The current value of past credits after applying time decay.
-Formula: `Task.Credits * (0.5 ^ (TimeDelta / HalfLife))`
-Where `TimeDelta = CurrentTime - Task.CreditsTimestamp`.
+**`Task.EffectiveCredits`** (`Float`) _Source: Algorithm_ : Decayed History. The
+current value of past credits after applying time decay. Formula:
+`Task.Credits * (0.5 ^ (TimeDelta / HalfLife))` Where
+`TimeDelta = CurrentTime - Task.CreditsTimestamp`.
 
-**`Task.Visibility`** (`Boolean`) _Source: Context_
-: View Filter. Final visibility state combining Place (Open), Time (Ready),
-and Blocking.
-Formula: `True` if (Open AND Task.IsReady AND FilterMatch), else `False`.
+**`Task.Visibility`** (`Boolean`) _Source: Context_ : View Filter. Final
+visibility state combining Place (Open), Time (Ready), and Blocking. Formula:
+`True` if (Open AND Task.IsReady AND FilterMatch), else `False`.
 
-**`Task.Priority`** (`Float`) _Source: Algorithm_
-: Final Sort Score. The ultimate sorting value derived from all passes.
-Formula: `(Task.Visibility ? 1.0 : 0.0) * Task.NormalizedImportance * FeedbackFactor * LeadTimeFactor`.
+**`Task.Priority`** (`Float`) _Source: Algorithm_ : Final Sort Score. The
+ultimate sorting value derived from all passes. Formula:
+`(Task.Visibility ? 1.0 : 0.0) * Task.NormalizedImportance * FeedbackFactor * LeadTimeFactor`.
 
 ### 3.2 Place Record
 
@@ -227,8 +225,8 @@ ancestors.
 
 **Procedure:**
 
-1.  **Identify Ancestors:** Identify the path from Task C to the Root. `Path =
-[Task C, Parent(C), ..., Root]`
+1.  **Identify Ancestors:** Identify the path from Task C to the Root.
+    `Path = [Task C, Parent(C), ..., Root]`
 
 2.  **Bring History to Present:** Before adding new credit, apply pending decay
     to the existing `Credits` of every node in the Path. This ensures the

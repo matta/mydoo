@@ -1,6 +1,9 @@
 # View Projection Layer Specification
 
-> **Purpose**: This document specifies the View Projection Layer (ViewModel) for the mydoo task management application. It defines the React hooks, container components, action handlers, and UI primitives needed to connect the Domain/Persistence layers to the user interface.
+> **Purpose**: This document specifies the View Projection Layer (ViewModel) for
+> the mydoo task management application. It defines the React hooks, container
+> components, action handlers, and UI primitives needed to connect the
+> Domain/Persistence layers to the user interface.
 
 ---
 
@@ -8,7 +11,8 @@
 
 ### 1.1 Requirements Analysis
 
-Based on the [PRD](./prd.md) and [Architecture](./architecture.md), the View Projection Layer requires:
+Based on the [PRD](./prd.md) and [Architecture](./architecture.md), the View
+Projection Layer requires:
 
 | Feature                        | Priority | Notes                                        |
 | ------------------------------ | -------- | -------------------------------------------- |
@@ -25,7 +29,10 @@ Based on the [PRD](./prd.md) and [Architecture](./architecture.md), the View Pro
 
 ### 1.2 UI Layer Strategy
 
-Instead of mandating a specific UI framework, this specification defines the **capabilities** required of the selected UI library. The implementation should choose a library (e.g., Mantine, Material UI, ShadCN, or TailwindUI) that satisfies these constraints:
+Instead of mandating a specific UI framework, this specification defines the
+**capabilities** required of the selected UI library. The implementation should
+choose a library (e.g., Mantine, Material UI, ShadCN, or TailwindUI) that
+satisfies these constraints:
 
 | Capability            | Requirement                                                                            |
 | :-------------------- | :------------------------------------------------------------------------------------- |
@@ -39,9 +46,12 @@ Instead of mandating a specific UI framework, this specification defines the **c
 
 **Rationale:**
 
-- ✅ **Meets all requirements**: Excellence in forms (`@mantine/form`), dates (`@mantine/dates`), and accessibility.
-- **Bundle Size**: ~60KB gzipped (Core + Hooks + Form + Dates), fitting PWA targets.
-- **Developer Experience**: TypeScript-first, extensive hooks library (`use-hotkeys`, `use-os`, `use-viewport-size`).
+- ✅ **Meets all requirements**: Excellence in forms (`@mantine/form`), dates
+  (`@mantine/dates`), and accessibility.
+- **Bundle Size**: ~60KB gzipped (Core + Hooks + Form + Dates), fitting PWA
+  targets.
+- **Developer Experience**: TypeScript-first, extensive hooks library
+  (`use-hotkeys`, `use-os`, `use-viewport-size`).
 
 **Installation:**
 
@@ -56,14 +66,17 @@ pnpm add -D postcss postcss-preset-mantine postcss-simple-vars
 
 ### 2.1 The "Display Item" Pattern
 
-The Domain/Persistence Layer operates on `Task` and `Place` objects stored in Automerge. The UI layer, however, should operate on **Display Items**—decorated domain objects augmented with computed properties and ephemeral UI state.
+The Domain/Persistence Layer operates on `Task` and `Place` objects stored in
+Automerge. The UI layer, however, should operate on **Display Items**—decorated
+domain objects augmented with computed properties and ephemeral UI state.
 
-> [!IMPORTANT]
-> **Rule**: UI Components never receive raw Automerge objects. They receive Read-Only View Models.
+> [!IMPORTANT] **Rule**: UI Components never receive raw Automerge objects. They
+> receive Read-Only View Models.
 
 **Naming Convention:**
 
-- Projection types for lists: `*DisplayItem` (e.g., `TaskDisplayItem`, `TreeDisplayNode`)
+- Projection types for lists: `*DisplayItem` (e.g., `TaskDisplayItem`,
+  `TreeDisplayNode`)
 - Enriched detail views: `*Details` (e.g., `TaskDetails`)
 - Balance/aggregate views: `*Item` (e.g., `BalanceItem`)
 
@@ -74,21 +87,31 @@ The Domain/Persistence Layer operates on `Task` and `Place` objects stored in Au
 | **Persistent** | Task title, status, parent, schedule                               | Automerge document                              |
 | **Transient**  | Tree node expansion, active tab, scroll position, modal open state | React state / `localStorage` / `sessionStorage` |
 
-The View Projection layer is responsible for **merging these two sources** before passing data to the UI. For example, `TreeDisplayNode` combines the persistent `Task.childTaskIds` with the transient `expandedIds` set to determine whether to recursively project children.
+The View Projection layer is responsible for **merging these two sources**
+before passing data to the UI. For example, `TreeDisplayNode` combines the
+persistent `Task.childTaskIds` with the transient `expandedIds` set to determine
+whether to recursively project children.
 
 ### 2.3 Callback Pattern: ID-Passing
 
-Presentational components receive callback props that require the item ID as an argument (e.g., `onToggle(taskId)`) rather than pre-bound callbacks embedded in display items (e.g., `task.onComplete()`).
+Presentational components receive callback props that require the item ID as an
+argument (e.g., `onToggle(taskId)`) rather than pre-bound callbacks embedded in
+display items (e.g., `task.onComplete()`).
 
 **Rationale:**
 
-- **Referential stability**: Callbacks can be defined once in the container and passed down without creating new function objects per item per render.
-- **Memoization-friendly**: Easier to use with `React.memo()` and `useCallback()`. _(Memoization = caching a computed value so it isn't recalculated on every render.)_
-- **Clearer data flow**: The component explicitly shows what data flows up (the ID) rather than hiding it in a closure.
+- **Referential stability**: Callbacks can be defined once in the container and
+  passed down without creating new function objects per item per render.
+- **Memoization-friendly**: Easier to use with `React.memo()` and
+  `useCallback()`. _(Memoization = caching a computed value so it isn't
+  recalculated on every render.)_
+- **Clearer data flow**: The component explicitly shows what data flows up (the
+  ID) rather than hiding it in a closure.
 
 ### 2.4 User Intents Pattern
 
-Action hooks expose methods named as **User Intents**—semantic descriptions of what the user wants to accomplish, not low-level CRUD operations.
+Action hooks expose methods named as **User Intents**—semantic descriptions of
+what the user wants to accomplish, not low-level CRUD operations.
 
 **Pattern:**
 
@@ -106,12 +129,15 @@ interface TaskIntents {
 
 **Rationale:**
 
-- **Abstraction**: The UI doesn't need to know about cascading effects (recurrence, healer, score recalculation).
-- **Single responsibility**: Each intent maps to one user action, even if it triggers multiple store mutations.
-- **Extensibility**: New intents can be added without changing the component signatures.
+- **Abstraction**: The UI doesn't need to know about cascading effects
+  (recurrence, healer, score recalculation).
+- **Single responsibility**: Each intent maps to one user action, even if it
+  triggers multiple store mutations.
+- **Extensibility**: New intents can be added without changing the component
+  signatures.
 
-> [!TIP]
-> When adding new actions, ask: "What is the user trying to accomplish?" Name the method after the goal, not the mechanism.
+> [!TIP] When adding new actions, ask: "What is the user trying to accomplish?"
+> Name the method after the goal, not the mechanism.
 
 ---
 
@@ -154,7 +180,8 @@ flowchart LR
 
 ## 3. Projection Hooks (State Selectors)
 
-Projection hooks transform raw `TunnelState` into UI-ready shapes. They are **pure projections** with no side effects.
+Projection hooks transform raw `TunnelState` into UI-ready shapes. They are
+**pure projections** with no side effects.
 
 ### 3.1 `useDocument()`
 
@@ -223,12 +250,14 @@ function usePriorityList(
 1. Subscribe to `TunnelState` changes via `useTunnel()`
 2. Filter tasks per `filter.placeId` and `filter.includeClosed`
 3. Filter to `visibility === true` (Pass 1 from ALGORITHM.md)
-4. **Exclude tasks where `isAcknowledged === true`** (these have been acknowledged/hidden from Do list)
+4. **Exclude tasks where `isAcknowledged === true`** (these have been
+   acknowledged/hidden from Do list)
 5. Sort by `priority` descending
 6. Enrich with `parentTitle`, `isOverdue`, `isStale`
 
-> [!NOTE]
-> The list is sorted **purely by computed priority**. There are no section groupings (e.g., "Overdue", "Today", "Later"). Overdue items, items due today, and items due later are intermixed based on their priority score.
+> [!NOTE] The list is sorted **purely by computed priority**. There are no
+> section groupings (e.g., "Overdue", "Today", "Later"). Overdue items, items
+> due today, and items due later are intermixed based on their priority score.
 
 **Location**: `apps/client/src/viewmodel/usePriorityList.ts` (NEW)
 
@@ -348,7 +377,8 @@ function useTaskDetails(
 
 ### 3.9 `useValidParentTargets(docUrl: AutomergeUrl, excludedTaskId: TaskID | undefined)`
 
-**Purpose**: Calculate valid parent candidates for reparenting (excluding self and descendants to prevent cycles).
+**Purpose**: Calculate valid parent candidates for reparenting (excluding self
+and descendants to prevent cycles).
 
 ```typescript
 function useValidParentTargets(
@@ -357,13 +387,15 @@ function useValidParentTargets(
 ): TunnelNode[];
 ```
 
-**Location**: `apps/client/src/viewmodel/projections/useValidParentTargets.ts` (NEW)
+**Location**: `apps/client/src/viewmodel/projections/useValidParentTargets.ts`
+(NEW)
 
 ---
 
 ## 4. Action Hooks (User Intents)
 
-Action hooks expose **User Intents** (see §2.4)—semantic operations representing user goals. Each intent may trigger multiple store mutations and side effects.
+Action hooks expose **User Intents** (see §2.4)—semantic operations representing
+user goals. Each intent may trigger multiple store mutations and side effects.
 
 ### Why Hooks? Why Not Free Functions?
 
@@ -379,12 +411,15 @@ function completeTask(docUrl: AutomergeUrl, id: TaskID) {
 }
 ```
 
-**Problem**: React components don't have a global "document" they can access. The Automerge document lives inside React's **state management system**. To modify it, you need:
+**Problem**: React components don't have a global "document" they can access.
+The Automerge document lives inside React's **state management system**. To
+modify it, you need:
 
 1. **Access to the document handle** (which is stored in React's context/state)
 2. **The ability to trigger a re-render** when the document changes
 
-**Hooks solve this** by connecting your component to React's internals. A hook is a function that:
+**Hooks solve this** by connecting your component to React's internals. A hook
+is a function that:
 
 - Can access React's internal state (`useState`, `useContext`)
 - "Subscribes" your component to data sources
@@ -407,12 +442,14 @@ function useTaskIntents(docUrl: AutomergeUrl): TaskIntents {
 }
 ```
 
-> [!IMPORTANT]
-> **The "Rules of Hooks"**: React hooks must be called at the top level of a component (not in loops, conditions, or nested functions). This is because React relies on the _order_ of hook calls to track state.
+> [!IMPORTANT] **The "Rules of Hooks"**: React hooks must be called at the top
+> level of a component (not in loops, conditions, or nested functions). This is
+> because React relies on the _order_ of hook calls to track state.
 
 ### Why Return an Interface (Object of Functions)?
 
-You asked: _"Why are all the intents under an interface? Is this to allow mocking?"_
+You asked: _"Why are all the intents under an interface? Is this to allow
+mocking?"_
 
 **Yes, mocking is one reason**, but there are several more:
 
@@ -665,7 +702,8 @@ interface NavigationActions {
 function useNavigationState(): [NavigationState, NavigationActions];
 ```
 
-**Implementation**: React `useState` + `useCallback`, possibly persisted to `sessionStorage`.
+**Implementation**: React `useState` + `useCallback`, possibly persisted to
+`sessionStorage`.
 
 **Location**: `apps/client/src/viewmodel/useNavigationState.ts` (NEW)
 
@@ -673,7 +711,8 @@ function useNavigationState(): [NavigationState, NavigationActions];
 
 ## 5. Container Components
 
-Container components bridge projection/action hooks to presentational components. They contain **no visual markup**—only data wiring.
+Container components bridge projection/action hooks to presentational
+components. They contain **no visual markup**—only data wiring.
 
 ### 5.1 `DoViewContainer`
 
@@ -737,8 +776,8 @@ function PlanViewContainer() {
 }
 ```
 
-> [!NOTE]
-> **Mobile Layout**: The `PlanViewContainer` renders a persistent **Bottom Bar** on mobile viewports. This bar contains:
+> [!NOTE] **Mobile Layout**: The `PlanViewContainer` renders a persistent
+> **Bottom Bar** on mobile viewports. This bar contains:
 >
 > - `[<]` Up Level (navigates up the stack)
 > - `[+]` Add Task (opens "Create Mode" targeting the current view/zoom level)
@@ -768,7 +807,8 @@ function BalanceViewContainer() {
 }
 ```
 
-**Location**: `apps/client/src/viewmodel/containers/BalanceViewContainer.tsx` (NEW)
+**Location**: `apps/client/src/viewmodel/containers/BalanceViewContainer.tsx`
+(NEW)
 
 ---
 
@@ -793,14 +833,18 @@ function ContextViewContainer() {
 }
 ```
 
-**Location**: `apps/client/src/viewmodel/containers/ContextViewContainer.tsx` (NEW)
+**Location**: `apps/client/src/viewmodel/containers/ContextViewContainer.tsx`
+(NEW)
 
 ---
 
 ### 5.5 `TaskEditorContainer`
 
-**Responsibility**: Full-screen task details editor modal. Supports "Create Mode" (new task) and "Edit Mode" (existing task).
-**State Management**: For MVP, the `TaskEditorModal` manages its own transient form state (local `useState`). The container simply assumes responsibility for fetching the `Task` data and handling the "Save" action to persist to Automerge.
+**Responsibility**: Full-screen task details editor modal. Supports "Create
+Mode" (new task) and "Edit Mode" (existing task). **State Management**: For MVP,
+the `TaskEditorModal` manages its own transient form state (local `useState`).
+The container simply assumes responsibility for fetching the `Task` data and
+handling the "Save" action to persist to Automerge.
 
 ```tsx
 function TaskEditorContainer() {
@@ -855,13 +899,16 @@ function TaskEditorContainer() {
 }
 ```
 
-**Location**: `apps/client/src/viewmodel/containers/TaskEditorContainer.tsx` (NEW)
+**Location**: `apps/client/src/viewmodel/containers/TaskEditorContainer.tsx`
+(NEW)
 
 ---
 
 ### 5.6 `MovePickerContainer`
 
-**Responsibility**: Modal for selecting a new parent **and** sibling position. This is the **only mechanism for task reorganization** in MVP (no drag-and-drop).
+**Responsibility**: Modal for selecting a new parent **and** sibling position.
+This is the **only mechanism for task reorganization** in MVP (no
+drag-and-drop).
 
 ```tsx
 function MovePickerContainer() {
@@ -895,19 +942,23 @@ function MovePickerContainer() {
 }
 ```
 
-> [!NOTE]
-> The `MovePickerModal` should display:
+> [!NOTE] The `MovePickerModal` should display:
 >
-> 1. A tree/list of potential parent tasks (excluding the task being moved and its descendants)
-> 2. For each parent, a way to choose position among siblings (e.g., "Insert after: [sibling dropdown]")
+> 1. A tree/list of potential parent tasks (excluding the task being moved and
+>    its descendants)
+> 2. For each parent, a way to choose position among siblings (e.g., "Insert
+>    after: [sibling dropdown]")
 
-**Location**: `apps/client/src/viewmodel/containers/MovePickerContainer.tsx` (NEW)
+**Location**: `apps/client/src/viewmodel/containers/MovePickerContainer.tsx`
+(NEW)
 
 ---
 
 ### 5.7 `AppShellContainer`
 
-**Responsibility**: Enforce the responsive navigation paradigm (Split Pane vs. Tab Bar) and render the active view. This component manages the top-level layout structure.
+**Responsibility**: Enforce the responsive navigation paradigm (Split Pane vs.
+Tab Bar) and render the active view. This component manages the top-level layout
+structure.
 
 ```tsx
 function AppShellContainer() {
@@ -969,7 +1020,8 @@ function AppShellContainer() {
 
 ## 6. Presentational Component Catalog
 
-These components receive all data as props and have no internal state except transient UI state (focus, hover).
+These components receive all data as props and have no internal state except
+transient UI state (focus, hover).
 
 ### Component Tier Definitions
 
@@ -1016,8 +1068,10 @@ These components receive all data as props and have no internal state except tra
 | `MovePickerModal`    | `taskId`, `targets[]`, callbacks          | `Modal`, `ScrollArea`, `OutlineTree` |
 | `DeleteConfirmModal` | `taskTitle`, `descendantCount`, callbacks | `Modal`, `Text`, `Group`, `Button`   |
 
-> [!NOTE]
-> **When to show DeleteConfirmModal**: Per PRD §3.4.2, the confirmation dialog is **required when deleting a task with children**. It must display the count of descendants that will also be deleted (e.g., "Delete 'Project X' and 12 sub-tasks?"). Leaf tasks may be deleted without confirmation.
+> [!NOTE] **When to show DeleteConfirmModal**: Per PRD §3.4.2, the confirmation
+> dialog is **required when deleting a task with children**. It must display the
+> count of descendants that will also be deleted (e.g., "Delete 'Project X' and
+> 12 sub-tasks?"). Leaf tasks may be deleted without confirmation.
 
 ### 6.5 Balance Components
 
@@ -1032,8 +1086,9 @@ These components receive all data as props and have no internal state except tra
 | ------------ | -------------------------------------- | ---------------------------------------------- |
 | `MainLayout` | `children`, `activeTab`, `onChangeTab` | `AppShell`, `AppShell.Navbar`, `AppShell.Main` |
 
-> [!NOTE]
-> Layouts are the structural skeleton (shell, navigation chrome, responsive breakpoints) that holds primitives, composites, and modals. They handle mobile vs. desktop layout switching.
+> [!NOTE] Layouts are the structural skeleton (shell, navigation chrome,
+> responsive breakpoints) that holds primitives, composites, and modals. They
+> handle mobile vs. desktop layout switching.
 
 ---
 
@@ -1255,7 +1310,9 @@ describe('TaskRow', () => {
 
 ## 11. Accessibility Requirements
 
-All components must meet WCAG 2.1 Level AA standards. This section defines specific accessibility requirements for keyboard navigation, screen reader support, and focus management.
+All components must meet WCAG 2.1 Level AA standards. This section defines
+specific accessibility requirements for keyboard navigation, screen reader
+support, and focus management.
 
 ### 11.1 Keyboard Navigation
 
@@ -1310,9 +1367,11 @@ When a modal opens:
 1. Focus moves to the first focusable element (typically the title input)
 2. `Tab` cycles through modal elements only (does not escape to background)
 3. `Shift+Tab` from first element moves to last element (wrap-around)
-4. On close, focus returns to the trigger element (e.g., the task row that opened the editor)
+4. On close, focus returns to the trigger element (e.g., the task row that
+   opened the editor)
 
-**Implementation Note:** Use a focus trap library or implement manually with `keydown` listeners.
+**Implementation Note:** Use a focus trap library or implement manually with
+`keydown` listeners.
 
 #### Focus Indicators
 
@@ -1411,13 +1470,15 @@ Announce dynamic changes without moving focus:
 - **Checkbox:** Must have `aria-label` with task title
 - **Task title:** Must be focusable (wrapped in `<button>` or `<a>`)
 - **Metadata:** Use `aria-describedby` to associate with checkbox
-- **Visual cues:** Must not rely on color alone (e.g., overdue = red text + icon)
+- **Visual cues:** Must not rely on color alone (e.g., overdue = red text +
+  icon)
 
 #### PriorityTaskList / OutlineTree
 
 - **Container:** `role="list"` or `role="tree"`
 - **Items:** `role="listitem"` or `role="treeitem"`
-- **Tree items:** Include `aria-level`, `aria-expanded`, `aria-setsize`, `aria-posinset`
+- **Tree items:** Include `aria-level`, `aria-expanded`, `aria-setsize`,
+  `aria-posinset`
 - **Empty state:** Include visible text (not just icon) explaining no tasks
 
 #### Modals (TaskEditorModal, MovePickerModal)
@@ -1430,10 +1491,14 @@ Announce dynamic changes without moving focus:
 
 #### Form Inputs
 
-- **Labels:** Every input must have an associated `<label>` (not just placeholder)
-- **Required fields:** Use `aria-required="true"` and visual indicator (e.g., asterisk)
-- **Validation errors:** Use `aria-invalid="true"` and `aria-describedby` pointing to error message
-- **Sliders:** Include `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, `aria-valuetext`
+- **Labels:** Every input must have an associated `<label>` (not just
+  placeholder)
+- **Required fields:** Use `aria-required="true"` and visual indicator (e.g.,
+  asterisk)
+- **Validation errors:** Use `aria-invalid="true"` and `aria-describedby`
+  pointing to error message
+- **Sliders:** Include `aria-valuemin`, `aria-valuemax`, `aria-valuenow`,
+  `aria-valuetext`
 
 **Example (Importance Slider):**
 
@@ -1456,7 +1521,8 @@ Announce dynamic changes without moving focus:
 #### Navigation Tabs
 
 - **Container:** `role="tablist"`
-- **Tabs:** `role="tab"`, `aria-selected="true|false"`, `aria-controls="panel-id"`
+- **Tabs:** `role="tab"`, `aria-selected="true|false"`,
+  `aria-controls="panel-id"`
 - **Panels:** `role="tabpanel"`, `aria-labelledby="tab-id"`
 - **Keyboard:** Arrow keys to navigate tabs, `Enter`/`Space` to activate
 
@@ -1540,8 +1606,10 @@ Announce dynamic changes without moving focus:
 
 ## 14. Future Optimizations (Post-MVP)
 
-- **List Virtualization**: Implement windowing (e.g., `react-virtuoso`) for the Do List and Plan Tree to support datasets > 1000 items.
-- **Drag-and-Drop**: Implement direct manipulation for task reordering in the Plan view.
+- **List Virtualization**: Implement windowing (e.g., `react-virtuoso`) for the
+  Do List and Plan Tree to support datasets > 1000 items.
+- **Drag-and-Drop**: Implement direct manipulation for task reordering in the
+  Plan view.
 
 ---
 
