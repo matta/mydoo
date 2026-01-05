@@ -43,7 +43,7 @@
     "fix": "turbo run fix --filter=!//",
     "test-e2e": "turbo run test-e2e",
     "test": "turbo run test",
-    "verify": "turbo run fix --filter=!// && turbo run test test-e2e check --filter=!//",
+    "verify": "turbo run fix --filter=!// && turbo run check-agent --filter=!//",
     "// Implementation scripts": "",
     "check-biome-root": "biome check .",
     "check-deps-root": "knip",
