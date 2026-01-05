@@ -33,21 +33,21 @@
   "license": "ISC",
   "private": true,
   "scripts": {
-    "build": "../../scripts/only-allow-turbo.sh build -- tsc --emitDeclarationOnly",
+    "build": "tsc --emitDeclarationOnly",
     "check-biome": "biome check .",
     "check-eslint": "eslint .",
     "check-format": "prettier --check . --ignore-path ../../.prettierignore",
-    "check-style": "../../scripts/only-allow-turbo.sh check-style -- true",
+    "check-style": "true",
     "check-types": "tsc --noEmit",
-    "check": "../../scripts/only-allow-turbo.sh check -- true",
+    "check": "true",
     "clean": "rm -rf dist",
     "fix-biome": "biome check --write .",
     "fix-eslint": "eslint . --fix",
     "fix-format": "prettier --write . --ignore-path ../../.prettierignore",
-    "fix-style": "../../scripts/only-allow-turbo.sh fix-style -- true",
-    "fix": "../../scripts/only-allow-turbo.sh fix -- true",
+    "fix-style": "true",
+    "fix": "true",
     "generate": "mkdir -p src/generated && json2ts ./specs/compliance/schemas/test-case.schema.json ./src/generated/test-case.d.ts && prettier --write ./src/generated/test-case.d.ts",
-    "test": "../../scripts/only-allow-turbo.sh test -- vitest run --coverage"
+    "test": "vitest run --coverage"
   },
   "type": "module",
   "types": "./src/index.ts"
