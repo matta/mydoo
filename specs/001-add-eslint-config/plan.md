@@ -55,7 +55,7 @@ _N/A - Infrastructure change._
   - `pnpm check`: Aggregate gate (Parallel).
   - `pnpm fix`: Aggregate gate (Sequential).
   - `pnpm check-style`: ESLint + Biome aggregate.
-  - `pnpm check-staged`: Pre-commit aggregate.
+  - `pnpm verify`: Pre-commit aggregate (replaces `pnpm check-staged` for full validation).
 
 ### Phase 2: Implementation
 

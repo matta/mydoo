@@ -61,7 +61,7 @@ Clear separation between Domain State and UI State.
 ### Package Management
 
 - Use `pnpm` for all operations.
-- Run `pnpm fix && pnpm check` before any commit request.
+- Run `pnpm verify` before any commit request.
 
 ### Documentation
 

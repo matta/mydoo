@@ -39,7 +39,7 @@
 
 - We use Vitest for testing.
 - All new code must have tests.
-- **Strict Verification:** ALWAYS run `pnpm fix && pnpm check` before certifying a change. You MAY use targeted `turbo` commands during development, but you MUST run the full `pnpm fix && pnpm check` sequence before asking the user to commit.
+- **Strict Verification:** ALWAYS run `pnpm verify` before certifying a change. You MAY use targeted `turbo` commands during development, but you MUST run the full `pnpm verify` sequence before asking the user to commit.
 
 ### Test Commands
 
