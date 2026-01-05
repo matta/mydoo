@@ -52,6 +52,7 @@
     "fix-biome-root": "biome check --write .",
     "fix-format-root": "prettier --write \"*.{json,md,yaml,yml,js,mjs,cjs,ts,tsx,jsx,css,html}\"",
     "lint-staged": "lint-staged",
-    "check-staged": "./scripts/check-staged.sh"
+    "check-staged": "./scripts/check-staged.sh",
+    "check-turbo-root": "tsx scripts/check-turbo-inputs.ts"
   }
 }

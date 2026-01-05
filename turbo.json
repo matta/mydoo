@@ -42,12 +42,18 @@
         "**/*.js",
         "**/*.mjs",
         "**/*.cjs",
-        "!**/test-results/**",
-        "!**/playwright-report/**",
-        "!**/coverage/**",
-        "!**/dist/**",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
         "!**/.turbo/**",
-        "!**/node_modules/**"
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
       ],
       "outputs": [],
       "cache": true
@@ -62,12 +68,18 @@
         "**/*.config.js",
         "**/*.config.ts",
         ".ls-lint.yml",
-        "!**/test-results/**",
-        "!**/playwright-report/**",
-        "!**/coverage/**",
-        "!**/dist/**",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
         "!**/.turbo/**",
-        "!**/node_modules/**"
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
       ],
       "outputs": []
     },
@@ -78,12 +90,18 @@
         "tests/**/*",
         "specs/**/*",
         "**/*.json",
-        "!**/test-results/**",
-        "!**/playwright-report/**",
-        "!**/coverage/**",
-        "!**/dist/**",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
         "!**/.turbo/**",
-        "!**/node_modules/**"
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
       ],
       "outputs": []
     },
@@ -94,7 +112,19 @@
         "specs/**/*",
         "*.config.js",
         "*.config.ts",
-        "eslint.config.js"
+        "eslint.config.js",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
       ],
       "outputs": []
     },
@@ -107,12 +137,18 @@
         "src/**/*",
         "tests/**/*",
         "specs/**/*",
-        "!**/test-results/**",
-        "!**/playwright-report/**",
-        "!**/coverage/**",
-        "!**/dist/**",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
         "!**/.turbo/**",
-        "!**/node_modules/**"
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
       ],
       "outputs": []
     },
@@ -123,7 +159,8 @@
         "check-format",
         "//#check-biome-root",
         "//#check-filenames-root",
-        "//#check-format-root"
+        "//#check-format-root",
+        "//#check-turbo-root"
       ],
       "outputs": []
     },
@@ -137,7 +174,19 @@
         "tests/**/*.tsx",
         "specs/**/*.ts",
         "*.config.ts",
-        "tsconfig.json"
+        "tsconfig.json",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
       ],
       "outputs": []
     },
@@ -175,13 +224,42 @@
         "tsconfig.json",
         "vite.config.ts",
         "index.html",
-        "specs/**/*.d.ts"
+        "specs/**/*.d.ts",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
       ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "test": {
       "dependsOn": ["check-style", "build", "check-types", "generate"],
-      "inputs": ["src/**/*", "tests/**/*", "test/**/*", "specs/**/*"],
+      "inputs": [
+        "src/**/*",
+        "tests/**/*",
+        "test/**/*",
+        "specs/**/*",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
+      ],
       "outputs": []
     },
     "test-e2e": {
@@ -202,6 +280,27 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "//#check-turbo-root": {
+      "inputs": [
+        "turbo.json",
+        "**/turbo.json",
+        "turbo-exclusions.json",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
+      ],
+      "outputs": [],
+      "cache": true
     }
   }
 }

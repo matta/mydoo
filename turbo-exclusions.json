@@ -1,0 +1,14 @@
+[
+  "!**/.features-gen/**",
+  "!**/.husky/_/**",
+  "!**/.moon/**",
+  "!**/.turbo/**",
+  "!**/__screenshots__/**",
+  "!**/coverage/**",
+  "!**/dev-dist/**",
+  "!**/dist/**",
+  "!**/generated/**",
+  "!**/node_modules/**",
+  "!**/playwright-report/**",
+  "!**/test-results/**"
+]
