@@ -16,6 +16,7 @@
       "cache": true
     },
     "//#fix-format-root": {
+      "outputLogs": "errors-only",
       "cache": false
     },
     "//#check-biome-root": {
@@ -24,6 +25,7 @@
       "outputs": []
     },
     "//#fix-biome-root": {
+      "outputLogs": "errors-only",
       "cache": false
     },
     "check-agent": {
@@ -208,12 +210,15 @@
       "outputs": []
     },
     "fix-biome": {
+      "outputLogs": "errors-only",
       "cache": false
     },
     "fix-eslint": {
+      "outputLogs": "errors-only",
       "cache": false
     },
     "fix-format": {
+      "outputLogs": "errors-only",
       "cache": false
     },
     "fix-style": {
