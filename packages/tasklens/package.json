@@ -46,7 +46,7 @@
     "fix-format": "prettier --write . --ignore-path ../../.prettierignore",
     "fix-style": "../../scripts/only-allow-turbo.sh fix-style -- true",
     "fix": "../../scripts/only-allow-turbo.sh fix -- true",
-    "generate-types": "json2ts ./specs/compliance/schemas/test-case.schema.json ./specs/compliance/schemas/test-case.d.ts && pnpm prettier --write ./specs/compliance/schemas/test-case.d.ts",
+    "generate": "mkdir -p src/generated && json2ts ./specs/compliance/schemas/test-case.schema.json ./src/generated/test-case.d.ts && prettier --write ./src/generated/test-case.d.ts",
     "test": "../../scripts/only-allow-turbo.sh test -- vitest run --coverage"
   },
   "type": "module",

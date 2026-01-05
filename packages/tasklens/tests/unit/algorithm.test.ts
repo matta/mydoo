@@ -4,14 +4,13 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import {load} from 'js-yaml';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
-
+import schemaJson from '../../specs/compliance/schemas/test-case.schema.json';
+import {getPrioritizedTasks} from '../../src/domain/priority';
 import type {
   Place as PlaceInput,
   TaskInput,
   TunnelAlgorithmTestCaseSchema,
-} from '../../specs/compliance/schemas/test-case';
-import schemaJson from '../../specs/compliance/schemas/test-case.schema.json';
-import {getPrioritizedTasks} from '../../src/domain/priority';
+} from '../../src/generated/test-case';
 import {TunnelStore} from '../../src/persistence/store';
 import {
   type EnrichedTask,
