@@ -1,5 +1,8 @@
 Feature: Document Switching
 
+    Background:
+        Given the user launches the app with a clean slate
+
     Scenario: User creates a new document
         Given the user is on a document
         When the user creates a new document

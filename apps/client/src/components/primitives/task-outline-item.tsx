@@ -52,6 +52,10 @@ export interface TaskOutlineItemProps {
   onDelete: (id: TaskID) => void;
   /** Whether this task should flash to indicate it was just created/moved. */
   isFlashTarget?: boolean;
+  /** 0-based index of the task in its parent's list. */
+  index?: number;
+  /** Whether the task is a child of a sequential project. */
+  isSequentialChild?: boolean;
 }
 
 /**
@@ -79,6 +83,8 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
   onAddChild,
   onDelete,
   isFlashTarget,
+  index = 0,
+  isSequentialChild = false,
 }: TaskOutlineItemProps) {
   const elementRef = useRef<HTMLDivElement>(null);
   const hasChildren = node.children.length > 0;
@@ -228,6 +234,17 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
         truncate
         onClick={() => onOpenEditor(node.id)}
       >
+        {isSequentialChild && (
+          <Text
+            component="span"
+            size="xs"
+            c="dimmed"
+            fw={700}
+            style={{marginRight: rem(8), verticalAlign: 'middle'}}
+          >
+            {index + 1}.
+          </Text>
+        )}
         {node.title}
       </Text>
 

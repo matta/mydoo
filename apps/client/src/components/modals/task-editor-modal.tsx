@@ -19,6 +19,7 @@ import {
   Select,
   Slider,
   Stack,
+  Switch,
   Text,
   Textarea,
   TextInput,
@@ -127,6 +128,7 @@ export function TaskEditorModal({
   const [notes, setNotes] = useState('');
   const [frequency, setFrequency] = useState<string | null>(null);
   const [interval, setInterval] = useState<number | string>(1);
+  const [isSequential, setIsSequential] = useState(false);
 
   // Sync form state when the modal opens or the task changes
   useEffect(() => {
@@ -150,6 +152,7 @@ export function TaskEditorModal({
       setNotes(task.notes || '');
       setFrequency(task.repeatConfig?.frequency || null);
       setInterval(task.repeatConfig?.interval || 1);
+      setIsSequential(task.isSequential || false);
     } else {
       // Create Mode: Reset to defaults
       setTitle('');
@@ -162,6 +165,7 @@ export function TaskEditorModal({
       setNotes('');
       setFrequency(null);
       setInterval(1);
+      setIsSequential(false);
     }
   }, [task, opened]); // Sync form state when the modal opens or the task changes
 
@@ -186,6 +190,7 @@ export function TaskEditorModal({
         creditIncrement: effort,
         notes,
         repeatConfig,
+        isSequential,
         schedule: {
           ...task.schedule,
           type: repeatConfig ? 'Routinely' : 'Once',
@@ -203,6 +208,7 @@ export function TaskEditorModal({
         creditIncrement: effort,
         notes,
         repeatConfig,
+        isSequential,
         schedule: {
           type: repeatConfig ? 'Routinely' : 'Once',
           dueDate: dueDate?.getTime(),
@@ -227,6 +233,7 @@ export function TaskEditorModal({
     onSave,
     onCreate,
     onClose,
+    isSequential,
   ]);
 
   const handleAddSibling = useCallback(() => {
@@ -348,6 +355,15 @@ export function TaskEditorModal({
             Parent: {parentTitle || 'Root (Top Level)'}
           </Text>
         )}
+
+        {/* Sequential Toggle */}
+        <Switch
+          data-testid="sequential-toggle"
+          label="Sequential Project"
+          description="Complete children in order"
+          checked={isSequential}
+          onChange={event => setIsSequential(event.currentTarget.checked)}
+        />
 
         {/* Importance Slider */}
         <Stack gap="xs">

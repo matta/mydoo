@@ -33,6 +33,7 @@ export interface PlanFixture {
   advanceTime: (minutes: number) => Promise<void>;
   setDueDate: (dateString: string) => Promise<void>;
   setLeadTime: (value: number, unit: string) => Promise<void>;
+  setSequential: (title: string, shouldBeSequential: boolean) => Promise<void>;
   createTaskWithDueDate: (
     title: string,
     config: {dueDate: string; leadTimeVal: number; leadTimeUnit: string},
@@ -161,10 +162,53 @@ export class PlanPage implements PlanFixture {
   }
 
   async openTaskEditor(title: string): Promise<void> {
-    await this.page.getByText(title, {exact: true}).click();
-    await expect(
-      this.page.getByRole('dialog', {name: 'Edit Task'}),
-    ).toBeVisible();
+    const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
+
+    if (await modal.isVisible()) {
+      const titleInput = modal.getByRole('textbox', {name: 'Title'});
+      const currentTitle = await titleInput.inputValue();
+      if (currentTitle === title) {
+        return; // Already open
+      }
+      // If open but wrong title, validation or close logic would go here.
+      // For now, assume we might need to close it or just click the other task (which might close it).
+      // Let's press escape to close it to be safe.
+      await this.page.keyboard.press('Escape');
+      await expect(modal).not.toBeVisible();
+    }
+
+    // Retry loop: If task not found, try navigating up (up to 5 levels)
+    // This handles cases where we are drilled down into a child task, but we want to edit the parent
+    // (which is now in the header/breadcrumb and not in the list).
+    for (let i = 0; i < 5; i++) {
+      const row = this.page
+        .locator(`[data-testid="task-item"]`, {hasText: title})
+        .first();
+      if ((await row.count()) > 0 && (await row.isVisible())) {
+        await row.click();
+        await expect(modal).toBeVisible();
+        return;
+      }
+
+      // Not found visible in list. Check if we can go up.
+      const upLevel = this.page.getByLabel('Up Level');
+      if ((await upLevel.isVisible()) && (await upLevel.isEnabled())) {
+        await upLevel.click();
+        // Wait for animation/load? The loop check will implicitly wait for element.
+        // A small delay might be safer for stability.
+        await this.page.waitForTimeout(200);
+      } else {
+        // Cannot go up further, and item not found.
+        break;
+      }
+    }
+
+    // Final attempt (or failure if loop exhausted)
+    await this.page
+      .locator(`[data-testid="task-item"]`, {hasText: title})
+      .first()
+      .click();
+    await expect(modal).toBeVisible();
   }
 
   async clickMoveButton(): Promise<void> {
@@ -324,6 +368,35 @@ export class PlanPage implements PlanFixture {
     await expect(
       this.page.getByRole('dialog', {name: 'Edit Task'}),
     ).not.toBeVisible();
+  }
+
+  async setSequential(
+    title: string,
+    shouldBeSequential: boolean,
+  ): Promise<void> {
+    console.log(
+      'DEBUG: setSequential called for',
+      title,
+      'to',
+      shouldBeSequential,
+    );
+    await this.openTaskEditor(title);
+    const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
+    const toggle = modal.getByLabel('Sequential Project');
+
+    const isChecked = await toggle.isChecked();
+    if (isChecked !== shouldBeSequential) {
+      // For Mantine switches, clicking the label text is more reliable
+      const label = modal
+        .locator('label')
+        .filter({hasText: 'Sequential Project'});
+      await label.dispatchEvent('click', {bubbles: true});
+    }
+
+    const saveButton = modal.getByRole('button', {name: 'Save Changes'});
+    await saveButton.scrollIntoViewIfNeeded();
+    await saveButton.click({force: true});
+    await expect(modal).not.toBeVisible();
   }
 
   // --- Verification Helpers ---

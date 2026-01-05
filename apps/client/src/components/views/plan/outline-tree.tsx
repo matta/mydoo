@@ -33,6 +33,8 @@ export interface OutlineTreeProps {
   onDelete: (id: TaskID) => void;
   /** The ID of the most recently created task (for highlight/scroll). */
   lastCreatedTaskId: TaskID | undefined;
+  /** Whether the parent of these nodes is sequential. */
+  isParentSequential?: boolean;
 }
 
 /**
@@ -59,6 +61,7 @@ export function OutlineTree({
   onAddChild,
   onDelete,
   lastCreatedTaskId,
+  isParentSequential = false,
 }: OutlineTreeProps) {
   if (nodes.length === 0) {
     return null;
@@ -66,7 +69,7 @@ export function OutlineTree({
 
   return (
     <Stack gap={0}>
-      {nodes.map(node => {
+      {nodes.map((node, index) => {
         const isExpanded = expandedIds.has(node.id);
 
         return (
@@ -90,6 +93,8 @@ export function OutlineTree({
               onAddChild={onAddChild}
               onDelete={onDelete}
               isFlashTarget={node.id === lastCreatedTaskId}
+              index={index}
+              isSequentialChild={isParentSequential}
             />
 
             {isExpanded && node.children.length > 0 && (
@@ -108,6 +113,7 @@ export function OutlineTree({
                 onAddChild={onAddChild}
                 onDelete={onDelete}
                 lastCreatedTaskId={lastCreatedTaskId}
+                isParentSequential={node.isSequential}
               />
             )}
           </div>

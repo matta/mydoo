@@ -24,6 +24,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "verify": "turbo run fix --filter=!// && turbo run test test-e2e check --filter=!//",
     "build": "turbo build",
     "dev": "turbo dev",
     "check": "turbo run check --filter=!//",
