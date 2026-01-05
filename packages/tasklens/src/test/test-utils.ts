@@ -5,7 +5,44 @@
  * initializing test state.
  */
 
-import type {ComputedTask, TaskID, TunnelState} from './types';
+import type {ComputedTask, TaskID, TunnelState} from '../types';
+
+/**
+ * Creates a strict mock that throws if unexpected properties are accessed.
+ *
+ * This utility enforces that tests only use the methods they've explicitly mocked,
+ * preventing tests from accidentally depending on implementation details.
+ *
+ * @param name - A descriptive name for the mock (used in error messages)
+ * @param implementations - Partial implementation of the target type
+ * @returns A proxy that behaves like T but throws on unexpected property access
+ *
+ * @example
+ * ```typescript
+ * const mockHandle = strictMock<DocHandle<TunnelState>>('DocHandle', {
+ *   doc: () => myDoc,
+ *   change: (fn) => fn(myDoc),
+ * });
+ * ```
+ */
+export function strictMock<T extends object>(
+  name: string,
+  implementations: Partial<T>,
+): T {
+  return new Proxy(implementations, {
+    get: (target, prop) => {
+      if (prop in target) {
+        // biome-ignore lint/suspicious/noExplicitAny: Proxy requires dynamic access
+        return (target as any)[prop];
+      }
+      // This enforces that tests only access what was explicitly mocked
+      throw new Error(
+        `[StrictMock: ${name}] Accessed unexpected property: '${String(prop)}'. \n` +
+          `Only these were mocked: [${Object.keys(implementations).join(', ')}]`,
+      );
+    },
+  }) as T;
+}
 
 /**
  * Creates an empty TunnelState document.

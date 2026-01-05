@@ -27,7 +27,8 @@
     "vitest": "catalog:"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./test": "./src/test/test-utils.ts"
   },
   "keywords": [],
   "license": "ISC",

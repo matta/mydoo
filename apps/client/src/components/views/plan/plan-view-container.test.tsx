@@ -1,22 +1,16 @@
-import {
-  Repo,
-  type StorageAdapterInterface,
-  type StorageKey,
-} from '@automerge/automerge-repo';
+import {Repo, type StorageAdapterInterface} from '@automerge/automerge-repo';
 import {useMediaQuery} from '@mantine/hooks';
+import {strictMock} from '@mydoo/tasklens/test';
 
-class DummyStorageAdapter implements StorageAdapterInterface {
-  async load(_key: StorageKey): Promise<Uint8Array | undefined> {
-    return undefined;
-  }
-  async save(_key: StorageKey, _data: Uint8Array): Promise<void> {}
-  async remove(_key: StorageKey): Promise<void> {}
-  async loadRange(
-    _keyPrefix: StorageKey,
-  ): Promise<{data: Uint8Array; key: StorageKey}[]> {
-    return [];
-  }
-  async removeRange(_keyPrefix: StorageKey): Promise<void> {}
+// Create a minimal storage adapter using strictMock - only implements what Repo actually uses
+function createDummyStorageAdapter(): StorageAdapterInterface {
+  return strictMock<StorageAdapterInterface>('DummyStorageAdapter', {
+    load: async () => undefined,
+    save: async () => {},
+    remove: async () => {},
+    loadRange: async () => [],
+    removeRange: async () => {},
+  });
 }
 
 import {act, screen} from '@testing-library/react';
@@ -100,7 +94,7 @@ describe('PlanViewContainer', () => {
   // Reset mocks before each test
   beforeEach(() => {
     vi.clearAllMocks();
-    repo = new Repo({network: [], storage: new DummyStorageAdapter()});
+    repo = new Repo({network: [], storage: createDummyStorageAdapter()});
     repo.create({tasks: {}, rootTaskIds: [], places: {}});
   });
 

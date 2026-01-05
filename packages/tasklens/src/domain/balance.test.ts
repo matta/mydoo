@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {createMockTask} from '../test-utils';
+import {createMockTask} from '../test/test-utils';
 import type {TaskID} from '../types';
 import {calculateBalanceData} from './balance';
 

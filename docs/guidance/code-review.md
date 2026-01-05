@@ -117,7 +117,9 @@ Suppressing lint errors is a last resort -- there is almost always a better way.
 
 ### Avoid Casting through `unknown`
 
-Casting through `unknown` (e.g., `foo as unknown as Bar`) is just as suspicious as suppressing a lint. Use this as a last resort; there is almost always a better way.
+Casting through `unknown` (e.g., `foo as unknown as Bar`) is banned. This pattern disables the compiler and hides contract violations that surface as cryptic runtime errors.
+
+For test mocks specifically, see [Type-Safe Mocking Strategies](type-safe-mocking.md) for approved alternatives including interface segregation and the `strictMock` utility.
 
 ---
 
