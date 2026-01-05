@@ -20,7 +20,8 @@ For static analysis and code hygiene, the `check` and `fix` actions distinguish 
 Additional action types:
 
 - **test:** Runtime logic execution.
-- **build:** Artifact generation.
+- **build:** Artifact generation (application bundles, libraries).
+- **generate:** Source code generation (schema types, BDD steps).
 
 Banned actions: `lint`, `format`, `verify`, `validate`, `check-*-fix`.
 
@@ -40,7 +41,7 @@ Or, when specificity is needed, name by tool:
 - **tsc** (for types)
 - **knip** (for deps)
 
-Default to Domain names. When multiple tools cover one domain, name individual tasks by Tool and create an aggregate task using the Domain name.
+Default to Domain names. When a single tool covers a domain, the Domain task should invoke that tool directly. When multiple tools cover one domain, name individual tasks by Tool and create an aggregate task using the Domain name.
 
 ### III. State (Optional)
 
@@ -58,16 +59,17 @@ The scope of files being acted upon.
 
 ## 4. Canonical Examples
 
-| Intent               | Old/Ambiguous Name | Unified Standard | Logic                                 |
-| :------------------- | :----------------- | :--------------- | :------------------------------------ |
-| **Verify Style**     | `lint`             | `check-style`    | Query: Is the style correct?          |
-| **Correct Style**    | `lint-fix`         | `fix-style`      | Command: Make the style correct.      |
-| **Verify Format**    | `format-check`     | `check-format`   | Query: Is the formatting correct?     |
-| **Apply Format**     | `format`           | `fix-format`     | Command: Make the formatting correct. |
-| **Type Check**       | `typecheck`        | `check-types`    | Query: Are types correct?             |
-| **Dependency Check** | `lint-deps`        | `check-deps`     | Query: Are deps correct?              |
-| **Pre-commit**       | `lint-staged`      | `check-staged`   | Command: Verify the staged files.     |
-| **CI Validation**    | `ci`               | `check`          | Query: Is everything correct?         |
+| Intent               | Old/Ambiguous Name  | Unified Standard | Logic                                 |
+| :------------------- | :------------------ | :--------------- | :------------------------------------ |
+| **Verify Style**     | `lint`              | `check-style`    | Query: Is the style correct?          |
+| **Correct Style**    | `lint-fix`          | `fix-style`      | Command: Make the style correct.      |
+| **Verify Format**    | `format-check`      | `check-format`   | Query: Is the formatting correct?     |
+| **Apply Format**     | `format`            | `fix-format`     | Command: Make the formatting correct. |
+| **Type Check**       | `typecheck`         | `check-types`    | Query: Are types correct?             |
+| **Dependency Check** | `lint-deps`         | `check-deps`     | Query: Are deps correct?              |
+| **Pre-commit**       | `lint-staged`       | `check-staged`   | Command: Verify the staged files.     |
+| **CI Validation**    | `ci`                | `check`          | Query: Is everything correct?         |
+| **Generate Code**    | `codegen`, `bddgen` | `generate`       | Command: Generate source files.       |
 
 ## 5. Technical Syntax Markers
 

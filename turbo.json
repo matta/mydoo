@@ -155,8 +155,9 @@
       ],
       "outputs": []
     },
+    "generate": {},
     "check-types": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "generate"],
       "inputs": [
         "src/**/*.ts",
         "src/**/*.tsx",
@@ -214,17 +215,17 @@
       "outputs": []
     },
     "test-e2e": {
-      "dependsOn": ["check-style", "build", "check-types"],
+      "dependsOn": ["check-style", "build", "check-types", "generate"],
       "outputs": ["playwright-report/**", "test-results/**"],
       "cache": true
     },
     "test-e2e-desktop": {
-      "dependsOn": ["check-style", "build", "check-types"],
+      "dependsOn": ["check-style", "build", "check-types", "generate"],
       "outputs": ["playwright-report/**", "test-results/**"],
       "cache": true
     },
     "test-e2e-mobile": {
-      "dependsOn": ["check-style", "build", "check-types"],
+      "dependsOn": ["check-style", "build", "check-types", "generate"],
       "outputs": ["playwright-report/**", "test-results/**"],
       "cache": true
     },

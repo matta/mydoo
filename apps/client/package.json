@@ -54,6 +54,7 @@
     "fix-format": "prettier --write . --ignore-path ../../.prettierignore",
     "fix-style": "../../scripts/only-allow-turbo.sh fix-style -- true",
     "fix": "../../scripts/only-allow-turbo.sh fix -- true",
+    "generate": "bddgen",
     "preview": "vite preview",
     "test-e2e-desktop": "../../scripts/only-allow-turbo.sh test-e2e -- playwright test --project='bdd-desktop'",
     "test-e2e-mobile": "../../scripts/only-allow-turbo.sh test-e2e -- playwright test --project='bdd-mobile'",

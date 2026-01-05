@@ -1,0 +1,14 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "generate": {
+      "inputs": [
+        "tests/e2e/features/*.feature",
+        "tests/e2e/steps/*.steps.ts",
+        "tests/e2e/fixtures.ts",
+        "playwright.config.ts"
+      ],
+      "outputs": ["tests/e2e/.features-gen/**"]
+    }
+  }
+}
