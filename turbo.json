@@ -26,12 +26,10 @@
       "cache": false
     },
     "check-agent": {
-      "dependsOn": ["//#check-deps-root", "test", "test-e2e", "check-types"],
-      "cache": false
+      "dependsOn": ["//#check-deps-root", "test", "test-e2e", "check-types"]
     },
     "check-human": {
-      "dependsOn": ["//#check-deps-root", "check-types"],
-      "cache": false
+      "dependsOn": ["//#check-deps-root", "check-types"]
     },
     "//#check-deps-root": {
       "inputs": [
@@ -43,7 +41,13 @@
         "**/*.tsx",
         "**/*.js",
         "**/*.mjs",
-        "**/*.cjs"
+        "**/*.cjs",
+        "!**/test-results/**",
+        "!**/playwright-report/**",
+        "!**/coverage/**",
+        "!**/dist/**",
+        "!**/.turbo/**",
+        "!**/node_modules/**"
       ],
       "outputs": [],
       "cache": true
@@ -157,12 +161,10 @@
         "fix-format",
         "//#fix-biome-root",
         "//#fix-format-root"
-      ],
-      "cache": false
+      ]
     },
     "fix": {
-      "dependsOn": ["fix-style"],
-      "cache": false
+      "dependsOn": ["fix-style"]
     },
     "build": {
       "dependsOn": ["check-style", "^build"],
