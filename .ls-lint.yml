@@ -1,5 +1,7 @@
 ls:
   .*: kebab-case
+  .cjs: regex:use-js-instead
+  .mjs: regex:use-js-instead
   .md: kebab-case | SCREAMING_SNAKE_CASE
 
 ignore:
