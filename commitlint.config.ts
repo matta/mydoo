@@ -1,4 +1,6 @@
-export default {
+import type {UserConfig} from '@commitlint/types';
+
+const Configuration: UserConfig = {
   rules: {
     // Limits
     'header-max-length': [2, 'always', 50],
@@ -15,3 +17,5 @@ export default {
     'scope-empty': [2, 'always'],
   },
 };
+
+export default Configuration;
