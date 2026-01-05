@@ -152,4 +152,14 @@ including interface segregation and the `strictMock` utility.
 pnpm verify
 ```
 
-This ensures linting, formatting, and all tests pass.
+This is the **full verification gate** that runs auto-fixes (`pnpm fix`)
+followed by all checks (`pnpm check-agent`).
+
+> [!IMPORTANT] Use `pnpm verify`, not `pnpm check`, as your final verification
+> step.
+>
+> - `pnpm check` runs linting, type checking, and tests
+> - `pnpm verify` runs `pnpm fix` first (auto-formatting), then
+>   `pnpm check-agent` (all checks)
+>
+> The `verify` command matches the pre-commit hook and CI pipeline behavior.

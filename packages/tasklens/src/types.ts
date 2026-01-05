@@ -20,7 +20,14 @@
 
 import type {z} from 'zod';
 
-import type {PlaceIDSchema, TaskIDSchema} from './persistence/schemas';
+import type {
+  PersistedTask,
+  Place,
+  PlaceIDSchema,
+  RepeatConfig,
+  Schedule,
+  TaskIDSchema,
+} from './persistence/schemas';
 
 /**
  * Unique identifier for a Task.
@@ -115,25 +122,18 @@ export interface Context {
 /**
  * Scheduling information for a task.
  *
- * @property type - "Once" for one-time tasks, "Routinely" for repeating tasks.
- * @property dueDate - Unix timestamp (ms) when the task is due, or undefined if no deadline.
- * @property leadTime - How far in advance (in ms) the task should appear before its due date.
+ * Derived from ScheduleSchema in persistence/schemas.ts.
+ * @see ScheduleSchema for the runtime validation schema.
  */
-export interface Schedule {
-  dueDate?: number | undefined;
-  leadTime: number;
-  type: 'Once' | 'Routinely';
-}
+export type {Schedule};
 
 /**
  * Configuration for recurring tasks.
+ *
+ * Derived from RepeatConfigSchema in persistence/schemas.ts.
+ * @see RepeatConfigSchema for the runtime validation schema.
  */
-export interface RepeatConfig {
-  /** Frequency of recurrence */
-  frequency: 'minutes' | 'hours' | 'daily' | 'weekly' | 'monthly' | 'yearly';
-  /** Interval between occurrences (e.g., every 2 days) */
-  interval: number;
-}
+export type {RepeatConfig};
 
 /**
  * Time range string in HH:MM-HH:MM format (24h).
@@ -161,51 +161,11 @@ export interface OpenHours {
  *
  * This interface represents the raw data stored in the database (Automerge).
  * Unlike the legacy `Task` type, it does NOT contain computed properties.
+ *
+ * Derived from TaskSchema in persistence/schemas.ts.
+ * @see TaskSchema for the runtime validation schema.
  */
-export interface PersistedTask {
-  /** Ordered list of child task IDs. */
-  childTaskIds: TaskID[];
-  /** Points awarded when this task is completed. */
-  creditIncrement: number;
-  /** Accumulated points from completing this task and its children. */
-  credits: number;
-  /** When credits were last modified (for decay calculations). */
-  creditsTimestamp: number;
-  /**
-   * Target allocation for this goal.
-   * - Relevance: Root-level tasks only.
-   * - Semantics: A weight representing the desired share of total effort.
-   *   (Calculated as `desiredCredits / sum(all root credits)`).
-   * - Default: 1.0.
-   */
-  desiredCredits: number;
-  /** Unique identifier for this task. */
-  id: TaskID;
-  /** User-assigned priority from 0.0 (lowest) to 1.0 (highest). */
-  importance: number;
-  /** If true, children must be completed in order. */
-  isSequential: boolean;
-  /** ID of the parent task, or undefined if this is a root task. */
-  parentId?: TaskID | undefined;
-  /** Location where this task should be done, or undefined to inherit from parent. */
-  placeId?: PlaceID | undefined;
-  /** When priority was last recalculated. */
-  priorityTimestamp: number;
-  /** Due date and recurrence information. */
-  schedule: Schedule;
-  /** Current state: Pending, Done, or Deleted. */
-  status: TaskStatus;
-  /** Human-readable name or description of the task. */
-  title: string;
-  /** Markdown notes attached to the task. */
-  notes: string;
-  /** Configuration for recurring tasks. */
-  repeatConfig?: RepeatConfig | undefined;
-  /** If true, completed task is hidden from "Do" view. */
-  isAcknowledged: boolean;
-  /** Timestamp when the task was last completed (for Routinely tasks). */
-  lastCompletedAt?: number | undefined;
-}
+export type {PersistedTask};
 
 /**
  * Internal Mutable Object for Algorithm Processing.
@@ -415,16 +375,10 @@ export type CreateTaskOptions =
 /**
  * A physical or virtual location where tasks can be performed.
  *
- * @property id - Unique identifier for this place.
- * @property hours - Opening hours specification (format TBD).
- * @property includedPlaces - Other place IDs that are "inside" this place.
- *                            For example, "Office" might include "Desk" and "Conference Room".
+ * Derived from PlaceSchema in persistence/schemas.ts.
+ * @see PlaceSchema for the runtime validation schema.
  */
-export interface Place {
-  hours: string;
-  id: PlaceID;
-  includedPlaces: PlaceID[];
-}
+export type {Place};
 
 /**
  * A Task with its children resolved into a tree structure.

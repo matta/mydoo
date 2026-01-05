@@ -6,27 +6,17 @@
  * when working with data from external sources (like Automerge documents that
  * may have been modified by other clients or corrupted).
  *
- * These schemas mirror the TypeScript interfaces in `types.ts` and are used to:
- * 1. Validate that an Automerge document has the expected structure before use.
- * 2. Provide type narrowing: after successful validation, TypeScript knows
- *    the data conforms to the schema's type.
+ * These schemas are the **single source of truth** for persistence types.
+ * TypeScript types are derived from these schemas using `z.infer<typeof Schema>`
+ * to prevent drift between runtime validation and compile-time types.
  *
  * Usage: `TunnelStateSchema.safeParse(doc)` returns `{ success: true, data }`
  * if valid, or `{ success: false, error }` if not.
  *
  * @remarks
- * **Schema Drift Warning**: These schemas are manually synchronized with the
- * TypeScript interfaces in `types.ts`. If the interfaces change, these schemas
- * must be updated manually to match.
- *
- * **Options to prevent drift**:
- * 1. **Zod as source of truth (RECOMMENDED)**: Define schemas here and use
- *    `z.infer<typeof Schema>` to derive TypeScript types. This eliminates
- *    `types.ts` duplication but requires refactoring all type imports.
- * 2. **ts-to-zod**: Auto-generate this file from `types.ts` at build time.
- *    Keeps `types.ts` as source of truth but adds a build step.
- * 3. **Manual sync (current)**: Keep both files and update manually. Simplest
- *    but prone to drift.
+ * This follows the architecture decision documented in `ROLLING_CONTEXT.md`:
+ * "Do not manually define TypeScript interfaces that mirror Zod schemas.
+ * Derive the static type directly from the runtime schema using `z.infer`."
  */
 import {z} from 'zod';
 
@@ -78,18 +68,30 @@ export const PlaceIDSchema = z.string().brand<'PlaceID'>();
 /**
  * Schema for validating a Schedule object.
  *
- * @see Schedule in types.ts for the corresponding TypeScript interface.
+ * Scheduling information for a task.
  */
 export const ScheduleSchema = z.object({
+  /** "Once" for one-time tasks, "Routinely" for repeating tasks. */
   type: z.enum(['Once', 'Routinely']),
+  /** Unix timestamp (ms) when the task is due, or undefined if no deadline. */
   dueDate: z.number().optional(),
+  /** How far in advance (in ms) the task should appear before its due date. */
   leadTime: z.number(),
 });
 
 /**
+ * TypeScript type derived from ScheduleSchema.
+ * This is the single source of truth - do not manually define a Schedule interface.
+ */
+export type Schedule = z.infer<typeof ScheduleSchema>;
+
+/**
  * Schema for validating RepeatConfig.
+ *
+ * Configuration for recurring tasks.
  */
 export const RepeatConfigSchema = z.object({
+  /** Frequency of recurrence */
   frequency: z.enum([
     'minutes',
     'hours',
@@ -98,39 +100,101 @@ export const RepeatConfigSchema = z.object({
     'monthly',
     'yearly',
   ]),
+  /** Interval between occurrences (e.g., every 2 days) */
   interval: z.number().min(1),
 });
 
 /**
- * Schema for validating a Task object.
+ * TypeScript type derived from RepeatConfigSchema.
+ * This is the single source of truth - do not manually define a RepeatConfig interface.
+ */
+export type RepeatConfig = z.infer<typeof RepeatConfigSchema>;
+
+/**
+ * Schema for validating a Task object (Persisted Record).
  *
  * This schema validates all required properties of a Task. Note that computed
  * properties (like `priority`, `visibility`) are not included because they
  * are calculated at runtime and not stored in the document.
  *
- * @see Task in types.ts for the corresponding TypeScript interface.
+ * This represents the raw data stored in the database (Automerge).
+ * Unlike computed task types, it does NOT contain computed properties.
  */
 export const TaskSchema = z.object({
+  /** Unique identifier for this task. */
   id: TaskIDSchema,
+  /** Human-readable name or description of the task. */
   title: z.string(),
+  /** Markdown notes attached to the task. */
   notes: z.string().default(''),
+  /** ID of the parent task, or undefined if this is a root task. */
   parentId: TaskIDSchema.optional(),
+  /** Ordered list of child task IDs. */
   childTaskIds: z.array(TaskIDSchema),
+  /** Location where this task should be done, or undefined to inherit from parent. */
   placeId: PlaceIDSchema.optional(),
+  /** Current state: Pending, Done, or Deleted. */
   status: z.enum(['Pending', 'Done']),
+  /** User-assigned priority from 0.0 (lowest) to 1.0 (highest). */
   importance: z.number().min(0).max(1),
+  /** Points awarded when this task is completed. */
   creditIncrement: z.number().min(0),
+  /** Accumulated points from completing this task and its children. */
   credits: z.number(),
+  /**
+   * Target allocation for this goal.
+   * - Relevance: Root-level tasks only.
+   * - Semantics: A weight representing the desired share of total effort.
+   *   (Calculated as `desiredCredits / sum(all root credits)`).
+   * - Default: 1.0.
+   */
   desiredCredits: z.number().min(0),
+  /** When credits were last modified (for decay calculations). */
   creditsTimestamp: z.number(),
+  /** When priority was last recalculated. */
   priorityTimestamp: z.number(),
+  /** Due date and recurrence information. */
   schedule: ScheduleSchema,
+  /** Configuration for recurring tasks. */
   repeatConfig: RepeatConfigSchema.optional(),
+  /** If true, children must be completed in order. */
   isSequential: z.boolean(),
-  // Lifecycle state for visibility
+  /** If true, completed task is hidden from "Do" view. */
   isAcknowledged: z.boolean().default(false),
+  /** Timestamp when the task was last completed (for Routinely tasks). */
   lastCompletedAt: z.number().optional(),
 });
+
+/**
+ * TypeScript type derived from TaskSchema.
+ * This is the single source of truth - do not manually define a PersistedTask interface.
+ *
+ * Represents a unit of work in the task management system (Persisted Record).
+ */
+export type PersistedTask = z.infer<typeof TaskSchema>;
+
+/**
+ * Schema for validating a Place object.
+ *
+ * A physical or virtual location where tasks can be performed.
+ */
+export const PlaceSchema = z.object({
+  /** Unique identifier for this place. */
+  id: PlaceIDSchema,
+  /** Opening hours specification (serialized as string). */
+  hours: z.string(),
+  /**
+   * Other place IDs that are "inside" this place.
+   * For example, "Office" might include "Desk" and "Conference Room".
+   */
+  includedPlaces: z.array(PlaceIDSchema),
+});
+
+/**
+ * TypeScript type derived from PlaceSchema.
+ * This is the single source of truth - do not manually define a Place interface.
+ */
+export type Place = z.infer<typeof PlaceSchema>;
 
 /**
  * Schema for validating the complete application state.
@@ -140,13 +204,9 @@ export const TaskSchema = z.object({
  * considered corrupted or incompatible.
  *
  * @see TunnelState in types.ts for the corresponding TypeScript interface.
- *
- * @remarks
- * The `places` field uses `z.any()` as a placeholder. A proper PlaceSchema
- * should be defined if Place validation is needed.
  */
 export const TunnelStateSchema = z.object({
   rootTaskIds: z.array(TaskIDSchema),
   tasks: AutomergeRecord(TaskIDSchema, TaskSchema),
-  places: AutomergeRecord(PlaceIDSchema, z.any()),
+  places: AutomergeRecord(PlaceIDSchema, PlaceSchema),
 });
