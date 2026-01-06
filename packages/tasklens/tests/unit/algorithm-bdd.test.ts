@@ -2,7 +2,7 @@ import {readdirSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import Ajv, {type ValidateFunction} from 'ajv';
 import addFormats from 'ajv-formats';
-import {dump, load} from 'js-yaml';
+import {load} from 'js-yaml';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import featureSchemaJson from '../../specs/compliance/schemas/feature.schema.json';
 import {getPrioritizedTasks} from '../../src/domain/priority';
@@ -14,7 +14,6 @@ import type {
   TaskInput,
   TunnelAlgorithmFeatureSchema,
 } from '../../src/generated/feature';
-import type {TunnelAlgorithmTestCaseSchema} from '../../src/generated/test-case';
 import {TunnelStore} from '../../src/persistence/store';
 import {
   type EnrichedTask,
@@ -31,7 +30,6 @@ import {
   mockCurrentTimestamp,
   resetCurrentTimestampMock,
 } from '../../src/utils/time';
-import {castTypes, convertLegacyToFeature, interpolate} from './converters';
 
 const ajv = new Ajv({
   allowUnionTypes: true,
@@ -43,6 +41,58 @@ addFormats(ajv);
 const validateFeatureStructure = ajv.compile(featureSchemaJson);
 
 const FIXTURES_PATH = join(process.cwd(), 'specs', 'compliance', 'fixtures');
+
+type Variables = Record<string, string | number | boolean | null | undefined>;
+
+/**
+ * Recursively interpolates template strings like `${varName}` with variable values.
+ */
+function interpolate<T>(template: T, variables: Variables): T {
+  if (typeof template === 'string') {
+    return template.replace(/\$\{([^}]+)\}/g, (_, key: string) => {
+      const val = variables[key];
+      if (val === undefined) return `\${${key}}`;
+      return String(val);
+    }) as T;
+  }
+  if (Array.isArray(template)) {
+    return template.map(item => interpolate(item, variables)) as T;
+  }
+  if (template !== null && typeof template === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(template)) {
+      result[key] = interpolate(value, variables);
+    }
+    return result as T;
+  }
+  return template;
+}
+
+/**
+ * Recursively casts string representations to their proper types.
+ * Handles 'true'/'false' → boolean, 'null' → undefined, numeric strings → number.
+ */
+function castTypes<T>(obj: T): T {
+  if (typeof obj === 'string') {
+    if (obj === 'true') return true as T;
+    if (obj === 'false') return false as T;
+    // Return undefined instead of null per project conventions
+    if (obj === 'null') return undefined as T;
+    if (/^-?\d+(\.\d+)?$/.test(obj)) return Number(obj) as T;
+    return obj as T;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(castTypes) as T;
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = castTypes(value);
+    }
+    return result as T;
+  }
+  return obj;
+}
 
 function parsePlaceInput(input: PlaceInput): Place {
   return {
@@ -357,29 +407,15 @@ function executeStep(step: Step, store: TunnelStore, currentTestTime: number) {
 }
 
 describe('Algorithm BDD Test Suite', () => {
-  const allFiles = readdirSync(FIXTURES_PATH).filter(f => f.endsWith('.yaml'));
+  const allFiles = readdirSync(FIXTURES_PATH).filter(f =>
+    f.endsWith('.feature.yaml'),
+  );
 
   for (const file of allFiles) {
     const content = readFileSync(join(FIXTURES_PATH, file), 'utf8');
-    const isFeature = file.endsWith('.feature.yaml');
-    let feature: TunnelAlgorithmFeatureSchema;
+    const feature = load(content) as TunnelAlgorithmFeatureSchema;
 
-    if (isFeature) {
-      const raw = load(content) as TunnelAlgorithmFeatureSchema;
-      // Round trip check
-      const yamlStr = dump(raw);
-      feature = load(yamlStr) as TunnelAlgorithmFeatureSchema;
-    } else {
-      const legacy = load(content) as TunnelAlgorithmTestCaseSchema;
-      const converted = convertLegacyToFeature(
-        legacy,
-      ) as TunnelAlgorithmFeatureSchema;
-      // Round trip check
-      const yamlStr = dump(converted);
-      feature = load(yamlStr) as TunnelAlgorithmFeatureSchema;
-    }
-
-    if (isFeature && !validateFeatureStructure(feature)) {
+    if (!validateFeatureStructure(feature)) {
       throw new Error(
         `Invalid feature structure ${file}: ${ajv.errorsText((validateFeatureStructure as ValidateFunction).errors)}`,
       );

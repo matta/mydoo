@@ -43,7 +43,7 @@
     "fix-biome": "biome check --write .",
     "fix-eslint": "eslint . --fix",
     "fix-format": "prettier --write . --ignore-path ../../.prettierignore",
-    "generate": "mkdir -p src/generated && json2ts ./specs/compliance/schemas/test-case.schema.json ./src/generated/test-case.d.ts && json2ts ./specs/compliance/schemas/feature.schema.json ./src/generated/feature.d.ts && prettier --write ./src/generated/*.d.ts",
+    "generate": "mkdir -p src/generated && json2ts ./specs/compliance/schemas/feature.schema.json ./src/generated/feature.d.ts && prettier --write ./src/generated/*.d.ts",
     "test": "vitest run --coverage"
   },
   "type": "module",

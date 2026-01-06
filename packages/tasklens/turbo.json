@@ -3,12 +3,11 @@
   "tasks": {
     "generate": {
       "inputs": [
-        "specs/compliance/schemas/test-case.schema.json",
         "specs/compliance/schemas/feature.schema.json",
         "package.json",
         "../../pnpm-lock.yaml"
       ],
-      "outputs": ["src/generated/test-case.d.ts", "src/generated/feature.d.ts"]
+      "outputs": ["src/generated/feature.d.ts"]
     },
     "build": {
       "dependsOn": ["generate"]
