@@ -58,6 +58,10 @@
       "type": "object",
       "description": "A single logical step in the scenario execution.",
       "properties": {
+        "description": {
+          "type": "string",
+          "description": "Narrative description of what this step achieves."
+        },
         "given": {
           "$ref": "#/definitions/InitialState",
           "description": "Context setup or state initialization."

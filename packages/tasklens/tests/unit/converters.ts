@@ -59,6 +59,22 @@ export function castTypes<T>(obj: T): T {
   return obj;
 }
 
+function cleanUndefined<T>(obj: T): T {
+  if (Array.isArray(obj)) {
+    return obj.map(cleanUndefined) as T;
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        result[key] = cleanUndefined(value);
+      }
+    }
+    return result as T;
+  }
+  return obj;
+}
+
 /**
  * Converts a legacy test case format to the new Feature schema format.
  *
@@ -80,6 +96,7 @@ export function convertLegacyToFeature(
         steps: legacy.steps.map(step => ({
           view_filter: step.view_filter,
           when: step.mutation,
+          description: step.name,
           // biome-ignore lint/suspicious/noThenProperty: Schema defined property
           then: {
             expected_order: step.expected_order,
@@ -89,7 +106,7 @@ export function convertLegacyToFeature(
       },
     ],
   };
-  return feature as TunnelAlgorithmFeatureSchema;
+  return cleanUndefined(feature) as TunnelAlgorithmFeatureSchema;
 }
 
 interface LegacyStepWithMutation extends LegacyStep {
@@ -130,7 +147,7 @@ export function convertFeatureToLegacy(
           }
 
           return {
-            name: `Step ${idx + 1}`,
+            name: step.description || `Step ${idx + 1}`,
             view_filter: step.view_filter,
             mutation:
               Object.keys(mutation).length > 0
@@ -142,13 +159,27 @@ export function convertFeatureToLegacy(
         },
       );
 
-      testCases.push({
-        name: `${feature.feature}: ${scenario.name} (Ex ${exampleIndex + 1})`,
-        description: feature.description || '',
-        initial_state:
-          hydratedBackground as TunnelAlgorithmTestCaseSchema['initial_state'],
-        steps: legacySteps as LegacyStep[],
-      });
+      let testName = `${feature.feature}: ${scenario.name}`;
+      if (scenario.name === 'Legacy Scenario') {
+        testName = feature.feature;
+      } else if (
+        examples.length > 1 ||
+        (scenario.examples && scenario.examples.length > 0)
+      ) {
+        // Append example index only if it was an explicitly parameterized scenario
+        // For round-trip of single legacy, scenarios won't have examples
+        testName = `${feature.feature}: ${scenario.name} (Ex ${exampleIndex + 1})`;
+      }
+
+      testCases.push(
+        cleanUndefined({
+          name: testName,
+          description: feature.description || '',
+          initial_state:
+            hydratedBackground as TunnelAlgorithmTestCaseSchema['initial_state'],
+          steps: legacySteps as LegacyStep[],
+        }),
+      );
     }
   }
 
