@@ -2,7 +2,7 @@ import {readdirSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import Ajv, {type ValidateFunction} from 'ajv';
 import addFormats from 'ajv-formats';
-import {load} from 'js-yaml';
+import {dump, load} from 'js-yaml';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import featureSchemaJson from '../../specs/compliance/schemas/feature.schema.json';
 import {getPrioritizedTasks} from '../../src/domain/priority';
@@ -14,6 +14,7 @@ import type {
   TaskInput,
   TunnelAlgorithmFeatureSchema,
 } from '../../src/generated/feature';
+import type {TunnelAlgorithmTestCaseSchema} from '../../src/generated/test-case';
 import {TunnelStore} from '../../src/persistence/store';
 import {
   type EnrichedTask,
@@ -30,6 +31,7 @@ import {
   mockCurrentTimestamp,
   resetCurrentTimestampMock,
 } from '../../src/utils/time';
+import {castTypes, convertLegacyToFeature, interpolate} from './converters';
 
 const ajv = new Ajv({
   allowUnionTypes: true,
@@ -152,55 +154,12 @@ function applyTaskUpdates(store: TunnelStore, updates: TaskUpdate[]): void {
     if (props.is_acknowledged !== undefined) {
       taskProps.isAcknowledged = Boolean(props.is_acknowledged);
     }
+    // Handle arbitrary props that might be in the schema but not explicitly mapped yet
+    // For BDD compatibility, we might want to map lead_time_seconds here if we add it to mutation schema
+    // But currently Feature schema matches Legacy schema for task_updates (mostly)
 
     store.updateTask(id as TaskID, taskProps);
   }
-}
-
-function interpolate(
-  template: unknown,
-  variables: Record<string, unknown>,
-): unknown {
-  if (typeof template === 'string') {
-    return template.replace(/\$\{([^}]+)\}/g, (_, key) => {
-      const val = variables[key];
-      if (val === undefined) return `\${${key}}`;
-      return String(val);
-    });
-  }
-  if (Array.isArray(template)) {
-    return template.map(item => interpolate(item, variables));
-  }
-  if (template !== null && typeof template === 'object') {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(template)) {
-      result[key] = interpolate(value, variables);
-    }
-    return result;
-  }
-  return template;
-}
-
-function castTypes(obj: unknown): unknown {
-  if (typeof obj === 'string') {
-    if (obj === 'true') return true;
-    if (obj === 'false') return false;
-    // Return undefined instead of null per project conventions (prefer undefined)
-    if (obj === 'null') return undefined;
-    if (/^-?\d+(\.\d+)?$/.test(obj)) return Number(obj);
-    return obj;
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(castTypes);
-  }
-  if (obj !== null && typeof obj === 'object') {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj)) {
-      result[key] = castTypes(value);
-    }
-    return result;
-  }
-  return obj;
 }
 
 function setupStore(hydratedBackground: InitialState) {
@@ -357,15 +316,29 @@ function executeStep(step: Step, store: TunnelStore, currentTestTime: number) {
 }
 
 describe('Algorithm BDD Test Suite', () => {
-  const featureFiles = readdirSync(FIXTURES_PATH).filter(f =>
-    f.endsWith('.feature.yaml'),
-  );
+  const allFiles = readdirSync(FIXTURES_PATH).filter(f => f.endsWith('.yaml'));
 
-  for (const file of featureFiles) {
+  for (const file of allFiles) {
     const content = readFileSync(join(FIXTURES_PATH, file), 'utf8');
-    const feature = load(content) as TunnelAlgorithmFeatureSchema;
+    const isFeature = file.endsWith('.feature.yaml');
+    let feature: TunnelAlgorithmFeatureSchema;
 
-    if (!validateFeatureStructure(feature)) {
+    if (isFeature) {
+      const raw = load(content) as TunnelAlgorithmFeatureSchema;
+      // Round trip check
+      const yamlStr = dump(raw);
+      feature = load(yamlStr) as TunnelAlgorithmFeatureSchema;
+    } else {
+      const legacy = load(content) as TunnelAlgorithmTestCaseSchema;
+      const converted = convertLegacyToFeature(
+        legacy,
+      ) as TunnelAlgorithmFeatureSchema;
+      // Round trip check
+      const yamlStr = dump(converted);
+      feature = load(yamlStr) as TunnelAlgorithmFeatureSchema;
+    }
+
+    if (isFeature && !validateFeatureStructure(feature)) {
       throw new Error(
         `Invalid feature structure ${file}: ${ajv.errorsText((validateFeatureStructure as ValidateFunction).errors)}`,
       );
