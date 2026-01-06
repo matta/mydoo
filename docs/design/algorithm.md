@@ -41,22 +41,37 @@ A `Task` represents a unit of work or a container of work.
 
 #### 3.1.1 Stored Properties
 
-| Field               | Type        | Definition                                                                                                  |
-| :------------------ | :---------- | :---------------------------------------------------------------------------------------------------------- |
-| `TaskID`            | `Integer`   | Unique Identifier (Primary Key).                                                                            |
-| `Title`             | `String`    | Display name or title of the task. (Metadata)                                                               |
-| `ParentID`          | `Integer?`  | **(Ref/Foreign Key)** Parent Task ID. Null indicates a Root Goal.                                           |
-| `PlaceID`           | `Integer?`  | **(Ref/Foreign Key)** Link to the `Place` this task belongs to. Inherits from Parent if Null.               |
-| `Status`            | `Enum`      | Current state ({ Pending, Done, Deleted }). Used to derive `IsPending`.                                     |
-| `Importance`        | `Float`     | (0.0–1.0) Importance relative to parent. Set by user.                                                       |
-| `CreditIncrement`   | `Float`     | Value added to history upon completion. Recommended range 0.0-2.0 (See Section 3.6). Must be >= 0.0.        |
-| `Credits`           | `Float`     | Current total of _decayed_ credit history for this task/subtree _as of `CreditsTimestamp`_. Must be >= 0.0. |
-| `DesiredCredits`    | `Float`     | Target allocation value (only valid for Root Goals). Must be >= 0.0.                                        |
-| `CreditsTimestamp`  | `Timestamp` | Timestamp of last credit modification ($t_0$ for decay calculations).                                       |
-| `PriorityTimestamp` | `Timestamp` | Timestamp used for stability in sorting or priority dampening.                                              |
-| `Schedule`          | `Struct`    | Defines Recurrence, Due Date, and Lead Time. { Type, DueDate, LeadTime }                                    |
-| `LeadTime`          | `Duration`  | (Default 7d) Time before DueDate when task becomes Ready/Visible. Must be >= 0.0.                           |
-| `Sequential`        | `Boolean`   | If true, blocks sibling tasks until this one is done.                                                       |
+| Field               | Type         | Definition                                                                                                  |
+| :------------------ | :----------- | :---------------------------------------------------------------------------------------------------------- |
+| `TaskID`            | `Integer`    | Unique Identifier (Primary Key).                                                                            |
+| `Title`             | `String`     | Display name or title of the task. (Metadata)                                                               |
+| `ParentID`          | `Integer?`   | **(Ref/Foreign Key)** Parent Task ID. Null indicates a Root Goal.                                           |
+| `PlaceID`           | `Integer?`   | **(Ref/Foreign Key)** Link to the `Place` this task belongs to. Inherits from Parent if Null.               |
+| `Status`            | `Enum`       | Current state ({ Pending, Done, Deleted }). Used to derive `IsPending`.                                     |
+| `Importance`        | `Float`      | (0.0–1.0) Importance relative to parent. Set by user.                                                       |
+| `CreditIncrement`   | `Float`      | Value added to history upon completion. Recommended range 0.0-2.0 (See Section 3.6). Must be >= 0.0.        |
+| `Sequential`        | `Boolean`    | If true, blocks sibling tasks until this one is done.                                                       |
+| `DesiredCredits`    | `Float`      | Target allocation value (only valid for Root Goals). Must be >= 0.0.                                        |
+| `Schedule`          | `Enum`       | One of: `'Once'`, `'Routinely'`, `'DueDate'`, `'Calendar'`. Default `'Once'`.                               |
+| `Due`               | `Timestamp?` | The effective due date (computed or explicit). Resolution fallback if `Once`.                               |
+| `LeadTime`          | `Duration`   | (Default 8h / 28,800,000ms) Time before Due when task becomes Ready/Visible.                                |
+| `Period`            | `Duration?`  | (Routinely only) Recurrence interval. Default 24h.                                                          |
+| `LastDone`          | `Timestamp?` | (Routinely only) Timestamp of last completion.                                                              |
+| `Credits`           | `Float`      | Current total of _decayed_ credit history for this task/subtree _as of `CreditsTimestamp`_. Must be >= 0.0. |
+| `PriorityTimestamp` | `Timestamp`  | Timestamp used for stability in sorting or priority dampening.                                              |
+| `CreditsTimestamp`  | `Timestamp`  | Timestamp of last credit modification ($t_0$ for decay calculations).                                       |
+
+### 3.1.3 Scheduling Semantics
+
+The system uses a flat schema where `Schedule` acts as the discriminator
+controlling the behavior of the other temporal fields.
+
+| Type          | Behavior                                                               | Key Fields Used              |
+| :------------ | :--------------------------------------------------------------------- | :--------------------------- |
+| **Once**      | Single occurrence. Inherits `Due` from parent if undefined (Fallback). | `Due` (optional), `LeadTime` |
+| **Routinely** | Recycles in-place. `Due` = `LastDone` + `Period`.                      | `Period`, `LastDone`         |
+| **DueDate**   | Explicit deadline. Does not repeat.                                    | `Due` (required), `LeadTime` |
+| **Calendar**  | (Deferred) Linked to external appointment list.                        | N/A                          |
 
 #### 3.1.2 Computed/Runtime Properties
 
@@ -201,20 +216,69 @@ range `[0.0, 2.0]`. The conceptual mapping distributes these values such that
 | **Above Average** | `(4/3, 2.0)`           | `(1.33, 2.00)`        |
 | **Maximum**       | `{2.0}`                | `2.00`                |
 
-## 3. Algorithm: Credit Data Management
+### 4.1 Inherited Properties
 
-### 4.1 Credit Inheritance (Creation Time)
+Properties are initialized using one of three strategies:
 
-When a new task is created, it inherits properties to ensure consistent
-weighting within its branch.
+| Property          | Strategy             | Details                                              |
+| :---------------- | :------------------- | :--------------------------------------------------- |
+| `Importance`      | **Fixed Default**    | Always `1.0`. Never inherited.                       |
+| `PlaceID`         | **Copy-on-Create**   | Copy parent's value. Root default: `ANYWHERE`.       |
+| `CreditIncrement` | **Copy-on-Create**   | Copy parent's value. Root default: `0.5`.            |
+| `Due`             | **Runtime Fallback** | Only when `Schedule='Once'`. Resolves at query time. |
 
-- **Trigger**: Creation of Task T within Parent P.
-- **Logic**:
-  - `T.CreditIncrement` = `P.CreditIncrement` (Defaults to same "click" credit
-    as parent).
-  - `T.PlaceID` = `P.PlaceID` (Inherits core context).
+### 4.2 Logic
 
-### 4.2 Credit Attribution (Task Completion)
+#### 4.2.1 Initialization (Creation Time)
+
+**Goal**: Determine initial state for task properties.
+
+When a new task $T$ is created within a parent $P$:
+
+**Copy-on-Create Properties** (`PlaceID`, `CreditIncrement`):
+
+1.  Read the parent's effective value (if parent undefined, walk up the
+    hierarchy).
+2.  Store that value directly on the new task $T$.
+3.  **Effect**: The task owns its value. Future changes to ancestors do NOT
+    propagate.
+
+**Runtime Fallback Properties** (`Due` when `Schedule='Once'`):
+
+1.  Store `undefined` on the new task $T$.
+2.  At query time, the system walks up the tree to find an ancestor with a
+    `Due`.
+3.  **Effect**: Changes to ancestor schedules ARE reflected in descendants.
+
+**Fixed Defaults** (`Importance`):
+
+1.  Always initialize to `1.0`.
+2.  **Effect**: Independent of hierarchy.
+
+#### 4.2.2 Resolution (Runtime)
+
+**Goal**: Determine the effective value for calculation.
+
+When the algorithm requires the value of a property for Task $T$:
+
+1.  **Check Local**: If $T$ has a defined value, use it.
+2.  **Recursive Fallback**: If $T$'s value is `undefined`, check $T$'s Parent.
+    Repeat this step up the hierarchy.
+3.  **Root Default**: If the root is reached and the value is still `undefined`,
+    use the System Default.
+
+| Property          | System Default            |
+| :---------------- | :------------------------ |
+| `PlaceID`         | `Anywhere`                |
+| `CreditIncrement` | `0.5`                     |
+| `Schedule`        | `'Once'`                  |
+| `Due`             | `undefined` (No Due Date) |
+| `LeadTime`        | `28800000` (8 Hours)      |
+| `Importance`      | `1.0`                     |
+
+## 5. Credit Data Management
+
+### 5.1 Credit Attribution (Task Completion)
 
 Completion of a task generates credit which propagates upwards from the task to
 the hierarchy root. This process converts the task's potential value
@@ -247,12 +311,12 @@ ancestors.
     balance. Completing an instance adds to this running total; it does not
     reset `Credits` to zero.
 
-## 4. Algorithm: Lifecycle
+## 6. Algorithm: Lifecycle
 
 The algorithm operates in a discrete event loop triggered by user actions or
 periodic refreshes.
 
-### 4.1 The Update Cycle
+### 6.1 The Update Cycle
 
 1.  **Event**: User action (Complete Task) or Timer Tick.
 2.  **Increment**: if Completion, add `CreditIncrement` to `Credits` and update
@@ -260,7 +324,7 @@ periodic refreshes.
 3.  **Decay**: Calculate `EffectiveCredits` based on `TimeDelta`.
 4.  **Recalculate**: Execute the 7-Pass Scoring update.
 
-## 5. Algorithm: Score Calculation (7-Pass)
+## 7. Algorithm: Score Calculation (7-Pass)
 
 The "Update" operation recalculates the `Priority` for all active tasks. It
 ensures Deterministic results independent of execution order.
@@ -275,7 +339,9 @@ ensures Deterministic results independent of execution order.
 
 Filter tasks by Physical Context and Time.
 
-- **Resolution**: `EffectivePlace = Task.PlaceID ?? Parent.EffectivePlace`
+- **Resolution**:
+  `EffectivePlace = Task.PlaceID ?? NearestAncestor.PlaceID ?? Anywhere`. (See
+  **[4. Property Inheritance Model](#4-property-inheritance-model)**).
 - **Hours Check**: `IsOpen = EffectivePlace.Hours.Contains(CurrentTime)` (Note:
   "Anywhere" is always Open).
 - **Place Match**:
@@ -289,8 +355,11 @@ Filter tasks by Physical Context and Time.
 
 Resolve actionable timeframe.
 
-- **Inheritance**: If `Task.Schedule` is "Once" AND Parent exists, inherit
-  definition.
+- **Inheritance**: If `Task.Schedule.DueDate` is `undefined`, resolve via
+  Recursive Fallback. (See
+  **[4. Property Inheritance Model](#4-property-inheritance-model)**).
+- **Constraint**: Inheritance is a **fallback**. If the child has an explicit
+  `DueDate`, it MUST NOT be overwritten by the parent.
 - **Recurrence**: Helper calculation for `NextDue` dates.
 
 ### Pass 3: Deviation Feedback (The "Thermostat")
@@ -367,12 +436,12 @@ layer (sorting), preserving the calculated low priority for debugging purposes.
 > treats non-first siblings as `Visibility=0` (hidden) during Pass 1 or Pass 6,
 > filtering them out of the Final Priority list.
 
-## 7. Verification (Scenarios & Tests)
+## 8. Verification (Scenarios & Tests)
 
 This section defines the "Source of Truth" scenarios for validating the
 algorithm (See SC-001..SC-004).
 
-### 7.1 Scenario: The Thermostat (Dynamic Feedback)
+### 8.1 Scenario: The Thermostat (Dynamic Feedback)
 
 **Goal**: Verify that neglected areas strictly rise in priority. **Setup**: Two
 Roots: work (`Target=50%`) and life (`Target=50%`). `k=2.0`.
@@ -383,7 +452,7 @@ Roots: work (`Target=50%`) and life (`Target=50%`). `k=2.0`.
 | **2. Imbalance** | `credits_work=150`<br>`credits_life=100` | `Total=250`<br>`LifeAct%=0.4`  | `LifeDev = 0.5/0.4 = 1.25`<br>`1.25^2 = 1.56` | **Life Boosted** (1.56x) |
 | **3. Extreme**   | `credits_work=900`<br>`credits_life=100` | `Total=1000`<br>`LifeAct%=0.1` | `LifeDev = 0.5/0.1 = 5.0`<br>`5.0^2 = 25.0`   | **Emergency** (25x)      |
 
-### 7.2 Scenario: Lead Time Ramp
+### 8.2 Scenario: Lead Time Ramp
 
 **Goal**: Verify urgency curve. `LeadTime=7d`.
 
@@ -395,7 +464,7 @@ Roots: work (`Target=50%`) and life (`Target=50%`). `k=2.0`.
 | **7 Days**     | `(14 - 7) / 7`    | **1.0**        | Due Date approach (Max) |
 | **0 Days**     | `(14 - 0) / 7`    | **2.0 -> 1.0** | Overdue (Clamped Max)   |
 
-### 7.3 Scenario: Decay Mechanics
+### 8.3 Scenario: Decay Mechanics
 
 **Goal**: Verify half-life reduction. `HalfLife=7d`, `Credits=100`.
 
@@ -406,7 +475,7 @@ Roots: work (`Target=50%`) and life (`Target=50%`). `k=2.0`.
 | **14 Days**  | `100 * 0.5^2`   | **25.0**         |
 | **3.5 Days** | `100 * 0.5^0.5` | **70.71**        |
 
-### 7.4 Scenario: Weight Propagation
+### 8.4 Scenario: Weight Propagation
 
 **Goal**: Verify parent weight influence on children.
 
