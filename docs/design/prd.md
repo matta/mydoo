@@ -385,7 +385,7 @@ full-screen modal (Mobile) or centered Popup (Desktop).
       view.
 3.  **Status/Logic**:
     - **Importance**: Slider (0.0 - 1.0).
-    - **Effort**: Segmented Control (1 | 3 | 5).
+    - **Effort**: Slider (0.0 - 1.0).
 4.  **Scheduling ("Happens")**:
     - **Menu**: [ Once | Routinely | By Due Date | By Calendar ].
     - **Once**: No extra fields.

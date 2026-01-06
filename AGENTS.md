@@ -229,3 +229,26 @@ files.
 3.  **Stale Files:** If you delete or rename a `.feature` file, you MUST run
     `bddgen` to remove the corresponding stale `.spec.js` file. Stale files will
     cause `test-e2e` failures.
+
+## Testing Workflows
+
+### Running Specific Tests
+
+To run only the algorithm BDD tests:
+
+```bash
+pnpm test tests/unit/algorithm.test.ts
+```
+
+To run a specific feature within the algorithm tests, use the `FEATURE_FILTER`
+environment variable:
+
+```bash
+FEATURE_FILTER="Inheritance" pnpm test tests/unit/algorithm.test.ts
+```
+
+Or use the standard Vitest `-t` flag (which runs all but skips non-matching):
+
+```bash
+pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
+```

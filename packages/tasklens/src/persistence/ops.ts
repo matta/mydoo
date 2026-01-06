@@ -27,6 +27,7 @@ import {validateDepth, validateNoCycle} from '../domain/invariants';
 import {
   ANYWHERE_PLACE_ID,
   type CreateTaskOptions,
+  DEFAULT_CREDIT_INCREMENT,
   type PersistedTask,
   type Schedule,
   type TaskID,
@@ -82,7 +83,12 @@ export function createTask(
       ANYWHERE_PLACE_ID,
     status: props.status ?? TaskStatus.Pending,
     importance: props.importance ?? 1.0,
-    creditIncrement: props.creditIncrement ?? 0.5,
+    creditIncrement:
+      props.creditIncrement ??
+      (props.parentId
+        ? state.tasks[props.parentId]?.creditIncrement
+        : DEFAULT_CREDIT_INCREMENT) ??
+      DEFAULT_CREDIT_INCREMENT,
     credits: props.credits ?? 0.0,
     desiredCredits: props.desiredCredits ?? 1.0,
     creditsTimestamp: props.creditsTimestamp ?? getCurrentTimestamp(),
@@ -110,7 +116,7 @@ export function createTask(
   if (newTask.schedule.dueDate === undefined) delete newTask.schedule.dueDate;
 
   // Validations for numbers
-  if (newTask.creditIncrement < 0)
+  if (newTask.creditIncrement !== undefined && newTask.creditIncrement < 0)
     throw new Error('CreditIncrement cannot be negative.');
   if (newTask.importance < 0 || newTask.importance > 1)
     throw new Error('Importance must be between 0.0 and 1.0.');
@@ -182,7 +188,14 @@ export function updateTask(
   const isCompleting =
     props.status === TaskStatus.Done && task.status !== TaskStatus.Done;
   if (isCompleting) {
-    attributeCredits(state, id, task.creditIncrement);
+    // If creditIncrement is inherited (undefined) and not resolved on the object,
+    // we should use the default (0.5).
+    // Ideally, we should resolve inheritance here, but simpler fallback matches creation default.
+    attributeCredits(
+      state,
+      id,
+      task.creditIncrement ?? DEFAULT_CREDIT_INCREMENT,
+    );
     task.lastCompletedAt = getCurrentTimestamp();
   }
 
@@ -266,6 +279,22 @@ function handleNestedProperties(
         delete task.schedule.dueDate;
       } else {
         task.schedule.dueDate = props.schedule.dueDate;
+      }
+    }
+
+    if ('period' in props.schedule) {
+      if (props.schedule.period === undefined) {
+        delete task.schedule.period;
+      } else {
+        task.schedule.period = props.schedule.period;
+      }
+    }
+
+    if ('lastDone' in props.schedule) {
+      if (props.schedule.lastDone === undefined) {
+        delete task.schedule.lastDone;
+      } else {
+        task.schedule.lastDone = props.schedule.lastDone;
       }
     }
   }

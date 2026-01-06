@@ -205,16 +205,16 @@ The algorithm assumes a Store providing these primitive operations:
 ### 3.6 Standard CreditIncrement Values
 
 Implementations should allow users to select `CreditIncrement` values within the
-range `[0.0, 2.0]`. The conceptual mapping distributes these values such that
+range `[0.0, 1.0]`. The conceptual mapping distributes these values such that
 "Average" occupies the central one-third of the spectrum.
 
 | Effort Label      | Range Notation (Exact) | Decimal Approximation |
 | :---------------- | :--------------------- | :-------------------- |
 | **None**          | `{0.0}`                | `0.00`                |
-| **Below Average** | `(0.0, 2/3)`           | `(0.00, 0.67)`        |
-| **Average**       | `[2/3, 4/3]`           | `[0.67, 1.33]`        |
-| **Above Average** | `(4/3, 2.0)`           | `(1.33, 2.00)`        |
-| **Maximum**       | `{2.0}`                | `2.00`                |
+| **Below Average** | `(0.0, 1/3)`           | `(0.00, 0.33)`        |
+| **Average**       | `[1/3, 2/3]`           | `[0.33, 0.67]`        |
+| **Above Average** | `(2/3, 1.0)`           | `(0.67, 1.00)`        |
+| **Maximum**       | `{1.0}`                | `1.00`                |
 
 ### 4.1 Inherited Properties
 
@@ -345,8 +345,7 @@ ensures Deterministic results independent of execution order.
 
 Filter tasks by Physical Context and Time.
 
-- **Resolution**:
-  `EffectivePlace = Task.PlaceID ?? NearestAncestor.PlaceID ?? Anywhere`. (See
+- **Resolution**: `EffectivePlace = Task.PlaceID ?? Anywhere`. (See
   **[4. Property Inheritance Model](#4-property-inheritance-model)**).
 - **Hours Check**: `IsOpen = EffectivePlace.Hours.Contains(CurrentTime)` (Note:
   "Anywhere" is always Open).
