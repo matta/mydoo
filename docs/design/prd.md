@@ -102,16 +102,19 @@ inheritance and algorithm behavior:
 
 The system uses two distinct inheritance strategies:
 
-1. **Initialization Inheritance** (Importance, Effort, Place): The value is
-   determined at task creation and stored directly on the task. From that point
+1. **Fixed Default** (Importance):
+   - **Importance**: Always initializes to `1.0` (maximum value). It does NOT
+     inherit from the parent.
+
+2. **Copy-on-Create** (Effort, Place): The value is determined at task creation
+   by copying the parent's value (or using a default if Root). From that point
    forward, the task ignores any changes to ancestor values.
-   - **Importance**: Always initializes to `1.0` (maximum value).
    - **Effort** (`creditIncrement`): Copies the parent's effort, or `0.5` if the
      task is a root.
    - **Place** (`placeId`): Copies the parent's place, or `ANYWHERE` if the task
      is a root.
 
-2. **Recursive Fallback** (Schedule for "Once" type):
+3. **Recursive Fallback** (Schedule for "Once" type):
    - **Trigger**: Applies ONLY when `schedule.type` is `'Once'`.
    - **Logic**: If the task has no ancestors with an active schedule, it is
      stateless regarding time. If an ancestor has a schedule, this task inherits

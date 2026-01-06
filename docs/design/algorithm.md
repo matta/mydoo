@@ -262,8 +262,14 @@ When a new task $T$ is created within a parent $P$:
 When the algorithm requires the value of a property for Task $T$:
 
 1.  **Check Local**: If $T$ has a defined value, use it.
-2.  **Recursive Fallback**: If $T$'s value is `undefined`, check $T$'s Parent.
-    Repeat this step up the hierarchy.
+2.  **Recursive Fallback**: If $T$'s value is `undefined`, check if the property
+    participates in **Recursive Fallback** (e.g., `Due`, `LeadTime` for `Once`
+    schedules).
+    - **If Participating**: Check $T$'s Parent. Repeat this step up the
+      hierarchy.
+    - **If Not Participating** (e.g. `Importance`, `PlaceID`,
+      `CreditIncrement`): Stop and immediately proceed to Step 3 (System
+      Default).
 3.  **Root Default**: If the root is reached and the value is still `undefined`,
     use the System Default.
 
