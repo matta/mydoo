@@ -1,0 +1,31 @@
+feature: Repro Stale Lead Time Inheritance
+description: >-
+  Verify that children inherit lead time correctly and use it for their own
+  readiness calculation
+background:
+  current_time: '2023-01-01T12:00:00Z'
+  tasks:
+    - id: parent-1
+      title: Parent Future Task
+      status: Pending
+      importance: 1
+      due_date: '2023-01-11T12:00:00Z'
+      lead_time_seconds: 86400
+      children:
+        - id: child-1
+          title: Child Task
+          status: Pending
+          importance: 1
+scenarios:
+  - name: Legacy Scenario
+    steps:
+      - legacy_description: Verify Inheritance
+        then:
+          expected_order: []
+          expected_props:
+            - id: parent-1
+              score: 0
+              is_ready: false
+            - id: child-1
+              score: 0
+              is_ready: false

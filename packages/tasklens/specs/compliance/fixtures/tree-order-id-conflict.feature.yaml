@@ -1,0 +1,46 @@
+feature: Tree Order vs ID Order (Robust)
+description: >-
+  Verify that siblings appear in the order defined in the hierarchy (Tree
+  Order), not sorted by ID. Using 6 items in reverse alphabetical order to
+  ensure robustness (1/720 chance of random match).
+background:
+  current_time: '2023-01-01T12:00:00+00:00'
+  timezone_offset: 0
+  tasks:
+    - id: Parent
+      title: Root
+      importance: 1
+      children:
+        - id: Task_Z
+          title: First
+          importance: 1
+        - id: Task_Y
+          title: Second
+          importance: 1
+        - id: Task_X
+          title: Third
+          importance: 1
+        - id: Task_W
+          title: Fourth
+          importance: 1
+        - id: Task_V
+          title: Fifth
+          importance: 1
+        - id: Task_U
+          title: Sixth
+          importance: 1
+scenarios:
+  - name: Legacy Scenario
+    steps:
+      - legacy_description: Verify Reverse Alphabetical Sequence
+        then:
+          expected_order:
+            - Task_Z
+            - Task_Y
+            - Task_X
+            - Task_W
+            - Task_V
+            - Task_U
+          expected_props:
+            - id: Task_Z
+              is_visible: true

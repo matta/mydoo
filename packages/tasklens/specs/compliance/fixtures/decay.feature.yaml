@@ -1,0 +1,37 @@
+feature: 'Scenario 7.3: Decay Mechanics'
+description: >
+  Validates the exponential decay of task credits over time (half-life rule) and
+  ensures scores decrease accordingly without manual intervention.
+background:
+  current_time: '2025-01-01T00:00:00Z'
+  tasks:
+    - id: FadingTask
+      credits: 100
+scenarios:
+  - name: Legacy Scenario
+    steps:
+      - legacy_description: 'Step 1: 0 Days'
+        then:
+          expected_order:
+            - FadingTask
+          expected_props:
+            - id: FadingTask
+              effective_credits: 100
+      - when:
+          advance_time_seconds: 604800
+        legacy_description: 'Step 2: 7 Days'
+        then:
+          expected_order:
+            - FadingTask
+          expected_props:
+            - id: FadingTask
+              effective_credits: 50
+      - when:
+          advance_time_seconds: 604800
+        legacy_description: 'Step 3: 14 Days'
+        then:
+          expected_order:
+            - FadingTask
+          expected_props:
+            - id: FadingTask
+              effective_credits: 25
