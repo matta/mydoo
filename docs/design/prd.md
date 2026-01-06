@@ -1,12 +1,55 @@
-Here is the updated **Product Requirements Document (v1.6)**.
+# Product Requirements Document
 
-I have updated the **Schema** (Section 2.2) and the **Healer Routine** (Section
-3.4) to explicitly handle Automerge array conflicts by enforcing a
-"First-Occurrence-Wins" deduplication strategy for `rootTaskIds` and `childIds`.
+## Document Conventions & Maintenance
 
----
+To ensure this document remains maintainable during major reorganizations, the
+following conventions must be followed for all internal and external
+cross-references.
 
-# Product Requirements Document (v1.6)
+### 1. Durable Anchors (Links)
+
+Never link directly to a header string or a section number, as these change
+frequently. Instead, use explicit HTML anchor tags placed immediately above the
+target heading:
+
+<a id="logic-repetition"></a>
+
+## 3.4 Repetition Logic
+
+### 2. Semantic Referencing
+
+Avoid phrases like "See Section 3.4." Use descriptive link text that points to
+the stable anchor ID:
+
+    Correct: "Refer to the [Repetition Logic](#logic-repetition) for trigger details."
+    Incorrect: "See Section 3.4 for trigger details."
+
+### 3. ID Naming Standards
+
+- Format: Use kebab-case (lowercase, hyphens).
+- Prefixing: Use functional prefixes to group related logic (e.g., `schema-`,
+  `logic-`, `ui-`).
+- Stability: Once an anchor ID is created and referenced elsewhere, it should
+  never be changed, even if the section is moved or renamed.
+
+### 4. External Documentation Links
+
+When linking to companion files (e.g., ALGORITHM.md), always include the stable
+anchor to the specific subsection to avoid landing the reader at the top of a
+long file:
+
+    [Credit Inheritance](./algorithm.md#credit-inheritance)
+
+## Glossary of Concepts
+
+| Term                     | Definition                                                                                                                                  |
+| :----------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ |
+| **TLI (Top-Level Item)** | A root-level node in the hierarchy. Includes "Goal" roots (Health, Career) and the system "Inbox".                                          |
+| **Inbox**                | A special system TLI that collects unorganized tasks. Excluded from "Balance" calculations.                                                 |
+| **Credit**               | A unit of historical effort. Tasks accumulate credit upon completion, which decays over time.                                               |
+| **Acknowledged**         | A state where a completed task is formally "filed away" by the user (via Refresh). It disappears from the "Do" list but remains in history. |
+| **Zoom Context**         | The active parent node when navigating the Plan view on mobile (drill-down).                                                                |
+| **Scoring Engine**       | The logic defined in [ALGORITHM.md](./algorithm.md) that calculates task priority.                                                          |
 
 ## 1. Core Philosophy
 
@@ -34,141 +77,195 @@ The Automerge document structure is specified in
 > layer. The rest of the application consumes plain TypeScript objects—never
 > Automerge proxies directly.
 
-## 3. The Logic Specification
+## 3. Task Lifecycle
 
-### 3.1 The Inbox Logic
+### 3.1 Creation & Defaults
 
-- **Structure:** The Inbox is a special **Top-Level Item (TLI)** with a reserved
-  ID (`ROOT_INBOX_ID`). It sits at the same level as Goals (Health, Career).
-- **Balance Exclusion:** Unlike other TLIs, the Inbox is **excluded** from the
-  "Pie Chart" balance calculation. Items inside it do not get a "Balance" boost
-  or penalty.
-- **Protection:** It cannot be deleted or renamed.
+When creating a new task, apply the following defaults to ensure proper
+inheritance and algorithm behavior:
 
-### 3.2 Default Values for New Tasks
+| Field (UI)            | Implementation Field  | Default Value                 | Notes                                                        |
+| :-------------------- | :-------------------- | :---------------------------- | :----------------------------------------------------------- |
+| `importance`          | `importance`          | `1.0`                         | Maximum value. Set at creation to 1.0.                       |
+| `effort`              | `creditIncrement`     | Parent's value, or `0.5`      | Copied from parent at creation. Root defaults to `0.5`.      |
+| `leadTime`            | `schedule.leadTime`   | `28,800,000` (8 hours)        | Stored in milliseconds.                                      |
+| `notes`               | `notes`               | `undefined`                   | Optional.                                                    |
+| `scheduleType`        | `schedule.type`       | `'Once'`                      | Enumeration: Once, Routinely, DueDate, Calendar.             |
+| `dueDate`             | `schedule.due`        | `undefined`                   | Timestamp (milliseconds).                                    |
+| `period`              | `schedule.period`     | `86,400,000` (24 hours)       | For Routines. Stored in milliseconds.                        |
+| `placeId`             | `placeId`             | Parent's value, or `ANYWHERE` | Copied from parent at creation. Root defaults to `ANYWHERE`. |
+| `lastReviewTimestamp` | `lastReviewTimestamp` | `Date.now()`                  | For staleness calculation.                                   |
+| `status`              | `status`              | `'Pending'`                   | Active state.                                                |
+| `childIds`            | `childTaskIds`        | `[]`                          | Starts with no children.                                     |
 
-When creating a new task, apply the following defaults:
+#### Inheritance Semantics
 
-| Field (UI)            | Implementation Field  | Default Value                                                  |
-| --------------------- | --------------------- | -------------------------------------------------------------- |
-| `importance`          | `importance`          | `1.0` (essential)                                              |
-| `effort` (0.0–1.0)    | `creditIncrement`     | Inherit from parent; root tasks default to `0.5`               |
-| `leadTime`            | `schedule.leadTime`   | `daysToMilliseconds(0.33)` (~8 hours in ms)                    |
-| `notes`               | `notes`               | `undefined` (optional)                                         |
-| `dueDate`             | `schedule.dueDate`    | `undefined` (no deadline)                                      |
-| `placeId`             | `placeId`             | Inherit from parent; root tasks default to `ANYWHERE_PLACE_ID` |
-| `lastReviewTimestamp` | `lastReviewTimestamp` | `Date.now()` _(deferred to staleness implementation)_          |
-| `status`              | `status`              | `'Pending'` (equivalent to `'active'`)                         |
-| `childIds`            | `childTaskIds`        | `[]`                                                           |
+The system uses two distinct inheritance strategies:
 
-### 3.3 ID Generation Strategy (Duplicate Prevention)
+1. **Initialization Inheritance** (Importance, Effort, Place): The value is
+   determined at task creation and stored directly on the task. From that point
+   forward, the task ignores any changes to ancestor values.
+   - **Importance**: Always initializes to `1.0` (maximum value).
+   - **Effort** (`creditIncrement`): Copies the parent's effort, or `0.5` if the
+     task is a root.
+   - **Place** (`placeId`): Copies the parent's place, or `ANYWHERE` if the task
+     is a root.
 
-To prevent duplicates when two devices complete the same recurring task offline,
-we use **Deterministic IDs**:
+2. **Recursive Fallback** (Schedule for "Once" type):
+   - **Trigger**: Applies ONLY when `schedule.type` is `'Once'`.
+   - **Logic**: If the task has no ancestors with an active schedule, it is
+     stateless regarding time. If an ancestor has a schedule, this task inherits
+     the parent's effective due date and lead time at runtime.
 
-1. **Standard Tasks:** Random UUID (v4).
-2. **Recurring Tasks:**
-   `repeatConfig.seriesId + ":" + repeatConfig.iterationIndex`.
+### 3.2 State Transitions
 
-- _Effect:_ If two devices generate the next instance of "Laundry" offline,
-  Automerge will merge them into a single entry (Last-Write-Wins).
+The lifecycle of a task flows through distinct states, driven by user actions
+and system generation.
 
-### 3.4 Repetition Logic
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: Create Task
+    Pending --> Done: User Checks Box
+    Done --> Pending: User Unchecks Box
+    Done --> Acknowledged: User Clicks "Refresh"
+    Acknowledged --> [*]: Archived (Hidden)
 
-- **Trigger:** User clicks the "Update" (Refresh) button.
-- **Action:**
+    state "Update/Refresh Cycle" as Gen {
+        Acknowledged --> Pending: "Routinely" task regenerates
+    }
+```
 
-1. Find all tasks marked `completed` that have a `repeatConfig`.
-2. For each, generate the _Next Task_:
+### 3.3 Completion & Acknowledgment
 
-- **Routinely:** `Next.dueDate = CompletionDate + intervalDays`.
-- **Calendar:** `Next.dueDate = Previous.dueDate + intervalDays` (anchored to
-  original schedule, even if past-due. Future enhancement: option to skip
-  forward to next future occurrence).
-- **Common:**
-  `Next.repeatConfig.iterationIndex = Previous.repeatConfig.iterationIndex + 1`.
-- **ID:** Uses the Deterministic ID formula.
+When a task is marked **Done**:
 
-3. Insert _Next Task_ into `tasks` map.
-4. Archive _Previous Task_ (keep in map for history, but visually hide).
+1.  **Immediate Effect**: It stays visible in the "Do" list with a
+    strikethrough. This allows simple undoing of accidental clicks.
+2.  **Acknowledgment**: When the user clicks the global **"Update/Refresh"**
+    button, all "Done" tasks transition to **Acknowledged**.
+    - **Effect**: They are removed from the "Do" list view.
+    - **Data**: The `isAcknowledged` flag is set to `true` in the Automerge
+      document.
+    - **History**: The task remains in the document history for "Balance" credit
+      calculations.
+    - **Scheduling**: If the task is `Routinely` or `Calendar`, this triggers
+      the generation of the next instance (see Section 3.4).
 
-### 3.5 Data Integrity: The "Healer" Routine
+### 3.4 Scheduling Subsystem
 
-The Healer runs on **Application Load** and **Post-Sync** to correct data
-anomalies caused by complex merges.
+The scheduling logic is polymorphic, controlled by the `schedule.type` field.
+The UI exposes this via the **"Happens"** menu.
 
-**Part A: Array Sanitization (Duplicate Removal)** Automerge merges concurrent
-array insertions by keeping both. This creates duplicates in ordered lists
-(e.g., `['A', 'B', 'B', 'C']`).
+#### Type 0: "Once" (Default)
 
-- **Target:** `RootDoc.rootTaskIds` and every `Task.childIds`.
-- **Strategy:** "Keep First Occurrence".
-- Iterate through the array. Maintain a set of `seenIds`.
-- If an ID is encountered for the first time, add to set.
-- If an ID is encountered again (it is in `seenIds`), **delete** it from the
-  array.
+- **Concept**: A simple task that happens one time.
+- **Data**: `schedule.type = 'Once'`.
+- **Behavior**:
+  - Implicitly inherits schedule constraints from ancestors (Recursive
+    Fallback).
+  - If no scheduled ancestor exists, it appears in the "Do" list based solely on
+    Place/Importance.
+  - Does NOT repeat.
 
-- **Safety:** Since all replicas agree to keep the first occurrence, no ID is
-  ever completely lost, ensuring the structure remains intact.
+#### Type 1: "Routinely" (Floating Interval)
 
-**Part B: Recurring Task Deduplication**
+- **Concept**: A task that recurs based on when it was last done (e.g., "Clean
+  Fridge every 3 days").
+- **Data**: `schedule.type = 'Routinely'`.
+- **Fields**:
+  - `period`: Scalar interval in milliseconds (default `86,400,000` / 24h).
+  - `lastDone`: Timestamp of previous completion.
+- **Logic**:
+  - **Next Due Date** = `lastDone` + `period`.
+  - **On Completion**: When the user explicitly "Refreshes" (acknowledges):
+    1. Update `lastDone` to the completion time.
+    2. Reset `status` to `Pending` (un-check the box).
+    3. Recalculate `schedule.due`.
 
-- **Target:** All `active` tasks where `repeatConfig.type === 'routinely'`.
-- **Logic:**
+#### Type 2: "By Calendar" (Deferred/Future)
 
-1. Group active tasks by `seriesId`.
-2. If a group has **>1 active task**:
+- **Concept**: Task linked to specific calendar events (e.g., "Weekly Meeting").
+- **Data**: `schedule.type = 'Calendar'`.
+- **Behavior**: Manages a one-to-many relationship with an `appointments` list.
+- **Logic**: The `schedule.due` field acts as a projection (cache) of the
+  nearest future appointment.
 
-- Identify the task with the **highest** `iterationIndex` (The Winner).
-- Identify all others (The Losers).
-- **Action:** Explicitly set `status = 'deleted'` for all Losers.
+#### Type 3: "By Due Date" (Scalar Deadline)
 
-### 3.6 Deletion Logic (Cascade with Confirmation)
+- **Concept**: A hard deadline (e.g., "Submit Tax Return").
+- **Data**: `schedule.type = 'DueDate'`.
+- **Behavior**:
+  - Functions like a Calendar task but effectively Single Occurrence.
+  - `schedule.due` holds the explicit user-set timestamp.
+  - `schedule.leadTime` determines when it starts floating to the top of the
+    list.
+  - Does NOT repeat automatically (effectively `Once` but with explicit date).
 
-When a user deletes a task that has children:
+### 3.5 Deletion Logic
 
-1. **Warning:** UI MUST present a confirmation dialog showing the count of
-   descendants that will also be deleted (e.g., "Delete 'Project X' and 12
-   sub-tasks?").
-2. **On Confirm:** Remove the target task AND all descendants from the `tasks`
-   map (hard-delete). Also removes from `childTaskIds` and `rootTaskIds`.
-3. **On Cancel:** No changes.
+Deletion is a destructive, cascading action.
 
-**Note:** Deleted tasks are permanently removed. Undo functionality (if needed)
-is handled via Automerge's native history features, not via a soft-delete
-status.
+1.  **Warning:** If a task has children, the UI **MUST** prompt: "Delete
+    'Project X' and [N] sub-tasks?".
+2.  **On Confirm:** Hard-delete the target task AND all its descendants.
+    Reference in `parent.childIds` or `rootTaskIds` is removed.
+3.  **No Undo**: Deletion is permanent (barring Automerge time-travel features).
 
-### 3.7 The Scoring Algorithm (Computed View)
+## 4. Data Integrity & Conflict Resolution
 
-The prioritization logic is fully specified in external documents:
+<a id="data-id-generation"></a>
 
-- **[ALGORITHM.md](./algorithm.md):** Core 7-pass scoring algorithm (Credit
-  tracking, Feedback/"Thermostat", Weight normalization, Lead time urgency).
-- **[STALENESS.md](./staleness.md):** Autofocus/neglect mechanics and
-  `lastReviewTimestamp` update rules.
-- **[ALGORITHM_TEST_SUITE.md](./test-suite.md):** Compliance test fixtures.
+### 4.1 ID Generation & Duplicate Prevention
 
-This logic runs client-side on the flattened task list derived from the
-Automerge document.
+To safely handle offline repetition on multiple devices:
 
-## 4. UX/UI Specification
+1.  **Standard Tasks**: `UUID v4`.
+2.  **Routinely/Calendar**:
+    - **Routinely**: Typically uses a stable ID (SINGLETON) that recycles
+      itself.
+    - **Calendar**: The core Task has a stable ID; individual appointments (if
+      expanded) would have their own IDs (future scope).
 
-### 4.1 Global Navigation Paradigm
+### 4.2 The "Healer" Routine
 
-**Mobile (PWA) - Bottom Tab Bar**
+Functions as a self-repair mechanism running on **App Load** and **Post-Sync**.
 
-1. **Do:** The computed, prioritized list.
-2. **Plan:** The hierarchical tree view.
-3. **Balance:** The "Pie Chart" slider adjustments.
-4. **Context:** Context/Place management.
+**A. Array Sanitization (Deduplication)** Automerge list merges can create
+duplicates (e.g., `[A, B, B, C]`).
 
-**Desktop (PWA) - Split Pane**
+- **Rule**: "First-Occurrence-Wins".
+- **Logic**: Iterate `rootTaskIds` and `childIds`. Keep the first instance of
+  any ID; remove subsequent duplicates.
 
-- **Left Pane:** Plan (Tree).
-- **Right Pane:** Do (Computed List).
-- **Top Bar:** Navigation to "Balance" and "Context", plus Global Settings.
+### 4.3 Inbox Structure
 
-### 4.2 The "Do" View (Primary)
+- **Fixed ID**: `ROOT_INBOX_ID`.
+- **Behavior**:
+  - It defines the default entry point.
+  - It is **excluded** from "Balance" scoring (tasks inside are not weighted
+    against Career/Health goals).
+  - It cannot be deleted.
+
+### 4.4 Scoring Engine Integration
+
+The application relies on the definition in [ALGORITHM.md](./algorithm.md) (The
+"Scoring Engine") to calculate:
+
+1.  **Credits**: Historical effort tracking.
+2.  **Staleness**: Auto-focus pressure ([STALENESS.md](./staleness.md)).
+3.  **Priority**: The final sorting order for the "Do" list.
+
+See also: [ALGORITHM_TEST_SUITE.md](./test-suite.md) for compliance test
+fixtures.
+
+## 5. UX/UI Specification
+
+### 5.1 Global Navigation Paradigm
+
+- **Mobile**: Bottom Tabs (Do, Plan, Balance, Context).
+- **Desktop**: Split Pane (Plan | Do).
+
+### 5.2 The "Do" View (Primary)
 
 - **Visual Structure:** A flat list of tasks sorted **purely by computed
   priority score**. There are no section headers or temporal groupings (e.g.,
@@ -198,7 +295,7 @@ Automerge document.
   - **Floating Action Button (Mobile):** Adds a new task directly to the
     **Inbox**.
 
-> [!IMPORTANT] > **Completed Task Visibility Lifecycle**
+> [!IMPORTANT] **Completed Task Visibility Lifecycle**
 >
 > When a task is marked "Done", it remains visible in the Do list with a
 > strikethrough until acknowledged. This allows the user to see what they
@@ -212,119 +309,121 @@ Automerge document.
 > **Persisted State**: The `isAcknowledged` flag is stored in the Automerge
 > document (synced across devices).
 
-### 4.3 The "Plan" View (Outline)
+### 5.3 The "Plan" View (Outline)
 
-- **Structure:** Indented tree view. Infinite nesting supported.
-- **Root Nodes:** Fixed "Inbox" node (pinned at top) + User TLIs.
+- **Structure**: Indented tree view. Infinite nesting supported.
+- **Root Nodes**: Fixed "Inbox" node (pinned at top) + User TLIs.
 - **Navigation (Hybrid)**:
-  - **Desktop (Tree Mode):** Full outline visible with expand/collapse chevrons
+  - **Desktop (Tree Mode)**: Full outline visible with expand/collapse chevrons
     (`>`).
-  - **Mobile (Drill-Down Mode):** Drill-down navigation only. Tapping a parent's
+  - **Mobile (Drill-Down Mode)**: Drill-down navigation only. Tapping a parent's
     **arrow icon** "zooms in" to show only its children. A **breadcrumb trail**
     at the top shows the current path.
-- **Interaction & Creation:**
-  - **Desktop (Hover Menu):** Hovering a row reveals a `•••` menu trigger
+- **Interaction & Creation**:
+  - **Desktop (Hover Menu)**: Hovering a row reveals a `•••` menu trigger
     (replacing the bullet). Menu options: "Add Sibling", "Add Child", "Delete".
-  - **Mobile (Bottom Bar):** Persistent toolbar at the bottom of the Plan view
+  - **Mobile (Bottom Bar)**: Persistent toolbar at the bottom of the Plan view
     (above global nav). Contains `[<]` (Up Level) and `[+]` (Add to Top of
     current view).
-  - **Append Row:** A `[ + ]` row at the very bottom of the list (Desktop &
+  - **Append Row**: A `[ + ]` row at the very bottom of the list (Desktop &
     Mobile) allows adding tasks to the end of the current zoom level.
-  - **Navigation Feedback:** Creating a task triggers \"Highlight & Reveal\":
+  - **Navigation Feedback**: Creating a task triggers "Highlight & Reveal":
     - **Desktop**: Auto-expands parent, auto-scrolls to new task row, new task
       row flashes yellow.
     - **Mobile**: Auto-drills into the parent task (showing its children,
       including the new one), auto-scrolls to new task row, new task row flashes
       yellow.
-  - **Edit Task:** Tap task **Title or Row** to open Edit modal.
+  - **Edit Task**: Tap task **Title or Row** to open Edit modal.
 
-### 4.4 The "Balance" View
+### 5.4 The "Balance" View
 
-- **UI:** List of Top-Level Items (excluding Inbox).
-- **Controls:** Slider for "Desired %".
-- **Feedback:** Visual bar for "Actual %" (computed from `effort` history). If
+- **UI**: List of Top-Level Items (excluding Inbox).
+- **Controls**: Slider for "Desired %".
+- **Feedback**: Visual bar for "Actual %" (computed from `effort` history). If
   Actual < Target, the row is highlighted to show it is "Starving" (boosting
   priority).
 
-### 4.5 Task Editing (The "Details Modal")
+### 5.5 Task Editing (Details Modal)
 
 Since there is no "selection" state on mobile, tapping any task text opens a
 full-screen modal (Mobile) or centered Popup (Desktop).
 
 **Modes:**
 
-- **Create Mode:** Opens with empty fields. Hierarchy controls are hidden.
+- **Create Mode**: Opens with empty fields. Hierarchy controls are hidden.
   "Save" creates the task and closes the modal.
-- **Edit Mode:** Opens with existing data. Hierarchy controls are visible.
+- **Edit Mode**: Opens with existing data. Hierarchy controls are visible.
+
+| Feature                | Create Mode     | Edit Mode                    |
+| :--------------------- | :-------------- | :--------------------------- |
+| **Title**              | Empty (Focus)   | Existing Value               |
+| **Hierarchy Controls** | **Hidden**      | **Visible**                  |
+| - _Indent / Outdent_   | N/A             | Available (Immediate Action) |
+| - _Move Picker_        | N/A             | Available                    |
+| **Commit Action**      | "Save" (Create) | "Close" (Auto-save)          |
+| **Delete**             | Cancel          | Delete Button                |
 
 **Modal Contents:**
 
-1. **Title:** Text input.
-2. **Navigation & Hierarchy (Edit Mode Only):**
-   - **Parent:** Read-only label showing current parent.
-   - **Hierarchy Controls:**
-     - `[← Outdent]`: Moves task up one level (becomes sibling of parent).
-       - **Edge Case (Mobile)**: If the task is a direct child of the current
-         zoom context, outdenting moves it out of view. In this case, the system
-         **MUST** auto-navigate up one level so the task remains visible.
-     - `[Indent →]`: Moves task to become child of previous sibling.
-     - **"Move..." Button**: Opens a picker modal for precise reparenting (step
-       7).
-     - **Note**: Hierarchy actions (Indent, Outdent, Move) are applied
-       **immediately** to the database.
-   - **"Find in Plan" Button:** Closes modal and navigates to task in Plan view.
+1.  **Title**: Text input.
+2.  **Navigation & Hierarchy (Edit Mode Only)**:
+    - **Parent**: Read-only label showing current parent.
+    - **Hierarchy Controls**:
+      - `[← Outdent]`: Moves task up one level (becomes sibling of parent).
+        - **Edge Case (Mobile)**: If the task is a direct child of the current
+          zoom context, outdenting moves it out of view. In this case, the
+          system **MUST** auto-navigate up one level so the task remains
+          visible.
+      - `[Indent →]`: Moves task to become child of previous sibling.
+      - **"Move..." Button**: Opens a picker modal for precise reparenting.
+      - **Note**: Hierarchy actions (Indent, Outdent, Move) are applied
+        **immediately** to the database.
+    - **"Find in Plan" Button**: Closes modal and navigates to task in Plan
+      view.
+3.  **Status/Logic**:
+    - **Importance**: Slider (0.0 - 1.0).
+    - **Effort**: Segmented Control (1 | 3 | 5).
+4.  **Scheduling ("Happens")**:
+    - **Menu**: [ Once | Routinely | By Due Date | By Calendar ].
+    - **Once**: No extra fields.
+    - **Routinely**:
+      - **Every**: Number input (e.g., "3").
+      - **Unit**: Dropdown (Days | Weeks | Months | Years).
+      - **Lead Time**: Number input (Days, stored as milliseconds).
+    - **By Due Date**:
+      - **Date**: Date Picker.
+      - **Lead Time**: Number input (Days, stored as milliseconds).
+    - **By Calendar**: (Deferred) Linked Event UI.
+5.  **Context**:
+    - **Place**: Dropdown picker linking to `RootDoc.places`.
+6.  **Notes**: Multi-line text area (Markdown).
+7.  **Footer Actions (The "Next Step" Workflow)**:
+    - **"Add Sibling Task"**: Creates a new task under the _same_ parent.
+    - **"Add Child Task"**: Creates a new task under _this_ task.
+    - **"Delete Task"**
 
-3. **Status/Logic:**
+### 5.6 Visual Feedback
 
-- **Importance:** Slider (0.0 - 1.0).
-- **Effort:** Segmented Control (1 | 3 | 5).
+- **Sync Status**: Green (Synced), Yellow (Syncing), Gray (Offline).
+- **Priority**: Order implies importance; do not show raw numbers.
 
-4. **Scheduling:**
+## 6. Future Enhancements
 
-- **Due Date:** Date Picker.
-- **Lead Time:** Number input (Days).
-- **Repeats:** Selector (None | Routinely | Calendar).
+(Deferred to post-MVP)
 
-5. **Context:**
+1.  **Snooze/Defer Task**: Hide until a specific date. Would require a
+    `snoozeUntil` field and priority suppression logic.
+2.  **Drag-and-Drop Reorganization**: Direct manipulation of task hierarchy in
+    the Plan view. MVP uses the Move picker instead.
+3.  **Archive/Cleanup Completed Tasks**: Bulk deletion of tasks completed more
+    than N days ago.
+4.  **Calendar View**: Visual timeline of tasks with due dates.
+5.  **Search**: Full-text search across task titles and notes.
+6.  **Tags/Labels**: Additional categorization beyond Places.
 
-- **Place:** Dropdown picker linking to `RootDoc.places`.
+## 7. Implementation Guide
 
-6. **Notes:** Multi-line text area (Markdown).
-7. **Footer Actions (The "Next Step" Workflow):**
-
-- **"Add Sibling Task":** Creates a new task under the _same_ parent.
-- **"Add Child Task":** Creates a new task under _this_ task.
-- **"Delete Task"**
-
-### 4.6 Visual Feedback & Sync Strategy
-
-- **Priority differentiation:** Avoid showing raw scores. Order implies
-  priority.
-- **Sync State:** A subtle indicator (dot/cloud):
-- _Green:_ Synced.
-- _Yellow:_ Local changes, syncing...
-- _Gray:_ Offline.
-
-## 5. Future Enhancements (Out of Scope for MVP)
-
-The following features are explicitly deferred to post-MVP releases. This is not
-a complete list, nor are these features guaranteed to ever be implemented:
-
-1. **Snooze/Defer Task**: "Hide this task until a specific date." Would require
-   a `snoozeUntil` field and priority suppression logic.
-2. **Drag-and-Drop Reorganization**: Direct manipulation of task hierarchy in
-   the Plan view. MVP uses the Move picker instead.
-3. **Archive/Cleanup Completed Tasks**: Bulk deletion of tasks completed more
-   than N days ago.
-4. **Calendar View**: Visual timeline of tasks with due dates.
-5. **Search**: Full-text search across task titles and notes.
-6. **Tags/Labels**: Additional categorization beyond Places.
-
----
-
-## 6. Implementation Guide
-
-### 6.1 Type Definitions
+### 7.1 Type Definitions
 
 See [automerge-schema.md](./automerge-schema.md) for schema documentation.
 
@@ -336,112 +435,6 @@ The canonical TypeScript implementation is in
 - [`schemas.ts`](file:///Users/matt/src/mydoo/packages/tasklens/src/schemas.ts)
   — Zod validation
 
-### 6.2 Automerge Provider (`src/contexts/AutomergeContext.tsx`)
+### 7.2 Algorithm
 
-```typescript
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { Repo, DocHandle } from "@automerge/automerge-repo";
-import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
-import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
-import { RootDoc, ROOT_INBOX_ID, PLACE_ANYWHERE_ID } from "../types";
-
-// Initialize Repo
-const repo = new Repo({
-  storage: new IndexedDBStorageAdapter(),
-  network: [new BrowserWebSocketClientAdapter("ws://localhost:3030")],
-});
-
-interface AutomergeContextType {
-  doc: RootDoc | undefined;
-  handle: DocHandle<RootDoc> | undefined;
-  ready: boolean;
-}
-
-const AutomergeContext = createContext<AutomergeContextType>({
-  doc: undefined,
-  handle: undefined,
-  ready: false,
-});
-
-export const useAutomerge = () => useContext(AutomergeContext);
-
-export const AutomergeProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [handle, setHandle] = useState<DocHandle<RootDoc> | undefined>(
-    undefined
-  );
-  const [doc, setDoc] = useState<RootDoc | undefined>(undefined);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    const initDoc = async () => {
-      // Simple strategy: persist the root handle URL in localStorage
-      const rootHandleId = localStorage.getItem("rootHandleId");
-      let myHandle: DocHandle<RootDoc>;
-
-      if (rootHandleId) {
-        myHandle = repo.find<RootDoc>(rootHandleId);
-      } else {
-        myHandle = repo.create<RootDoc>();
-        localStorage.setItem("rootHandleId", myHandle.url);
-
-        // Initialize Schema
-        myHandle.change((d) => {
-          d.tasks = {};
-          d.places = {
-            [PLACE_ANYWHERE_ID]: {
-              id: PLACE_ANYWHERE_ID,
-              name: "Anywhere",
-              parentPlaceId: undefined,
-            },
-          };
-          d.rootTaskIds = [ROOT_INBOX_ID];
-
-          // Create the Inbox Task
-          d.tasks[ROOT_INBOX_ID] = {
-            id: ROOT_INBOX_ID,
-            title: "Inbox",
-            notes: "System Inbox",
-            parentId: undefined,
-            childIds: [],
-            status: "active",
-            createdAt: Date.now(),
-            lastReviewTimestamp: Date.now(),
-            importance: 0.5,
-            effort: 1,
-            dueDate: undefined,
-            leadTimeDays: 0,
-            repeatConfig: undefined,
-            placeId: PLACE_ANYWHERE_ID,
-          };
-
-          d.settings = {
-            userName: "User",
-            balanceSensitivity: 0.5,
-          };
-        });
-      }
-
-      setHandle(myHandle);
-
-      const v = await myHandle.doc();
-      setDoc(v);
-      setReady(true);
-
-      // Listen for changes
-      myHandle.on("change", (payload) => {
-        setDoc(payload.doc);
-      });
-    };
-
-    initDoc();
-  }, []);
-
-  return (
-    <AutomergeContext.Provider value={{ doc, handle, ready }}>
-      {children}
-    </AutomergeContext.Provider>
-  );
-};
-```
+See [ALGORITHM.md](./algorithm.md) for the scoring logic "Source of Truth".
