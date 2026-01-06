@@ -13,18 +13,18 @@
       "description": "Comprehensive narrative explaining the feature purpose"
     },
     "background": {
-      "$ref": "#/definitions/InitialState",
+      "$ref": "#/definitions/initial_state",
       "description": "Shared initial state applied to all scenarios in this feature."
     },
     "scenarios": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/Scenario"
+        "$ref": "#/definitions/scenario"
       }
     }
   },
   "definitions": {
-    "Scenario": {
+    "scenario": {
       "type": "object",
       "required": ["name", "steps"],
       "properties": {
@@ -39,7 +39,7 @@
         "steps": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Step"
+            "$ref": "#/definitions/step"
           }
         },
         "examples": {
@@ -54,7 +54,7 @@
         }
       }
     },
-    "Step": {
+    "step": {
       "type": "object",
       "description": "A single logical step in the scenario execution.",
       "properties": {
@@ -63,15 +63,15 @@
           "description": "Narrative description of what this step achieves."
         },
         "given": {
-          "$ref": "#/definitions/InitialState",
+          "$ref": "#/definitions/initial_state",
           "description": "Context setup or state initialization."
         },
         "when": {
-          "$ref": "#/definitions/Mutation",
+          "$ref": "#/definitions/mutation",
           "description": "Action or state change."
         },
         "then": {
-          "$ref": "#/definitions/Assertion",
+          "$ref": "#/definitions/assertion",
           "description": "Verification of state or outputs."
         },
         "view_filter": {
@@ -81,7 +81,7 @@
       },
       "additionalProperties": false
     },
-    "InitialState": {
+    "initial_state": {
       "type": "object",
       "properties": {
         "current_time": {
@@ -95,18 +95,18 @@
         "places": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Place"
+            "$ref": "#/definitions/place"
           }
         },
         "tasks": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/TaskInput"
+            "$ref": "#/definitions/task_input"
           }
         }
       }
     },
-    "Mutation": {
+    "mutation": {
       "type": "object",
       "properties": {
         "advance_time_seconds": {
@@ -128,7 +128,7 @@
                 "type": "string"
               },
               "status": {
-                "type": ["string"]
+                "$ref": "#/definitions/task_status"
               },
               "credits": {
                 "type": ["number", "string"]
@@ -150,7 +150,7 @@
         }
       }
     },
-    "Assertion": {
+    "assertion": {
       "type": "object",
       "properties": {
         "expected_order": {
@@ -194,7 +194,7 @@
         }
       }
     },
-    "Place": {
+    "place": {
       "type": "object",
       "required": ["id"],
       "properties": {
@@ -202,7 +202,7 @@
           "type": "string"
         },
         "hours": {
-          "$ref": "#/definitions/OpenHours"
+          "$ref": "#/definitions/open_hours"
         },
         "included_places": {
           "type": "array",
@@ -212,7 +212,7 @@
         }
       }
     },
-    "TaskInput": {
+    "task_input": {
       "type": "object",
       "required": ["id"],
       "properties": {
@@ -222,7 +222,7 @@
         "children": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/TaskInput"
+            "$ref": "#/definitions/task_input"
           }
         },
         "title": {
@@ -232,7 +232,7 @@
           "type": ["number", "string"]
         },
         "status": {
-          "type": ["string"]
+          "$ref": "#/definitions/task_status"
         },
         "credits": {
           "type": ["number", "string"]
@@ -257,7 +257,7 @@
         }
       }
     },
-    "OpenHours": {
+    "open_hours": {
       "type": "object",
       "required": ["mode"],
       "properties": {
@@ -269,7 +269,7 @@
         }
       }
     },
-    "TaskStatus": {
+    "task_status": {
       "type": "string",
       "enum": ["Pending", "Done"]
     }

@@ -30,14 +30,14 @@
           "type": "array",
           "description": "List of Place definitions available in the test scenario.",
           "items": {
-            "$ref": "#/definitions/Place"
+            "$ref": "#/definitions/place"
           }
         },
         "tasks": {
           "type": "array",
           "description": "List of input Tasks defining the initial structure and state.",
           "items": {
-            "$ref": "#/definitions/TaskInput"
+            "$ref": "#/definitions/task_input"
           }
         }
       },
@@ -47,12 +47,12 @@
       "type": "array",
       "description": "Sequence of mutation and assertion steps to execute.",
       "items": {
-        "$ref": "#/definitions/Step"
+        "$ref": "#/definitions/step"
       }
     }
   },
   "definitions": {
-    "Place": {
+    "place": {
       "type": "object",
       "description": "Represents a Context (Location + Time) constraint.",
       "required": ["id"],
@@ -63,7 +63,7 @@
           "description": "Unique Identifier for the Place. 'Anywhere' is reserved and cannot be used."
         },
         "hours": {
-          "$ref": "#/definitions/OpenHours",
+          "$ref": "#/definitions/open_hours",
           "description": "Defines the operating hours for the place."
         },
         "included_places": {
@@ -73,7 +73,7 @@
         }
       }
     },
-    "TaskInput": {
+    "task_input": {
       "type": "object",
       "description": "Input record for a Task, combining immutable spec and mutable state.",
       "required": ["id"],
@@ -86,7 +86,7 @@
           "type": "array",
           "description": "Recursive list of child tasks.",
           "items": {
-            "$ref": "#/definitions/TaskInput"
+            "$ref": "#/definitions/task_input"
           }
         },
         "title": {
@@ -99,7 +99,7 @@
           "description": "(0.0–1.0) Importance relative to parent. Set by user."
         },
         "status": {
-          "$ref": "#/definitions/TaskStatus",
+          "$ref": "#/definitions/task_status",
           "default": "Pending",
           "description": "Current state ({ Pending, Done, Deleted }). Used to derive IsPending."
         },
@@ -139,7 +139,7 @@
         }
       }
     },
-    "Step": {
+    "step": {
       "type": "object",
       "description": "A single stage in the test scenario involving mutations followed by assertions.",
       "required": ["name", "expected_order"],
@@ -173,7 +173,7 @@
                 "required": ["id"],
                 "properties": {
                   "id": {"type": "string"},
-                  "status": {"$ref": "#/definitions/TaskStatus"},
+                  "status": {"$ref": "#/definitions/task_status"},
                   "credits": {"type": "number"},
                   "desired_credits": {"type": "number"},
                   "importance": {"type": "number"},
@@ -214,18 +214,18 @@
         }
       }
     },
-    "OpenHoursRange": {
+    "open_hours_range": {
       "type": "string",
       "pattern": "^\\d{2}:\\d{2}-\\d{2}:\\d{2}$",
       "description": "Time range string in HH:MM-HH:MM format (24h)."
     },
-    "OpenHours": {
+    "open_hours": {
       "type": "object",
       "description": "Defines when a Place is considered 'Open'.",
       "required": ["mode"],
       "properties": {
         "mode": {
-          "$ref": "#/definitions/PlaceMode",
+          "$ref": "#/definitions/place_mode",
           "description": "Operating mode: 'always_open', 'always_closed', or 'custom'."
         },
         "schedule": {
@@ -235,7 +235,7 @@
             "^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)$": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/OpenHoursRange"
+                "$ref": "#/definitions/open_hours_range"
               }
             }
           },
@@ -244,12 +244,12 @@
       },
       "additionalProperties": false
     },
-    "PlaceMode": {
+    "place_mode": {
       "type": "string",
       "enum": ["always_open", "always_closed", "custom"],
       "description": "Operating mode: 'always_open', 'always_closed', or 'custom'."
     },
-    "TaskStatus": {
+    "task_status": {
       "type": "string",
       "enum": ["Pending", "Done", "Deleted"],
       "description": "Enumeration of possible task states."
