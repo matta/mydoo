@@ -96,7 +96,7 @@ export function convertLegacyToFeature(
         steps: legacy.steps.map(step => ({
           view_filter: step.view_filter,
           when: step.mutation,
-          description: step.name,
+          legacy_description: step.name,
           // biome-ignore lint/suspicious/noThenProperty: Schema defined property
           then: {
             expected_order: step.expected_order,
@@ -147,7 +147,7 @@ export function convertFeatureToLegacy(
           }
 
           return {
-            name: step.description || `Step ${idx + 1}`,
+            name: step.legacy_description || `Step ${idx + 1}`,
             view_filter: step.view_filter,
             mutation:
               Object.keys(mutation).length > 0

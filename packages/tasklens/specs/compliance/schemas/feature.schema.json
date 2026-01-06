@@ -58,7 +58,7 @@
       "type": "object",
       "description": "A single logical step in the scenario execution.",
       "properties": {
-        "description": {
+        "legacy_description": {
           "type": "string",
           "description": "Narrative description of what this step achieves."
         },
