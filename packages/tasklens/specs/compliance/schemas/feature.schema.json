@@ -1,0 +1,273 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tunnel Algorithm Feature Schema",
+  "type": "object",
+  "required": ["feature", "scenarios"],
+  "properties": {
+    "feature": {
+      "type": "string",
+      "description": "Name of the feature being tested"
+    },
+    "description": {
+      "type": "string",
+      "description": "Comprehensive narrative explaining the feature purpose"
+    },
+    "background": {
+      "$ref": "#/definitions/InitialState",
+      "description": "Shared initial state applied to all scenarios in this feature."
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Scenario"
+      }
+    }
+  },
+  "definitions": {
+    "Scenario": {
+      "type": "object",
+      "required": ["name", "steps"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the scenario"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the scenario"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Step"
+          }
+        },
+        "examples": {
+          "type": "array",
+          "description": "List of variable maps for parameterized execution",
+          "items": {
+            "type": "object",
+            "additionalProperties": {
+              "type": ["string", "number", "boolean", "null"]
+            }
+          }
+        }
+      }
+    },
+    "Step": {
+      "type": "object",
+      "description": "A single logical step in the scenario execution.",
+      "properties": {
+        "given": {
+          "$ref": "#/definitions/InitialState",
+          "description": "Context setup or state initialization."
+        },
+        "when": {
+          "$ref": "#/definitions/Mutation",
+          "description": "Action or state change."
+        },
+        "then": {
+          "$ref": "#/definitions/Assertion",
+          "description": "Verification of state or outputs."
+        },
+        "view_filter": {
+          "type": "string",
+          "description": "The active View Filter context for this step (e.g. 'All Places', 'Home'). Defaults to 'All Places'."
+        }
+      },
+      "additionalProperties": false
+    },
+    "InitialState": {
+      "type": "object",
+      "properties": {
+        "current_time": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The simulated current time for the test. Defaults to 2025-01-01T12:00:00Z if omitted."
+        },
+        "timezone_offset": {
+          "type": ["integer", "string"]
+        },
+        "places": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Place"
+          }
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TaskInput"
+          }
+        }
+      }
+    },
+    "Mutation": {
+      "type": "object",
+      "properties": {
+        "advance_time_seconds": {
+          "type": ["number", "string"]
+        },
+        "update_credits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["number", "string"]
+          }
+        },
+        "task_updates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "type": ["string"]
+              },
+              "credits": {
+                "type": ["number", "string"]
+              },
+              "desired_credits": {
+                "type": ["number", "string"]
+              },
+              "importance": {
+                "type": ["number", "string"]
+              },
+              "due_date": {
+                "type": ["string", "null"]
+              },
+              "is_acknowledged": {
+                "type": ["boolean", "string"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "Assertion": {
+      "type": "object",
+      "properties": {
+        "expected_order": {
+          "type": ["array", "string"],
+          "items": {
+            "type": "string"
+          }
+        },
+        "expected_props": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "score": {
+                "type": ["number", "string"]
+              },
+              "effective_credits": {
+                "type": ["number", "string"]
+              },
+              "normalized_importance": {
+                "type": ["number", "string"]
+              },
+              "is_blocked": {
+                "type": ["boolean", "string"]
+              },
+              "is_visible": {
+                "type": ["boolean", "string"]
+              },
+              "is_ready": {
+                "type": ["boolean", "string"]
+              },
+              "is_open": {
+                "type": ["boolean", "string"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "Place": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "hours": {
+          "$ref": "#/definitions/OpenHours"
+        },
+        "included_places": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "TaskInput": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TaskInput"
+          }
+        },
+        "title": {
+          "type": "string"
+        },
+        "importance": {
+          "type": ["number", "string"]
+        },
+        "status": {
+          "type": ["string"]
+        },
+        "credits": {
+          "type": ["number", "string"]
+        },
+        "credits_timestamp": {
+          "type": ["string", "null"]
+        },
+        "desired_credits": {
+          "type": ["number", "string"]
+        },
+        "due_date": {
+          "type": ["string", "null"]
+        },
+        "place_id": {
+          "type": ["string", "null"]
+        },
+        "lead_time_seconds": {
+          "type": ["number", "string"]
+        },
+        "is_sequential": {
+          "type": ["boolean", "string"]
+        }
+      }
+    },
+    "OpenHours": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "type": "string"
+        },
+        "schedule": {
+          "type": "object"
+        }
+      }
+    },
+    "TaskStatus": {
+      "type": "string",
+      "enum": ["Pending", "Done"]
+    }
+  }
+}

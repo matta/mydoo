@@ -60,7 +60,7 @@ const EXPECTED_FIXTURES = [
 
 // Validate that the directory matches exactly the expected list
 const actualFixtures = readdirSync(FIXTURES_PATH)
-  .filter((f: string) => f.endsWith('.yaml'))
+  .filter((f: string) => f.endsWith('.yaml') && !f.endsWith('.feature.yaml'))
   .sort();
 
 // Simple equality check

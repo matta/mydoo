@@ -41,6 +41,7 @@
     "check": "turbo run check --filter=!//",
     "dev": "turbo run dev",
     "fix": "turbo run fix --filter=!//",
+    "generate": "turbo run generate",
     "test-e2e": "turbo run test-e2e",
     "test": "turbo run test",
     "verify": "turbo run fix --filter=!// && turbo run check-agent --filter=!//",
