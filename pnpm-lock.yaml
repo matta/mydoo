@@ -97,8 +97,8 @@ catalogs:
       specifier: ^4.16.1
       version: 4.16.1
     glob:
-      specifier: ^11.0.0
-      version: 11.1.0
+      specifier: ^13.0.0
+      version: 13.0.0
     husky:
       specifier: ^9.1.7
       version: 9.1.7
@@ -392,7 +392,7 @@ importers:
     dependencies:
       glob:
         specifier: 'catalog:'
-        version: 11.1.0
+        version: 13.0.0
       minimatch:
         specifier: 'catalog:'
         version: 9.0.5
@@ -2838,6 +2838,10 @@ packages:
     resolution: {integrity: sha512-vuNwKSaKiqm7g0THUBu2x7ckSs3XJLXE+2ssL7/MfTGPLLcrJQ/4Uq1CjPTtO5cCIiRxqvN6Twy1qOwhL0Xjcw==}
     engines: {node: 20 || >=22}
     hasBin: true
+
+  glob@13.0.0:
+    resolution: {integrity: sha512-tvZgpqk6fz4BaNZ66ZsRaZnbHvP/jG3uKJvAZOwEVUL4RTA5nJeeLYfyN9/VA8NX/V3IBG+hkeuGpKjvELkVhA==}
+    engines: {node: 20 || >=22}
 
   global-directory@4.0.1:
     resolution: {integrity: sha512-wHTUcDUoZ1H5/0iVqEudYW4/kAlN5cZ3j/bXn0Dpbizl9iaUVeWSHqiOjsgk6OW2bkLclbBjzewBz6weQ1zA2Q==}
@@ -7144,6 +7148,12 @@ snapshots:
       minimatch: 10.1.1
       minipass: 7.1.2
       package-json-from-dist: 1.0.1
+      path-scurry: 2.0.1
+
+  glob@13.0.0:
+    dependencies:
+      minimatch: 10.1.1
+      minipass: 7.1.2
       path-scurry: 2.0.1
 
   global-directory@4.0.1:

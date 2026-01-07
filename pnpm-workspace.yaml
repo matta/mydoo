@@ -40,7 +40,7 @@ catalogs:
     dayjs: ^1.11.19
     eslint: ^9.39.2
     eslint-plugin-import-x: ^4.16.1
-    glob: ^11.0.0
+    glob: ^13.0.0
     globals: ^17.0.0
     knip: ^5.80.0
     lint-staged: ^16.2.7
