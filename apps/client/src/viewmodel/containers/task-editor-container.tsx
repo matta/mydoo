@@ -1,17 +1,17 @@
-import {useMediaQuery} from '@mantine/hooks';
+import { useMediaQuery } from '@mantine/hooks';
 import {
   selectRootTaskIds,
   selectTaskEntities,
   type Task,
   type TaskID,
 } from '@mydoo/tasklens';
-import {useCallback, useEffect} from 'react';
-import {useSelector} from 'react-redux';
+import { useCallback, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 
-import {TaskEditorModal} from '../../components/modals/task-editor-modal';
-import {useTaskIntents} from '../intents/use-task-intents';
-import {useTaskDetails} from '../projections/use-task-details';
-import {useNavigationState} from '../ui/use-navigation-state';
+import { TaskEditorModal } from '../../components/modals/task-editor-modal';
+import { useTaskIntents } from '../intents/use-task-intents';
+import { useTaskDetails } from '../projections/use-task-details';
+import { useNavigationState } from '../ui/use-navigation-state';
 
 /**
  * Container that connects the TaskEditorModal to the application state.
@@ -38,9 +38,9 @@ export function TaskEditorContainer() {
 
   const editingTaskId = modal?.type === 'edit' ? modal.taskId : undefined;
 
-  const {task, parentTitle, descendantCount, isLoading} =
+  const { task, parentTitle, descendantCount, isLoading } =
     useTaskDetails(editingTaskId);
-  const {updateTask, createTask, deleteTask, indentTask, outdentTask} =
+  const { updateTask, createTask, deleteTask, indentTask, outdentTask } =
     useTaskIntents();
 
   // Auto-close if task is missing (deleted remotely)
@@ -66,13 +66,13 @@ export function TaskEditorContainer() {
   // TaskEditorModal expects `Task | undefined` (where Task is ComputedTask alias).
   const editorState = useCallback(() => {
     if (modal?.type === 'create') {
-      if (!modal.parentId) return {task: undefined, parent: undefined};
-      return {task: undefined, parent: tasks[modal.parentId]};
+      if (!modal.parentId) return { task: undefined, parent: undefined };
+      return { task: undefined, parent: tasks[modal.parentId] };
     }
 
     // Edit mode
     const editingTask = task as Task | undefined;
-    if (!editingTask) return {task: undefined, parent: undefined};
+    if (!editingTask) return { task: undefined, parent: undefined };
 
     const parentId = editingTask.parentId;
     return {

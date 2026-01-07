@@ -1,5 +1,5 @@
-import {selectBalanceData} from '@mydoo/tasklens';
-import {useSelector} from 'react-redux';
+import { selectBalanceData } from '@mydoo/tasklens';
+import { useSelector } from 'react-redux';
 
 /**
  * useBalanceData Hook

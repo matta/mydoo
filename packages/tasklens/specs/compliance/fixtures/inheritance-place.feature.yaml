@@ -3,10 +3,10 @@ background:
   current_time: '2025-01-01T00:00:00Z'
   places:
     - id: Home
-      hours: {mode: always_open}
+      hours: { mode: always_open }
       included_places: []
     - id: Work
-      hours: {mode: always_open}
+      hours: { mode: always_open }
       included_places: []
 
 scenarios:

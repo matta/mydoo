@@ -5,8 +5,16 @@
  * information and recover the application state.
  */
 
-import {Box, Button, Code, Container, Stack, Text, Title} from '@mantine/core';
-import {Component, type ErrorInfo, type ReactNode} from 'react';
+import {
+  Box,
+  Button,
+  Code,
+  Container,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {
   /** The component tree to be protected by the boundary. */
@@ -42,7 +50,7 @@ interface State {
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = {error: null, errorInfo: null};
+    this.state = { error: null, errorInfo: null };
   }
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo) {

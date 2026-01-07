@@ -1,11 +1,11 @@
-import {test} from './fixtures';
+import { test } from './fixtures';
 
 test.describe('Move Picker Interactions', () => {
-  test.beforeEach(async ({plan}) => {
+  test.beforeEach(async ({ plan }) => {
     await plan.primeWithSampleData();
   });
 
-  test('Move Task to Another Parent', async ({plan}) => {
+  test('Move Task to Another Parent', async ({ plan }) => {
     // Create a fresh hierarchy for predictable testing
     const rootTask = 'Move Root';
     const childTask = 'Move Child';

@@ -134,9 +134,9 @@ packages are targeted.
         "//#check-eslint-root",
       ],
     },
-    "//#check-biome-root": {"inputs": ["*"]},
-    "//#check-format-root": {"inputs": ["*"]},
-    "//#check-eslint-root": {"inputs": ["*"]},
+    "//#check-biome-root": { "inputs": ["*"] },
+    "//#check-format-root": { "inputs": ["*"] },
+    "//#check-eslint-root": { "inputs": ["*"] },
 
     // --- THE "FIX" VERB (Write) ---
     "fix": {
@@ -148,9 +148,9 @@ packages are targeted.
       ],
       "cache": false,
     },
-    "//#fix-biome-root": {"cache": false},
-    "//#fix-format-root": {"cache": false},
-    "//#fix-eslint-root": {"cache": false},
+    "//#fix-biome-root": { "cache": false },
+    "//#fix-format-root": { "cache": false },
+    "//#fix-eslint-root": { "cache": false },
   },
 }
 ```

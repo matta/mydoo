@@ -1,11 +1,11 @@
-import {test} from './fixtures';
+import { test } from './fixtures';
 
 test.describe('Plan View', () => {
-  test.beforeEach(async ({plan}) => {
+  test.beforeEach(async ({ plan }) => {
     await plan.primeWithSampleData();
   });
 
-  test('should render task hierarchy', async ({plan}) => {
+  test('should render task hierarchy', async ({ plan }) => {
     await test.step('Verify initial collapsed state', async () => {
       await plan.switchToPlanView();
       await plan.verifyTaskVisible('Project Alpha');
@@ -60,7 +60,7 @@ test.describe('Plan View', () => {
     });
   });
 
-  test('should delete task with cascade', async ({plan}) => {
+  test('should delete task with cascade', async ({ plan }) => {
     const parentTitle = 'Parent Task';
     const childTitle = 'Child Task';
 
@@ -81,7 +81,7 @@ test.describe('Plan View', () => {
     });
   });
 
-  test('should persist data across page reloads', async ({plan, page}) => {
+  test('should persist data across page reloads', async ({ plan, page }) => {
     const persistTask = 'Persistent Task';
 
     await test.step('Create task and reload', async () => {

@@ -1,6 +1,6 @@
-import {ActionIcon, TextInput} from '@mantine/core';
-import {IconPlus} from '@tabler/icons-react';
-import {useState} from 'react';
+import { ActionIcon, TextInput } from '@mantine/core';
+import { IconPlus } from '@tabler/icons-react';
+import { useState } from 'react';
 
 export interface QuickAddInputProps {
   onAdd: (text: string) => void;

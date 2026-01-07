@@ -197,7 +197,7 @@ implementation-level terms in test narratives.
 **Example:**
 
 ```typescript
-test('User can organize tasks', async ({plan}) => {
+test('User can organize tasks', async ({ plan }) => {
   await test.step('Create task', async () => {
     // Given the user is on the Plan view
     // When they create a new task

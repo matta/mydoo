@@ -64,7 +64,7 @@ export function parseDuration(str: string): ParsedDuration {
     );
   }
 
-  return {value, rawUnit, uiUnit};
+  return { value, rawUnit, uiUnit };
 }
 
 /**
@@ -78,7 +78,7 @@ export function parseDuration(str: string): ParsedDuration {
  * @throws {Error} If the string format is invalid or unit is unrecognized
  */
 export function durationToMs(str: string): number {
-  const {value, uiUnit} = parseDuration(str);
+  const { value, uiUnit } = parseDuration(str);
 
   // Use validated uiUnit field for conversion
   switch (uiUnit) {

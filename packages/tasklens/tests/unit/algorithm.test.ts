@@ -1,11 +1,11 @@
-import {readdirSync, readFileSync} from 'node:fs';
-import {join} from 'node:path';
-import Ajv, {type ValidateFunction} from 'ajv';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import Ajv, { type ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
-import {load} from 'js-yaml';
-import {afterAll, beforeAll, describe, expect, it} from 'vitest';
+import { load } from 'js-yaml';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import featureSchemaJson from '../../specs/compliance/schemas/feature.schema.json';
-import {getPrioritizedTasks} from '../../src/domain/priority';
+import { getPrioritizedTasks } from '../../src/domain/priority';
 import type {
   InitialState,
   Mutation,
@@ -14,7 +14,7 @@ import type {
   TaskInput,
   TunnelAlgorithmFeatureSchema,
 } from '../../src/generated/feature';
-import {TunnelStore} from '../../src/persistence/store';
+import { TunnelStore } from '../../src/persistence/store';
 import {
   ANYWHERE_PLACE_ID,
   DEFAULT_CREDIT_INCREMENT,
@@ -151,7 +151,7 @@ function parseTaskInput(
       type: (input.schedule_type as Schedule['type']) ?? 'Once',
       leadTime: Number(input.lead_time_seconds ?? 604800) * 1000,
       ...(input.last_done
-        ? {lastDone: new Date(input.last_done).getTime()}
+        ? { lastDone: new Date(input.last_done).getTime() }
         : {}),
     },
     placeId: effectivePlaceId as PlaceID,
@@ -296,7 +296,7 @@ function computeScheduleUpdate(
   if (props.lead_time_seconds !== undefined) {
     if (!taskProps.schedule) {
       const existingTask = store.getTask(id as TaskID);
-      if (existingTask) taskProps.schedule = {...existingTask.schedule};
+      if (existingTask) taskProps.schedule = { ...existingTask.schedule };
     }
     if (taskProps.schedule) {
       taskProps.schedule.leadTime = Number(props.lead_time_seconds) * 1000;
@@ -306,7 +306,7 @@ function computeScheduleUpdate(
 
 function applyTaskUpdates(store: TunnelStore, updates: TaskUpdate[]): void {
   for (const update of updates) {
-    const {id, ...props} = update;
+    const { id, ...props } = update;
     const taskProps = computePartialUpdate(store, id, props);
     store.updateTask(id as TaskID, taskProps);
   }
@@ -349,7 +349,7 @@ function setupStore(hydratedBackground: InitialState) {
     nextPlaceId: 1,
   });
 
-  return {store, testStartTime};
+  return { store, testStartTime };
 }
 
 function verifyTaskOrder(

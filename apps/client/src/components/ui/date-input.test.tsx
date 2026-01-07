@@ -1,8 +1,8 @@
-import {screen} from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {describe, expect, it, vi} from 'vitest';
-import {renderWithTestProviders} from '../../test/setup';
-import {DateInput} from './date-input';
+import { describe, expect, it, vi } from 'vitest';
+import { renderWithTestProviders } from '../../test/setup';
+import { DateInput } from './date-input';
 
 describe('DateInput', () => {
   it('renders with a label', () => {

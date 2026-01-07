@@ -1,7 +1,7 @@
-import {test} from './fixtures';
+import { test } from './fixtures';
 
 test.describe('Full User Journey: Desktop', () => {
-  test.use({viewport: {width: 1280, height: 720}});
+  test.use({ viewport: { width: 1280, height: 720 } });
 
   test('Start Empty -> Add -> Edit -> Sibling -> Child', async ({
     plan,

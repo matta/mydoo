@@ -1,13 +1,13 @@
-import {MantineProvider} from '@mantine/core';
-import {Notifications} from '@mantine/notifications';
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
+import { MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 
 import App from './app';
-import {ErrorBoundary} from './components/error-boundary';
-import {ReloadPrompt} from './components/pwa/reload-prompt';
-import {RepoProvider} from './hooks/repo-provider';
-import {theme} from './theme';
+import { ErrorBoundary } from './components/error-boundary';
+import { ReloadPrompt } from './components/pwa/reload-prompt';
+import { RepoProvider } from './hooks/repo-provider';
+import { theme } from './theme';
 
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';

@@ -18,7 +18,7 @@
  * "Do not manually define TypeScript interfaces that mirror Zod schemas.
  * Derive the static type directly from the runtime schema using `z.infer`."
  */
-import {z} from 'zod';
+import { z } from 'zod';
 
 /**
  * Helper to create a record schema that handles Automerge proxies.

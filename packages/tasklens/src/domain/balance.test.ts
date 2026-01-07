@@ -1,7 +1,7 @@
-import {describe, expect, it} from 'vitest';
-import {createMockTask} from '../test/test-utils';
-import type {TaskID} from '../types';
-import {calculateBalanceData} from './balance';
+import { describe, expect, it } from 'vitest';
+import { createMockTask } from '../test/test-utils';
+import type { TaskID } from '../types';
+import { calculateBalanceData } from './balance';
 
 describe('calculateBalanceData', () => {
   it('should return empty array when no tasks are provided', () => {
@@ -10,8 +10,8 @@ describe('calculateBalanceData', () => {
 
   it('should exclude non-root tasks', () => {
     const tasks = [
-      createMockTask({id: 'root-1' as TaskID, parentId: undefined}),
-      createMockTask({id: 'child-1' as TaskID, parentId: 'root-1' as TaskID}),
+      createMockTask({ id: 'root-1' as TaskID, parentId: undefined }),
+      createMockTask({ id: 'child-1' as TaskID, parentId: 'root-1' as TaskID }),
     ];
     const data = calculateBalanceData(tasks);
     expect(data).toHaveLength(1);
@@ -70,7 +70,7 @@ describe('calculateBalanceData', () => {
   });
 
   it('should handle zero total credits gracefully', () => {
-    const tasks = [createMockTask({desiredCredits: 0, effectiveCredits: 0})];
+    const tasks = [createMockTask({ desiredCredits: 0, effectiveCredits: 0 })];
     const data = calculateBalanceData(tasks);
     const [goal] = data;
     expect(goal?.targetPercent).toBe(0);

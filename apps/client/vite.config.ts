@@ -1,9 +1,9 @@
-import {execSync} from 'node:child_process';
+import { execSync } from 'node:child_process';
 import path from 'node:path';
 import react from '@vitejs/plugin-react';
-import type {PluginOption} from 'vite';
-import {defineConfig} from 'vite';
-import {VitePWA} from 'vite-plugin-pwa';
+import type { PluginOption } from 'vite';
+import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import wasm from 'vite-plugin-wasm';
 
@@ -50,7 +50,7 @@ const getBuildInfo = () => {
       clean = false;
     }
 
-    return {hash, date, clean};
+    return { hash, date, clean };
   } catch (error) {
     console.error('Failed to get build info from git:', error);
     return {

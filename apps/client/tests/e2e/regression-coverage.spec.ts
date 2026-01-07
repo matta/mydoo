@@ -1,10 +1,10 @@
-import {test} from './fixtures';
+import { test } from './fixtures';
 
 test.describe('Regression Coverage: Full Journey', () => {
   test.describe('Desktop View', () => {
-    test.use({viewport: {width: 1280, height: 720}});
+    test.use({ viewport: { width: 1280, height: 720 } });
 
-    test('Complete Desktop Journey', async ({plan, page}) => {
+    test('Complete Desktop Journey', async ({ plan, page }) => {
       await page.goto('/');
       await plan.switchToPlanView();
 
@@ -39,9 +39,9 @@ test.describe('Regression Coverage: Full Journey', () => {
   });
 
   test.describe('Mobile View', () => {
-    test.use({viewport: {width: 375, height: 667}});
+    test.use({ viewport: { width: 375, height: 667 } });
 
-    test('Complete Mobile Journey', async ({plan, page}) => {
+    test('Complete Mobile Journey', async ({ plan, page }) => {
       await page.goto('/');
       await plan.switchToPlanView();
 
@@ -54,10 +54,10 @@ test.describe('Regression Coverage: Full Journey', () => {
       await test.step('Add sibling via footer', async () => {
         // Mobile footer 'Add Task at Top'
         await page.getByLabel('Add Task at Top').click();
-        const modal = page.getByRole('dialog', {name: 'Create Task'});
-        const titleInput = modal.getByRole('textbox', {name: 'Title'});
+        const modal = page.getByRole('dialog', { name: 'Create Task' });
+        const titleInput = modal.getByRole('textbox', { name: 'Title' });
         await titleInput.fill('Mobile Sibling');
-        await modal.getByRole('button', {name: 'Create Task'}).click();
+        await modal.getByRole('button', { name: 'Create Task' }).click();
 
         await plan.verifyTaskVisible('Mobile Sibling');
       });
@@ -68,14 +68,14 @@ test.describe('Regression Coverage: Full Journey', () => {
 
         // Open context menu (Task actions)
         const rootRow = page
-          .locator(`[data-testid="task-item"]`, {hasText: rootTitle})
+          .locator(`[data-testid="task-item"]`, { hasText: rootTitle })
           .first();
         await rootRow.getByLabel('Task actions').click();
-        await page.getByRole('menuitem', {name: 'Add Child'}).click();
+        await page.getByRole('menuitem', { name: 'Add Child' }).click();
 
-        const modal = page.getByRole('dialog', {name: 'Create Task'});
-        await modal.getByRole('textbox', {name: 'Title'}).fill(childTitle);
-        await modal.getByRole('button', {name: 'Create Task'}).click();
+        const modal = page.getByRole('dialog', { name: 'Create Task' });
+        await modal.getByRole('textbox', { name: 'Title' }).fill(childTitle);
+        await modal.getByRole('button', { name: 'Create Task' }).click();
 
         // Verify Auto-drill (breadcrumb shows parent)
         await plan.mobileVerifyViewTitle(rootTitle);

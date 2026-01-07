@@ -1,11 +1,15 @@
-import {Container, Paper, Stack, Text, Title} from '@mantine/core';
-import {distributeCredits, type TaskID, useTaskActions} from '@mydoo/tasklens';
-import {useBalanceData} from '../../../hooks/use-balance-data';
-import {BalanceItem} from './balance-item';
+import { Container, Paper, Stack, Text, Title } from '@mantine/core';
+import {
+  distributeCredits,
+  type TaskID,
+  useTaskActions,
+} from '@mydoo/tasklens';
+import { useBalanceData } from '../../../hooks/use-balance-data';
+import { BalanceItem } from './balance-item';
 
 export function BalanceViewContainer() {
   const items = useBalanceData();
-  const {updateTask} = useTaskActions();
+  const { updateTask } = useTaskActions();
 
   // 1. Calculate Global Constraints based on N (Total Budget = N)
   // Min = 1% of Total Share (where Total Share = N). So Min = 0.01 * N.
@@ -25,7 +29,7 @@ export function BalanceViewContainer() {
     // times to undo 1 drag) and pollutes history. We strictly need a
     // `updateTasks(updates)` action that wraps these in one `doc.change`.
     for (const update of updates) {
-      updateTask(update.id, {desiredCredits: update.desiredCredits});
+      updateTask(update.id, { desiredCredits: update.desiredCredits });
     }
   };
 
@@ -65,7 +69,7 @@ export function BalanceViewContainer() {
           ))}
 
           {items.length === 0 && (
-            <Paper p="xl" withBorder style={{textAlign: 'center'}}>
+            <Paper p="xl" withBorder style={{ textAlign: 'center' }}>
               <Text c="dimmed">
                 No top-level goals found. Create some in the "Plan" view to
                 start balancing!

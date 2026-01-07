@@ -1,7 +1,7 @@
-import {expect, test} from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Task Completion Lifecycle', () => {
-  test.beforeEach(async ({page}) => {
+  test.beforeEach(async ({ page }) => {
     await page.goto('/');
     // Clear any existing state if needed (handled by Incognito browser context usually)
   });
@@ -31,7 +31,7 @@ test.describe('Task Completion Lifecycle', () => {
 
     // 3. VERIFY: It should STILL be visible (Strikethrough check is secondary, main point is existence)
     // CURRENT BUG: It disappears immediately. This assertion EXPECTS it to stay.
-    await expect(taskRow).toBeVisible({timeout: 2000});
+    await expect(taskRow).toBeVisible({ timeout: 2000 });
 
     // 4. VERIFY: It should have strikethrough (optional visual check, but good to have)
     // This depends on implementation details (CSS class or style), leaving broad for now
@@ -39,7 +39,7 @@ test.describe('Task Completion Lifecycle', () => {
     // await expect(rowContainer).toHaveCSS('text-decoration', /line-through/);
 
     // 5. Click Refresh/Update button
-    const refreshButton = page.getByRole('button', {name: /update|refresh/i});
+    const refreshButton = page.getByRole('button', { name: /update|refresh/i });
     await expect(refreshButton).toBeVisible();
     await refreshButton.click();
 

@@ -1,4 +1,4 @@
-import type {Schedule} from '../types';
+import type { Schedule } from '../types';
 
 /**
  * Calculates the Lead Time Factor for a task based on its schedule and the current time.

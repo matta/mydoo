@@ -1,21 +1,21 @@
-import {Repo} from '@automerge/automerge-repo';
+import { Repo } from '@automerge/automerge-repo';
 import {
   createTaskLensStore,
   type TaskID,
   type TunnelState,
 } from '@mydoo/tasklens';
-import {act, renderHook, waitFor} from '@testing-library/react';
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import {createTestWrapper} from '../../test/setup';
-import {useTaskDetails} from '../projections/use-task-details';
-import {useTaskIntents} from './use-task-intents';
+import { createTestWrapper } from '../../test/setup';
+import { useTaskDetails } from '../projections/use-task-details';
+import { useTaskIntents } from './use-task-intents';
 
 describe('useTaskIntents', () => {
   let repo: Repo;
 
   beforeEach(() => {
-    repo = new Repo({network: []});
+    repo = new Repo({ network: [] });
     window.location.hash = '';
   });
 
@@ -35,7 +35,7 @@ describe('useTaskIntents', () => {
     const wrapper = createTestWrapper(repo, store, docUrl);
 
     // 2. Setup Intents Hook
-    const {result} = renderHook(() => useTaskIntents(), {wrapper});
+    const { result } = renderHook(() => useTaskIntents(), { wrapper });
 
     // Wait for initial Redux sync
     await waitFor(() => {
@@ -85,10 +85,10 @@ describe('useTaskIntents', () => {
       const intents = useTaskIntents();
       // This will cause re-render when ANY task in the store updates
       const details = useTaskDetails(undefined);
-      return {intents, details};
+      return { intents, details };
     };
 
-    const {result} = renderHook(() => useObserver(), {wrapper});
+    const { result } = renderHook(() => useObserver(), { wrapper });
 
     // 3. Create Task
     let taskId: TaskID;
@@ -144,7 +144,7 @@ describe('useTaskIntents', () => {
     const wrapper = createTestWrapper(repo, store, docUrl);
 
     // 2. Setup Intents Hook
-    const {result} = renderHook(() => useTaskIntents(), {wrapper});
+    const { result } = renderHook(() => useTaskIntents(), { wrapper });
 
     // Wait for initial Redux sync
     await waitFor(() => {

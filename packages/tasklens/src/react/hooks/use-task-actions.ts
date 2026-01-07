@@ -1,14 +1,14 @@
-import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
-import {useCallback} from 'react';
+import { useDocHandle } from '@automerge/automerge-repo-react-hooks';
+import { useCallback } from 'react';
 import {
   createTask as createTaskOp,
   deleteTask as deleteTaskOp,
   moveTask as moveTaskOp,
   updateTask as updateTaskOp,
 } from '../../persistence/ops';
-import type {CreateTaskOptions, Task, TaskID, TunnelState} from '../../types';
-import {TaskStatus} from '../../types';
-import {useTaskLensDocUrl} from '../task-lens-provider';
+import type { CreateTaskOptions, Task, TaskID, TunnelState } from '../../types';
+import { TaskStatus } from '../../types';
+import { useTaskLensDocUrl } from '../task-lens-provider';
 
 /**
  * Hook to perform mutations on the TaskLens document.
@@ -41,7 +41,7 @@ export function useTaskActions() {
     ): TaskID => {
       const newTaskId = crypto.randomUUID() as TaskID;
       mutate((d) => {
-        createTaskOp(d, {id: newTaskId, title, parentId, ...props}, options);
+        createTaskOp(d, { id: newTaskId, title, parentId, ...props }, options);
       });
       return newTaskId;
     },

@@ -30,8 +30,8 @@ import {
   type Task,
   type TaskID,
 } from '@mydoo/tasklens';
-import {useCallback, useEffect, useState} from 'react';
-import {DateInput} from '../ui/date-input';
+import { useCallback, useEffect, useState } from 'react';
+import { DateInput } from '../ui/date-input';
 
 interface TaskEditorModalProps {
   /** Whether the modal is open */
@@ -76,14 +76,14 @@ const MS_PER_MINUTE = 1000 * 60;
 /**
  * Converts a lead time in milliseconds to a scalar value and unit.
  */
-function parseLeadTime(totalMs: number): {scalar: number; unit: string} {
+function parseLeadTime(totalMs: number): { scalar: number; unit: string } {
   if (totalMs % MS_PER_DAY === 0) {
-    return {scalar: totalMs / MS_PER_DAY, unit: 'Days'};
+    return { scalar: totalMs / MS_PER_DAY, unit: 'Days' };
   }
   if (totalMs % MS_PER_HOUR === 0) {
-    return {scalar: totalMs / MS_PER_HOUR, unit: 'Hours'};
+    return { scalar: totalMs / MS_PER_HOUR, unit: 'Hours' };
   }
-  return {scalar: Math.round(totalMs / MS_PER_MINUTE), unit: 'Minutes'};
+  return { scalar: Math.round(totalMs / MS_PER_MINUTE), unit: 'Minutes' };
 }
 
 /**
@@ -150,7 +150,7 @@ export function TaskEditorModal({
       }
 
       // Parse Lead Time
-      const {scalar, unit} = parseLeadTime(task.schedule.leadTime);
+      const { scalar, unit } = parseLeadTime(task.schedule.leadTime);
       setLeadTimeScalar(scalar);
       setLeadTimeUnit(unit);
 
@@ -376,9 +376,9 @@ export function TaskEditorModal({
           <Slider
             label={(v) => v.toFixed(2)}
             marks={[
-              {value: 0, label: '0'},
-              {value: 0.5, label: '0.5'},
-              {value: 1, label: '1'},
+              { value: 0, label: '0' },
+              { value: 0.5, label: '0.5' },
+              { value: 1, label: '1' },
             ]}
             max={1}
             min={0}
@@ -394,9 +394,9 @@ export function TaskEditorModal({
           <Slider
             label={(v) => v.toFixed(2)}
             marks={[
-              {value: 0, label: '0'},
-              {value: 0.5, label: '0.5'},
-              {value: 1, label: '1'},
+              { value: 0, label: '0' },
+              { value: 0.5, label: '0.5' },
+              { value: 1, label: '1' },
             ]}
             max={1}
             min={0}
@@ -414,14 +414,14 @@ export function TaskEditorModal({
             placeholder="Pick a date"
             value={dueDate}
           />
-          <Group gap="xs" style={{flexGrow: 1}}>
+          <Group gap="xs" style={{ flexGrow: 1 }}>
             <NumberInput
               id="lead-time-scalar-input"
               label="Lead Time"
               min={0}
               onChange={setLeadTimeScalar}
               value={leadTimeScalar}
-              style={{flex: 1}}
+              style={{ flex: 1 }}
             />
             <Select
               id="lead-time-unit-select"
@@ -429,7 +429,7 @@ export function TaskEditorModal({
               data={['Minutes', 'Hours', 'Days']}
               value={leadTimeUnit}
               onChange={(val) => val && setLeadTimeUnit(val)}
-              style={{width: '100px'}}
+              style={{ width: '100px' }}
               allowDeselect={false}
               comboboxProps={{
                 // Force the dropdown to render inside the Modal to avoid
@@ -448,12 +448,12 @@ export function TaskEditorModal({
             label="Repetition"
             placeholder="None"
             data={[
-              {value: 'minutes', label: 'Minutes'},
-              {value: 'hours', label: 'Hours'},
-              {value: 'daily', label: 'Daily'},
-              {value: 'weekly', label: 'Weekly'},
-              {value: 'monthly', label: 'Monthly'},
-              {value: 'yearly', label: 'Yearly'},
+              { value: 'minutes', label: 'Minutes' },
+              { value: 'hours', label: 'Hours' },
+              { value: 'daily', label: 'Daily' },
+              { value: 'weekly', label: 'Weekly' },
+              { value: 'monthly', label: 'Monthly' },
+              { value: 'yearly', label: 'Yearly' },
             ]}
             value={frequency}
             onChange={setFrequency}

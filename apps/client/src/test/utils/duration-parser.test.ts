@@ -1,41 +1,45 @@
-import {describe, expect, it} from 'vitest';
-import {durationToMs, parseDuration} from './duration-parser';
+import { describe, expect, it } from 'vitest';
+import { durationToMs, parseDuration } from './duration-parser';
 
 describe('parseDuration', () => {
   describe('valid inputs', () => {
     it('should parse singular day', () => {
       const result = parseDuration('1 day');
-      expect(result).toEqual({value: 1, rawUnit: 'day', uiUnit: 'Days'});
+      expect(result).toEqual({ value: 1, rawUnit: 'day', uiUnit: 'Days' });
     });
 
     it('should parse plural days', () => {
       const result = parseDuration('3 days');
-      expect(result).toEqual({value: 3, rawUnit: 'days', uiUnit: 'Days'});
+      expect(result).toEqual({ value: 3, rawUnit: 'days', uiUnit: 'Days' });
     });
 
     it('should parse singular hour', () => {
       const result = parseDuration('1 hour');
-      expect(result).toEqual({value: 1, rawUnit: 'hour', uiUnit: 'Hours'});
+      expect(result).toEqual({ value: 1, rawUnit: 'hour', uiUnit: 'Hours' });
     });
 
     it('should parse plural hours', () => {
       const result = parseDuration('2 hours');
-      expect(result).toEqual({value: 2, rawUnit: 'hours', uiUnit: 'Hours'});
+      expect(result).toEqual({ value: 2, rawUnit: 'hours', uiUnit: 'Hours' });
     });
 
     it('should parse hour abbreviation "hr"', () => {
       const result = parseDuration('1 hr');
-      expect(result).toEqual({value: 1, rawUnit: 'hr', uiUnit: 'Hours'});
+      expect(result).toEqual({ value: 1, rawUnit: 'hr', uiUnit: 'Hours' });
     });
 
     it('should parse hour abbreviation "hrs"', () => {
       const result = parseDuration('5 hrs');
-      expect(result).toEqual({value: 5, rawUnit: 'hrs', uiUnit: 'Hours'});
+      expect(result).toEqual({ value: 5, rawUnit: 'hrs', uiUnit: 'Hours' });
     });
 
     it('should parse singular minute', () => {
       const result = parseDuration('1 minute');
-      expect(result).toEqual({value: 1, rawUnit: 'minute', uiUnit: 'Minutes'});
+      expect(result).toEqual({
+        value: 1,
+        rawUnit: 'minute',
+        uiUnit: 'Minutes',
+      });
     });
 
     it('should parse plural minutes', () => {
@@ -49,22 +53,22 @@ describe('parseDuration', () => {
 
     it('should parse minute abbreviation "min"', () => {
       const result = parseDuration('15 min');
-      expect(result).toEqual({value: 15, rawUnit: 'min', uiUnit: 'Minutes'});
+      expect(result).toEqual({ value: 15, rawUnit: 'min', uiUnit: 'Minutes' });
     });
 
     it('should parse minute abbreviation "mins"', () => {
       const result = parseDuration('45 mins');
-      expect(result).toEqual({value: 45, rawUnit: 'mins', uiUnit: 'Minutes'});
+      expect(result).toEqual({ value: 45, rawUnit: 'mins', uiUnit: 'Minutes' });
     });
 
     it('should handle mixed case units', () => {
       const result = parseDuration('2 HOURS');
-      expect(result).toEqual({value: 2, rawUnit: 'hours', uiUnit: 'Hours'});
+      expect(result).toEqual({ value: 2, rawUnit: 'hours', uiUnit: 'Hours' });
     });
 
     it('should handle extra whitespace', () => {
       const result = parseDuration('  3   days  ');
-      expect(result).toEqual({value: 3, rawUnit: 'days', uiUnit: 'Days'});
+      expect(result).toEqual({ value: 3, rawUnit: 'days', uiUnit: 'Days' });
     });
   });
 

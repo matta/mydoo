@@ -1,27 +1,27 @@
-import {describe, expect, it} from 'vitest';
-import {RepeatConfigSchema, TaskSchema} from '../../src/persistence/schemas';
+import { describe, expect, it } from 'vitest';
+import { RepeatConfigSchema, TaskSchema } from '../../src/persistence/schemas';
 
 describe('RepeatConfigSchema', () => {
   it('should validate daily frequency with interval', () => {
-    const valid = {frequency: 'daily', interval: 1};
+    const valid = { frequency: 'daily', interval: 1 };
     const result = RepeatConfigSchema.safeParse(valid);
     expect(result.success).toBe(true);
   });
 
   it('should validate yearly frequency', () => {
-    const valid = {frequency: 'yearly', interval: 5};
+    const valid = { frequency: 'yearly', interval: 5 };
     const result = RepeatConfigSchema.safeParse(valid);
     expect(result.success).toBe(true);
   });
 
   it('should reject invalid frequency', () => {
-    const invalid = {frequency: 'hourly', interval: 1};
+    const invalid = { frequency: 'hourly', interval: 1 };
     const result = RepeatConfigSchema.safeParse(invalid);
     expect(result.success).toBe(false);
   });
 
   it('should reject non-positive interval', () => {
-    const invalid = {frequency: 'weekly', interval: 0};
+    const invalid = { frequency: 'weekly', interval: 0 };
     const result = RepeatConfigSchema.safeParse(invalid);
     expect(result.success).toBe(false);
   });
@@ -41,8 +41,8 @@ describe('TaskSchema extensions', () => {
       desiredCredits: 0,
       creditsTimestamp: Date.now(),
       priorityTimestamp: Date.now(),
-      schedule: {type: 'Routinely', leadTime: 1000},
-      repeatConfig: {frequency: 'daily', interval: 1},
+      schedule: { type: 'Routinely', leadTime: 1000 },
+      repeatConfig: { frequency: 'daily', interval: 1 },
       isSequential: false,
       isAcknowledged: false,
     };
@@ -90,7 +90,7 @@ describe('TaskSchema extensions', () => {
       desiredCredits: 0,
       creditsTimestamp: Date.now(),
       priorityTimestamp: Date.now(),
-      schedule: {type: 'Once', leadTime: 1000},
+      schedule: { type: 'Once', leadTime: 1000 },
       isSequential: false,
     };
     const result = TaskSchema.parse(taskData);

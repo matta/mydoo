@@ -1,5 +1,5 @@
-import {Checkbox, Group, Paper, Text} from '@mantine/core';
-import type {Task, TaskID} from '@mydoo/tasklens';
+import { Checkbox, Group, Paper, Text } from '@mantine/core';
+import type { Task, TaskID } from '@mydoo/tasklens';
 
 /**
  * Props for the TaskRow component.
@@ -44,7 +44,7 @@ export interface TaskRowProps {
  *   onTitleTap={(id) => openEditor(id)}
  * />
  */
-export function TaskRow({task, onToggle, onTitleTap, style}: TaskRowProps) {
+export function TaskRow({ task, onToggle, onTitleTap, style }: TaskRowProps) {
   return (
     <Paper p="xs" shadow="xs" style={style} withBorder data-testid="task-item">
       <Group align="center" gap="sm" wrap="nowrap">

@@ -1,7 +1,7 @@
-import {useRegisterSW} from 'virtual:pwa-register/react';
-import {Button} from '@mantine/core';
-import {notifications} from '@mantine/notifications';
-import {useEffect, useRef} from 'react';
+import { useRegisterSW } from 'virtual:pwa-register/react';
+import { Button } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { useEffect, useRef } from 'react';
 
 /**
  * PWA update prompt component using Mantine Notifications.

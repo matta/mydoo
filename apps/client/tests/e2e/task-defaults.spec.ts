@@ -1,4 +1,4 @@
-import {test} from './fixtures';
+import { test } from './fixtures';
 
 test.describe('Task Creation with Defaults', () => {
   test('should create task with default placeId via Quick Add', async ({
@@ -40,7 +40,7 @@ test.describe('Task Creation with Defaults', () => {
     await plan.verifyTaskVisible('Second Task');
   });
 
-  test('should persist task after page reload', async ({plan, page}) => {
+  test('should persist task after page reload', async ({ plan, page }) => {
     await plan.primeWithSampleData();
     await plan.switchToDoView();
 

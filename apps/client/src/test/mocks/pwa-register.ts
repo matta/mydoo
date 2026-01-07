@@ -1,4 +1,4 @@
-import {vi} from 'vitest';
+import { vi } from 'vitest';
 
 /**
  * Mock implementation of virtual:pwa-register/react

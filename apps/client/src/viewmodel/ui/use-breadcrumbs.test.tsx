@@ -8,11 +8,11 @@ import {
   type TaskID,
   type TunnelState,
 } from '@mydoo/tasklens';
-import {act, renderHook, waitFor} from '@testing-library/react';
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import {createTestWrapper} from '../../test/setup';
-import {useTaskIntents} from '../intents/use-task-intents';
-import {useBreadcrumbs} from './use-breadcrumbs';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createTestWrapper } from '../../test/setup';
+import { useTaskIntents } from '../intents/use-task-intents';
+import { useBreadcrumbs } from './use-breadcrumbs';
 
 describe('useBreadcrumbs', () => {
   let repo: Repo;
@@ -20,7 +20,7 @@ describe('useBreadcrumbs', () => {
   let docUrl: AutomergeUrl;
 
   beforeEach(() => {
-    repo = new Repo({network: []});
+    repo = new Repo({ network: [] });
     window.location.hash = '';
 
     handle = repo.create<TunnelState>({
@@ -38,7 +38,7 @@ describe('useBreadcrumbs', () => {
   it('should return empty array for root view', async () => {
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);
-    const {result} = renderHook(() => useBreadcrumbs(undefined), {
+    const { result } = renderHook(() => useBreadcrumbs(undefined), {
       wrapper,
     });
 
@@ -54,7 +54,7 @@ describe('useBreadcrumbs', () => {
     // 1. Setup Data: Root -> Parent -> Child
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);
-    const {result: intents} = renderHook(() => useTaskIntents(), {
+    const { result: intents } = renderHook(() => useTaskIntents(), {
       wrapper,
     });
 
@@ -82,7 +82,7 @@ describe('useBreadcrumbs', () => {
     });
 
     // 2. Test Breadcrumbs when focused on Child
-    const {result} = renderHook(() => useBreadcrumbs(childId), {
+    const { result } = renderHook(() => useBreadcrumbs(childId), {
       wrapper,
     });
 

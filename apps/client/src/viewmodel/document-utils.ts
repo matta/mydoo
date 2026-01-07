@@ -1,5 +1,5 @@
-import type {AutomergeUrl, Repo} from '@automerge/automerge-repo';
-import {initializeTunnelState, type TunnelState} from '@mydoo/tasklens';
+import type { AutomergeUrl, Repo } from '@automerge/automerge-repo';
+import { initializeTunnelState, type TunnelState } from '@mydoo/tasklens';
 
 /**
  * Creates a new initialized document without side effects.

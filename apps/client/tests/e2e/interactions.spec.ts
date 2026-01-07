@@ -1,11 +1,11 @@
-import {test} from './fixtures';
+import { test } from './fixtures';
 
 test.describe('Task Interactions', () => {
-  test.beforeEach(async ({plan}) => {
+  test.beforeEach(async ({ plan }) => {
     await plan.primeWithSampleData();
   });
 
-  test('create and complete a task', async ({plan}) => {
+  test('create and complete a task', async ({ plan }) => {
     const taskName = 'New E2E Task';
 
     await test.step('Create Task', async () => {

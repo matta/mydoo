@@ -1,5 +1,5 @@
-import {describe, expect, it} from 'vitest';
-import {formatDateAsISO} from './date-formatter';
+import { describe, expect, it } from 'vitest';
+import { formatDateAsISO } from './date-formatter';
 
 describe('formatDateAsISO', () => {
   it('should format a date at midnight', () => {

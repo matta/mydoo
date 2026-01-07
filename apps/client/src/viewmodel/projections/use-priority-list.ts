@@ -1,4 +1,4 @@
-import {useTasksStatus, useTodoList} from '@mydoo/tasklens';
+import { useTasksStatus, useTodoList } from '@mydoo/tasklens';
 
 /**
  * Hook to retrieve a prioritized list of pending tasks.
@@ -7,7 +7,7 @@ import {useTasksStatus, useTodoList} from '@mydoo/tasklens';
  */
 export function usePriorityList() {
   const tasks = useTodoList();
-  const {isReady} = useTasksStatus();
+  const { isReady } = useTasksStatus();
 
   return {
     tasks,

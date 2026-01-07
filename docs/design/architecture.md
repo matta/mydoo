@@ -445,11 +445,11 @@ export function useTaskActions(store: TunnelStore) {
       store.recalculateScores({});
     },
     snooze: (id: TaskID, days: number) => {
-      store.updateTask(id, {priorityTimestamp: Date.now()});
+      store.updateTask(id, { priorityTimestamp: Date.now() });
       store.recalculateScores({});
     },
     addChild: (parentId: TaskID, title: string) => {
-      store.createTask({parentId, title});
+      store.createTask({ parentId, title });
       store.recalculateScores({});
     },
   };
@@ -459,7 +459,13 @@ export function useTaskActions(store: TunnelStore) {
 ### D. UI Layer (React Component)
 
 ```tsx
-function TaskItem({task, actions}: {task: TunnelNode; actions: TaskActions}) {
+function TaskItem({
+  task,
+  actions,
+}: {
+  task: TunnelNode;
+  actions: TaskActions;
+}) {
   return (
     <li>
       <Checkbox

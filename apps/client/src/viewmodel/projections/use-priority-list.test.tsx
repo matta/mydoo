@@ -13,10 +13,10 @@ import {
   type TunnelNode,
   type TunnelState,
 } from '@mydoo/tasklens';
-import {renderHook, waitFor} from '@testing-library/react';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {createTestWrapper} from '../../test/setup';
-import {usePriorityList} from './use-priority-list';
+import { renderHook, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createTestWrapper } from '../../test/setup';
+import { usePriorityList } from './use-priority-list';
 
 // Dummy Storage Adapter
 class DummyStorageAdapter implements StorageAdapterInterface {
@@ -27,7 +27,7 @@ class DummyStorageAdapter implements StorageAdapterInterface {
   async remove(_key: StorageKey): Promise<void> {}
   async loadRange(
     _keyPrefix: StorageKey,
-  ): Promise<{data: Uint8Array; key: StorageKey}[]> {
+  ): Promise<{ data: Uint8Array; key: StorageKey }[]> {
     return [];
   }
   async removeRange(_keyPrefix: StorageKey): Promise<void> {}
@@ -60,8 +60,8 @@ describe('usePriorityList', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    repo = new Repo({network: [], storage: new DummyStorageAdapter()});
-    handle = repo.create({tasks: {}, rootTaskIds: [], places: {}});
+    repo = new Repo({ network: [], storage: new DummyStorageAdapter() });
+    handle = repo.create({ tasks: {}, rootTaskIds: [], places: {} });
     store = createTaskLensStore();
   });
 
@@ -69,7 +69,7 @@ describe('usePriorityList', () => {
     // Sync the current doc state to Redux before rendering
     const doc = handle.doc();
     if (doc) {
-      await store.dispatch(syncDoc({proxyDoc: doc, parsedDoc: doc}));
+      await store.dispatch(syncDoc({ proxyDoc: doc, parsedDoc: doc }));
     }
     return renderHook(() => usePriorityList(), {
       wrapper: createTestWrapper(repo, store),
@@ -85,7 +85,7 @@ describe('usePriorityList', () => {
       doc.rootTaskIds = ['1' as TaskID, '2' as TaskID];
     });
 
-    const {result} = await renderWithSync();
+    const { result } = await renderWithSync();
 
     await waitFor(() => {
       expect(result.current.tasks).toHaveLength(1);
@@ -110,7 +110,7 @@ describe('usePriorityList', () => {
       doc.rootTaskIds = ['1' as TaskID, '2' as TaskID];
     });
 
-    const {result} = await renderWithSync();
+    const { result } = await renderWithSync();
 
     await waitFor(() => {
       expect(result.current.tasks).toHaveLength(2);
@@ -147,22 +147,22 @@ describe('usePriorityList', () => {
       doc.rootTaskIds = ['1' as TaskID, '2' as TaskID, '3' as TaskID];
     });
 
-    const {result} = await renderWithSync();
+    const { result } = await renderWithSync();
 
     await waitFor(() => {
       expect(result.current.tasks).toHaveLength(3);
     });
 
     expect(result.current.tasks).toMatchObject([
-      {id: '2'}, // High
-      {id: '3'}, // Medium
-      {id: '1'}, // Low
+      { id: '2' }, // High
+      { id: '3' }, // Medium
+      { id: '1' }, // Low
     ]);
   });
 
   it('returns loading state initially', async () => {
     // Without syncing, Redux store is empty, so isLoading should be true
-    const {result} = renderHook(() => usePriorityList(), {
+    const { result } = renderHook(() => usePriorityList(), {
       wrapper: createTestWrapper(repo, store),
     });
     expect(result.current.tasks).toEqual([]);

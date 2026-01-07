@@ -7,8 +7,8 @@ import {
   TaskStatus,
   useTaskActions,
 } from '@mydoo/tasklens';
-import {useCallback} from 'react';
-import {useSelector} from 'react-redux';
+import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 
 /**
  * Hook to manage user intentions for Tasks.
@@ -112,7 +112,7 @@ export function useTaskIntents() {
 
       const newStatus =
         task.status === TaskStatus.Done ? TaskStatus.Pending : TaskStatus.Done;
-      updateTask(id, {status: newStatus});
+      updateTask(id, { status: newStatus });
     },
     [tasks, updateTask],
   );

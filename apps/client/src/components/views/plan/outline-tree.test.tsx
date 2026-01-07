@@ -1,9 +1,9 @@
-import type {TaskID, TunnelNode} from '@mydoo/tasklens';
-import {createMockTask} from '@mydoo/tasklens';
-import {screen} from '@testing-library/react';
-import {describe, expect, it, vi} from 'vitest';
-import {renderWithTestProviders} from '../../../test/setup';
-import {OutlineTree, type OutlineTreeProps} from './outline-tree';
+import type { TaskID, TunnelNode } from '@mydoo/tasklens';
+import { createMockTask } from '@mydoo/tasklens';
+import { screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { renderWithTestProviders } from '../../../test/setup';
+import { OutlineTree, type OutlineTreeProps } from './outline-tree';
 
 describe('OutlineTree', () => {
   const mockChild: TunnelNode = {
@@ -59,7 +59,7 @@ describe('OutlineTree', () => {
   });
 
   it('handles empty nodes gracefully', () => {
-    renderComponent({nodes: []});
+    renderComponent({ nodes: [] });
     // MantineProvider renders global styles so container is not empty.
     // We check that no task items are rendered.
     expect(screen.queryByTestId('task-item')).not.toBeInTheDocument();

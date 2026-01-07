@@ -1,11 +1,11 @@
-import {Repo} from '@automerge/automerge-repo';
-import {createEmptyTunnelState} from '@mydoo/tasklens';
-import {screen} from '@testing-library/react';
+import { Repo } from '@automerge/automerge-repo';
+import { createEmptyTunnelState } from '@mydoo/tasklens';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {afterAll, beforeAll, describe, expect, it, vi} from 'vitest';
-import {renderWithTestProviders} from '../../test/setup';
-import {NavigationProvider} from '../../viewmodel/ui/use-navigation-state';
-import {AppShellContainer} from './app-shell-container';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { renderWithTestProviders } from '../../test/setup';
+import { NavigationProvider } from '../../viewmodel/ui/use-navigation-state';
+import { AppShellContainer } from './app-shell-container';
 
 describe('AppShellContainer', () => {
   // Mock URL.createObjectURL and URL.revokeObjectURL
@@ -26,7 +26,7 @@ describe('AppShellContainer', () => {
 
   it('should download the document as JSON when "Download JSON" is clicked', async () => {
     // Setup repo and doc
-    const repo = new Repo({network: []});
+    const repo = new Repo({ network: [] });
     const handle = repo.create(createEmptyTunnelState());
     const docUrl = handle.url;
 
@@ -45,7 +45,7 @@ describe('AppShellContainer', () => {
     );
 
     // Open Options Menu
-    const optionsButton = screen.getByRole('button', {name: /options/i});
+    const optionsButton = screen.getByRole('button', { name: /options/i });
     await userEvent.click(optionsButton);
 
     // Find and Click Download JSON

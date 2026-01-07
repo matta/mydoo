@@ -51,12 +51,12 @@ const details = useMemo(
 // ❌ Avoid
 const details = useMemo(() => {
   if (!task || !doc) {
-    return {task: undefined, parentTitle: undefined, descendantCount: 0};
+    return { task: undefined, parentTitle: undefined, descendantCount: 0 };
   }
   const parentTask = task.parentId ? doc.tasks[task.parentId] : undefined;
   const parentTitle = parentTask?.title;
   const descendantCount = TunnelOps.getDescendantCount(doc, taskId);
-  return {task, parentTitle, descendantCount};
+  return { task, parentTitle, descendantCount };
 }, [doc, task, taskId]);
 ```
 

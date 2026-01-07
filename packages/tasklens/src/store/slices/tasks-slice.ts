@@ -1,6 +1,6 @@
-import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import {getPrioritizedTasks} from '../../domain/priority';
-import type {ComputedTask, TaskID, TunnelState} from '../../types';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { getPrioritizedTasks } from '../../domain/priority';
+import type { ComputedTask, TaskID, TunnelState } from '../../types';
 
 /**
  * Redux state for the tasks slice.
@@ -47,8 +47,11 @@ interface SyncDocPayload {
  */
 export const syncDoc = createAsyncThunk(
   'tasks/syncDoc',
-  async ({proxyDoc: proxy, parsedDoc: parsed}: SyncDocPayload, {getState}) => {
-    const state = (getState() as {tasks: TasksState}).tasks;
+  async (
+    { proxyDoc: proxy, parsedDoc: parsed }: SyncDocPayload,
+    { getState },
+  ) => {
+    const state = (getState() as { tasks: TasksState }).tasks;
     const oldProxyDoc = state.lastProxyDoc;
     const oldEntities = state.entities;
 
@@ -108,7 +111,7 @@ const tasksSlice = createSlice({
   },
 });
 
-export const selectIsReady = (state: {tasks: TasksState}) =>
+export const selectIsReady = (state: { tasks: TasksState }) =>
   state.tasks.lastProxyDoc !== null;
 
 export default tasksSlice.reducer;

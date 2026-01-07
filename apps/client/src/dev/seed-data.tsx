@@ -1,10 +1,10 @@
-import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
+import { useDocHandle } from '@automerge/automerge-repo-react-hooks';
 import {
   type TunnelState,
   useTaskActions,
   useTaskLensDocUrl,
 } from '@mydoo/tasklens';
-import {useEffect, useRef} from 'react';
+import { useEffect, useRef } from 'react';
 
 // Importance constants
 const IMPORTANCE_HIGH = 1.0;

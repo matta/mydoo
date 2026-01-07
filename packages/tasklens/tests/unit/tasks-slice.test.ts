@@ -1,21 +1,21 @@
-import {configureStore} from '@reduxjs/toolkit';
-import {beforeEach, describe, expect, it} from 'vitest';
+import { configureStore } from '@reduxjs/toolkit';
+import { beforeEach, describe, expect, it } from 'vitest';
 import tasksReducer, {
   syncDoc,
   type TasksState,
 } from '../../src/store/slices/tasks-slice';
-import {type TaskID, TaskStatus, type TunnelState} from '../../src/types';
+import { type TaskID, TaskStatus, type TunnelState } from '../../src/types';
 
 /**
  * Helper to create a SyncDocPayload for tests.
  * In tests, raw and parsed are the same (no Automerge Proxy distinction).
  */
 function toPayload(doc: TunnelState) {
-  return {proxyDoc: doc, parsedDoc: doc};
+  return { proxyDoc: doc, parsedDoc: doc };
 }
 
 describe('tasksSlice - syncDoc', () => {
-  let store: ReturnType<typeof configureStore<{tasks: TasksState}>>;
+  let store: ReturnType<typeof configureStore<{ tasks: TasksState }>>;
 
   beforeEach(() => {
     store = configureStore({
@@ -39,7 +39,7 @@ describe('tasksSlice - syncDoc', () => {
     desiredCredits: 0.0,
     creditsTimestamp: 0,
     priorityTimestamp: 0,
-    schedule: {type: 'Once' as const, leadTime: 0},
+    schedule: { type: 'Once' as const, leadTime: 0 },
     isSequential: false,
     childTaskIds: [],
     notes: '',
@@ -51,7 +51,7 @@ describe('tasksSlice - syncDoc', () => {
     const task2 = createMockTask('2', 'Task 2');
 
     const doc1: TunnelState = {
-      tasks: {['1' as TaskID]: task1, ['2' as TaskID]: task2},
+      tasks: { ['1' as TaskID]: task1, ['2' as TaskID]: task2 },
       rootTaskIds: ['1' as TaskID, '2' as TaskID],
       places: {},
       nextTaskId: 3,
@@ -69,10 +69,10 @@ describe('tasksSlice - syncDoc', () => {
     expect(computedTask2_v1).toBeDefined();
 
     // Second sync with updated task 2, but task 1 remains SAME REFERENCE
-    const updatedTask2 = {...task2, title: 'Updated Task 2'};
+    const updatedTask2 = { ...task2, title: 'Updated Task 2' };
     const doc2: TunnelState = {
       ...doc1,
-      tasks: {['1' as TaskID]: task1, ['2' as TaskID]: updatedTask2},
+      tasks: { ['1' as TaskID]: task1, ['2' as TaskID]: updatedTask2 },
     };
 
     await store.dispatch(syncDoc(toPayload(doc2)));
@@ -93,7 +93,7 @@ describe('tasksSlice - syncDoc', () => {
   it('should handle adding and removing tasks', async () => {
     const task1 = createMockTask('1', 'Task 1');
     const doc1: TunnelState = {
-      tasks: {['1' as TaskID]: task1},
+      tasks: { ['1' as TaskID]: task1 },
       rootTaskIds: ['1' as TaskID],
       places: {},
       nextTaskId: 2,
@@ -105,7 +105,7 @@ describe('tasksSlice - syncDoc', () => {
 
     const task2 = createMockTask('2', 'Task 2');
     const doc2: TunnelState = {
-      tasks: {['1' as TaskID]: task1, ['2' as TaskID]: task2},
+      tasks: { ['1' as TaskID]: task1, ['2' as TaskID]: task2 },
       rootTaskIds: ['1' as TaskID, '2' as TaskID],
       places: {},
       nextTaskId: 3,
@@ -118,7 +118,7 @@ describe('tasksSlice - syncDoc', () => {
     expect(Object.keys(store.getState().tasks.entities)).toHaveLength(2);
 
     const doc3: TunnelState = {
-      tasks: {['2' as TaskID]: task2},
+      tasks: { ['2' as TaskID]: task2 },
       rootTaskIds: ['2' as TaskID],
       places: {},
       nextTaskId: 3,
@@ -137,7 +137,7 @@ describe('tasksSlice - syncDoc', () => {
 
     const task1 = createMockTask('1', 'Task 1');
     const doc1: TunnelState = {
-      tasks: {['1' as TaskID]: task1},
+      tasks: { ['1' as TaskID]: task1 },
       rootTaskIds: ['1' as TaskID],
       places: {},
       nextTaskId: 2,

@@ -1,7 +1,7 @@
-import {render} from '@testing-library/react';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import { render } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {ReloadPrompt} from './reload-prompt';
+import { ReloadPrompt } from './reload-prompt';
 
 // --- Mocks ---
 // Vitest hoists vi.mock() calls to the top of the file, so these run before
@@ -14,9 +14,9 @@ vi.mock('@mantine/notifications', () => ({
   },
 }));
 
-import {useRegisterSW} from 'virtual:pwa-register/react';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 // Must import mocked modules AFTER vi.mock() declarations to get the mock.
-import {notifications} from '@mantine/notifications';
+import { notifications } from '@mantine/notifications';
 
 describe('ReloadPrompt', () => {
   beforeEach(() => {

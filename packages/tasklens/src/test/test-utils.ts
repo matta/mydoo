@@ -5,7 +5,7 @@
  * initializing test state.
  */
 
-import type {ComputedTask, TaskID, TunnelState} from '../types';
+import type { ComputedTask, TaskID, TunnelState } from '../types';
 
 /**
  * Creates a strict mock that throws if unexpected properties are accessed.
@@ -88,7 +88,7 @@ export function createMockTask(
     desiredCredits: 1.0,
     priorityTimestamp: 0,
     effectiveCredits: 0,
-    schedule: {type: 'Once', leadTime: 0},
+    schedule: { type: 'Once', leadTime: 0 },
     isAcknowledged: false,
     isSequential: false,
     notes: '',
@@ -101,7 +101,7 @@ export function createMockTask(
   // Automerge doesn't like undefined values being assigned.
   // We remove parentId if it's undefined to prevent RangeErrors when assigning to a doc.
   if (task.parentId === undefined) {
-    const taskWithoutParent = task as {parentId?: TaskID};
+    const taskWithoutParent = task as { parentId?: TaskID };
     delete taskWithoutParent.parentId;
   }
 

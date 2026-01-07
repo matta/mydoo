@@ -1,11 +1,11 @@
-import {describe, expect, it} from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import {TunnelStore} from '../../src/persistence/store';
+import { TunnelStore } from '../../src/persistence/store';
 
 describe('TunnelStore Persistence', () => {
   it('should save and load state correctly', () => {
     const store = new TunnelStore();
-    const task = store.createTask({title: 'Persistent Task'});
+    const task = store.createTask({ title: 'Persistent Task' });
 
     // Save
     const data = store.save();

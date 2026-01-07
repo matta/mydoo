@@ -3,13 +3,13 @@ import {
   generateAutomergeUrl,
   Repo,
 } from '@automerge/automerge-repo';
-import type {TunnelState} from '@mydoo/tasklens';
-import {renderHook, waitFor} from '@testing-library/react';
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import type { TunnelState } from '@mydoo/tasklens';
+import { renderHook, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import {createTestWrapper} from '../test/setup';
+import { createTestWrapper } from '../test/setup';
 
-import {useDocument} from './use-document';
+import { useDocument } from './use-document';
 
 describe('useDocument', () => {
   let repo: Repo;
@@ -30,7 +30,7 @@ describe('useDocument', () => {
 
   it('should create a new document if no ID in storage', async () => {
     const wrapper = createTestWrapper(repo);
-    const {result} = renderHook(() => useDocument(), {wrapper});
+    const { result } = renderHook(() => useDocument(), { wrapper });
     if (!result.current) throw new Error('Document ID not found');
 
     // Wait for effect to create document and update state
@@ -56,7 +56,7 @@ describe('useDocument', () => {
     localStorage.setItem('mydoo:doc_id', existingId);
 
     const wrapper = createTestWrapper(repo);
-    const {result} = renderHook(() => useDocument(), {wrapper});
+    const { result } = renderHook(() => useDocument(), { wrapper });
 
     // Even if it's synchronous in this branch, it's safer to be consistent
     await waitFor(() => {

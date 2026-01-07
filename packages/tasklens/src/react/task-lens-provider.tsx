@@ -3,16 +3,16 @@ import type {
   DocHandle,
   DocHandleChangePayload,
 } from '@automerge/automerge-repo';
-import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
+import { useDocHandle } from '@automerge/automerge-repo-react-hooks';
 import type React from 'react';
-import {createContext, useContext, useEffect} from 'react';
-import {Provider, useDispatch} from 'react-redux';
-import {runReconciler} from '../domain/reconciler';
-import {TunnelStateSchema} from '../persistence/schemas';
-import type {TaskLensDispatch} from '../store';
-import {taskLensStore as defaultStore} from '../store';
-import {syncDoc} from '../store/slices/tasks-slice';
-import type {TunnelState} from '../types';
+import { createContext, useContext, useEffect } from 'react';
+import { Provider, useDispatch } from 'react-redux';
+import { runReconciler } from '../domain/reconciler';
+import { TunnelStateSchema } from '../persistence/schemas';
+import type { TaskLensDispatch } from '../store';
+import { taskLensStore as defaultStore } from '../store';
+import { syncDoc } from '../store/slices/tasks-slice';
+import type { TunnelState } from '../types';
 
 /**
  * Initializes the document by running reconcilers and syncing to Redux.
@@ -49,7 +49,7 @@ function initDoc(handle: DocHandle<TunnelState>, dispatch: TaskLensDispatch) {
   }
 
   // Step 4: Dispatch the validated, strongly-typed doc
-  dispatch(syncDoc({proxyDoc: proxyDoc, parsedDoc: parseResult.data}));
+  dispatch(syncDoc({ proxyDoc: proxyDoc, parsedDoc: parseResult.data }));
 }
 
 /**
@@ -91,7 +91,7 @@ interface Props {
  * Uses handle.on('change') to subscribe to document changes, ensuring
  * we capture all mutations including local changes.
  */
-function TaskLensSync({docUrl}: {docUrl: AutomergeUrl}) {
+function TaskLensSync({ docUrl }: { docUrl: AutomergeUrl }) {
   const dispatch = useDispatch<TaskLensDispatch>();
   // Cast to locally defined TypedDocHandle to ensure doc() and events are strictly typed
   const handle = useDocHandle<TunnelState>(docUrl);
@@ -108,7 +108,7 @@ function TaskLensSync({docUrl}: {docUrl: AutomergeUrl}) {
       console.warn('Failed to get initial doc:', e);
     }
 
-    const onDocChange = ({doc}: DocHandleChangePayload<TunnelState>) => {
+    const onDocChange = ({ doc }: DocHandleChangePayload<TunnelState>) => {
       if (doc) {
         initDoc(handle, dispatch);
       }

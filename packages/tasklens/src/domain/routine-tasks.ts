@@ -1,6 +1,6 @@
-import type {DocHandle} from '@automerge/automerge-repo';
-import type {TunnelState} from '../types';
-import {getIntervalMs} from '../utils/time';
+import type { DocHandle } from '@automerge/automerge-repo';
+import type { TunnelState } from '../types';
+import { getIntervalMs } from '../utils/time';
 
 /**
  * Wake up "Routinely" tasks that are due for their next cycle.

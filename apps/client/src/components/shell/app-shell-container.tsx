@@ -1,8 +1,8 @@
-import type {AutomergeUrl} from '@automerge/automerge-repo';
-import {useDocHandle} from '@automerge/automerge-repo-react-hooks';
-import {AppShell, Burger, Button, Group, Menu, Title} from '@mantine/core';
-import {useDisclosure, useMediaQuery} from '@mantine/hooks';
-import {type TunnelState, useTaskActions} from '@mydoo/tasklens';
+import type { AutomergeUrl } from '@automerge/automerge-repo';
+import { useDocHandle } from '@automerge/automerge-repo-react-hooks';
+import { AppShell, Burger, Button, Group, Menu, Title } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { type TunnelState, useTaskActions } from '@mydoo/tasklens';
 import {
   IconCheckbox,
   IconDotsVertical,
@@ -12,14 +12,14 @@ import {
   IconScale,
   IconSeeding,
 } from '@tabler/icons-react';
-import {seedHierarchicalData} from '../../dev/seed-data';
-import {DoViewContainer} from '../../viewmodel/containers/do-view-container';
-import {MovePickerContainer} from '../../viewmodel/containers/move-picker-container';
-import {TaskEditorContainer} from '../../viewmodel/containers/task-editor-container';
-import {useNavigationState} from '../../viewmodel/ui/use-navigation-state';
-import {BalanceViewContainer} from '../views/balance/balance-view-container';
-import {PlanViewContainer} from '../views/plan/plan-view-container';
-import {ConnectionModal} from './connection-modal';
+import { seedHierarchicalData } from '../../dev/seed-data';
+import { DoViewContainer } from '../../viewmodel/containers/do-view-container';
+import { MovePickerContainer } from '../../viewmodel/containers/move-picker-container';
+import { TaskEditorContainer } from '../../viewmodel/containers/task-editor-container';
+import { useNavigationState } from '../../viewmodel/ui/use-navigation-state';
+import { BalanceViewContainer } from '../views/balance/balance-view-container';
+import { PlanViewContainer } from '../views/plan/plan-view-container';
+import { ConnectionModal } from './connection-modal';
 
 // Height of the header and footer constants for consistent layout
 const HEADER_HEIGHT = 60;
@@ -36,16 +36,16 @@ interface AppShellContainerProps {
 /**
  * The main application shell component that provides the persistent layout structure.
  */
-export function AppShellContainer({docUrl}: AppShellContainerProps) {
+export function AppShellContainer({ docUrl }: AppShellContainerProps) {
   // Global navigation state (Do vs Plan)
-  const {activeTab, setActiveTab} = useNavigationState();
+  const { activeTab, setActiveTab } = useNavigationState();
 
   // Mobile drawer state (Burger menu)
-  const [mobileNavOpened, {toggle: toggleMobileNav}] = useDisclosure();
+  const [mobileNavOpened, { toggle: toggleMobileNav }] = useDisclosure();
 
   const [
     connectionModalOpened,
-    {open: openConnectionModal, close: closeConnectionModal},
+    { open: openConnectionModal, close: closeConnectionModal },
   ] = useDisclosure(false);
 
   // Access actions for the Dev Tools menu actions (e.g. Seeding)
@@ -64,11 +64,11 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
 
   return (
     <AppShell
-      header={{height: HEADER_HEIGHT}}
+      header={{ height: HEADER_HEIGHT }}
       navbar={{
         width: 250,
         breakpoint: 'sm',
-        collapsed: {mobile: !mobileNavOpened, desktop: false},
+        collapsed: { mobile: !mobileNavOpened, desktop: false },
       }}
       // Footer is only for mobile tab bar
       footer={{
@@ -148,7 +148,7 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
                 Build: {__BUILD_INFO__.hash}
                 {!__BUILD_INFO__.clean && ' (dirty)'}
                 {import.meta.env.DEV && ' (dev)'}
-                <div style={{fontWeight: 400, opacity: 0.5}}>
+                <div style={{ fontWeight: 400, opacity: 0.5 }}>
                   {new Date(__BUILD_INFO__.date).toLocaleString()}
                 </div>
               </Menu.Label>
@@ -216,7 +216,7 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
 
       {/* Mobile Bottom Tab Bar: Only visible on small screens */}
       {!isDesktop && (
-        <AppShell.Footer p={0} style={{display: 'flex'}}>
+        <AppShell.Footer p={0} style={{ display: 'flex' }}>
           <Button
             flex={1}
             variant={activeTab === 'do' ? 'light' : 'subtle'}
@@ -224,9 +224,9 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
             h="100%"
             onClick={() => setActiveTab('do')}
           >
-            <Group gap={4} style={{flexDirection: 'column'}}>
+            <Group gap={4} style={{ flexDirection: 'column' }}>
               <IconCheckbox size={20} />
-              <span style={{fontSize: '10px'}}>Do</span>
+              <span style={{ fontSize: '10px' }}>Do</span>
             </Group>
           </Button>
           <Button
@@ -236,9 +236,9 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
             h="100%"
             onClick={() => setActiveTab('plan')}
           >
-            <Group gap={4} style={{flexDirection: 'column'}}>
+            <Group gap={4} style={{ flexDirection: 'column' }}>
               <IconListTree size={20} />
-              <span style={{fontSize: '10px'}}>Plan</span>
+              <span style={{ fontSize: '10px' }}>Plan</span>
             </Group>
           </Button>
           <Button
@@ -248,9 +248,9 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
             h="100%"
             onClick={() => setActiveTab('balance')}
           >
-            <Group gap={4} style={{flexDirection: 'column'}}>
+            <Group gap={4} style={{ flexDirection: 'column' }}>
               <IconScale size={20} />
-              <span style={{fontSize: '10px'}}>Balance</span>
+              <span style={{ fontSize: '10px' }}>Balance</span>
             </Group>
           </Button>
         </AppShell.Footer>

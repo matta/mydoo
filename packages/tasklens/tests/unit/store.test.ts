@@ -1,6 +1,6 @@
-import {beforeEach, describe, expect, it} from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import {TunnelStore} from '../../src/persistence/store';
+import { TunnelStore } from '../../src/persistence/store';
 import {
   type PersistedTask,
   type RepeatConfig,
@@ -16,7 +16,7 @@ describe('TunnelStore', () => {
 
   describe('createTask', () => {
     it('should create a task with default values', () => {
-      const task = store.createTask({title: 'Test Task'});
+      const task = store.createTask({ title: 'Test Task' });
 
       expect(task.id).toBeDefined();
       expect(task.title).toBe('Test Task');
@@ -47,7 +47,7 @@ describe('TunnelStore', () => {
     it('should initialize task with notes', () => {
       const title = 'Task with notes';
       const notes = 'These are some important notes';
-      const newTask = store.createTask({title, notes});
+      const newTask = store.createTask({ title, notes });
 
       expect(newTask.title).toBe(title);
       expect(newTask.notes).toBe(notes);
@@ -55,7 +55,7 @@ describe('TunnelStore', () => {
     });
 
     it('should default notes to empty string if not provided', () => {
-      const newTask = store.createTask({title: 'No notes'});
+      const newTask = store.createTask({ title: 'No notes' });
       expect(newTask.notes).toBe('');
     });
   });
@@ -83,15 +83,15 @@ describe('TunnelStore', () => {
 
     it('should allow updating notes', () => {
       const newNotes = 'Updated notes';
-      const updatedTask = store.updateTask(initialTask.id, {notes: newNotes});
+      const updatedTask = store.updateTask(initialTask.id, { notes: newNotes });
 
       expect(updatedTask.notes).toBe(newNotes);
       expect(store.getTask(initialTask.id)?.notes).toBe(newNotes);
     });
 
     it('should allow updating repeatConfig', () => {
-      const repeatConfig: RepeatConfig = {frequency: 'weekly', interval: 2};
-      const updatedTask = store.updateTask(initialTask.id, {repeatConfig});
+      const repeatConfig: RepeatConfig = { frequency: 'weekly', interval: 2 };
+      const updatedTask = store.updateTask(initialTask.id, { repeatConfig });
 
       expect(updatedTask.repeatConfig).toEqual(repeatConfig);
       expect(store.getTask(initialTask.id)?.repeatConfig).toEqual(repeatConfig);
@@ -99,7 +99,7 @@ describe('TunnelStore', () => {
 
     it('should explicitly delete repeatConfig when set to undefined', () => {
       store.updateTask(initialTask.id, {
-        repeatConfig: {frequency: 'daily', interval: 1},
+        repeatConfig: { frequency: 'daily', interval: 1 },
       });
       expect(store.getTask(initialTask.id)?.repeatConfig).toBeDefined();
 
@@ -116,7 +116,7 @@ describe('TunnelStore', () => {
 
   describe('deleteTask', () => {
     it('should delete a task and return 1', () => {
-      const task = store.createTask({title: 'To Delete'});
+      const task = store.createTask({ title: 'To Delete' });
       const count = store.deleteTask(task.id);
 
       expect(count).toBe(1);
@@ -124,8 +124,8 @@ describe('TunnelStore', () => {
     });
 
     it('should delete descendants (cascade delete)', () => {
-      const parent = store.createTask({title: 'Parent'});
-      const child = store.createTask({title: 'Child', parentId: parent.id});
+      const parent = store.createTask({ title: 'Parent' });
+      const child = store.createTask({ title: 'Child', parentId: parent.id });
       const grandchild = store.createTask({
         title: 'Grandchild',
         parentId: child.id,

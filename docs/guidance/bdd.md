@@ -173,12 +173,12 @@ Then I should be granted access
 
 ```typescript
 // ❌ Bad: Playwright leaking into step layer
-When('I click submit', async ({page}) => {
+When('I click submit', async ({ page }) => {
   await page.click('#submit');
 });
 
 // ✅ Good: Delegating to action layer
-When('the user submits the form', async ({actions}) => {
+When('the user submits the form', async ({ actions }) => {
   await actions.form.submit();
 });
 ```
@@ -196,7 +196,7 @@ Then the task is marked as completed
 Implementation delegates to the assertion layer:
 
 ```typescript
-Then('the task is marked as completed', async ({assertions}) => {
+Then('the task is marked as completed', async ({ assertions }) => {
   await assertions.tasks.expectCompleted();
 });
 ```
@@ -309,7 +309,7 @@ Until playwright-bdd is adopted, use **Inline Gherkin comments** in
 `test.step()` blocks:
 
 ```typescript
-test('User can complete tasks', async ({plan}) => {
+test('User can complete tasks', async ({ plan }) => {
   await test.step('Setup', async () => {
     // Given a pending task in Do mode
     await plan.primeWithSampleData();
@@ -366,7 +366,7 @@ class UserSettingsModal {
 
   async changeEmail(newEmail: string) {
     await this.root.getByLabel('Email').fill(newEmail);
-    await this.root.getByRole('button', {name: 'Save'}).click();
+    await this.root.getByRole('button', { name: 'Save' }).click();
   }
 }
 
@@ -375,7 +375,7 @@ class ProfilePage {
   settingsModal = new UserSettingsModal(this.page.locator('.modal-container'));
 
   async openSettings(): Promise<UserSettingsModal> {
-    await this.page.getByRole('button', {name: 'Settings'}).click();
+    await this.page.getByRole('button', { name: 'Settings' }).click();
     return this.settingsModal;
   }
 }

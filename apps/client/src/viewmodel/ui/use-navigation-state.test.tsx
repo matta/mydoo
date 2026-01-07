@@ -1,21 +1,21 @@
-import type {TaskID} from '@mydoo/tasklens';
-import {act, renderHook} from '@testing-library/react';
-import type {ReactNode} from 'react';
-import {describe, expect, it} from 'vitest';
+import type { TaskID } from '@mydoo/tasklens';
+import { act, renderHook } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { describe, expect, it } from 'vitest';
 
-import {createTestWrapper} from '../../test/setup';
-import {NavigationProvider, useNavigationState} from './use-navigation-state';
+import { createTestWrapper } from '../../test/setup';
+import { NavigationProvider, useNavigationState } from './use-navigation-state';
 
 describe('useNavigationState', () => {
   const TestWrapper = createTestWrapper();
-  const wrapper = ({children}: {children: ReactNode}) => (
+  const wrapper = ({ children }: { children: ReactNode }) => (
     <TestWrapper>
       <NavigationProvider>{children}</NavigationProvider>
     </TestWrapper>
   );
 
   it('manages expansion state', () => {
-    const {result} = renderHook(() => useNavigationState(), {
+    const { result } = renderHook(() => useNavigationState(), {
       wrapper,
     });
 
@@ -44,7 +44,7 @@ describe('useNavigationState', () => {
   });
 
   it('manages view path for drill-down', () => {
-    const {result} = renderHook(() => useNavigationState(), {
+    const { result } = renderHook(() => useNavigationState(), {
       wrapper,
     });
     const id1 = 'root' as TaskID;
@@ -74,7 +74,7 @@ describe('useNavigationState', () => {
   });
 
   it('allows setting view path arbitrarily', () => {
-    const {result} = renderHook(() => useNavigationState(), {
+    const { result } = renderHook(() => useNavigationState(), {
       wrapper,
     });
     const id1 = 'a' as TaskID;
@@ -91,7 +91,7 @@ describe('useNavigationState', () => {
   });
 
   it('manages modal state', () => {
-    const {result} = renderHook(() => useNavigationState(), {
+    const { result } = renderHook(() => useNavigationState(), {
       wrapper,
     });
     const id1 = 'task-1' as TaskID;
@@ -103,7 +103,7 @@ describe('useNavigationState', () => {
 
     // Open Edit
     act(() => result.current.openEditModal(id1));
-    expect(result.current.modal).toEqual({type: 'edit', taskId: id1});
+    expect(result.current.modal).toEqual({ type: 'edit', taskId: id1 });
 
     // Close
     act(() => result.current.closeModal());
@@ -119,10 +119,13 @@ describe('useNavigationState', () => {
 
     // Switch to Edit
     act(() => result.current.openEditModal(id1));
-    expect(result.current.modal).toEqual({type: 'edit', taskId: id1});
+    expect(result.current.modal).toEqual({ type: 'edit', taskId: id1 });
 
     // Open Create Root
     act(() => result.current.openCreateModal());
-    expect(result.current.modal).toEqual({type: 'create', parentId: undefined});
+    expect(result.current.modal).toEqual({
+      type: 'create',
+      parentId: undefined,
+    });
   });
 });

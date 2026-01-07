@@ -1,13 +1,13 @@
-import {ANYWHERE_PLACE_ID, type PlaceID, type TaskID} from '@mydoo/tasklens';
-import {describe, expect, it} from 'vitest';
+import { ANYWHERE_PLACE_ID, type PlaceID, type TaskID } from '@mydoo/tasklens';
+import { describe, expect, it } from 'vitest';
 
-import {createTask} from '../../src/persistence/ops';
-import {TunnelStore} from '../../src/persistence/store';
+import { createTask } from '../../src/persistence/ops';
+import { TunnelStore } from '../../src/persistence/store';
 
 describe('createTask - Default Values and Inheritance', () => {
   it('should set placeId to ANYWHERE_PLACE_ID for root tasks', () => {
     const store = new TunnelStore();
-    const task = createTask(store.state, {title: 'Root Task'});
+    const task = createTask(store.state, { title: 'Root Task' });
 
     expect(task.placeId).toBe(ANYWHERE_PLACE_ID);
   });
@@ -54,7 +54,7 @@ describe('createTask - Default Values and Inheritance', () => {
     const store = new TunnelStore();
 
     // Create parent without placeId (will get ANYWHERE_PLACE_ID)
-    const parent = createTask(store.state, {title: 'Parent Task'});
+    const parent = createTask(store.state, { title: 'Parent Task' });
 
     // Create child
     const child = createTask(store.state, {
@@ -67,21 +67,21 @@ describe('createTask - Default Values and Inheritance', () => {
 
   it('should set importance to 1.0 by default', () => {
     const store = new TunnelStore();
-    const task = createTask(store.state, {title: 'Test Task'});
+    const task = createTask(store.state, { title: 'Test Task' });
 
     expect(task.importance).toBe(1.0);
   });
 
   it('should set status to Pending by default', () => {
     const store = new TunnelStore();
-    const task = createTask(store.state, {title: 'Test Task'});
+    const task = createTask(store.state, { title: 'Test Task' });
 
     expect(task.status).toBe('Pending');
   });
 
   it('should initialize childTaskIds as empty array', () => {
     const store = new TunnelStore();
-    const task = createTask(store.state, {title: 'Test Task'});
+    const task = createTask(store.state, { title: 'Test Task' });
 
     expect(task.childTaskIds).toEqual([]);
   });
@@ -89,7 +89,7 @@ describe('createTask - Default Values and Inheritance', () => {
   it('should add child to parent childTaskIds array', () => {
     const store = new TunnelStore();
 
-    const parent = createTask(store.state, {title: 'Parent'});
+    const parent = createTask(store.state, { title: 'Parent' });
     const child = createTask(store.state, {
       title: 'Child',
       parentId: parent.id,
@@ -116,9 +116,9 @@ describe('createTask - Default Values and Inheritance', () => {
   describe('Positioning', () => {
     it('should add child to end by default', () => {
       const store = new TunnelStore();
-      const parent = createTask(store.state, {title: 'Parent'});
-      createTask(store.state, {title: 'First', parentId: parent.id});
-      createTask(store.state, {title: 'Second', parentId: parent.id});
+      const parent = createTask(store.state, { title: 'Parent' });
+      createTask(store.state, { title: 'First', parentId: parent.id });
+      createTask(store.state, { title: 'Second', parentId: parent.id });
 
       const updatedParent = store.state.tasks[parent.id];
       const childIds = updatedParent?.childTaskIds ?? [];
@@ -131,12 +131,12 @@ describe('createTask - Default Values and Inheritance', () => {
 
     it('should add child to start when specified', () => {
       const store = new TunnelStore();
-      const parent = createTask(store.state, {title: 'Parent'});
-      createTask(store.state, {title: 'First', parentId: parent.id});
+      const parent = createTask(store.state, { title: 'Parent' });
+      createTask(store.state, { title: 'First', parentId: parent.id });
       createTask(
         store.state,
-        {title: 'New First', parentId: parent.id},
-        {position: 'start'},
+        { title: 'New First', parentId: parent.id },
+        { position: 'start' },
       );
 
       const updatedParent = store.state.tasks[parent.id];
@@ -148,17 +148,17 @@ describe('createTask - Default Values and Inheritance', () => {
 
     it('should add child after specific task', () => {
       const store = new TunnelStore();
-      const parent = createTask(store.state, {title: 'Parent'});
+      const parent = createTask(store.state, { title: 'Parent' });
       const first = createTask(store.state, {
         title: 'First',
         parentId: parent.id,
       });
-      createTask(store.state, {title: 'Second', parentId: parent.id});
+      createTask(store.state, { title: 'Second', parentId: parent.id });
 
       createTask(
         store.state,
-        {title: 'Inserted', parentId: parent.id},
-        {position: 'after', afterTaskId: first.id},
+        { title: 'Inserted', parentId: parent.id },
+        { position: 'after', afterTaskId: first.id },
       );
 
       const updatedParent = store.state.tasks[parent.id];
@@ -169,13 +169,13 @@ describe('createTask - Default Values and Inheritance', () => {
 
     it('should fallback to end if afterTaskId is not found', () => {
       const store = new TunnelStore();
-      const parent = createTask(store.state, {title: 'Parent'});
-      createTask(store.state, {title: 'First', parentId: parent.id});
+      const parent = createTask(store.state, { title: 'Parent' });
+      createTask(store.state, { title: 'First', parentId: parent.id });
 
       createTask(
         store.state,
-        {title: 'Fallback', parentId: parent.id},
-        {position: 'after', afterTaskId: 'non-existent' as TaskID},
+        { title: 'Fallback', parentId: parent.id },
+        { position: 'after', afterTaskId: 'non-existent' as TaskID },
       );
 
       const updatedParent = store.state.tasks[parent.id];

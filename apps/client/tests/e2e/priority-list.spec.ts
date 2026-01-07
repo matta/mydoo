@@ -1,7 +1,7 @@
-import {test} from './fixtures';
+import { test } from './fixtures';
 
 test.describe('Priority List', () => {
-  test('seed data loads and renders tasks', async ({plan}) => {
+  test('seed data loads and renders tasks', async ({ plan }) => {
     // 1. Visit the app with ?seed=true to populate data
     await plan.primeWithSampleData();
 

@@ -13,10 +13,10 @@ import {
   type TaskID,
   TaskStatus,
 } from '@mydoo/tasklens';
-import {beforeEach, describe, expect, it} from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import {createTask, updateTask} from '../../src/persistence/ops';
-import {TunnelStore} from '../../src/persistence/store';
+import { createTask, updateTask } from '../../src/persistence/ops';
+import { TunnelStore } from '../../src/persistence/store';
 
 describe('updateTask - Exhaustive Field Coverage', () => {
   let store: TunnelStore;
@@ -39,13 +39,13 @@ describe('updateTask - Exhaustive Field Coverage', () => {
 
   describe('Required String Fields', () => {
     it('should update title', () => {
-      updateTask(store.state, baseTask.id, {title: 'Updated Title'});
+      updateTask(store.state, baseTask.id, { title: 'Updated Title' });
       expect(store.state.tasks[baseTask.id]?.title).toBe('Updated Title');
     });
 
     it('should update status to Done and set lastCompletedAt', () => {
       const before = Date.now();
-      updateTask(store.state, baseTask.id, {status: TaskStatus.Done});
+      updateTask(store.state, baseTask.id, { status: TaskStatus.Done });
       const task = store.state.tasks[baseTask.id];
       expect(task?.status).toBe(TaskStatus.Done);
       expect(task?.lastCompletedAt).toBeDefined();
@@ -54,104 +54,104 @@ describe('updateTask - Exhaustive Field Coverage', () => {
 
     it('should update status to Pending', () => {
       // First set to Done
-      updateTask(store.state, baseTask.id, {status: TaskStatus.Done});
+      updateTask(store.state, baseTask.id, { status: TaskStatus.Done });
       // Then back to Pending
-      updateTask(store.state, baseTask.id, {status: TaskStatus.Pending});
+      updateTask(store.state, baseTask.id, { status: TaskStatus.Pending });
       expect(store.state.tasks[baseTask.id]?.status).toBe(TaskStatus.Pending);
     });
   });
 
   describe('Required Numeric Fields', () => {
     it('should update importance', () => {
-      updateTask(store.state, baseTask.id, {importance: 0.9});
+      updateTask(store.state, baseTask.id, { importance: 0.9 });
       expect(store.state.tasks[baseTask.id]?.importance).toBe(0.9);
     });
 
     it('should update importance to 0', () => {
-      updateTask(store.state, baseTask.id, {importance: 0});
+      updateTask(store.state, baseTask.id, { importance: 0 });
       expect(store.state.tasks[baseTask.id]?.importance).toBe(0);
     });
 
     it('should update importance to 1', () => {
-      updateTask(store.state, baseTask.id, {importance: 1});
+      updateTask(store.state, baseTask.id, { importance: 1 });
       expect(store.state.tasks[baseTask.id]?.importance).toBe(1);
     });
 
     it('should throw for invalid importance < 0', () => {
       expect(() =>
-        updateTask(store.state, baseTask.id, {importance: -0.1}),
+        updateTask(store.state, baseTask.id, { importance: -0.1 }),
       ).toThrow('Importance must be between 0.0 and 1.0.');
     });
 
     it('should throw for invalid importance > 1', () => {
       expect(() =>
-        updateTask(store.state, baseTask.id, {importance: 1.1}),
+        updateTask(store.state, baseTask.id, { importance: 1.1 }),
       ).toThrow('Importance must be between 0.0 and 1.0.');
     });
 
     it('should update creditIncrement', () => {
-      updateTask(store.state, baseTask.id, {creditIncrement: 0.75});
+      updateTask(store.state, baseTask.id, { creditIncrement: 0.75 });
       expect(store.state.tasks[baseTask.id]?.creditIncrement).toBe(0.75);
     });
 
     it('should update creditIncrement to 0', () => {
-      updateTask(store.state, baseTask.id, {creditIncrement: 0});
+      updateTask(store.state, baseTask.id, { creditIncrement: 0 });
       expect(store.state.tasks[baseTask.id]?.creditIncrement).toBe(0);
     });
 
     it('should throw for negative creditIncrement', () => {
       expect(() =>
-        updateTask(store.state, baseTask.id, {creditIncrement: -1}),
+        updateTask(store.state, baseTask.id, { creditIncrement: -1 }),
       ).toThrow('CreditIncrement cannot be negative.');
     });
 
     it('should update credits', () => {
-      updateTask(store.state, baseTask.id, {credits: 100});
+      updateTask(store.state, baseTask.id, { credits: 100 });
       expect(store.state.tasks[baseTask.id]?.credits).toBe(100);
     });
 
     it('should update desiredCredits', () => {
-      updateTask(store.state, baseTask.id, {desiredCredits: 50});
+      updateTask(store.state, baseTask.id, { desiredCredits: 50 });
       expect(store.state.tasks[baseTask.id]?.desiredCredits).toBe(50);
     });
 
     it('should throw for negative desiredCredits', () => {
       expect(() =>
-        updateTask(store.state, baseTask.id, {desiredCredits: -10}),
+        updateTask(store.state, baseTask.id, { desiredCredits: -10 }),
       ).toThrow('DesiredCredits cannot be negative.');
     });
 
     it('should update creditsTimestamp', () => {
-      updateTask(store.state, baseTask.id, {creditsTimestamp: 5000});
+      updateTask(store.state, baseTask.id, { creditsTimestamp: 5000 });
       expect(store.state.tasks[baseTask.id]?.creditsTimestamp).toBe(5000);
     });
 
     it('should update priorityTimestamp', () => {
-      updateTask(store.state, baseTask.id, {priorityTimestamp: 6000});
+      updateTask(store.state, baseTask.id, { priorityTimestamp: 6000 });
       expect(store.state.tasks[baseTask.id]?.priorityTimestamp).toBe(6000);
     });
   });
 
   describe('Boolean Fields', () => {
     it('should update isSequential to true', () => {
-      updateTask(store.state, baseTask.id, {isSequential: true});
+      updateTask(store.state, baseTask.id, { isSequential: true });
       expect(store.state.tasks[baseTask.id]?.isSequential).toBe(true);
     });
 
     it('should update isSequential to false', () => {
-      updateTask(store.state, baseTask.id, {isSequential: true});
-      updateTask(store.state, baseTask.id, {isSequential: false});
+      updateTask(store.state, baseTask.id, { isSequential: true });
+      updateTask(store.state, baseTask.id, { isSequential: false });
       expect(store.state.tasks[baseTask.id]?.isSequential).toBe(false);
     });
 
     it('should update isAcknowledged to true', () => {
-      updateTask(store.state, baseTask.id, {isAcknowledged: true});
+      updateTask(store.state, baseTask.id, { isAcknowledged: true });
       expect(store.state.tasks[baseTask.id]?.isAcknowledged).toBe(true);
     });
 
     it('should update isAcknowledged to false', () => {
-      updateTask(store.state, baseTask.id, {isAcknowledged: true});
-      updateTask(store.state, baseTask.id, {isAcknowledged: false});
+      updateTask(store.state, baseTask.id, { isAcknowledged: true });
+      updateTask(store.state, baseTask.id, { isAcknowledged: false });
       expect(store.state.tasks[baseTask.id]?.isAcknowledged).toBe(false);
     });
   });
@@ -159,14 +159,14 @@ describe('updateTask - Exhaustive Field Coverage', () => {
   describe('Nested Object: schedule', () => {
     it('should update schedule.type', () => {
       updateTask(store.state, baseTask.id, {
-        schedule: {type: 'Routinely', leadTime: 1000},
+        schedule: { type: 'Routinely', leadTime: 1000 },
       });
       expect(store.state.tasks[baseTask.id]?.schedule.type).toBe('Routinely');
     });
 
     it('should update schedule.leadTime', () => {
       updateTask(store.state, baseTask.id, {
-        schedule: {type: 'Once', leadTime: 86400000},
+        schedule: { type: 'Once', leadTime: 86400000 },
       });
       expect(store.state.tasks[baseTask.id]?.schedule.leadTime).toBe(86400000);
     });
@@ -174,7 +174,7 @@ describe('updateTask - Exhaustive Field Coverage', () => {
     it('should set schedule.dueDate', () => {
       const dueDate = Date.now() + 86400000;
       updateTask(store.state, baseTask.id, {
-        schedule: {type: 'Once', leadTime: 1000, dueDate},
+        schedule: { type: 'Once', leadTime: 1000, dueDate },
       });
       expect(store.state.tasks[baseTask.id]?.schedule.dueDate).toBe(dueDate);
     });
@@ -183,13 +183,13 @@ describe('updateTask - Exhaustive Field Coverage', () => {
       // First set a dueDate
       const dueDate = Date.now();
       updateTask(store.state, baseTask.id, {
-        schedule: {type: 'Once', leadTime: 1000, dueDate},
+        schedule: { type: 'Once', leadTime: 1000, dueDate },
       });
       expect(store.state.tasks[baseTask.id]?.schedule.dueDate).toBe(dueDate);
 
       // Then explicitly unset it
       updateTask(store.state, baseTask.id, {
-        schedule: {type: 'Once', leadTime: 1000, dueDate: undefined},
+        schedule: { type: 'Once', leadTime: 1000, dueDate: undefined },
       });
       expect(store.state.tasks[baseTask.id]?.schedule.dueDate).toBeUndefined();
       // Verify key is actually deleted (important for Automerge)
@@ -202,13 +202,13 @@ describe('updateTask - Exhaustive Field Coverage', () => {
       // First set a dueDate
       const dueDate = Date.now();
       updateTask(store.state, baseTask.id, {
-        schedule: {type: 'Once', leadTime: 1000, dueDate},
+        schedule: { type: 'Once', leadTime: 1000, dueDate },
       });
       expect(store.state.tasks[baseTask.id]?.schedule.dueDate).toBe(dueDate);
 
       // Update only leadTime - dueDate should remain
       updateTask(store.state, baseTask.id, {
-        schedule: {type: 'Once', leadTime: 2000},
+        schedule: { type: 'Once', leadTime: 2000 },
       });
       expect(store.state.tasks[baseTask.id]?.schedule.dueDate).toBe(dueDate);
     });
@@ -217,7 +217,7 @@ describe('updateTask - Exhaustive Field Coverage', () => {
   describe('Initialization Logic', () => {
     it('should default dueDate to Now when switching to "Routinely"', () => {
       updateTask(store.state, baseTask.id, {
-        schedule: {type: 'Routinely', leadTime: 1000},
+        schedule: { type: 'Routinely', leadTime: 1000 },
       });
       const task = store.state.tasks[baseTask.id];
       expect(task?.schedule.dueDate).toBeDefined();
@@ -227,7 +227,7 @@ describe('updateTask - Exhaustive Field Coverage', () => {
     it('should NOT overwrite existing dueDate when switching to "Routinely"', () => {
       const future = Date.now() + 10000;
       updateTask(store.state, baseTask.id, {
-        schedule: {type: 'Routinely', leadTime: 1000, dueDate: future},
+        schedule: { type: 'Routinely', leadTime: 1000, dueDate: future },
       });
       expect(store.state.tasks[baseTask.id]?.schedule.dueDate).toBe(future);
     });
@@ -239,7 +239,7 @@ describe('updateTask - Exhaustive Field Coverage', () => {
         title: 'Child',
         parentId: baseTask.id,
       });
-      updateTask(store.state, child.id, {title: 'Updated Child'});
+      updateTask(store.state, child.id, { title: 'Updated Child' });
       expect(store.state.tasks[child.id]?.parentId).toBe(baseTask.id);
     });
 
@@ -266,20 +266,20 @@ describe('updateTask - Exhaustive Field Coverage', () => {
   describe('Optional Fields: placeId', () => {
     it('should update placeId', () => {
       const newPlaceId = 'Office' as PlaceID;
-      updateTask(store.state, baseTask.id, {placeId: newPlaceId});
+      updateTask(store.state, baseTask.id, { placeId: newPlaceId });
       expect(store.state.tasks[baseTask.id]?.placeId).toBe(newPlaceId);
     });
 
     it('should not modify placeId if not passed', () => {
       const originalPlaceId = store.state.tasks[baseTask.id]?.placeId;
-      updateTask(store.state, baseTask.id, {title: 'New Title'});
+      updateTask(store.state, baseTask.id, { title: 'New Title' });
       expect(store.state.tasks[baseTask.id]?.placeId).toBe(originalPlaceId);
     });
 
     it('should delete placeId when explicitly set to undefined via "in" check', () => {
       // First ensure placeId is set
       const newPlaceId = 'Office' as PlaceID;
-      updateTask(store.state, baseTask.id, {placeId: newPlaceId});
+      updateTask(store.state, baseTask.id, { placeId: newPlaceId });
       expect(store.state.tasks[baseTask.id]?.placeId).toBe(newPlaceId);
 
       // Explicitly unset placeId
@@ -298,7 +298,7 @@ describe('updateTask - Exhaustive Field Coverage', () => {
   describe('Error Handling', () => {
     it('should throw for non-existent task', () => {
       expect(() =>
-        updateTask(store.state, 'non-existent' as TaskID, {title: 'New'}),
+        updateTask(store.state, 'non-existent' as TaskID, { title: 'New' }),
       ).toThrow('Task with ID non-existent not found.');
     });
   });
@@ -428,7 +428,7 @@ describe('updateTask - Round-Trip Serialization (Automerge)', () => {
 
   it('should reflect mutations correctly after Automerge round-trip', () => {
     // Update task
-    store.updateTask(baseTask.id, {title: 'Before Save'});
+    store.updateTask(baseTask.id, { title: 'Before Save' });
 
     // Automerge save/load cycle
     const restoredStore = automergeRoundTrip(store);
@@ -440,7 +440,7 @@ describe('updateTask - Round-Trip Serialization (Automerge)', () => {
 
   it('should correctly handle all Task fields through Automerge', () => {
     // Create a task and set ALL possible fields
-    const fullTask = store.createTask({title: 'Reflection Test'});
+    const fullTask = store.createTask({ title: 'Reflection Test' });
     const fullId = fullTask.id;
 
     // Update with every possible field

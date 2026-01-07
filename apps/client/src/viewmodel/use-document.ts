@@ -2,9 +2,9 @@ import {
   type AutomergeUrl,
   isValidAutomergeUrl,
 } from '@automerge/automerge-repo';
-import {useRepo} from '@automerge/automerge-repo-react-hooks';
-import {useEffect, useState} from 'react';
-import {createNewDocument} from './document-utils';
+import { useRepo } from '@automerge/automerge-repo-react-hooks';
+import { useEffect, useState } from 'react';
+import { createNewDocument } from './document-utils';
 
 const STORAGE_KEY = 'mydoo:doc_id';
 

@@ -1,9 +1,9 @@
-import {screen} from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {describe, expect, it, vi} from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import {renderWithTestProviders} from '../../test/setup';
-import {DeleteConfirmModal} from './delete-confirm-modal';
+import { renderWithTestProviders } from '../../test/setup';
+import { DeleteConfirmModal } from './delete-confirm-modal';
 
 describe('DeleteConfirmModal', () => {
   it('renders task title and descendant count', () => {
@@ -64,7 +64,7 @@ describe('DeleteConfirmModal', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', {name: /delete/i}));
+    await user.click(screen.getByRole('button', { name: /delete/i }));
 
     expect(onConfirm).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
@@ -84,7 +84,7 @@ describe('DeleteConfirmModal', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', {name: /cancel/i}));
+    await user.click(screen.getByRole('button', { name: /cancel/i }));
 
     expect(onClose).toHaveBeenCalled();
   });

@@ -1,5 +1,5 @@
-import {describe, expect, it} from 'vitest';
-import {recalculatePriorities} from '../../src/domain/priority';
+import { describe, expect, it } from 'vitest';
+import { recalculatePriorities } from '../../src/domain/priority';
 import {
   ANYWHERE_PLACE_ID,
   DEFAULT_CREDIT_INCREMENT,
@@ -68,7 +68,7 @@ describe('Inheritance Logic', () => {
     // 500 > 0? True.
     // Factor = 0 (Hidden).
 
-    recalculatePriorities(state, enrichedTasks, {}, {currentTime: 1500});
+    recalculatePriorities(state, enrichedTasks, {}, { currentTime: 1500 });
 
     const childResult = enrichedTasks.find((t) => t.id === childId);
 
@@ -88,7 +88,7 @@ describe('Inheritance Logic', () => {
     const gp: EnrichedTask = {
       ...baseTask(gpId),
       childTaskIds: [pId],
-      schedule: {type: 'Once', dueDate: 1000, leadTime: 100},
+      schedule: { type: 'Once', dueDate: 1000, leadTime: 100 },
       isContainer: true,
       outlineIndex: 0,
     };
@@ -98,7 +98,7 @@ describe('Inheritance Logic', () => {
       ...baseTask(pId),
       parentId: gpId,
       childTaskIds: [cId],
-      schedule: {type: 'Once', dueDate: undefined, leadTime: 0},
+      schedule: { type: 'Once', dueDate: undefined, leadTime: 0 },
       isContainer: true,
       outlineIndex: 1,
     };
@@ -107,18 +107,18 @@ describe('Inheritance Logic', () => {
     const c: EnrichedTask = {
       ...baseTask(cId),
       parentId: pId,
-      schedule: {type: 'Once', dueDate: undefined, leadTime: 0},
+      schedule: { type: 'Once', dueDate: undefined, leadTime: 0 },
       outlineIndex: 2,
     };
 
     const state = {
       rootTaskIds: [gpId],
       places: {},
-      tasks: {[gpId]: gp, [pId]: p, [cId]: c},
+      tasks: { [gpId]: gp, [pId]: p, [cId]: c },
     } as TunnelState;
 
     const enrichedTasks = [gp, p, c];
-    recalculatePriorities(state, enrichedTasks, {}, {currentTime: 0});
+    recalculatePriorities(state, enrichedTasks, {}, { currentTime: 0 });
 
     const cResult = enrichedTasks.find((t) => t.id === cId);
 
@@ -134,7 +134,7 @@ function baseTask(id: TaskID): EnrichedTask {
     title: 'Task',
     status: TaskStatus.Pending,
     childTaskIds: [],
-    schedule: {type: 'Once', dueDate: undefined, leadTime: 0},
+    schedule: { type: 'Once', dueDate: undefined, leadTime: 0 },
     parentId: undefined,
     importance: 0.5,
     credits: 0,

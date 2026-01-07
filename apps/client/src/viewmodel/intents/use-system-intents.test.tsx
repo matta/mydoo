@@ -11,11 +11,11 @@ import {
   TaskStatus,
   type TunnelState,
 } from '@mydoo/tasklens';
-import {act, renderHook, waitFor} from '@testing-library/react';
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import {createTestWrapper} from '../../test/setup';
-import {useSystemIntents} from './use-system-intents';
+import { createTestWrapper } from '../../test/setup';
+import { useSystemIntents } from './use-system-intents';
 
 const createMockTask = (
   id: string,
@@ -38,9 +38,9 @@ describe('useSystemIntents', () => {
   let docUrl: AutomergeUrl;
 
   beforeEach(() => {
-    repo = new Repo({network: []});
+    repo = new Repo({ network: [] });
     window.location.hash = '';
-    handle = repo.create({tasks: {}, rootTaskIds: [], places: {}});
+    handle = repo.create({ tasks: {}, rootTaskIds: [], places: {} });
     docUrl = handle.url;
   });
 
@@ -80,7 +80,7 @@ describe('useSystemIntents', () => {
       // 2. Setup Hook
       const store = createTaskLensStore();
       const wrapper = createTestWrapper(repo, store, docUrl);
-      const {result} = renderHook(() => useSystemIntents(), {wrapper});
+      const { result } = renderHook(() => useSystemIntents(), { wrapper });
 
       // Wait for Redux to have the tasks (to avoid race conditions in intents)
       await waitFor(() => {
@@ -134,7 +134,7 @@ describe('useSystemIntents', () => {
       // 2. Setup Hook
       const store = createTaskLensStore();
       const wrapper = createTestWrapper(repo, store, docUrl);
-      const {result} = renderHook(() => useSystemIntents(), {wrapper});
+      const { result } = renderHook(() => useSystemIntents(), { wrapper });
 
       // Wait for Redux
       await waitFor(() => {

@@ -8,11 +8,11 @@ import {
   type TunnelState,
   type ViewFilter,
 } from '../types';
-import {getCurrentTimestamp, getIntervalMs} from '../utils/time';
-import {CREDITS_HALF_LIFE_MILLIS} from './constants';
-import {calculateFeedbackFactors} from './feedback';
-import {calculateLeadTimeFactor} from './readiness';
-import {calculateContextualVisibility} from './visibility';
+import { getCurrentTimestamp, getIntervalMs } from '../utils/time';
+import { CREDITS_HALF_LIFE_MILLIS } from './constants';
+import { calculateFeedbackFactors } from './feedback';
+import { calculateLeadTimeFactor } from './readiness';
+import { calculateContextualVisibility } from './visibility';
 
 /**
  * Builds O(1) lookup indexes for tasks and sorts children based on explicit order logic.
@@ -66,7 +66,7 @@ function buildIndexes(
     }
   }
 
-  return {taskMap, childrenIndex};
+  return { taskMap, childrenIndex };
 }
 
 /**
@@ -101,7 +101,7 @@ export function recalculatePriorities(
   const currentTime = context?.currentTime ?? getCurrentTimestamp();
 
   // --- Phase 0: Build Indexes & Outline Order ---
-  const {childrenIndex} = buildIndexes(state, enrichedTasks);
+  const { childrenIndex } = buildIndexes(state, enrichedTasks);
   assignOutlineIndexes(childrenIndex);
 
   // --- Phase 1: Linear Local Computation ---
@@ -294,9 +294,9 @@ export function getPrioritizedTasks(
 
       return {
         ...persisted,
-        schedule: {...persisted.schedule}, // Deep clone to allow mutation without side effects
+        schedule: { ...persisted.schedule }, // Deep clone to allow mutation without side effects
         repeatConfig: persisted.repeatConfig
-          ? {...persisted.repeatConfig}
+          ? { ...persisted.repeatConfig }
           : undefined, // Explicit clone to ensure availability
         effectiveCredits: 0,
         feedbackFactor: 1.0,
@@ -318,7 +318,7 @@ export function getPrioritizedTasks(
   // Calculate effective due dates for Routinely tasks before any inheritance happens.
   for (const task of enrichedTasks) {
     if (task.schedule.type === 'Routinely') {
-      const {lastDone} = task.schedule;
+      const { lastDone } = task.schedule;
       const repeatConfig = task.repeatConfig;
       // Spec: DueDate = LastDone + Period (Interval).
       if (lastDone && repeatConfig) {

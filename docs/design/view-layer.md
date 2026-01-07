@@ -290,8 +290,8 @@ function useTodoList(
 
 ```typescript
 type BreadcrumbItem =
-  | {type: 'root'}
-  | {type: 'task'; id: TaskID; title: string};
+  | { type: 'root' }
+  | { type: 'task'; id: TaskID; title: string };
 
 function useBreadcrumbs(
   tasks: TunnelNode[],
@@ -429,12 +429,12 @@ is a function that:
 // ✅ This WORKS in React
 function useTaskIntents(docUrl: AutomergeUrl): TaskIntents {
   // This hook internally calls another hook to get the Automerge operations
-  const {ops} = useTunnel(docUrl);
+  const { ops } = useTunnel(docUrl);
 
   // Return an object of intent functions that "close over" the ops
   return {
     completeTask: (id) => {
-      ops.update(id, {status: 'Done'});
+      ops.update(id, { status: 'Done' });
       // ... trigger recurrence, healer, etc.
     },
     // ... other intents
@@ -470,22 +470,22 @@ mocking?"_
 ```typescript
 // File: apps/client/src/viewmodel/useTaskIntents.ts
 
-import {useTunnel} from '@mydoo/tasklens';
-import {useCallback, useMemo} from 'react';
+import { useTunnel } from '@mydoo/tasklens';
+import { useCallback, useMemo } from 'react';
 
 export function useTaskIntents(docUrl: AutomergeUrl): TaskIntents {
   // 1. Get access to the Automerge document operations
   //    useTunnel is a hook from @mydoo/tasklens that provides:
   //    - state: the current document snapshot
   //    - ops: functions to mutate the document (add, update, delete, move)
-  const {ops} = useTunnel(docUrl);
+  const { ops } = useTunnel(docUrl);
 
   // 2. Define each intent function
   //    useCallback ensures the function reference stays stable across re-renders
   //    (important for performance and preventing unnecessary child re-renders)
   const completeTask = useCallback(
     (id: TaskID) => {
-      ops.update(id, {status: 'Done'});
+      ops.update(id, { status: 'Done' });
       // Could also trigger: runRecurrenceLogic(), runHealer()
     },
     [ops],
@@ -494,7 +494,7 @@ export function useTaskIntents(docUrl: AutomergeUrl): TaskIntents {
   const createTask = useCallback(
     (title: string, parentId?: TaskID) => {
       const newId = crypto.randomUUID() as TaskID;
-      ops.add({id: newId, title, parentId /* defaults... */});
+      ops.add({ id: newId, title, parentId /* defaults... */ });
       return newId;
     },
     [ops],
@@ -539,9 +539,9 @@ interface TaskIntents {
     title: string,
     parentId?: TaskID,
     options?:
-      | {position: 'start'}
-      | {position: 'end'}
-      | {position: 'after'; afterTaskId: TaskID},
+      | { position: 'start' }
+      | { position: 'end' }
+      | { position: 'after'; afterTaskId: TaskID },
   ) => TaskID;
 
   /** Intent: "I finished this task"
@@ -579,7 +579,7 @@ function useTaskIntents(docUrl: AutomergeUrl): TaskIntents;
 **How It's Used in a Component**:
 
 ```tsx
-function TaskRow({task}: {task: TaskDisplayItem}) {
+function TaskRow({ task }: { task: TaskDisplayItem }) {
   const docUrl = useDocument();
 
   // Call the hook at the top level of the component
@@ -688,7 +688,7 @@ interface NavigationActions {
   openTaskEditor: (id: TaskID) => void; // Edit Mode
   openCreateTask: (
     parentId: TaskID | null,
-    options?: {position?: 'start' | 'end' | 'after'; afterTaskId?: TaskID},
+    options?: { position?: 'start' | 'end' | 'after'; afterTaskId?: TaskID },
   ) => void; // Create Mode
   closeTaskEditor: () => void;
 
@@ -722,7 +722,7 @@ components. They contain **no visual markup**—only data wiring.
 function DoViewContainer() {
   const docUrl = useDocument();
   const [nav, navActions] = useNavigationState();
-  const {tasks, isLoading} = usePriorityList(docUrl, {
+  const { tasks, isLoading } = usePriorityList(docUrl, {
     placeId: nav.placeFilter,
   });
   const taskIntents = useTaskIntents(docUrl);
@@ -754,8 +754,8 @@ function DoViewContainer() {
 function PlanViewContainer() {
   const docUrl = useDocument();
   const [nav, navActions] = useNavigationState();
-  const {tasks} = useTaskTree(docUrl);
-  const {currentList, parentNode} = useTodoList(tasks, nav.viewPath);
+  const { tasks } = useTaskTree(docUrl);
+  const { currentList, parentNode } = useTodoList(tasks, nav.viewPath);
   const breadcrumbs = useBreadcrumbs(tasks, nav.viewPath);
   const taskIntents = useTaskIntents(docUrl);
 
@@ -793,14 +793,14 @@ function PlanViewContainer() {
 ```tsx
 function BalanceViewContainer() {
   const docUrl = useDocument();
-  const {items, isLoading} = useBalanceData(docUrl);
+  const { items, isLoading } = useBalanceData(docUrl);
   const taskIntents = useTaskIntents(docUrl);
 
   return (
     <BalanceEditor
       items={items}
       onTargetChange={(id, percent) =>
-        taskIntents.updateTask(id, {desiredCredits: percent * totalCredits})
+        taskIntents.updateTask(id, { desiredCredits: percent * totalCredits })
       }
     />
   );
@@ -819,7 +819,7 @@ function BalanceViewContainer() {
 ```tsx
 function ContextViewContainer() {
   const docUrl = useDocument();
-  const {places} = usePlaces(docUrl);
+  const { places } = usePlaces(docUrl);
   const placeIntents = usePlaceIntents(docUrl);
 
   return (
@@ -850,9 +850,9 @@ handling the "Save" action to persist to Automerge.
 function TaskEditorContainer() {
   const docUrl = useDocument();
   const [nav, navActions] = useNavigationState();
-  const {task, isLoading} = useTaskDetails(docUrl, nav.editingTaskId);
+  const { task, isLoading } = useTaskDetails(docUrl, nav.editingTaskId);
   const taskIntents = useTaskIntents(docUrl);
-  const {places} = usePlaces(docUrl);
+  const { places } = usePlaces(docUrl);
 
   // Determine Mode
   const isCreateMode = !!nav.createTaskParentId;
@@ -917,7 +917,7 @@ function MovePickerContainer() {
   const taskIntents = useTaskIntents(docUrl);
 
   // Use specific hook to get safe targets (excludes self + descendants)
-  const {validTargets} = useValidParentTargets(docUrl, nav.movePickerTaskId!);
+  const { validTargets } = useValidParentTargets(docUrl, nav.movePickerTaskId!);
 
   if (!nav.movePickerTaskId) return null;
 
@@ -1231,10 +1231,10 @@ describe('usePriorityList', () => {
 // Example: useTaskActions.test.ts
 describe('useTaskActions', () => {
   it('toggleDone calls ops.toggleDone', () => {
-    const mockOps = {toggleDone: vi.fn()};
+    const mockOps = { toggleDone: vi.fn() };
     // Mock useTunnel
 
-    const {result} = renderHook(() => useTaskActions(mockDocUrl));
+    const { result } = renderHook(() => useTaskActions(mockDocUrl));
     result.current.toggleDone('task-1');
 
     expect(mockOps.toggleDone).toHaveBeenCalledWith('task-1');

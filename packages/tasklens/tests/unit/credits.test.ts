@@ -1,7 +1,7 @@
-import {describe, expect, it} from 'vitest';
-import {completeTask, createTask} from '../../src/persistence/ops';
-import type {TaskID, TunnelState} from '../../src/types';
-import {TaskStatus} from '../../src/types';
+import { describe, expect, it } from 'vitest';
+import { completeTask, createTask } from '../../src/persistence/ops';
+import type { TaskID, TunnelState } from '../../src/types';
+import { TaskStatus } from '../../src/types';
 import {
   daysToMilliseconds,
   mockCurrentTimestamp,

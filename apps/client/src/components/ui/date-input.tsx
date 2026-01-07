@@ -1,5 +1,5 @@
-import {Input} from '@mantine/core';
-import {useCallback} from 'react';
+import { Input } from '@mantine/core';
+import { useCallback } from 'react';
 
 /**
  * Props for the DateInput component.
@@ -77,8 +77,8 @@ export function DateInput({
       description={description}
       error={error}
       required={required ?? false}
-      {...(className ? {className} : {})}
-      {...(style ? {style} : {})}
+      {...(className ? { className } : {})}
+      {...(style ? { style } : {})}
     >
       <Input
         component="input"
@@ -87,7 +87,7 @@ export function DateInput({
         onChange={handleChange}
         disabled={disabled ?? false}
         data-testid="date-input"
-        {...(placeholder ? {placeholder} : {})}
+        {...(placeholder ? { placeholder } : {})}
       />
     </Input.Wrapper>
   );

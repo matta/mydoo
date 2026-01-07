@@ -22,8 +22,8 @@
  * object in tests). The `state.tasks` Record uses plain objects because
  * Automerge cannot proxy JavaScript Map or Set types.
  */
-import {CREDITS_HALF_LIFE_MILLIS} from '../domain/constants';
-import {validateDepth, validateNoCycle} from '../domain/invariants';
+import { CREDITS_HALF_LIFE_MILLIS } from '../domain/constants';
+import { validateDepth, validateNoCycle } from '../domain/invariants';
 import {
   ANYWHERE_PLACE_ID,
   type CreateTaskOptions,
@@ -34,7 +34,7 @@ import {
   TaskStatus,
   type TunnelState,
 } from '../types';
-import {getCurrentTimestamp, hoursToMilliseconds} from '../utils/time';
+import { getCurrentTimestamp, hoursToMilliseconds } from '../utils/time';
 
 // --- Mutators ---
 
@@ -59,7 +59,7 @@ import {getCurrentTimestamp, hoursToMilliseconds} from '../utils/time';
 export function createTask(
   state: TunnelState,
   props: Partial<PersistedTask>,
-  options: CreateTaskOptions = {position: 'end'},
+  options: CreateTaskOptions = { position: 'end' },
 ): PersistedTask {
   // Use UUID for CRDT compatibility - sequential counters cause conflicts
   // when multiple replicas create tasks simultaneously.
@@ -406,7 +406,7 @@ export function moveTask(
  * @param id - The ID of the task to complete.
  */
 export function completeTask(state: TunnelState, id: TaskID): void {
-  updateTask(state, id, {status: TaskStatus.Done});
+  updateTask(state, id, { status: TaskStatus.Done });
 }
 
 /**

@@ -7,20 +7,20 @@ import {
   LoadingOverlay,
   Text,
 } from '@mantine/core';
-import {useMediaQuery} from '@mantine/hooks';
+import { useMediaQuery } from '@mantine/hooks';
 import {
   selectTaskEntities,
   type TaskID,
   type TunnelNode,
 } from '@mydoo/tasklens';
-import {IconArrowLeft, IconMenu, IconPlus} from '@tabler/icons-react';
-import {useEffect, useMemo} from 'react';
-import {useSelector} from 'react-redux';
-import {useTaskIntents} from '../../../viewmodel/intents/use-task-intents';
-import {useTaskTree} from '../../../viewmodel/projections/use-task-tree';
-import {useBreadcrumbs} from '../../../viewmodel/ui/use-breadcrumbs';
-import {useNavigationState} from '../../../viewmodel/ui/use-navigation-state';
-import {OutlineTree} from './outline-tree';
+import { IconArrowLeft, IconMenu, IconPlus } from '@tabler/icons-react';
+import { useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { useTaskIntents } from '../../../viewmodel/intents/use-task-intents';
+import { useTaskTree } from '../../../viewmodel/projections/use-task-tree';
+import { useBreadcrumbs } from '../../../viewmodel/ui/use-breadcrumbs';
+import { useNavigationState } from '../../../viewmodel/ui/use-navigation-state';
+import { OutlineTree } from './outline-tree';
 
 /**
  * The primary container for the "Plan" view.
@@ -34,7 +34,7 @@ import {OutlineTree} from './outline-tree';
  * - **Responsiveness**: Switches between Tree Mode (Desktop) and Drill-Down Mode (Mobile).
  */
 export function PlanViewContainer() {
-  const {roots, isLoading} = useTaskTree();
+  const { roots, isLoading } = useTaskTree();
   const {
     currentViewId,
     expandedIds,
@@ -51,7 +51,7 @@ export function PlanViewContainer() {
   } = useNavigationState();
   const tasks = useSelector(selectTaskEntities);
 
-  const {toggleTask, deleteTask, indentTask, outdentTask} = useTaskIntents();
+  const { toggleTask, deleteTask, indentTask, outdentTask } = useTaskIntents();
   const breadcrumbs = useBreadcrumbs(currentViewId);
 
   // Auto-redirect if current view target is missing (deleted remotely)
@@ -138,13 +138,13 @@ export function PlanViewContainer() {
   }
 
   return (
-    <Box style={{height: '100%', display: 'flex', flexDirection: 'column'}}>
+    <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Navigation Header - Top */}
       <Box p="md" pb="xs">
         <Group justify="space-between" mb="xs">
           {/* Breadcrumbs - Always visible if deep, but mainly for Mobile Drill-Down context */}
           {(!isDesktop || breadcrumbs.length > 0) && (
-            <Box style={{overflowX: 'auto', flex: 1}}>
+            <Box style={{ overflowX: 'auto', flex: 1 }}>
               <Breadcrumbs separator=">">
                 <Button
                   variant="subtle"
@@ -191,7 +191,7 @@ export function PlanViewContainer() {
       </Box>
 
       {/* Main Content Area - Scrollable */}
-      <Box style={{flex: 1, overflowY: 'auto'}} px="md">
+      <Box style={{ flex: 1, overflowY: 'auto' }} px="md">
         <OutlineTree
           nodes={displayRoots}
           expandedIds={expandedIds}
@@ -290,7 +290,7 @@ export function PlanViewContainer() {
             size="xl"
             onClick={() => handleAddAtPosition('start')}
             aria-label="Add Task at Top"
-            style={{border: '1px solid var(--mantine-color-default-border)'}}
+            style={{ border: '1px solid var(--mantine-color-default-border)' }}
           >
             <IconPlus size={26} />
           </ActionIcon>

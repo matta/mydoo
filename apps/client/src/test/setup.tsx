@@ -1,5 +1,5 @@
-import {type AutomergeUrl, Repo} from '@automerge/automerge-repo';
-import {RepoContext} from '@automerge/automerge-repo-react-hooks';
+import { type AutomergeUrl, Repo } from '@automerge/automerge-repo';
+import { RepoContext } from '@automerge/automerge-repo-react-hooks';
 import {
   createTheme,
   MantineProvider,
@@ -12,7 +12,7 @@ import {
   type RenderResult,
   render as testingLibraryRender,
 } from '@testing-library/react';
-import type {PropsWithChildren} from 'react';
+import type { PropsWithChildren } from 'react';
 
 // Mock for window.matchMedia - required by Mantine's color scheme detection
 Object.defineProperty(window, 'matchMedia', {
@@ -53,26 +53,26 @@ const testingTheme = createTheme({
     // Disable Menu transitions for tests
     Menu: Menu.extend({
       defaultProps: {
-        transitionProps: {duration: 1},
+        transitionProps: { duration: 1 },
       },
     }),
     // Disable Modal transitions for tests
     Modal: Modal.extend({
       defaultProps: {
-        transitionProps: {duration: 1},
+        transitionProps: { duration: 1 },
       },
     }),
     // Disable Popover transitions for tests (Menu uses this internally)
     Popover: Popover.extend({
       defaultProps: {
-        transitionProps: {duration: 1},
+        transitionProps: { duration: 1 },
       },
     }),
   },
 });
 
 // Mock Automerge Repo
-const mockRepo = new Repo({network: []});
+const mockRepo = new Repo({ network: [] });
 
 /**
  * Custom render function that wraps components with MantineProvider and custom test theme.
@@ -93,7 +93,7 @@ export function createTestWrapper(
   store = createTaskLensStore(),
   docUrl: AutomergeUrl = defaultDocUrl,
 ) {
-  return function TestWrapper({children}: PropsWithChildren) {
+  return function TestWrapper({ children }: PropsWithChildren) {
     return (
       <RepoContext.Provider value={repo}>
         <TaskLensProvider docUrl={docUrl} store={store}>
@@ -123,7 +123,7 @@ export function renderWithTestProviders(
   ui: React.ReactNode,
   options: TestRenderOptions = {},
 ): RenderResult {
-  const {repo, store, url, ...renderOptions} = options;
+  const { repo, store, url, ...renderOptions } = options;
   return testingLibraryRender(ui, {
     wrapper: createTestWrapper(repo, store, url),
     ...renderOptions,

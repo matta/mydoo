@@ -6,25 +6,25 @@ import {
   Stack,
   Title,
 } from '@mantine/core';
-import type {TaskID} from '@mydoo/tasklens';
-import {IconRefresh} from '@tabler/icons-react';
-import {useCallback} from 'react';
+import type { TaskID } from '@mydoo/tasklens';
+import { IconRefresh } from '@tabler/icons-react';
+import { useCallback } from 'react';
 
-import {PriorityTaskList} from '../../components/composites/priority-task-list';
-import {QuickAddInput} from '../../components/primitives/quick-add-input';
-import {useSystemIntents} from '../intents/use-system-intents';
-import {useTaskIntents} from '../intents/use-task-intents';
-import {usePriorityList} from '../projections/use-priority-list';
-import {useNavigationState} from '../ui/use-navigation-state';
+import { PriorityTaskList } from '../../components/composites/priority-task-list';
+import { QuickAddInput } from '../../components/primitives/quick-add-input';
+import { useSystemIntents } from '../intents/use-system-intents';
+import { useTaskIntents } from '../intents/use-task-intents';
+import { usePriorityList } from '../projections/use-priority-list';
+import { useNavigationState } from '../ui/use-navigation-state';
 
 /**
  * DoViewContainer: Main container for the "Do" view (priority list).
  */
 export function DoViewContainer() {
-  const {tasks, isLoading} = usePriorityList();
-  const {createTask, toggleTask} = useTaskIntents();
-  const {refreshTaskList} = useSystemIntents();
-  const {openEditModal} = useNavigationState();
+  const { tasks, isLoading } = usePriorityList();
+  const { createTask, toggleTask } = useTaskIntents();
+  const { refreshTaskList } = useSystemIntents();
+  const { openEditModal } = useNavigationState();
 
   const handleToggle = useCallback(
     (id: TaskID) => {

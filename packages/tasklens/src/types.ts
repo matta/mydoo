@@ -18,7 +18,7 @@
  * and compile-time type safety.
  */
 
-import type {z} from 'zod';
+import type { z } from 'zod';
 
 import type {
   PersistedTask,
@@ -135,7 +135,7 @@ export interface Context {
  * Derived from ScheduleSchema in persistence/schemas.ts.
  * @see ScheduleSchema for the runtime validation schema.
  */
-export type {Schedule};
+export type { Schedule };
 
 /**
  * Configuration for recurring tasks.
@@ -143,7 +143,7 @@ export type {Schedule};
  * Derived from RepeatConfigSchema in persistence/schemas.ts.
  * @see RepeatConfigSchema for the runtime validation schema.
  */
-export type {RepeatConfig};
+export type { RepeatConfig };
 
 /**
  * Time range string in HH:MM-HH:MM format (24h).
@@ -175,7 +175,7 @@ export interface OpenHours {
  * Derived from TaskSchema in persistence/schemas.ts.
  * @see TaskSchema for the runtime validation schema.
  */
-export type {PersistedTask};
+export type { PersistedTask };
 
 /**
  * Internal Mutable Object for Algorithm Processing.
@@ -378,9 +378,9 @@ export type Task = ComputedTask;
  * Options for creating a new task, primarily for positioning.
  */
 export type CreateTaskOptions =
-  | {position: 'start'}
-  | {position: 'end'}
-  | {position: 'after'; afterTaskId: TaskID};
+  | { position: 'start' }
+  | { position: 'end' }
+  | { position: 'after'; afterTaskId: TaskID };
 
 /**
  * A physical or virtual location where tasks can be performed.
@@ -388,7 +388,7 @@ export type CreateTaskOptions =
  * Derived from PlaceSchema in persistence/schemas.ts.
  * @see PlaceSchema for the runtime validation schema.
  */
-export type {Place};
+export type { Place };
 
 /**
  * A Task with its children resolved into a tree structure.

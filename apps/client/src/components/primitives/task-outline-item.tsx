@@ -9,7 +9,7 @@ import {
   rem,
   Text,
 } from '@mantine/core';
-import type {TaskID, TunnelNode} from '@mydoo/tasklens';
+import type { TaskID, TunnelNode } from '@mydoo/tasklens';
 import {
   IconArrowRight,
   IconChevronDown,
@@ -18,7 +18,7 @@ import {
   IconPlus,
   IconTrash,
 } from '@tabler/icons-react';
-import {memo, useEffect, useRef} from 'react';
+import { memo, useEffect, useRef } from 'react';
 
 import './task-outline-item.css';
 
@@ -152,13 +152,15 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
             aria-label="Task actions"
             data-testid="task-menu-trigger"
           >
-            <IconDots style={{width: rem(16), height: rem(16)}} />
+            <IconDots style={{ width: rem(16), height: rem(16) }} />
           </ActionIcon>
         </MenuTarget>
 
         <MenuDropdown>
           <MenuItem
-            leftSection={<IconPlus style={{width: rem(14), height: rem(14)}} />}
+            leftSection={
+              <IconPlus style={{ width: rem(14), height: rem(14) }} />
+            }
             onClick={(e) => {
               e.stopPropagation();
               onAddSibling(node.id);
@@ -167,7 +169,9 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
             Add Sibling
           </MenuItem>
           <MenuItem
-            leftSection={<IconPlus style={{width: rem(14), height: rem(14)}} />}
+            leftSection={
+              <IconPlus style={{ width: rem(14), height: rem(14) }} />
+            }
             onClick={(e) => {
               e.stopPropagation();
               onAddChild(node.id);
@@ -178,7 +182,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
           <MenuItem
             color="red"
             leftSection={
-              <IconTrash style={{width: rem(14), height: rem(14)}} />
+              <IconTrash style={{ width: rem(14), height: rem(14) }} />
             }
             onClick={(e) => {
               e.stopPropagation();
@@ -229,8 +233,8 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
       <Text
         size="sm"
         fw={500}
-        {...(node.status === 'Done' ? {c: 'dimmed', td: 'line-through'} : {})}
-        style={{flex: 1, cursor: 'pointer'}}
+        {...(node.status === 'Done' ? { c: 'dimmed', td: 'line-through' } : {})}
+        style={{ flex: 1, cursor: 'pointer' }}
         truncate
         onClick={() => onOpenEditor(node.id)}
       >
@@ -240,7 +244,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
             size="xs"
             c="dimmed"
             fw={700}
-            style={{marginRight: rem(8), verticalAlign: 'middle'}}
+            style={{ marginRight: rem(8), verticalAlign: 'middle' }}
           >
             {index + 1}.
           </Text>

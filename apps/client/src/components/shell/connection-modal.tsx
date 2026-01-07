@@ -11,7 +11,7 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
-import {useState} from 'react';
+import { useState } from 'react';
 
 /**
  * Props for the ConnectionModal component.
@@ -86,7 +86,7 @@ export function ConnectionModal({
             label="Document ID"
             value={inputValue}
             onChange={(e) => setInputValue(e.currentTarget.value)}
-            style={{flex: 1}}
+            style={{ flex: 1 }}
             data-testid="connect-document-input"
             error={showError ? 'Invalid Automerge URI format' : null}
           />

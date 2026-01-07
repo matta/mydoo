@@ -1,7 +1,7 @@
-import type {ComputedTask, PersistedTask, TaskID} from '../types';
-import {getCurrentTimestamp} from '../utils/time';
-import {CREDITS_HALF_LIFE_MILLIS} from './constants';
-import {isTaskReady} from './readiness';
+import type { ComputedTask, PersistedTask, TaskID } from '../types';
+import { getCurrentTimestamp } from '../utils/time';
+import { CREDITS_HALF_LIFE_MILLIS } from './constants';
+import { isTaskReady } from './readiness';
 
 /**
  * Projects a raw PersistedTask into a ComputedTask for UI consumption.

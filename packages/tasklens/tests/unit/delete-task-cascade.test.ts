@@ -1,7 +1,7 @@
-import {beforeEach, describe, expect, it} from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import {TunnelStore} from '../../src/persistence/store';
-import {type TaskID, TaskStatus} from '../../src/types';
+import { TunnelStore } from '../../src/persistence/store';
+import { type TaskID, TaskStatus } from '../../src/types';
 
 describe('deleteTask cascade (hard-delete)', () => {
   let store: TunnelStore;
@@ -11,7 +11,7 @@ describe('deleteTask cascade (hard-delete)', () => {
   });
 
   it('should hard-delete a single task (no children)', () => {
-    const task = store.createTask({title: 'Solo Task'});
+    const task = store.createTask({ title: 'Solo Task' });
 
     const deletedCount = store.deleteTask(task.id);
 
@@ -21,9 +21,9 @@ describe('deleteTask cascade (hard-delete)', () => {
   });
 
   it('should cascade delete all descendants', () => {
-    const parent = store.createTask({title: 'Parent'});
-    const child1 = store.createTask({title: 'Child 1', parentId: parent.id});
-    const child2 = store.createTask({title: 'Child 2', parentId: parent.id});
+    const parent = store.createTask({ title: 'Parent' });
+    const child1 = store.createTask({ title: 'Child 1', parentId: parent.id });
+    const child2 = store.createTask({ title: 'Child 2', parentId: parent.id });
     const grandchild = store.createTask({
       title: 'Grandchild',
       parentId: child1.id,
@@ -40,8 +40,8 @@ describe('deleteTask cascade (hard-delete)', () => {
   });
 
   it('should remove child from parent childTaskIds when deleting a child', () => {
-    const parent = store.createTask({title: 'Parent'});
-    const child = store.createTask({title: 'Child', parentId: parent.id});
+    const parent = store.createTask({ title: 'Parent' });
+    const child = store.createTask({ title: 'Child', parentId: parent.id });
 
     const deletedCount = store.deleteTask(child.id);
 

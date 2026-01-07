@@ -1,10 +1,10 @@
-import type {AutomergeUrl} from '@automerge/automerge-repo';
-import {render, screen} from '@testing-library/react';
+import type { AutomergeUrl } from '@automerge/automerge-repo';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {describe, expect, it} from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import {createTestWrapper} from '../../test/setup';
-import {ConnectionModal} from './connection-modal';
+import { createTestWrapper } from '../../test/setup';
+import { ConnectionModal } from './connection-modal';
 
 describe('ConnectionModal', () => {
   const currentUrl = 'automerge:12345' as AutomergeUrl;
@@ -19,7 +19,7 @@ describe('ConnectionModal', () => {
         onReset={() => {}}
         onConnect={() => {}}
       />,
-      {wrapper},
+      { wrapper },
     );
 
     expect(screen.getByText(currentUrl)).toBeInTheDocument();
@@ -40,10 +40,10 @@ describe('ConnectionModal', () => {
         onReset={() => {}}
         onConnect={() => {}}
       />,
-      {wrapper},
+      { wrapper },
     );
 
-    const closeButton = screen.getByRole('button', {name: /close/i});
+    const closeButton = screen.getByRole('button', { name: /close/i });
     await userEvent.click(closeButton);
 
     expect(closed).toBe(true);
@@ -64,7 +64,7 @@ describe('ConnectionModal', () => {
         onReset={onReset}
         onConnect={() => {}}
       />,
-      {wrapper},
+      { wrapper },
     );
 
     const resetButton = screen.getByRole('button', {
@@ -90,11 +90,11 @@ describe('ConnectionModal', () => {
         onReset={() => {}}
         onConnect={onConnect}
       />,
-      {wrapper},
+      { wrapper },
     );
 
     const input = screen.getByLabelText(/document id/i);
-    const connectButton = screen.getByRole('button', {name: /connect/i});
+    const connectButton = screen.getByRole('button', { name: /connect/i });
 
     await userEvent.type(input, 'automerge:2zYo9pk9VrPSc5eziZM1337DEvzf');
     await userEvent.click(connectButton);
@@ -112,11 +112,11 @@ describe('ConnectionModal', () => {
         onReset={() => {}}
         onConnect={() => {}}
       />,
-      {wrapper},
+      { wrapper },
     );
 
     const input = screen.getByLabelText(/document id/i);
-    const connectButton = screen.getByRole('button', {name: /connect/i});
+    const connectButton = screen.getByRole('button', { name: /connect/i });
 
     // Valid input initially? Input is empty by default, button should be disabled
     expect(connectButton).toBeDisabled();

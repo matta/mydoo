@@ -1,5 +1,5 @@
-import {Group, Paper, Progress, Slider, Stack, Text} from '@mantine/core';
-import type {BalanceItemData, TaskID} from '@mydoo/tasklens';
+import { Group, Paper, Progress, Slider, Stack, Text } from '@mantine/core';
+import type { BalanceItemData, TaskID } from '@mydoo/tasklens';
 
 interface BalanceItemProps {
   item: BalanceItemData;

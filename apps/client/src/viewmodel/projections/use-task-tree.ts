@@ -5,8 +5,8 @@ import {
   selectTaskEntities,
   type TunnelNode,
 } from '@mydoo/tasklens';
-import {useMemo} from 'react';
-import {useSelector} from 'react-redux';
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 
 export interface TaskTree {
   isLoading: boolean;

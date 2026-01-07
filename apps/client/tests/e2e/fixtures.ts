@@ -1,8 +1,8 @@
-import {expect, type Page} from '@playwright/test';
-import {test as bddTest} from 'playwright-bdd';
-import {type PlanFixture, PlanPage} from './pages/plan-page';
+import { expect, type Page } from '@playwright/test';
+import { test as bddTest } from 'playwright-bdd';
+import { type PlanFixture, PlanPage } from './pages/plan-page';
 
-export {expect};
+export { expect };
 
 type DocumentContextFixture = {
   documentContext: {
@@ -16,15 +16,18 @@ type MyFixtures = {
 } & DocumentContextFixture;
 
 export const test = bddTest.extend<MyFixtures>({
-  plan: async ({page}: {page: Page}, use: (r: PlanPage) => Promise<void>) => {
+  plan: async (
+    { page }: { page: Page },
+    use: (r: PlanPage) => Promise<void>,
+  ) => {
     const planPage = new PlanPage(page);
     await use(planPage);
   },
   documentContext: async (
     // biome-ignore lint/correctness/noEmptyPattern: playwright-bdd requires destructuring pattern
     {},
-    use: (r: {documents: Map<string, string>}) => Promise<void>,
+    use: (r: { documents: Map<string, string> }) => Promise<void>,
   ) => {
-    await use({documents: new Map()});
+    await use({ documents: new Map() });
   },
 });

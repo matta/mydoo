@@ -10,11 +10,11 @@ import {
   type TunnelNode,
   type TunnelState,
 } from '@mydoo/tasklens';
-import {renderHook, waitFor} from '@testing-library/react';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {createTestWrapper} from '../../test/setup';
-import {useTaskDetails} from './use-task-details';
+import { createTestWrapper } from '../../test/setup';
+import { useTaskDetails } from './use-task-details';
 
 const createMockTask = (
   id: string,
@@ -41,8 +41,8 @@ describe('useTaskDetails', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    repo = new Repo({network: []});
-    handle = repo.create({tasks: {}, rootTaskIds: [], places: {}});
+    repo = new Repo({ network: [] });
+    handle = repo.create({ tasks: {}, rootTaskIds: [], places: {} });
     url = handle.url;
   });
 
@@ -68,7 +68,7 @@ describe('useTaskDetails', () => {
 
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, url);
-    const {result} = renderHook(() => useTaskDetails('child-id' as TaskID), {
+    const { result } = renderHook(() => useTaskDetails('child-id' as TaskID), {
       wrapper,
     });
 
@@ -79,7 +79,7 @@ describe('useTaskDetails', () => {
         expect(result.current.parentTitle).toBe('Parent Goal');
         expect(result.current.descendantCount).toBe(1); // One grandchild
       },
-      {timeout: 2000},
+      { timeout: 2000 },
     );
   });
 
@@ -92,7 +92,7 @@ describe('useTaskDetails', () => {
 
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, url);
-    const {result} = renderHook(() => useTaskDetails('root-id' as TaskID), {
+    const { result } = renderHook(() => useTaskDetails('root-id' as TaskID), {
       wrapper,
     });
 
@@ -103,14 +103,14 @@ describe('useTaskDetails', () => {
         expect(result.current.parentTitle).toBeUndefined();
         expect(result.current.descendantCount).toBe(0);
       },
-      {timeout: 2000},
+      { timeout: 2000 },
     );
   });
 
   it('returns null when task not found', async () => {
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, url);
-    const {result} = renderHook(
+    const { result } = renderHook(
       () => useTaskDetails('non-existent' as TaskID),
       {
         wrapper,
@@ -122,14 +122,14 @@ describe('useTaskDetails', () => {
         expect(result.current.isLoading).toBe(false);
         expect(result.current.task).toBeUndefined();
       },
-      {timeout: 2000},
+      { timeout: 2000 },
     );
   });
 
   it('returns loading state initially', async () => {
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, url);
-    const {result} = renderHook(() => useTaskDetails('any-task' as TaskID), {
+    const { result } = renderHook(() => useTaskDetails('any-task' as TaskID), {
       wrapper,
     });
 

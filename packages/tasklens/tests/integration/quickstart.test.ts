@@ -1,7 +1,7 @@
-import {describe, expect, it} from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import {getPrioritizedTasks} from '../../src/domain/priority';
-import {TunnelStore} from '../../src/persistence/store';
+import { getPrioritizedTasks } from '../../src/domain/priority';
+import { TunnelStore } from '../../src/persistence/store';
 
 describe('Quickstart Integration', () => {
   it('should run the quickstart scenario', () => {

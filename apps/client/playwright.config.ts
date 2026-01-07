@@ -1,5 +1,5 @@
-import {defineConfig, devices} from '@playwright/test';
-import {defineBddConfig} from 'playwright-bdd';
+import { defineConfig, devices } from '@playwright/test';
+import { defineBddConfig } from 'playwright-bdd';
 
 const isAgent = !!process.env.ANTIGRAVITY_AGENT || !!process.env.GEMINI_CLI;
 
@@ -22,8 +22,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  ...(process.env.CI ? {workers: 1} : {}),
-  reporter: isAgent || process.env.CI ? [['html', {open: 'never'}]] : 'html',
+  ...(process.env.CI ? { workers: 1 } : {}),
+  reporter: isAgent || process.env.CI ? [['html', { open: 'never' }]] : 'html',
   use: {
     baseURL: 'http://localhost:5179',
     trace: 'on-first-retry',
@@ -37,19 +37,19 @@ export default defineConfig({
     {
       name: 'bdd-desktop',
       testDir: testDirDesktop,
-      use: {...devices['Desktop Chrome']},
+      use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'bdd-mobile',
       testDir: testDirMobile,
-      use: {...devices['Pixel 7']},
+      use: { ...devices['Pixel 7'] },
       grepInvert: /@skip-mobile/,
     },
     {
       name: 'e2e',
       testDir: 'tests/e2e',
       testIgnore: ['features/**', 'steps/**', '.features-gen*/**'],
-      use: {...devices['Desktop Chrome']},
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
 });

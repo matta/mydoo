@@ -1,8 +1,8 @@
-import type {DocHandle} from '@automerge/automerge-repo';
-import {describe, expect, it, vi} from 'vitest';
-import {runReconciler} from '../../src/domain/reconciler';
-import {strictMock} from '../../src/test/test-utils';
-import type {PersistedTask, TaskID, TunnelState} from '../../src/types';
+import type { DocHandle } from '@automerge/automerge-repo';
+import { describe, expect, it, vi } from 'vitest';
+import { runReconciler } from '../../src/domain/reconciler';
+import { strictMock } from '../../src/test/test-utils';
+import type { PersistedTask, TaskID, TunnelState } from '../../src/types';
 
 // Helper to create a minimal TunnelState with the given tasks
 function createTestState(
@@ -20,7 +20,7 @@ function createTestState(
       desiredCredits: 0.0,
       creditsTimestamp: 0,
       priorityTimestamp: 0,
-      schedule: {type: 'Once', leadTime: 0},
+      schedule: { type: 'Once', leadTime: 0 },
       isSequential: false,
       childTaskIds: [],
       notes: '',

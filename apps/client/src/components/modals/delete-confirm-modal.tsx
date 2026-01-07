@@ -4,7 +4,7 @@
  * Per PRD §3.6, this modal must show the count of descendants that will be deleted.
  * Leaf tasks (no children) may be deleted without this confirmation.
  */
-import {Button, Group, Modal, Stack, Text} from '@mantine/core';
+import { Button, Group, Modal, Stack, Text } from '@mantine/core';
 
 interface DeleteConfirmModalProps {
   /** Whether the modal is open */

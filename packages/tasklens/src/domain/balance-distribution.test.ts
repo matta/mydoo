@@ -1,5 +1,5 @@
-import {describe, expect, it} from 'vitest';
-import type {TaskID} from '../types';
+import { describe, expect, it } from 'vitest';
+import type { TaskID } from '../types';
 import {
   type BalanceItemSimple,
   distributeCredits,

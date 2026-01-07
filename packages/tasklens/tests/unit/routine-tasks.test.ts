@@ -4,7 +4,7 @@ import {
   type StorageAdapterInterface,
   type StorageKey,
 } from '@automerge/automerge-repo';
-import {describe, expect, it} from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 class DummyStorageAdapter implements StorageAdapterInterface {
   async load(_key: StorageKey): Promise<Uint8Array | undefined> {
@@ -18,7 +18,7 @@ class DummyStorageAdapter implements StorageAdapterInterface {
   async removeRange(_keyPrefix: StorageKey) {}
 }
 
-import {wakeUpRoutineTasks} from '../../src/domain/routine-tasks';
+import { wakeUpRoutineTasks } from '../../src/domain/routine-tasks';
 import {
   type PersistedTask,
   type TaskID,
@@ -28,7 +28,7 @@ import {
 
 describe('wakeUpRoutineTasks', () => {
   it('should wake up a task when it is time', () => {
-    const repo = new Repo({network: [], storage: new DummyStorageAdapter()});
+    const repo = new Repo({ network: [], storage: new DummyStorageAdapter() });
     const handle = repo.create<TunnelState>();
 
     handle.change((doc) => {
@@ -78,7 +78,7 @@ describe('wakeUpRoutineTasks', () => {
   });
 
   it('should NOT wake up a task if it is too early', () => {
-    const repo = new Repo({network: [], storage: new DummyStorageAdapter()});
+    const repo = new Repo({ network: [], storage: new DummyStorageAdapter() });
     const handle = repo.create<TunnelState>();
 
     handle.change((doc) => {
@@ -122,7 +122,7 @@ describe('wakeUpRoutineTasks', () => {
   });
 
   it('should wake up a task with MINUTE frequency', () => {
-    const repo = new Repo({network: [], storage: new DummyStorageAdapter()});
+    const repo = new Repo({ network: [], storage: new DummyStorageAdapter() });
     const handle = repo.create<TunnelState>();
 
     handle.change((doc) => {
@@ -166,7 +166,7 @@ describe('wakeUpRoutineTasks', () => {
   });
 
   it('should wake up a task with HOUR frequency', () => {
-    const repo = new Repo({network: [], storage: new DummyStorageAdapter()});
+    const repo = new Repo({ network: [], storage: new DummyStorageAdapter() });
     const handle = repo.create<TunnelState>();
 
     handle.change((doc) => {

@@ -61,7 +61,7 @@ class UserService {
 
 ```typescript
 // The compiler guarantees this object is valid for the narrowed interface
-const mockDb = {save: vi.fn()};
+const mockDb = { save: vi.fn() };
 new UserService(mockDb);
 ```
 
@@ -87,11 +87,11 @@ property you did not explicitly mock.
 **Usage:**
 
 ```typescript
-import {strictMock} from '@mydoo/tasklens/test';
+import { strictMock } from '@mydoo/tasklens/test';
 
 it('processes the user', () => {
   const db = strictMock<Database>('Database', {
-    getUser: vi.fn().mockReturnValue({id: 1}),
+    getUser: vi.fn().mockReturnValue({ id: 1 }),
     // If the code calls db.deleteUser(), the test fails instantly.
   });
 
@@ -117,11 +117,11 @@ safely.
 **Usage:**
 
 ```typescript
-import {mock} from 'jest-mock-extended';
+import { mock } from 'jest-mock-extended';
 
 // Creates a proxy where EVERY property returns a default spy/mock.
 const req = mock<Request>();
-req.body = {data: 'test'};
+req.body = { data: 'test' };
 
 handler(req);
 ```

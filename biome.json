@@ -48,7 +48,7 @@
       "complexity": {
         "noExcessiveCognitiveComplexity": {
           "level": "error",
-          "options": {"maxAllowedComplexity": 40}
+          "options": { "maxAllowedComplexity": 40 }
         },
         "noForEach": "error"
       },
@@ -61,7 +61,7 @@
         "noNonNullAssertion": "error",
         "useFilenamingConvention": {
           "level": "error",
-          "options": {"filenameCases": ["kebab-case"]}
+          "options": { "filenameCases": ["kebab-case"] }
         },
         "useImportType": "error",
         "useConst": "error",

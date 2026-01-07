@@ -14,7 +14,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import {glob} from 'glob';
+import { glob } from 'glob';
 
 // ANSI color codes
 const reset = '\x1b[0m';
@@ -174,9 +174,9 @@ async function fetchPackageStats(pkgName: string): Promise<PackageStats> {
 
     if (!registryRes.ok) {
       if (registryRes.status === 404) {
-        return {name: pkgName, error: 'Not Found (404)'};
+        return { name: pkgName, error: 'Not Found (404)' };
       }
-      return {name: pkgName, error: `Registry Error: ${registryRes.status}`};
+      return { name: pkgName, error: `Registry Error: ${registryRes.status}` };
     }
 
     const downloadsRes = await limiter.fetchWithBackoff(
@@ -187,7 +187,7 @@ async function fetchPackageStats(pkgName: string): Promise<PackageStats> {
 
     const downloadsData = downloadsRes.ok
       ? await downloadsRes.json()
-      : {downloads: 0};
+      : { downloads: 0 };
 
     const latestVersion = registryData['dist-tags']?.latest;
     const time = registryData.time;
@@ -207,7 +207,7 @@ async function fetchPackageStats(pkgName: string): Promise<PackageStats> {
     };
   } catch (_error: unknown) {
     const message = _error instanceof Error ? _error.message : 'Unknown Error';
-    return {name: pkgName, error: message};
+    return { name: pkgName, error: message };
   }
 }
 

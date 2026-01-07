@@ -1,8 +1,8 @@
-import {describe, expect, it} from 'vitest';
-import {calculateLeadTimeFactor} from '../../src/domain/readiness';
-import {createTask, updateTask} from '../../src/persistence/ops';
-import {TunnelStore} from '../../src/persistence/store';
-import {daysToMilliseconds} from '../../src/utils/time';
+import { describe, expect, it } from 'vitest';
+import { calculateLeadTimeFactor } from '../../src/domain/readiness';
+import { createTask, updateTask } from '../../src/persistence/ops';
+import { TunnelStore } from '../../src/persistence/store';
+import { daysToMilliseconds } from '../../src/utils/time';
 
 // A stable reference timestamp for testing (September 2001)
 const REFERENCE_TIME = new Date('2001-09-09T01:46:40.000Z').getTime();
@@ -30,7 +30,7 @@ describe('Due Date Logic', () => {
 
     it('should update schedule.dueDate', () => {
       const store = new TunnelStore();
-      const task = createTask(store.state, {title: 'Update Test'});
+      const task = createTask(store.state, { title: 'Update Test' });
       const newDueDate = Date.now() + daysToMilliseconds(5);
 
       updateTask(store.state, task.id, {
@@ -54,7 +54,7 @@ describe('Due Date Logic', () => {
       // Time remaining = 3 days. 2x lead time = 2 days.
       // 3 days > 2 days -> Should be 0.0
 
-      const schedule = {type: 'Once' as const, leadTime, dueDate};
+      const schedule = { type: 'Once' as const, leadTime, dueDate };
       const factor = calculateLeadTimeFactor(schedule, now);
 
       expect(factor).toBe(0.0);
@@ -69,7 +69,7 @@ describe('Due Date Logic', () => {
       // 2x lead time = 2 days.
       // Formula: (2*L - R) / L = (2 - 1.5) / 1 = 0.5
 
-      const schedule = {type: 'Once' as const, leadTime, dueDate};
+      const schedule = { type: 'Once' as const, leadTime, dueDate };
       const factor = calculateLeadTimeFactor(schedule, now);
 
       expect(factor).toBeCloseTo(0.5);
@@ -84,7 +84,7 @@ describe('Due Date Logic', () => {
       // 2*L - R = 2 - 0.5 = 1.5.
       // 1.5 / 1 = 1.5 -> Clamped to 1.0
 
-      const schedule = {type: 'Once' as const, leadTime, dueDate};
+      const schedule = { type: 'Once' as const, leadTime, dueDate };
       const factor = calculateLeadTimeFactor(schedule, now);
 
       expect(factor).toBe(1.0);
@@ -95,7 +95,7 @@ describe('Due Date Logic', () => {
       const leadTime = daysToMilliseconds(1);
       const dueDate = now - daysToMilliseconds(1); // Overdue
 
-      const schedule = {type: 'Once' as const, leadTime, dueDate};
+      const schedule = { type: 'Once' as const, leadTime, dueDate };
       const factor = calculateLeadTimeFactor(schedule, now);
 
       expect(factor).toBe(1.0);

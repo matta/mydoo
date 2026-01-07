@@ -1,11 +1,11 @@
-import type {Task, TaskID} from '@mydoo/tasklens';
-import {createMockTask} from '@mydoo/tasklens';
-import {screen, waitFor} from '@testing-library/react';
+import type { Task, TaskID } from '@mydoo/tasklens';
+import { createMockTask } from '@mydoo/tasklens';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {describe, expect, it, vi} from 'vitest';
-import {renderWithTestProviders} from '../../test/setup';
+import { describe, expect, it, vi } from 'vitest';
+import { renderWithTestProviders } from '../../test/setup';
 
-import {TaskEditorModal} from './task-editor-modal';
+import { TaskEditorModal } from './task-editor-modal';
 
 const mockTask: Task = createMockTask({
   id: 'task-1' as TaskID,
@@ -76,7 +76,7 @@ describe('TaskEditorModal', () => {
   it('calls onAddSibling when Add Sibling clicked', async () => {
     const user = userEvent.setup();
     const onAddSibling = vi.fn();
-    const taskWithParent = {...mockTask, parentId: 'parent-1' as TaskID};
+    const taskWithParent = { ...mockTask, parentId: 'parent-1' as TaskID };
 
     renderWithTestProviders(
       <TaskEditorModal
@@ -92,7 +92,7 @@ describe('TaskEditorModal', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', {name: /add sibling/i}));
+    await user.click(screen.getByRole('button', { name: /add sibling/i }));
 
     expect(onAddSibling).toHaveBeenCalledWith('parent-1');
   });
@@ -115,7 +115,7 @@ describe('TaskEditorModal', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', {name: /add child/i}));
+    await user.click(screen.getByRole('button', { name: /add child/i }));
 
     expect(onAddChild).toHaveBeenCalledWith('task-1');
   });
@@ -138,7 +138,7 @@ describe('TaskEditorModal', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', {name: /delete/i}));
+    await user.click(screen.getByRole('button', { name: /delete/i }));
 
     expect(onDelete).toHaveBeenCalledWith('task-1', true);
   });
@@ -178,7 +178,7 @@ describe('TaskEditorModal', () => {
       />,
     );
 
-    const indentBtn = screen.getByRole('button', {name: /indent/i});
+    const indentBtn = screen.getByRole('button', { name: /indent/i });
     expect(indentBtn).toBeDisabled();
   });
 
@@ -198,7 +198,7 @@ describe('TaskEditorModal', () => {
       />,
     );
 
-    const indentBtn = screen.getByRole('button', {name: /indent/i});
+    const indentBtn = screen.getByRole('button', { name: /indent/i });
     expect(indentBtn).not.toBeDisabled();
   });
 
@@ -223,11 +223,11 @@ describe('TaskEditorModal', () => {
     await user.clear(notesInput);
     await user.type(notesInput, 'New specific notes');
 
-    await user.click(screen.getByRole('button', {name: /save changes/i}));
+    await user.click(screen.getByRole('button', { name: /save changes/i }));
 
     expect(onSave).toHaveBeenCalledWith(
       mockTask.id,
-      expect.objectContaining({notes: 'New specific notes'}),
+      expect.objectContaining({ notes: 'New specific notes' }),
     );
   });
 
@@ -260,15 +260,15 @@ describe('TaskEditorModal', () => {
     // Mantine animations can take a moment, so we allow a generous timeout.
     const monthlyOption = await screen.findByRole(
       'option',
-      {name: /monthly/i},
-      {timeout: 3000},
+      { name: /monthly/i },
+      { timeout: 3000 },
     );
     await user.click(monthlyOption);
 
     // Ensure the popover closes before interacting with other elements
     await waitFor(
       () => expect(screen.queryByRole('option')).not.toBeInTheDocument(),
-      {timeout: 3000},
+      { timeout: 3000 },
     );
 
     const intervalInput = document.getElementById('repetition-interval-input');
@@ -278,13 +278,13 @@ describe('TaskEditorModal', () => {
     await user.clear(intervalInput);
     await user.type(intervalInput, '3');
 
-    await user.click(screen.getByRole('button', {name: /save changes/i}));
+    await user.click(screen.getByRole('button', { name: /save changes/i }));
 
     expect(onSave).toHaveBeenCalledWith(
       mockTask.id,
       expect.objectContaining({
-        repeatConfig: {frequency: 'monthly', interval: 3},
-        schedule: expect.objectContaining({type: 'Routinely'}),
+        repeatConfig: { frequency: 'monthly', interval: 3 },
+        schedule: expect.objectContaining({ type: 'Routinely' }),
       }),
     );
   });
@@ -295,8 +295,8 @@ describe('TaskEditorModal', () => {
     const onSave = vi.fn();
     const taskWithRepeat: Task = {
       ...mockTask,
-      repeatConfig: {frequency: 'daily', interval: 1},
-      schedule: {...mockTask.schedule, type: 'Routinely'},
+      repeatConfig: { frequency: 'daily', interval: 1 },
+      schedule: { ...mockTask.schedule, type: 'Routinely' },
     };
 
     renderWithTestProviders(
@@ -318,7 +318,7 @@ describe('TaskEditorModal', () => {
 
   it('resets form state when reopened in Create mode', async () => {
     const user = userEvent.setup();
-    const {rerender} = renderWithTestProviders(
+    const { rerender } = renderWithTestProviders(
       <TaskEditorModal
         descendantCount={0}
         onAddChild={vi.fn()}

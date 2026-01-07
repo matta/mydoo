@@ -1,4 +1,4 @@
-import {expect, type Page} from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 /**
  * PlanFixture - The contract for E2E test helpers.
@@ -36,7 +36,7 @@ export interface PlanFixture {
   setSequential: (title: string, shouldBeSequential: boolean) => Promise<void>;
   createTaskWithDueDate: (
     title: string,
-    config: {dueDate: string; leadTimeVal: number; leadTimeUnit: string},
+    config: { dueDate: string; leadTimeVal: number; leadTimeUnit: string },
   ) => Promise<void>;
 
   // Verification Helpers
@@ -93,7 +93,7 @@ export class PlanPage implements PlanFixture {
   async createTask(title: string): Promise<void> {
     await this.switchToPlanView();
 
-    const addFirst = this.page.getByRole('button', {name: 'Add First Task'});
+    const addFirst = this.page.getByRole('button', { name: 'Add First Task' });
     const appendRow = this.page.getByTestId('append-row-button');
     const addTop = this.page.getByLabel('Add Task at Top');
 
@@ -108,64 +108,66 @@ export class PlanPage implements PlanFixture {
     }
 
     await expect(
-      this.page.getByRole('heading', {name: 'Create Task'}),
+      this.page.getByRole('heading', { name: 'Create Task' }),
     ).toBeVisible();
 
-    await this.page.getByRole('textbox', {name: 'Title'}).fill(title);
+    await this.page.getByRole('textbox', { name: 'Title' }).fill(title);
     await this.page.keyboard.press('Enter');
 
     // Wait for creation
     await expect(
-      this.page.locator(`[data-testid="task-item"]`, {hasText: title}).first(),
+      this.page
+        .locator(`[data-testid="task-item"]`, { hasText: title })
+        .first(),
     ).toBeVisible();
   }
 
   async addFirstTask(title: string): Promise<void> {
-    await this.page.getByRole('button', {name: 'Add First Task'}).click();
-    const modal = this.page.getByRole('dialog', {name: 'Create Task'});
+    await this.page.getByRole('button', { name: 'Add First Task' }).click();
+    const modal = this.page.getByRole('dialog', { name: 'Create Task' });
     await this.verifyFocusedByLabel('Title');
-    await modal.getByRole('textbox', {name: 'Title'}).fill(title);
-    await modal.getByRole('button', {name: 'Create Task'}).click();
+    await modal.getByRole('textbox', { name: 'Title' }).fill(title);
+    await modal.getByRole('button', { name: 'Create Task' }).click();
     await expect(modal).not.toBeVisible();
   }
 
   async addChild(title: string): Promise<void> {
     // Strategy: Assume Task Editor is open (clicking a task title opens it).
-    const editModal = this.page.getByRole('dialog', {name: 'Edit Task'});
-    await editModal.waitFor({state: 'visible', timeout: 3000});
+    const editModal = this.page.getByRole('dialog', { name: 'Edit Task' });
+    await editModal.waitFor({ state: 'visible', timeout: 3000 });
 
     // Click "Add Child" in the footer
-    await editModal.getByRole('button', {name: 'Add Child'}).click();
+    await editModal.getByRole('button', { name: 'Add Child' }).click();
 
     // Expect "Create Task" modal to appear
-    const createModal = this.page.getByRole('dialog', {name: 'Create Task'});
-    await createModal.waitFor({state: 'visible', timeout: 3000});
+    const createModal = this.page.getByRole('dialog', { name: 'Create Task' });
+    await createModal.waitFor({ state: 'visible', timeout: 3000 });
     await this.verifyFocusedByLabel('Title');
-    await createModal.getByRole('textbox', {name: 'Title'}).fill(title);
-    await createModal.getByRole('button', {name: 'Create Task'}).click();
+    await createModal.getByRole('textbox', { name: 'Title' }).fill(title);
+    await createModal.getByRole('button', { name: 'Create Task' }).click();
     await expect(createModal).not.toBeVisible();
   }
 
   async addSibling(targetTitle: string, siblingTitle: string): Promise<void> {
     const row = this.page
-      .locator(`[data-testid="task-item"]`, {hasText: targetTitle})
+      .locator(`[data-testid="task-item"]`, { hasText: targetTitle })
       .first();
     await row.hover();
     await row.getByTestId('task-menu-trigger').click();
-    await this.page.getByRole('menuitem', {name: 'Add Sibling'}).click();
+    await this.page.getByRole('menuitem', { name: 'Add Sibling' }).click();
 
-    const modal = this.page.getByRole('dialog', {name: 'Create Task'});
+    const modal = this.page.getByRole('dialog', { name: 'Create Task' });
     await this.verifyFocusedByLabel('Title');
-    await modal.getByRole('textbox', {name: 'Title'}).fill(siblingTitle);
-    await modal.getByRole('button', {name: 'Create Task'}).click();
+    await modal.getByRole('textbox', { name: 'Title' }).fill(siblingTitle);
+    await modal.getByRole('button', { name: 'Create Task' }).click();
     await expect(modal).not.toBeVisible();
   }
 
   async openTaskEditor(title: string): Promise<void> {
-    const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
+    const modal = this.page.getByRole('dialog', { name: 'Edit Task' });
 
     if (await modal.isVisible()) {
-      const titleInput = modal.getByRole('textbox', {name: 'Title'});
+      const titleInput = modal.getByRole('textbox', { name: 'Title' });
       const currentTitle = await titleInput.inputValue();
       if (currentTitle === title) {
         return; // Already open
@@ -182,7 +184,7 @@ export class PlanPage implements PlanFixture {
     // (which is now in the header/breadcrumb and not in the list).
     for (let i = 0; i < 5; i++) {
       const row = this.page
-        .locator(`[data-testid="task-item"]`, {hasText: title})
+        .locator(`[data-testid="task-item"]`, { hasText: title })
         .first();
       if ((await row.count()) > 0 && (await row.isVisible())) {
         await row.click();
@@ -205,14 +207,14 @@ export class PlanPage implements PlanFixture {
 
     // Final attempt (or failure if loop exhausted)
     await this.page
-      .locator(`[data-testid="task-item"]`, {hasText: title})
+      .locator(`[data-testid="task-item"]`, { hasText: title })
       .first()
       .click();
     await expect(modal).toBeVisible();
   }
 
   async clickMoveButton(): Promise<void> {
-    await this.page.getByRole('button', {name: 'Move...'}).click();
+    await this.page.getByRole('button', { name: 'Move...' }).click();
   }
 
   async toggleExpand(
@@ -221,7 +223,7 @@ export class PlanPage implements PlanFixture {
   ): Promise<void> {
     // Find the task row first
     const row = this.page
-      .locator(`[data-testid="task-item"]`, {hasText: title})
+      .locator(`[data-testid="task-item"]`, { hasText: title })
       .first();
     await row.scrollIntoViewIfNeeded();
 
@@ -233,14 +235,14 @@ export class PlanPage implements PlanFixture {
       const isExpanded = isExpandedAttr === 'true';
 
       if (isExpanded !== shouldExpand) {
-        await chevron.dispatchEvent('click', {bubbles: true});
+        await chevron.dispatchEvent('click', { bubbles: true });
       }
     }
   }
 
   async completeTask(title: string): Promise<void> {
     const taskRow = this.page
-      .locator(`[data-testid="task-item"]`, {hasText: title})
+      .locator(`[data-testid="task-item"]`, { hasText: title })
       .first();
 
     const checkbox = taskRow.getByRole('checkbox');
@@ -249,21 +251,21 @@ export class PlanPage implements PlanFixture {
 
   async clearCompletedTasks(): Promise<void> {
     await this.switchToDoView();
-    await this.page.getByRole('button', {name: 'Refresh'}).click();
+    await this.page.getByRole('button', { name: 'Refresh' }).click();
   }
 
   async editTaskTitle(title: string, newTitle: string): Promise<void> {
     await this.openTaskEditor(title);
-    const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
+    const modal = this.page.getByRole('dialog', { name: 'Edit Task' });
     await this.verifyFocusedByLabel('Title');
-    await modal.getByRole('textbox', {name: 'Title'}).fill(newTitle);
-    await modal.getByRole('button', {name: 'Save Changes'}).click();
+    await modal.getByRole('textbox', { name: 'Title' }).fill(newTitle);
+    await modal.getByRole('button', { name: 'Save Changes' }).click();
     await expect(modal).not.toBeVisible();
   }
 
   async deleteTask(title: string, expectedDescendants?: number): Promise<void> {
     await this.openTaskEditor(title);
-    const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
+    const modal = this.page.getByRole('dialog', { name: 'Edit Task' });
 
     // Setup dialog handler for cascade confirm
     this.page.once('dialog', (dialog) => {
@@ -275,7 +277,7 @@ export class PlanPage implements PlanFixture {
       dialog.accept();
     });
 
-    await modal.getByRole('button', {name: 'Delete'}).click();
+    await modal.getByRole('button', { name: 'Delete' }).click();
     await expect(modal).not.toBeVisible();
   }
 
@@ -308,7 +310,7 @@ export class PlanPage implements PlanFixture {
 
     // Select the option from the portal
     await this.page.locator('#repetition-frequency-select').click();
-    await this.page.getByRole('option', {name: optionName}).click();
+    await this.page.getByRole('option', { name: optionName }).click();
 
     // Fill Interval "Every X units"
     // Only visible if frequency is set, which it is now.
@@ -325,17 +327,17 @@ export class PlanPage implements PlanFixture {
     // "Unit" Select for Lead Time
     // Click the input directly by ID
     await this.page.locator('#lead-time-unit-select').click();
-    await this.page.getByRole('option', {name: config.leadTimeUnit}).click();
+    await this.page.getByRole('option', { name: config.leadTimeUnit }).click();
 
     // Save
-    await this.page.getByRole('button', {name: 'Save Changes'}).click();
+    await this.page.getByRole('button', { name: 'Save Changes' }).click();
     await expect(
-      this.page.getByRole('dialog', {name: 'Edit Task'}),
+      this.page.getByRole('dialog', { name: 'Edit Task' }),
     ).not.toBeVisible();
   }
 
   async refreshDoList(): Promise<void> {
-    await this.page.getByRole('button', {name: 'Refresh'}).click();
+    await this.page.getByRole('button', { name: 'Refresh' }).click();
   }
 
   async advanceTime(minutes: number): Promise<void> {
@@ -353,20 +355,20 @@ export class PlanPage implements PlanFixture {
     // Assumes the Task Editor modal is already open
     await this.page.locator('#lead-time-scalar-input').fill(value.toString());
     await this.page.locator('#lead-time-unit-select').click();
-    await this.page.getByRole('option', {name: unit}).click();
+    await this.page.getByRole('option', { name: unit }).click();
   }
 
   async createTaskWithDueDate(
     title: string,
-    config: {dueDate: string; leadTimeVal: number; leadTimeUnit: string},
+    config: { dueDate: string; leadTimeVal: number; leadTimeUnit: string },
   ): Promise<void> {
     await this.createTask(title);
     await this.openTaskEditor(title);
     await this.setDueDate(config.dueDate);
     await this.setLeadTime(config.leadTimeVal, config.leadTimeUnit);
-    await this.page.getByRole('button', {name: 'Save Changes'}).click();
+    await this.page.getByRole('button', { name: 'Save Changes' }).click();
     await expect(
-      this.page.getByRole('dialog', {name: 'Edit Task'}),
+      this.page.getByRole('dialog', { name: 'Edit Task' }),
     ).not.toBeVisible();
   }
 
@@ -381,7 +383,7 @@ export class PlanPage implements PlanFixture {
       shouldBeSequential,
     );
     await this.openTaskEditor(title);
-    const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
+    const modal = this.page.getByRole('dialog', { name: 'Edit Task' });
     const toggle = modal.getByLabel('Sequential Project');
 
     const isChecked = await toggle.isChecked();
@@ -389,13 +391,13 @@ export class PlanPage implements PlanFixture {
       // For Mantine switches, clicking the label text is more reliable
       const label = modal
         .locator('label')
-        .filter({hasText: 'Sequential Project'});
-      await label.dispatchEvent('click', {bubbles: true});
+        .filter({ hasText: 'Sequential Project' });
+      await label.dispatchEvent('click', { bubbles: true });
     }
 
-    const saveButton = modal.getByRole('button', {name: 'Save Changes'});
+    const saveButton = modal.getByRole('button', { name: 'Save Changes' });
     await saveButton.scrollIntoViewIfNeeded();
-    await saveButton.click({force: true});
+    await saveButton.click({ force: true });
     await expect(modal).not.toBeVisible();
   }
 
@@ -407,13 +409,13 @@ export class PlanPage implements PlanFixture {
 
   async verifyTaskHidden(title: string): Promise<void> {
     await expect(
-      this.page.getByText(title, {exact: true}).first(),
+      this.page.getByText(title, { exact: true }).first(),
     ).toBeHidden();
   }
 
   async verifyTaskCompleted(title: string): Promise<void> {
     const taskRow = this.page
-      .locator(`[data-testid="task-item"]`, {hasText: title})
+      .locator(`[data-testid="task-item"]`, { hasText: title })
       .first();
     const titleText = taskRow.getByText(title).first();
 
@@ -434,7 +436,7 @@ export class PlanPage implements PlanFixture {
     // On Desktop: Navbar (Visible), Footer (Absent). last() gets Navbar.
     await this.page
       .locator('nav, footer')
-      .getByRole('button', {name: 'Plan'})
+      .getByRole('button', { name: 'Plan' })
       .last()
       .click();
   }
@@ -442,7 +444,7 @@ export class PlanPage implements PlanFixture {
   async switchToDoView(): Promise<void> {
     await this.page
       .locator('nav, footer')
-      .getByRole('button', {name: 'Do'})
+      .getByRole('button', { name: 'Do' })
       .last()
       .click();
   }
@@ -451,7 +453,7 @@ export class PlanPage implements PlanFixture {
 
   async mobileDrillDown(title: string): Promise<void> {
     const taskRow = this.page
-      .locator(`[data-testid="task-item"]`, {hasText: title})
+      .locator(`[data-testid="task-item"]`, { hasText: title })
       .first();
     await taskRow.getByLabel('Drill down').click();
   }
@@ -462,7 +464,7 @@ export class PlanPage implements PlanFixture {
 
   async mobileVerifyViewTitle(title: string): Promise<void> {
     // In mobile drill-down, the title might be the breadcrumb button
-    await expect(this.page.getByRole('button', {name: title})).toBeVisible();
+    await expect(this.page.getByRole('button', { name: title })).toBeVisible();
   }
 
   async mobileVerifyMobileBottomBar(): Promise<void> {
@@ -477,19 +479,19 @@ export class PlanPage implements PlanFixture {
     await this.openTaskEditor(title);
     await this.clickMoveButton();
     await expect(
-      this.page.getByRole('dialog', {name: /^Move "/}),
+      this.page.getByRole('dialog', { name: /^Move "/ }),
     ).toBeVisible();
   }
 
   async moveTaskTo(targetTitle: string): Promise<void> {
-    const picker = this.page.getByRole('dialog', {name: /^Move "/});
-    await picker.getByText(targetTitle, {exact: true}).click();
+    const picker = this.page.getByRole('dialog', { name: /^Move "/ });
+    await picker.getByText(targetTitle, { exact: true }).click();
   }
 
   async verifyMovePickerExcludes(title: string): Promise<void> {
     // Verify a task is NOT visible as a valid move target (cycle prevention)
-    const picker = this.page.getByRole('dialog', {name: /^Move "/});
-    const target = picker.getByText(title, {exact: true});
+    const picker = this.page.getByRole('dialog', { name: /^Move "/ });
+    const target = picker.getByText(title, { exact: true });
     await expect(target).not.toBeVisible();
   }
 
@@ -497,8 +499,8 @@ export class PlanPage implements PlanFixture {
 
   async findInPlan(title: string): Promise<void> {
     await this.openTaskEditor(title);
-    const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
-    await modal.getByRole('button', {name: 'Find in Plan'}).click();
+    const modal = this.page.getByRole('dialog', { name: 'Edit Task' });
+    await modal.getByRole('button', { name: 'Find in Plan' }).click();
     await expect(modal).not.toBeVisible();
   }
 
@@ -525,7 +527,7 @@ export class PlanPage implements PlanFixture {
     await expect(
       this.page
         .locator('nav, footer')
-        .getByRole('button', {name: 'Plan'})
+        .getByRole('button', { name: 'Plan' })
         .last(),
     ).toBeVisible();
   }
@@ -534,20 +536,20 @@ export class PlanPage implements PlanFixture {
 
   async getCurrentDocumentId(): Promise<string | undefined> {
     // Open Options menu
-    await this.page.getByRole('button', {name: 'Options'}).click();
+    await this.page.getByRole('button', { name: 'Options' }).click();
 
     // Click Connection
-    await this.page.getByRole('menuitem', {name: 'Connection'}).click();
+    await this.page.getByRole('menuitem', { name: 'Connection' }).click();
 
     // Find the modal
-    const modal = this.page.getByRole('dialog', {name: 'Connection Info'});
+    const modal = this.page.getByRole('dialog', { name: 'Connection Info' });
     await expect(modal).toBeVisible();
 
     // Get the ID from the Code block using a stable test ID
     const id = await modal.getByTestId('document-id').textContent();
 
     // Close the modal
-    await modal.getByRole('button', {name: 'Close'}).click();
+    await modal.getByRole('button', { name: 'Close' }).click();
     await expect(modal).not.toBeVisible();
 
     return id?.trim() || undefined;
@@ -555,13 +557,13 @@ export class PlanPage implements PlanFixture {
 
   async createNewDocument(): Promise<void> {
     // Open Options menu
-    await this.page.getByRole('button', {name: 'Options'}).click();
+    await this.page.getByRole('button', { name: 'Options' }).click();
 
     // Click Connection
-    await this.page.getByRole('menuitem', {name: 'Connection'}).click();
+    await this.page.getByRole('menuitem', { name: 'Connection' }).click();
 
     // Find the modal
-    const modal = this.page.getByRole('dialog', {name: 'Connection Info'});
+    const modal = this.page.getByRole('dialog', { name: 'Connection Info' });
     await expect(modal).toBeVisible();
 
     // Click "Create New Document"
@@ -570,20 +572,20 @@ export class PlanPage implements PlanFixture {
     await expect(
       this.page
         .locator('nav, footer')
-        .getByRole('button', {name: 'Plan'})
+        .getByRole('button', { name: 'Plan' })
         .last(),
     ).toBeVisible();
   }
 
   async switchToDocument(id: string): Promise<void> {
     // Open Options menu
-    await this.page.getByRole('button', {name: 'Options'}).click();
+    await this.page.getByRole('button', { name: 'Options' }).click();
 
     // Click Connection
-    await this.page.getByRole('menuitem', {name: 'Connection'}).click();
+    await this.page.getByRole('menuitem', { name: 'Connection' }).click();
 
     // Find the modal
-    const modal = this.page.getByRole('dialog', {name: 'Connection Info'});
+    const modal = this.page.getByRole('dialog', { name: 'Connection Info' });
     await expect(modal).toBeVisible();
 
     // Fill the ID
@@ -596,7 +598,7 @@ export class PlanPage implements PlanFixture {
     await expect(
       this.page
         .locator('nav, footer')
-        .getByRole('button', {name: 'Plan'})
+        .getByRole('button', { name: 'Plan' })
         .last(),
     ).toBeVisible();
   }

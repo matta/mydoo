@@ -1,6 +1,13 @@
-import {Button, Modal, ScrollArea, Stack, Text, ThemeIcon} from '@mantine/core';
-import type {TaskID, TunnelNode} from '@mydoo/tasklens';
-import {IconArrowRight, IconTarget} from '@tabler/icons-react';
+import {
+  Button,
+  Modal,
+  ScrollArea,
+  Stack,
+  Text,
+  ThemeIcon,
+} from '@mantine/core';
+import type { TaskID, TunnelNode } from '@mydoo/tasklens';
+import { IconArrowRight, IconTarget } from '@tabler/icons-react';
 
 interface MovePickerModalProps {
   opened: boolean;
@@ -27,7 +34,7 @@ const TargetItem = ({
         justify="flex-start"
         onClick={() => onSelect(node.id)}
         pl={`calc(var(--mantine-spacing-sm) + ${depth * 20}px)`}
-        leftSection={<IconArrowRight size={12} style={{opacity: 0.5}} />}
+        leftSection={<IconArrowRight size={12} style={{ opacity: 0.5 }} />}
         color="gray"
       >
         <Text size="sm" truncate>

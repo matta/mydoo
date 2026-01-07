@@ -1,15 +1,15 @@
 /* eslint-disable no-restricted-syntax */
-import {describe, expect, it} from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import type {TaskLensState} from '../../src/store/index';
+import type { TaskLensState } from '../../src/store/index';
 import {
   selectRootTaskIds,
   selectStoreReady,
   selectTaskById,
   selectTaskEntities,
 } from '../../src/store/selectors';
-import type {ComputedTask} from '../../src/types';
-import {type TaskID, TaskStatus} from '../../src/types';
+import type { ComputedTask } from '../../src/types';
+import { type TaskID, TaskStatus } from '../../src/types';
 
 describe('Redux Selectors', () => {
   const createMockState = (
@@ -26,7 +26,7 @@ describe('Redux Selectors', () => {
 
   describe('selectTaskEntities', () => {
     it('should return empty object when entities are empty', () => {
-      const state = createMockState({entities: {}});
+      const state = createMockState({ entities: {} });
       const result = selectTaskEntities(state);
       expect(result).toEqual({});
     });
@@ -39,11 +39,11 @@ describe('Redux Selectors', () => {
       } as unknown as ComputedTask;
 
       const state = createMockState({
-        entities: {['t1' as TaskID]: mockTask},
+        entities: { ['t1' as TaskID]: mockTask },
       });
 
       const result = selectTaskEntities(state);
-      expect(result).toEqual({t1: mockTask});
+      expect(result).toEqual({ t1: mockTask });
     });
   });
 
@@ -67,7 +67,7 @@ describe('Redux Selectors', () => {
       } as unknown as ComputedTask;
 
       const state = createMockState({
-        entities: {['t1' as TaskID]: mockTask},
+        entities: { ['t1' as TaskID]: mockTask },
       });
 
       const selector = selectTaskById('t1' as TaskID);
@@ -77,14 +77,14 @@ describe('Redux Selectors', () => {
 
   describe('selectRootTaskIds', () => {
     it('should return empty array when no root tasks exist', () => {
-      const state = createMockState({rootTaskIds: []});
+      const state = createMockState({ rootTaskIds: [] });
       const result = selectRootTaskIds(state);
       expect(result).toEqual([]);
     });
 
     it('should return the rootTaskIds array', () => {
       const rootIds = ['r1' as TaskID, 'r2' as TaskID, 'r3' as TaskID];
-      const state = createMockState({rootTaskIds: rootIds});
+      const state = createMockState({ rootTaskIds: rootIds });
       const result = selectRootTaskIds(state);
       expect(result).toEqual(rootIds);
     });
@@ -92,7 +92,7 @@ describe('Redux Selectors', () => {
 
   describe('selectStoreReady', () => {
     it('should return false when lastProxyDoc is null', () => {
-      const state = createMockState({lastProxyDoc: null});
+      const state = createMockState({ lastProxyDoc: null });
       const result = selectStoreReady(state);
       expect(result).toBe(false);
     });

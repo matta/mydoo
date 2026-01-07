@@ -1,10 +1,13 @@
-import type {TaskID, TunnelNode} from '@mydoo/tasklens';
-import {createMockTask} from '@mydoo/tasklens';
-import {screen} from '@testing-library/react';
+import type { TaskID, TunnelNode } from '@mydoo/tasklens';
+import { createMockTask } from '@mydoo/tasklens';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {describe, expect, it, vi} from 'vitest';
-import {renderWithTestProviders} from '../../test/setup';
-import {TaskOutlineItem, type TaskOutlineItemProps} from './task-outline-item';
+import { describe, expect, it, vi } from 'vitest';
+import { renderWithTestProviders } from '../../test/setup';
+import {
+  TaskOutlineItem,
+  type TaskOutlineItemProps,
+} from './task-outline-item';
 
 describe('TaskOutlineItem', () => {
   const mockNode: TunnelNode = {
@@ -44,7 +47,7 @@ describe('TaskOutlineItem', () => {
 
   it('renders completion checkbox and calls toggle handler', async () => {
     const onToggleCompletion = vi.fn();
-    renderComponent({onToggleCompletion});
+    renderComponent({ onToggleCompletion });
 
     const checkbox = screen.getByRole('checkbox', {
       name: /Complete Test Task/i,
@@ -57,8 +60,8 @@ describe('TaskOutlineItem', () => {
 
   it('renders expansion chevron and calls handler when node has children', async () => {
     const onExpandToggle = vi.fn();
-    const childNode = {...mockNode, id: 'child-1' as TaskID};
-    const parentNode = {...mockNode, children: [childNode]};
+    const childNode = { ...mockNode, id: 'child-1' as TaskID };
+    const parentNode = { ...mockNode, children: [childNode] };
 
     renderComponent({
       node: parentNode,
@@ -66,7 +69,7 @@ describe('TaskOutlineItem', () => {
       isExpanded: false,
     });
 
-    const expandBtn = screen.getByRole('button', {name: 'Toggle expansion'});
+    const expandBtn = screen.getByRole('button', { name: 'Toggle expansion' });
     expect(expandBtn).toBeVisible();
 
     await userEvent.click(expandBtn);
@@ -75,11 +78,11 @@ describe('TaskOutlineItem', () => {
 
   it('renders drill-down button and calls handler', async () => {
     const onDrillDown = vi.fn();
-    const childNode = {...mockNode, id: 'child-1' as TaskID};
-    const parentNode = {...mockNode, children: [childNode]};
-    renderComponent({onDrillDown, viewMode: 'drill', node: parentNode});
+    const childNode = { ...mockNode, id: 'child-1' as TaskID };
+    const parentNode = { ...mockNode, children: [childNode] };
+    renderComponent({ onDrillDown, viewMode: 'drill', node: parentNode });
 
-    const drillBtn = screen.getByRole('button', {name: 'Drill down'});
+    const drillBtn = screen.getByRole('button', { name: 'Drill down' });
     expect(drillBtn).toBeInTheDocument();
 
     await userEvent.click(drillBtn);
@@ -87,7 +90,7 @@ describe('TaskOutlineItem', () => {
   });
 
   it('applies depth padding correctly', () => {
-    renderComponent({depth: 2});
+    renderComponent({ depth: 2 });
     const groupDiv = screen.getByTestId('task-item');
     expect(groupDiv.style.paddingLeft).toContain(
       'calc(2 * var(--mantine-spacing-md))',
@@ -96,7 +99,7 @@ describe('TaskOutlineItem', () => {
 
   it('calls onIndent when Tab is pressed', async () => {
     const onIndent = vi.fn();
-    renderComponent({onIndent});
+    renderComponent({ onIndent });
 
     const row = screen.getByTestId('task-item');
     await userEvent.tab(); // Focus the element?
@@ -110,7 +113,7 @@ describe('TaskOutlineItem', () => {
 
   it('calls onOutdent when Shift+Tab is pressed', async () => {
     const onOutdent = vi.fn();
-    renderComponent({onOutdent});
+    renderComponent({ onOutdent });
 
     const row = screen.getByTestId('task-item');
     row.focus();
@@ -121,7 +124,7 @@ describe('TaskOutlineItem', () => {
 
   it('calls onAddSibling when menu action clicked', async () => {
     const onAddSibling = vi.fn();
-    renderComponent({onAddSibling, viewMode: 'tree'});
+    renderComponent({ onAddSibling, viewMode: 'tree' });
 
     await userEvent.click(screen.getByTestId('task-menu-trigger'));
     // Menu dropdown renders in a portal; query within document body
@@ -135,10 +138,12 @@ describe('TaskOutlineItem', () => {
 
   it('calls onAddChild when menu action clicked', async () => {
     const onAddChild = vi.fn();
-    renderComponent({onAddChild, viewMode: 'tree'});
+    renderComponent({ onAddChild, viewMode: 'tree' });
 
     await userEvent.click(screen.getByTestId('task-menu-trigger'));
-    const menuItem = await screen.findByRole('menuitem', {name: /add child/i});
+    const menuItem = await screen.findByRole('menuitem', {
+      name: /add child/i,
+    });
     await userEvent.click(menuItem);
 
     expect(onAddChild).toHaveBeenCalled();
@@ -146,10 +151,10 @@ describe('TaskOutlineItem', () => {
 
   it('calls onDelete when menu action clicked', async () => {
     const onDelete = vi.fn();
-    renderComponent({onDelete, viewMode: 'tree'});
+    renderComponent({ onDelete, viewMode: 'tree' });
 
     await userEvent.click(screen.getByTestId('task-menu-trigger'));
-    const menuItem = await screen.findByRole('menuitem', {name: /delete/i});
+    const menuItem = await screen.findByRole('menuitem', { name: /delete/i });
     await userEvent.click(menuItem);
 
     expect(onDelete).toHaveBeenCalled();
@@ -157,13 +162,13 @@ describe('TaskOutlineItem', () => {
 
   it('renders menu trigger in tree mode', () => {
     // Menu trigger should be present in DOM (opacity controlled by CSS)
-    renderComponent({viewMode: 'tree'});
+    renderComponent({ viewMode: 'tree' });
     const trigger = screen.getByTestId('task-menu-trigger');
     expect(trigger).toBeInTheDocument();
   });
 
   it('renders menu trigger in drill mode (for mobile context menu)', () => {
-    renderComponent({viewMode: 'drill'});
+    renderComponent({ viewMode: 'drill' });
     const trigger = screen.getByTestId('task-menu-trigger');
     expect(trigger).toBeInTheDocument();
   });

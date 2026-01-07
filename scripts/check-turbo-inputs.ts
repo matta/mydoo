@@ -9,14 +9,14 @@
  *   pnpm check-turbo-root --audit   # Audit git-ignored directories
  *   pnpm check-turbo-root <path>    # Check a specific file
  */
-import {execSync} from 'node:child_process';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import {glob} from 'glob';
-import {minimatch} from 'minimatch';
+import { glob } from 'glob';
+import { minimatch } from 'minimatch';
 import minimist from 'minimist';
 
-import {z} from 'zod';
+import { z } from 'zod';
 
 const EXCLUSIONS_FILE = 'turbo-exclusions.json';
 
@@ -231,7 +231,7 @@ async function main() {
 
   const argv = minimist(process.argv.slice(2), {
     boolean: ['audit', 'help'],
-    alias: {h: 'help'},
+    alias: { h: 'help' },
   });
 
   if (argv.help) {

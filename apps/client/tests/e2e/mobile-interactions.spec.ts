@@ -1,21 +1,21 @@
-import {test} from './fixtures';
+import { test } from './fixtures';
 
 test.describe('Mobile Interactions', () => {
   // iPhone SE viewport
-  test.use({viewport: {width: 375, height: 667}});
+  test.use({ viewport: { width: 375, height: 667 } });
 
-  test.beforeEach(async ({plan}) => {
+  test.beforeEach(async ({ plan }) => {
     await plan.primeWithSampleData();
     await plan.switchToPlanView();
   });
 
-  test('Mobile Smoke Test', async ({plan}) => {
+  test('Mobile Smoke Test', async ({ plan }) => {
     await test.step('Verify Bottom Bar', async () => {
       await plan.mobileVerifyMobileBottomBar();
     });
   });
 
-  test('Add Child via Drill Down', async ({plan}) => {
+  test('Add Child via Drill Down', async ({ plan }) => {
     const parentTitle = 'Deep Work Project'; // From Seed Data
     const childTitle = `Drill Child ${Date.now()}`;
 

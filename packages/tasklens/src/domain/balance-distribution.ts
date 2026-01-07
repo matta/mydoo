@@ -1,4 +1,4 @@
-import type {TaskID} from '../types';
+import type { TaskID } from '../types';
 
 export interface BalanceItemSimple {
   id: TaskID;
@@ -57,7 +57,7 @@ export function distributeCredits(
   // If N=1, force 1.0 (ignore slider).
   if (otherItems.length === 0) {
     if (newValue !== 1.0) {
-      return [{id: targetId, desiredCredits: 1.0}];
+      return [{ id: targetId, desiredCredits: 1.0 }];
     }
     return [];
   }
@@ -75,7 +75,7 @@ export function distributeCredits(
   if (Math.abs(delta) < 0.000001) return [];
 
   const updates: CreditUpdate[] = [];
-  updates.push({id: targetId, desiredCredits: newValue});
+  updates.push({ id: targetId, desiredCredits: newValue });
 
   if (delta > 0) {
     // TAKING BUDGET (Target grows)
@@ -101,7 +101,7 @@ export function distributeCredits(
       const s = surpluses.find((x) => x.id === item.id)?.surplus ?? 0;
       // Proportion of the "Tax" this item pays
       const tax = delta * (s / totalSurplus);
-      updates.push({id: item.id, desiredCredits: item.desiredCredits - tax});
+      updates.push({ id: item.id, desiredCredits: item.desiredCredits - tax });
     }
   } else {
     // GIVING BUDGET (Target shrinks)
