@@ -16,13 +16,16 @@ import type {
 } from '../../src/generated/feature';
 import {TunnelStore} from '../../src/persistence/store';
 import {
+  ANYWHERE_PLACE_ID,
+  DEFAULT_CREDIT_INCREMENT,
   type EnrichedTask,
   type PersistedTask,
   type Place,
   type PlaceID,
+  type RepeatConfig,
+  type Schedule,
   TaskStatus as StoreTaskStatus,
   type TaskID,
-  TaskStatus,
   type ViewFilter,
 } from '../../src/types';
 import {
@@ -106,41 +109,63 @@ function parseTaskInput(
   input: TaskInput,
   testStartDate: Date,
   parentId?: string,
+  parentPlaceId?: PlaceID,
+  parentCreditIncrement?: number,
 ): PersistedTask[] {
   const tasks: PersistedTask[] = [];
 
-  const statusMap: Record<string, StoreTaskStatus> = {
-    Pending: StoreTaskStatus.Pending,
-    Done: StoreTaskStatus.Done,
-  };
+  const effectivePlaceId =
+    (input.place_id !== undefined ? (input.place_id as PlaceID) : undefined) ??
+    parentPlaceId ??
+    ANYWHERE_PLACE_ID;
+
+  const effectiveCreditIncrement =
+    (input.credit_increment !== undefined
+      ? Number(input.credit_increment)
+      : undefined) ??
+    parentCreditIncrement ??
+    DEFAULT_CREDIT_INCREMENT;
+
+  // Handle repeatConfig
+  let repeatConfig: RepeatConfig | undefined;
+  if (input.repeat_config) {
+    repeatConfig = input.repeat_config as RepeatConfig;
+  }
 
   const task: PersistedTask = {
     id: input.id as TaskID,
     title: input.title ?? 'Default Task',
     status:
-      (input.status ? statusMap[input.status] : undefined) ??
-      TaskStatus.Pending,
+      StoreTaskStatus[
+        (input.status as keyof typeof StoreTaskStatus) ?? 'Pending'
+      ],
     importance: Number(input.importance ?? 1.0),
-    creditIncrement: 1.0,
-    credits: Number(input.credits ?? 0.0),
-    desiredCredits: Number(input.desired_credits ?? 0.0),
-    creditsTimestamp:
-      input.credits_timestamp && input.credits_timestamp !== '0'
-        ? new Date(input.credits_timestamp).getTime()
-        : testStartDate.getTime(),
+    creditIncrement: effectiveCreditIncrement,
+    credits: Number(input.credits ?? 0),
+    desiredCredits: Number(input.desired_credits ?? 0),
+    creditsTimestamp: input.credits_timestamp
+      ? new Date(input.credits_timestamp).getTime()
+      : testStartDate.getTime(),
     priorityTimestamp: testStartDate.getTime(),
     schedule: {
-      type: 'Once',
+      type: (input.schedule_type as Schedule['type']) ?? 'Once',
       leadTime: Number(input.lead_time_seconds ?? 604800) * 1000,
+      ...(input.last_done
+        ? {lastDone: new Date(input.last_done).getTime()}
+        : {}),
     },
+    placeId: effectivePlaceId as PlaceID,
     isSequential: Boolean(input.is_sequential ?? false),
     childTaskIds: [],
     isAcknowledged: false,
     notes: '',
   };
 
+  if (repeatConfig) {
+    task.repeatConfig = repeatConfig;
+  }
+
   if (parentId) task.parentId = parentId as TaskID;
-  if (input.place_id) task.placeId = input.place_id as PlaceID;
 
   if (input.due_date) {
     task.schedule.dueDate = new Date(input.due_date).getTime();
@@ -151,7 +176,15 @@ function parseTaskInput(
   if (input.children) {
     for (const child of input.children) {
       task.childTaskIds.push(child.id as TaskID);
-      tasks.push(...parseTaskInput(child, testStartDate, task.id));
+      tasks.push(
+        ...parseTaskInput(
+          child,
+          testStartDate,
+          task.id,
+          task.placeId,
+          task.creditIncrement,
+        ),
+      );
     }
   }
 
@@ -172,42 +205,109 @@ function applyCreditUpdates(
 
 type TaskUpdate = NonNullable<Mutation['task_updates']>[number];
 
+function computePartialUpdate(
+  store: TunnelStore,
+  id: string,
+  props: Omit<TaskUpdate, 'id'>,
+): Partial<PersistedTask> {
+  const taskProps: Partial<PersistedTask> = {};
+
+  if (props.status) {
+    taskProps.status =
+      StoreTaskStatus[props.status as keyof typeof StoreTaskStatus];
+  }
+  if (props.credits !== undefined) {
+    taskProps.credits = Number(props.credits);
+  }
+  if (props.desired_credits !== undefined) {
+    taskProps.desiredCredits = Number(props.desired_credits);
+  }
+  if (props.importance !== undefined) {
+    taskProps.importance = Number(props.importance);
+  }
+
+  // Handle schedule-related updates
+  computeScheduleUpdate(store, id, props, taskProps);
+
+  if (props.is_acknowledged !== undefined) {
+    taskProps.isAcknowledged = Boolean(props.is_acknowledged);
+  }
+  if (props.place_id !== undefined) {
+    taskProps.placeId = props.place_id as PlaceID;
+  }
+  if (props.credit_increment !== undefined) {
+    taskProps.creditIncrement = Number(props.credit_increment);
+  }
+
+  return taskProps;
+}
+
+function computeScheduleUpdate(
+  store: TunnelStore,
+  id: string,
+  props: Omit<TaskUpdate, 'id'>,
+  taskProps: Partial<PersistedTask>,
+): void {
+  if (
+    props.due_date !== undefined ||
+    props.schedule_type !== undefined ||
+    props.period_seconds !== undefined ||
+    props.last_done !== undefined
+  ) {
+    const existingTask = store.getTask(id as TaskID);
+    if (existingTask) {
+      taskProps.schedule = {
+        ...existingTask.schedule,
+      };
+
+      if (props.due_date !== undefined) {
+        taskProps.schedule.dueDate = props.due_date
+          ? new Date(props.due_date as string | number).getTime()
+          : undefined;
+      }
+      if (props.schedule_type !== undefined) {
+        if (props.schedule_type === null) {
+          taskProps.schedule.type = 'Once'; // Default fallback? Or undefined?
+        } else {
+          taskProps.schedule.type = props.schedule_type as Schedule['type'];
+        }
+      }
+
+      if (props.repeat_config !== undefined) {
+        taskProps.repeatConfig = props.repeat_config as RepeatConfig;
+      }
+
+      // Handle lastDone
+      if (props.last_done !== undefined) {
+        if (props.last_done === null) {
+          taskProps.schedule.lastDone = undefined;
+        } else {
+          taskProps.schedule.lastDone = new Date(
+            props.last_done as string | number,
+          ).getTime();
+        }
+      }
+    }
+  } else if (props.repeat_config !== undefined) {
+    // Repeat config updated independently
+    taskProps.repeatConfig = props.repeat_config as RepeatConfig;
+  }
+
+  if (props.lead_time_seconds !== undefined) {
+    if (!taskProps.schedule) {
+      const existingTask = store.getTask(id as TaskID);
+      if (existingTask) taskProps.schedule = {...existingTask.schedule};
+    }
+    if (taskProps.schedule) {
+      taskProps.schedule.leadTime = Number(props.lead_time_seconds) * 1000;
+    }
+  }
+}
+
 function applyTaskUpdates(store: TunnelStore, updates: TaskUpdate[]): void {
   for (const update of updates) {
     const {id, ...props} = update;
-    const taskProps: Partial<PersistedTask> = {};
-
-    if (props.status) {
-      taskProps.status =
-        StoreTaskStatus[props.status as keyof typeof StoreTaskStatus];
-    }
-    if (props.credits !== undefined) {
-      taskProps.credits = Number(props.credits);
-    }
-    if (props.desired_credits !== undefined) {
-      taskProps.desiredCredits = Number(props.desired_credits);
-    }
-    if (props.importance !== undefined) {
-      taskProps.importance = Number(props.importance);
-    }
-    if (props.due_date !== undefined) {
-      const existingTask = store.getTask(id as TaskID);
-      if (existingTask) {
-        taskProps.schedule = {
-          ...existingTask.schedule,
-          dueDate: props.due_date
-            ? new Date(props.due_date).getTime()
-            : undefined,
-        };
-      }
-    }
-    if (props.is_acknowledged !== undefined) {
-      taskProps.isAcknowledged = Boolean(props.is_acknowledged);
-    }
-    // Handle arbitrary props that might be in the schema but not explicitly mapped yet
-    // For BDD compatibility, we might want to map lead_time_seconds here if we add it to mutation schema
-    // But currently Feature schema matches Legacy schema for task_updates (mostly)
-
+    const taskProps = computePartialUpdate(store, id, props);
     store.updateTask(id as TaskID, taskProps);
   }
 }
@@ -221,10 +321,15 @@ function setupStore(hydratedBackground: InitialState) {
 
   const initialTasks: Record<string, PersistedTask> = {};
   const initialPlaces: Record<string, Place> = {};
+  const rootTaskIds: TaskID[] = [];
 
   if (hydratedBackground.tasks) {
     for (const t of hydratedBackground.tasks) {
       const parsed = parseTaskInput(t as TaskInput, new Date(testStartTime));
+      if (parsed.length > 0 && parsed[0]) {
+        // The first task returned is the root of this sub-tree
+        rootTaskIds.push(parsed[0].id);
+      }
       for (const pt of parsed) initialTasks[pt.id] = pt;
     }
   }
@@ -239,14 +344,108 @@ function setupStore(hydratedBackground: InitialState) {
   const store = new TunnelStore({
     tasks: initialTasks,
     places: initialPlaces,
-    rootTaskIds: Object.values(initialTasks)
-      .filter(t => !t.parentId)
-      .map(t => t.id),
+    rootTaskIds,
     nextTaskId: 1,
     nextPlaceId: 1,
   });
 
   return {store, testStartTime};
+}
+
+function verifyTaskOrder(
+  store: TunnelStore,
+  viewFilter: ViewFilter,
+  expectedOrder: string[],
+) {
+  const visibleTasks = getPrioritizedTasks(store.doc, viewFilter);
+  expect(visibleTasks.map(t => t.id)).toEqual(expectedOrder);
+}
+
+function verifySingleTaskProp(
+  task: EnrichedTask,
+  expected: NonNullable<NonNullable<Step['then']>['expected_props']>[number],
+  propKey: string,
+) {
+  switch (propKey) {
+    case 'id':
+      break; // Already used to look up task
+    case 'score':
+      expect(task.priority).toBeCloseTo(Number(expected.score), 4);
+      break;
+    case 'is_ready':
+      expect(task.isReady).toBe(Boolean(expected.is_ready));
+      break;
+    case 'is_visible':
+      expect(task.visibility).toBe(Boolean(expected.is_visible));
+      break;
+    case 'effective_credits':
+      expect(task.effectiveCredits).toBeCloseTo(
+        Number(expected.effective_credits),
+        4,
+      );
+      break;
+    case 'normalized_importance':
+      expect(task.normalizedImportance).toBeCloseTo(
+        Number(expected.normalized_importance),
+        4,
+      );
+      break;
+    case 'importance':
+      expect(task.importance).toBeCloseTo(Number(expected.importance), 4);
+      break;
+    case 'is_blocked':
+      // TODO: EnrichedTask does not currently expose isBlocked status.
+      // Ignoring this assertion for now to allow tests to pass.
+      break;
+    case 'is_open':
+      // TODO: EnrichedTask does not currently expose place open status independently of visibility.
+      // Ignoring this assertion for now to allow tests to pass.
+      break;
+    case 'place_id':
+      expect(task.placeId).toBe(
+        expected[propKey] as PlaceID | null | undefined,
+      );
+      break;
+    case 'credit_increment':
+      expect(task.creditIncrement).toBeCloseTo(Number(expected[propKey]), 4);
+      break;
+    case 'due_date': {
+      const expectedDate = expected[propKey]
+        ? new Date(expected[propKey] as string).getTime()
+        : undefined;
+
+      expect(task.schedule?.dueDate).toBe(expectedDate);
+      break;
+    }
+    case 'lead_time':
+      expect(task.schedule?.leadTime).toBe(Number(expected[propKey]));
+      break;
+    default:
+      throw new Error(`Unhandled assertion property: ${propKey}`);
+  }
+}
+
+function verifyTaskProps(
+  store: TunnelStore,
+  viewFilter: ViewFilter,
+  expectedProps: NonNullable<Step['then']>['expected_props'],
+) {
+  if (!expectedProps) return;
+
+  const allTasks = getPrioritizedTasks(store.doc, viewFilter, {
+    includeHidden: true,
+    mode: 'plan-outline',
+  });
+  const computedMap = new Map(allTasks.map(t => [t.id, t]));
+
+  for (const expected of expectedProps) {
+    const task = computedMap.get(expected.id as TaskID) as EnrichedTask;
+    expect(task, `Task ${expected.id} not found`).toBeDefined();
+
+    for (const propKey of Object.keys(expected)) {
+      verifySingleTaskProp(task, expected, propKey);
+    }
+  }
 }
 
 function verifyAssertions(
@@ -259,64 +458,14 @@ function verifyAssertions(
   for (const key of Object.keys(then)) {
     switch (key) {
       case 'expected_order': {
-        if (!then.expected_order) {
-          break;
+        if (Array.isArray(then.expected_order)) {
+          verifyTaskOrder(store, viewFilter, then.expected_order);
         }
-        const visibleTasks = getPrioritizedTasks(store.doc, viewFilter);
-        expect(visibleTasks.map(t => t.id)).toEqual(then.expected_order);
         break;
       }
       case 'expected_props': {
-        if (!then.expected_props) {
-          break;
-        }
-        const allTasks = getPrioritizedTasks(store.doc, viewFilter, {
-          includeHidden: true,
-          mode: 'plan-outline',
-        });
-        const computedMap = new Map(allTasks.map(t => [t.id, t]));
-
-        for (const expected of then.expected_props) {
-          const task = computedMap.get(expected.id as TaskID) as EnrichedTask;
-          expect(task, `Task ${expected.id} not found`).toBeDefined();
-
-          for (const propKey of Object.keys(expected)) {
-            switch (propKey) {
-              case 'id':
-                break; // Already used to look up task
-              case 'score':
-                expect(task.priority).toBeCloseTo(Number(expected.score), 4);
-                break;
-              case 'is_ready':
-                expect(task.isReady).toBe(Boolean(expected.is_ready));
-                break;
-              case 'is_visible':
-                expect(task.visibility).toBe(Boolean(expected.is_visible));
-                break;
-              case 'effective_credits':
-                expect(task.effectiveCredits).toBeCloseTo(
-                  Number(expected.effective_credits),
-                  4,
-                );
-                break;
-              case 'normalized_importance':
-                expect(task.normalizedImportance).toBeCloseTo(
-                  Number(expected.normalized_importance),
-                  4,
-                );
-                break;
-              case 'is_blocked':
-                // TODO: EnrichedTask does not currently expose isBlocked status.
-                // Ignoring this assertion for now to allow tests to pass.
-                break;
-              case 'is_open':
-                // TODO: EnrichedTask does not currently expose place open status independently of visibility.
-                // Ignoring this assertion for now to allow tests to pass.
-                break;
-              default:
-                throw new Error(`Unhandled assertion property: ${propKey}`);
-            }
-          }
+        if (Array.isArray(then.expected_props)) {
+          verifyTaskProps(store, viewFilter, then.expected_props);
         }
         break;
       }
@@ -373,8 +522,17 @@ function executeStep(step: Step, store: TunnelStore, currentTestTime: number) {
     }
     if (step.given.tasks) {
       for (const t of step.given.tasks) {
-        const parsed = parseTaskInput(t as TaskInput, new Date(newTime));
-        for (const pt of parsed) store.updateTask(pt.id, pt);
+        const parsedTasks = parseTaskInput(
+          t as TaskInput,
+          new Date(currentTestTime),
+        );
+        for (const task of parsedTasks) {
+          if (store.getTask(task.id)) {
+            store.updateTask(task.id, task);
+          } else {
+            store.createTask(task);
+          }
+        }
       }
     }
   }
@@ -410,6 +568,7 @@ describe('Algorithm BDD Test Suite', () => {
   const allFiles = readdirSync(FIXTURES_PATH).filter(f =>
     f.endsWith('.feature.yaml'),
   );
+  const allFeatures: TunnelAlgorithmFeatureSchema[] = [];
 
   for (const file of allFiles) {
     const content = readFileSync(join(FIXTURES_PATH, file), 'utf8');
@@ -420,7 +579,18 @@ describe('Algorithm BDD Test Suite', () => {
         `Invalid feature structure ${file}: ${ajv.errorsText((validateFeatureStructure as ValidateFunction).errors)}`,
       );
     }
+    allFeatures.push(feature);
+  }
 
+  // Filter features if requested (User Workflow Feature)
+  const featureFilter = process.env.FEATURE_FILTER;
+  const filteredFeatures = featureFilter
+    ? allFeatures.filter(f =>
+        f.feature.toLowerCase().includes(featureFilter.toLowerCase()),
+      )
+    : allFeatures;
+
+  for (const feature of filteredFeatures) {
     describe(`Feature: ${feature.feature}`, () => {
       for (const scenario of feature.scenarios) {
         const examples = scenario.examples || [{}];

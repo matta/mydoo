@@ -144,6 +144,32 @@
               },
               "is_acknowledged": {
                 "type": ["boolean", "string"]
+              },
+              "schedule_type": {
+                "type": ["string", "null"],
+                "enum": ["Once", "Routinely", "DueDate", "Calendar", null]
+              },
+              "repeat_config": {
+                "type": "object",
+                "properties": {
+                  "frequency": {
+                    "enum": [
+                      "minutes",
+                      "hours",
+                      "daily",
+                      "weekly",
+                      "monthly",
+                      "yearly"
+                    ]
+                  },
+                  "interval": {
+                    "type": "number"
+                  }
+                },
+                "required": ["frequency", "interval"]
+              },
+              "last_done": {
+                "type": ["string", "null"]
               }
             }
           }
@@ -254,6 +280,35 @@
         },
         "is_sequential": {
           "type": ["boolean", "string"]
+        },
+        "schedule_type": {
+          "type": "string",
+          "enum": ["Once", "Routinely", "DueDate", "Calendar"]
+        },
+        "period_seconds": {
+          "type": ["number", "string"]
+        },
+        "last_done": {
+          "type": ["string", "null"]
+        },
+        "repeat_config": {
+          "type": "object",
+          "required": ["frequency", "interval"],
+          "properties": {
+            "frequency": {
+              "enum": [
+                "minutes",
+                "hours",
+                "daily",
+                "weekly",
+                "monthly",
+                "yearly"
+              ]
+            },
+            "interval": {
+              "type": "number"
+            }
+          }
         }
       }
     },

@@ -1,5 +1,6 @@
 import type {DocHandle} from '@automerge/automerge-repo';
 import type {TunnelState} from '../types';
+import {getIntervalMs} from '../utils/time';
 
 /**
  * Wake up "Routinely" tasks that are due for their next cycle.
@@ -44,34 +45,4 @@ export function wakeUpRoutineTasks(handle: DocHandle<TunnelState>) {
       }
     }
   });
-}
-
-/**
- * Helper: Convert frequency/interval to milliseconds.
- * Note: simplified logic for MVP (ignoring leap years/DST nuances for basic "days/weeks").
- */
-function getIntervalMs(
-  frequency: 'minutes' | 'hours' | 'daily' | 'weekly' | 'monthly' | 'yearly',
-  interval: number,
-): number {
-  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-  const ONE_HOUR_MS = 60 * 60 * 1000;
-  const ONE_MINUTE_MS = 60 * 1000;
-
-  switch (frequency) {
-    case 'minutes':
-      return interval * ONE_MINUTE_MS;
-    case 'hours':
-      return interval * ONE_HOUR_MS;
-    case 'daily':
-      return interval * ONE_DAY_MS;
-    case 'weekly':
-      return interval * 7 * ONE_DAY_MS;
-    case 'monthly':
-      // Approximation: 30 days
-      return interval * 30 * ONE_DAY_MS;
-    case 'yearly':
-      // Approximation: 365 days
-      return interval * 365 * ONE_DAY_MS;
-  }
 }

@@ -72,11 +72,13 @@ export const PlaceIDSchema = z.string().brand<'PlaceID'>();
  */
 export const ScheduleSchema = z.object({
   /** "Once" for one-time tasks, "Routinely" for repeating tasks. */
-  type: z.enum(['Once', 'Routinely']),
+  type: z.enum(['Once', 'Routinely', 'DueDate', 'Calendar']),
   /** Unix timestamp (ms) when the task is due, or undefined if no deadline. */
   dueDate: z.number().optional(),
   /** How far in advance (in ms) the task should appear before its due date. */
   leadTime: z.number(),
+  /** Timestamp of last completion (for Routinely). */
+  lastDone: z.number().optional(),
 });
 
 /**
@@ -138,7 +140,7 @@ export const TaskSchema = z.object({
   /** User-assigned priority from 0.0 (lowest) to 1.0 (highest). */
   importance: z.number().min(0).max(1),
   /** Points awarded when this task is completed. */
-  creditIncrement: z.number().min(0),
+  creditIncrement: z.number().min(0).optional(),
   /** Accumulated points from completing this task and its children. */
   credits: z.number(),
   /**

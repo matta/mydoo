@@ -1,13 +1,14 @@
-import type {
-  ComputedTask,
-  Context,
-  EnrichedTask,
-  PriorityOptions,
-  TaskID,
-  TunnelState,
-  ViewFilter,
+import {
+  type ComputedTask,
+  type Context,
+  DEFAULT_CREDIT_INCREMENT,
+  type EnrichedTask,
+  type PriorityOptions,
+  type TaskID,
+  type TunnelState,
+  type ViewFilter,
 } from '../types';
-import {getCurrentTimestamp} from '../utils/time';
+import {getCurrentTimestamp, getIntervalMs} from '../utils/time';
 import {CREDITS_HALF_LIFE_MILLIS} from './constants';
 import {calculateFeedbackFactors} from './feedback';
 import {calculateLeadTimeFactor} from './readiness';
@@ -136,6 +137,9 @@ export function recalculatePriorities(
     // while still allowing higher-importance roots to dominate lower-importance ones.
     root.normalizedImportance = root.importance;
 
+    // Root Defaults: If no creditIncrement is explicitly set, use the default.
+    root.creditIncrement ??= DEFAULT_CREDIT_INCREMENT;
+
     evaluateTaskRecursive(root, undefined, childrenIndex, currentTime);
   }
 }
@@ -154,59 +158,7 @@ function evaluateTaskRecursive(
   const effectiveRoot = rootTask ?? task;
 
   // --- Pre-Order: Propagate from Parent to Children ---
-  const siblingImportanceSum = children.reduce(
-    (sum, c) => sum + c.importance,
-    0,
-  );
-
-  let hasActiveChild = false; // Track sequential state
-
-  for (const child of children) {
-    // Inherit Schedule
-    if (child.schedule.type === 'Once' && task.schedule.dueDate !== undefined) {
-      child.schedule.dueDate = task.schedule.dueDate;
-      child.schedule.leadTime = task.schedule.leadTime;
-    }
-
-    // Propagate Weights & Sequential Logic
-    if (task.isSequential) {
-      if (child.status === 'Pending') {
-        if (hasActiveChild) {
-          // Blocked: Subsequent pending tasks get no weight and no lead time
-          child.normalizedImportance = 0;
-          child.leadTimeFactor = 0;
-          continue; // Skip further processing for this child (including leadTimeFactor below)
-        }
-        // Active: The first pending task becomes the active one
-        hasActiveChild = true;
-
-        // Active task gets full parent importance (Focus mode)
-        child.normalizedImportance = task.normalizedImportance ?? 0;
-      } else {
-        // Done tasks in sequential lists also retain full importance
-        child.normalizedImportance = task.normalizedImportance ?? 0;
-      }
-    } else {
-      // Standard Proportional Distribution
-      if (siblingImportanceSum === 0) {
-        child.normalizedImportance =
-          (task.normalizedImportance ?? 0) / children.length;
-      } else {
-        child.normalizedImportance =
-          (child.importance / siblingImportanceSum) *
-          (task.normalizedImportance ?? 0);
-      }
-    }
-
-    // Compute LeadTimeFactor (Must occur after Schedule Inheritance)
-    // (Note: Blocked sequential tasks already set to 0 and skipped via continue above)
-    child.leadTimeFactor = calculateLeadTimeFactor(child.schedule, currentTime);
-
-    // Safety check for NaN again (in case inheritance caused issues)
-    if (Number.isNaN(child.leadTimeFactor)) {
-      child.leadTimeFactor = 0;
-    }
-  }
+  processChildren(task, children, currentTime);
 
   // --- Recurse ---
   let hasVisibleDescendant = false;
@@ -242,6 +194,77 @@ function evaluateTaskRecursive(
 }
 
 /**
+ * Processes children in the pre-order phase:
+ * 1. Inherits properties (Schedule, Credits).
+ * 2. Propagates weights (Normalized Importance).
+ * 3. Applies sequential blocking logic.
+ * 4. Calculates LeadTimeFactor.
+ */
+function processChildren(
+  parent: EnrichedTask,
+  children: EnrichedTask[],
+  currentTime: number,
+): void {
+  const siblingImportanceSum = children.reduce(
+    (sum, c) => sum + c.importance,
+    0,
+  );
+
+  let hasActiveChild = false; // Track sequential state
+
+  for (const child of children) {
+    // Inherit Schedule
+    if (
+      child.schedule.type === 'Once' &&
+      parent.schedule.dueDate !== undefined &&
+      child.schedule.dueDate === undefined
+    ) {
+      child.schedule.dueDate = parent.schedule.dueDate;
+      child.schedule.leadTime = parent.schedule.leadTime;
+    }
+
+    // Propagate Weights & Sequential Logic
+    if (parent.isSequential) {
+      if (child.status === 'Pending') {
+        if (hasActiveChild) {
+          // Blocked: Subsequent pending tasks get no weight and no lead time
+          child.normalizedImportance = 0;
+          child.leadTimeFactor = 0;
+          continue; // Skip further processing for this child (including leadTimeFactor below)
+        }
+        // Active: The first pending task becomes the active one
+        hasActiveChild = true;
+
+        // Active task gets full parent importance (Focus mode)
+        child.normalizedImportance = parent.normalizedImportance ?? 0;
+      } else {
+        // Done tasks in sequential lists also retain full importance
+        child.normalizedImportance = parent.normalizedImportance ?? 0;
+      }
+    } else {
+      // Standard Proportional Distribution
+      if (siblingImportanceSum === 0) {
+        child.normalizedImportance =
+          (parent.normalizedImportance ?? 0) / children.length;
+      } else {
+        child.normalizedImportance =
+          (child.importance / siblingImportanceSum) *
+          (parent.normalizedImportance ?? 0);
+      }
+    }
+
+    // Compute LeadTimeFactor (Must occur after Schedule Inheritance)
+    // (Note: Blocked sequential tasks already set to 0 and skipped via continue above)
+    child.leadTimeFactor = calculateLeadTimeFactor(child.schedule, currentTime);
+
+    // Safety check for NaN again (in case inheritance caused issues)
+    if (Number.isNaN(child.leadTimeFactor)) {
+      child.leadTimeFactor = 0;
+    }
+  }
+}
+
+/**
  * Derives the "Projected State" for the View Layer.
  *
  * Implements the 3-Stage Pipeline:
@@ -271,6 +294,10 @@ export function getPrioritizedTasks(
 
       return {
         ...persisted,
+        schedule: {...persisted.schedule}, // Deep clone to allow mutation without side effects
+        repeatConfig: persisted.repeatConfig
+          ? {...persisted.repeatConfig}
+          : undefined, // Explicit clone to ensure availability
         effectiveCredits: 0,
         feedbackFactor: 1.0,
         leadTimeFactor: 0,
@@ -286,7 +313,26 @@ export function getPrioritizedTasks(
   );
 
   // --- Stage 2: Process ---
-  recalculatePriorities(state, enrichedTasks, viewFilter);
+
+  // Phase 0: Date Resolution (Pass 1 in Algorithm)
+  // Calculate effective due dates for Routinely tasks before any inheritance happens.
+  for (const task of enrichedTasks) {
+    if (task.schedule.type === 'Routinely') {
+      const {lastDone} = task.schedule;
+      const repeatConfig = task.repeatConfig;
+      // Spec: DueDate = LastDone + Period (Interval).
+      if (lastDone && repeatConfig) {
+        const intervalMs = getIntervalMs(
+          repeatConfig.frequency,
+          repeatConfig.interval,
+        );
+        task.schedule.dueDate = lastDone + intervalMs;
+      }
+    }
+    // DueDate type tasks already have explicit dueDate in schedule.dueDate (from persistence).
+  }
+
+  recalculatePriorities(state, enrichedTasks, viewFilter, options.context);
 
   // --- Stage 3: Sanitize & Sort ---
 

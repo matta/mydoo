@@ -62,6 +62,12 @@ export type PlaceID = z.infer<typeof PlaceIDSchema>;
 export const ANYWHERE_PLACE_ID = 'Anywhere' as PlaceID;
 
 /**
+ * Default credit increment for tasks when not explicitly set.
+ * This corresponds to "Standard Effort" (1 point) in the PRD.
+ */
+export const DEFAULT_CREDIT_INCREMENT = 0.5;
+
+/**
  * Possible states for a Task.
  *
  * This is a "const object" pattern used in TypeScript to create an enum-like
@@ -106,6 +112,10 @@ export interface PriorityOptions {
    * - 'plan-outline': Shows all tasks regardless of status/acknowledgement.
    */
   mode?: 'do-list' | 'plan-outline';
+  /**
+   * Runtime context for algorithm calculations (time, location).
+   */
+  context?: Context;
 }
 
 /**

@@ -106,26 +106,12 @@ export function calculateContextualVisibility(
 ): void {
   for (const task of tasks) {
     // 1. Resolve Effective Place
-    // We can lookup parents in `doc` because hierarchy/placeId are Persisted properties.
-    let effectivePlaceId: PlaceID | undefined = task.placeId;
-    if (effectivePlaceId === undefined && task.parentId !== undefined) {
-      let currentParent = task.parentId
-        ? doc.tasks[task.parentId] // Lookup in Persisted State
-        : undefined;
+    // Note: PlaceID follows the "Copy-on-Create" strategy. Tasks own their
+    // assigned placeId and do not inherit from ancestors at runtime.
+    const effectivePlaceId = task.placeId ?? ANYWHERE_PLACE_ID;
 
-      while (currentParent?.placeId === undefined) {
-        currentParent = currentParent?.parentId
-          ? doc.tasks[currentParent.parentId]
-          : undefined;
-        if (!currentParent) break;
-      }
-      if (currentParent) {
-        effectivePlaceId = currentParent.placeId;
-      } else {
-        effectivePlaceId = ANYWHERE_PLACE_ID;
-      }
-    }
-    effectivePlaceId ??= ANYWHERE_PLACE_ID; // Root task with no place defaults to Anywhere
+    // Write back the resolved place to the enriched task so it can be used by the UI/Tests
+    task.placeId = effectivePlaceId;
 
     const effectivePlace = effectivePlaceId
       ? _getPlaceFromDoc(doc, effectivePlaceId)

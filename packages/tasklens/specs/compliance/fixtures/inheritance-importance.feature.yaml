@@ -1,0 +1,69 @@
+feature: Property Inheritance Importance
+background:
+  current_time: '2025-01-01T00:00:00Z'
+
+scenarios:
+  - name: Root Default (undefined -> 1.0)
+    steps:
+      - given:
+          tasks:
+            - id: A
+              title: Root Default Importance
+              # importance: undefined
+      - then:
+          expected_props:
+            - id: A
+              importance: 1.0
+
+  - name: No Inheritance from Parent
+    steps:
+      - given:
+          tasks:
+            - id: A
+              importance: 0.5
+              children:
+                - id: B
+                  # importance: undefined
+      - then:
+          expected_props:
+            - id: A
+              importance: 0.5
+            - id: B
+              importance: 1.0
+
+  - name: Explicit Override
+    steps:
+      - given:
+          tasks:
+            - id: A
+              importance: 0.1
+              children:
+                - id: B
+                  importance: 0.9
+      - then:
+          expected_props:
+            - id: A
+              importance: 0.1
+            - id: B
+              importance: 0.9
+
+  - name: Deep Hierarchy No Inheritance
+    steps:
+      - given:
+          tasks:
+            - id: A
+              importance: 0.2
+              children:
+                - id: B
+                  # importance: undefined -> 1.0
+                  children:
+                    - id: C
+                      # importance: undefined -> 1.0
+      - then:
+          expected_props:
+            - id: A
+              importance: 0.2
+            - id: B
+              importance: 1.0
+            - id: C
+              importance: 1.0

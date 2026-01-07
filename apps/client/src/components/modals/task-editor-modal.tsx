@@ -24,7 +24,12 @@ import {
   Textarea,
   TextInput,
 } from '@mantine/core';
-import type {RepeatConfig, Task, TaskID} from '@mydoo/tasklens';
+import {
+  DEFAULT_CREDIT_INCREMENT,
+  type RepeatConfig,
+  type Task,
+  type TaskID,
+} from '@mydoo/tasklens';
 import {useCallback, useEffect, useState} from 'react';
 import {DateInput} from '../ui/date-input';
 
@@ -137,7 +142,7 @@ export function TaskEditorModal({
     if (task) {
       setTitle(task.title);
       setImportance(task.importance);
-      setEffort(task.creditIncrement);
+      setEffort(task.creditIncrement ?? DEFAULT_CREDIT_INCREMENT);
       if (task.schedule.dueDate) {
         setDueDate(new Date(task.schedule.dueDate));
       } else {

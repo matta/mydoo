@@ -1,0 +1,104 @@
+feature: Property Inheritance CreditIncrement
+background:
+  current_time: '2025-01-01T00:00:00Z'
+  tasks: []
+
+scenarios:
+  # ---------------------------------------------------------------------
+  # 1. Defaults & Explicit Assignment
+  # ---------------------------------------------------------------------
+  - name: Root Default
+    steps:
+      - given:
+          tasks:
+            - id: A
+              # credit_increment: undefined
+      - then:
+          expected_props:
+            - id: A
+              credit_increment: 0.5 # Default
+
+  - name: Explicit Assignment
+    steps:
+      - given:
+          tasks:
+            - id: A
+              credit_increment: 0.8 # Explicitly set
+      - then:
+          expected_props:
+            - id: A
+              credit_increment: 0.8
+
+  # ---------------------------------------------------------------------
+  # 2. Copy-on-Create (Creation Time)
+  # ---------------------------------------------------------------------
+  - name: Creation Inheritance
+    steps:
+      - given:
+          tasks:
+            - id: A
+              credit_increment: 0.8
+              children:
+                - id: B
+                  # Inherits 0.8 from A at creation
+      - then:
+          expected_props:
+            - id: B
+              credit_increment: 0.8
+
+  - name: Grandparent Inheritance
+    steps:
+      - given:
+          tasks:
+            - id: A
+              credit_increment: 0.8
+              children:
+                - id: B
+                  # Undefined, inherits 0.8 from A
+                  children:
+                    - id: C
+                      # Undefined, inherits 0.8 from B (which inherited from A)
+      - then:
+          expected_props:
+            - id: C
+              credit_increment: 0.8
+
+  # ---------------------------------------------------------------------
+  # 3. Independence (Runtime Behavior)
+  # ---------------------------------------------------------------------
+  - name: Parent Change Independence
+    steps:
+      - given:
+          tasks:
+            - id: A
+              credit_increment: 0.5
+              children:
+                - id: B
+                  # Inherits 0.5 from A at creation
+      - when:
+          task_updates:
+            - id: A
+              credit_increment: 1.0 # Changing parent to 1.0
+      - then:
+          expected_props:
+            - id: A
+              credit_increment: 1.0
+            - id: B
+              credit_increment: 0.5 # B stays at 0.5 (No runtime inheritance)
+
+  # ---------------------------------------------------------------------
+  # 4. Overrides
+  # ---------------------------------------------------------------------
+  - name: Explicit Override
+    steps:
+      - given:
+          tasks:
+            - id: A
+              credit_increment: 0.5
+              children:
+                - id: B
+                  credit_increment: 0.1 # Explicitly set to 0.1
+      - then:
+          expected_props:
+            - id: B
+              credit_increment: 0.1

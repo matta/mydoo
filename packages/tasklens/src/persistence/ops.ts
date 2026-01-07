@@ -99,6 +99,7 @@ export function createTask(
     // Remediation: Init as unacknowledged
     isAcknowledged: false,
     notes: props.notes ?? '',
+    repeatConfig: props.repeatConfig,
   };
 
   // Automerge doesn't support 'undefined' values, so we must remove them
@@ -113,6 +114,7 @@ export function createTask(
     newTask.schedule.dueDate = getCurrentTimestamp();
   }
 
+  if (newTask.repeatConfig === undefined) delete newTask.repeatConfig;
   if (newTask.schedule.dueDate === undefined) delete newTask.schedule.dueDate;
 
   // Validations for numbers
@@ -279,14 +281,6 @@ function handleNestedProperties(
         delete task.schedule.dueDate;
       } else {
         task.schedule.dueDate = props.schedule.dueDate;
-      }
-    }
-
-    if ('period' in props.schedule) {
-      if (props.schedule.period === undefined) {
-        delete task.schedule.period;
-      } else {
-        task.schedule.period = props.schedule.period;
       }
     }
 
