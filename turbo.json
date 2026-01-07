@@ -28,9 +28,41 @@
       "outputLogs": "errors-only",
       "cache": false
     },
+    "//#check-syncpack-root": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "package.json",
+        "**/package.json",
+        "pnpm-workspace.yaml",
+        ".syncpackrc",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
+    },
+    "//#fix-syncpack-root": {
+      "outputLogs": "errors-only",
+      "cache": false
+    },
     "check-agent": {
       "outputLogs": "new-only",
-      "dependsOn": ["//#check-deps-root", "test", "test-e2e", "check-types"]
+      "dependsOn": [
+        "//#check-deps-root",
+        "//#check-syncpack-root",
+        "test",
+        "test-e2e",
+        "check-types"
+      ]
     },
     "check-human": {
       "outputLogs": "new-only",
@@ -206,7 +238,12 @@
     },
     "check": {
       "outputLogs": "new-only",
-      "dependsOn": ["check-style", "check-types", "//#check-deps-root"],
+      "dependsOn": [
+        "check-style",
+        "check-types",
+        "//#check-deps-root",
+        "//#check-syncpack-root"
+      ],
       "outputs": []
     },
     "fix-biome": {
@@ -231,7 +268,7 @@
       ]
     },
     "fix": {
-      "dependsOn": ["fix-style"]
+      "dependsOn": ["fix-style", "//#fix-syncpack-root"]
     },
     "build": {
       "outputLogs": "new-only",

@@ -1,0 +1,19 @@
+{
+  "versionGroups": [
+    {
+      "label": "Dependencies using workspace:* protocol",
+      "dependencies": [
+        "@mydoo/*",
+        "mydoo"
+      ],
+      "isIgnored": true
+    },
+    {
+      "label": "Use catalog: protocol for all dependencies",
+      "dependencies": [
+        "**"
+      ],
+      "pinVersion": "catalog:"
+    }
+  ]
+}

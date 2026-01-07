@@ -37,6 +37,7 @@ const TurboConfigSchema = z
   .object({
     tasks: z
       .record(
+        z.string(),
         z
           .object({
             inputs: z.array(z.string()).optional(),

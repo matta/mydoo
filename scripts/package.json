@@ -4,15 +4,19 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "glob": "^11.0.0",
-    "minimatch": "^9.0.5",
-    "minimist": "^1.2.8",
-    "zod": "^3.24.1"
+    "glob": "catalog:",
+    "minimatch": "catalog:",
+    "minimist": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/minimist": "^1.2.5"
+    "@types/minimist": "catalog:"
   },
   "scripts": {
-    "check-turbo-inputs": "tsx check-turbo-inputs.ts"
+    "check-biome": "biome check .",
+    "check-format": "prettier --check . --ignore-path ../.prettierignore",
+    "check-turbo-inputs": "tsx check-turbo-inputs.ts",
+    "fix-biome": "biome check --write .",
+    "fix-format": "prettier --write . --ignore-path ../.prettierignore"
   }
 }

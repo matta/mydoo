@@ -4,20 +4,21 @@
   "version": "0.0.0",
   "author": "",
   "devDependencies": {
-    "@biomejs/biome": "^2.3.11",
-    "@commitlint/cli": "^20.2.0",
-    "@commitlint/types": "^20.2.0",
-    "@ls-lint/ls-lint": "^2.3.1",
+    "@biomejs/biome": "catalog:",
+    "@commitlint/cli": "catalog:",
+    "@commitlint/types": "catalog:",
+    "@ls-lint/ls-lint": "catalog:",
     "eslint": "catalog:",
     "eslint-plugin-import-x": "catalog:",
     "husky": "catalog:",
-    "knip": "^5.78.0",
-    "lint-staged": "^16.2.7",
-    "prettier": "^3.4.2",
-    "tsx": "^4.21.0",
-    "turbo": "^2.7.2",
+    "knip": "catalog:",
+    "lint-staged": "catalog:",
+    "prettier": "catalog:",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
     "typescript": "catalog:",
-    "typescript-eslint": "catalog:"
+    "typescript-eslint": "catalog:",
+    "syncpack": "catalog:"
   },
   "engines": {
     "node": ">=24"
@@ -54,6 +55,8 @@
     "fix-format-root": "prettier --write \"*.{json,md,yaml,yml,js,ts,tsx,jsx,css,html}\"",
     "lint-staged": "lint-staged",
     "check-staged": "./scripts/check-staged.sh",
-    "check-turbo-root": "tsx scripts/check-turbo-inputs.ts"
+    "check-turbo-root": "tsx scripts/check-turbo-inputs.ts",
+    "check-syncpack-root": "syncpack list-mismatches",
+    "fix-syncpack-root": "syncpack fix-mismatches"
   }
 }
