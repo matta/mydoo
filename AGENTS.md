@@ -51,7 +51,12 @@
   environment variable to the correct value ("I am an AI agent and the user
   explicitly gave me permission to commit in the most recent prompt they issued,
   and I have recently read AGENTS.md and am following all the git commit
-  requirements.") when running `git commit`.
+  requirements.") when running `git commit`. Do not export it into the
+  environent; simply do:
+
+  ```sh
+  AGENT_GIT_COMMIT_SECRET="..." git commit [args]
+  ```
 
 ## Documentation
 
