@@ -182,11 +182,12 @@ async function main() {
           }
 
           // If this catalog exists in our definitions...
-          if (usedCatalogEntries[targetCatalog]) {
+          const entries = usedCatalogEntries[targetCatalog];
+          if (entries) {
             // Mark this dependency as USED.
             // NOTE: In pnpm catalogs, the key in package.json (depName) MUST match
             // the key in the catalog for the mapping to work.
-            usedCatalogEntries[targetCatalog].add(depName);
+            entries.add(depName);
           }
         }
       }

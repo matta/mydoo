@@ -7,5 +7,9 @@
   // project references for IDE support while importing source directly
   // for bundler HMR.
   "files": [],
-  "references": [{ "path": "./apps/client" }, { "path": "./packages/tasklens" }]
+  "references": [
+    { "path": "./apps/client" },
+    { "path": "./packages/tasklens" },
+    { "path": "./scripts" }
+  ]
 }

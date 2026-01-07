@@ -21,7 +21,21 @@
     },
     "//#check-biome-root": {
       "outputLogs": "new-only",
-      "inputs": ["*"],
+      "inputs": [
+        "**",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
+      ],
       "outputs": []
     },
     "//#fix-biome-root": {
@@ -143,29 +157,6 @@
       ],
       "outputs": []
     },
-    "check-biome": {
-      "outputLogs": "new-only",
-      "inputs": [
-        "biome.json",
-        "src/**/*",
-        "tests/**/*",
-        "specs/**/*",
-        "**/*.json",
-        "!**/.features-gen/**",
-        "!**/.husky/_/**",
-        "!**/.moon/**",
-        "!**/.turbo/**",
-        "!**/__screenshots__/**",
-        "!**/coverage/**",
-        "!**/dev-dist/**",
-        "!**/dist/**",
-        "!**/generated/**",
-        "!**/node_modules/**",
-        "!**/playwright-report/**",
-        "!**/test-results/**"
-      ],
-      "outputs": []
-    },
     "check-eslint": {
       "outputLogs": "new-only",
       "inputs": [
@@ -200,6 +191,8 @@
         "src/**/*",
         "tests/**/*",
         "specs/**/*",
+        "*.ts",
+        "*.tsx",
         "!**/.features-gen/**",
         "!**/.husky/_/**",
         "!**/.moon/**",
@@ -218,7 +211,6 @@
     "check-style": {
       "outputLogs": "new-only",
       "dependsOn": [
-        "check-biome",
         "check-eslint",
         "check-format",
         "//#check-biome-root",
@@ -240,6 +232,8 @@
         "tests/**/*.ts",
         "tests/**/*.tsx",
         "specs/**/*.ts",
+        "*.ts",
+        "*.tsx",
         "*.config.ts",
         "tsconfig.json",
         "!**/.features-gen/**",
@@ -268,10 +262,6 @@
       ],
       "outputs": []
     },
-    "fix-biome": {
-      "outputLogs": "errors-only",
-      "cache": false
-    },
     "fix-eslint": {
       "outputLogs": "errors-only",
       "cache": false
@@ -282,7 +272,6 @@
     },
     "fix-style": {
       "dependsOn": [
-        "fix-biome",
         "fix-eslint",
         "fix-format",
         "//#fix-biome-root",

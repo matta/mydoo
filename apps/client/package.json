@@ -40,13 +40,11 @@
   "private": true,
   "scripts": {
     "build": "vite build",
-    "check-biome": "biome check .",
     "check-eslint": "eslint .",
     "check-format": "prettier --check . --ignore-path ../../.prettierignore",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist",
     "dev": "vite",
-    "fix-biome": "biome check --write .",
     "fix-eslint": "eslint . --fix",
     "fix-format": "prettier --write . --ignore-path ../../.prettierignore",
     "generate": "bddgen",

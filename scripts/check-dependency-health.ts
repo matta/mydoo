@@ -250,6 +250,7 @@ async function main() {
   const stats: PackageStats[] = [];
   for (let i = 0; i < total; i++) {
     const pkg = pkgList[i];
+    if (!pkg) continue; // Defensive: should never happen since i < total
     const start = Date.now();
     const result = await fetchPackageStats(pkg);
     const ms = Date.now() - start;
@@ -264,7 +265,11 @@ async function main() {
   console.log(`\n${bold}Dependency Health Report${reset}`);
   console.log(`${gray}Sorted by weekly downloads (ascending)${reset}\n`);
 
-  const colWidths = [42, 14, 14, 14, 20];
+  // Exhaustive destructuring ensures all 5 columns are explicitly handled
+  const [w0, w1, w2, w3, w4, ...restWidths] = [42, 14, 14, 14, 20];
+  const _exhaustiveCheck: never[] = restWidths;
+  void _exhaustiveCheck;
+
   const headers = [
     "PACKAGE",
     "VERSION",
@@ -272,33 +277,41 @@ async function main() {
     "DOWNLOADS/WK",
     "STATUS",
   ];
-  console.log(headers.map((h, i) => h.padEnd(colWidths[i])).join(""));
-  console.log("-".repeat(colWidths.reduce((a, b) => a + b, 0)));
+  const [h0, h1, h2, h3, h4] = headers;
+  console.log(
+    (h0 ?? "").padEnd(w0) +
+      (h1 ?? "").padEnd(w1) +
+      (h2 ?? "").padEnd(w2) +
+      (h3 ?? "").padEnd(w3) +
+      (h4 ?? "").padEnd(w4),
+  );
+  console.log("-".repeat(w0 + w1 + w2 + w3 + w4));
 
   for (const pkg of stats) {
     if (pkg.error) {
       console.log(
-        pkg.name.padEnd(colWidths[0]) +
-          "-".padEnd(colWidths[1]) +
-          "-".padEnd(colWidths[2]) +
-          "-".padEnd(colWidths[3]) +
+        pkg.name.padEnd(w0) +
+          "-".padEnd(w1) +
+          "-".padEnd(w2) +
+          "-".padEnd(w3) +
           `${red}ERROR: ${pkg.error}${reset}`,
       );
       continue;
     }
 
-    const daysSincePublish = pkg.lastPublish
-      ? (Date.now() - pkg.lastPublish.getTime()) / (1000 * 3600 * 24)
+    const lastPublish = pkg.lastPublish;
+    const daysSincePublish = lastPublish
+      ? (Date.now() - lastPublish.getTime()) / (1000 * 3600 * 24)
       : 0;
 
     console.log(
-      pkg.name.padEnd(colWidths[0]) +
-        (pkg.latestVersion || "N/A").padEnd(colWidths[1]) +
-        (pkg.lastPublish
-          ? pkg.lastPublish.toISOString().split("T")[0]
+      pkg.name.padEnd(w0) +
+        (pkg.latestVersion || "N/A").padEnd(w1) +
+        (lastPublish
+          ? (lastPublish.toISOString().split("T")[0] ?? "N/A")
           : "N/A"
-        ).padEnd(colWidths[2]) +
-        formatDownloads(pkg.weeklyDownloads || 0).padEnd(colWidths[3]) +
+        ).padEnd(w2) +
+        formatDownloads(pkg.weeklyDownloads || 0).padEnd(w3) +
         getMaintenanceStatus(daysSincePublish, pkg.isDeprecated),
     );
   }

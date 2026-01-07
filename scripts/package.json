@@ -14,10 +14,11 @@
     "vitest": "catalog:"
   },
   "scripts": {
-    "check-biome": "biome check .",
+    "check-eslint": "eslint .",
     "check-format": "prettier --check . --ignore-path ../.prettierignore",
+    "check-types": "tsc --noEmit",
     "check-turbo-inputs": "tsx check-turbo-inputs.ts",
-    "fix-biome": "biome check --write .",
+    "fix-eslint": "eslint . --fix",
     "fix-format": "prettier --write . --ignore-path ../.prettierignore",
     "test": "vitest run"
   }
