@@ -4,7 +4,9 @@
   "ignoreBinaries": [],
   "workspaces": {
     ".": {},
-    "scripts": {},
+    "scripts": {
+      "entry": ["check-turbo-inputs.ts", "check-dependency-health.ts"]
+    },
     "packages/tasklens": {
       "project": ["src/**/*.ts!"]
     },

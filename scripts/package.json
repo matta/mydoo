@@ -10,13 +10,15 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/minimist": "catalog:"
+    "@types/minimist": "catalog:",
+    "vitest": "catalog:"
   },
   "scripts": {
     "check-biome": "biome check .",
     "check-format": "prettier --check . --ignore-path ../.prettierignore",
     "check-turbo-inputs": "tsx check-turbo-inputs.ts",
     "fix-biome": "biome check --write .",
-    "fix-format": "prettier --write . --ignore-path ../.prettierignore"
+    "fix-format": "prettier --write . --ignore-path ../.prettierignore",
+    "test": "vitest run"
   }
 }
