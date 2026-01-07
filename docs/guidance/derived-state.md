@@ -45,7 +45,7 @@ Hooks with `useMemo` for computing derived state.
 // In store/selectors.ts
 export const selectBalanceData = createSelector(
   [selectTaskEntities],
-  entities => calculateBalanceData(Object.values(entities)),
+  (entities) => calculateBalanceData(Object.values(entities)),
 );
 
 // In component

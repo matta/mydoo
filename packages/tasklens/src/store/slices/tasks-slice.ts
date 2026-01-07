@@ -83,7 +83,7 @@ export const syncDoc = createAsyncThunk(
 
     // 2. Get the prioritized list for the "Do" view
     const prioritizedTasks = getPrioritizedTasks(parsed);
-    const todoListIds = prioritizedTasks.map(t => t.id);
+    const todoListIds = prioritizedTasks.map((t) => t.id);
 
     return {
       entities: newEntities,
@@ -98,7 +98,7 @@ const tasksSlice = createSlice({
   name: 'tasks',
   initialState,
   reducers: {},
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(syncDoc.fulfilled, (state, action) => {
       state.entities = action.payload.entities;
       state.rootTaskIds = action.payload.rootTaskIds;

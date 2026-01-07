@@ -16,9 +16,9 @@ export function buildTunnelTree(
 ): TunnelNode[] {
   const build = (taskIds: TaskID[]): TunnelNode[] =>
     taskIds
-      .map(id => tasks[id])
+      .map((id) => tasks[id])
       .filter((t): t is PersistedTask => t !== undefined)
-      .map(task => ({
+      .map((task) => ({
         ...toComputedTask(task),
         children: build(task.childTaskIds || []),
       }));

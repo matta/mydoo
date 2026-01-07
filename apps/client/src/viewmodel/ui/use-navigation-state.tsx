@@ -164,7 +164,7 @@ export function NavigationProvider({children}: {children: ReactNode}) {
   );
 
   const toggleExpanded = useCallback((id: TaskID) => {
-    setExpandedIds(prev => {
+    setExpandedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -176,7 +176,7 @@ export function NavigationProvider({children}: {children: ReactNode}) {
   }, []);
 
   const expandAll = useCallback((ids: TaskID[]) => {
-    setExpandedIds(prev => {
+    setExpandedIds((prev) => {
       const next = new Set(prev);
       for (const id of ids) {
         next.add(id);
@@ -190,7 +190,7 @@ export function NavigationProvider({children}: {children: ReactNode}) {
   }, []);
 
   const pushView = useCallback((id: TaskID) => {
-    setViewPathState(prev => {
+    setViewPathState((prev) => {
       // Copy the array to mutate it for push
       const next = [...prev];
       next.push(id);
@@ -199,7 +199,7 @@ export function NavigationProvider({children}: {children: ReactNode}) {
   }, []);
 
   const popView = useCallback(() => {
-    setViewPathState(prev => {
+    setViewPathState((prev) => {
       // Copy the array to mutate it for pop
       const next = [...prev];
       next.pop();

@@ -59,7 +59,7 @@ function interpolate<T>(template: T, variables: Variables): T {
     }) as T;
   }
   if (Array.isArray(template)) {
-    return template.map(item => interpolate(item, variables)) as T;
+    return template.map((item) => interpolate(item, variables)) as T;
   }
   if (template !== null && typeof template === 'object') {
     const result: Record<string, unknown> = {};
@@ -358,7 +358,7 @@ function verifyTaskOrder(
   expectedOrder: string[],
 ) {
   const visibleTasks = getPrioritizedTasks(store.doc, viewFilter);
-  expect(visibleTasks.map(t => t.id)).toEqual(expectedOrder);
+  expect(visibleTasks.map((t) => t.id)).toEqual(expectedOrder);
 }
 
 function verifySingleTaskProp(
@@ -436,7 +436,7 @@ function verifyTaskProps(
     includeHidden: true,
     mode: 'plan-outline',
   });
-  const computedMap = new Map(allTasks.map(t => [t.id, t]));
+  const computedMap = new Map(allTasks.map((t) => [t.id, t]));
 
   for (const expected of expectedProps) {
     const task = computedMap.get(expected.id as TaskID) as EnrichedTask;
@@ -484,7 +484,7 @@ function describeStep(stepIndex: number, step: Step): string {
 
   if (step.given) {
     const givenKeys = Object.keys(step.given).filter(
-      k => step.given?.[k as keyof typeof step.given] !== undefined,
+      (k) => step.given?.[k as keyof typeof step.given] !== undefined,
     );
     if (givenKeys.length > 0) {
       clauses.push(`Given ${givenKeys.join(', ')}`);
@@ -493,7 +493,7 @@ function describeStep(stepIndex: number, step: Step): string {
 
   if (step.when) {
     const whenKeys = Object.keys(step.when).filter(
-      k => step.when?.[k as keyof typeof step.when] !== undefined,
+      (k) => step.when?.[k as keyof typeof step.when] !== undefined,
     );
     if (whenKeys.length > 0) {
       clauses.push(`When ${whenKeys.join(', ')}`);
@@ -502,7 +502,7 @@ function describeStep(stepIndex: number, step: Step): string {
 
   if (step.then) {
     const thenKeys = Object.keys(step.then).filter(
-      k => step.then?.[k as keyof typeof step.then] !== undefined,
+      (k) => step.then?.[k as keyof typeof step.then] !== undefined,
     );
     if (thenKeys.length > 0) {
       clauses.push(`Then ${thenKeys.join(', ')}`);
@@ -565,7 +565,7 @@ function executeStep(step: Step, store: TunnelStore, currentTestTime: number) {
 }
 
 describe('Algorithm BDD Test Suite', () => {
-  const allFiles = readdirSync(FIXTURES_PATH).filter(f =>
+  const allFiles = readdirSync(FIXTURES_PATH).filter((f) =>
     f.endsWith('.feature.yaml'),
   );
   const allFeatures: TunnelAlgorithmFeatureSchema[] = [];
@@ -585,7 +585,7 @@ describe('Algorithm BDD Test Suite', () => {
   // Filter features if requested (User Workflow Feature)
   const featureFilter = process.env.FEATURE_FILTER;
   const filteredFeatures = featureFilter
-    ? allFeatures.filter(f =>
+    ? allFeatures.filter((f) =>
         f.feature.toLowerCase().includes(featureFilter.toLowerCase()),
       )
     : allFeatures;

@@ -31,7 +31,7 @@ describe('wakeUpRoutineTasks', () => {
     const repo = new Repo({network: [], storage: new DummyStorageAdapter()});
     const handle = repo.create<TunnelState>();
 
-    handle.change(doc => {
+    handle.change((doc) => {
       doc.tasks = {
         ['task-1' as TaskID]: {
           id: 'task-1' as TaskID,
@@ -81,7 +81,7 @@ describe('wakeUpRoutineTasks', () => {
     const repo = new Repo({network: [], storage: new DummyStorageAdapter()});
     const handle = repo.create<TunnelState>();
 
-    handle.change(doc => {
+    handle.change((doc) => {
       doc.tasks = {
         ['task-1' as TaskID]: {
           id: 'task-1' as TaskID,
@@ -125,7 +125,7 @@ describe('wakeUpRoutineTasks', () => {
     const repo = new Repo({network: [], storage: new DummyStorageAdapter()});
     const handle = repo.create<TunnelState>();
 
-    handle.change(doc => {
+    handle.change((doc) => {
       doc.tasks = {
         ['task-min' as TaskID]: {
           id: 'task-min' as TaskID,
@@ -169,7 +169,7 @@ describe('wakeUpRoutineTasks', () => {
     const repo = new Repo({network: [], storage: new DummyStorageAdapter()});
     const handle = repo.create<TunnelState>();
 
-    handle.change(doc => {
+    handle.change((doc) => {
       doc.tasks = {
         ['task-hour' as TaskID]: {
           id: 'task-hour' as TaskID,

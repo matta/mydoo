@@ -166,7 +166,7 @@ export function PlanViewContainer() {
                       onClick={() => {
                         const newPath = breadcrumbs
                           .slice(0, index + 1)
-                          .map(b => b.id);
+                          .map((b) => b.id);
                         setViewPath(newPath);
                       }}
                       fw={isLast ? 'bold' : 'normal'}

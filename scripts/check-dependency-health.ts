@@ -82,7 +82,7 @@ function safeJSON<T>(text: string): T | null {
   }
 }
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Add ±25% random jitter to avoid thundering herd */
 function jitter(ms: number): number {

@@ -14,7 +14,7 @@ export function calculateFeedbackFactors(tasks: EnrichedTask[]): void {
   const epsilon = 0.001; // Division by zero protection
 
   // Filter root tasks from the Enriched list
-  const rootGoals = tasks.filter(task => task.parentId === undefined);
+  const rootGoals = tasks.filter((task) => task.parentId === undefined);
 
   let totalDesiredCredits = 0;
   let totalEffectiveCredits = 0;

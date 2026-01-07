@@ -24,7 +24,7 @@ export function createTaskLensStore() {
     reducer: {
       tasks: tasksReducer,
     },
-    middleware: getDefaultMiddleware =>
+    middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: {
           ignoredActionPaths: ['payload.newDoc'],

@@ -405,7 +405,7 @@ In traditional programming, you might write mutations as free functions:
 // ❌ This DOES NOT WORK in React
 function completeTask(docUrl: AutomergeUrl, id: TaskID) {
   const doc = getDocumentSomehow(docUrl); // Where does this come from?
-  doc.change(d => {
+  doc.change((d) => {
     d.tasks[id].status = 'Done';
   });
 }
@@ -433,7 +433,7 @@ function useTaskIntents(docUrl: AutomergeUrl): TaskIntents {
 
   // Return an object of intent functions that "close over" the ops
   return {
-    completeTask: id => {
+    completeTask: (id) => {
       ops.update(id, {status: 'Done'});
       // ... trigger recurrence, healer, etc.
     },
@@ -736,7 +736,7 @@ function DoViewContainer() {
       onComplete={taskIntents.completeTask}
       onEditTask={navActions.openTaskEditor}
       onRefresh={systemIntents.refreshTaskList}
-      onAddToInbox={title => taskIntents.createTask(title, ROOT_INBOX_ID)}
+      onAddToInbox={(title) => taskIntents.createTask(title, ROOT_INBOX_ID)}
     />
   );
 }
@@ -871,7 +871,7 @@ function TaskEditorContainer() {
       opened={true}
       onClose={navActions.closeTaskEditor}
       // Actions
-      onSave={data => {
+      onSave={(data) => {
         if (isCreateMode) {
           taskIntents.createTask(data.title, parentId, {
             position: nav.createTaskPosition,

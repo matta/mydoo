@@ -10,7 +10,7 @@ import {getIntervalMs} from '../utils/time';
  * If so, it resets them to "Pending" and updates their due date to the next interval.
  */
 export function wakeUpRoutineTasks(handle: DocHandle<TunnelState>) {
-  handle.change(doc => {
+  handle.change((doc) => {
     const now = Date.now();
 
     for (const task of Object.values(doc.tasks)) {

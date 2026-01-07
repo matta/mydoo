@@ -58,7 +58,7 @@ export function PriorityTaskList({
 
   return (
     <Stack gap="xs">
-      {tasks.map(task => (
+      {tasks.map((task) => (
         <TaskRow
           key={task.id}
           onToggle={onToggle}

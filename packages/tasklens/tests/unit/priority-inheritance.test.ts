@@ -70,7 +70,7 @@ describe('Inheritance Logic', () => {
 
     recalculatePriorities(state, enrichedTasks, {}, {currentTime: 1500});
 
-    const childResult = enrichedTasks.find(t => t.id === childId);
+    const childResult = enrichedTasks.find((t) => t.id === childId);
 
     // Expect child schedule to NOT be mutated to parent's schedule
     expect(childResult?.schedule.dueDate).toBe(2000);
@@ -120,7 +120,7 @@ describe('Inheritance Logic', () => {
     const enrichedTasks = [gp, p, c];
     recalculatePriorities(state, enrichedTasks, {}, {currentTime: 0});
 
-    const cResult = enrichedTasks.find(t => t.id === cId);
+    const cResult = enrichedTasks.find((t) => t.id === cId);
 
     // Child should have GP's due date
     expect(cResult?.schedule.dueDate).toBe(1000);

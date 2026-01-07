@@ -49,7 +49,7 @@ export function distributeCredits(
   const maxCredits = Math.max(n - (n - 1) * minCredits, minCredits);
 
   // 2. Identify "The Others"
-  const otherItems = items.filter(i => i.id !== targetId);
+  const otherItems = items.filter((i) => i.id !== targetId);
 
   // Variable to hold the actual new value after clamping
   let newValue = requestedValue;
@@ -65,7 +65,7 @@ export function distributeCredits(
   // 3. Validate & Clamp New Value against Min/Max
   newValue = Math.max(minCredits, Math.min(newValue, maxCredits));
 
-  const targetItem = items.find(i => i.id === targetId);
+  const targetItem = items.find((i) => i.id === targetId);
   const oldValue = targetItem?.desiredCredits ?? 0;
 
   // Calculate Delta (How much we are CHANGING the target)
@@ -82,7 +82,7 @@ export function distributeCredits(
     // We must remove 'delta' from others without violating their Min.
     // We drain proportionally from their "Surplus" (Current - Min).
 
-    const surpluses = otherItems.map(i => ({
+    const surpluses = otherItems.map((i) => ({
       id: i.id,
       surplus: Math.max(0, i.desiredCredits - minCredits),
     }));
@@ -98,7 +98,7 @@ export function distributeCredits(
 
     for (const item of otherItems) {
       // Find item's surplus
-      const s = surpluses.find(x => x.id === item.id)?.surplus ?? 0;
+      const s = surpluses.find((x) => x.id === item.id)?.surplus ?? 0;
       // Proportion of the "Tax" this item pays
       const tax = delta * (s / totalSurplus);
       updates.push({id: item.id, desiredCredits: item.desiredCredits - tax});

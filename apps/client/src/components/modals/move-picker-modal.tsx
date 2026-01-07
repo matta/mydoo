@@ -34,7 +34,7 @@ const TargetItem = ({
           {node.title}
         </Text>
       </Button>
-      {node.children.map(child => (
+      {node.children.map((child) => (
         <TargetItem
           key={child.id}
           node={child}
@@ -84,7 +84,7 @@ export function MovePickerModal({
             </Text>
           </Button>
 
-          {roots.map(node => (
+          {roots.map((node) => (
             <TargetItem key={node.id} node={node} onSelect={onSelect} />
           ))}
         </ScrollArea.Autosize>

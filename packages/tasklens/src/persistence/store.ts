@@ -158,7 +158,7 @@ export class TunnelStore {
    */
   createTask(props: Partial<PersistedTask>): PersistedTask {
     let newTask: PersistedTask | undefined;
-    this.doc = change(this.doc, 'Create task', doc => {
+    this.doc = change(this.doc, 'Create task', (doc) => {
       newTask = createTask(doc, props);
     });
     if (!newTask) throw new Error('Failed to create task');
@@ -177,7 +177,7 @@ export class TunnelStore {
    * @throws Error if the task does not exist.
    */
   updateTask(id: TaskID, props: Partial<PersistedTask>): PersistedTask {
-    this.doc = change(this.doc, `Update task ${id}`, doc => {
+    this.doc = change(this.doc, `Update task ${id}`, (doc) => {
       updateTask(doc, id, props);
     });
     const task = getTask(this.doc, id);
@@ -191,7 +191,7 @@ export class TunnelStore {
    * @param id - The ID of the task to complete.
    */
   completeTask(id: TaskID): void {
-    this.doc = change(this.doc, `Complete task ${id}`, doc => {
+    this.doc = change(this.doc, `Complete task ${id}`, (doc) => {
       completeTask(doc, id);
     });
   }
@@ -204,7 +204,7 @@ export class TunnelStore {
    */
   deleteTask(id: TaskID): number {
     let deletedCount = 0;
-    this.doc = change(this.doc, `Delete task ${id}`, doc => {
+    this.doc = change(this.doc, `Delete task ${id}`, (doc) => {
       deletedCount = deleteTask(doc, id);
     });
     return deletedCount;

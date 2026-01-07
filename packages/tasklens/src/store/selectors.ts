@@ -80,7 +80,7 @@ export function selectTaskById(id: TaskID | undefined) {
  */
 export const selectBalanceData = createSelector(
   [selectTaskEntities],
-  entities => calculateBalanceData(Object.values(entities)),
+  (entities) => calculateBalanceData(Object.values(entities)),
 );
 
 /**

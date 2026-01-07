@@ -266,7 +266,7 @@ export class PlanPage implements PlanFixture {
     const modal = this.page.getByRole('dialog', {name: 'Edit Task'});
 
     // Setup dialog handler for cascade confirm
-    this.page.once('dialog', dialog => {
+    this.page.once('dialog', (dialog) => {
       if (expectedDescendants !== undefined) {
         expect(dialog.message()).toContain(
           `${expectedDescendants} descendants`,

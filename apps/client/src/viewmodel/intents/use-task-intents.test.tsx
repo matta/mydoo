@@ -188,7 +188,7 @@ describe('useTaskIntents', () => {
     const tasks = Object.values(docFinal.tasks);
     expect(tasks).toHaveLength(2);
 
-    const childTask = tasks.find(t => t.title === 'Child Task');
+    const childTask = tasks.find((t) => t.title === 'Child Task');
     if (!childTask) throw new Error('Child task not found');
 
     // Get fresh parent from final doc

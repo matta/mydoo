@@ -16,7 +16,7 @@ export const STARVING_THRESHOLD = 0.9;
  */
 export function calculateBalanceData(tasks: ComputedTask[]): BalanceItemData[] {
   // Filter for root tasks
-  const rootGoals = tasks.filter(task => task.parentId === undefined);
+  const rootGoals = tasks.filter((task) => task.parentId === undefined);
 
   let totalDesired = 0;
   let totalActual = 0;
@@ -26,7 +26,7 @@ export function calculateBalanceData(tasks: ComputedTask[]): BalanceItemData[] {
     totalActual += goal.effectiveCredits;
   }
 
-  return rootGoals.map(goal => {
+  return rootGoals.map((goal) => {
     const targetPercent =
       totalDesired > 0 ? (goal.desiredCredits / totalDesired) * 100 : 0;
     const actualPercent =

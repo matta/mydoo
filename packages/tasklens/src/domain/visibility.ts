@@ -67,7 +67,7 @@ function _isPlaceOpen(place: Place, currentTime: number): boolean {
       const daySchedule = openHours.schedule[dayOfWeek];
       if (daySchedule) {
         for (const range of daySchedule) {
-          const [start, end] = range.split('-').map(time => {
+          const [start, end] = range.split('-').map((time) => {
             const [h, m] = time.split(':').map(Number);
             return (h ?? 0) * 60 + (m ?? 0); // Convert to minutes past midnight
           });

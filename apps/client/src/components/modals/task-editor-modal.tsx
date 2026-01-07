@@ -293,12 +293,12 @@ export function TaskEditorModal({
         <TextInput
           key={isCreateMode ? 'create' : task?.id}
           label="Title"
-          onChange={e => setTitle(e.currentTarget.value)}
+          onChange={(e) => setTitle(e.currentTarget.value)}
           placeholder="What needs to be done?"
           value={title}
           data-autofocus
           autoFocus
-          onKeyDown={e => {
+          onKeyDown={(e) => {
             if (e.key === 'Enter') {
               if (title?.trim()) {
                 handleSave();
@@ -367,14 +367,14 @@ export function TaskEditorModal({
           label="Sequential Project"
           description="Complete children in order"
           checked={isSequential}
-          onChange={event => setIsSequential(event.currentTarget.checked)}
+          onChange={(event) => setIsSequential(event.currentTarget.checked)}
         />
 
         {/* Importance Slider */}
         <Stack gap="xs">
           <Text size="sm">Importance: {importance.toFixed(2)}</Text>
           <Slider
-            label={v => v.toFixed(2)}
+            label={(v) => v.toFixed(2)}
             marks={[
               {value: 0, label: '0'},
               {value: 0.5, label: '0.5'},
@@ -392,7 +392,7 @@ export function TaskEditorModal({
         <Stack gap="xs">
           <Text size="sm">Effort: {effort.toFixed(2)}</Text>
           <Slider
-            label={v => v.toFixed(2)}
+            label={(v) => v.toFixed(2)}
             marks={[
               {value: 0, label: '0'},
               {value: 0.5, label: '0.5'},
@@ -428,7 +428,7 @@ export function TaskEditorModal({
               label="Unit"
               data={['Minutes', 'Hours', 'Days']}
               value={leadTimeUnit}
-              onChange={val => val && setLeadTimeUnit(val)}
+              onChange={(val) => val && setLeadTimeUnit(val)}
               style={{width: '100px'}}
               allowDeselect={false}
               comboboxProps={{
@@ -482,7 +482,7 @@ export function TaskEditorModal({
           autosize
           label="Notes"
           minRows={3}
-          onChange={e => setNotes(e.currentTarget.value)}
+          onChange={(e) => setNotes(e.currentTarget.value)}
           placeholder="Additional details..."
           value={notes}
         />

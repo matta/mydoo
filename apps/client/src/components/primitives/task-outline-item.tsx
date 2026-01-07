@@ -147,7 +147,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
           <ActionIcon
             variant="transparent"
             size="sm"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             className="task-menu-trigger"
             aria-label="Task actions"
             data-testid="task-menu-trigger"
@@ -159,7 +159,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
         <MenuDropdown>
           <MenuItem
             leftSection={<IconPlus style={{width: rem(14), height: rem(14)}} />}
-            onClick={e => {
+            onClick={(e) => {
               e.stopPropagation();
               onAddSibling(node.id);
             }}
@@ -168,7 +168,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
           </MenuItem>
           <MenuItem
             leftSection={<IconPlus style={{width: rem(14), height: rem(14)}} />}
-            onClick={e => {
+            onClick={(e) => {
               e.stopPropagation();
               onAddChild(node.id);
             }}
@@ -180,7 +180,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
             leftSection={
               <IconTrash style={{width: rem(14), height: rem(14)}} />
             }
-            onClick={e => {
+            onClick={(e) => {
               e.stopPropagation();
               onDelete(node.id);
             }}
@@ -196,7 +196,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
           variant="subtle"
           size="sm"
           color="gray"
-          onClick={e => {
+          onClick={(e) => {
             e.stopPropagation();
             onExpandToggle(node.id);
           }}
@@ -222,7 +222,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
         onChange={() => onToggleCompletion(node.id)}
         aria-label={`Complete ${node.title}`}
         size="xs"
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       />
 
       {/* Task Title - Click opens Editor */}
@@ -254,7 +254,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
           variant="subtle"
           size="sm"
           color="gray"
-          onClick={e => {
+          onClick={(e) => {
             e.stopPropagation();
             onDrillDown(node.id);
           }}

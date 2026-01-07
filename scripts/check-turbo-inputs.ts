@@ -114,14 +114,14 @@ function reportViolation(
     `  Expected ending:`,
     JSON.stringify(exclusions, null, 2)
       .split('\n')
-      .map(l => `    ${l}`)
+      .map((l) => `    ${l}`)
       .join('\n'),
   );
   console.error(
     `  Actual ending:  `,
     JSON.stringify(actualEnding, null, 2)
       .split('\n')
-      .map(l => `    ${l}`)
+      .map((l) => `    ${l}`)
       .join('\n'),
   );
 }
@@ -169,7 +169,7 @@ async function auditExclusions(
   console.log('Running audit...');
 
   // 1. Convert exclusions to positive globs (remove leading '!')
-  const exclusionGlobs = exclusions.map(e => e.replace(/^!/, ''));
+  const exclusionGlobs = exclusions.map((e) => e.replace(/^!/, ''));
 
   // 2. Find all directories contents that are ignored by git
   let ignoredItems: string[] = [];
@@ -188,7 +188,7 @@ async function auditExclusions(
   }
 
   // 3. Filter for directories only (ending in /)
-  const ignoredDirs = ignoredItems.filter(item => item.endsWith('/'));
+  const ignoredDirs = ignoredItems.filter((item) => item.endsWith('/'));
 
   let hasError = false;
 
@@ -198,7 +198,7 @@ async function auditExclusions(
     // but good to be safe. Also git output has trailing slash, which we want.
     const normalizedDir = ignoredDir.split(path.sep).join('/');
 
-    const isCovered = exclusionGlobs.some(pattern =>
+    const isCovered = exclusionGlobs.some((pattern) =>
       minimatch(normalizedDir, pattern),
     );
 
@@ -283,7 +283,7 @@ async function main() {
   );
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(err);
   process.exit(1);
 });

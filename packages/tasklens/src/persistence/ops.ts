@@ -527,7 +527,9 @@ export function getChildren(
     ? state.tasks[parentId]?.childTaskIds
     : state.rootTaskIds;
   if (!ids) return [];
-  return ids.map(id => state.tasks[id]).filter((t): t is PersistedTask => !!t);
+  return ids
+    .map((id) => state.tasks[id])
+    .filter((t): t is PersistedTask => !!t);
 }
 
 /**

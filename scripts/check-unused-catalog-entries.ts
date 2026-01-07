@@ -212,7 +212,7 @@ async function main() {
     if (!usedSet) continue;
 
     // Filter the 'defined' set to find items NOT present in the 'used' set.
-    const unused = [...definedSet].filter(x => !usedSet.has(x));
+    const unused = [...definedSet].filter((x) => !usedSet.has(x));
 
     if (unused.length > 0) {
       hasUnused = true;
@@ -235,7 +235,7 @@ async function main() {
 }
 
 // Execute main logic
-main().catch(err => {
+main().catch((err) => {
   console.error(err);
   process.exit(1);
 });

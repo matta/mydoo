@@ -288,7 +288,7 @@ export function getPrioritizedTasks(
   // --- Stage 1: Hydrate & Initialize ---
   // Clone Persisted Tasks into Mutable Enriched Tasks
   const enrichedTasks: EnrichedTask[] = Object.values(state.tasks).map(
-    persisted => {
+    (persisted) => {
       const isContainer = persisted.childTaskIds.length > 0;
       const isPending = persisted.status === 'Pending';
 
@@ -350,7 +350,7 @@ export function getPrioritizedTasks(
   });
 
   return enrichedTasks
-    .filter(t => {
+    .filter((t) => {
       // 1. Visibility Check (Explicit & Hierarchy)
       if (!options.includeHidden && !t.visibility) return false;
 
@@ -377,7 +377,7 @@ export function getPrioritizedTasks(
 
       return true;
     })
-    .map(enriched => {
+    .map((enriched) => {
       const isReady = enriched.isPending && enriched.leadTimeFactor > 0;
 
       // Note: We return the enriched object cast as ComputedTask for performance.

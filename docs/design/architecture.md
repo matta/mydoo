@@ -399,7 +399,7 @@ export function validateNoCycle(
 // domain/healer.ts
 export function deduplicateArray(ids: string[]): string[] {
   const seen = new Set<string>();
-  return ids.filter(id => !seen.has(id) && seen.add(id));
+  return ids.filter((id) => !seen.has(id) && seen.add(id));
 }
 
 export function healState(state: TunnelState): void {
@@ -421,7 +421,7 @@ export function projectToTree(state: TunnelState): TunnelNode[] {
 // viewmodel/useTodoList.ts
 export function projectToTodoList(state: TunnelState): Task[] {
   return Object.values(state.tasks)
-    .filter(t => t.visibility && (t.priority ?? 0) > 0.001)
+    .filter((t) => t.visibility && (t.priority ?? 0) > 0.001)
     .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
 }
 
@@ -467,7 +467,7 @@ function TaskItem({task, actions}: {task: TunnelNode; actions: TaskActions}) {
         onChange={() => actions.toggleDone(task.id)}
       />
       <span>{task.title}</span>
-      {task.children.map(child => (
+      {task.children.map((child) => (
         <TaskItem key={child.id} task={child} actions={actions} />
       ))}
     </li>

@@ -38,7 +38,7 @@ function AutomergeRecord<
   V extends z.ZodType,
 >(keySchema: K, valueSchema: V) {
   return z.preprocess(
-    val => {
+    (val) => {
       if (typeof val !== 'object' || val === null) return val;
       const cleanObj: Record<string, unknown> = {};
       for (const k of Object.keys(val)) {

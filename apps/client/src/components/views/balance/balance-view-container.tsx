@@ -53,7 +53,7 @@ export function BalanceViewContainer() {
         </Stack>
 
         <Stack gap="md">
-          {items.map(item => (
+          {items.map((item) => (
             <BalanceItem
               key={item.id}
               item={item}

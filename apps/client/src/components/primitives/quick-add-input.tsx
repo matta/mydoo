@@ -24,10 +24,10 @@ export function QuickAddInput({
   return (
     <TextInput
       data-autofocus
-      onChange={event => {
+      onChange={(event) => {
         setValue(event.currentTarget.value);
       }}
-      onKeyDown={event => {
+      onKeyDown={(event) => {
         if (event.key === 'Enter') {
           handleSubmit();
         }

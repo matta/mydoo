@@ -51,7 +51,7 @@ describe('useSystemIntents', () => {
   describe('refreshTaskList', () => {
     it('should acknowledge completed tasks', async () => {
       // 1. Seed Data
-      handle.change(d => {
+      handle.change((d) => {
         d.tasks['task1' as TaskID] = createMockTask(
           'task1',
           'Pending',
@@ -110,7 +110,7 @@ describe('useSystemIntents', () => {
 
     it('should wake up routine tasks', async () => {
       // 1. Seed Data with a routine task ready to wake up
-      handle.change(d => {
+      handle.change((d) => {
         const routineTaskId = 'routine-task' as TaskID;
         d.tasks[routineTaskId] = createSharedMockTask({
           id: routineTaskId,

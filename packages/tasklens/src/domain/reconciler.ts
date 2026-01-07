@@ -24,7 +24,7 @@ export function runReconciler(handle: DocHandle<TunnelState>): boolean {
   // 1. Schema Migration: Recurring -> Routinely
   // Filter for legacy tasks first to avoid iterating the whole mutable doc later
   const legacyTasks = Object.values(doc.tasks).filter(
-    t => LegacyRecurringTaskSchema.safeParse(t).success,
+    (t) => LegacyRecurringTaskSchema.safeParse(t).success,
   );
 
   // If we have any legacy tasks, we will mutate the document. This is a subtle
@@ -32,7 +32,7 @@ export function runReconciler(handle: DocHandle<TunnelState>): boolean {
   const willMutate = legacyTasks.length > 0;
 
   if (willMutate) {
-    handle.change(d => {
+    handle.change((d) => {
       for (const legacyTask of legacyTasks) {
         // Look up the mutable task by ID to avoid race conditions with Object.values(d.tasks)
         const task = d.tasks[legacyTask.id as TaskID];

@@ -116,7 +116,7 @@ describe('usePriorityList', () => {
       expect(result.current.tasks).toHaveLength(2);
     });
 
-    expect(result.current.tasks.map(t => t.id)).toEqual(
+    expect(result.current.tasks.map((t) => t.id)).toEqual(
       expect.arrayContaining(['1', '2']),
     );
   });

@@ -43,11 +43,11 @@ export function BalanceItem({
             value={item.desiredCredits}
             // TODO: Switch this to locally change a "virtual" value in the parent
             // and only call `onChangeDesiredCredits` (which will commit to Automerge) on `onChangeEnd`.
-            onChange={val => onChangeDesiredCredits(item.id, val)}
+            onChange={(val) => onChangeDesiredCredits(item.id, val)}
             min={min}
             max={max}
             step={0.01}
-            label={val => formatPercentLabel(val, totalItems)}
+            label={(val) => formatPercentLabel(val, totalItems)}
           />
         </Stack>
 

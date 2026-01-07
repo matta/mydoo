@@ -25,7 +25,7 @@ export function useTaskActions() {
   const mutate = useCallback(
     (callback: (d: TunnelState) => void) => {
       if (!handle) return;
-      handle.change(d => {
+      handle.change((d) => {
         callback(d as TunnelState);
       });
     },
@@ -40,7 +40,7 @@ export function useTaskActions() {
       props?: Partial<Task>,
     ): TaskID => {
       const newTaskId = crypto.randomUUID() as TaskID;
-      mutate(d => {
+      mutate((d) => {
         createTaskOp(d, {id: newTaskId, title, parentId, ...props}, options);
       });
       return newTaskId;
@@ -50,7 +50,7 @@ export function useTaskActions() {
 
   const updateTask = useCallback(
     (id: TaskID, updates: Partial<Task>) => {
-      mutate(d => {
+      mutate((d) => {
         updateTaskOp(d, id, updates);
       });
     },
@@ -59,7 +59,7 @@ export function useTaskActions() {
 
   const deleteTask = useCallback(
     (id: TaskID) => {
-      mutate(d => {
+      mutate((d) => {
         deleteTaskOp(d, id);
       });
     },
@@ -72,7 +72,7 @@ export function useTaskActions() {
       newParentId: TaskID | undefined,
       afterTaskId: TaskID | undefined,
     ) => {
-      mutate(d => {
+      mutate((d) => {
         moveTaskOp(d, id, newParentId, afterTaskId);
       });
     },
@@ -80,7 +80,7 @@ export function useTaskActions() {
   );
 
   const acknowledgeAllDoneTasks = useCallback(() => {
-    mutate(doc => {
+    mutate((doc) => {
       const taskIds = Object.keys(doc.tasks) as TaskID[];
       for (const taskId of taskIds) {
         const task = doc.tasks[taskId];

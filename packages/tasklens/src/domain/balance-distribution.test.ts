@@ -53,9 +53,9 @@ describe('distributeCredits', () => {
       const updates = distributeCredits('1' as TaskID, 1.2, items);
 
       expect(updates).toHaveLength(3);
-      const u1 = updates.find(u => u.id === ('1' as TaskID));
-      const u2 = updates.find(u => u.id === ('2' as TaskID));
-      const u3 = updates.find(u => u.id === ('3' as TaskID));
+      const u1 = updates.find((u) => u.id === ('1' as TaskID));
+      const u2 = updates.find((u) => u.id === ('2' as TaskID));
+      const u3 = updates.find((u) => u.id === ('3' as TaskID));
 
       expect(u1?.desiredCredits).toBeCloseTo(1.2);
       expect(u2?.desiredCredits).toBeCloseTo(0.9);
@@ -82,8 +82,8 @@ describe('distributeCredits', () => {
 
       const updates = distributeCredits('1' as TaskID, 1.5, items);
 
-      const u2 = updates.find(u => u.id === ('2' as TaskID));
-      const u3 = updates.find(u => u.id === ('3' as TaskID));
+      const u2 = updates.find((u) => u.id === ('2' as TaskID));
+      const u3 = updates.find((u) => u.id === ('3' as TaskID));
 
       // u2 might not even be in updates if it didn't change, OR it might be there with same value?
       // The logic iterates all `otherItems` and pushes updates.
@@ -116,9 +116,9 @@ describe('distributeCredits', () => {
 
       const updates = distributeCredits('1' as TaskID, 0.8, items);
 
-      const u1 = updates.find(u => u.id === ('1' as TaskID));
-      const u2 = updates.find(u => u.id === ('2' as TaskID));
-      const u3 = updates.find(u => u.id === ('3' as TaskID));
+      const u1 = updates.find((u) => u.id === ('1' as TaskID));
+      const u2 = updates.find((u) => u.id === ('2' as TaskID));
+      const u3 = updates.find((u) => u.id === ('3' as TaskID));
 
       expect(u1?.desiredCredits).toBeCloseTo(0.8);
       expect(u2?.desiredCredits).toBeCloseTo(1.1);
@@ -136,8 +136,8 @@ describe('distributeCredits', () => {
       // Decrease '1' to 0.8. Add 0.2 to others.
       const updates = distributeCredits('1' as TaskID, 0.8, items);
 
-      const u2 = updates.find(u => u.id === ('2' as TaskID));
-      const u3 = updates.find(u => u.id === ('3' as TaskID));
+      const u2 = updates.find((u) => u.id === ('2' as TaskID));
+      const u3 = updates.find((u) => u.id === ('3' as TaskID));
 
       expect(u2?.desiredCredits).toBeCloseTo(0.1);
       expect(u3?.desiredCredits).toBeCloseTo(0.1);

@@ -34,7 +34,7 @@ describe('Quickstart Integration', () => {
 
     // Verify Work (Root) is hidden (Container Visibility Pass 7)
     // Work has a visible child (Email), so Work should be hidden from the todo list.
-    const workInTodos = todos.find(t => t.id === rootGoal.id);
+    const workInTodos = todos.find((t) => t.id === rootGoal.id);
     expect(workInTodos).toBeUndefined();
   });
 });

@@ -82,7 +82,7 @@ export function selectLastDoc(state: RootState) {
 const doc = useSelector(selectLastDoc);
 
 // ❌ Avoid
-const doc = useSelector(state => state.tasks.lastDoc);
+const doc = useSelector((state) => state.tasks.lastDoc);
 ```
 
 For parameterized selectors, use factory functions that return named inner

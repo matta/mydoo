@@ -207,7 +207,7 @@ export function AppShellContainer({docUrl}: AppShellContainerProps) {
           onClose={closeConnectionModal}
           currentUrl={docUrl}
           onReset={handleReset}
-          onConnect={url => {
+          onConnect={(url) => {
             localStorage.setItem('mydoo:doc_id', url);
             window.location.reload();
           }}

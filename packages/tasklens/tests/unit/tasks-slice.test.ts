@@ -22,7 +22,7 @@ describe('tasksSlice - syncDoc', () => {
       reducer: {
         tasks: tasksReducer,
       },
-      middleware: getDefaultMiddleware =>
+      middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
           serializableCheck: false,
         }),
