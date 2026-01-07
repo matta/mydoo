@@ -3,6 +3,11 @@
  * @description Lints turbo.json files to ensure "loose" recursive inputs (containing '**')
  * are explicitly excluded using the patterns defined in `turbo-exclusions.json`.
  * Also provides an audit mode to discover git-ignored directories that are missing from exclusions.
+ *
+ * Internal Usage (at the repo root):
+ *   pnpm check-turbo-root           # Check all turbo.json files
+ *   pnpm check-turbo-root --audit   # Audit git-ignored directories
+ *   pnpm check-turbo-root <path>    # Check a specific file
  */
 import {execSync} from 'node:child_process';
 import fs from 'node:fs';
