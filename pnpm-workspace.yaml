@@ -23,7 +23,7 @@ catalogs:
     '@mantine/notifications': ^8.3.10
     '@playwright/test': ^1.57.0
     '@reduxjs/toolkit': ^2.5.0
-    '@tabler/icons-react': ^3.36.0
+    '@tabler/icons-react': ^3.36.1
     '@testing-library/react': ^16.3.1
     '@testing-library/user-event': ^14.6.1
     '@types/js-yaml': ^4.0.9
