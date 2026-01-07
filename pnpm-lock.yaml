@@ -58,7 +58,7 @@ catalogs:
       specifier: ^14.6.1
       version: 14.6.1
     '@types/js-yaml':
-      specifier: ^4.0.9
+      specifier: 4.0.9
       version: 4.0.9
     '@types/minimist':
       specifier: ^1.2.5
@@ -103,7 +103,7 @@ catalogs:
       specifier: ^9.1.7
       version: 9.1.7
     js-yaml:
-      specifier: ^4.1.1
+      specifier: 4.1.1
       version: 4.1.1
     json-schema-to-typescript:
       specifier: ^15.0.4
@@ -197,6 +197,9 @@ importers:
       '@ls-lint/ls-lint':
         specifier: 'catalog:'
         version: 2.3.1
+      '@types/js-yaml':
+        specifier: 'catalog:'
+        version: 4.0.9
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
@@ -206,6 +209,9 @@ importers:
       husky:
         specifier: 'catalog:'
         version: 9.1.7
+      js-yaml:
+        specifier: 'catalog:'
+        version: 4.1.1
       knip:
         specifier: 'catalog:'
         version: 5.80.0(@types/node@25.0.3)(typescript@5.9.3)

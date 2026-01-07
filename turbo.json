@@ -50,6 +50,27 @@
       ],
       "outputs": []
     },
+    "//#check-catalog-root": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "package.json",
+        "**/package.json",
+        "pnpm-workspace.yaml",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
+    },
     "//#fix-syncpack-root": {
       "outputLogs": "errors-only",
       "cache": false
@@ -242,7 +263,8 @@
         "check-style",
         "check-types",
         "//#check-deps-root",
-        "//#check-syncpack-root"
+        "//#check-syncpack-root",
+        "//#check-catalog-root"
       ],
       "outputs": []
     },

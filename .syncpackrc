@@ -1,4 +1,13 @@
 {
+  "dependencyTypes": [
+    "dev",
+    "local",
+    "overrides",
+    "peer",
+    "pnpmOverrides",
+    "prod",
+    "resolutions"
+  ],
   "versionGroups": [
     {
       "label": "Dependencies using workspace:* protocol",
