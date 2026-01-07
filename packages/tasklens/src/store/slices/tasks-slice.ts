@@ -31,7 +31,7 @@ const initialState: TasksState = {
  * @property proxyDoc - The raw Automerge Proxy object, used for reference stability checks.
  * @property parsedDoc - The Zod-validated POJO, used for data access.
  */
-export interface SyncDocPayload {
+interface SyncDocPayload {
   proxyDoc: TunnelState;
   parsedDoc: TunnelState;
 }
