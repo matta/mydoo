@@ -23,15 +23,15 @@ import {
   Text,
   Textarea,
   TextInput,
-} from '@mantine/core';
+} from "@mantine/core";
 import {
   DEFAULT_CREDIT_INCREMENT,
   type RepeatConfig,
   type Task,
   type TaskID,
-} from '@mydoo/tasklens';
-import { useCallback, useEffect, useState } from 'react';
-import { DateInput } from '../ui/date-input';
+} from "@mydoo/tasklens";
+import { useCallback, useEffect, useState } from "react";
+import { DateInput } from "../ui/date-input";
 
 interface TaskEditorModalProps {
   /** Whether the modal is open */
@@ -55,7 +55,7 @@ interface TaskEditorModalProps {
   /** Callback to handle creation of a new task */
   onCreate?: (title: string, props?: Partial<Task>) => void;
   /** Explicit mode: 'create' or 'edit'. Defaults to inference if not provided (legacy). */
-  mode?: 'create' | 'edit' | undefined;
+  mode?: "create" | "edit" | undefined;
   /** Callback to indent the task */
   onIndent?: (taskId: TaskID) => void;
   /** Callback to outdent the task */
@@ -78,12 +78,12 @@ const MS_PER_MINUTE = 1000 * 60;
  */
 function parseLeadTime(totalMs: number): { scalar: number; unit: string } {
   if (totalMs % MS_PER_DAY === 0) {
-    return { scalar: totalMs / MS_PER_DAY, unit: 'Days' };
+    return { scalar: totalMs / MS_PER_DAY, unit: "Days" };
   }
   if (totalMs % MS_PER_HOUR === 0) {
-    return { scalar: totalMs / MS_PER_HOUR, unit: 'Hours' };
+    return { scalar: totalMs / MS_PER_HOUR, unit: "Hours" };
   }
-  return { scalar: Math.round(totalMs / MS_PER_MINUTE), unit: 'Minutes' };
+  return { scalar: Math.round(totalMs / MS_PER_MINUTE), unit: "Minutes" };
 }
 
 /**
@@ -91,11 +91,11 @@ function parseLeadTime(totalMs: number): { scalar: number; unit: string } {
  */
 function leadTimeToMs(scalar: number, unit: string): number {
   switch (unit) {
-    case 'Days':
+    case "Days":
       return scalar * MS_PER_DAY;
-    case 'Hours':
+    case "Hours":
       return scalar * MS_PER_HOUR;
-    case 'Minutes':
+    case "Minutes":
       return scalar * MS_PER_MINUTE;
     default:
       return scalar * MS_PER_DAY;
@@ -121,16 +121,16 @@ export function TaskEditorModal({
   canIndent = false,
 }: TaskEditorModalProps) {
   // Local form state
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState("");
   const [importance, setImportance] = useState(0.5);
   const [effort, setEffort] = useState(0.5);
   const [dueDate, setDueDate] = useState<Date | null>(null);
 
   // Lead Time State
   const [leadTimeScalar, setLeadTimeScalar] = useState<number | string>(7);
-  const [leadTimeUnit, setLeadTimeUnit] = useState<string>('Days');
+  const [leadTimeUnit, setLeadTimeUnit] = useState<string>("Days");
 
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState("");
   const [frequency, setFrequency] = useState<string | null>(null);
   const [interval, setInterval] = useState<number | string>(1);
   const [isSequential, setIsSequential] = useState(false);
@@ -154,20 +154,20 @@ export function TaskEditorModal({
       setLeadTimeScalar(scalar);
       setLeadTimeUnit(unit);
 
-      setNotes(task.notes || '');
+      setNotes(task.notes || "");
       setFrequency(task.repeatConfig?.frequency || null);
       setInterval(task.repeatConfig?.interval || 1);
       setIsSequential(task.isSequential || false);
     } else {
       // Create Mode: Reset to defaults
-      setTitle('');
+      setTitle("");
       setImportance(0.5);
       setEffort(0.5);
       setDueDate(null);
       // Default: 7 Days
       setLeadTimeScalar(7);
-      setLeadTimeUnit('Days');
-      setNotes('');
+      setLeadTimeUnit("Days");
+      setNotes("");
       setFrequency(null);
       setInterval(1);
       setIsSequential(false);
@@ -177,7 +177,7 @@ export function TaskEditorModal({
   const handleSave = useCallback(() => {
     const repeatConfig: RepeatConfig | undefined = frequency
       ? {
-          frequency: frequency as RepeatConfig['frequency'],
+          frequency: frequency as RepeatConfig["frequency"],
           interval: Number(interval),
         }
       : undefined;
@@ -198,7 +198,7 @@ export function TaskEditorModal({
         isSequential,
         schedule: {
           ...task.schedule,
-          type: repeatConfig ? 'Routinely' : 'Once',
+          type: repeatConfig ? "Routinely" : "Once",
           dueDate: dueDateTimestamp,
           leadTime: leadTimeMs,
         },
@@ -215,7 +215,7 @@ export function TaskEditorModal({
         repeatConfig,
         isSequential,
         schedule: {
-          type: repeatConfig ? 'Routinely' : 'Once',
+          type: repeatConfig ? "Routinely" : "Once",
           dueDate: dueDate?.getTime(),
           leadTime: leadTimeMs,
         },
@@ -260,9 +260,9 @@ export function TaskEditorModal({
   }, [task, descendantCount, onDelete]);
 
   // Use explicit mode if provided, otherwise infer from task presence
-  const isCreateMode = mode ? mode === 'create' : !task;
+  const isCreateMode = mode ? mode === "create" : !task;
 
-  if (mode === 'edit' && !task) {
+  if (mode === "edit" && !task) {
     // If in edit mode but task is null, show loading state
     return (
       <Modal
@@ -286,12 +286,12 @@ export function TaskEditorModal({
       onClose={onClose}
       opened={opened}
       size="lg"
-      title={isCreateMode ? 'Create Task' : 'Edit Task'}
+      title={isCreateMode ? "Create Task" : "Edit Task"}
     >
       <Stack gap="md">
         {/* Title */}
         <TextInput
-          key={isCreateMode ? 'create' : task?.id}
+          key={isCreateMode ? "create" : task?.id}
           label="Title"
           onChange={(e) => setTitle(e.currentTarget.value)}
           placeholder="What needs to be done?"
@@ -299,7 +299,7 @@ export function TaskEditorModal({
           data-autofocus
           autoFocus
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === "Enter") {
               if (title?.trim()) {
                 handleSave();
               }
@@ -315,7 +315,7 @@ export function TaskEditorModal({
             </Text>
             <Group justify="space-between" align="center">
               <Text c="dimmed" size="sm">
-                Parent: {parentTitle || 'Root (Top Level)'}
+                Parent: {parentTitle || "Root (Top Level)"}
               </Text>
               <Button
                 variant="subtle"
@@ -357,7 +357,7 @@ export function TaskEditorModal({
         {/* Create Mode Parent Display */}
         {isCreateMode && (
           <Text c="dimmed" size="sm">
-            Parent: {parentTitle || 'Root (Top Level)'}
+            Parent: {parentTitle || "Root (Top Level)"}
           </Text>
         )}
 
@@ -376,9 +376,9 @@ export function TaskEditorModal({
           <Slider
             label={(v) => v.toFixed(2)}
             marks={[
-              { value: 0, label: '0' },
-              { value: 0.5, label: '0.5' },
-              { value: 1, label: '1' },
+              { value: 0, label: "0" },
+              { value: 0.5, label: "0.5" },
+              { value: 1, label: "1" },
             ]}
             max={1}
             min={0}
@@ -394,9 +394,9 @@ export function TaskEditorModal({
           <Slider
             label={(v) => v.toFixed(2)}
             marks={[
-              { value: 0, label: '0' },
-              { value: 0.5, label: '0.5' },
-              { value: 1, label: '1' },
+              { value: 0, label: "0" },
+              { value: 0.5, label: "0.5" },
+              { value: 1, label: "1" },
             ]}
             max={1}
             min={0}
@@ -426,10 +426,10 @@ export function TaskEditorModal({
             <Select
               id="lead-time-unit-select"
               label="Unit"
-              data={['Minutes', 'Hours', 'Days']}
+              data={["Minutes", "Hours", "Days"]}
               value={leadTimeUnit}
               onChange={(val) => val && setLeadTimeUnit(val)}
-              style={{ width: '100px' }}
+              style={{ width: "100px" }}
               allowDeselect={false}
               comboboxProps={{
                 // Force the dropdown to render inside the Modal to avoid
@@ -448,12 +448,12 @@ export function TaskEditorModal({
             label="Repetition"
             placeholder="None"
             data={[
-              { value: 'minutes', label: 'Minutes' },
-              { value: 'hours', label: 'Hours' },
-              { value: 'daily', label: 'Daily' },
-              { value: 'weekly', label: 'Weekly' },
-              { value: 'monthly', label: 'Monthly' },
-              { value: 'yearly', label: 'Yearly' },
+              { value: "minutes", label: "Minutes" },
+              { value: "hours", label: "Hours" },
+              { value: "daily", label: "Daily" },
+              { value: "weekly", label: "Weekly" },
+              { value: "monthly", label: "Monthly" },
+              { value: "yearly", label: "Yearly" },
             ]}
             value={frequency}
             onChange={setFrequency}
@@ -489,7 +489,7 @@ export function TaskEditorModal({
 
         {/* Save/Create Button */}
         <Button fullWidth onClick={handleSave} disabled={!title.trim()}>
-          {isCreateMode ? 'Create Task' : 'Save Changes'}
+          {isCreateMode ? "Create Task" : "Save Changes"}
         </Button>
 
         {/* Footer Actions (Edit Mode Only) */}

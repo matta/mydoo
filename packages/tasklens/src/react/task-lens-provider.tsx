@@ -2,17 +2,17 @@ import type {
   AutomergeUrl,
   DocHandle,
   DocHandleChangePayload,
-} from '@automerge/automerge-repo';
-import { useDocHandle } from '@automerge/automerge-repo-react-hooks';
-import type React from 'react';
-import { createContext, useContext, useEffect } from 'react';
-import { Provider, useDispatch } from 'react-redux';
-import { runReconciler } from '../domain/reconciler';
-import { TunnelStateSchema } from '../persistence/schemas';
-import type { TaskLensDispatch } from '../store';
-import { taskLensStore as defaultStore } from '../store';
-import { syncDoc } from '../store/slices/tasks-slice';
-import type { TunnelState } from '../types';
+} from "@automerge/automerge-repo";
+import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
+import type React from "react";
+import { createContext, useContext, useEffect } from "react";
+import { Provider, useDispatch } from "react-redux";
+import { runReconciler } from "../domain/reconciler";
+import { TunnelStateSchema } from "../persistence/schemas";
+import type { TaskLensDispatch } from "../store";
+import { taskLensStore as defaultStore } from "../store";
+import { syncDoc } from "../store/slices/tasks-slice";
+import type { TunnelState } from "../types";
 
 /**
  * Initializes the document by running reconcilers and syncing to Redux.
@@ -42,7 +42,7 @@ function initDoc(handle: DocHandle<TunnelState>, dispatch: TaskLensDispatch) {
   const parseResult = TunnelStateSchema.safeParse(proxyDoc);
   if (!parseResult.success) {
     console.error(
-      '[TaskLens] Doc failed validation after reconciliation:',
+      "[TaskLens] Doc failed validation after reconciliation:",
       parseResult.error,
     );
     return;
@@ -66,7 +66,7 @@ const TaskLensContext = createContext<AutomergeUrl | null>(null);
 export function useTaskLensDocUrl(): AutomergeUrl {
   const docUrl = useContext(TaskLensContext);
   if (!docUrl) {
-    throw new Error('useTaskLensDocUrl must be used within a TaskLensProvider');
+    throw new Error("useTaskLensDocUrl must be used within a TaskLensProvider");
   }
   return docUrl;
 }
@@ -105,7 +105,7 @@ function TaskLensSync({ docUrl }: { docUrl: AutomergeUrl }) {
       initDoc(handle, dispatch);
     } catch (e) {
       // Handle might not be ready in edge cases, though useDocHandle usually prevents this
-      console.warn('Failed to get initial doc:', e);
+      console.warn("Failed to get initial doc:", e);
     }
 
     const onDocChange = ({ doc }: DocHandleChangePayload<TunnelState>) => {
@@ -115,10 +115,10 @@ function TaskLensSync({ docUrl }: { docUrl: AutomergeUrl }) {
     };
 
     // Subscribe to future changes
-    handle.on('change', onDocChange);
+    handle.on("change", onDocChange);
 
     return () => {
-      handle.off('change', onDocChange);
+      handle.off("change", onDocChange);
     };
   }, [handle, dispatch]);
 

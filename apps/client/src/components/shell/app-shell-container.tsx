@@ -1,8 +1,8 @@
-import type { AutomergeUrl } from '@automerge/automerge-repo';
-import { useDocHandle } from '@automerge/automerge-repo-react-hooks';
-import { AppShell, Burger, Button, Group, Menu, Title } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { type TunnelState, useTaskActions } from '@mydoo/tasklens';
+import type { AutomergeUrl } from "@automerge/automerge-repo";
+import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
+import { AppShell, Burger, Button, Group, Menu, Title } from "@mantine/core";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
+import { type TunnelState, useTaskActions } from "@mydoo/tasklens";
 import {
   IconCheckbox,
   IconDotsVertical,
@@ -11,15 +11,15 @@ import {
   IconNetwork,
   IconScale,
   IconSeeding,
-} from '@tabler/icons-react';
-import { seedHierarchicalData } from '../../dev/seed-data';
-import { DoViewContainer } from '../../viewmodel/containers/do-view-container';
-import { MovePickerContainer } from '../../viewmodel/containers/move-picker-container';
-import { TaskEditorContainer } from '../../viewmodel/containers/task-editor-container';
-import { useNavigationState } from '../../viewmodel/ui/use-navigation-state';
-import { BalanceViewContainer } from '../views/balance/balance-view-container';
-import { PlanViewContainer } from '../views/plan/plan-view-container';
-import { ConnectionModal } from './connection-modal';
+} from "@tabler/icons-react";
+import { seedHierarchicalData } from "../../dev/seed-data";
+import { DoViewContainer } from "../../viewmodel/containers/do-view-container";
+import { MovePickerContainer } from "../../viewmodel/containers/move-picker-container";
+import { TaskEditorContainer } from "../../viewmodel/containers/task-editor-container";
+import { useNavigationState } from "../../viewmodel/ui/use-navigation-state";
+import { BalanceViewContainer } from "../views/balance/balance-view-container";
+import { PlanViewContainer } from "../views/plan/plan-view-container";
+import { ConnectionModal } from "./connection-modal";
 
 // Height of the header and footer constants for consistent layout
 const HEADER_HEIGHT = 60;
@@ -55,11 +55,11 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
   const handle = useDocHandle<TunnelState>(docUrl);
 
   // Responsive Breakpoint: 768px (sm)
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const handleReset = () => {
-    localStorage.removeItem('mydoo:doc_id');
-    window.location.href = '/';
+    localStorage.removeItem("mydoo:doc_id");
+    window.location.href = "/";
   };
 
   return (
@@ -67,7 +67,7 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
       header={{ height: HEADER_HEIGHT }}
       navbar={{
         width: 250,
-        breakpoint: 'sm',
+        breakpoint: "sm",
         collapsed: { mobile: !mobileNavOpened, desktop: false },
       }}
       // Footer is only for mobile tab bar
@@ -117,10 +117,10 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
                   const doc = handle.doc();
                   if (!doc) return;
                   const blob = new Blob([JSON.stringify(doc, null, 2)], {
-                    type: 'application/json',
+                    type: "application/json",
                   });
                   const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
+                  const a = document.createElement("a");
                   a.href = url;
                   a.download = `mydoo-backup-${new Date().toISOString()}.json`;
                   a.click();
@@ -146,8 +146,8 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
               <Menu.Divider />
               <Menu.Label>
                 Build: {__BUILD_INFO__.hash}
-                {!__BUILD_INFO__.clean && ' (dirty)'}
-                {import.meta.env.DEV && ' (dev)'}
+                {!__BUILD_INFO__.clean && " (dirty)"}
+                {import.meta.env.DEV && " (dev)"}
                 <div style={{ fontWeight: 400, opacity: 0.5 }}>
                   {new Date(__BUILD_INFO__.date).toLocaleString()}
                 </div>
@@ -161,10 +161,10 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
       <AppShell.Navbar p="md">
         <Button
           justify="flex-start"
-          variant={activeTab === 'do' ? 'light' : 'subtle'}
+          variant={activeTab === "do" ? "light" : "subtle"}
           leftSection={<IconCheckbox size={20} />}
           onClick={() => {
-            setActiveTab('do');
+            setActiveTab("do");
             toggleMobileNav(); // Close mobile drawer if open
           }}
           mb="xs"
@@ -173,10 +173,10 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
         </Button>
         <Button
           justify="flex-start"
-          variant={activeTab === 'plan' ? 'light' : 'subtle'}
+          variant={activeTab === "plan" ? "light" : "subtle"}
           leftSection={<IconListTree size={20} />}
           onClick={() => {
-            setActiveTab('plan');
+            setActiveTab("plan");
             toggleMobileNav();
           }}
           mb="xs"
@@ -185,10 +185,10 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
         </Button>
         <Button
           justify="flex-start"
-          variant={activeTab === 'balance' ? 'light' : 'subtle'}
+          variant={activeTab === "balance" ? "light" : "subtle"}
           leftSection={<IconScale size={20} />}
           onClick={() => {
-            setActiveTab('balance');
+            setActiveTab("balance");
             toggleMobileNav();
           }}
         >
@@ -197,9 +197,9 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        {activeTab === 'do' && <DoViewContainer />}
-        {activeTab === 'plan' && <PlanViewContainer />}
-        {activeTab === 'balance' && <BalanceViewContainer />}
+        {activeTab === "do" && <DoViewContainer />}
+        {activeTab === "plan" && <PlanViewContainer />}
+        {activeTab === "balance" && <BalanceViewContainer />}
         <TaskEditorContainer />
         <MovePickerContainer />
         <ConnectionModal
@@ -208,7 +208,7 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
           currentUrl={docUrl}
           onReset={handleReset}
           onConnect={(url) => {
-            localStorage.setItem('mydoo:doc_id', url);
+            localStorage.setItem("mydoo:doc_id", url);
             window.location.reload();
           }}
         />
@@ -216,41 +216,41 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
 
       {/* Mobile Bottom Tab Bar: Only visible on small screens */}
       {!isDesktop && (
-        <AppShell.Footer p={0} style={{ display: 'flex' }}>
+        <AppShell.Footer p={0} style={{ display: "flex" }}>
           <Button
             flex={1}
-            variant={activeTab === 'do' ? 'light' : 'subtle'}
+            variant={activeTab === "do" ? "light" : "subtle"}
             radius={0}
             h="100%"
-            onClick={() => setActiveTab('do')}
+            onClick={() => setActiveTab("do")}
           >
-            <Group gap={4} style={{ flexDirection: 'column' }}>
+            <Group gap={4} style={{ flexDirection: "column" }}>
               <IconCheckbox size={20} />
-              <span style={{ fontSize: '10px' }}>Do</span>
+              <span style={{ fontSize: "10px" }}>Do</span>
             </Group>
           </Button>
           <Button
             flex={1}
-            variant={activeTab === 'plan' ? 'light' : 'subtle'}
+            variant={activeTab === "plan" ? "light" : "subtle"}
             radius={0}
             h="100%"
-            onClick={() => setActiveTab('plan')}
+            onClick={() => setActiveTab("plan")}
           >
-            <Group gap={4} style={{ flexDirection: 'column' }}>
+            <Group gap={4} style={{ flexDirection: "column" }}>
               <IconListTree size={20} />
-              <span style={{ fontSize: '10px' }}>Plan</span>
+              <span style={{ fontSize: "10px" }}>Plan</span>
             </Group>
           </Button>
           <Button
             flex={1}
-            variant={activeTab === 'balance' ? 'light' : 'subtle'}
+            variant={activeTab === "balance" ? "light" : "subtle"}
             radius={0}
             h="100%"
-            onClick={() => setActiveTab('balance')}
+            onClick={() => setActiveTab("balance")}
           >
-            <Group gap={4} style={{ flexDirection: 'column' }}>
+            <Group gap={4} style={{ flexDirection: "column" }}>
               <IconScale size={20} />
-              <span style={{ fontSize: '10px' }}>Balance</span>
+              <span style={{ fontSize: "10px" }}>Balance</span>
             </Group>
           </Button>
         </AppShell.Footer>

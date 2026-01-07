@@ -1,7 +1,7 @@
 import {
   type AutomergeUrl,
   isValidAutomergeUrl,
-} from '@automerge/automerge-repo';
+} from "@automerge/automerge-repo";
 import {
   Button,
   Code,
@@ -10,8 +10,8 @@ import {
   Stack,
   Text,
   TextInput,
-} from '@mantine/core';
-import { useState } from 'react';
+} from "@mantine/core";
+import { useState } from "react";
 
 /**
  * Props for the ConnectionModal component.
@@ -45,11 +45,11 @@ export function ConnectionModal({
   onReset,
   onConnect,
 }: ConnectionModalProps) {
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
 
   const urlString = inputValue.trim();
   const isValid = isValidAutomergeUrl(urlString);
-  const showError = urlString !== '' && !isValid;
+  const showError = urlString !== "" && !isValid;
 
   const handleConnect = () => {
     if (isValid) {
@@ -88,7 +88,7 @@ export function ConnectionModal({
             onChange={(e) => setInputValue(e.currentTarget.value)}
             style={{ flex: 1 }}
             data-testid="connect-document-input"
-            error={showError ? 'Invalid Automerge URI format' : null}
+            error={showError ? "Invalid Automerge URI format" : null}
           />
           <Button
             onClick={handleConnect}

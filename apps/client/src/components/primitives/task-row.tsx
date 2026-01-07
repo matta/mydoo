@@ -1,5 +1,5 @@
-import { Checkbox, Group, Paper, Text } from '@mantine/core';
-import type { Task, TaskID } from '@mydoo/tasklens';
+import { Checkbox, Group, Paper, Text } from "@mantine/core";
+import type { Task, TaskID } from "@mydoo/tasklens";
 
 /**
  * Props for the TaskRow component.
@@ -50,20 +50,20 @@ export function TaskRow({ task, onToggle, onTitleTap, style }: TaskRowProps) {
       <Group align="center" gap="sm" wrap="nowrap">
         <Checkbox
           aria-label={`Complete ${task.title}`}
-          checked={task.status === 'Done'}
+          checked={task.status === "Done"}
           onChange={() => {
             onToggle(task.id);
           }}
         />
 
         <Text
-          c={task.status === 'Done' ? 'dimmed' : ''}
+          c={task.status === "Done" ? "dimmed" : ""}
           flex={1}
           onClick={() => onTitleTap?.(task.id)}
           style={{
-            userSelect: 'none',
-            cursor: onTitleTap ? 'pointer' : 'default',
-            textDecoration: task.status === 'Done' ? 'line-through' : undefined,
+            userSelect: "none",
+            cursor: onTitleTap ? "pointer" : "default",
+            textDecoration: task.status === "Done" ? "line-through" : undefined,
           }}
         >
           {task.title}

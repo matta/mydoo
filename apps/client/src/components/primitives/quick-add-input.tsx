@@ -1,6 +1,6 @@
-import { ActionIcon, TextInput } from '@mantine/core';
-import { IconPlus } from '@tabler/icons-react';
-import { useState } from 'react';
+import { ActionIcon, TextInput } from "@mantine/core";
+import { IconPlus } from "@tabler/icons-react";
+import { useState } from "react";
 
 export interface QuickAddInputProps {
   onAdd: (text: string) => void;
@@ -9,15 +9,15 @@ export interface QuickAddInputProps {
 
 export function QuickAddInput({
   onAdd,
-  placeholder = 'Add a new task...',
+  placeholder = "Add a new task...",
 }: QuickAddInputProps) {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
 
   const handleSubmit = () => {
     const trimmed = value.trim();
     if (trimmed) {
       onAdd(trimmed);
-      setValue('');
+      setValue("");
     }
   };
 
@@ -28,7 +28,7 @@ export function QuickAddInput({
         setValue(event.currentTarget.value);
       }}
       onKeyDown={(event) => {
-        if (event.key === 'Enter') {
+        if (event.key === "Enter") {
           handleSubmit();
         }
       }}

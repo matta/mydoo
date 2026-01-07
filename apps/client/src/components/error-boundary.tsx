@@ -13,8 +13,8 @@ import {
   Stack,
   Text,
   Title,
-} from '@mantine/core';
-import { Component, type ErrorInfo, type ReactNode } from 'react';
+} from "@mantine/core";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 
 interface Props {
   /** The component tree to be protected by the boundary. */
@@ -60,7 +60,7 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo: errorInfo,
     });
     // Log error to console for debugging
-    console.error('Uncaught error:', error, errorInfo);
+    console.error("Uncaught error:", error, errorInfo);
   }
 
   handleReset = () => {
@@ -68,7 +68,7 @@ export class ErrorBoundary extends Component<Props, State> {
     //
     // TODO: Replace with a more graceful recovery strategy. For example, we can clear the IndexDB,
     //       remove any service worker state, etc.
-    window.location.hash = '';
+    window.location.hash = "";
     window.location.reload();
   };
 
@@ -78,11 +78,11 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <Box
           style={{
-            height: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'var(--mantine-color-gray-0)',
+            height: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "var(--mantine-color-gray-0)",
           }}
         >
           <Container size="md">
@@ -113,9 +113,9 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Code
                   block
                   style={{
-                    maxHeight: '300px',
-                    overflow: 'auto',
-                    fontSize: '12px',
+                    maxHeight: "300px",
+                    overflow: "auto",
+                    fontSize: "12px",
                   }}
                   p="md"
                 >

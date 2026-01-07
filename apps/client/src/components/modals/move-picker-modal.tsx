@@ -5,9 +5,9 @@ import {
   Stack,
   Text,
   ThemeIcon,
-} from '@mantine/core';
-import type { TaskID, TunnelNode } from '@mydoo/tasklens';
-import { IconArrowRight, IconTarget } from '@tabler/icons-react';
+} from "@mantine/core";
+import type { TaskID, TunnelNode } from "@mydoo/tasklens";
+import { IconArrowRight, IconTarget } from "@tabler/icons-react";
 
 interface MovePickerModalProps {
   opened: boolean;

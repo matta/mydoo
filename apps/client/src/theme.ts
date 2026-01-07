@@ -1,4 +1,4 @@
-import { createTheme, type MantineThemeOverride, rem } from '@mantine/core';
+import { createTheme, type MantineThemeOverride, rem } from "@mantine/core";
 
 export const theme: MantineThemeOverride = createTheme({
   /**

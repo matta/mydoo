@@ -1,5 +1,5 @@
-import { configureStore } from '@reduxjs/toolkit';
-import tasksReducer from './slices/tasks-slice';
+import { configureStore } from "@reduxjs/toolkit";
+import tasksReducer from "./slices/tasks-slice";
 
 /**
  * Creates a fresh Redux store instance for TaskLens.
@@ -27,8 +27,8 @@ export function createTaskLensStore() {
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: {
-          ignoredActionPaths: ['payload.newDoc'],
-          ignoredPaths: ['tasks.lastDoc'],
+          ignoredActionPaths: ["payload.newDoc"],
+          ignoredPaths: ["tasks.lastDoc"],
         },
       }),
   });

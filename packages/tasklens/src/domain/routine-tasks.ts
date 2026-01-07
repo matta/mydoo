@@ -1,6 +1,6 @@
-import type { DocHandle } from '@automerge/automerge-repo';
-import type { TunnelState } from '../types';
-import { getIntervalMs } from '../utils/time';
+import type { DocHandle } from "@automerge/automerge-repo";
+import type { TunnelState } from "../types";
+import { getIntervalMs } from "../utils/time";
 
 /**
  * Wake up "Routinely" tasks that are due for their next cycle.
@@ -14,7 +14,7 @@ export function wakeUpRoutineTasks(handle: DocHandle<TunnelState>) {
     const now = Date.now();
 
     for (const task of Object.values(doc.tasks)) {
-      if (task.status === 'Done' && task.schedule?.type === 'Routinely') {
+      if (task.status === "Done" && task.schedule?.type === "Routinely") {
         const repeatConfig = task.repeatConfig;
 
         // Safety check: Routinely tasks must have a repeat config
@@ -36,7 +36,7 @@ export function wakeUpRoutineTasks(handle: DocHandle<TunnelState>) {
 
         if (now >= wakeUpTime) {
           // Wake up the task!
-          task.status = 'Pending';
+          task.status = "Pending";
           task.isAcknowledged = false;
 
           // Update the schedule for the new cycle

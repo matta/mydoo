@@ -1,21 +1,21 @@
-import { type AutomergeUrl, Repo } from '@automerge/automerge-repo';
-import { RepoContext } from '@automerge/automerge-repo-react-hooks';
+import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
+import { RepoContext } from "@automerge/automerge-repo-react-hooks";
 import {
   createTheme,
   MantineProvider,
   Menu,
   Modal,
   Popover,
-} from '@mantine/core';
+} from "@mantine/core";
 import {
   type RenderOptions,
   type RenderResult,
   render as testingLibraryRender,
-} from '@testing-library/react';
-import type { PropsWithChildren } from 'react';
+} from "@testing-library/react";
+import type { PropsWithChildren } from "react";
 
 // Mock for window.matchMedia - required by Mantine's color scheme detection
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: (query: string): MediaQueryList => ({
     matches: false,
@@ -31,7 +31,7 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock Build Info for tests
 globalThis.__BUILD_INFO__ = {
-  hash: 'test-hash',
+  hash: "test-hash",
   date: new Date().toISOString(),
   clean: true,
 };
@@ -83,7 +83,7 @@ import {
   createEmptyTunnelState,
   createTaskLensStore,
   TaskLensProvider,
-} from '@mydoo/tasklens';
+} from "@mydoo/tasklens";
 
 const defaultDocHandle = mockRepo.create(createEmptyTunnelState());
 const defaultDocUrl = defaultDocHandle.url;
@@ -108,7 +108,7 @@ export function createTestWrapper(
  * Options for custom render.
  * @param repo - Optional Automerge Repo instance to use in the context.
  */
-export interface TestRenderOptions extends Omit<RenderOptions, 'wrapper'> {
+export interface TestRenderOptions extends Omit<RenderOptions, "wrapper"> {
   repo?: Repo;
   store?: ReturnType<typeof createTaskLensStore>;
   url?: AutomergeUrl;

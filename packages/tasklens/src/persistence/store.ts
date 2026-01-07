@@ -22,13 +22,13 @@ import {
   from as fromState,
   load,
   save,
-} from '@automerge/automerge';
+} from "@automerge/automerge";
 import {
   ANYWHERE_PLACE_ID,
   type PersistedTask,
   type TaskID,
   type TunnelState,
-} from '../types';
+} from "../types";
 import {
   completeTask,
   createTask,
@@ -36,7 +36,7 @@ import {
   getChildren,
   getTask,
   updateTask,
-} from './ops';
+} from "./ops";
 
 /**
  * A store that wraps an Automerge document containing task state.
@@ -158,13 +158,13 @@ export class TunnelStore {
    */
   createTask(props: Partial<PersistedTask>): PersistedTask {
     let newTask: PersistedTask | undefined;
-    this.doc = change(this.doc, 'Create task', (doc) => {
+    this.doc = change(this.doc, "Create task", (doc) => {
       newTask = createTask(doc, props);
     });
-    if (!newTask) throw new Error('Failed to create task');
+    if (!newTask) throw new Error("Failed to create task");
 
     const task = getTask(this.doc, newTask.id);
-    if (!task) throw new Error('Retrieved task is undefined');
+    if (!task) throw new Error("Retrieved task is undefined");
     return task;
   }
 
@@ -181,7 +181,7 @@ export class TunnelStore {
       updateTask(doc, id, props);
     });
     const task = getTask(this.doc, id);
-    if (!task) throw new Error('Retrieved task is undefined');
+    if (!task) throw new Error("Retrieved task is undefined");
     return task;
   }
 

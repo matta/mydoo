@@ -56,13 +56,13 @@ const balanceData = useSelector(selectBalanceData);
 
 ```typescript
 // In component
-const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 const tasks = useTaskList();
 
 const sortedTasks = useMemo(
   () =>
     [...tasks].sort((a, b) =>
-      sortOrder === 'asc' ? a.priority - b.priority : b.priority - a.priority,
+      sortOrder === "asc" ? a.priority - b.priority : b.priority - a.priority,
     ),
   [tasks, sortOrder],
 );

@@ -2,26 +2,26 @@ import {
   type AutomergeUrl,
   type DocHandle,
   Repo,
-} from '@automerge/automerge-repo';
+} from "@automerge/automerge-repo";
 import {
   createTaskLensStore,
   type TaskID,
   type TunnelState,
-} from '@mydoo/tasklens';
-import { act, renderHook, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createTestWrapper } from '../../test/setup';
-import { useTaskIntents } from '../intents/use-task-intents';
-import { useBreadcrumbs } from './use-breadcrumbs';
+} from "@mydoo/tasklens";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { createTestWrapper } from "../../test/setup";
+import { useTaskIntents } from "../intents/use-task-intents";
+import { useBreadcrumbs } from "./use-breadcrumbs";
 
-describe('useBreadcrumbs', () => {
+describe("useBreadcrumbs", () => {
   let repo: Repo;
   let handle: DocHandle<TunnelState>;
   let docUrl: AutomergeUrl;
 
   beforeEach(() => {
     repo = new Repo({ network: [] });
-    window.location.hash = '';
+    window.location.hash = "";
 
     handle = repo.create<TunnelState>({
       tasks: {},
@@ -32,10 +32,10 @@ describe('useBreadcrumbs', () => {
   });
 
   afterEach(() => {
-    window.location.hash = '';
+    window.location.hash = "";
   });
 
-  it('should return empty array for root view', async () => {
+  it("should return empty array for root view", async () => {
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);
     const { result } = renderHook(() => useBreadcrumbs(undefined), {
@@ -50,7 +50,7 @@ describe('useBreadcrumbs', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('should return path for nested task', async () => {
+  it("should return path for nested task", async () => {
     // 1. Setup Data: Root -> Parent -> Child
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);
@@ -60,25 +60,25 @@ describe('useBreadcrumbs', () => {
 
     let parentId: TaskID;
     act(() => {
-      parentId = intents.current.createTask('Parent');
+      parentId = intents.current.createTask("Parent");
     });
 
     // Wait for parent in Redux
     await waitFor(() => {
       const state = store.getState();
       if (!state.tasks.entities[parentId])
-        throw new Error('Parent not in store');
+        throw new Error("Parent not in store");
     });
 
     let childId: TaskID;
     act(() => {
-      childId = intents.current.createTask('Child', parentId);
+      childId = intents.current.createTask("Child", parentId);
     });
 
     // Wait for child in Redux
     await waitFor(() => {
       const state = store.getState();
-      if (!state.tasks.entities[childId]) throw new Error('Child not in store');
+      if (!state.tasks.entities[childId]) throw new Error("Child not in store");
     });
 
     // 2. Test Breadcrumbs when focused on Child
@@ -89,8 +89,8 @@ describe('useBreadcrumbs', () => {
     // Should be [Parent, Child]
     await waitFor(() => {
       expect(result.current).toHaveLength(2);
-      expect(result.current[0]?.title).toBe('Parent');
-      expect(result.current[1]?.title).toBe('Child');
+      expect(result.current[0]?.title).toBe("Parent");
+      expect(result.current[1]?.title).toBe("Child");
       expect(result.current[0]?.id).toBe(parentId);
       expect(result.current[1]?.id).toBe(childId);
     });

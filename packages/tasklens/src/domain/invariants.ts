@@ -2,7 +2,7 @@
  * Validation invariants for the Tasklens domain.
  * These are pure functions that throw errors if invariants are violated.
  */
-import type { TaskID, TunnelState } from '../types';
+import type { TaskID, TunnelState } from "../types";
 
 /**
  * Validates that adding a task to a parent does not exceed the maximum depth limit.
@@ -16,7 +16,7 @@ export function validateDepth(
   state: TunnelState,
   parentId: TaskID,
   limit = 20,
-  errorPrefix = 'Cannot create task: parent',
+  errorPrefix = "Cannot create task: parent",
 ): void {
   let parentDepth = 0;
   let p: TaskID | undefined = parentId;

@@ -27,13 +27,13 @@
  */
 
 // Node.js built-in modules
-import fs from 'node:fs'; // 'fs' = File System (reading/writing files)
-import path from 'node:path'; // Utilities for working with file and directory paths
+import fs from "node:fs"; // 'fs' = File System (reading/writing files)
+import path from "node:path"; // Utilities for working with file and directory paths
 
 // Third-party libraries
-import { glob } from 'glob'; // Matches files using patterns (like *.ts)
-import yaml from 'js-yaml'; // Parses YAML files into JavaScript objects
-import { z } from 'zod'; // Runtime schema validation
+import { glob } from "glob"; // Matches files using patterns (like *.ts)
+import yaml from "js-yaml"; // Parses YAML files into JavaScript objects
+import { z } from "zod"; // Runtime schema validation
 
 /**
  * Zod Schema: Defines the shape of 'pnpm-workspace.yaml'.
@@ -63,7 +63,7 @@ const PackageJsonSchema = z
   })
   .passthrough();
 
-const WORKSPACE_FILE = 'pnpm-workspace.yaml';
+const WORKSPACE_FILE = "pnpm-workspace.yaml";
 
 async function main() {
   // process.cwd() returns the current directory where the script was run.
@@ -82,7 +82,7 @@ async function main() {
   // STEP 1: Parse pnpm-workspace.yaml to find what IS defined.
   // ---------------------------------------------------------------------------
 
-  const workspaceContent = fs.readFileSync(workspacePath, 'utf8');
+  const workspaceContent = fs.readFileSync(workspacePath, "utf8");
   const rawWorkspace = yaml.load(workspaceContent);
 
   // Validate the data against our Zod schema.
@@ -90,7 +90,7 @@ async function main() {
   const workspace = PnpmWorkspaceSchema.parse(rawWorkspace);
 
   if (!workspace.catalogs) {
-    console.log('No catalogs found in pnpm-workspace.yaml.');
+    console.log("No catalogs found in pnpm-workspace.yaml.");
     return;
   }
 
@@ -114,8 +114,8 @@ async function main() {
   // 'glob' searches the file system.
   // '**' matches any number of subdirectories.
   // We explicitly ignore 'node_modules' (external code) and build artifacts.
-  const packageJsonPaths = await glob('**/package.json', {
-    ignore: ['**/node_modules/**', '**/dist/**', '**/coverage/**'],
+  const packageJsonPaths = await glob("**/package.json", {
+    ignore: ["**/node_modules/**", "**/dist/**", "**/coverage/**"],
     cwd: rootDir,
     absolute: true, // Return full system paths (/Users/me/project/...)
   });
@@ -133,7 +133,7 @@ async function main() {
 
   for (const pkgPath of packageJsonPaths) {
     try {
-      const content = fs.readFileSync(pkgPath, 'utf8');
+      const content = fs.readFileSync(pkgPath, "utf8");
       const rawPkg = JSON.parse(content);
 
       let pkg: z.infer<typeof PackageJsonSchema>;
@@ -169,13 +169,13 @@ async function main() {
         // Examples: "catalog:", "catalog:default", "catalog:special-catalog"
         if (
           version &&
-          typeof version === 'string' &&
-          version.startsWith('catalog:')
+          typeof version === "string" &&
+          version.startsWith("catalog:")
         ) {
-          const parts = version.split(':');
+          const parts = version.split(":");
           // If split gives ["catalog", ""], it means implicit default catalog.
           // If split gives ["catalog", "my-cat"], it targets "my-cat".
-          let targetCatalog = 'default';
+          let targetCatalog = "default";
 
           if (parts.length > 1 && parts[1]) {
             targetCatalog = parts[1];
@@ -201,7 +201,7 @@ async function main() {
   // ---------------------------------------------------------------------------
 
   let hasUnused = false;
-  console.log('Checking for unused pnpm catalog entries...');
+  console.log("Checking for unused pnpm catalog entries...");
 
   for (const [catalogName, definedSet] of Object.entries(
     definedCatalogEntries,
@@ -226,11 +226,11 @@ async function main() {
   }
 
   if (hasUnused) {
-    console.log('\nFound unused catalog entries.');
+    console.log("\nFound unused catalog entries.");
     // Exit with error code 1 so CI pipelines fail.
     process.exit(1);
   } else {
-    console.log('\nAll catalog entries are used!');
+    console.log("\nAll catalog entries are used!");
   }
 }
 

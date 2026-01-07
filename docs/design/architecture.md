@@ -378,7 +378,7 @@ export function validateDepth(state: TunnelState, parentId: TaskID): void {
   let depth = 0,
     p: TaskID | undefined = parentId;
   while (p) {
-    if (++depth > 20) throw new Error('Maximum hierarchy depth exceeded');
+    if (++depth > 20) throw new Error("Maximum hierarchy depth exceeded");
     p = state.tasks[p]?.parentId;
   }
 }
@@ -391,7 +391,7 @@ export function validateNoCycle(
   let current = newParentId;
   while (current) {
     if (current === taskId)
-      throw new Error('Cannot move task into its own descendant');
+      throw new Error("Cannot move task into its own descendant");
     current = state.tasks[current]?.parentId;
   }
 }
@@ -469,7 +469,7 @@ function TaskItem({
   return (
     <li>
       <Checkbox
-        checked={task.status === 'Done'}
+        checked={task.status === "Done"}
         onChange={() => actions.toggleDone(task.id)}
       />
       <span>{task.title}</span>

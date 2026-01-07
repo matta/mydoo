@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from "vitest";
 
 // Mock fetch globally
 const mockFetch = vi.fn();
-vi.stubGlobal('fetch', mockFetch);
+vi.stubGlobal("fetch", mockFetch);
 
 // We need to import the class after mocking fetch.
 // Since AdaptiveRateLimiter is not exported, we'll test it via the module.
@@ -15,7 +15,7 @@ vi.stubGlobal('fetch', mockFetch);
 // For this test, we'll re-implement a minimal version of the class to test the logic.
 // This is a pragmatic approach given the class isn't exported.
 
-describe('AdaptiveRateLimiter Logic', () => {
+describe("AdaptiveRateLimiter Logic", () => {
   // Constants mirroring the main file
   const DEFAULT_INITIAL_DELAY_MS = 1000;
   const DEFAULT_MIN_DELAY_MS = 100;
@@ -69,29 +69,29 @@ describe('AdaptiveRateLimiter Logic', () => {
     }
   }
 
-  describe('backOff', () => {
-    it('doubles the delay on backoff', () => {
+  describe("backOff", () => {
+    it("doubles the delay on backoff", () => {
       const limiter = new TestableRateLimiter(500);
       limiter.backOff();
       expect(limiter.currentDelay).toBe(1000); // 500 * 2 = 1000, capped at MIN_BACKOFF_DELAY
     });
 
-    it('respects the minimum backoff delay floor', () => {
+    it("respects the minimum backoff delay floor", () => {
       const limiter = new TestableRateLimiter(200);
       limiter.backOff();
       // 200 * 2 = 400, but floor is 1000
       expect(limiter.currentDelay).toBe(1000);
     });
 
-    it('continues to double above the floor', () => {
+    it("continues to double above the floor", () => {
       const limiter = new TestableRateLimiter(2000);
       limiter.backOff();
       expect(limiter.currentDelay).toBe(4000);
     });
   });
 
-  describe('handleThrottle', () => {
-    it('backs off and sets cooldown', () => {
+  describe("handleThrottle", () => {
+    it("backs off and sets cooldown", () => {
       const limiter = new TestableRateLimiter(1000);
       limiter.handleThrottle();
       expect(limiter.currentDelay).toBe(2000);
@@ -99,22 +99,22 @@ describe('AdaptiveRateLimiter Logic', () => {
     });
   });
 
-  describe('optimizeRate', () => {
-    it('decreases delay by successStep percentage on success', () => {
+  describe("optimizeRate", () => {
+    it("decreases delay by successStep percentage on success", () => {
       const limiter = new TestableRateLimiter(1000);
       limiter.optimizeRate();
       // 1000 * (1 - 0.05) = 950
       expect(limiter.currentDelay).toBe(950);
     });
 
-    it('does not reduce delay below minDelay', () => {
+    it("does not reduce delay below minDelay", () => {
       const limiter = new TestableRateLimiter(105);
       limiter.optimizeRate();
       // 105 * 0.95 = 99.75, but minDelay is 100
       expect(limiter.currentDelay).toBe(100);
     });
 
-    it('does not optimize if cooldown is active', () => {
+    it("does not optimize if cooldown is active", () => {
       const limiter = new TestableRateLimiter(1000);
       limiter.cooldown = 3;
       limiter.optimizeRate();
@@ -122,7 +122,7 @@ describe('AdaptiveRateLimiter Logic', () => {
       expect(limiter.cooldown).toBe(2); // decremented
     });
 
-    it('optimizes after cooldown expires', () => {
+    it("optimizes after cooldown expires", () => {
       const limiter = new TestableRateLimiter(1000);
       limiter.cooldown = 1;
       limiter.optimizeRate(); // consumes cooldown

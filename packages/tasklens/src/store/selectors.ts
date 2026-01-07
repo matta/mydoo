@@ -1,7 +1,7 @@
-import { createSelector } from '@reduxjs/toolkit';
-import { calculateBalanceData } from '../domain/balance';
-import type { ComputedTask, TaskID } from '../types';
-import type { TaskLensState } from './index';
+import { createSelector } from "@reduxjs/toolkit";
+import { calculateBalanceData } from "../domain/balance";
+import type { ComputedTask, TaskID } from "../types";
+import type { TaskLensState } from "./index";
 
 /**
  * Selector for the task entities map.

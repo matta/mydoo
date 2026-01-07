@@ -1,10 +1,10 @@
-feature: 'Scenario 7.1: The Thermostat'
+feature: "Scenario 7.1: The Thermostat"
 description: >
   Demonstrates the self-correcting 'Thermostat' mechanism where neglected areas
   (Life) accumulate credit deficit and rise in priority over over-serviced areas
   (Work).
 background:
-  current_time: '2025-01-01T00:00:00Z'
+  current_time: "2025-01-01T00:00:00Z"
   tasks:
     - id: work
       importance: 1
@@ -17,7 +17,7 @@ background:
 scenarios:
   - name: Legacy Scenario
     steps:
-      - legacy_description: 'Step 1: Balanced'
+      - legacy_description: "Step 1: Balanced"
         then:
           expected_order:
             - work
@@ -31,7 +31,7 @@ scenarios:
           update_credits:
             work: 150
             life: 100
-        legacy_description: 'Step 2: Imbalance'
+        legacy_description: "Step 2: Imbalance"
         then:
           expected_order:
             - life
@@ -45,7 +45,7 @@ scenarios:
           update_credits:
             work: 900
             life: 100
-        legacy_description: 'Step 3: Extreme'
+        legacy_description: "Step 3: Extreme"
         then:
           expected_order:
             - life

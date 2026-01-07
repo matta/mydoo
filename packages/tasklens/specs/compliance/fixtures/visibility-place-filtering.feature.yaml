@@ -4,7 +4,7 @@ description: >
   'Included In' hierarchy. Verifies tasks are hidden when their Place is closed
   or filtered out.
 background:
-  current_time: '2025-01-01T09:00:00Z'
+  current_time: "2025-01-01T09:00:00Z"
   places:
     - id: Home
       hours:
@@ -59,7 +59,7 @@ scenarios:
   - name: Legacy Scenario
     steps:
       - view_filter: All Places
-        legacy_description: 'Filter: All Places (Office Open)'
+        legacy_description: "Filter: All Places (Office Open)"
         then:
           expected_order:
             - GlobalTask
@@ -76,7 +76,7 @@ scenarios:
             - id: DeskTask
               score: 1
       - view_filter: Home
-        legacy_description: 'Filter: Home'
+        legacy_description: "Filter: Home"
         then:
           expected_order:
             - GlobalTask
@@ -91,7 +91,7 @@ scenarios:
             - id: DeskTask
               is_visible: false
       - view_filter: Office
-        legacy_description: 'Filter: Office'
+        legacy_description: "Filter: Office"
         then:
           expected_order:
             - GlobalTask
@@ -122,7 +122,7 @@ scenarios:
             - id: DeskTask
               score: 1
       - view_filter: All Places
-        legacy_description: 'Filter: All Places (Office Closed)'
+        legacy_description: "Filter: All Places (Office Closed)"
         then:
           expected_order:
             - GlobalTask

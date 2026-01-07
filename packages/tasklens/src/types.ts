@@ -18,7 +18,7 @@
  * and compile-time type safety.
  */
 
-import type { z } from 'zod';
+import type { z } from "zod";
 
 import type {
   PersistedTask,
@@ -27,7 +27,7 @@ import type {
   RepeatConfig,
   Schedule,
   TaskIDSchema,
-} from './persistence/schemas';
+} from "./persistence/schemas";
 
 /**
  * Unique identifier for a Task.
@@ -59,7 +59,7 @@ export type PlaceID = z.infer<typeof PlaceIDSchema>;
  * Reserved Place ID representing "any location".
  * Tasks assigned to this place are always visible regardless of filter.
  */
-export const ANYWHERE_PLACE_ID = 'Anywhere' as PlaceID;
+export const ANYWHERE_PLACE_ID = "Anywhere" as PlaceID;
 
 /**
  * Default credit increment for tasks when not explicitly set.
@@ -78,8 +78,8 @@ export const DEFAULT_CREDIT_INCREMENT = 0.5;
  * - `Done`: Task has been completed.
  */
 export const TaskStatus = {
-  Pending: 'Pending',
-  Done: 'Done',
+  Pending: "Pending",
+  Done: "Done",
 } as const;
 
 /**
@@ -97,7 +97,7 @@ export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
  */
 export interface ViewFilter {
   includeClosed?: boolean;
-  placeId?: PlaceID | 'All';
+  placeId?: PlaceID | "All";
 }
 
 /**
@@ -111,7 +111,7 @@ export interface PriorityOptions {
    * - 'do-list' (default): Hides "Done" tasks unless they are unacknowledged.
    * - 'plan-outline': Shows all tasks regardless of status/acknowledgement.
    */
-  mode?: 'do-list' | 'plan-outline';
+  mode?: "do-list" | "plan-outline";
   /**
    * Runtime context for algorithm calculations (time, location).
    */
@@ -157,7 +157,7 @@ export interface OpenHours {
   /**
    * Operating mode: 'always_open', 'always_closed', or 'custom'.
    */
-  mode: 'always_open' | 'always_closed' | 'custom';
+  mode: "always_open" | "always_closed" | "custom";
   /**
    * Weekly schedule mapping days to time ranges (required if mode is 'custom').
    */
@@ -378,9 +378,9 @@ export type Task = ComputedTask;
  * Options for creating a new task, primarily for positioning.
  */
 export type CreateTaskOptions =
-  | { position: 'start' }
-  | { position: 'end' }
-  | { position: 'after'; afterTaskId: TaskID };
+  | { position: "start" }
+  | { position: "end" }
+  | { position: "after"; afterTaskId: TaskID };
 
 /**
  * A physical or virtual location where tasks can be performed.

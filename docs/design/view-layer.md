@@ -290,8 +290,8 @@ function useTodoList(
 
 ```typescript
 type BreadcrumbItem =
-  | { type: 'root' }
-  | { type: 'task'; id: TaskID; title: string };
+  | { type: "root" }
+  | { type: "task"; id: TaskID; title: string };
 
 function useBreadcrumbs(
   tasks: TunnelNode[],
@@ -406,7 +406,7 @@ In traditional programming, you might write mutations as free functions:
 function completeTask(docUrl: AutomergeUrl, id: TaskID) {
   const doc = getDocumentSomehow(docUrl); // Where does this come from?
   doc.change((d) => {
-    d.tasks[id].status = 'Done';
+    d.tasks[id].status = "Done";
   });
 }
 ```
@@ -434,7 +434,7 @@ function useTaskIntents(docUrl: AutomergeUrl): TaskIntents {
   // Return an object of intent functions that "close over" the ops
   return {
     completeTask: (id) => {
-      ops.update(id, { status: 'Done' });
+      ops.update(id, { status: "Done" });
       // ... trigger recurrence, healer, etc.
     },
     // ... other intents
@@ -470,8 +470,8 @@ mocking?"_
 ```typescript
 // File: apps/client/src/viewmodel/useTaskIntents.ts
 
-import { useTunnel } from '@mydoo/tasklens';
-import { useCallback, useMemo } from 'react';
+import { useTunnel } from "@mydoo/tasklens";
+import { useCallback, useMemo } from "react";
 
 export function useTaskIntents(docUrl: AutomergeUrl): TaskIntents {
   // 1. Get access to the Automerge document operations
@@ -485,7 +485,7 @@ export function useTaskIntents(docUrl: AutomergeUrl): TaskIntents {
   //    (important for performance and preventing unnecessary child re-renders)
   const completeTask = useCallback(
     (id: TaskID) => {
-      ops.update(id, { status: 'Done' });
+      ops.update(id, { status: "Done" });
       // Could also trigger: runRecurrenceLogic(), runHealer()
     },
     [ops],
@@ -539,9 +539,9 @@ interface TaskIntents {
     title: string,
     parentId?: TaskID,
     options?:
-      | { position: 'start' }
-      | { position: 'end' }
-      | { position: 'after'; afterTaskId: TaskID },
+      | { position: "start" }
+      | { position: "end" }
+      | { position: "after"; afterTaskId: TaskID },
   ) => TaskID;
 
   /** Intent: "I finished this task"
@@ -587,7 +587,7 @@ function TaskRow({ task }: { task: TaskDisplayItem }) {
 
   return (
     <Checkbox
-      checked={task.status === 'Done'}
+      checked={task.status === "Done"}
       onChange={() => taskIntents.completeTask(task.id)}
     />
   );
@@ -654,7 +654,7 @@ function useSystemIntents(docUrl: AutomergeUrl): SystemIntents;
 ```typescript
 interface NavigationState {
   // Current view
-  activeTab: 'do' | 'plan' | 'balance' | 'context';
+  activeTab: "do" | "plan" | "balance" | "context";
 
   // Plan view state
   viewPath: TaskID[];
@@ -663,7 +663,7 @@ interface NavigationState {
   // Modal state
   editingTaskId: TaskID | undefined;
   createTaskParentId: TaskID | null | undefined; // For Create Mode (null = root)
-  createTaskPosition: 'start' | 'end' | 'after'; // Insertion position
+  createTaskPosition: "start" | "end" | "after"; // Insertion position
   createTaskAfterTaskId: TaskID | undefined; // For "Add Sibling" positioning (when position='after')
   movePickerTaskId: TaskID | undefined;
 
@@ -676,11 +676,11 @@ interface NavigationState {
   lastCreatedTaskId: TaskID | undefined;
 
   // Filter state
-  placeFilter: PlaceID | 'all';
+  placeFilter: PlaceID | "all";
 }
 
 interface NavigationActions {
-  setActiveTab: (tab: NavigationState['activeTab']) => void;
+  setActiveTab: (tab: NavigationState["activeTab"]) => void;
   navigateTo: (path: TaskID[]) => void;
   navigateUp: () => void;
   toggleExpanded: (id: TaskID) => void;
@@ -688,14 +688,14 @@ interface NavigationActions {
   openTaskEditor: (id: TaskID) => void; // Edit Mode
   openCreateTask: (
     parentId: TaskID | null,
-    options?: { position?: 'start' | 'end' | 'after'; afterTaskId?: TaskID },
+    options?: { position?: "start" | "end" | "after"; afterTaskId?: TaskID },
   ) => void; // Create Mode
   closeTaskEditor: () => void;
 
   openMovePicker: (id: TaskID) => void;
   closeMovePicker: () => void;
 
-  setPlaceFilter: (placeId: PlaceID | 'all') => void;
+  setPlaceFilter: (placeId: PlaceID | "all") => void;
   clearLastCreatedTaskId: () => void;
 }
 
@@ -866,7 +866,7 @@ function TaskEditorContainer() {
       task={isCreateMode ? undefined : task} // Undefined task triggers "Empty Form"
       initialParentId={parentId}
       places={places}
-      mode={isCreateMode ? 'create' : 'edit'}
+      mode={isCreateMode ? "create" : "edit"}
       // Lifecycle
       opened={true}
       onClose={navActions.closeTaskEditor}
@@ -969,7 +969,7 @@ function AppShellContainer() {
     <GenericAppShell
       // Mobile: Bottom Tab Bar navigation
       // Desktop: Left Sidebar navigation + Right Main Content
-      layoutMode={isMobile ? 'tab-bar' : 'split-pane'}
+      layoutMode={isMobile ? "tab-bar" : "split-pane"}
       headerContent={
         <Header>
           <Logo />
@@ -995,17 +995,17 @@ function AppShellContainer() {
         {isMobile ? (
           // Mobile: Switch full views
           <>
-            {nav.activeTab === 'do' && <DoViewContainer />}
-            {nav.activeTab === 'plan' && <PlanViewContainer />}
-            {nav.activeTab === 'balance' && <BalanceViewContainer />}
-            {nav.activeTab === 'context' && <ContextViewContainer />}
+            {nav.activeTab === "do" && <DoViewContainer />}
+            {nav.activeTab === "plan" && <PlanViewContainer />}
+            {nav.activeTab === "balance" && <BalanceViewContainer />}
+            {nav.activeTab === "context" && <ContextViewContainer />}
           </>
         ) : (
           // Desktop: Main content area (Plan is in sidebar)
           <>
-            {nav.activeTab === 'do' && <DoViewContainer />}
-            {nav.activeTab === 'balance' && <BalanceViewContainer />}
-            {nav.activeTab === 'context' && <ContextViewContainer />}
+            {nav.activeTab === "do" && <DoViewContainer />}
+            {nav.activeTab === "balance" && <BalanceViewContainer />}
+            {nav.activeTab === "context" && <ContextViewContainer />}
           </>
         )}
       </MainContent>
@@ -1229,15 +1229,15 @@ describe('usePriorityList', () => {
 
 ```typescript
 // Example: useTaskActions.test.ts
-describe('useTaskActions', () => {
-  it('toggleDone calls ops.toggleDone', () => {
+describe("useTaskActions", () => {
+  it("toggleDone calls ops.toggleDone", () => {
     const mockOps = { toggleDone: vi.fn() };
     // Mock useTunnel
 
     const { result } = renderHook(() => useTaskActions(mockDocUrl));
-    result.current.toggleDone('task-1');
+    result.current.toggleDone("task-1");
 
-    expect(mockOps.toggleDone).toHaveBeenCalledWith('task-1');
+    expect(mockOps.toggleDone).toHaveBeenCalledWith("task-1");
   });
 });
 ```

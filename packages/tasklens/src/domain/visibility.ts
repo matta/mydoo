@@ -23,7 +23,7 @@ import {
   type PlaceID,
   type TunnelState,
   type ViewFilter,
-} from '../../src/types';
+} from "../../src/types";
 
 // Helper to get place from a given doc state
 function _getPlaceFromDoc(
@@ -35,7 +35,7 @@ function _getPlaceFromDoc(
 
 // Helper to ensure exhaustive switch case matching
 function assertUnreachable(_: never): never {
-  throw new Error('Unexpected value in exhaustive check');
+  throw new Error("Unexpected value in exhaustive check");
 }
 
 // Helper to check if a place is open
@@ -47,17 +47,17 @@ function _isPlaceOpen(place: Place, currentTime: number): boolean {
   const openHours = JSON.parse(place.hours) as OpenHours;
 
   switch (openHours.mode) {
-    case 'always_open':
+    case "always_open":
       return true;
-    case 'always_closed':
+    case "always_closed":
       return false;
-    case 'custom': {
+    case "custom": {
       // Custom schedule check
       if (!openHours.schedule) {
         return false; // Should not happen if valid, but safe fallback
       }
       const date = new Date(currentTime);
-      const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][
+      const dayOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
         date.getUTCDay()
       ];
       if (!dayOfWeek) return false;
@@ -67,8 +67,8 @@ function _isPlaceOpen(place: Place, currentTime: number): boolean {
       const daySchedule = openHours.schedule[dayOfWeek];
       if (daySchedule) {
         for (const range of daySchedule) {
-          const [start, end] = range.split('-').map((time) => {
-            const [h, m] = time.split(':').map(Number);
+          const [start, end] = range.split("-").map((time) => {
+            const [h, m] = time.split(":").map(Number);
             return (h ?? 0) * 60 + (m ?? 0); // Convert to minutes past midnight
           });
           const currentTimeInMinutes = currentHour * 60 + currentMinute;
@@ -130,7 +130,7 @@ export function calculateContextualVisibility(
     // 3. Place Match
     let filterMatch = false;
     // View filter can be 'All', 'Anywhere' or a specific place ID
-    if (viewFilter.placeId === 'All') {
+    if (viewFilter.placeId === "All") {
       filterMatch = true;
     } else if (effectivePlaceId === ANYWHERE_PLACE_ID) {
       filterMatch = true; // Anywhere tasks always appear in any filter (universal inclusion)

@@ -8,8 +8,8 @@ import {
   MenuTarget,
   rem,
   Text,
-} from '@mantine/core';
-import type { TaskID, TunnelNode } from '@mydoo/tasklens';
+} from "@mantine/core";
+import type { TaskID, TunnelNode } from "@mydoo/tasklens";
 import {
   IconArrowRight,
   IconChevronDown,
@@ -17,10 +17,10 @@ import {
   IconDots,
   IconPlus,
   IconTrash,
-} from '@tabler/icons-react';
-import { memo, useEffect, useRef } from 'react';
+} from "@tabler/icons-react";
+import { memo, useEffect, useRef } from "react";
 
-import './task-outline-item.css';
+import "./task-outline-item.css";
 
 /**
  * Props for the TaskOutlineItem component.
@@ -43,7 +43,7 @@ export interface TaskOutlineItemProps {
   /** Handler when the task is outdented (e.g., via Shift+Tab key). */
   onOutdent: (id: TaskID) => void;
   /** View mode: 'tree' (desktop) or 'drill' (mobile). */
-  viewMode: 'tree' | 'drill';
+  viewMode: "tree" | "drill";
   /** Callback to open task editor. */
   onOpenEditor: (id: TaskID) => void;
   // Context Actions
@@ -93,8 +93,8 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
     if (isFlashTarget && elementRef.current) {
       // Scroll to view
       elementRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
+        behavior: "smooth",
+        block: "center",
       });
     }
   }, [isFlashTarget]);
@@ -104,20 +104,20 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
    * Prevents default browser focus traversal to allow structural editing.
    */
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Tab') {
+    if (event.key === "Tab") {
       event.preventDefault();
       if (event.shiftKey) {
         onOutdent(node.id);
       } else {
         onIndent(node.id);
       }
-    } else if (event.key === 'Enter') {
+    } else if (event.key === "Enter") {
       onOpenEditor(node.id);
     }
   };
 
-  const showChevron = viewMode === 'tree';
-  const showDrillDown = viewMode === 'drill';
+  const showChevron = viewMode === "tree";
+  const showDrillDown = viewMode === "drill";
 
   return (
     <Group
@@ -132,7 +132,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
       }}
       onKeyDown={handleKeyDown}
       tabIndex={0} // Make row focusable for keyboard interaction
-      className={`task-row ${isFlashTarget ? 'flash-highlight' : ''}`}
+      className={`task-row ${isFlashTarget ? "flash-highlight" : ""}`}
       ref={elementRef}
     >
       {/* Task Actions Menu (Bullet replacement on Desktop, Context Menu on Mobile) */}
@@ -207,7 +207,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
           aria-label="Toggle expansion"
           style={{
             opacity: hasChildren ? 1 : 0,
-            pointerEvents: hasChildren ? 'auto' : 'none',
+            pointerEvents: hasChildren ? "auto" : "none",
           }}
           // Used by E2E tests (fixtures.ts) to verify expansion state
           data-expanded={isExpanded}
@@ -222,7 +222,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
 
       {/* Completion Checkbox */}
       <Checkbox
-        checked={node.status === 'Done'}
+        checked={node.status === "Done"}
         onChange={() => onToggleCompletion(node.id)}
         aria-label={`Complete ${node.title}`}
         size="xs"
@@ -233,8 +233,8 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
       <Text
         size="sm"
         fw={500}
-        {...(node.status === 'Done' ? { c: 'dimmed', td: 'line-through' } : {})}
-        style={{ flex: 1, cursor: 'pointer' }}
+        {...(node.status === "Done" ? { c: "dimmed", td: "line-through" } : {})}
+        style={{ flex: 1, cursor: "pointer" }}
         truncate
         onClick={() => onOpenEditor(node.id)}
       >
@@ -244,7 +244,7 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
             size="xs"
             c="dimmed"
             fw={700}
-            style={{ marginRight: rem(8), verticalAlign: 'middle' }}
+            style={{ marginRight: rem(8), verticalAlign: "middle" }}
           >
             {index + 1}.
           </Text>

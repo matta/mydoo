@@ -7,12 +7,12 @@ import {
   type TaskID,
   type TunnelState,
   type ViewFilter,
-} from '../types';
-import { getCurrentTimestamp, getIntervalMs } from '../utils/time';
-import { CREDITS_HALF_LIFE_MILLIS } from './constants';
-import { calculateFeedbackFactors } from './feedback';
-import { calculateLeadTimeFactor } from './readiness';
-import { calculateContextualVisibility } from './visibility';
+} from "../types";
+import { getCurrentTimestamp, getIntervalMs } from "../utils/time";
+import { CREDITS_HALF_LIFE_MILLIS } from "./constants";
+import { calculateFeedbackFactors } from "./feedback";
+import { calculateLeadTimeFactor } from "./readiness";
+import { calculateContextualVisibility } from "./visibility";
 
 /**
  * Builds O(1) lookup indexes for tasks and sorts children based on explicit order logic.
@@ -215,7 +215,7 @@ function processChildren(
   for (const child of children) {
     // Inherit Schedule
     if (
-      child.schedule.type === 'Once' &&
+      child.schedule.type === "Once" &&
       parent.schedule.dueDate !== undefined &&
       child.schedule.dueDate === undefined
     ) {
@@ -225,7 +225,7 @@ function processChildren(
 
     // Propagate Weights & Sequential Logic
     if (parent.isSequential) {
-      if (child.status === 'Pending') {
+      if (child.status === "Pending") {
         if (hasActiveChild) {
           // Blocked: Subsequent pending tasks get no weight and no lead time
           child.normalizedImportance = 0;
@@ -290,7 +290,7 @@ export function getPrioritizedTasks(
   const enrichedTasks: EnrichedTask[] = Object.values(state.tasks).map(
     (persisted) => {
       const isContainer = persisted.childTaskIds.length > 0;
-      const isPending = persisted.status === 'Pending';
+      const isPending = persisted.status === "Pending";
 
       return {
         ...persisted,
@@ -317,7 +317,7 @@ export function getPrioritizedTasks(
   // Phase 0: Date Resolution (Pass 1 in Algorithm)
   // Calculate effective due dates for Routinely tasks before any inheritance happens.
   for (const task of enrichedTasks) {
-    if (task.schedule.type === 'Routinely') {
+    if (task.schedule.type === "Routinely") {
       const { lastDone } = task.schedule;
       const repeatConfig = task.repeatConfig;
       // Spec: DueDate = LastDone + Period (Interval).
@@ -355,13 +355,13 @@ export function getPrioritizedTasks(
       if (!options.includeHidden && !t.visibility) return false;
 
       // 2. Status Check
-      if (options.mode === 'plan-outline') {
+      if (options.mode === "plan-outline") {
         // In "Plan Outline" mode (Inventory), we show everything that passed visibility
         // (including Done tasks).
       } else {
         // Default "Do List" mode:
         // Hide "Done" tasks UNLESS they are waiting for acknowledgement.
-        if (t.status === 'Done' && t.isAcknowledged) {
+        if (t.status === "Done" && t.isAcknowledged) {
           return false;
         }
       }

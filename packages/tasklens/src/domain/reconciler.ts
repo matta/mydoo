@@ -1,6 +1,6 @@
-import type { DocHandle } from '@automerge/automerge-repo';
-import { z } from 'zod';
-import type { TaskID, TunnelState } from '../types';
+import type { DocHandle } from "@automerge/automerge-repo";
+import { z } from "zod";
+import type { TaskID, TunnelState } from "../types";
 
 // Define strict runtime schema for legacy tasks
 // We specifically look for tasks that have the OLD 'Recurring' type.
@@ -9,7 +9,7 @@ const LegacyRecurringTaskSchema = z.object({
   status: z.string(),
   lastCompletedAt: z.number().optional(),
   schedule: z.object({
-    type: z.literal('Recurring'),
+    type: z.literal("Recurring"),
   }),
 });
 
@@ -44,12 +44,12 @@ export function runReconciler(handle: DocHandle<TunnelState>): boolean {
         // For safety, let's just cast since we know the ID existed in the snapshot match.
 
         // Mutate the Automerge object.
-        task.schedule.type = 'Routinely';
+        task.schedule.type = "Routinely";
 
         // Backfill lastCompletedAt
         // We can use the legacyTask snapshot data for logic checks
         // Zod parsing guarantees these properties exist
-        if (legacyTask.status === 'Done' && !legacyTask.lastCompletedAt) {
+        if (legacyTask.status === "Done" && !legacyTask.lastCompletedAt) {
           task.lastCompletedAt = Date.now();
         }
       }

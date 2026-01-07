@@ -5,7 +5,7 @@
  * initializing test state.
  */
 
-import type { ComputedTask, TaskID, TunnelState } from '../types';
+import type { ComputedTask, TaskID, TunnelState } from "../types";
 
 /**
  * Creates a strict mock that throws if unexpected properties are accessed.
@@ -38,7 +38,7 @@ export function strictMock<T extends object>(
       // This enforces that tests only access what was explicitly mocked
       throw new Error(
         `[StrictMock: ${name}] Accessed unexpected property: '${String(prop)}'. \n` +
-          `Only these were mocked: [${Object.keys(implementations).join(', ')}]`,
+          `Only these were mocked: [${Object.keys(implementations).join(", ")}]`,
       );
     },
   }) as T;
@@ -77,9 +77,9 @@ export function createMockTask(
   overrides: Partial<ComputedTask> = {},
 ): ComputedTask {
   const task: ComputedTask = {
-    id: 'test-task' as TaskID,
-    title: 'Test Task',
-    status: 'Pending',
+    id: "test-task" as TaskID,
+    title: "Test Task",
+    status: "Pending",
     importance: 0.5,
     childTaskIds: [],
     creditIncrement: 1,
@@ -88,10 +88,10 @@ export function createMockTask(
     desiredCredits: 1.0,
     priorityTimestamp: 0,
     effectiveCredits: 0,
-    schedule: { type: 'Once', leadTime: 0 },
+    schedule: { type: "Once", leadTime: 0 },
     isAcknowledged: false,
     isSequential: false,
-    notes: '',
+    notes: "",
     isContainer: false,
     isPending: true,
     isReady: true,

@@ -15,7 +15,7 @@ export function getCurrentTimestamp(): number {
  * @param timestamp The timestamp to return, or a function that returns it.
  */
 export function mockCurrentTimestamp(timestamp: number | (() => number)): void {
-  if (typeof timestamp === 'number') {
+  if (typeof timestamp === "number") {
     now = () => timestamp;
   } else {
     now = timestamp;
@@ -50,7 +50,7 @@ export function hoursToMilliseconds(hours: number): number {
  * Note: simplified logic for MVP (ignoring leap years/DST nuances for basic "days/weeks").
  */
 export function getIntervalMs(
-  frequency: 'minutes' | 'hours' | 'daily' | 'weekly' | 'monthly' | 'yearly',
+  frequency: "minutes" | "hours" | "daily" | "weekly" | "monthly" | "yearly",
   interval: number,
 ): number {
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -58,18 +58,18 @@ export function getIntervalMs(
   const ONE_MINUTE_MS = 60 * 1000;
 
   switch (frequency) {
-    case 'minutes':
+    case "minutes":
       return interval * ONE_MINUTE_MS;
-    case 'hours':
+    case "hours":
       return interval * ONE_HOUR_MS;
-    case 'daily':
+    case "daily":
       return interval * ONE_DAY_MS;
-    case 'weekly':
+    case "weekly":
       return interval * 7 * ONE_DAY_MS;
-    case 'monthly':
+    case "monthly":
       // Approximation: 30 days
       return interval * 30 * ONE_DAY_MS;
-    case 'yearly':
+    case "yearly":
       // Approximation: 365 days
       return interval * 365 * ONE_DAY_MS;
   }

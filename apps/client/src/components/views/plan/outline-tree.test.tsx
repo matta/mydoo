@@ -1,23 +1,23 @@
-import type { TaskID, TunnelNode } from '@mydoo/tasklens';
-import { createMockTask } from '@mydoo/tasklens';
-import { screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
-import { renderWithTestProviders } from '../../../test/setup';
-import { OutlineTree, type OutlineTreeProps } from './outline-tree';
+import type { TaskID, TunnelNode } from "@mydoo/tasklens";
+import { createMockTask } from "@mydoo/tasklens";
+import { screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { renderWithTestProviders } from "../../../test/setup";
+import { OutlineTree, type OutlineTreeProps } from "./outline-tree";
 
-describe('OutlineTree', () => {
+describe("OutlineTree", () => {
   const mockChild: TunnelNode = {
     ...createMockTask({
-      id: 'child-1' as TaskID,
-      title: 'Child Task',
+      id: "child-1" as TaskID,
+      title: "Child Task",
     }),
     children: [],
   };
 
   const mockRoot: TunnelNode = {
     ...mockChild,
-    id: 'root-1' as TaskID,
-    title: 'Root Task',
+    id: "root-1" as TaskID,
+    title: "Root Task",
     children: [mockChild],
   };
 
@@ -29,7 +29,7 @@ describe('OutlineTree', () => {
     onToggleCompletion: vi.fn(),
     onIndent: vi.fn(),
     onOutdent: vi.fn(),
-    viewMode: 'tree',
+    viewMode: "tree",
     onOpenEditor: vi.fn(),
     onAddSibling: vi.fn(),
     onAddChild: vi.fn(),
@@ -43,25 +43,25 @@ describe('OutlineTree', () => {
     );
   };
 
-  it('renders root nodes', () => {
+  it("renders root nodes", () => {
     renderComponent();
-    expect(screen.getByText('Root Task')).toBeInTheDocument();
+    expect(screen.getByText("Root Task")).toBeInTheDocument();
     // Child should NOT be visible initially (not expanded)
-    expect(screen.queryByText('Child Task')).not.toBeInTheDocument();
+    expect(screen.queryByText("Child Task")).not.toBeInTheDocument();
   });
 
-  it('renders children when expanded', () => {
+  it("renders children when expanded", () => {
     renderComponent({
-      expandedIds: new Set(['root-1' as TaskID]),
+      expandedIds: new Set(["root-1" as TaskID]),
     });
-    expect(screen.getByText('Root Task')).toBeInTheDocument();
-    expect(screen.getByText('Child Task')).toBeInTheDocument();
+    expect(screen.getByText("Root Task")).toBeInTheDocument();
+    expect(screen.getByText("Child Task")).toBeInTheDocument();
   });
 
-  it('handles empty nodes gracefully', () => {
+  it("handles empty nodes gracefully", () => {
     renderComponent({ nodes: [] });
     // MantineProvider renders global styles so container is not empty.
     // We check that no task items are rendered.
-    expect(screen.queryByTestId('task-item')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("task-item")).not.toBeInTheDocument();
   });
 });

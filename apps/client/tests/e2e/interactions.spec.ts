@@ -1,31 +1,31 @@
-import { test } from './fixtures';
+import { test } from "./fixtures";
 
-test.describe('Task Interactions', () => {
+test.describe("Task Interactions", () => {
   test.beforeEach(async ({ plan }) => {
     await plan.primeWithSampleData();
   });
 
-  test('create and complete a task', async ({ plan }) => {
-    const taskName = 'New E2E Task';
+  test("create and complete a task", async ({ plan }) => {
+    const taskName = "New E2E Task";
 
-    await test.step('Create Task', async () => {
+    await test.step("Create Task", async () => {
       await plan.createTask(taskName);
     });
 
-    await test.step('Verify Created', async () => {
+    await test.step("Verify Created", async () => {
       await plan.verifyTaskVisible(taskName);
     });
 
-    await test.step('Complete Task', async () => {
+    await test.step("Complete Task", async () => {
       await plan.completeTask(taskName);
       await plan.verifyTaskCompleted(taskName);
     });
 
-    await test.step('Clear Completed Tasks', async () => {
+    await test.step("Clear Completed Tasks", async () => {
       await plan.clearCompletedTasks();
     });
 
-    await test.step('Verify Gone', async () => {
+    await test.step("Verify Gone", async () => {
       await plan.verifyTaskHidden(taskName);
     });
   });

@@ -1,11 +1,11 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import Ajv, { type ValidateFunction } from 'ajv';
-import addFormats from 'ajv-formats';
-import { load } from 'js-yaml';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import featureSchemaJson from '../../specs/compliance/schemas/feature.schema.json';
-import { getPrioritizedTasks } from '../../src/domain/priority';
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import Ajv, { type ValidateFunction } from "ajv";
+import addFormats from "ajv-formats";
+import { load } from "js-yaml";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import featureSchemaJson from "../../specs/compliance/schemas/feature.schema.json";
+import { getPrioritizedTasks } from "../../src/domain/priority";
 import type {
   InitialState,
   Mutation,
@@ -13,8 +13,8 @@ import type {
   Step,
   TaskInput,
   TunnelAlgorithmFeatureSchema,
-} from '../../src/generated/feature';
-import { TunnelStore } from '../../src/persistence/store';
+} from "../../src/generated/feature";
+import { TunnelStore } from "../../src/persistence/store";
 import {
   ANYWHERE_PLACE_ID,
   DEFAULT_CREDIT_INCREMENT,
@@ -27,12 +27,12 @@ import {
   TaskStatus as StoreTaskStatus,
   type TaskID,
   type ViewFilter,
-} from '../../src/types';
+} from "../../src/types";
 import {
   getCurrentTimestamp,
   mockCurrentTimestamp,
   resetCurrentTimestampMock,
-} from '../../src/utils/time';
+} from "../../src/utils/time";
 
 const ajv = new Ajv({
   allowUnionTypes: true,
@@ -43,7 +43,7 @@ addFormats(ajv);
 
 const validateFeatureStructure = ajv.compile(featureSchemaJson);
 
-const FIXTURES_PATH = join(process.cwd(), 'specs', 'compliance', 'fixtures');
+const FIXTURES_PATH = join(process.cwd(), "specs", "compliance", "fixtures");
 
 type Variables = Record<string, string | number | boolean | null | undefined>;
 
@@ -51,7 +51,7 @@ type Variables = Record<string, string | number | boolean | null | undefined>;
  * Recursively interpolates template strings like `${varName}` with variable values.
  */
 function interpolate<T>(template: T, variables: Variables): T {
-  if (typeof template === 'string') {
+  if (typeof template === "string") {
     return template.replace(/\$\{([^}]+)\}/g, (_, key: string) => {
       const val = variables[key];
       if (val === undefined) return `\${${key}}`;
@@ -61,7 +61,7 @@ function interpolate<T>(template: T, variables: Variables): T {
   if (Array.isArray(template)) {
     return template.map((item) => interpolate(item, variables)) as T;
   }
-  if (template !== null && typeof template === 'object') {
+  if (template !== null && typeof template === "object") {
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(template)) {
       result[key] = interpolate(value, variables);
@@ -76,18 +76,18 @@ function interpolate<T>(template: T, variables: Variables): T {
  * Handles 'true'/'false' → boolean, 'null' → undefined, numeric strings → number.
  */
 function castTypes<T>(obj: T): T {
-  if (typeof obj === 'string') {
-    if (obj === 'true') return true as T;
-    if (obj === 'false') return false as T;
+  if (typeof obj === "string") {
+    if (obj === "true") return true as T;
+    if (obj === "false") return false as T;
     // Return undefined instead of null per project conventions
-    if (obj === 'null') return undefined as T;
+    if (obj === "null") return undefined as T;
     if (/^-?\d+(\.\d+)?$/.test(obj)) return Number(obj) as T;
     return obj as T;
   }
   if (Array.isArray(obj)) {
     return obj.map(castTypes) as T;
   }
-  if (obj !== null && typeof obj === 'object') {
+  if (obj !== null && typeof obj === "object") {
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       result[key] = castTypes(value);
@@ -134,10 +134,10 @@ function parseTaskInput(
 
   const task: PersistedTask = {
     id: input.id as TaskID,
-    title: input.title ?? 'Default Task',
+    title: input.title ?? "Default Task",
     status:
       StoreTaskStatus[
-        (input.status as keyof typeof StoreTaskStatus) ?? 'Pending'
+        (input.status as keyof typeof StoreTaskStatus) ?? "Pending"
       ],
     importance: Number(input.importance ?? 1.0),
     creditIncrement: effectiveCreditIncrement,
@@ -148,7 +148,7 @@ function parseTaskInput(
       : testStartDate.getTime(),
     priorityTimestamp: testStartDate.getTime(),
     schedule: {
-      type: (input.schedule_type as Schedule['type']) ?? 'Once',
+      type: (input.schedule_type as Schedule["type"]) ?? "Once",
       leadTime: Number(input.lead_time_seconds ?? 604800) * 1000,
       ...(input.last_done
         ? { lastDone: new Date(input.last_done).getTime() }
@@ -158,7 +158,7 @@ function parseTaskInput(
     isSequential: Boolean(input.is_sequential ?? false),
     childTaskIds: [],
     isAcknowledged: false,
-    notes: '',
+    notes: "",
   };
 
   if (repeatConfig) {
@@ -203,12 +203,12 @@ function applyCreditUpdates(
   }
 }
 
-type TaskUpdate = NonNullable<Mutation['task_updates']>[number];
+type TaskUpdate = NonNullable<Mutation["task_updates"]>[number];
 
 function computePartialUpdate(
   store: TunnelStore,
   id: string,
-  props: Omit<TaskUpdate, 'id'>,
+  props: Omit<TaskUpdate, "id">,
 ): Partial<PersistedTask> {
   const taskProps: Partial<PersistedTask> = {};
 
@@ -245,7 +245,7 @@ function computePartialUpdate(
 function computeScheduleUpdate(
   store: TunnelStore,
   id: string,
-  props: Omit<TaskUpdate, 'id'>,
+  props: Omit<TaskUpdate, "id">,
   taskProps: Partial<PersistedTask>,
 ): void {
   if (
@@ -267,9 +267,9 @@ function computeScheduleUpdate(
       }
       if (props.schedule_type !== undefined) {
         if (props.schedule_type === null) {
-          taskProps.schedule.type = 'Once'; // Default fallback? Or undefined?
+          taskProps.schedule.type = "Once"; // Default fallback? Or undefined?
         } else {
-          taskProps.schedule.type = props.schedule_type as Schedule['type'];
+          taskProps.schedule.type = props.schedule_type as Schedule["type"];
         }
       }
 
@@ -315,7 +315,7 @@ function applyTaskUpdates(store: TunnelStore, updates: TaskUpdate[]): void {
 function setupStore(hydratedBackground: InitialState) {
   const testStartTime = hydratedBackground.current_time
     ? new Date(hydratedBackground.current_time).getTime()
-    : new Date('2025-01-01T12:00:00Z').getTime();
+    : new Date("2025-01-01T12:00:00Z").getTime();
 
   mockCurrentTimestamp(testStartTime);
 
@@ -363,53 +363,53 @@ function verifyTaskOrder(
 
 function verifySingleTaskProp(
   task: EnrichedTask,
-  expected: NonNullable<NonNullable<Step['then']>['expected_props']>[number],
+  expected: NonNullable<NonNullable<Step["then"]>["expected_props"]>[number],
   propKey: string,
 ) {
   switch (propKey) {
-    case 'id':
+    case "id":
       break; // Already used to look up task
-    case 'score':
+    case "score":
       expect(task.priority).toBeCloseTo(Number(expected.score), 4);
       break;
-    case 'is_ready':
+    case "is_ready":
       expect(task.isReady).toBe(Boolean(expected.is_ready));
       break;
-    case 'is_visible':
+    case "is_visible":
       expect(task.visibility).toBe(Boolean(expected.is_visible));
       break;
-    case 'effective_credits':
+    case "effective_credits":
       expect(task.effectiveCredits).toBeCloseTo(
         Number(expected.effective_credits),
         4,
       );
       break;
-    case 'normalized_importance':
+    case "normalized_importance":
       expect(task.normalizedImportance).toBeCloseTo(
         Number(expected.normalized_importance),
         4,
       );
       break;
-    case 'importance':
+    case "importance":
       expect(task.importance).toBeCloseTo(Number(expected.importance), 4);
       break;
-    case 'is_blocked':
+    case "is_blocked":
       // TODO: EnrichedTask does not currently expose isBlocked status.
       // Ignoring this assertion for now to allow tests to pass.
       break;
-    case 'is_open':
+    case "is_open":
       // TODO: EnrichedTask does not currently expose place open status independently of visibility.
       // Ignoring this assertion for now to allow tests to pass.
       break;
-    case 'place_id':
+    case "place_id":
       expect(task.placeId).toBe(
         expected[propKey] as PlaceID | null | undefined,
       );
       break;
-    case 'credit_increment':
+    case "credit_increment":
       expect(task.creditIncrement).toBeCloseTo(Number(expected[propKey]), 4);
       break;
-    case 'due_date': {
+    case "due_date": {
       const expectedDate = expected[propKey]
         ? new Date(expected[propKey] as string).getTime()
         : undefined;
@@ -417,7 +417,7 @@ function verifySingleTaskProp(
       expect(task.schedule?.dueDate).toBe(expectedDate);
       break;
     }
-    case 'lead_time':
+    case "lead_time":
       expect(task.schedule?.leadTime).toBe(Number(expected[propKey]));
       break;
     default:
@@ -428,13 +428,13 @@ function verifySingleTaskProp(
 function verifyTaskProps(
   store: TunnelStore,
   viewFilter: ViewFilter,
-  expectedProps: NonNullable<Step['then']>['expected_props'],
+  expectedProps: NonNullable<Step["then"]>["expected_props"],
 ) {
   if (!expectedProps) return;
 
   const allTasks = getPrioritizedTasks(store.doc, viewFilter, {
     includeHidden: true,
-    mode: 'plan-outline',
+    mode: "plan-outline",
   });
   const computedMap = new Map(allTasks.map((t) => [t.id, t]));
 
@@ -449,7 +449,7 @@ function verifyTaskProps(
 }
 
 function verifyAssertions(
-  then: Step['then'],
+  then: Step["then"],
   store: TunnelStore,
   viewFilter: ViewFilter,
 ) {
@@ -457,13 +457,13 @@ function verifyAssertions(
 
   for (const key of Object.keys(then)) {
     switch (key) {
-      case 'expected_order': {
+      case "expected_order": {
         if (Array.isArray(then.expected_order)) {
           verifyTaskOrder(store, viewFilter, then.expected_order);
         }
         break;
       }
-      case 'expected_props': {
+      case "expected_props": {
         if (Array.isArray(then.expected_props)) {
           verifyTaskProps(store, viewFilter, then.expected_props);
         }
@@ -487,7 +487,7 @@ function describeStep(stepIndex: number, step: Step): string {
       (k) => step.given?.[k as keyof typeof step.given] !== undefined,
     );
     if (givenKeys.length > 0) {
-      clauses.push(`Given ${givenKeys.join(', ')}`);
+      clauses.push(`Given ${givenKeys.join(", ")}`);
     }
   }
 
@@ -496,7 +496,7 @@ function describeStep(stepIndex: number, step: Step): string {
       (k) => step.when?.[k as keyof typeof step.when] !== undefined,
     );
     if (whenKeys.length > 0) {
-      clauses.push(`When ${whenKeys.join(', ')}`);
+      clauses.push(`When ${whenKeys.join(", ")}`);
     }
   }
 
@@ -505,11 +505,11 @@ function describeStep(stepIndex: number, step: Step): string {
       (k) => step.then?.[k as keyof typeof step.then] !== undefined,
     );
     if (thenKeys.length > 0) {
-      clauses.push(`Then ${thenKeys.join(', ')}`);
+      clauses.push(`Then ${thenKeys.join(", ")}`);
     }
   }
 
-  const description = clauses.length > 0 ? clauses.join(', ') : 'Empty step';
+  const description = clauses.length > 0 ? clauses.join(", ") : "Empty step";
   return `Step ${stepIndex + 1}: ${description}`;
 }
 
@@ -555,23 +555,23 @@ function executeStep(step: Step, store: TunnelStore, currentTestTime: number) {
 
   const viewFilter: ViewFilter = {
     placeId:
-      step.view_filter === 'All Places'
-        ? 'All'
-        : (step.view_filter as PlaceID) || 'All',
+      step.view_filter === "All Places"
+        ? "All"
+        : (step.view_filter as PlaceID) || "All",
   };
   verifyAssertions(step.then, store, viewFilter);
 
   return newTime;
 }
 
-describe('Algorithm BDD Test Suite', () => {
+describe("Algorithm BDD Test Suite", () => {
   const allFiles = readdirSync(FIXTURES_PATH).filter((f) =>
-    f.endsWith('.feature.yaml'),
+    f.endsWith(".feature.yaml"),
   );
   const allFeatures: TunnelAlgorithmFeatureSchema[] = [];
 
   for (const file of allFiles) {
-    const content = readFileSync(join(FIXTURES_PATH, file), 'utf8');
+    const content = readFileSync(join(FIXTURES_PATH, file), "utf8");
     const feature = load(content) as TunnelAlgorithmFeatureSchema;
 
     if (!validateFeatureStructure(feature)) {

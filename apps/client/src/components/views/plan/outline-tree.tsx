@@ -1,7 +1,7 @@
-import { Stack } from '@mantine/core';
-import type { TaskID, TunnelNode } from '@mydoo/tasklens';
+import { Stack } from "@mantine/core";
+import type { TaskID, TunnelNode } from "@mydoo/tasklens";
 
-import { TaskOutlineItem } from '../../primitives/task-outline-item';
+import { TaskOutlineItem } from "../../primitives/task-outline-item";
 
 /**
  * Props for the OutlineTree component.
@@ -24,7 +24,7 @@ export interface OutlineTreeProps {
   /** The current indentation depth (handled internally by recursion). */
   depth?: number;
   /** View mode: 'tree' (desktop) or 'drill' (mobile). */
-  viewMode: 'tree' | 'drill';
+  viewMode: "tree" | "drill";
   /** Callback to open task editor. */
   onOpenEditor: (id: TaskID) => void;
   // Context Actions

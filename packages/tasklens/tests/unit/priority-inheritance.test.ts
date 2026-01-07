@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { recalculatePriorities } from '../../src/domain/priority';
+import { describe, expect, it } from "vitest";
+import { recalculatePriorities } from "../../src/domain/priority";
 import {
   ANYWHERE_PLACE_ID,
   DEFAULT_CREDIT_INCREMENT,
@@ -8,18 +8,18 @@ import {
   type TaskID,
   TaskStatus,
   type TunnelState,
-} from '../../src/types';
+} from "../../src/types";
 
-describe('Inheritance Logic', () => {
-  it('should not overwrite child schedule if child has explicit due date', () => {
-    const parentId = 'parent' as TaskID;
-    const childId = 'child' as TaskID;
+describe("Inheritance Logic", () => {
+  it("should not overwrite child schedule if child has explicit due date", () => {
+    const parentId = "parent" as TaskID;
+    const childId = "child" as TaskID;
 
     const parent: EnrichedTask = {
       ...baseTask(parentId),
       childTaskIds: [childId],
       schedule: {
-        type: 'Once',
+        type: "Once",
         dueDate: 1000, // Parent due at T=1000
         leadTime: 100,
       },
@@ -30,7 +30,7 @@ describe('Inheritance Logic', () => {
       ...baseTask(childId),
       parentId: parentId,
       schedule: {
-        type: 'Once',
+        type: "Once",
         dueDate: 2000, // Child due at T=2000 (Later)
         leadTime: 0,
       },
@@ -79,16 +79,16 @@ describe('Inheritance Logic', () => {
     expect(childResult?.leadTimeFactor).toBe(0);
   });
 
-  it('should inherit schedule recursively (Grandparent -> Parent -> Child)', () => {
-    const gpId = 'gp' as TaskID;
-    const pId = 'p' as TaskID;
-    const cId = 'c' as TaskID;
+  it("should inherit schedule recursively (Grandparent -> Parent -> Child)", () => {
+    const gpId = "gp" as TaskID;
+    const pId = "p" as TaskID;
+    const cId = "c" as TaskID;
 
     // Grandparent has Due Date
     const gp: EnrichedTask = {
       ...baseTask(gpId),
       childTaskIds: [pId],
-      schedule: { type: 'Once', dueDate: 1000, leadTime: 100 },
+      schedule: { type: "Once", dueDate: 1000, leadTime: 100 },
       isContainer: true,
       outlineIndex: 0,
     };
@@ -98,7 +98,7 @@ describe('Inheritance Logic', () => {
       ...baseTask(pId),
       parentId: gpId,
       childTaskIds: [cId],
-      schedule: { type: 'Once', dueDate: undefined, leadTime: 0 },
+      schedule: { type: "Once", dueDate: undefined, leadTime: 0 },
       isContainer: true,
       outlineIndex: 1,
     };
@@ -107,7 +107,7 @@ describe('Inheritance Logic', () => {
     const c: EnrichedTask = {
       ...baseTask(cId),
       parentId: pId,
-      schedule: { type: 'Once', dueDate: undefined, leadTime: 0 },
+      schedule: { type: "Once", dueDate: undefined, leadTime: 0 },
       outlineIndex: 2,
     };
 
@@ -131,10 +131,10 @@ describe('Inheritance Logic', () => {
 function baseTask(id: TaskID): EnrichedTask {
   return {
     id,
-    title: 'Task',
+    title: "Task",
     status: TaskStatus.Pending,
     childTaskIds: [],
-    schedule: { type: 'Once', dueDate: undefined, leadTime: 0 },
+    schedule: { type: "Once", dueDate: undefined, leadTime: 0 },
     parentId: undefined,
     importance: 0.5,
     credits: 0,
@@ -143,7 +143,7 @@ function baseTask(id: TaskID): EnrichedTask {
     creditIncrement: DEFAULT_CREDIT_INCREMENT,
     isAcknowledged: false,
     isSequential: false,
-    notes: '',
+    notes: "",
     placeId: ANYWHERE_PLACE_ID as PlaceID,
     priorityTimestamp: 0,
     effectiveCredits: 0,

@@ -1,7 +1,7 @@
-import { Stack, Text } from '@mantine/core';
-import type { Task, TaskID } from '@mydoo/tasklens';
+import { Stack, Text } from "@mantine/core";
+import type { Task, TaskID } from "@mydoo/tasklens";
 
-import { TaskRow } from '../primitives/task-row';
+import { TaskRow } from "../primitives/task-row";
 
 /**
  * Props for the PriorityTaskList component.

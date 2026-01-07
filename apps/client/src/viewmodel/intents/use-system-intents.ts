@@ -1,11 +1,11 @@
-import { useDocHandle } from '@automerge/automerge-repo-react-hooks';
+import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
 import {
   type TunnelState,
   useTaskActions,
   useTaskLensDocUrl,
   wakeUpRoutineTasks,
-} from '@mydoo/tasklens';
-import { useCallback, useMemo } from 'react';
+} from "@mydoo/tasklens";
+import { useCallback, useMemo } from "react";
 
 export interface SystemIntents {
   refreshTaskList: () => void;

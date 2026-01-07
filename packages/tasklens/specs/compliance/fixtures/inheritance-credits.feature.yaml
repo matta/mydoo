@@ -1,6 +1,6 @@
 feature: Property Inheritance CreditIncrement
 background:
-  current_time: '2025-01-01T00:00:00Z'
+  current_time: "2025-01-01T00:00:00Z"
   tasks: []
 
 scenarios:

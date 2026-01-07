@@ -4,7 +4,7 @@ description: >
   completion rates and credit usage, ensuring neglected projects rise in
   priority.
 background:
-  current_time: '2025-01-01T12:00:00Z'
+  current_time: "2025-01-01T12:00:00Z"
   tasks:
     - id: ProjectAlpha
       title: Parent A

@@ -7,7 +7,7 @@ export interface ParsedDuration {
   /** Raw unit string (e.g., "days", "hour") */
   rawUnit: string;
   /** UI-friendly unit label (e.g., "Days", "Hours", "Minutes") */
-  uiUnit: 'Days' | 'Hours' | 'Minutes';
+  uiUnit: "Days" | "Hours" | "Minutes";
 }
 
 /**
@@ -47,20 +47,20 @@ export function parseDuration(str: string): ParsedDuration {
   }
 
   // Explicit allowlists for valid unit strings
-  const minuteUnits = ['minute', 'minutes', 'min', 'mins'];
-  const hourUnits = ['hour', 'hours', 'hr', 'hrs'];
-  const dayUnits = ['day', 'days'];
+  const minuteUnits = ["minute", "minutes", "min", "mins"];
+  const hourUnits = ["hour", "hours", "hr", "hrs"];
+  const dayUnits = ["day", "days"];
 
-  let uiUnit: ParsedDuration['uiUnit'];
+  let uiUnit: ParsedDuration["uiUnit"];
   if (minuteUnits.includes(rawUnit)) {
-    uiUnit = 'Minutes';
+    uiUnit = "Minutes";
   } else if (hourUnits.includes(rawUnit)) {
-    uiUnit = 'Hours';
+    uiUnit = "Hours";
   } else if (dayUnits.includes(rawUnit)) {
-    uiUnit = 'Days';
+    uiUnit = "Days";
   } else {
     throw new Error(
-      `Unrecognized duration unit: "${rawUnit}" in "${str}". Valid units: ${[...minuteUnits, ...hourUnits, ...dayUnits].join(', ')}`,
+      `Unrecognized duration unit: "${rawUnit}" in "${str}". Valid units: ${[...minuteUnits, ...hourUnits, ...dayUnits].join(", ")}`,
     );
   }
 
@@ -82,11 +82,11 @@ export function durationToMs(str: string): number {
 
   // Use validated uiUnit field for conversion
   switch (uiUnit) {
-    case 'Minutes':
+    case "Minutes":
       return value * 60 * 1000;
-    case 'Hours':
+    case "Hours":
       return value * 60 * 60 * 1000;
-    case 'Days':
+    case "Days":
       return value * 24 * 60 * 60 * 1000;
   }
 }

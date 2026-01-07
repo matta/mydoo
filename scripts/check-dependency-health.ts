@@ -12,20 +12,20 @@
  *   - Node.js environment with pnpm installed
  */
 
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { glob } from 'glob';
+import fs from "node:fs/promises";
+import path from "node:path";
+import { glob } from "glob";
 
 // ANSI color codes
-const reset = '\x1b[0m';
-const bold = '\x1b[1m';
-const red = '\x1b[31m';
-const green = '\x1b[32m';
-const yellow = '\x1b[33m';
-const gray = '\x1b[90m';
+const reset = "\x1b[0m";
+const bold = "\x1b[1m";
+const red = "\x1b[31m";
+const green = "\x1b[32m";
+const yellow = "\x1b[33m";
+const gray = "\x1b[90m";
 
-const NPM_REGISTRY = 'https://registry.npmjs.org';
-const NPM_DOWNLOADS = 'https://api.npmjs.org/downloads/point/last-week';
+const NPM_REGISTRY = "https://registry.npmjs.org";
+const NPM_DOWNLOADS = "https://api.npmjs.org/downloads/point/last-week";
 
 // Retry configuration
 const MAX_RETRIES = 20;
@@ -174,7 +174,7 @@ async function fetchPackageStats(pkgName: string): Promise<PackageStats> {
 
     if (!registryRes.ok) {
       if (registryRes.status === 404) {
-        return { name: pkgName, error: 'Not Found (404)' };
+        return { name: pkgName, error: "Not Found (404)" };
       }
       return { name: pkgName, error: `Registry Error: ${registryRes.status}` };
     }
@@ -189,7 +189,7 @@ async function fetchPackageStats(pkgName: string): Promise<PackageStats> {
       ? await downloadsRes.json()
       : { downloads: 0 };
 
-    const latestVersion = registryData['dist-tags']?.latest;
+    const latestVersion = registryData["dist-tags"]?.latest;
     const time = registryData.time;
     const lastPublish = time ? new Date(time[latestVersion]) : new Date(0);
 
@@ -206,7 +206,7 @@ async function fetchPackageStats(pkgName: string): Promise<PackageStats> {
       deprecatedMessage: versionData?.deprecated,
     };
   } catch (_error: unknown) {
-    const message = _error instanceof Error ? _error.message : 'Unknown Error';
+    const message = _error instanceof Error ? _error.message : "Unknown Error";
     return { name: pkgName, error: message };
   }
 }
@@ -216,10 +216,10 @@ async function main() {
 
   // Find all package.json files, ignoring node_modules
   const scriptDir = path.dirname(new URL(import.meta.url).pathname);
-  const rootDir = path.resolve(scriptDir, '..');
+  const rootDir = path.resolve(scriptDir, "..");
 
-  const packageFiles = await glob('**/package.json', {
-    ignore: ['**/node_modules/**', '**/dist/**', '**/coverage/**'],
+  const packageFiles = await glob("**/package.json", {
+    ignore: ["**/node_modules/**", "**/dist/**", "**/coverage/**"],
     cwd: rootDir,
     absolute: true,
   });
@@ -227,7 +227,7 @@ async function main() {
   const dependencies = new Set<string>();
 
   for (const file of packageFiles) {
-    const content = await fs.readFile(file, 'utf-8');
+    const content = await fs.readFile(file, "utf-8");
     const json = safeJSON<{
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
@@ -256,7 +256,7 @@ async function main() {
     process.stdout.write(`\r${i + 1}/${total} ${pkg} (${ms}ms)`.padEnd(60));
     stats.push(result);
   }
-  console.log(`\r${'✓ Fetched all packages'.padEnd(60)}`);
+  console.log(`\r${"✓ Fetched all packages".padEnd(60)}`);
 
   stats.sort((a, b) => (a.weeklyDownloads || 0) - (b.weeklyDownloads || 0));
 
@@ -266,22 +266,22 @@ async function main() {
 
   const colWidths = [42, 14, 14, 14, 20];
   const headers = [
-    'PACKAGE',
-    'VERSION',
-    'LAST PUBLISH',
-    'DOWNLOADS/WK',
-    'STATUS',
+    "PACKAGE",
+    "VERSION",
+    "LAST PUBLISH",
+    "DOWNLOADS/WK",
+    "STATUS",
   ];
-  console.log(headers.map((h, i) => h.padEnd(colWidths[i])).join(''));
-  console.log('-'.repeat(colWidths.reduce((a, b) => a + b, 0)));
+  console.log(headers.map((h, i) => h.padEnd(colWidths[i])).join(""));
+  console.log("-".repeat(colWidths.reduce((a, b) => a + b, 0)));
 
   for (const pkg of stats) {
     if (pkg.error) {
       console.log(
         pkg.name.padEnd(colWidths[0]) +
-          '-'.padEnd(colWidths[1]) +
-          '-'.padEnd(colWidths[2]) +
-          '-'.padEnd(colWidths[3]) +
+          "-".padEnd(colWidths[1]) +
+          "-".padEnd(colWidths[2]) +
+          "-".padEnd(colWidths[3]) +
           `${red}ERROR: ${pkg.error}${reset}`,
       );
       continue;
@@ -293,10 +293,10 @@ async function main() {
 
     console.log(
       pkg.name.padEnd(colWidths[0]) +
-        (pkg.latestVersion || 'N/A').padEnd(colWidths[1]) +
+        (pkg.latestVersion || "N/A").padEnd(colWidths[1]) +
         (pkg.lastPublish
-          ? pkg.lastPublish.toISOString().split('T')[0]
-          : 'N/A'
+          ? pkg.lastPublish.toISOString().split("T")[0]
+          : "N/A"
         ).padEnd(colWidths[2]) +
         formatDownloads(pkg.weeklyDownloads || 0).padEnd(colWidths[3]) +
         getMaintenanceStatus(daysSincePublish, pkg.isDeprecated),

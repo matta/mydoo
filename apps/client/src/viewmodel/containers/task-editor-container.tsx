@@ -1,17 +1,17 @@
-import { useMediaQuery } from '@mantine/hooks';
+import { useMediaQuery } from "@mantine/hooks";
 import {
   selectRootTaskIds,
   selectTaskEntities,
   type Task,
   type TaskID,
-} from '@mydoo/tasklens';
-import { useCallback, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+} from "@mydoo/tasklens";
+import { useCallback, useEffect } from "react";
+import { useSelector } from "react-redux";
 
-import { TaskEditorModal } from '../../components/modals/task-editor-modal';
-import { useTaskIntents } from '../intents/use-task-intents';
-import { useTaskDetails } from '../projections/use-task-details';
-import { useNavigationState } from '../ui/use-navigation-state';
+import { TaskEditorModal } from "../../components/modals/task-editor-modal";
+import { useTaskIntents } from "../intents/use-task-intents";
+import { useTaskDetails } from "../projections/use-task-details";
+import { useNavigationState } from "../ui/use-navigation-state";
 
 /**
  * Container that connects the TaskEditorModal to the application state.
@@ -36,7 +36,7 @@ export function TaskEditorContainer() {
     setActiveTab,
   } = useNavigationState();
 
-  const editingTaskId = modal?.type === 'edit' ? modal.taskId : undefined;
+  const editingTaskId = modal?.type === "edit" ? modal.taskId : undefined;
 
   const { task, parentTitle, descendantCount, isLoading } =
     useTaskDetails(editingTaskId);
@@ -45,12 +45,12 @@ export function TaskEditorContainer() {
 
   // Auto-close if task is missing (deleted remotely)
   useEffect(() => {
-    if (editingTaskId && !task && !isLoading && modal?.type === 'edit') {
+    if (editingTaskId && !task && !isLoading && modal?.type === "edit") {
       closeModal();
     }
   }, [editingTaskId, task, isLoading, modal?.type, closeModal]);
 
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   // Resolve parent title for Create Mode
   const tasks = useSelector(selectTaskEntities);
@@ -65,7 +65,7 @@ export function TaskEditorContainer() {
   // But if we have partial updates, we might need to handle that.
   // TaskEditorModal expects `Task | undefined` (where Task is ComputedTask alias).
   const editorState = useCallback(() => {
-    if (modal?.type === 'create') {
+    if (modal?.type === "create") {
       if (!modal.parentId) return { task: undefined, parent: undefined };
       return { task: undefined, parent: tasks[modal.parentId] };
     }
@@ -81,12 +81,12 @@ export function TaskEditorContainer() {
     };
   }, [tasks, modal, task]);
 
-  if (modal?.type === 'create') {
+  if (modal?.type === "create") {
     const parentId = modal.parentId;
     if (parentId && tasks[parentId]) {
       resolvedParentTitle = tasks[parentId].title;
     } else {
-      resolvedParentTitle = ''; // Root or unknown
+      resolvedParentTitle = ""; // Root or unknown
     }
   }
 
@@ -163,7 +163,7 @@ export function TaskEditorContainer() {
    * @param props - Additional task properties (importance, effort, etc.)
    */
   const handleCreate = (title: string, props?: Partial<Task>) => {
-    if (modal?.type !== 'create') return;
+    if (modal?.type !== "create") return;
 
     let newTaskId: TaskID;
 
@@ -172,7 +172,7 @@ export function TaskEditorContainer() {
         title,
         modal.parentId,
         {
-          position: 'after',
+          position: "after",
           afterTaskId: modal.afterTaskId,
         },
         props,
@@ -262,7 +262,7 @@ export function TaskEditorContainer() {
     setLastCreatedTaskId(taskId); // Re-use the "New Task" highlight mechanism
 
     // 4. Switch to Plan View
-    setActiveTab('plan');
+    setActiveTab("plan");
 
     // 5. Close Modal
     closeModal();
@@ -272,11 +272,11 @@ export function TaskEditorContainer() {
 
   return (
     <TaskEditorModal
-      opened={!!modal && (modal.type === 'create' || !!task)}
+      opened={!!modal && (modal.type === "create" || !!task)}
       onClose={handleClose}
       task={currentEditorState.task} // Now correctly typed as computed task or undefined
       mode={
-        modal?.type === 'create' || modal?.type === 'edit'
+        modal?.type === "create" || modal?.type === "edit"
           ? modal.type
           : undefined
       }

@@ -3,7 +3,7 @@ description: >-
   Verify that in a sequential group, only the first pending task is active
   (visible), and subsequent tasks are blocked.
 background:
-  current_time: '2023-01-01T12:00:00+00:00'
+  current_time: "2023-01-01T12:00:00+00:00"
   timezone_offset: 0
   tasks:
     - id: Group

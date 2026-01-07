@@ -22,8 +22,8 @@
  * object in tests). The `state.tasks` Record uses plain objects because
  * Automerge cannot proxy JavaScript Map or Set types.
  */
-import { CREDITS_HALF_LIFE_MILLIS } from '../domain/constants';
-import { validateDepth, validateNoCycle } from '../domain/invariants';
+import { CREDITS_HALF_LIFE_MILLIS } from "../domain/constants";
+import { validateDepth, validateNoCycle } from "../domain/invariants";
 import {
   ANYWHERE_PLACE_ID,
   type CreateTaskOptions,
@@ -33,8 +33,8 @@ import {
   type TaskID,
   TaskStatus,
   type TunnelState,
-} from '../types';
-import { getCurrentTimestamp, hoursToMilliseconds } from '../utils/time';
+} from "../types";
+import { getCurrentTimestamp, hoursToMilliseconds } from "../utils/time";
 
 // --- Mutators ---
 
@@ -59,20 +59,20 @@ import { getCurrentTimestamp, hoursToMilliseconds } from '../utils/time';
 export function createTask(
   state: TunnelState,
   props: Partial<PersistedTask>,
-  options: CreateTaskOptions = { position: 'end' },
+  options: CreateTaskOptions = { position: "end" },
 ): PersistedTask {
   // Use UUID for CRDT compatibility - sequential counters cause conflicts
   // when multiple replicas create tasks simultaneously.
   // Caller may provide an ID for testing purposes.
   const newTaskId = props.id ?? (crypto.randomUUID() as TaskID);
   const defaultSchedule: Schedule = {
-    type: 'Once',
+    type: "Once",
     dueDate: undefined,
     leadTime: hoursToMilliseconds(8),
   };
   const newTask: PersistedTask = {
     id: newTaskId,
-    title: props.title ?? 'New Task',
+    title: props.title ?? "New Task",
     parentId: props.parentId ?? undefined,
     // Inherit placeId from parent, or default to ANYWHERE_PLACE_ID for root tasks
     placeId:
@@ -98,7 +98,7 @@ export function createTask(
     childTaskIds: [],
     // Remediation: Init as unacknowledged
     isAcknowledged: false,
-    notes: props.notes ?? '',
+    notes: props.notes ?? "",
     repeatConfig: props.repeatConfig,
   };
 
@@ -108,7 +108,7 @@ export function createTask(
   if (newTask.placeId === undefined) delete newTask.placeId;
   // Enforce Routine Task Default (Immediate Initialization)
   if (
-    newTask.schedule.type === 'Routinely' &&
+    newTask.schedule.type === "Routinely" &&
     newTask.schedule.dueDate === undefined
   ) {
     newTask.schedule.dueDate = getCurrentTimestamp();
@@ -119,11 +119,11 @@ export function createTask(
 
   // Validations for numbers
   if (newTask.creditIncrement !== undefined && newTask.creditIncrement < 0)
-    throw new Error('CreditIncrement cannot be negative.');
+    throw new Error("CreditIncrement cannot be negative.");
   if (newTask.importance < 0 || newTask.importance > 1)
-    throw new Error('Importance must be between 0.0 and 1.0.');
+    throw new Error("Importance must be between 0.0 and 1.0.");
   if (newTask.desiredCredits < 0)
-    throw new Error('DesiredCredits cannot be negative.');
+    throw new Error("DesiredCredits cannot be negative.");
 
   state.tasks[newTaskId] = newTask;
 
@@ -143,9 +143,9 @@ export function createTask(
   }
 
   // Position the task
-  if (options.position === 'start') {
+  if (options.position === "start") {
     targetList.unshift(newTaskId);
-  } else if (options.position === 'after' && options.afterTaskId) {
+  } else if (options.position === "after" && options.afterTaskId) {
     const idx = targetList.indexOf(options.afterTaskId);
     if (idx !== -1) {
       targetList.splice(idx + 1, 0, newTaskId);
@@ -220,16 +220,16 @@ export function updateTask(
  */
 function validateNumericProps(props: Partial<PersistedTask>): void {
   if (props.desiredCredits !== undefined && props.desiredCredits < 0) {
-    throw new Error('DesiredCredits cannot be negative.');
+    throw new Error("DesiredCredits cannot be negative.");
   }
   if (props.creditIncrement !== undefined && props.creditIncrement < 0) {
-    throw new Error('CreditIncrement cannot be negative.');
+    throw new Error("CreditIncrement cannot be negative.");
   }
   if (
     props.importance !== undefined &&
     (props.importance < 0 || props.importance > 1)
   ) {
-    throw new Error('Importance must be between 0.0 and 1.0.');
+    throw new Error("Importance must be between 0.0 and 1.0.");
   }
 }
 
@@ -267,7 +267,7 @@ function handleNestedProperties(
 ): void {
   if (props.repeatConfig !== undefined) {
     task.repeatConfig = props.repeatConfig;
-  } else if ('repeatConfig' in props) {
+  } else if ("repeatConfig" in props) {
     delete task.repeatConfig;
   }
 
@@ -276,7 +276,7 @@ function handleNestedProperties(
     if (props.schedule.leadTime !== undefined)
       task.schedule.leadTime = props.schedule.leadTime;
 
-    if ('dueDate' in props.schedule) {
+    if ("dueDate" in props.schedule) {
       if (props.schedule.dueDate === undefined) {
         delete task.schedule.dueDate;
       } else {
@@ -284,7 +284,7 @@ function handleNestedProperties(
       }
     }
 
-    if ('lastDone' in props.schedule) {
+    if ("lastDone" in props.schedule) {
       if (props.schedule.lastDone === undefined) {
         delete task.schedule.lastDone;
       } else {
@@ -293,11 +293,11 @@ function handleNestedProperties(
     }
   }
 
-  if (props.parentId === undefined && 'parentId' in props) {
+  if (props.parentId === undefined && "parentId" in props) {
     delete task.parentId;
   }
 
-  if (props.placeId === undefined && 'placeId' in props) {
+  if (props.placeId === undefined && "placeId" in props) {
     delete task.placeId;
   } else if (props.placeId !== undefined) {
     task.placeId = props.placeId;
@@ -306,7 +306,7 @@ function handleNestedProperties(
   // Enforce Routine Task Default (Immediate Initialization)
   // If we switched to Routinely (or were already) and have no eligible due date, force it to Now.
   if (
-    task.schedule.type === 'Routinely' &&
+    task.schedule.type === "Routinely" &&
     task.schedule.dueDate === undefined
   ) {
     task.schedule.dueDate = getCurrentTimestamp();
@@ -351,7 +351,7 @@ export function moveTask(
   // Validation: Depth limit
   const parentIdCheck = newParentId ?? undefined;
   if (parentIdCheck) {
-    validateDepth(state, parentIdCheck, 20, 'Cannot move task: new parent');
+    validateDepth(state, parentIdCheck, 20, "Cannot move task: new parent");
   }
 
   const oldParentId = task.parentId;

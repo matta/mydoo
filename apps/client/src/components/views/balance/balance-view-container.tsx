@@ -1,11 +1,11 @@
-import { Container, Paper, Stack, Text, Title } from '@mantine/core';
+import { Container, Paper, Stack, Text, Title } from "@mantine/core";
 import {
   distributeCredits,
   type TaskID,
   useTaskActions,
-} from '@mydoo/tasklens';
-import { useBalanceData } from '../../../hooks/use-balance-data';
-import { BalanceItem } from './balance-item';
+} from "@mydoo/tasklens";
+import { useBalanceData } from "../../../hooks/use-balance-data";
+import { BalanceItem } from "./balance-item";
 
 export function BalanceViewContainer() {
   const items = useBalanceData();
@@ -69,7 +69,7 @@ export function BalanceViewContainer() {
           ))}
 
           {items.length === 0 && (
-            <Paper p="xl" withBorder style={{ textAlign: 'center' }}>
+            <Paper p="xl" withBorder style={{ textAlign: "center" }}>
               <Text c="dimmed">
                 No top-level goals found. Create some in the "Plan" view to
                 start balancing!

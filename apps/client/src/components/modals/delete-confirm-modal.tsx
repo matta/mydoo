@@ -4,7 +4,7 @@
  * Per PRD §3.6, this modal must show the count of descendants that will be deleted.
  * Leaf tasks (no children) may be deleted without this confirmation.
  */
-import { Button, Group, Modal, Stack, Text } from '@mantine/core';
+import { Button, Group, Modal, Stack, Text } from "@mantine/core";
 
 interface DeleteConfirmModalProps {
   /** Whether the modal is open */
@@ -43,7 +43,7 @@ export function DeleteConfirmModal({
         <Text>
           Are you sure you want to delete <strong>"{taskTitle}"</strong>
           {descendantCount > 0 &&
-            ` and ${String(descendantCount)} sub-task${descendantCount === 1 ? '' : 's'}`}
+            ` and ${String(descendantCount)} sub-task${descendantCount === 1 ? "" : "s"}`}
           ?
         </Text>
         <Text c="dimmed" size="sm">

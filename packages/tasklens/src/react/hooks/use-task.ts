@@ -1,6 +1,6 @@
-import { useSelector } from 'react-redux';
-import { selectTaskById } from '../../store/selectors';
-import type { ComputedTask, TaskID } from '../../types';
+import { useSelector } from "react-redux";
+import { selectTaskById } from "../../store/selectors";
+import type { ComputedTask, TaskID } from "../../types";
 
 /**
  * Hook to access a specific task from the Redux store.

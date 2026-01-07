@@ -6,21 +6,21 @@ import {
   Group,
   LoadingOverlay,
   Text,
-} from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
+} from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import {
   selectTaskEntities,
   type TaskID,
   type TunnelNode,
-} from '@mydoo/tasklens';
-import { IconArrowLeft, IconMenu, IconPlus } from '@tabler/icons-react';
-import { useEffect, useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { useTaskIntents } from '../../../viewmodel/intents/use-task-intents';
-import { useTaskTree } from '../../../viewmodel/projections/use-task-tree';
-import { useBreadcrumbs } from '../../../viewmodel/ui/use-breadcrumbs';
-import { useNavigationState } from '../../../viewmodel/ui/use-navigation-state';
-import { OutlineTree } from './outline-tree';
+} from "@mydoo/tasklens";
+import { IconArrowLeft, IconMenu, IconPlus } from "@tabler/icons-react";
+import { useEffect, useMemo } from "react";
+import { useSelector } from "react-redux";
+import { useTaskIntents } from "../../../viewmodel/intents/use-task-intents";
+import { useTaskTree } from "../../../viewmodel/projections/use-task-tree";
+import { useBreadcrumbs } from "../../../viewmodel/ui/use-breadcrumbs";
+import { useNavigationState } from "../../../viewmodel/ui/use-navigation-state";
+import { OutlineTree } from "./outline-tree";
 
 /**
  * The primary container for the "Plan" view.
@@ -95,14 +95,14 @@ export function PlanViewContainer() {
    * Handles creation from the Bottom Bar or Append Row.
    * @param position - 'start' (top) or 'end' (bottom).
    */
-  const handleAddAtPosition = (position: 'start' | 'end') => {
+  const handleAddAtPosition = (position: "start" | "end") => {
     const parentId = currentViewId ?? undefined;
     openCreateModal(parentId, undefined, position);
   };
 
   // Responsive Breakpoint: 768px (sm) matches AppShell logic
-  const isDesktop = useMediaQuery('(min-width: 768px)');
-  const viewMode = isDesktop ? 'tree' : 'drill';
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const viewMode = isDesktop ? "tree" : "drill";
 
   // Strict Viewport Modes: Switching behavior
   useEffect(() => {
@@ -138,20 +138,20 @@ export function PlanViewContainer() {
   }
 
   return (
-    <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Box style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Navigation Header - Top */}
       <Box p="md" pb="xs">
         <Group justify="space-between" mb="xs">
           {/* Breadcrumbs - Always visible if deep, but mainly for Mobile Drill-Down context */}
           {(!isDesktop || breadcrumbs.length > 0) && (
-            <Box style={{ overflowX: 'auto', flex: 1 }}>
+            <Box style={{ overflowX: "auto", flex: 1 }}>
               <Breadcrumbs separator=">">
                 <Button
                   variant="subtle"
                   size="xs"
                   onClick={resetView}
-                  fw={breadcrumbs.length === 0 ? 'bold' : 'normal'}
-                  c={breadcrumbs.length === 0 ? 'text' : 'dimmed'}
+                  fw={breadcrumbs.length === 0 ? "bold" : "normal"}
+                  c={breadcrumbs.length === 0 ? "text" : "dimmed"}
                   px={4}
                 >
                   Plan
@@ -169,8 +169,8 @@ export function PlanViewContainer() {
                           .map((b) => b.id);
                         setViewPath(newPath);
                       }}
-                      fw={isLast ? 'bold' : 'normal'}
-                      c={isLast ? 'text' : 'dimmed'}
+                      fw={isLast ? "bold" : "normal"}
+                      c={isLast ? "text" : "dimmed"}
                       px={4}
                     >
                       {item.title}
@@ -191,7 +191,7 @@ export function PlanViewContainer() {
       </Box>
 
       {/* Main Content Area - Scrollable */}
-      <Box style={{ flex: 1, overflowY: 'auto' }} px="md">
+      <Box style={{ flex: 1, overflowY: "auto" }} px="md">
         <OutlineTree
           nodes={displayRoots}
           expandedIds={expandedIds}
@@ -216,7 +216,7 @@ export function PlanViewContainer() {
             <Button
               variant="light"
               onClick={() => {
-                handleAddAtPosition('end');
+                handleAddAtPosition("end");
               }}
             >
               Add First Task
@@ -232,7 +232,7 @@ export function PlanViewContainer() {
             h={48}
             mt="md"
             justify="center"
-            onClick={() => handleAddAtPosition('end')}
+            onClick={() => handleAddAtPosition("end")}
             leftSection={<IconPlus size={16} />}
             c="dimmed"
             aria-label="Append Row"
@@ -253,9 +253,9 @@ export function PlanViewContainer() {
           p="md"
           gap="0"
           style={{
-            borderTop: '1px solid var(--mantine-color-default-border)',
-            backgroundColor: 'var(--mantine-color-body)',
-            position: 'sticky',
+            borderTop: "1px solid var(--mantine-color-default-border)",
+            backgroundColor: "var(--mantine-color-body)",
+            position: "sticky",
             bottom: 0,
             zIndex: 10,
           }}
@@ -288,9 +288,9 @@ export function PlanViewContainer() {
             variant="transparent"
             radius="xl"
             size="xl"
-            onClick={() => handleAddAtPosition('start')}
+            onClick={() => handleAddAtPosition("start")}
             aria-label="Add Task at Top"
-            style={{ border: '1px solid var(--mantine-color-default-border)' }}
+            style={{ border: "1px solid var(--mantine-color-default-border)" }}
           >
             <IconPlus size={26} />
           </ActionIcon>

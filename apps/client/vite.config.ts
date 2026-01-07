@@ -1,11 +1,11 @@
-import { execSync } from 'node:child_process';
-import path from 'node:path';
-import react from '@vitejs/plugin-react';
-import type { PluginOption } from 'vite';
-import { defineConfig } from 'vite';
-import { VitePWA } from 'vite-plugin-pwa';
-import topLevelAwait from 'vite-plugin-top-level-await';
-import wasm from 'vite-plugin-wasm';
+import { execSync } from "node:child_process";
+import path from "node:path";
+import react from "@vitejs/plugin-react";
+import type { PluginOption } from "vite";
+import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
+import topLevelAwait from "vite-plugin-top-level-await";
+import wasm from "vite-plugin-wasm";
 
 const getBuildInfo = () => {
   // 1. Cloudflare Pages (Environment Variable)
@@ -20,21 +20,21 @@ const getBuildInfo = () => {
 
   // 2. Local Git (Plumbing Commands)
   try {
-    const hash = execSync('git rev-parse --short HEAD', {
-      stdio: ['ignore', 'pipe', 'ignore'],
-      encoding: 'utf-8',
+    const hash = execSync("git rev-parse --short HEAD", {
+      stdio: ["ignore", "pipe", "ignore"],
+      encoding: "utf-8",
     }).trim();
 
     // Returns "<timestamp> <hash>"
-    const timestampOutput = execSync('git rev-list -1 --timestamp HEAD', {
-      stdio: ['ignore', 'pipe', 'ignore'],
-      encoding: 'utf-8',
+    const timestampOutput = execSync("git rev-list -1 --timestamp HEAD", {
+      stdio: ["ignore", "pipe", "ignore"],
+      encoding: "utf-8",
     }).trim();
 
-    const parts = timestampOutput.split(' ');
+    const parts = timestampOutput.split(" ");
     const timestampStr = parts[0];
     if (!timestampStr) {
-      throw new Error('Unexpected git output: no timestamp found');
+      throw new Error("Unexpected git output: no timestamp found");
     }
     const timestamp = parseInt(timestampStr, 10);
     const date = new Date(timestamp * 1000).toISOString();
@@ -43,8 +43,8 @@ const getBuildInfo = () => {
     // We use try/catch because execSync throws on non-zero exit code.
     let clean = true;
     try {
-      execSync('git diff-index --quiet HEAD --', {
-        stdio: ['ignore', 'ignore', 'ignore'],
+      execSync("git diff-index --quiet HEAD --", {
+        stdio: ["ignore", "ignore", "ignore"],
       });
     } catch {
       clean = false;
@@ -52,9 +52,9 @@ const getBuildInfo = () => {
 
     return { hash, date, clean };
   } catch (error) {
-    console.error('Failed to get build info from git:', error);
+    console.error("Failed to get build info from git:", error);
     return {
-      hash: 'unknown',
+      hash: "unknown",
       date: new Date().toISOString(),
       clean: false,
     };
@@ -69,16 +69,16 @@ export default defineConfig({
   },
   resolve: {
     dedupe: [
-      '@automerge/automerge-repo-react-hooks',
-      'react',
-      'react-dom',
-      'react-redux',
+      "@automerge/automerge-repo-react-hooks",
+      "react",
+      "react-dom",
+      "react-redux",
     ],
     alias: {
-      '@mydoo/tasklens': path.resolve(__dirname, '../../packages/tasklens/src'),
-      '@automerge/automerge-repo-react-hooks': path.resolve(
+      "@mydoo/tasklens": path.resolve(__dirname, "../../packages/tasklens/src"),
+      "@automerge/automerge-repo-react-hooks": path.resolve(
         __dirname,
-        'node_modules/@automerge/automerge-repo-react-hooks',
+        "node_modules/@automerge/automerge-repo-react-hooks",
       ),
     },
   },
@@ -92,32 +92,32 @@ export default defineConfig({
       // precaching and basic PWA functionality. If we needed fine-grained control
       // over network requests or wanted to write our own SW code, we would use
       // "injectManifest".
-      strategies: 'generateSW',
+      strategies: "generateSW",
 
       // BEHAVIOR: With 'prompt' (and no UI to trigger the update), the new
       // service worker will be installed but remain in the 'waiting' phase. It
       // will specifically NOT take over until all tabs of the application are
       // closed and the browser detects that the old service worker is no longer
       // in use. This results in the "update on next launch" behavior.
-      registerType: 'prompt',
+      registerType: "prompt",
 
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
 
       manifest: {
-        name: 'My Local First App',
-        short_name: 'LocalApp',
-        description: 'A local-first Automerge PWA',
-        theme_color: '#ffffff',
+        name: "My Local First App",
+        short_name: "LocalApp",
+        description: "A local-first Automerge PWA",
+        theme_color: "#ffffff",
         icons: [
           {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
+            src: "pwa-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
           },
           {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
           },
         ],
       },
@@ -133,7 +133,7 @@ export default defineConfig({
         // or hard-refresh to see changes. The "normal" Vite HMR for your React
         // components still works fine, but the SW itself is a separate entity
         // that lives outside the HMR cycle.
-        enabled: process.env.VITE_PWA_DEV === 'true',
+        enabled: process.env.VITE_PWA_DEV === "true",
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4MB

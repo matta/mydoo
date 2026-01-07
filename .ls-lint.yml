@@ -13,9 +13,9 @@ ignore:
   - .specify
   - .turbo
   - .vscode
-  - '**/__screenshots__'
-  - '**/build'
-  - '**/coverage'
-  - '**/dev-dist'
-  - '**/dist'
-  - '**/node_modules'
+  - "**/__screenshots__"
+  - "**/build"
+  - "**/coverage"
+  - "**/dev-dist"
+  - "**/dist"
+  - "**/node_modules"

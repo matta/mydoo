@@ -1,6 +1,6 @@
-import { expect, type Page } from '@playwright/test';
-import { test as bddTest } from 'playwright-bdd';
-import { type PlanFixture, PlanPage } from './pages/plan-page';
+import { expect, type Page } from "@playwright/test";
+import { test as bddTest } from "playwright-bdd";
+import { type PlanFixture, PlanPage } from "./pages/plan-page";
 
 export { expect };
 

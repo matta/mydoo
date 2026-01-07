@@ -6,9 +6,9 @@ import {
   type Task,
   type TaskID,
   useTask,
-} from '@mydoo/tasklens';
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+} from "@mydoo/tasklens";
+import { useMemo } from "react";
+import { useSelector } from "react-redux";
 
 /**
  * Result of the useTaskDetails hook.

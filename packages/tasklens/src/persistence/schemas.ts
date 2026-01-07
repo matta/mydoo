@@ -18,7 +18,7 @@
  * "Do not manually define TypeScript interfaces that mirror Zod schemas.
  * Derive the static type directly from the runtime schema using `z.infer`."
  */
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Helper to create a record schema that handles Automerge proxies.
@@ -39,7 +39,7 @@ function AutomergeRecord<
 >(keySchema: K, valueSchema: V) {
   return z.preprocess(
     (val) => {
-      if (typeof val !== 'object' || val === null) return val;
+      if (typeof val !== "object" || val === null) return val;
       const cleanObj: Record<string, unknown> = {};
       for (const k of Object.keys(val)) {
         cleanObj[k] = (val as Record<string, unknown>)[k];
@@ -56,14 +56,14 @@ function AutomergeRecord<
  * Uses Zod's `.brand()` to produce a branded type that matches `TaskID`
  * from types.ts. After validation, the output is typed as `TaskID`.
  */
-export const TaskIDSchema = z.string().brand<'TaskID'>();
+export const TaskIDSchema = z.string().brand<"TaskID">();
 
 /**
  * Schema for validating a place ID.
  *
  * Uses Zod's `.brand()` to produce a branded type that matches `PlaceID`.
  */
-export const PlaceIDSchema = z.string().brand<'PlaceID'>();
+export const PlaceIDSchema = z.string().brand<"PlaceID">();
 
 /**
  * Schema for validating a Schedule object.
@@ -72,7 +72,7 @@ export const PlaceIDSchema = z.string().brand<'PlaceID'>();
  */
 export const ScheduleSchema = z.object({
   /** "Once" for one-time tasks, "Routinely" for repeating tasks. */
-  type: z.enum(['Once', 'Routinely', 'DueDate', 'Calendar']),
+  type: z.enum(["Once", "Routinely", "DueDate", "Calendar"]),
   /** Unix timestamp (ms) when the task is due, or undefined if no deadline. */
   dueDate: z.number().optional(),
   /** How far in advance (in ms) the task should appear before its due date. */
@@ -95,12 +95,12 @@ export type Schedule = z.infer<typeof ScheduleSchema>;
 export const RepeatConfigSchema = z.object({
   /** Frequency of recurrence */
   frequency: z.enum([
-    'minutes',
-    'hours',
-    'daily',
-    'weekly',
-    'monthly',
-    'yearly',
+    "minutes",
+    "hours",
+    "daily",
+    "weekly",
+    "monthly",
+    "yearly",
   ]),
   /** Interval between occurrences (e.g., every 2 days) */
   interval: z.number().min(1),
@@ -128,7 +128,7 @@ export const TaskSchema = z.object({
   /** Human-readable name or description of the task. */
   title: z.string(),
   /** Markdown notes attached to the task. */
-  notes: z.string().default(''),
+  notes: z.string().default(""),
   /** ID of the parent task, or undefined if this is a root task. */
   parentId: TaskIDSchema.optional(),
   /** Ordered list of child task IDs. */
@@ -136,7 +136,7 @@ export const TaskSchema = z.object({
   /** Location where this task should be done, or undefined to inherit from parent. */
   placeId: PlaceIDSchema.optional(),
   /** Current state: Pending, Done, or Deleted. */
-  status: z.enum(['Pending', 'Done']),
+  status: z.enum(["Pending", "Done"]),
   /** User-assigned priority from 0.0 (lowest) to 1.0 (highest). */
   importance: z.number().min(0).max(1),
   /** Points awarded when this task is completed. */

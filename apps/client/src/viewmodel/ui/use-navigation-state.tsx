@@ -1,4 +1,4 @@
-import type { TaskID } from '@mydoo/tasklens';
+import type { TaskID } from "@mydoo/tasklens";
 import {
   createContext,
   type ReactNode,
@@ -6,19 +6,19 @@ import {
   useContext,
   useMemo,
   useState,
-} from 'react';
+} from "react";
 
 /**
  * State representing the content of the task editor modal.
  */
 export type ModalState =
-  | { type: 'edit'; taskId: TaskID }
-  | { type: 'move'; taskId: TaskID }
+  | { type: "edit"; taskId: TaskID }
+  | { type: "move"; taskId: TaskID }
   | {
-      type: 'create';
+      type: "create";
       parentId: TaskID | undefined;
       afterTaskId: TaskID | undefined;
-      position?: 'start' | 'end';
+      position?: "start" | "end";
     };
 
 /**
@@ -31,10 +31,10 @@ export type ModalState =
  */
 export interface NavigationState {
   /** The currently active tab in the application shell. */
-  activeTab: 'do' | 'plan' | 'balance';
+  activeTab: "do" | "plan" | "balance";
 
   /** Set the active tab. */
-  setActiveTab: (tab: 'do' | 'plan' | 'balance') => void;
+  setActiveTab: (tab: "do" | "plan" | "balance") => void;
 
   /** Collapse all currently expanded nodes. */
   collapseAll: () => void;
@@ -70,7 +70,7 @@ export interface NavigationState {
   openCreateModal: (
     parentId?: TaskID,
     afterTaskId?: TaskID,
-    position?: 'start' | 'end',
+    position?: "start" | "end",
   ) => void;
 
   /** Closes the task editor modal. */
@@ -114,7 +114,7 @@ const NavigationContext = createContext<NavigationState | null>(null);
  */
 export function NavigationProvider({ children }: { children: ReactNode }) {
   // Active tab state
-  const [activeTab, setActiveTab] = useState<'do' | 'plan' | 'balance'>('do');
+  const [activeTab, setActiveTab] = useState<"do" | "plan" | "balance">("do");
 
   // Set of ID strings for expanded nodes
   const [expandedIds, setExpandedIds] = useState<Set<TaskID>>(new Set());
@@ -132,20 +132,20 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
 
   const openEditModal = useCallback((taskId: TaskID) => {
     setLastCreatedTaskId(undefined);
-    setModal({ type: 'edit', taskId });
+    setModal({ type: "edit", taskId });
   }, []);
 
   const openMoveModal = useCallback((taskId: TaskID) => {
     // When opening move modal, we usually transition from edit modal.
     // We don't need to clear lastCreatedTaskId necessarily, but safe to do so or keep it.
-    setModal({ type: 'move', taskId });
+    setModal({ type: "move", taskId });
   }, []);
 
   const openCreateModal = useCallback(
-    (parentId?: TaskID, afterTaskId?: TaskID, position?: 'start' | 'end') => {
+    (parentId?: TaskID, afterTaskId?: TaskID, position?: "start" | "end") => {
       setLastCreatedTaskId(undefined);
       setModal({
-        type: 'create',
+        type: "create",
         parentId,
         afterTaskId,
         ...(position ? { position } : {}),
@@ -273,7 +273,7 @@ export function useNavigationState(): NavigationState {
   const context = useContext(NavigationContext);
   if (!context) {
     throw new Error(
-      'useNavigationState must be used within a NavigationProvider',
+      "useNavigationState must be used within a NavigationProvider",
     );
   }
   return context;

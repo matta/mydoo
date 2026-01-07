@@ -1,13 +1,13 @@
-import { Repo } from '@automerge/automerge-repo';
-import { createEmptyTunnelState } from '@mydoo/tasklens';
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { renderWithTestProviders } from '../../test/setup';
-import { NavigationProvider } from '../../viewmodel/ui/use-navigation-state';
-import { AppShellContainer } from './app-shell-container';
+import { Repo } from "@automerge/automerge-repo";
+import { createEmptyTunnelState } from "@mydoo/tasklens";
+import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { renderWithTestProviders } from "../../test/setup";
+import { NavigationProvider } from "../../viewmodel/ui/use-navigation-state";
+import { AppShellContainer } from "./app-shell-container";
 
-describe('AppShellContainer', () => {
+describe("AppShellContainer", () => {
   // Mock URL.createObjectURL and URL.revokeObjectURL
   const originalCreateObjectURL = URL.createObjectURL;
   const originalRevokeObjectURL = URL.revokeObjectURL;
@@ -31,8 +31,8 @@ describe('AppShellContainer', () => {
     const docUrl = handle.url;
 
     // Mock HTMLAnchorElement.prototype.click
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click');
-    mockCreateObjectURL.mockReturnValue('blob:mock-url');
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click");
+    mockCreateObjectURL.mockReturnValue("blob:mock-url");
 
     renderWithTestProviders(
       <NavigationProvider>
@@ -45,11 +45,11 @@ describe('AppShellContainer', () => {
     );
 
     // Open Options Menu
-    const optionsButton = screen.getByRole('button', { name: /options/i });
+    const optionsButton = screen.getByRole("button", { name: /options/i });
     await userEvent.click(optionsButton);
 
     // Find and Click Download JSON
-    const downloadButton = await screen.findByRole('menuitem', {
+    const downloadButton = await screen.findByRole("menuitem", {
       name: /download json/i,
     });
     await userEvent.click(downloadButton);
@@ -57,7 +57,7 @@ describe('AppShellContainer', () => {
     // Assertions
     expect(mockCreateObjectURL).toHaveBeenCalled();
     const mockCall = mockCreateObjectURL.mock.calls[0];
-    if (!mockCall) throw new Error('mockCreateObjectURL was not called');
+    if (!mockCall) throw new Error("mockCreateObjectURL was not called");
     const blob = mockCall[0] as Blob;
     expect(blob).toBeInstanceOf(Blob);
 
@@ -66,9 +66,9 @@ describe('AppShellContainer', () => {
     const json = JSON.parse(text);
 
     // Automerge doc should have the initial state
-    expect(json).toHaveProperty('tasks');
+    expect(json).toHaveProperty("tasks");
 
     expect(clickSpy).toHaveBeenCalled();
-    expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+    expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
   });
 });

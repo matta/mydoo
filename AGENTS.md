@@ -199,11 +199,11 @@ implementation-level terms in test narratives.
 **Example:**
 
 ```typescript
-test('User can organize tasks', async ({ plan }) => {
-  await test.step('Create task', async () => {
+test("User can organize tasks", async ({ plan }) => {
+  await test.step("Create task", async () => {
     // Given the user is on the Plan view
     // When they create a new task
-    await plan.createTask('Buy Milk');
+    await plan.createTask("Buy Milk");
     // Then the task appears in the list
   });
 });

@@ -1,5 +1,5 @@
-import { Input } from '@mantine/core';
-import { useCallback } from 'react';
+import { Input } from "@mantine/core";
+import { useCallback } from "react";
 
 /**
  * Props for the DateInput component.
@@ -45,10 +45,10 @@ export function DateInput({
 }: DateInputProps) {
   // Convert Date to YYYY-MM-DD string
   const formatDate = (date: Date | null): string => {
-    if (!date) return '';
+    if (!date) return "";
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
@@ -62,7 +62,7 @@ export function DateInput({
         return;
       }
       // Create date from YYYY-MM-DD string in local time
-      const [year, month, day] = val.split('-').map(Number);
+      const [year, month, day] = val.split("-").map(Number);
       if (year !== undefined && month !== undefined && day !== undefined) {
         const newDate = new Date(year, month - 1, day);
         onChange(newDate);

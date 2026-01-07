@@ -9,16 +9,16 @@
  *   pnpm check-turbo-root --audit   # Audit git-ignored directories
  *   pnpm check-turbo-root <path>    # Check a specific file
  */
-import { execSync } from 'node:child_process';
-import fs from 'node:fs';
-import path from 'node:path';
-import { glob } from 'glob';
-import { minimatch } from 'minimatch';
-import minimist from 'minimist';
+import { execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { glob } from "glob";
+import { minimatch } from "minimatch";
+import minimist from "minimist";
 
-import { z } from 'zod';
+import { z } from "zod";
 
-const EXCLUSIONS_FILE = 'turbo-exclusions.json';
+const EXCLUSIONS_FILE = "turbo-exclusions.json";
 
 const USAGE = `
 Usage:
@@ -66,7 +66,7 @@ function parseExclusions(rootDir: string): Exclusions {
   }
 
   try {
-    const raw = JSON.parse(fs.readFileSync(exclusionsPath, 'utf8'));
+    const raw = JSON.parse(fs.readFileSync(exclusionsPath, "utf8"));
     return ExclusionsSchema.parse(raw);
   } catch (e) {
     console.error(`Failed to parse or validate ${exclusionsPath}:`, e);
@@ -82,7 +82,7 @@ function parseTurboConfig(filePath: string): TurboConfig | undefined {
   }
 
   try {
-    const raw = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
     return TurboConfigSchema.parse(raw);
   } catch (e) {
     console.error(`Failed to parse or validate ${filePath}:`, e);
@@ -113,16 +113,16 @@ function reportViolation(
   console.error(
     `  Expected ending:`,
     JSON.stringify(exclusions, null, 2)
-      .split('\n')
+      .split("\n")
       .map((l) => `    ${l}`)
-      .join('\n'),
+      .join("\n"),
   );
   console.error(
     `  Actual ending:  `,
     JSON.stringify(actualEnding, null, 2)
-      .split('\n')
+      .split("\n")
       .map((l) => `    ${l}`)
-      .join('\n'),
+      .join("\n"),
   );
 }
 
@@ -142,7 +142,7 @@ function validateFile(
     const inputs = taskConfig.inputs;
     if (!inputs) continue;
 
-    const isLoose = inputs.some((input: string) => input.includes('**'));
+    const isLoose = inputs.some((input: string) => input.includes("**"));
     if (isLoose && !validateInputs(inputs, exclusions)) {
       reportViolation(
         rootDir,
@@ -166,29 +166,29 @@ async function auditExclusions(
   rootDir: string,
   exclusions: Exclusions,
 ): Promise<boolean> {
-  console.log('Running audit...');
+  console.log("Running audit...");
 
   // 1. Convert exclusions to positive globs (remove leading '!')
-  const exclusionGlobs = exclusions.map((e) => e.replace(/^!/, ''));
+  const exclusionGlobs = exclusions.map((e) => e.replace(/^!/, ""));
 
   // 2. Find all directories contents that are ignored by git
   let ignoredItems: string[] = [];
   try {
     const output = execSync(
-      'git ls-files --others --ignored --exclude-standard --directory',
+      "git ls-files --others --ignored --exclude-standard --directory",
       {
         cwd: rootDir,
-        encoding: 'utf8',
+        encoding: "utf8",
       },
     );
-    ignoredItems = output.split('\n').filter(Boolean);
+    ignoredItems = output.split("\n").filter(Boolean);
   } catch (e) {
-    console.error('Failed to run git ls-files:', e);
+    console.error("Failed to run git ls-files:", e);
     return false;
   }
 
   // 3. Filter for directories only (ending in /)
-  const ignoredDirs = ignoredItems.filter((item) => item.endsWith('/'));
+  const ignoredDirs = ignoredItems.filter((item) => item.endsWith("/"));
 
   let hasError = false;
 
@@ -196,7 +196,7 @@ async function auditExclusions(
   for (const ignoredDir of ignoredDirs) {
     // minimatch expects forward slashes, git output is already using them typically
     // but good to be safe. Also git output has trailing slash, which we want.
-    const normalizedDir = ignoredDir.split(path.sep).join('/');
+    const normalizedDir = ignoredDir.split(path.sep).join("/");
 
     const isCovered = exclusionGlobs.some((pattern) =>
       minimatch(normalizedDir, pattern),
@@ -215,7 +215,7 @@ async function auditExclusions(
       `\nERROR: Found git-ignored directories that are NOT covered by ${EXCLUSIONS_FILE}.`,
     );
     console.error(
-      '       These must be added to prevent accidental inclusion in Turbo inputs.',
+      "       These must be added to prevent accidental inclusion in Turbo inputs.",
     );
     return false;
   }
@@ -230,8 +230,8 @@ async function main() {
   const rootDir = process.cwd();
 
   const argv = minimist(process.argv.slice(2), {
-    boolean: ['audit', 'help'],
-    alias: { h: 'help' },
+    boolean: ["audit", "help"],
+    alias: { h: "help" },
   });
 
   if (argv.help) {
@@ -254,13 +254,13 @@ async function main() {
   let targetFiles: string[] = [];
 
   if (files.length > 0) {
-    targetFiles = files.filter((f: string) => f.endsWith('turbo.json'));
+    targetFiles = files.filter((f: string) => f.endsWith("turbo.json"));
     if (targetFiles.length === 0) {
       process.exit(0); // Files provided but none matched turbo.json
     }
   } else {
-    targetFiles = await glob('**/turbo.json', {
-      ignore: '**/node_modules/**',
+    targetFiles = await glob("**/turbo.json", {
+      ignore: "**/node_modules/**",
       cwd: rootDir,
       absolute: true,
     });

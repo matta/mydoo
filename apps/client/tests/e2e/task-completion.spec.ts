@@ -1,18 +1,18 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from "@playwright/test";
 
-test.describe('Task Completion Lifecycle', () => {
+test.describe("Task Completion Lifecycle", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto("/");
     // Clear any existing state if needed (handled by Incognito browser context usually)
   });
 
-  test('Bug Repro: Completed tasks should remain visible until refreshed', async ({
+  test("Bug Repro: Completed tasks should remain visible until refreshed", async ({
     page,
   }) => {
     // 1. Create a task
     const taskTitle = `Remediation Task ${Date.now()}`;
-    await page.getByPlaceholder('Add a new task...').fill(taskTitle);
-    await page.getByPlaceholder('Add a new task...').press('Enter');
+    await page.getByPlaceholder("Add a new task...").fill(taskTitle);
+    await page.getByPlaceholder("Add a new task...").press("Enter");
 
     // Verify it appears
     const taskRow = page.getByText(taskTitle);
@@ -23,7 +23,7 @@ test.describe('Task Completion Lifecycle', () => {
     // Using a more robust selector strategy: find the row containing the text, then find the checkbox within it.
     // Note: Depends on DOM structure. Assuming TaskRow contains both.
     // For now, using the aria-label strategy used in interactions.spec.ts
-    const checkbox = page.getByRole('checkbox', {
+    const checkbox = page.getByRole("checkbox", {
       name: `Complete ${taskTitle}`,
     });
     await expect(checkbox).toBeVisible();
@@ -39,7 +39,7 @@ test.describe('Task Completion Lifecycle', () => {
     // await expect(rowContainer).toHaveCSS('text-decoration', /line-through/);
 
     // 5. Click Refresh/Update button
-    const refreshButton = page.getByRole('button', { name: /update|refresh/i });
+    const refreshButton = page.getByRole("button", { name: /update|refresh/i });
     await expect(refreshButton).toBeVisible();
     await refreshButton.click();
 

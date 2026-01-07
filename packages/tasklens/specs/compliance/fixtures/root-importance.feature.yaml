@@ -4,7 +4,7 @@ description: >
   importance root task's children, even if the lower importance task is earlier
   in the outline.
 background:
-  current_time: '2025-01-01T12:00:00Z'
+  current_time: "2025-01-01T12:00:00Z"
   tasks:
     - id: A_LowRoot
       title: First in Outline, Low Importance

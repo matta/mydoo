@@ -1,4 +1,4 @@
-import type { TaskID } from '../types';
+import type { TaskID } from "../types";
 
 export interface BalanceItemSimple {
   id: TaskID;

@@ -1,10 +1,10 @@
-import { Repo, type StorageAdapterInterface } from '@automerge/automerge-repo';
-import { useMediaQuery } from '@mantine/hooks';
-import { strictMock } from '@mydoo/tasklens/test';
+import { Repo, type StorageAdapterInterface } from "@automerge/automerge-repo";
+import { useMediaQuery } from "@mantine/hooks";
+import { strictMock } from "@mydoo/tasklens/test";
 
 // Create a minimal storage adapter using strictMock - only implements what Repo actually uses
 function createDummyStorageAdapter(): StorageAdapterInterface {
-  return strictMock<StorageAdapterInterface>('DummyStorageAdapter', {
+  return strictMock<StorageAdapterInterface>("DummyStorageAdapter", {
     load: async () => undefined,
     save: async () => {},
     remove: async () => {},
@@ -13,17 +13,17 @@ function createDummyStorageAdapter(): StorageAdapterInterface {
   });
 }
 
-import { act, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { renderWithTestProviders } from '../../../test/setup';
-import { PlanViewContainer } from './plan-view-container';
+import { act, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { renderWithTestProviders } from "../../../test/setup";
+import { PlanViewContainer } from "./plan-view-container";
 
 // Mock simple view-model hooks that are not the focus of this integration
 const mocks = vi.hoisted(() => ({
   openCreateModal: vi.fn(),
   mockUseNavigationState: {
-    activeTab: 'plan',
+    activeTab: "plan",
     setActiveTab: vi.fn(),
     collapseAll: vi.fn(),
     currentViewId: undefined,
@@ -48,15 +48,15 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('@mantine/hooks', async () => {
-  const actual = await vi.importActual('@mantine/hooks');
+vi.mock("@mantine/hooks", async () => {
+  const actual = await vi.importActual("@mantine/hooks");
   return {
     ...actual,
     useMediaQuery: vi.fn(),
   };
 });
 
-vi.mock('../../../viewmodel/intents/use-task-intents', () => ({
+vi.mock("../../../viewmodel/intents/use-task-intents", () => ({
   useTaskIntents: () => ({
     createTask: vi.fn(),
     toggleTask: vi.fn(),
@@ -66,24 +66,24 @@ vi.mock('../../../viewmodel/intents/use-task-intents', () => ({
   }),
 }));
 
-vi.mock('../../../viewmodel/projections/use-task-tree', () => ({
+vi.mock("../../../viewmodel/projections/use-task-tree", () => ({
   useTaskTree: () => mocks.useTaskTree,
 }));
 
-vi.mock('../../../viewmodel/ui/use-navigation-state', () => ({
+vi.mock("../../../viewmodel/ui/use-navigation-state", () => ({
   useNavigationState: () => mocks.mockUseNavigationState,
 }));
 
-vi.mock('../../../viewmodel/ui/use-breadcrumbs', () => ({
+vi.mock("../../../viewmodel/ui/use-breadcrumbs", () => ({
   useBreadcrumbs: () => [],
 }));
 
 // Mock OutlineTree to simplify rendering
-vi.mock('./outline-tree', () => ({
+vi.mock("./outline-tree", () => ({
   OutlineTree: () => <div data-testid="outline-tree" />,
 }));
 
-describe('PlanViewContainer', () => {
+describe("PlanViewContainer", () => {
   // Helper to mock viewport per test
   const mockViewport = (isDesktop: boolean) => {
     vi.mocked(useMediaQuery).mockReturnValue(isDesktop);
@@ -108,49 +108,49 @@ describe('PlanViewContainer', () => {
       renderWithTestProviders(<PlanViewContainer />, { repo });
     });
 
-    expect(screen.getByText('No tasks found.')).toBeInTheDocument();
+    expect(screen.getByText("No tasks found.")).toBeInTheDocument();
 
-    const addButton = screen.getByRole('button', { name: /add first task/i });
+    const addButton = screen.getByRole("button", { name: /add first task/i });
     await user.click(addButton);
 
     expect(mocks.mockUseNavigationState.openCreateModal).toHaveBeenCalledWith(
       undefined,
       undefined,
-      'end',
+      "end",
     );
   });
 
-  it('renders Bottom Bar only on mobile', async () => {
+  it("renders Bottom Bar only on mobile", async () => {
     mockViewport(false); // Mobile
     // biome-ignore lint/suspicious/noExplicitAny: Mocking
-    mocks.useTaskTree.roots = [{ id: '1' } as any];
+    mocks.useTaskTree.roots = [{ id: "1" } as any];
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
       renderWithTestProviders(<PlanViewContainer />, { repo });
     });
 
-    expect(screen.getByLabelText('Add Task at Top')).toBeInTheDocument();
-    expect(screen.getByLabelText('Up Level')).toBeInTheDocument();
+    expect(screen.getByLabelText("Add Task at Top")).toBeInTheDocument();
+    expect(screen.getByLabelText("Up Level")).toBeInTheDocument();
   });
 
-  it('does NOT render Bottom Bar on desktop', async () => {
+  it("does NOT render Bottom Bar on desktop", async () => {
     mockViewport(true); // Desktop
     // biome-ignore lint/suspicious/noExplicitAny: Mocking
-    mocks.useTaskTree.roots = [{ id: '1' } as any];
+    mocks.useTaskTree.roots = [{ id: "1" } as any];
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
       renderWithTestProviders(<PlanViewContainer />, { repo });
     });
 
-    expect(screen.queryByLabelText('Add Task at Top')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Add Task at Top")).not.toBeInTheDocument();
   });
 
-  it('renders IconPlus (Append Row) button when tasks exist', async () => {
+  it("renders IconPlus (Append Row) button when tasks exist", async () => {
     mockViewport(true);
     // biome-ignore lint/suspicious/noExplicitAny: Mocking
-    mocks.useTaskTree.roots = [{ id: '1' } as any];
+    mocks.useTaskTree.roots = [{ id: "1" } as any];
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
@@ -161,7 +161,7 @@ describe('PlanViewContainer', () => {
     // It's the only one of its kind at the bottom right usually, but here just checking presence.
     // In this view, we can rely on finding it by role, although standardizing aria-label would be better.
     // For now, checking that we don't have "No tasks found" is a start, and we can query for the button.
-    const buttons = screen.getAllByRole('button');
+    const buttons = screen.getAllByRole("button");
     expect(buttons.length).toBeGreaterThan(0);
   });
 
@@ -169,19 +169,19 @@ describe('PlanViewContainer', () => {
     const user = userEvent.setup();
     mockViewport(false);
     // biome-ignore lint/suspicious/noExplicitAny: Mocking
-    mocks.useTaskTree.roots = [{ id: '1' } as any];
+    mocks.useTaskTree.roots = [{ id: "1" } as any];
     mocks.useTaskTree.isLoading = false;
     await act(async () => {
       renderWithTestProviders(<PlanViewContainer />, { repo });
     });
 
-    const topPlus = screen.getByLabelText('Add Task at Top');
+    const topPlus = screen.getByLabelText("Add Task at Top");
     await user.click(topPlus);
 
     expect(mocks.mockUseNavigationState.openCreateModal).toHaveBeenCalledWith(
       undefined,
       undefined,
-      'start',
+      "start",
     );
   });
 });

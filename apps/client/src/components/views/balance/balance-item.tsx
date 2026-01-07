@@ -1,5 +1,5 @@
-import { Group, Paper, Progress, Slider, Stack, Text } from '@mantine/core';
-import type { BalanceItemData, TaskID } from '@mydoo/tasklens';
+import { Group, Paper, Progress, Slider, Stack, Text } from "@mantine/core";
+import type { BalanceItemData, TaskID } from "@mydoo/tasklens";
 
 interface BalanceItemProps {
   item: BalanceItemData;
@@ -13,7 +13,7 @@ interface BalanceItemProps {
  * Formats a value as a percentage of total items for display in a label.
  */
 function formatPercentLabel(value: number, total: number): string {
-  if (total <= 0) return '0%';
+  if (total <= 0) return "0%";
   return `${((value / total) * 100).toFixed(0)}%`;
 }
 
@@ -59,7 +59,7 @@ export function BalanceItem({
           </Group>
           <Progress
             value={item.actualPercent}
-            color={item.isStarving ? 'red' : 'blue'}
+            color={item.isStarving ? "red" : "blue"}
             size="xl"
             radius="xl"
             striped

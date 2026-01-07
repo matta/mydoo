@@ -1,12 +1,12 @@
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
-import { renderWithTestProviders } from '../../test/setup';
-import { DeleteConfirmModal } from './delete-confirm-modal';
+import { renderWithTestProviders } from "../../test/setup";
+import { DeleteConfirmModal } from "./delete-confirm-modal";
 
-describe('DeleteConfirmModal', () => {
-  it('renders task title and descendant count', () => {
+describe("DeleteConfirmModal", () => {
+  it("renders task title and descendant count", () => {
     renderWithTestProviders(
       <DeleteConfirmModal
         descendantCount={3}
@@ -21,7 +21,7 @@ describe('DeleteConfirmModal', () => {
     expect(screen.getByText(/3 sub-tasks/)).toBeInTheDocument();
   });
 
-  it('renders singular sub-task for count of 1', () => {
+  it("renders singular sub-task for count of 1", () => {
     renderWithTestProviders(
       <DeleteConfirmModal
         descendantCount={1}
@@ -35,7 +35,7 @@ describe('DeleteConfirmModal', () => {
     expect(screen.getByText(/1 sub-task\?/)).toBeInTheDocument();
   });
 
-  it('does not show descendant count when 0', () => {
+  it("does not show descendant count when 0", () => {
     renderWithTestProviders(
       <DeleteConfirmModal
         descendantCount={0}
@@ -49,7 +49,7 @@ describe('DeleteConfirmModal', () => {
     expect(screen.queryByText(/sub-task/)).not.toBeInTheDocument();
   });
 
-  it('calls onConfirm and onClose when Delete clicked', async () => {
+  it("calls onConfirm and onClose when Delete clicked", async () => {
     const user = userEvent.setup();
     const onConfirm = vi.fn();
     const onClose = vi.fn();
@@ -64,13 +64,13 @@ describe('DeleteConfirmModal', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: /delete/i }));
+    await user.click(screen.getByRole("button", { name: /delete/i }));
 
     expect(onConfirm).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('calls onClose when Cancel clicked', async () => {
+  it("calls onClose when Cancel clicked", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
 
@@ -84,7 +84,7 @@ describe('DeleteConfirmModal', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: /cancel/i }));
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
 
     expect(onClose).toHaveBeenCalled();
   });

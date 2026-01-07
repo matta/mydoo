@@ -3,9 +3,9 @@ import {
   selectStoreReady,
   selectTaskEntities,
   type TaskID,
-} from '@mydoo/tasklens';
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+} from "@mydoo/tasklens";
+import { useMemo } from "react";
+import { useSelector } from "react-redux";
 
 /**
  * Represents a single segment in the navigation breadcrumb trail.

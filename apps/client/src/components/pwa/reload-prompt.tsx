@@ -1,7 +1,7 @@
-import { useRegisterSW } from 'virtual:pwa-register/react';
-import { Button } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { useEffect, useRef } from 'react';
+import { useRegisterSW } from "virtual:pwa-register/react";
+import { Button } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import { useEffect, useRef } from "react";
 
 /**
  * PWA update prompt component using Mantine Notifications.
@@ -22,11 +22,11 @@ export function ReloadPrompt() {
   } = useRegisterSW({
     onRegistered(r) {
       if (r) {
-        console.log('[SW] Registered:', r.scope);
+        console.log("[SW] Registered:", r.scope);
       }
     },
     onRegisterError(error) {
-      console.error('[SW] Registration error:', error);
+      console.error("[SW] Registration error:", error);
     },
   });
 
@@ -34,8 +34,8 @@ export function ReloadPrompt() {
     if (needRefresh && !notificationShownRef.current) {
       notificationShownRef.current = true;
       notifications.show({
-        id: 'sw-update',
-        title: 'Update Available',
+        id: "sw-update",
+        title: "Update Available",
         message: (
           <Button size="xs" mt="xs" onClick={() => updateServiceWorker(true)}>
             Reload to update
@@ -43,7 +43,7 @@ export function ReloadPrompt() {
         ),
         autoClose: false,
         withCloseButton: true,
-        color: 'blue',
+        color: "blue",
       });
     }
 
@@ -52,7 +52,7 @@ export function ReloadPrompt() {
     // hide our specific notification.
     return () => {
       if (notificationShownRef.current) {
-        notifications.hide('sw-update');
+        notifications.hide("sw-update");
       }
     };
   }, [needRefresh, updateServiceWorker]);

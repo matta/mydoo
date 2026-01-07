@@ -1,6 +1,6 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getPrioritizedTasks } from '../../domain/priority';
-import type { ComputedTask, TaskID, TunnelState } from '../../types';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { getPrioritizedTasks } from "../../domain/priority";
+import type { ComputedTask, TaskID, TunnelState } from "../../types";
 
 /**
  * Redux state for the tasks slice.
@@ -46,7 +46,7 @@ interface SyncDocPayload {
  * NOTE: Validation happens at the boundary (TaskLensProvider), not here.
  */
 export const syncDoc = createAsyncThunk(
-  'tasks/syncDoc',
+  "tasks/syncDoc",
   async (
     { proxyDoc: proxy, parsedDoc: parsed }: SyncDocPayload,
     { getState },
@@ -62,7 +62,7 @@ export const syncDoc = createAsyncThunk(
       {},
       {
         includeHidden: true,
-        mode: 'plan-outline',
+        mode: "plan-outline",
       },
     );
 
@@ -98,7 +98,7 @@ export const syncDoc = createAsyncThunk(
 );
 
 const tasksSlice = createSlice({
-  name: 'tasks',
+  name: "tasks",
   initialState,
   reducers: {},
   extraReducers: (builder) => {

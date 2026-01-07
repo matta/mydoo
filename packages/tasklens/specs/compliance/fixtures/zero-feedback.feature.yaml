@@ -3,7 +3,7 @@ description: >-
   Verify that when actual credits are 0, the feedback multiplier is capped at
   Max Deviation Multiplier (1000.0) ^ K.
 background:
-  current_time: '2023-01-01T12:00:00+00:00'
+  current_time: "2023-01-01T12:00:00+00:00"
   timezone_offset: 0
   tasks:
     - id: ZeroRoot

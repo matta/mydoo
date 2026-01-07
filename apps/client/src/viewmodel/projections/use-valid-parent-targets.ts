@@ -6,9 +6,9 @@ import {
   selectTaskEntities,
   type TaskID,
   type TunnelNode,
-} from '@mydoo/tasklens';
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+} from "@mydoo/tasklens";
+import { useMemo } from "react";
+import { useSelector } from "react-redux";
 
 export interface ValidTargets {
   isLoading: boolean;

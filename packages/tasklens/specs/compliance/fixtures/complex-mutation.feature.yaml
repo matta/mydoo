@@ -1,10 +1,10 @@
-feature: 'Scenario: Complex Mutation Cycle'
+feature: "Scenario: Complex Mutation Cycle"
 description: >
   Tests a multi-step lifecycle combining time decay and credit updates to verify
   that task state transitions correctly impact scoring and ordering dynamics
   over time.
 background:
-  current_time: '2025-01-01T00:00:00Z'
+  current_time: "2025-01-01T00:00:00Z"
   tasks:
     - id: Project
       importance: 1
@@ -18,7 +18,7 @@ background:
 scenarios:
   - name: Legacy Scenario
     steps:
-      - legacy_description: 'Step 1: Initial Balanced State'
+      - legacy_description: "Step 1: Initial Balanced State"
         then:
           expected_order:
             - Task
@@ -27,7 +27,7 @@ scenarios:
               score: 0
       - when:
           advance_time_seconds: 604800
-        legacy_description: 'Step 2: Advance Time (Decay)'
+        legacy_description: "Step 2: Advance Time (Decay)"
         then:
           expected_order:
             - Task
@@ -38,7 +38,7 @@ scenarios:
       - when:
           update_credits:
             Project: 150
-        legacy_description: 'Step 3: Add Credits (Simulate Work)'
+        legacy_description: "Step 3: Add Credits (Simulate Work)"
         then:
           expected_order:
             - Task

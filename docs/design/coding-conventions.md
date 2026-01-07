@@ -27,14 +27,14 @@ quality and prevent technical debt accumulation.
 ```typescript
 // Safe because we are testing the error handler
 // biome-ignore lint/suspicious/noExplicitAny: testing error handler
-const invalidInput = 'foo' as any;
+const invalidInput = "foo" as any;
 ```
 
 **Incorrect:**
 
 ```typescript
 // biome-ignore lint/suspicious/noExplicitAny: reason
-const invalidInput = 'foo' as any;
+const invalidInput = "foo" as any;
 ```
 
 ### Type Safety

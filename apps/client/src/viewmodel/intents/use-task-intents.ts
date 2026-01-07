@@ -6,9 +6,9 @@ import {
   type TaskID,
   TaskStatus,
   useTaskActions,
-} from '@mydoo/tasklens';
-import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
+} from "@mydoo/tasklens";
+import { useCallback } from "react";
+import { useSelector } from "react-redux";
 
 /**
  * Hook to manage user intentions for Tasks.

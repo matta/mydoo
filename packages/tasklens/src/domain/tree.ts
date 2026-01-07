@@ -1,5 +1,5 @@
-import type { PersistedTask, TaskID, TunnelNode } from '../types';
-import { toComputedTask } from './projections';
+import type { PersistedTask, TaskID, TunnelNode } from "../types";
+import { toComputedTask } from "./projections";
 
 /**
  * Builds the complete TunnelNode tree with computed properties in a single pass.

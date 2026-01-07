@@ -1,7 +1,7 @@
-import type { ComputedTask, PersistedTask, TaskID } from '../types';
-import { getCurrentTimestamp } from '../utils/time';
-import { CREDITS_HALF_LIFE_MILLIS } from './constants';
-import { isTaskReady } from './readiness';
+import type { ComputedTask, PersistedTask, TaskID } from "../types";
+import { getCurrentTimestamp } from "../utils/time";
+import { CREDITS_HALF_LIFE_MILLIS } from "./constants";
+import { isTaskReady } from "./readiness";
 
 /**
  * Projects a raw PersistedTask into a ComputedTask for UI consumption.
@@ -13,7 +13,7 @@ import { isTaskReady } from './readiness';
  */
 export function toComputedTask(task: PersistedTask): ComputedTask {
   const currentTime = getCurrentTimestamp();
-  const isPending = task.status === 'Pending';
+  const isPending = task.status === "Pending";
   const isContainer = task.childTaskIds.length > 0;
 
   const isReady = isPending && isTaskReady(task.schedule, currentTime);

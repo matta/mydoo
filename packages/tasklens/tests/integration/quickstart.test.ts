@@ -1,21 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from "vitest";
 
-import { getPrioritizedTasks } from '../../src/domain/priority';
-import { TunnelStore } from '../../src/persistence/store';
+import { getPrioritizedTasks } from "../../src/domain/priority";
+import { TunnelStore } from "../../src/persistence/store";
 
-describe('Quickstart Integration', () => {
-  it('should run the quickstart scenario', () => {
+describe("Quickstart Integration", () => {
+  it("should run the quickstart scenario", () => {
     // 1. Initialize Store
     const store = new TunnelStore();
 
     // 2. Create Data
     const rootGoal = store.createTask({
-      title: 'Work',
+      title: "Work",
       desiredCredits: 100,
     });
 
     const task = store.createTask({
-      title: 'Email',
+      title: "Email",
       parentId: rootGoal.id,
       creditIncrement: 1.0,
     });
@@ -26,7 +26,7 @@ describe('Quickstart Integration', () => {
     // Email should be visible and sorted
     expect(todos.length).toBeGreaterThan(0);
     const firstTodo = todos[0];
-    if (!firstTodo) throw new Error('Expected at least one todo');
+    if (!firstTodo) throw new Error("Expected at least one todo");
     expect(firstTodo.id).toBe(task.id);
     // Explicit cast to access hidden/optional priority for integration verification
     // biome-ignore lint/suspicious/noExplicitAny: integration test verifying hidden field
