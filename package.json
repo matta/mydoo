@@ -58,8 +58,10 @@
     "lint-staged": "lint-staged",
     "check-staged": "./scripts/check-staged.sh",
     "check-turbo-root": "tsx scripts/check-turbo-inputs.ts",
+    "check-eslint-root": "eslint . --max-warnings 0 --ignore-pattern 'packages/**' --ignore-pattern 'apps/**' --ignore-pattern 'scripts/**'",
     "check-syncpack-root": "syncpack list-mismatches",
     "check-catalog-root": "tsx scripts/check-unused-catalog-entries.ts",
+    "fix-eslint-root": "eslint . --fix --ignore-pattern 'packages/**' --ignore-pattern 'apps/**' --ignore-pattern 'scripts/**'",
     "fix-syncpack-root": "syncpack fix-mismatches"
   }
 }

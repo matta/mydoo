@@ -157,6 +157,25 @@
       ],
       "outputs": []
     },
+    "//#check-eslint-root": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "*",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
+    },
     "check-eslint": {
       "outputLogs": "new-only",
       "inputs": [
@@ -212,6 +231,7 @@
       "outputLogs": "new-only",
       "dependsOn": [
         "check-eslint",
+        "//#check-eslint-root",
         "check-format",
         "//#check-biome-root",
         "//#check-filenames-root",
@@ -262,6 +282,10 @@
       ],
       "outputs": []
     },
+    "//#fix-eslint-root": {
+      "outputLogs": "errors-only",
+      "cache": false
+    },
     "fix-eslint": {
       "outputLogs": "errors-only",
       "cache": false
@@ -273,6 +297,7 @@
     "fix-style": {
       "dependsOn": [
         "fix-eslint",
+        "//#fix-eslint-root",
         "fix-format",
         "//#fix-biome-root",
         "//#fix-format-root"
