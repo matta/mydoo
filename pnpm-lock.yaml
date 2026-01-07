@@ -115,8 +115,8 @@ catalogs:
       specifier: ^16.2.7
       version: 16.2.7
     minimatch:
-      specifier: ^9.0.5
-      version: 9.0.5
+      specifier: ^10.1.1
+      version: 10.1.1
     minimist:
       specifier: ^1.2.8
       version: 1.2.8
@@ -395,7 +395,7 @@ importers:
         version: 11.1.0
       minimatch:
         specifier: 'catalog:'
-        version: 9.0.5
+        version: 10.1.1
       minimist:
         specifier: 'catalog:'
         version: 1.2.8
