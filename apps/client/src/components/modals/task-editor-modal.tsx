@@ -140,24 +140,55 @@ export function TaskEditorModal({
     if (!opened) return;
 
     if (task) {
-      setTitle(task.title);
-      setImportance(task.importance);
-      setEffort(task.creditIncrement ?? DEFAULT_CREDIT_INCREMENT);
-      if (task.schedule.dueDate) {
-        setDueDate(new Date(task.schedule.dueDate));
+      const {
+        title,
+        importance,
+        creditIncrement,
+        schedule,
+        notes,
+        repeatConfig,
+        isSequential,
+        // The following fields are handled implicitly or not edited in this form
+        id,
+        parentId,
+        childTaskIds,
+        placeId,
+        status,
+        credits,
+        desiredCredits,
+        creditsTimestamp,
+        priorityTimestamp,
+        isAcknowledged,
+        lastCompletedAt,
+        // Computed fields from EnrichedTask/ComputedTask
+        effectiveCredits,
+        isContainer,
+        isPending,
+        isReady,
+        ...rest
+      } = task;
+
+      const _exhaustiveCheck: Record<string, never> = rest;
+      void _exhaustiveCheck;
+
+      setTitle(title);
+      setImportance(importance);
+      setEffort(creditIncrement ?? DEFAULT_CREDIT_INCREMENT);
+      if (schedule.dueDate) {
+        setDueDate(new Date(schedule.dueDate));
       } else {
         setDueDate(null);
       }
 
       // Parse Lead Time
-      const { scalar, unit } = parseLeadTime(task.schedule.leadTime);
+      const { scalar, unit } = parseLeadTime(schedule.leadTime);
       setLeadTimeScalar(scalar);
       setLeadTimeUnit(unit);
 
-      setNotes(task.notes || "");
-      setFrequency(task.repeatConfig?.frequency || null);
-      setInterval(task.repeatConfig?.interval || 1);
-      setIsSequential(task.isSequential || false);
+      setNotes(notes || "");
+      setFrequency(repeatConfig?.frequency || null);
+      setInterval(repeatConfig?.interval || 1);
+      setIsSequential(isSequential || false);
     } else {
       // Create Mode: Reset to defaults
       setTitle("");

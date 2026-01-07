@@ -240,22 +240,44 @@ function assignTaskProperties(
   task: PersistedTask,
   props: Partial<PersistedTask>,
 ): void {
-  if (props.title !== undefined) task.title = props.title;
-  if (props.status !== undefined) task.status = props.status;
-  if (props.importance !== undefined) task.importance = props.importance;
-  if (props.creditIncrement !== undefined)
-    task.creditIncrement = props.creditIncrement;
-  if (props.credits !== undefined) task.credits = props.credits;
-  if (props.desiredCredits !== undefined)
-    task.desiredCredits = props.desiredCredits;
-  if (props.creditsTimestamp !== undefined)
-    task.creditsTimestamp = props.creditsTimestamp;
-  if (props.priorityTimestamp !== undefined)
-    task.priorityTimestamp = props.priorityTimestamp;
-  if (props.isSequential !== undefined) task.isSequential = props.isSequential;
-  if (props.isAcknowledged !== undefined)
-    task.isAcknowledged = props.isAcknowledged;
-  if (props.notes !== undefined) task.notes = props.notes;
+  const {
+    title,
+    status,
+    importance,
+    creditIncrement,
+    credits,
+    desiredCredits,
+    creditsTimestamp,
+    priorityTimestamp,
+    isSequential,
+    isAcknowledged,
+    notes,
+    // The following fields are handled in other update paths (moveTask or handleNestedProperties)
+    id,
+    parentId,
+    childTaskIds,
+    placeId,
+    schedule,
+    repeatConfig,
+    lastCompletedAt,
+    ...rest
+  } = props;
+
+  const _exhaustiveCheck: Record<string, never> = rest;
+  void _exhaustiveCheck;
+
+  if (title !== undefined) task.title = title;
+  if (status !== undefined) task.status = status;
+  if (importance !== undefined) task.importance = importance;
+  if (creditIncrement !== undefined) task.creditIncrement = creditIncrement;
+  if (credits !== undefined) task.credits = credits;
+  if (desiredCredits !== undefined) task.desiredCredits = desiredCredits;
+  if (creditsTimestamp !== undefined) task.creditsTimestamp = creditsTimestamp;
+  if (priorityTimestamp !== undefined)
+    task.priorityTimestamp = priorityTimestamp;
+  if (isSequential !== undefined) task.isSequential = isSequential;
+  if (isAcknowledged !== undefined) task.isAcknowledged = isAcknowledged;
+  if (notes !== undefined) task.notes = notes;
 }
 
 /**

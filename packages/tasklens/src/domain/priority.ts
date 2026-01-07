@@ -289,15 +289,53 @@ export function getPrioritizedTasks(
   // Clone Persisted Tasks into Mutable Enriched Tasks
   const enrichedTasks: EnrichedTask[] = Object.values(state.tasks).map(
     (persisted) => {
-      const isContainer = persisted.childTaskIds.length > 0;
-      const isPending = persisted.status === "Pending";
+      const {
+        id,
+        title,
+        notes,
+        parentId,
+        childTaskIds,
+        placeId,
+        status,
+        importance,
+        creditIncrement,
+        credits,
+        desiredCredits,
+        creditsTimestamp,
+        priorityTimestamp,
+        schedule,
+        repeatConfig,
+        isSequential,
+        isAcknowledged,
+        lastCompletedAt,
+        ...rest
+      } = persisted;
+
+      const _exhaustiveCheck: Record<string, never> = rest;
+      void _exhaustiveCheck;
+
+      const isContainer = childTaskIds.length > 0;
+      const isPending = status === "Pending";
 
       return {
-        ...persisted,
-        schedule: { ...persisted.schedule }, // Deep clone to allow mutation without side effects
-        repeatConfig: persisted.repeatConfig
-          ? { ...persisted.repeatConfig }
-          : undefined, // Explicit clone to ensure availability
+        id,
+        title,
+        notes,
+        parentId,
+        childTaskIds,
+        placeId,
+        status,
+        importance,
+        creditIncrement,
+        credits,
+        desiredCredits,
+        creditsTimestamp,
+        priorityTimestamp,
+        isSequential,
+        isAcknowledged,
+        lastCompletedAt,
+        schedule: { ...schedule }, // Deep clone to allow mutation without side effects
+        repeatConfig: repeatConfig ? { ...repeatConfig } : undefined, // Explicit clone to ensure availability
         effectiveCredits: 0,
         feedbackFactor: 1.0,
         leadTimeFactor: 0,

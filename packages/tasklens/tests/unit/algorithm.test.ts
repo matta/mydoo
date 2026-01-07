@@ -210,33 +210,65 @@ function computePartialUpdate(
   id: string,
   props: Omit<TaskUpdate, "id">,
 ): Partial<PersistedTask> {
+  const {
+    status,
+    credits,
+    desired_credits,
+    importance,
+    due_date,
+    is_acknowledged,
+    place_id,
+    credit_increment,
+    // Schedule fields handled by computeScheduleUpdate
+    schedule_type,
+    repeat_config,
+    last_done,
+    lead_time_seconds,
+    period_seconds,
+    ...rest
+  } = props;
+
+  const _exhaustiveCheck: Record<string, never> = rest as Record<string, never>;
+  void _exhaustiveCheck;
+
   const taskProps: Partial<PersistedTask> = {};
 
-  if (props.status) {
-    taskProps.status =
-      StoreTaskStatus[props.status as keyof typeof StoreTaskStatus];
+  if (status) {
+    taskProps.status = StoreTaskStatus[status as keyof typeof StoreTaskStatus];
   }
-  if (props.credits !== undefined) {
-    taskProps.credits = Number(props.credits);
+  if (credits !== undefined) {
+    taskProps.credits = Number(credits);
   }
-  if (props.desired_credits !== undefined) {
-    taskProps.desiredCredits = Number(props.desired_credits);
+  if (desired_credits !== undefined) {
+    taskProps.desiredCredits = Number(desired_credits);
   }
-  if (props.importance !== undefined) {
-    taskProps.importance = Number(props.importance);
+  if (importance !== undefined) {
+    taskProps.importance = Number(importance);
   }
 
   // Handle schedule-related updates
-  computeScheduleUpdate(store, id, props, taskProps);
+  computeScheduleUpdate(
+    store,
+    id,
+    {
+      due_date,
+      schedule_type,
+      repeat_config,
+      last_done,
+      lead_time_seconds,
+      period_seconds,
+    } as Omit<TaskUpdate, "id">,
+    taskProps,
+  );
 
-  if (props.is_acknowledged !== undefined) {
-    taskProps.isAcknowledged = Boolean(props.is_acknowledged);
+  if (is_acknowledged !== undefined) {
+    taskProps.isAcknowledged = Boolean(is_acknowledged);
   }
-  if (props.place_id !== undefined) {
-    taskProps.placeId = props.place_id as PlaceID;
+  if (place_id !== undefined) {
+    taskProps.placeId = place_id as PlaceID;
   }
-  if (props.credit_increment !== undefined) {
-    taskProps.creditIncrement = Number(props.credit_increment);
+  if (credit_increment !== undefined) {
+    taskProps.creditIncrement = Number(credit_increment);
   }
 
   return taskProps;
