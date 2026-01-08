@@ -28,6 +28,7 @@ import type {
   Schedule,
   TaskIDSchema,
 } from "./persistence/schemas";
+import type { KnownKeysOnly } from "./utils/types";
 
 /**
  * Unique identifier for a Task.
@@ -318,7 +319,7 @@ export interface EnrichedTask extends PersistedTask {
  * It specifically EXCLUDES internal scoring factors (priority, visibility, etc)
  * to prevent the UI from relying on implementation details.
  */
-export interface ComputedTask extends PersistedTask {
+export type ComputedTask = KnownKeysOnly<PersistedTask> & {
   /**
    * The timestamp-decayed value of the task's accumulated credits.
    *
@@ -359,7 +360,7 @@ export interface ComputedTask extends PersistedTask {
    * - Exposed Via: `ComputedTask`
    */
   readonly isReady: boolean;
-}
+};
 
 /**
  * Legacy Alias for Client Compatibility.
@@ -396,9 +397,9 @@ export type { Place };
  * Used for UI rendering where the full tree hierarchy needs to be traversed.
  * Extends ComputedTask with a `children` array containing nested TunnelNodes.
  */
-export interface TunnelNode extends ComputedTask {
+export type TunnelNode = ComputedTask & {
   children: TunnelNode[];
-}
+};
 
 /**
  * A Raw Persisted Task with its children resolved.

@@ -70,7 +70,7 @@ export const PlaceIDSchema = z.string().brand<"PlaceID">();
  *
  * Scheduling information for a task.
  */
-export const ScheduleSchema = z.object({
+export const ScheduleSchema = z.looseObject({
   /** "Once" for one-time tasks, "Routinely" for repeating tasks. */
   type: z.enum(["Once", "Routinely", "DueDate", "Calendar"]),
   /** Unix timestamp (ms) when the task is due, or undefined if no deadline. */
@@ -92,7 +92,7 @@ export type Schedule = z.infer<typeof ScheduleSchema>;
  *
  * Configuration for recurring tasks.
  */
-export const RepeatConfigSchema = z.object({
+export const RepeatConfigSchema = z.looseObject({
   /** Frequency of recurrence */
   frequency: z.enum([
     "minutes",
@@ -122,7 +122,7 @@ export type RepeatConfig = z.infer<typeof RepeatConfigSchema>;
  * This represents the raw data stored in the database (Automerge).
  * Unlike computed task types, it does NOT contain computed properties.
  */
-export const TaskSchema = z.object({
+export const TaskSchema = z.looseObject({
   /** Unique identifier for this task. */
   id: TaskIDSchema,
   /** Human-readable name or description of the task. */
@@ -180,7 +180,7 @@ export type PersistedTask = z.infer<typeof TaskSchema>;
  *
  * A physical or virtual location where tasks can be performed.
  */
-export const PlaceSchema = z.object({
+export const PlaceSchema = z.looseObject({
   /** Unique identifier for this place. */
   id: PlaceIDSchema,
   /** Opening hours specification (serialized as string). */
@@ -207,7 +207,7 @@ export type Place = z.infer<typeof PlaceSchema>;
  *
  * @see TunnelState in types.ts for the corresponding TypeScript interface.
  */
-export const TunnelStateSchema = z.object({
+export const TunnelStateSchema = z.looseObject({
   rootTaskIds: z.array(TaskIDSchema),
   tasks: AutomergeRecord(TaskIDSchema, TaskSchema),
   places: AutomergeRecord(PlaceIDSchema, PlaceSchema),

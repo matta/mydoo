@@ -263,8 +263,8 @@ function assignTaskProperties(
     ...rest
   } = props;
 
-  const _exhaustiveCheck: Record<string, never> = rest;
-  void _exhaustiveCheck;
+  // Propagate unknown fields (schema evolution)
+  Object.assign(task, rest);
 
   if (title !== undefined) task.title = title;
   if (status !== undefined) task.status = status;

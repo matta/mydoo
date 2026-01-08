@@ -3,12 +3,14 @@ import {
   type Context,
   DEFAULT_CREDIT_INCREMENT,
   type EnrichedTask,
+  type PersistedTask,
   type PriorityOptions,
   type TaskID,
   type TunnelState,
   type ViewFilter,
 } from "../types";
 import { getCurrentTimestamp, getIntervalMs } from "../utils/time";
+import type { KnownKeysOnly } from "../utils/types";
 import { CREDITS_HALF_LIFE_MILLIS } from "./constants";
 import { calculateFeedbackFactors } from "./feedback";
 import { calculateLeadTimeFactor } from "./readiness";
@@ -86,6 +88,79 @@ function assignOutlineIndexes(
   }
 
   traverse(undefined);
+}
+
+/**
+ * Hydrates a persisted task into an enriched task object.
+ * Applies exhaustive destructuring logic to ensure all known properties are handled.
+ *
+ * IMPORTANT: Unknown fields (from `rest`) are intentionally discarded here.
+ * This is asymmetric with ops.ts which preserves unknown fields during writes.
+ * The view layer (ComputedTask) should not expose fields the UI doesn't understand.
+ */
+function hydrateTask(persisted: PersistedTask): EnrichedTask {
+  const {
+    id,
+    title,
+    notes,
+    parentId,
+    childTaskIds,
+    placeId,
+    status,
+    importance,
+    creditIncrement,
+    credits,
+    desiredCredits,
+    creditsTimestamp,
+    priorityTimestamp,
+    schedule,
+    repeatConfig,
+    isSequential,
+    isAcknowledged,
+    lastCompletedAt,
+    ...rest
+  } = persisted;
+
+  // Cast rest to strip the index signature, then assert it's empty of known keys
+  const _exhaustiveCheck: KnownKeysOnly<typeof rest> = rest;
+  void _exhaustiveCheck;
+
+  // Note: Unknown fields from `rest` are ignored in the view layer projection.
+  // They are preserved in the store via ops.ts but not exposed in ComputedTask.
+
+  const isContainer = childTaskIds.length > 0;
+  const isPending = status === "Pending";
+
+  return {
+    id,
+    title,
+    notes,
+    parentId,
+    childTaskIds,
+    placeId,
+    status,
+    importance,
+    creditIncrement,
+    credits,
+    desiredCredits,
+    creditsTimestamp,
+    priorityTimestamp,
+    isSequential,
+    isAcknowledged,
+    lastCompletedAt,
+    schedule: { ...schedule }, // Deep clone to allow mutation without side effects
+    repeatConfig: repeatConfig ? { ...repeatConfig } : undefined, // Explicit clone to ensure availability
+    effectiveCredits: 0,
+    feedbackFactor: 1.0,
+    leadTimeFactor: 0,
+    normalizedImportance: 0,
+    priority: 0,
+    visibility: true,
+    isContainer,
+    isPending,
+    isReady: false,
+    outlineIndex: 0,
+  };
 }
 
 /**
@@ -288,66 +363,7 @@ export function getPrioritizedTasks(
   // --- Stage 1: Hydrate & Initialize ---
   // Clone Persisted Tasks into Mutable Enriched Tasks
   const enrichedTasks: EnrichedTask[] = Object.values(state.tasks).map(
-    (persisted) => {
-      const {
-        id,
-        title,
-        notes,
-        parentId,
-        childTaskIds,
-        placeId,
-        status,
-        importance,
-        creditIncrement,
-        credits,
-        desiredCredits,
-        creditsTimestamp,
-        priorityTimestamp,
-        schedule,
-        repeatConfig,
-        isSequential,
-        isAcknowledged,
-        lastCompletedAt,
-        ...rest
-      } = persisted;
-
-      const _exhaustiveCheck: Record<string, never> = rest;
-      void _exhaustiveCheck;
-
-      const isContainer = childTaskIds.length > 0;
-      const isPending = status === "Pending";
-
-      return {
-        id,
-        title,
-        notes,
-        parentId,
-        childTaskIds,
-        placeId,
-        status,
-        importance,
-        creditIncrement,
-        credits,
-        desiredCredits,
-        creditsTimestamp,
-        priorityTimestamp,
-        isSequential,
-        isAcknowledged,
-        lastCompletedAt,
-        schedule: { ...schedule }, // Deep clone to allow mutation without side effects
-        repeatConfig: repeatConfig ? { ...repeatConfig } : undefined, // Explicit clone to ensure availability
-        effectiveCredits: 0,
-        feedbackFactor: 1.0,
-        leadTimeFactor: 0,
-        normalizedImportance: 0,
-        priority: 0,
-        visibility: true,
-        isContainer,
-        isPending,
-        isReady: false,
-        outlineIndex: 0,
-      };
-    },
+    hydrateTask,
   );
 
   // --- Stage 2: Process ---
