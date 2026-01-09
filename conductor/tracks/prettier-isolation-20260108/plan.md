@@ -4,7 +4,7 @@
 - [x] Task: Update root `.prettierignore` to exclude all subdirectories [32f84ab]
 - [x] Task: Conductor - User Manual Verification 'Root Isolation' (Protocol in workflow.md)
 
-## Phase 2: Sub-package Opt-In
+## Phase 2: Sub-package Opt-In [checkpoint: aa23167]
 - [x] Task: Configure Prettier for `apps/client` (add/update `.prettierignore`) [b55f4b6]
 - [x] Task: Configure Prettier for `packages/tasklens` (add/update `.prettierignore`) [86da749]
 - [x] Task: Configure Prettier for `@mydoo/docs` (add/update `.prettierignore`) [a11d2b1]
