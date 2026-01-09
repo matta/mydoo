@@ -2,7 +2,7 @@
 
 ## Phase 1: Root Isolation
 
-- [~] Task: Update root `.prettierignore` to exclude all subdirectories
+- [x] Task: Update root `.prettierignore` to exclude all subdirectories [32f84ab]
 - [ ] Task: Conductor - User Manual Verification 'Root Isolation' (Protocol in
       workflow.md)
 
