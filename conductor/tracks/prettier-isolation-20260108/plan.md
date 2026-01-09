@@ -1,6 +1,6 @@
 # Plan: Enforce Strict Prettier Isolation
 
-## Phase 1: Root Isolation
+## Phase 1: Root Isolation [checkpoint: 6d8c0de]
 
 - [x] Task: Update root `.prettierignore` to exclude all subdirectories [32f84ab]
 - [ ] Task: Conductor - User Manual Verification 'Root Isolation' (Protocol in
