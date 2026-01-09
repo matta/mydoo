@@ -8,7 +8,7 @@
 - [x] Task: Configure Prettier for `apps/client` (add/update `.prettierignore`) [b55f4b6]
 - [x] Task: Configure Prettier for `packages/tasklens` (add/update `.prettierignore`) [86da749]
 - [x] Task: Configure Prettier for `@mydoo/docs` (add/update `.prettierignore`) [a11d2b1]
-- [ ] Task: Configure Prettier for `@mydoo/scripts` (add/update `.prettierignore`)
+- [x] Task: Configure Prettier for `@mydoo/scripts` (add/update `.prettierignore`) [54ac0e2]
 - [ ] Task: Conductor - User Manual Verification 'Sub-package Opt-In' (Protocol in workflow.md)
 
 ## Phase 3: Final Verification
