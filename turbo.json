@@ -357,17 +357,17 @@
     },
     "test-e2e": {
       "outputLogs": "new-only",
-      "dependsOn": ["check-style", "build", "check-types", "generate"],
+      "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
       "outputs": ["playwright-report/**", "test-results/**"]
     },
     "test-e2e-desktop": {
       "outputLogs": "new-only",
-      "dependsOn": ["check-style", "build", "check-types", "generate"],
+      "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
       "outputs": ["playwright-report/**", "test-results/**"]
     },
     "test-e2e-mobile": {
       "outputLogs": "new-only",
-      "dependsOn": ["check-style", "build", "check-types", "generate"],
+      "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
       "outputs": ["playwright-report/**", "test-results/**"]
     },
     "dev": {
