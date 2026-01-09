@@ -8,7 +8,7 @@
 
 ## Phase 2: Sub-package Opt-In
 
-- [ ] Task: Configure Prettier for `apps/client` (add/update `.prettierignore`)
+- [x] Task: Configure Prettier for `apps/client` (add/update `.prettierignore`) [b55f4b6]
 - [ ] Task: Configure Prettier for `packages/tasklens` (add/update
       `.prettierignore`)
 - [ ] Task: Conductor - User Manual Verification 'Sub-package Opt-In' (Protocol
