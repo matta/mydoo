@@ -7,7 +7,7 @@
     "biome.json",
     "eslint.config.js"
   ],
-  "globalPassThroughEnv": ["ANTIGRAVITY_AGENT", "GEMINI_CLI", "CI"],
+  "globalPassThroughEnv": [],
   "tasks": {
     "//#check-format-root": {
       "outputLogs": "new-only",
@@ -309,6 +309,7 @@
     "build": {
       "outputLogs": "new-only",
       "dependsOn": ["check-style", "^build"],
+      "env": ["VITE_PWA_DEV", "CF_PAGES_COMMIT_SHA"],
       "inputs": [
         "src/**/*",
         "public/**/*",
@@ -335,6 +336,7 @@
     "test": {
       "outputLogs": "new-only",
       "dependsOn": ["check-style", "build", "check-types", "generate"],
+      "env": ["FEATURE_FILTER"],
       "inputs": [
         "src/**/*",
         "tests/**/*",
@@ -358,17 +360,20 @@
     "test-e2e": {
       "outputLogs": "new-only",
       "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
-      "outputs": ["playwright-report/**", "test-results/**"]
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "env": ["CI"]
     },
     "test-e2e-desktop": {
       "outputLogs": "new-only",
       "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
-      "outputs": ["playwright-report/**", "test-results/**"]
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "env": ["CI"]
     },
     "test-e2e-mobile": {
       "outputLogs": "new-only",
       "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
-      "outputs": ["playwright-report/**", "test-results/**"]
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "env": ["CI"]
     },
     "dev": {
       "cache": false,
