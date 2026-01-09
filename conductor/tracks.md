@@ -5,7 +5,7 @@ detailed plan in its respective folder.
 
 ---
 
-## [ ] Track: Enforce Strict Prettier Isolation
+## [~] Track: Enforce Strict Prettier Isolation
 
 _Link:
 [./conductor/tracks/prettier-isolation-20260108/](./conductor/tracks/prettier-isolation-20260108/)_
