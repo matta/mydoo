@@ -226,3 +226,16 @@ export type Task = ComputedTask;
 export interface TunnelNode extends ComputedTask {
   children: TunnelNode[];
 }
+
+/**
+ * Data structure for an item in the Balance View.
+ */
+export interface BalanceItemData {
+  id: TaskID;
+  title: string;
+  desiredCredits: number;
+  effectiveCredits: number;
+  targetPercent: number;
+  actualPercent: number;
+  isStarving: boolean;
+}
