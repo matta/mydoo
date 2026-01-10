@@ -1,12 +1,12 @@
 import {
-  type CreateTaskOptions,
   selectRootTaskIds,
   selectTaskEntities,
-  type Task,
+  type TaskCreateInput,
   type TaskID,
   TaskStatus,
   useTaskActions,
 } from "@mydoo/tasklens";
+
 import { useCallback } from "react";
 import { useSelector } from "react-redux";
 
@@ -29,13 +29,8 @@ export function useTaskIntents() {
   const rootTaskIds = useSelector(selectRootTaskIds);
 
   const createTask = useCallback(
-    (
-      title: string,
-      parentId?: TaskID,
-      options?: CreateTaskOptions,
-      props?: Partial<Task>,
-    ): TaskID => {
-      return baseCreateTask(title, parentId, options, props);
+    (input: TaskCreateInput): TaskID => {
+      return baseCreateTask(input);
     },
     [baseCreateTask],
   );

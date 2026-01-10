@@ -60,7 +60,7 @@ describe("useBreadcrumbs", () => {
 
     let parentId: TaskID;
     act(() => {
-      parentId = intents.current.createTask("Parent");
+      parentId = intents.current.createTask({ title: "Parent" });
     });
 
     // Wait for parent in Redux
@@ -72,7 +72,10 @@ describe("useBreadcrumbs", () => {
 
     let childId: TaskID;
     act(() => {
-      childId = intents.current.createTask("Child", parentId);
+      childId = intents.current.createTask({
+        title: "Child",
+        parentId: parentId,
+      });
     });
 
     // Wait for child in Redux

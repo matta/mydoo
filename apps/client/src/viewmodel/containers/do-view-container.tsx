@@ -42,7 +42,7 @@ export function DoViewContainer() {
 
   const handleCreate = useCallback(
     (text: string) => {
-      createTask(text);
+      createTask({ title: text });
     },
     [createTask],
   );

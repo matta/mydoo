@@ -16,58 +16,70 @@ export function seedHierarchicalData(
   actions: ReturnType<typeof useTaskActions>,
 ) {
   // 1. Project Alpha
-  const alphaId = actions.createTask("Project Alpha", undefined, undefined, {
+  const alphaId = actions.createTask({
+    title: "Project Alpha",
     importance: IMPORTANCE_HIGH,
   });
 
-  actions.createTask("Research Requirements", alphaId, undefined, {
+  actions.createTask({
+    title: "Research Requirements",
+    parentId: alphaId,
     importance: IMPORTANCE_HIGH,
   });
-  actions.createTask("Design UI Mocks", alphaId, undefined, {
+  actions.createTask({
+    title: "Design UI Mocks",
+    parentId: alphaId,
     importance: IMPORTANCE_HIGH,
   });
 
   // 2. Buy Groceries
-  const groceriesId = actions.createTask(
-    "Buy Groceries",
-    undefined,
-    undefined,
-    {
-      importance: IMPORTANCE_NORMAL,
-    },
-  );
+  const groceriesId = actions.createTask({
+    title: "Buy Groceries",
+    importance: IMPORTANCE_NORMAL,
+  });
 
-  actions.createTask("Milk", groceriesId, undefined, {
+  actions.createTask({
+    title: "Milk",
+    parentId: groceriesId,
     importance: IMPORTANCE_NORMAL,
   });
-  actions.createTask("Eggs", groceriesId, undefined, {
+  actions.createTask({
+    title: "Eggs",
+    parentId: groceriesId,
     importance: IMPORTANCE_NORMAL,
   });
-  actions.createTask("Bread", groceriesId, undefined, {
+  actions.createTask({
+    title: "Bread",
+    parentId: groceriesId,
     importance: IMPORTANCE_NORMAL,
   });
 
   // 3. Deep Work Project
-  const deepId = actions.createTask("Deep Work Project", undefined, undefined, {
+  const deepId = actions.createTask({
+    title: "Deep Work Project",
     importance: IMPORTANCE_MEDIUM,
   });
 
-  const moduleId = actions.createTask("Module A", deepId, undefined, {
+  const moduleId = actions.createTask({
+    title: "Module A",
+    parentId: deepId,
     importance: IMPORTANCE_MEDIUM,
   });
 
-  const componentId = actions.createTask("Component X", moduleId, undefined, {
+  const componentId = actions.createTask({
+    title: "Component X",
+    parentId: moduleId,
     importance: IMPORTANCE_MEDIUM,
   });
 
-  actions.createTask("Unit Test", componentId, undefined, {
+  actions.createTask({
+    title: "Unit Test",
+    parentId: componentId,
     importance: IMPORTANCE_MEDIUM,
   });
 
   // 4. Standalone Task
-  actions.createTask("Quick Task", undefined, undefined, {
-    importance: IMPORTANCE_LOW,
-  });
+  actions.createTask({ title: "Quick Task", importance: IMPORTANCE_LOW });
 }
 
 /**
