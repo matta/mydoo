@@ -26,6 +26,8 @@ import {
 } from "@mantine/core";
 import {
   DEFAULT_CREDIT_INCREMENT,
+  DEFAULT_TASK_IMPORTANCE,
+  DEFAULT_TASK_LEAD_TIME_HOURS,
   type RepeatConfig,
   type Task,
   type TaskID,
@@ -122,13 +124,15 @@ export function TaskEditorModal({
 }: TaskEditorModalProps) {
   // Local form state
   const [title, setTitle] = useState("");
-  const [importance, setImportance] = useState(0.5);
+  const [importance, setImportance] = useState(DEFAULT_TASK_IMPORTANCE);
   const [effort, setEffort] = useState(0.5);
   const [dueDate, setDueDate] = useState<Date | null>(null);
 
   // Lead Time State
-  const [leadTimeScalar, setLeadTimeScalar] = useState<number | string>(7);
-  const [leadTimeUnit, setLeadTimeUnit] = useState<string>("Days");
+  const [leadTimeScalar, setLeadTimeScalar] = useState<number | string>(
+    DEFAULT_TASK_LEAD_TIME_HOURS,
+  );
+  const [leadTimeUnit, setLeadTimeUnit] = useState<string>("Hours");
 
   const [notes, setNotes] = useState("");
   const [frequency, setFrequency] = useState<string | null>(null);
@@ -192,12 +196,12 @@ export function TaskEditorModal({
     } else {
       // Create Mode: Reset to defaults
       setTitle("");
-      setImportance(0.5);
+      setImportance(DEFAULT_TASK_IMPORTANCE);
       setEffort(0.5);
       setDueDate(null);
-      // Default: 7 Days
-      setLeadTimeScalar(7);
-      setLeadTimeUnit("Days");
+      // Default: 8 Hours
+      setLeadTimeScalar(DEFAULT_TASK_LEAD_TIME_HOURS);
+      setLeadTimeUnit("Hours");
       setNotes("");
       setFrequency(null);
       setInterval(1);

@@ -22,7 +22,11 @@
  * object in tests). The `state.tasks` Record uses plain objects because
  * Automerge cannot proxy JavaScript Map or Set types.
  */
-import { CREDITS_HALF_LIFE_MILLIS } from "../domain/constants";
+import {
+  CREDITS_HALF_LIFE_MILLIS,
+  DEFAULT_TASK_IMPORTANCE,
+  DEFAULT_TASK_LEAD_TIME_MS,
+} from "../domain/constants";
 import { validateDepth, validateNoCycle } from "../domain/invariants";
 import { DEFAULT_CREDIT_INCREMENT } from "../types/internal";
 import {
@@ -36,7 +40,7 @@ import {
   type TaskUpdateInput,
   type TunnelState,
 } from "../types/persistence";
-import { getCurrentTimestamp, hoursToMilliseconds } from "../utils/time";
+import { getCurrentTimestamp } from "../utils/time";
 
 // --- Mutators ---
 
@@ -70,7 +74,7 @@ export function createTask(
   const defaultSchedule: Schedule = {
     type: "Once",
     dueDate: undefined,
-    leadTime: hoursToMilliseconds(8),
+    leadTime: DEFAULT_TASK_LEAD_TIME_MS,
   };
   const newTask: PersistedTask = {
     id: newTaskId,
@@ -84,7 +88,7 @@ export function createTask(
         : ANYWHERE_PLACE_ID) ??
       ANYWHERE_PLACE_ID,
     status: props.status ?? TaskStatus.Pending,
-    importance: props.importance ?? 1.0,
+    importance: props.importance ?? DEFAULT_TASK_IMPORTANCE,
     creditIncrement:
       props.creditIncrement ??
       (props.parentId
