@@ -11,11 +11,11 @@
 - [x] Task: Write unit tests for configuration parsing and file discovery.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Configuration & File Discovery' (Protocol in workflow.md)
 
-## Phase 3: Validation Logic Implementation
+## Phase 3: Validation Logic Implementation [checkpoint: a7449a2]
 - [x] Task: Implement ignore pattern matching using `minimatch`.
 - [x] Task: Implement casing validation logic (kebab-case, snake_case, etc.) and rule mapping.
 - [x] Task: Write unit tests for validation logic and casing rules.
-- [~] Task: Conductor - User Manual Verification 'Phase 3: Validation Logic Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Validation Logic Implementation' (Protocol in workflow.md)
 
 ## Phase 4: Integration & Cleanup
 - [ ] Task: Update `package.json` to use the new script in `check-filenames-root`.
