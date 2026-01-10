@@ -22,7 +22,8 @@ ignore:
   - .moon
   - .specify
   - .vscode
-  - "**/.features-gen"
+  - apps/client/tests/e2e/.features-gen
+
   - "**/.turbo"
   - "**/__screenshots__"
   - "**/build"

@@ -3,10 +3,24 @@
   "tasks": {
     "generate": {
       "inputs": [
-        "tests/e2e/features/*.feature",
-        "tests/e2e/steps/*.steps.ts",
+        "tests/e2e/features/**/*.feature",
+        "tests/e2e/steps/**/*.steps.ts",
         "tests/e2e/fixtures.ts",
-        "playwright.config.ts"
+        "playwright.config.ts",
+        "package.json",
+        "tsconfig.json",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/test-results/**"
       ],
       "outputs": ["tests/e2e/.features-gen/**"]
     }
