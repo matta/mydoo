@@ -44,8 +44,8 @@ describe("useTaskIntents (Move Interactions)", () => {
     let siblingId: TaskID;
     let targetId: TaskID;
     act(() => {
-      siblingId = result.current.createTask("Sibling");
-      targetId = result.current.createTask("Target");
+      siblingId = result.current.createTask({ title: "Sibling" });
+      targetId = result.current.createTask({ title: "Target" });
     });
 
     // Wait for Redux to sync the tasks
@@ -84,7 +84,7 @@ describe("useTaskIntents (Move Interactions)", () => {
     let parentId: TaskID;
     let childId: TaskID;
     act(() => {
-      parentId = result.current.createTask("Parent");
+      parentId = result.current.createTask({ title: "Parent" });
     });
 
     // Wait for parent
@@ -95,7 +95,10 @@ describe("useTaskIntents (Move Interactions)", () => {
     });
 
     act(() => {
-      childId = result.current.createTask("Child", parentId);
+      childId = result.current.createTask({
+        title: "Child",
+        parentId: parentId,
+      });
     });
 
     // Wait for child
@@ -124,7 +127,7 @@ describe("useTaskIntents (Move Interactions)", () => {
 
     let id: TaskID;
     act(() => {
-      id = result.current.createTask("Solo");
+      id = result.current.createTask({ title: "Solo" });
     });
 
     // Wait for solo task

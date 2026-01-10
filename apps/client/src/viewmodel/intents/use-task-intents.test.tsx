@@ -45,7 +45,7 @@ describe("useTaskIntents", () => {
     // 3. Create Task
     let taskId: TaskID;
     act(() => {
-      taskId = result.current.createTask("Buy Milk");
+      taskId = result.current.createTask({ title: "Buy Milk" });
     });
 
     // Wait for Redux to sync the new task
@@ -93,7 +93,7 @@ describe("useTaskIntents", () => {
     // 3. Create Task
     let taskId: TaskID;
     act(() => {
-      taskId = result.current.intents.createTask("Walk Dog");
+      taskId = result.current.intents.createTask({ title: "Walk Dog" });
     });
 
     // Wait until the hook sees the task in Redux entities
@@ -154,7 +154,7 @@ describe("useTaskIntents", () => {
     // 3. Create Parent Task
     let parentId: TaskID;
     act(() => {
-      parentId = result.current.createTask("Parent Task");
+      parentId = result.current.createTask({ title: "Parent Task" });
     });
 
     // Wait for parent task to sync to Redux
@@ -172,7 +172,10 @@ describe("useTaskIntents", () => {
     // 4. Create Child Task
     let childId: TaskID;
     act(() => {
-      childId = result.current.createTask("Child Task", parentTask.id);
+      childId = result.current.createTask({
+        title: "Child Task",
+        parentId: parentTask.id,
+      });
     });
 
     // Wait for child task to sync to Redux
