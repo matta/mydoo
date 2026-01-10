@@ -12,6 +12,6 @@
 - [ ] Task: Conductor - User Manual Verification 'Sub-package Opt-In' (Protocol in workflow.md)
 
 ## Phase 3: Final Verification
-- [ ] Task: Verify that root Prettier command touches no files in subdirectories
-- [ ] Task: Verify that sub-package Prettier commands still function correctly
+- [x] Task: Verify that root Prettier command touches no files in subdirectories
+- [x] Task: Verify that sub-package Prettier commands still function correctly
 - [ ] Task: Conductor - User Manual Verification 'Final Verification' (Protocol in workflow.md)

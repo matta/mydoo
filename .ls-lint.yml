@@ -1,32 +1,22 @@
 ls:
-  .js: kebab-case
-  .jsx: kebab-case
-  .ts: kebab-case
-  .tsx: kebab-case
-  .html: kebab-case
-  .css: kebab-case
-  .scss: kebab-case
-  .sh: kebab-case
-  .svg: kebab-case
+  .*: kebab-case
   .cjs: regex:use-js-instead
   .mjs: regex:use-js-instead
   .md: kebab-case | SCREAMING_SNAKE_CASE
-  .dir: kebab-case | snake_case
 
 ignore:
-  - .agent
   - .gemini
   - .git
   - .github
   - .husky
   - .moon
   - .specify
+  - .turbo
   - .vscode
-  - "**/.features-gen"
-  - "**/.turbo"
   - "**/__screenshots__"
   - "**/build"
   - "**/coverage"
   - "**/dev-dist"
   - "**/dist"
   - "**/node_modules"
+  - "**/test-results"
