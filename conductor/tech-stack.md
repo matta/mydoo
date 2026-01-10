@@ -25,7 +25,7 @@
 ## Code Quality & Tooling
 
 - **Linter & Formatter:** Biome, ESLint, Prettier
-- **Filename Convention:** ls-lint
+- **Filename Convention:** Custom Script (`scripts/lint-filenames.ts`)
 - **Dependency Health:** knip
 - **Package JSON Management:** syncpack
 - **Git Hooks:** Husky
