@@ -17,8 +17,8 @@
 - [x] Task: Write unit tests for validation logic and casing rules.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Validation Logic Implementation' (Protocol in workflow.md)
 
-## Phase 4: Integration & Cleanup
+## Phase 4: Integration & Cleanup [checkpoint: 501affa]
 - [x] Task: Update `package.json` to use the new script in `check-filenames-root`.
 - [x] Task: Remove `@ls-lint/ls-lint` from `package.json` and devDependencies.
 - [x] Task: Run the new script against the entire codebase and verify it matches current `ls-lint` output.
-- [~] Task: Conductor - User Manual Verification 'Phase 4: Integration & Cleanup' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Integration & Cleanup' (Protocol in workflow.md)
