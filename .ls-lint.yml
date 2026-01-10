@@ -23,7 +23,7 @@ ignore:
   - .specify
   - .vscode
   - apps/client/tests/e2e/.features-gen
-
+  - tempcontext
   - "**/.turbo"
   - "**/__screenshots__"
   - "**/build"

@@ -19,7 +19,8 @@
       "!**/pnpm-lock.yaml",
       "!**/.features-gen",
       "!**/*.d.ts",
-      "!**/.prettierignore"
+      "!**/.prettierignore",
+      "!**/tempcontext"
     ]
   },
   "formatter": {
