@@ -15,11 +15,11 @@
   },
   "scripts": {
     "check-eslint": "eslint .",
-    "check-format": "prettier --check . --ignore-path ../.prettierignore",
+    "check-format": "prettier --check .",
     "check-types": "tsc --noEmit",
     "check-turbo-inputs": "tsx check-turbo-inputs.ts",
     "fix-eslint": "eslint . --fix",
-    "fix-format": "prettier --write . --ignore-path ../.prettierignore",
+    "fix-format": "prettier --write .",
     "test": "vitest run"
   }
 }
