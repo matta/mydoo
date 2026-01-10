@@ -5,11 +5,11 @@
 - [x] Task: Create script skeleton at `scripts/lint-filenames.ts` and ensure it can be executed.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Environment Setup & Tooling' (Protocol in workflow.md)
 
-## Phase 2: Configuration & File Discovery
+## Phase 2: Configuration & File Discovery [checkpoint: dd05124]
 - [x] Task: Implement `.ls-lint.yml` parsing using `js-yaml`.
 - [x] Task: Implement `git ls-files` retrieval via `child_process`.
 - [x] Task: Write unit tests for configuration parsing and file discovery.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Configuration & File Discovery' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Configuration & File Discovery' (Protocol in workflow.md)
 
 ## Phase 3: Validation Logic Implementation
 - [ ] Task: Implement ignore pattern matching using `minimatch`.
