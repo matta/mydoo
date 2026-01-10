@@ -6,11 +6,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
 import { minimatch } from "minimatch";
+import { z } from "zod";
 
-export interface Config {
-  ls: Record<string, string>;
-  ignore: string[];
-}
+const ConfigSchema = z.object({
+  ls: z.record(z.string(), z.string()),
+  ignore: z.array(z.string()),
+});
+
+export type Config = z.infer<typeof ConfigSchema>;
 
 const RULES: Record<string, RegExp> = {
   "kebab-case": /^[a-z0-9-.]+$/,
@@ -27,7 +30,8 @@ export function loadConfig(cwd: string = process.cwd()): Config {
   }
 
   const content = fs.readFileSync(configPath, "utf-8");
-  return yaml.load(content) as Config;
+  const rawConfig = yaml.load(content);
+  return ConfigSchema.parse(rawConfig);
 }
 
 export function getTrackedFiles(cwd: string = process.cwd()): string[] {
