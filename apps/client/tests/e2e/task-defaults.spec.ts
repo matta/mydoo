@@ -1,64 +1,73 @@
-import { test } from "./fixtures";
+import { expect, test } from "@playwright/test";
+import { PlanPage } from "./pages/plan-page";
 
-test.describe("Task Creation with Defaults", () => {
-  test("should create task with default placeId via Quick Add", async ({
-    plan,
-    page,
-  }) => {
-    await plan.primeWithSampleData();
+test.describe("Task Defaults", () => {
+  let planPage: PlanPage;
 
-    // The Quick Add input is only available in the "Do" (Priorities) view
-    await plan.switchToDoView();
-
-    // Create a task via Quick Add
-    const input = page.getByPlaceholder("Add a new task...");
-    await input.fill("Test Task with Defaults");
-    await input.press("Enter");
-
-    // Verify task appears in the list (Priority list)
-    await plan.verifyTaskVisible("Test Task with Defaults");
+  test.beforeEach(async ({ page }) => {
+    planPage = new PlanPage(page);
+    await planPage.primeWithSampleData();
   });
 
-  test("should create task and display in priority list", async ({
-    plan,
+  test("should have correct defaults (Importance 1.0, Lead Time 8 Hours) when creating a new task", async ({
     page,
   }) => {
-    await plan.primeWithSampleData();
-    await plan.switchToDoView();
+    // 1. Navigate to Plan View
+    await planPage.switchToPlanView();
 
-    // Create multiple tasks
-    const input = page.getByPlaceholder("Add a new task...");
+    // 2. Open "Create Task" modal via "Add Task at Top" (or similar generic create trigger)
+    // We can use the generic create trigger to check defaults for a root task
+    const addTop = page.getByLabel("Add Task at Top");
+    if (await addTop.isVisible()) {
+      await addTop.click();
+    } else {
+      // Fallback: Add sibling to first task if "Add Task at Top" isn't visible
+      const firstTask = page.locator(`[data-testid="task-item"]`).first();
+      await firstTask.hover();
+      await firstTask.getByTestId("task-menu-trigger").click();
+      await page.getByRole("menuitem", { name: "Add Sibling" }).click();
+    }
 
-    await input.fill("First Task");
-    await input.press("Enter");
+    const modal = page.getByRole("dialog", { name: "Create Task" });
+    await expect(modal).toBeVisible();
 
-    await input.fill("Second Task");
-    await input.press("Enter");
+    // 3. Verify Importance Default (1.0)
+    // Importance is a slider. We can check the text "Importance: 1.00"
+    await expect(modal.getByText("Importance: 1.00")).toBeVisible();
 
-    // Both tasks should be visible in the priority list
-    await plan.verifyTaskVisible("First Task");
-    await plan.verifyTaskVisible("Second Task");
+    // 4. Verify Lead Time Defaults (8 Hours)
+    // Check "Lead Time" input value with ID #lead-time-scalar-input
+    await expect(modal.locator("#lead-time-scalar-input")).toHaveValue("8");
+
+    // Check "Unit" select value with ID #lead-time-unit-select
+    await expect(modal.locator("#lead-time-unit-select")).toHaveValue("Hours");
   });
 
-  test("should persist task after page reload", async ({ plan, page }) => {
-    await plan.primeWithSampleData();
-    await plan.switchToDoView();
+  test("should have correct defaults when adding a child task", async ({
+    page,
+  }) => {
+    await planPage.switchToPlanView();
+    const taskTitle = "Root Task for Defaults";
+    await planPage.createTask(taskTitle);
 
-    // Create a task
-    const input = page.getByPlaceholder("Add a new task...");
-    await input.fill("Persistent Task");
-    await input.press("Enter");
+    // open the editor for the task we just created
+    await planPage.openTaskEditor(taskTitle);
 
-    await plan.verifyTaskVisible("Persistent Task");
+    const editModal = page.getByRole("dialog", { name: "Edit Task" });
+    await editModal.getByRole("button", { name: "Add Child" }).click();
 
-    // Wait for persistence to flush
-    await page.waitForTimeout(1000); // FIXME: This adds artificial latency
+    const createModal = page.getByRole("dialog", { name: "Create Task" });
+    await expect(createModal).toBeVisible();
 
-    // Reload the page
-    await page.reload();
-    await plan.switchToDoView();
+    // 3. Verify Importance Default (1.0)
+    await expect(createModal.getByText("Importance: 1.00")).toBeVisible();
 
-    // Task should still be visible
-    await plan.verifyTaskVisible("Persistent Task");
+    // 4. Verify Lead Time Defaults (8 Hours)
+    await expect(createModal.locator("#lead-time-scalar-input")).toHaveValue(
+      "8",
+    );
+    await expect(createModal.locator("#lead-time-unit-select")).toHaveValue(
+      "Hours",
+    );
   });
 });
