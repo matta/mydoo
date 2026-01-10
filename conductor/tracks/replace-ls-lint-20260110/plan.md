@@ -1,9 +1,9 @@
 # Plan: Replace ls-lint with Custom TypeScript Script
 
-## Phase 1: Environment Setup & Tooling
+## Phase 1: Environment Setup & Tooling [checkpoint: 3a8f16f]
 - [x] Task: Install required dependencies (`minimatch` and `@types/minimatch`).
 - [x] Task: Create script skeleton at `scripts/lint-filenames.ts` and ensure it can be executed.
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Environment Setup & Tooling' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Environment Setup & Tooling' (Protocol in workflow.md)
 
 ## Phase 2: Configuration & File Discovery
 - [ ] Task: Implement `.ls-lint.yml` parsing using `js-yaml`.
