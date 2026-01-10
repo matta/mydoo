@@ -30,9 +30,8 @@ describe("lint-filenames logic", () => {
   });
 
   it("getTrackedFiles should return list of files", () => {
-    vi.mocked(execSync).mockReturnValue(
-      "file1.ts\nfile2.ts\n" as unknown as string,
-    );
+    // Mock returning a string. ReturnType of execSync includes string when encoding is provided.
+    vi.mocked(execSync).mockReturnValue("file1.ts\nfile2.ts\n");
 
     const files = getTrackedFiles();
     expect(files).toEqual(["file1.ts", "file2.ts"]);
@@ -53,6 +52,9 @@ describe("lint-filenames logic", () => {
     expect(validateName("foo_bar", "snake_case")).toBe(true);
     expect(validateName("FOO_BAR", "SCREAMING_SNAKE_CASE")).toBe(true);
     expect(validateName("foo", "kebab-case | snake_case")).toBe(true);
+
+    // Test stem validation
+    expect(validateName("AGENTS", "SCREAMING_SNAKE_CASE")).toBe(true);
   });
 
   it("validateName should handle regex", () => {
