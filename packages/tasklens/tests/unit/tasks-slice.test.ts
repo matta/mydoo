@@ -4,7 +4,12 @@ import tasksReducer, {
   syncDoc,
   type TasksState,
 } from "../../src/store/slices/tasks-slice";
-import { type TaskID, TaskStatus, type TunnelState } from "../../src/types";
+import type {
+  PersistedTask,
+  TaskID as PersistenceTaskID,
+  TunnelState,
+} from "../../src/types/persistence";
+import { type TaskID, TaskStatus } from "../../src/types/ui";
 
 /**
  * Helper to create a SyncDocPayload for tests.
@@ -29,7 +34,7 @@ describe("tasksSlice - syncDoc", () => {
     });
   });
 
-  const createMockTask = (id: string, title: string) => ({
+  const createMockTask = (id: string, title: string): PersistedTask => ({
     id: id as TaskID,
     title,
     status: TaskStatus.Pending,
@@ -39,9 +44,9 @@ describe("tasksSlice - syncDoc", () => {
     desiredCredits: 0.0,
     creditsTimestamp: 0,
     priorityTimestamp: 0,
-    schedule: { type: "Once" as const, leadTime: 0 },
+    schedule: { type: "Once", leadTime: 0 },
     isSequential: false,
-    childTaskIds: [],
+    childTaskIds: [] as PersistenceTaskID[],
     notes: "",
     isAcknowledged: false,
   });
@@ -51,7 +56,10 @@ describe("tasksSlice - syncDoc", () => {
     const task2 = createMockTask("2", "Task 2");
 
     const doc1: TunnelState = {
-      tasks: { ["1" as TaskID]: task1, ["2" as TaskID]: task2 },
+      tasks: {
+        ["1" as TaskID]: task1,
+        ["2" as TaskID]: task2,
+      },
       rootTaskIds: ["1" as TaskID, "2" as TaskID],
       places: {},
       nextTaskId: 3,
@@ -72,7 +80,10 @@ describe("tasksSlice - syncDoc", () => {
     const updatedTask2 = { ...task2, title: "Updated Task 2" };
     const doc2: TunnelState = {
       ...doc1,
-      tasks: { ["1" as TaskID]: task1, ["2" as TaskID]: updatedTask2 },
+      tasks: {
+        ["1" as TaskID]: task1,
+        ["2" as TaskID]: updatedTask2,
+      },
     };
 
     await store.dispatch(syncDoc(toPayload(doc2)));
@@ -105,7 +116,10 @@ describe("tasksSlice - syncDoc", () => {
 
     const task2 = createMockTask("2", "Task 2");
     const doc2: TunnelState = {
-      tasks: { ["1" as TaskID]: task1, ["2" as TaskID]: task2 },
+      tasks: {
+        ["1" as TaskID]: task1,
+        ["2" as TaskID]: task2,
+      },
       rootTaskIds: ["1" as TaskID, "2" as TaskID],
       places: {},
       nextTaskId: 3,

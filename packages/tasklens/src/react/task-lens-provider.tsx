@@ -12,7 +12,7 @@ import { TunnelStateSchema } from "../persistence/schemas";
 import type { TaskLensDispatch } from "../store";
 import { taskLensStore as defaultStore } from "../store";
 import { syncDoc } from "../store/slices/tasks-slice";
-import type { TunnelState } from "../types";
+import type { TunnelState } from "../types/persistence";
 
 /**
  * Initializes the document by running reconcilers and syncing to Redux.

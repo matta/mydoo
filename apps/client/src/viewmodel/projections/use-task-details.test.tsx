@@ -6,8 +6,8 @@ import {
 import {
   createMockTask as createSharedMockTask,
   createTaskLensStore,
+  type PersistedTask,
   type TaskID,
-  type TunnelNode,
   type TunnelState,
 } from "@mydoo/tasklens";
 import { renderHook, waitFor } from "@testing-library/react";
@@ -16,22 +16,55 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestWrapper } from "../../test/setup";
 import { useTaskDetails } from "./use-task-details";
 
-const createMockTask = (
+const createPersistedTask = (
   id: string,
   title: string,
-  parentId?: string,
+  providedParentId?: string,
   children: string[] = [],
-): TunnelNode => {
-  return {
-    ...createSharedMockTask({
-      id: id as TaskID,
-      title,
-      parentId: parentId as TaskID | undefined,
-      childTaskIds: children as TaskID[],
-      isContainer: children.length > 0,
-    }),
-    children: [], // TunnelNode requires children array
-  };
+): PersistedTask => {
+  const base = createSharedMockTask({
+    id: id as TaskID,
+    title,
+    parentId: providedParentId as TaskID | undefined,
+    childTaskIds: children as TaskID[],
+  });
+
+  // Strip UI-only fields and handle undefineds for Automerge
+  const {
+    isContainer: _c,
+    isPending: _p,
+    isReady: _r,
+    effectiveCredits: _ec,
+    ...rest
+  } = base;
+
+  const result: PersistedTask = {
+    ...rest,
+    schedule: {
+      type: rest.schedule.type,
+      leadTime: rest.schedule.leadTime,
+    },
+  } as PersistedTask;
+
+  if (rest.schedule.dueDate !== undefined) {
+    result.schedule.dueDate = rest.schedule.dueDate;
+  }
+  if (rest.schedule.lastDone !== undefined) {
+    result.schedule.lastDone = rest.schedule.lastDone;
+  }
+
+  if (base.repeatConfig) {
+    result.repeatConfig = {
+      frequency: base.repeatConfig.frequency,
+      interval: base.repeatConfig.interval,
+    };
+  }
+
+  if (base.parentId) {
+    result.parentId = base.parentId;
+  }
+
+  return result;
 };
 
 describe("useTaskDetails", () => {
@@ -48,17 +81,20 @@ describe("useTaskDetails", () => {
 
   it("returns task details correctly", async () => {
     handle.change((doc: TunnelState) => {
-      const grandchild = createMockTask(
+      const grandchild = createPersistedTask(
         "grandchild-id",
         "Grandchild",
         "child-id",
       );
-      const child = createMockTask("child-id", "Child Task", "parent-id", [
+      const child = createPersistedTask("child-id", "Child Task", "parent-id", [
         "grandchild-id",
       ]);
-      const parent = createMockTask("parent-id", "Parent Goal", undefined, [
-        "child-id",
-      ]);
+      const parent = createPersistedTask(
+        "parent-id",
+        "Parent Goal",
+        undefined,
+        ["child-id"],
+      );
 
       doc.rootTaskIds = ["parent-id" as TaskID];
       doc.tasks["parent-id" as TaskID] = parent;
@@ -85,7 +121,7 @@ describe("useTaskDetails", () => {
 
   it("handles root tasks (no parent)", async () => {
     handle.change((doc: TunnelState) => {
-      const root = createMockTask("root-id", "Root Task");
+      const root = createPersistedTask("root-id", "Root Task");
       doc.rootTaskIds = ["root-id" as TaskID];
       doc.tasks["root-id" as TaskID] = root;
     });

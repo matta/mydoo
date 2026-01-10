@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { TunnelStore } from "../../src/persistence/store";
-import { type TaskID, TaskStatus } from "../../src/types";
+import type { TaskID } from "../../src/types/persistence"; // Keep TaskID as it's used
+import { TaskStatus } from "../../src/types/ui";
 
 describe("deleteTask cascade (hard-delete)", () => {
   let store: TunnelStore;

@@ -4,7 +4,6 @@ export * from "./domain/projections";
 export * from "./domain/routine-tasks";
 export * from "./domain/tree";
 export * as TunnelOps from "./persistence/ops";
-export * from "./persistence/schemas";
 export { TunnelStore } from "./persistence/store";
 export * from "./react/hooks/use-task";
 export * from "./react/hooks/use-task-actions";
@@ -21,4 +20,6 @@ export {
 export * from "./store/selectors";
 export { syncDoc } from "./store/slices/tasks-slice";
 export * from "./test/test-utils";
-export * from "./types";
+export type { BalanceItemData } from "./types/internal";
+export type { PersistedTask, TunnelState } from "./types/persistence";
+export * from "./types/ui";

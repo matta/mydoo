@@ -1,17 +1,18 @@
-import type { ComputedTask, PersistedTask, TaskID } from "../types";
+import type { ComputedTask, TaskFields, TaskID } from "../types/ui";
 import { getCurrentTimestamp } from "../utils/time";
 import { CREDITS_HALF_LIFE_MILLIS } from "./constants";
 import { isTaskReady } from "./readiness";
 
 /**
- * Projects a raw PersistedTask into a ComputedTask for UI consumption.
+ * Projects a raw PersistedTask-like object into a ComputedTask for UI consumption.
  *
  * This performs a lightweight computation of visibility/status flags
  * to satisfy the UI contract without running the full priority algorithm.
  *
- * logic matching `pass5LeadTimeRamp` and `pass1Visibility` (simplified).
+ * It uses generics to accept any type that satisfies TaskFields, allowing
+ * it to bridge between strict UI types and loose persistence types.
  */
-export function toComputedTask(task: PersistedTask): ComputedTask {
+export function toComputedTask<T extends TaskFields>(task: T): ComputedTask {
   const currentTime = getCurrentTimestamp();
   const isPending = task.status === "Pending";
   const isContainer = task.childTaskIds.length > 0;
@@ -29,7 +30,7 @@ export function toComputedTask(task: PersistedTask): ComputedTask {
     isContainer,
     isPending,
     isReady,
-  };
+  } as ComputedTask;
 }
 
 /**
@@ -42,11 +43,11 @@ export function toComputedTask(task: PersistedTask): ComputedTask {
  * @param taskId - The ID of the task to count descendants for.
  * @returns The total number of sub-tasks (children, grandchildren, etc.).
  */
-export function getDescendantCountFromEntities(
-  entities: Record<TaskID, ComputedTask | PersistedTask>,
+export function getDescendantCountFromEntities<T extends TaskFields>(
+  entities: Record<string, T>,
   taskId: TaskID,
 ): number {
-  const task = entities[taskId];
+  const task = entities[taskId as string];
   if (!task) return 0;
 
   let count = task.childTaskIds.length;

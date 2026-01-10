@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import { selectTodoList } from "../../store/selectors";
-import type { ComputedTask } from "../../types";
+import type { ComputedTask } from "../../types/ui";
 
 /**
  * Hook to access the prioritized "Do" list from the Redux store.

@@ -1,4 +1,4 @@
-import type { TunnelState } from "../types";
+import type { TunnelState } from "../types/persistence";
 
 /**
  * Initializes a blank TunnelState document with default empty collections.

@@ -1,6 +1,6 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { calculateBalanceData } from "../domain/balance";
-import type { ComputedTask, TaskID } from "../types";
+import type { ComputedTask, TaskID } from "../types/ui";
 import type { TaskLensState } from "./index";
 
 /**

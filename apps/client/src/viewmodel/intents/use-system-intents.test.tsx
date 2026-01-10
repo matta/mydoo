@@ -29,7 +29,8 @@ const createMockTask = (
     status,
     isAcknowledged,
     isPending: status === TaskStatus.Pending,
-  });
+    // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+  }) as any;
 };
 
 describe("useSystemIntents", () => {
@@ -127,7 +128,8 @@ describe("useSystemIntents", () => {
             interval: 1,
           },
           lastCompletedAt: Date.now() - 1000 * 60 * 60 * 25, // 25 hours ago
-        });
+          // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+        }) as any;
         d.rootTaskIds = [routineTaskId];
       });
 

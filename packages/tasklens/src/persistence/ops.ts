@@ -24,16 +24,18 @@
  */
 import { CREDITS_HALF_LIFE_MILLIS } from "../domain/constants";
 import { validateDepth, validateNoCycle } from "../domain/invariants";
+import { DEFAULT_CREDIT_INCREMENT } from "../types/internal";
 import {
   ANYWHERE_PLACE_ID,
   type CreateTaskOptions,
-  DEFAULT_CREDIT_INCREMENT,
   type PersistedTask,
   type Schedule,
+  type TaskCreateInput,
   type TaskID,
   TaskStatus,
+  type TaskUpdateInput,
   type TunnelState,
-} from "../types";
+} from "../types/persistence";
 import { getCurrentTimestamp, hoursToMilliseconds } from "../utils/time";
 
 // --- Mutators ---
@@ -58,7 +60,7 @@ import { getCurrentTimestamp, hoursToMilliseconds } from "../utils/time";
  */
 export function createTask(
   state: TunnelState,
-  props: Partial<PersistedTask>,
+  props: TaskCreateInput,
   options: CreateTaskOptions = { position: "end" },
 ): PersistedTask {
   // Use UUID for CRDT compatibility - sequential counters cause conflicts
@@ -178,13 +180,13 @@ export function createTask(
 export function updateTask(
   state: TunnelState,
   id: TaskID,
-  props: Partial<PersistedTask>,
+  props: TaskUpdateInput,
 ): PersistedTask {
   const task = state.tasks[id];
   if (!task) throw new Error(`Task with ID ${id} not found.`);
 
   // Validate numeric props first
-  validateNumericProps(props);
+  validateNumericProps(props as Partial<PersistedTask>);
 
   // Handle status change for credit attribution before updating the task status
   const isCompleting =
@@ -207,10 +209,10 @@ export function updateTask(
   }
 
   // Assign properties
-  assignTaskProperties(task, props);
+  assignTaskProperties(task, props as Partial<PersistedTask>);
 
   // Handle nested objects
-  handleNestedProperties(task, props);
+  handleNestedProperties(task, props as Partial<PersistedTask>);
 
   return task;
 }

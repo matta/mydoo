@@ -80,8 +80,10 @@ describe("usePriorityList", () => {
     handle.change((doc: TunnelState) => {
       const task1 = createMockTask("1", "Todo 1", TaskStatus.Pending, 0.5);
       const task2 = createMockTask("2", "Done 1", TaskStatus.Done, 0.5, true);
-      doc.tasks["1" as TaskID] = task1;
-      doc.tasks["2" as TaskID] = task2;
+      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+      doc.tasks["1" as TaskID] = task1 as any;
+      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+      doc.tasks["2" as TaskID] = task2 as any;
       doc.rootTaskIds = ["1" as TaskID, "2" as TaskID];
     });
 
@@ -105,8 +107,10 @@ describe("usePriorityList", () => {
         0.5,
         false,
       );
-      doc.tasks["1" as TaskID] = task1;
-      doc.tasks["2" as TaskID] = task2;
+      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+      doc.tasks["1" as TaskID] = task1 as any;
+      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+      doc.tasks["2" as TaskID] = task2 as any;
       doc.rootTaskIds = ["1" as TaskID, "2" as TaskID];
     });
 
@@ -141,9 +145,12 @@ describe("usePriorityList", () => {
         TaskStatus.Pending,
         0.5,
       );
-      doc.tasks["1" as TaskID] = task1;
-      doc.tasks["2" as TaskID] = task2;
-      doc.tasks["3" as TaskID] = task3;
+      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+      doc.tasks["1" as TaskID] = task1 as any;
+      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+      doc.tasks["2" as TaskID] = task2 as any;
+      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+      doc.tasks["3" as TaskID] = task3 as any;
       doc.rootTaskIds = ["1" as TaskID, "2" as TaskID, "3" as TaskID];
     });
 

@@ -1,4 +1,4 @@
-import type { EnrichedTask } from "../types";
+import type { EnrichedTask } from "../types/internal";
 
 /**
  * Adaptive Feedback Control

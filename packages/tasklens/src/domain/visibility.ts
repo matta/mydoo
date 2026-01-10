@@ -15,17 +15,17 @@
  * This pass runs before priority calculations, so only visible tasks are
  * considered for ranking.
  */
-import {
-  ANYWHERE_PLACE_ID,
-  type EnrichedTask,
-  type OpenHours,
-  type Place,
-  type PlaceID,
-  type TunnelState,
-  type ViewFilter,
-} from "../../src/types";
 
-// Helper to get place from a given doc state
+import type { EnrichedTask } from "../types/internal";
+import type {
+  OpenHours,
+  Place,
+  PlaceID,
+  TunnelState,
+} from "../types/persistence";
+import { ANYWHERE_PLACE_ID } from "../types/persistence";
+import type { ViewFilter } from "../types/ui";
+
 function _getPlaceFromDoc(
   docState: TunnelState,
   id: PlaceID,
@@ -132,18 +132,21 @@ export function calculateContextualVisibility(
     // View filter can be 'All', 'Anywhere' or a specific place ID
     if (viewFilter.placeId === "All") {
       filterMatch = true;
-    } else if (effectivePlaceId === ANYWHERE_PLACE_ID) {
-      filterMatch = true; // Anywhere tasks always appear in any filter (universal inclusion)
-    } else if (viewFilter.placeId === effectivePlaceId) {
-      filterMatch = true; // Direct match
-    } else if (
-      // Check if the task's place is included in the filter's place
-      viewFilter.placeId &&
-      viewFilter.placeId !== ANYWHERE_PLACE_ID
-    ) {
-      const filterPlace = _getPlaceFromDoc(doc, viewFilter.placeId);
-      if (filterPlace?.includedPlaces.includes(effectivePlaceId)) {
-        filterMatch = true;
+    } else {
+      const pPlaceId = viewFilter.placeId;
+      if (effectivePlaceId === ANYWHERE_PLACE_ID) {
+        filterMatch = true; // Anywhere tasks always appear in any filter (universal inclusion)
+      } else if (pPlaceId === effectivePlaceId) {
+        filterMatch = true; // Direct match
+      } else if (
+        // Check if the task's place is included in the filter's place
+        pPlaceId &&
+        pPlaceId !== ANYWHERE_PLACE_ID
+      ) {
+        const filterPlace = _getPlaceFromDoc(doc, pPlaceId);
+        if (filterPlace?.includedPlaces.includes(effectivePlaceId)) {
+          filterMatch = true;
+        }
       }
     }
 

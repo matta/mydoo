@@ -1,4 +1,5 @@
-import type { PersistedTask, TaskID, TunnelNode } from "../types";
+import type { TaskID } from "../types/persistence";
+import type { TaskFields, TunnelNode } from "../types/ui";
 import { toComputedTask } from "./projections";
 
 /**
@@ -10,14 +11,14 @@ import { toComputedTask } from "./projections";
  * @param tasks - The tasks map (e.g., doc.tasks)
  * @returns Array of TunnelNodes with isReady, isContainer, isPending computed
  */
-export function buildTunnelTree(
+export function buildTunnelTree<T extends TaskFields>(
   rootTaskIds: TaskID[],
-  tasks: Record<TaskID, PersistedTask>,
+  tasks: Record<TaskID, T>,
 ): TunnelNode[] {
   const build = (taskIds: TaskID[]): TunnelNode[] =>
     taskIds
       .map((id) => tasks[id])
-      .filter((t): t is PersistedTask => t !== undefined)
+      .filter((t): t is T => t !== undefined)
       .map((task) => ({
         ...toComputedTask(task),
         children: build(task.childTaskIds || []),

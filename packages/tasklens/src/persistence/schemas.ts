@@ -70,7 +70,7 @@ export const PlaceIDSchema = z.string().brand<"PlaceID">();
  *
  * Scheduling information for a task.
  */
-export const ScheduleSchema = z.looseObject({
+const ScheduleSchema = z.looseObject({
   /** "Once" for one-time tasks, "Routinely" for repeating tasks. */
   type: z.enum(["Once", "Routinely", "DueDate", "Calendar"]),
   /** Unix timestamp (ms) when the task is due, or undefined if no deadline. */
@@ -180,7 +180,7 @@ export type PersistedTask = z.infer<typeof TaskSchema>;
  *
  * A physical or virtual location where tasks can be performed.
  */
-export const PlaceSchema = z.looseObject({
+const PlaceSchema = z.looseObject({
   /** Unique identifier for this place. */
   id: PlaceIDSchema,
   /** Opening hours specification (serialized as string). */

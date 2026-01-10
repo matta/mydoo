@@ -6,8 +6,13 @@ import {
   moveTask as moveTaskOp,
   updateTask as updateTaskOp,
 } from "../../persistence/ops";
-import type { CreateTaskOptions, Task, TaskID, TunnelState } from "../../types";
-import { TaskStatus } from "../../types";
+import type { TaskID, TunnelState } from "../../types/persistence";
+import {
+  type CreateTaskOptions,
+  type TaskCreateInput,
+  TaskStatus,
+  type TaskUpdateInput,
+} from "../../types/ui";
 import { useTaskLensDocUrl } from "../task-lens-provider";
 
 /**
@@ -37,19 +42,28 @@ export function useTaskActions() {
       title: string,
       parentId?: TaskID,
       options?: CreateTaskOptions,
-      props?: Partial<Task>,
+      props?: TaskCreateInput,
     ): TaskID => {
-      const newTaskId = crypto.randomUUID() as TaskID;
+      const id = crypto.randomUUID() as TaskID;
       mutate((d) => {
-        createTaskOp(d, { id: newTaskId, title, parentId, ...props }, options);
+        createTaskOp(
+          d,
+          {
+            ...props,
+            id,
+            title,
+            parentId,
+          },
+          options,
+        );
       });
-      return newTaskId;
+      return id;
     },
     [mutate],
   );
 
   const updateTask = useCallback(
-    (id: TaskID, updates: Partial<Task>) => {
+    (id: TaskID, updates: TaskUpdateInput) => {
       mutate((d) => {
         updateTaskOp(d, id, updates);
       });
@@ -81,9 +95,9 @@ export function useTaskActions() {
 
   const acknowledgeAllDoneTasks = useCallback(() => {
     mutate((doc) => {
-      const taskIds = Object.keys(doc.tasks) as TaskID[];
-      for (const taskId of taskIds) {
-        const task = doc.tasks[taskId];
+      // Keys are Persistence IDs
+      const tasks = Object.values(doc.tasks);
+      for (const task of tasks) {
         if (task && task.status === TaskStatus.Done && !task.isAcknowledged) {
           task.isAcknowledged = true;
         }

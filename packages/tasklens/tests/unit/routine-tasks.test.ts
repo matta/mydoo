@@ -19,12 +19,12 @@ class DummyStorageAdapter implements StorageAdapterInterface {
 }
 
 import { wakeUpRoutineTasks } from "../../src/domain/routine-tasks";
-import {
-  type PersistedTask,
-  type TaskID,
-  TaskStatus,
-  type TunnelState,
-} from "../../src/types";
+import type {
+  PersistedTask,
+  TaskID,
+  TunnelState,
+} from "../../src/types/persistence";
+import { TaskStatus } from "../../src/types/persistence";
 
 describe("wakeUpRoutineTasks", () => {
   it("should wake up a task when it is time", () => {

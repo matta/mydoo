@@ -1,15 +1,13 @@
 import {
-  type ComputedTask,
   type Context,
   DEFAULT_CREDIT_INCREMENT,
   type EnrichedTask,
-  type PersistedTask,
   type PriorityOptions,
-  type TaskID,
-  type TunnelState,
-  type ViewFilter,
-} from "../types";
+} from "../types/internal";
+import type { PersistedTask, TaskID, TunnelState } from "../types/persistence";
+import type { ComputedTask, ViewFilter } from "../types/ui";
 import { getCurrentTimestamp, getIntervalMs } from "../utils/time";
+
 import type { KnownKeysOnly } from "../utils/types";
 import { CREDITS_HALF_LIFE_MILLIS } from "./constants";
 import { calculateFeedbackFactors } from "./feedback";
@@ -438,6 +436,10 @@ export function getPrioritizedTasks(
       // Extra properties (priority, visibility) are present at runtime but hidden by types.
       const computed: ComputedTask = {
         ...enriched,
+        id: enriched.id,
+        parentId: enriched.parentId,
+        placeId: enriched.placeId,
+        childTaskIds: enriched.childTaskIds,
         isContainer: enriched.isContainer,
         isPending: enriched.isPending,
         isReady,

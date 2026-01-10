@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import { selectTaskEntities } from "../../store/selectors";
-import type { ComputedTask, TaskID } from "../../types";
+import type { ComputedTask, TaskID } from "../../types/ui";
 
 /**
  * useTaskEntities Hook

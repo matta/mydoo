@@ -28,7 +28,7 @@ import {
   type PersistedTask,
   type TaskID,
   type TunnelState,
-} from "../types";
+} from "../types/persistence";
 import {
   completeTask,
   createTask,

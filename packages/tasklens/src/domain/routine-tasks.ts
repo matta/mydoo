@@ -1,5 +1,5 @@
 import type { DocHandle } from "@automerge/automerge-repo";
-import type { TunnelState } from "../types";
+import type { TunnelState } from "../types/persistence";
 import { getIntervalMs } from "../utils/time";
 
 /**

@@ -5,7 +5,8 @@
  * initializing test state.
  */
 
-import type { ComputedTask, TaskID, TunnelState } from "../types";
+import type { TunnelState } from "../types/persistence";
+import type { ComputedTask, TaskID as UITaskID } from "../types/ui";
 
 /**
  * Creates a strict mock that throws if unexpected properties are accessed.
@@ -77,7 +78,7 @@ export function createMockTask(
   overrides: Partial<ComputedTask> = {},
 ): ComputedTask {
   const task: ComputedTask = {
-    id: "test-task" as TaskID,
+    id: "test-task" as UITaskID,
     title: "Test Task",
     status: "Pending",
     importance: 0.5,
@@ -101,7 +102,7 @@ export function createMockTask(
   // Automerge doesn't like undefined values being assigned.
   // We remove parentId if it's undefined to prevent RangeErrors when assigning to a doc.
   if (task.parentId === undefined) {
-    const taskWithoutParent = task as { parentId?: TaskID };
+    const taskWithoutParent = task as { parentId?: UITaskID };
     delete taskWithoutParent.parentId;
   }
 

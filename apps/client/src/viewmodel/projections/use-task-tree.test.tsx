@@ -53,12 +53,15 @@ describe("useTaskTree", () => {
       const root1 = createMockTask("root1", "Root 1", undefined, [
         "child1" as TaskID,
       ]);
-      doc.tasks["root1" as TaskID] = root1;
+      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+      doc.tasks["root1" as TaskID] = root1 as any;
       const root2 = createMockTask("root2", "Root 2", undefined, []);
-      doc.tasks["root2" as TaskID] = root2;
+      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+      doc.tasks["root2" as TaskID] = root2 as any;
 
       const child1 = createMockTask("child1", "Child 1", "root1", []);
-      doc.tasks["child1" as TaskID] = child1;
+      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
+      doc.tasks["child1" as TaskID] = child1 as any;
     });
 
     const store = createTaskLensStore();
