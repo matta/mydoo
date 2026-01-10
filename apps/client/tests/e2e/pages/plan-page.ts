@@ -195,10 +195,16 @@ export class PlanPage implements PlanFixture {
       // Not found visible in list. Check if we can go up.
       const upLevel = this.page.getByLabel("Up Level");
       if ((await upLevel.isVisible()) && (await upLevel.isEnabled())) {
+        // Capture breadcrumb count before navigating up
+        const breadcrumbs = this.page.locator(
+          ".mantine-Breadcrumbs-root button",
+        );
+        const countBefore = await breadcrumbs.count();
+
         await upLevel.click();
-        // Wait for animation/load? The loop check will implicitly wait for element.
-        // A small delay might be safer for stability.
-        await this.page.waitForTimeout(200);
+
+        // Wait for breadcrumb count to decrease, indicating nav is complete
+        await expect(breadcrumbs).toHaveCount(countBefore - 1);
       } else {
         // Cannot go up further, and item not found.
         break;
