@@ -3,39 +3,19 @@ import {
   type DocHandle,
   Repo,
 } from "@automerge/automerge-repo";
-import {
-  createMockTask as createSharedMockTask,
-  createTaskLensStore,
-  type TaskID,
-  type TunnelNode,
-  type TunnelState,
-} from "@mydoo/tasklens";
+
+import { createTaskLensStore, type TaskID } from "@mydoo/tasklens";
+import { seedTask } from "@mydoo/tasklens/test";
+
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createTestWrapper } from "../../test/setup";
 import { useTaskTree } from "./use-task-tree";
 
-const createMockTask = (
-  id: string,
-  title: string,
-  parentId?: string,
-  children: string[] = [],
-): TunnelNode => {
-  return {
-    ...createSharedMockTask({
-      id: id as TaskID,
-      title,
-      parentId: parentId as TaskID | undefined,
-      childTaskIds: children as TaskID[],
-      isContainer: children.length > 0,
-    }),
-    children: [],
-  };
-};
-
 describe("useTaskTree", () => {
-  let handle: DocHandle<TunnelState>;
+  // biome-ignore lint/suspicious/noExplicitAny: test handle
+  let handle: DocHandle<any>;
   let repo: Repo;
   let docUrl: AutomergeUrl;
 
@@ -47,21 +27,12 @@ describe("useTaskTree", () => {
   });
 
   it("builds a task tree from rootTaskIds", async () => {
-    handle.change((doc: TunnelState) => {
-      doc.rootTaskIds = ["root1" as TaskID, "root2" as TaskID];
-
-      const root1 = createMockTask("root1", "Root 1", undefined, [
-        "child1" as TaskID,
-      ]);
-      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
-      doc.tasks["root1" as TaskID] = root1 as any;
-      const root2 = createMockTask("root2", "Root 2", undefined, []);
-      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
-      doc.tasks["root2" as TaskID] = root2 as any;
-
-      const child1 = createMockTask("child1", "Child 1", "root1", []);
-      // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
-      doc.tasks["child1" as TaskID] = child1 as any;
+    seedTask(handle, { id: "root1", title: "Root 1" });
+    seedTask(handle, { id: "root2", title: "Root 2" });
+    seedTask(handle, {
+      id: "child1",
+      title: "Child 1",
+      parentId: "root1" as TaskID,
     });
 
     const store = createTaskLensStore();

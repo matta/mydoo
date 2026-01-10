@@ -1,5 +1,5 @@
 import { Repo } from "@automerge/automerge-repo";
-import { createEmptyTunnelState } from "@mydoo/tasklens";
+import { createEmptyTunnelState } from "@mydoo/tasklens/test";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";

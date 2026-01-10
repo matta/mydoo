@@ -2,7 +2,8 @@ import type { AutomergeUrl } from "@automerge/automerge-repo";
 import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
 import { AppShell, Burger, Button, Group, Menu, Title } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { type TunnelState, useTaskActions } from "@mydoo/tasklens";
+import { useTaskActions } from "@mydoo/tasklens";
+import type { TunnelState } from "@mydoo/tasklens/persistence";
 import {
   IconCheckbox,
   IconDotsVertical,

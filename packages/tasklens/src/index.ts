@@ -19,6 +19,5 @@ export {
 } from "./store/index";
 export * from "./store/selectors";
 export { syncDoc } from "./store/slices/tasks-slice";
-export * from "./test/test-utils";
-export type { PersistedTask, TunnelState } from "./types/persistence";
+
 export * from "./types/ui";

@@ -3,39 +3,18 @@ import {
   type DocHandle,
   Repo,
 } from "@automerge/automerge-repo";
-import {
-  createMockTask as createSharedMockTask,
-  createTaskLensStore,
-  type PersistedTask,
-  type TaskID,
-  TaskStatus,
-  type TunnelState,
-} from "@mydoo/tasklens";
+import { createTaskLensStore, type TaskID, TaskStatus } from "@mydoo/tasklens";
+import { seedTask } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createTestWrapper } from "../../test/setup";
 import { useSystemIntents } from "./use-system-intents";
 
-const createMockTask = (
-  id: string,
-  title: string,
-  status: TaskStatus,
-  isAcknowledged: boolean,
-): PersistedTask => {
-  return createSharedMockTask({
-    id: id as TaskID,
-    title,
-    status,
-    isAcknowledged,
-    isPending: status === TaskStatus.Pending,
-    // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
-  }) as any;
-};
-
 describe("useSystemIntents", () => {
   let repo: Repo;
-  let handle: DocHandle<TunnelState>;
+  // biome-ignore lint/suspicious/noExplicitAny: test handle
+  let handle: DocHandle<any>;
   let docUrl: AutomergeUrl;
 
   beforeEach(() => {
@@ -52,30 +31,23 @@ describe("useSystemIntents", () => {
   describe("refreshTaskList", () => {
     it("should acknowledge completed tasks", async () => {
       // 1. Seed Data
-      handle.change((d) => {
-        d.tasks["task1" as TaskID] = createMockTask(
-          "task1",
-          "Pending",
-          TaskStatus.Pending,
-          false,
-        );
-        d.tasks["task2" as TaskID] = createMockTask(
-          "task2",
-          "Done Unacked",
-          TaskStatus.Done,
-          false,
-        );
-        d.tasks["task3" as TaskID] = createMockTask(
-          "task3",
-          "Done Acked",
-          TaskStatus.Done,
-          true,
-        );
-        d.rootTaskIds = [
-          "task1" as TaskID,
-          "task2" as TaskID,
-          "task3" as TaskID,
-        ];
+      seedTask(handle, {
+        id: "task1",
+        title: "task1",
+        status: TaskStatus.Pending,
+        isAcknowledged: false,
+      });
+      seedTask(handle, {
+        id: "task2",
+        title: "task2",
+        status: TaskStatus.Done,
+        isAcknowledged: false,
+      });
+      seedTask(handle, {
+        id: "task3",
+        title: "task3",
+        status: TaskStatus.Done,
+        isAcknowledged: true,
       });
 
       // 2. Setup Hook
@@ -111,26 +83,22 @@ describe("useSystemIntents", () => {
 
     it("should wake up routine tasks", async () => {
       // 1. Seed Data with a routine task ready to wake up
-      handle.change((d) => {
-        const routineTaskId = "routine-task" as TaskID;
-        d.tasks[routineTaskId] = createSharedMockTask({
-          id: routineTaskId,
-          title: "Morning Routine",
-          status: TaskStatus.Done,
-          isAcknowledged: true,
-          schedule: {
-            type: "Routinely",
-            leadTime: 3600000,
-            dueDate: 1000,
-          },
-          repeatConfig: {
-            frequency: "daily",
-            interval: 1,
-          },
-          lastCompletedAt: Date.now() - 1000 * 60 * 60 * 25, // 25 hours ago
-          // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
-        }) as any;
-        d.rootTaskIds = [routineTaskId];
+      const routineTaskId = "routine-task" as TaskID;
+      seedTask(handle, {
+        id: routineTaskId,
+        title: "Morning Routine",
+        status: TaskStatus.Done,
+        isAcknowledged: true,
+        schedule: {
+          type: "Routinely",
+          leadTime: 3600000,
+          dueDate: 1000,
+        },
+        repeatConfig: {
+          frequency: "daily",
+          interval: 1,
+        },
+        lastCompletedAt: Date.now() - 1000 * 60 * 60 * 25, // 25 hours ago
       });
 
       // 2. Setup Hook
