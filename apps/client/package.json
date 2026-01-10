@@ -47,7 +47,7 @@
     "dev": "vite",
     "fix-eslint": "eslint . --fix",
     "fix-format": "prettier --write .",
-    "generate": "bddgen",
+    "generate": "rm -rf tests/e2e/.features-gen && bddgen",
     "preview": "vite preview",
     "test-e2e-desktop": "playwright test --project='bdd-desktop'",
     "test-e2e-mobile": "playwright test --project='bdd-mobile'",
