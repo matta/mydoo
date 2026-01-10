@@ -132,7 +132,7 @@ export type CreateTaskOptions =
  * This type excludes system-managed IDs and computed properties.
  */
 export interface TaskCreateInput {
-  title?: string; // Optional because persistence logic provides default
+  title: string;
   parentId?: TaskID | undefined;
   placeId?: PlaceID | undefined;
   status?: TaskStatus;
@@ -143,7 +143,18 @@ export interface TaskCreateInput {
   schedule?: Schedule;
   repeatConfig?: RepeatConfig | undefined;
   desiredCredits?: number;
+  position?: "start" | "end" | "after";
+  afterTaskId?: TaskID | undefined;
 }
+
+/**
+ * Filtered properties for task creation UI.
+ * Excludes control fields (title, parentId, position) that are usually handled separately.
+ */
+export type TaskCreateProps = Omit<
+  TaskCreateInput,
+  "title" | "parentId" | "position" | "afterTaskId"
+>;
 
 /**
  * Fields allowed during task update (UI Whitelist).

@@ -3,6 +3,7 @@ import {
   selectRootTaskIds,
   selectTaskEntities,
   type Task,
+  type TaskCreateProps,
   type TaskID,
 } from "@mydoo/tasklens";
 import { useCallback, useEffect } from "react";
@@ -162,33 +163,16 @@ export function TaskEditorContainer() {
    * @param title - The title of the new task.
    * @param props - Additional task properties (importance, effort, etc.)
    */
-  const handleCreate = (title: string, props?: Partial<Task>) => {
+  const handleCreate = (title: string, props?: TaskCreateProps) => {
     if (modal?.type !== "create") return;
 
-    let newTaskId: TaskID;
-
-    if (modal.afterTaskId) {
-      newTaskId = createTask(
-        title,
-        modal.parentId,
-        {
-          position: "after",
-          afterTaskId: modal.afterTaskId,
-        },
-        props,
-      );
-    } else if (modal.position) {
-      newTaskId = createTask(
-        title,
-        modal.parentId,
-        {
-          position: modal.position,
-        },
-        props,
-      );
-    } else {
-      newTaskId = createTask(title, modal.parentId, undefined, props);
-    }
+    const newTaskId = createTask({
+      title,
+      parentId: modal.parentId,
+      position: modal.afterTaskId ? "after" : modal.position || "end",
+      afterTaskId: modal.afterTaskId || undefined,
+      ...props,
+    });
 
     // UX: Highlight & Reveal
     setLastCreatedTaskId(newTaskId);

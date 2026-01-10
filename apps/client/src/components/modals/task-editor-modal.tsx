@@ -30,6 +30,7 @@ import {
   DEFAULT_TASK_LEAD_TIME_HOURS,
   type RepeatConfig,
   type Task,
+  type TaskCreateProps,
   type TaskID,
 } from "@mydoo/tasklens";
 import { useCallback, useEffect, useState } from "react";
@@ -55,7 +56,7 @@ interface TaskEditorModalProps {
   /** Callback to delete a task */
   onDelete: (taskId: TaskID, hasChildren: boolean) => void;
   /** Callback to handle creation of a new task */
-  onCreate?: (title: string, props?: Partial<Task>) => void;
+  onCreate?: (title: string, props?: TaskCreateProps) => void;
   /** Explicit mode: 'create' or 'edit'. Defaults to inference if not provided (legacy). */
   mode?: "create" | "edit" | undefined;
   /** Callback to indent the task */
@@ -243,7 +244,7 @@ export function TaskEditorModal({
       onClose();
     } else if (onCreate) {
       // Create Mode
-      const newProps: Partial<Task> = {
+      const newProps: TaskCreateProps = {
         importance,
         creditIncrement: effort,
         notes,
