@@ -50,6 +50,11 @@ if ./scripts/is-agent.sh; then
   fi
 fi
 
+if git diff --name-only --cached | grep -q "^ROLLING_CONTEXT.md$"; then
+  echo "❌ Error: ROLLING_CONTEXT.md is staged for commit. This file must not be committed. Please unstage it: git restore --staged ROLLING_CONTEXT.md"
+  exit 1
+fi
+
 export PRE_COMMIT_SECRET_REQUIRED=1
 pnpm exec lint-staged --concurrent false
 ./scripts/check-staged.sh
