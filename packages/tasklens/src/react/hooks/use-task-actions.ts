@@ -8,7 +8,6 @@ import {
 } from "../../persistence/ops";
 import type { TaskID, TunnelState } from "../../types/persistence";
 import {
-  type CreateTaskOptions,
   type TaskCreateInput,
   TaskStatus,
   type TaskUpdateInput,
@@ -38,23 +37,21 @@ export function useTaskActions() {
   );
 
   const createTask = useCallback(
-    (
-      title: string,
-      parentId?: TaskID,
-      options?: CreateTaskOptions,
-      props?: TaskCreateInput,
-    ): TaskID => {
+    (input: TaskCreateInput): TaskID => {
       const id = crypto.randomUUID() as TaskID;
+      const { position, afterTaskId, ...props } = input;
       mutate((d) => {
         createTaskOp(
           d,
           {
             ...props,
             id,
-            title,
-            parentId,
           },
-          options,
+          input.position === "after" && input.afterTaskId
+            ? { position: "after", afterTaskId: input.afterTaskId }
+            : input.position === "start" || input.position === "end"
+              ? { position: input.position }
+              : undefined,
         );
       });
       return id;

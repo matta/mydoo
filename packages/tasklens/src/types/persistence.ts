@@ -167,7 +167,7 @@ export type CreateTaskOptions =
  */
 export interface TaskCreateInput {
   id?: TaskID;
-  title?: string;
+  title: string;
   parentId?: TaskID | undefined;
   placeId?: PlaceID | undefined;
   status?: TaskStatus;

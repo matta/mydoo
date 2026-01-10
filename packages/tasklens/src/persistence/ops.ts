@@ -78,7 +78,7 @@ export function createTask(
   };
   const newTask: PersistedTask = {
     id: newTaskId,
-    title: props.title ?? "New Task",
+    title: props.title,
     parentId: props.parentId ?? undefined,
     // Inherit placeId from parent, or default to ANYWHERE_PLACE_ID for root tasks
     placeId:
