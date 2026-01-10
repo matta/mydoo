@@ -190,7 +190,7 @@ export function updateTask(
   if (!task) throw new Error(`Task with ID ${id} not found.`);
 
   // Validate numeric props first
-  validateNumericProps(props as Partial<PersistedTask>);
+  validateNumericProps(props);
 
   // Handle status change for credit attribution before updating the task status
   const isCompleting =
@@ -213,10 +213,10 @@ export function updateTask(
   }
 
   // Assign properties
-  assignTaskProperties(task, props as Partial<PersistedTask>);
+  assignTaskProperties(task, props);
 
   // Handle nested objects
-  handleNestedProperties(task, props as Partial<PersistedTask>);
+  handleNestedProperties(task, props);
 
   return task;
 }
@@ -224,7 +224,7 @@ export function updateTask(
 /**
  * Validates numeric properties of a task.
  */
-function validateNumericProps(props: Partial<PersistedTask>): void {
+function validateNumericProps(props: TaskUpdateInput): void {
   if (props.desiredCredits !== undefined && props.desiredCredits < 0) {
     throw new Error("DesiredCredits cannot be negative.");
   }
@@ -244,7 +244,7 @@ function validateNumericProps(props: Partial<PersistedTask>): void {
  */
 function assignTaskProperties(
   task: PersistedTask,
-  props: Partial<PersistedTask>,
+  props: TaskUpdateInput,
 ): void {
   const {
     title,
@@ -258,10 +258,9 @@ function assignTaskProperties(
     isSequential,
     isAcknowledged,
     notes,
-    // The following fields are handled in other update paths (moveTask or handleNestedProperties)
-    id,
+    // The following fields are handled separately. By destructuring them here,
+    // they are EXCLUDED from the `rest` object used for bulk assignment below.
     parentId,
-    childTaskIds,
     placeId,
     schedule,
     repeatConfig,
@@ -269,7 +268,9 @@ function assignTaskProperties(
     ...rest
   } = props;
 
-  // Propagate unknown fields (schema evolution)
+  // Propagate fields from unknown schema versions to ensure data integrity.
+  // This prevents this client from accidentally stripping fields it doesn't recognize
+  // when performing its own updates.
   Object.assign(task, rest);
 
   if (title !== undefined) task.title = title;
@@ -284,6 +285,7 @@ function assignTaskProperties(
   if (isSequential !== undefined) task.isSequential = isSequential;
   if (isAcknowledged !== undefined) task.isAcknowledged = isAcknowledged;
   if (notes !== undefined) task.notes = notes;
+  if (lastCompletedAt !== undefined) task.lastCompletedAt = lastCompletedAt;
 }
 
 /**
@@ -291,7 +293,7 @@ function assignTaskProperties(
  */
 function handleNestedProperties(
   task: PersistedTask,
-  props: Partial<PersistedTask>,
+  props: TaskUpdateInput,
 ): void {
   if (props.repeatConfig !== undefined) {
     task.repeatConfig = props.repeatConfig;
