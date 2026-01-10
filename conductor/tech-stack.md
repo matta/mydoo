@@ -28,5 +28,5 @@
 - **Filename Convention:** ls-lint
 - **Dependency Health:** knip
 - **Package JSON Management:** syncpack
-- **Git Hooks:** Husky, lint-staged
+- **Git Hooks:** Husky
 - **Commit Convention:** commitlint
