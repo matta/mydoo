@@ -9,3 +9,8 @@ detailed plan in its respective folder.
 
 _Link:
 [./conductor/tracks/prettier-isolation-20260108/](./conductor/tracks/prettier-isolation-20260108/)_
+
+---
+
+## [~] Track: Replace ls-lint with Custom TypeScript Script
+*Link: [./conductor/tracks/replace-ls-lint-20260110/](./conductor/tracks/replace-ls-lint-20260110/)*

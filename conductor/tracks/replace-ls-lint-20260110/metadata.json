@@ -1,0 +1,8 @@
+{
+  "track_id": "replace-ls-lint-20260110",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-01-10T12:00:00Z",
+  "updated_at": "2026-01-10T12:00:00Z",
+  "description": "replace ls-lint with a custom ts script in the scripts directory. this script consults git tracked files only, but applies the same rules that this project's current ls-lint configuration does. the tool should support a similar external configuration file."
+}

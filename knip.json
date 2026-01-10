@@ -5,7 +5,11 @@
   "workspaces": {
     ".": {},
     "scripts": {
-      "entry": ["check-turbo-inputs.ts", "check-dependency-health.ts"]
+      "entry": [
+        "check-turbo-inputs.ts",
+        "check-dependency-health.ts",
+        "lint-filenames.ts"
+      ]
     },
     "packages/tasklens": {
       "project": ["src/**/*.{ts,tsx}!"]
