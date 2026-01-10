@@ -198,7 +198,7 @@ export class PlanPage implements PlanFixture {
         await upLevel.click();
         // Wait for animation/load? The loop check will implicitly wait for element.
         // A small delay might be safer for stability.
-        await this.page.waitForTimeout(200);
+        await this.page.waitForTimeout(200); // FIXME: This adds artificial latency
       } else {
         // Cannot go up further, and item not found.
         break;
