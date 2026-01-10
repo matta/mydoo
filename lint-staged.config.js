@@ -10,10 +10,4 @@ export default {
   // Run ls-lint on all files.
   // We use '*' to match all files. lint-staged handles chunking automatically for string commands.
   "*": "ls-lint",
-
-  // Run check-staged on the entire batch.
-  // We use '**' (recursive wildcard) to match ALL files in the repo, ensuring this runs if any file is staged.
-  // Using a distinct key from '*' allows us to separate this "run-once" logic (via function)
-  // from the "command-string" logic above, ensuring check-filenames gets auto-chunking while this runs globally.
-  "**": () => "./scripts/check-staged.sh",
 };

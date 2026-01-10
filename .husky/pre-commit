@@ -52,3 +52,4 @@ fi
 
 export PRE_COMMIT_SECRET_REQUIRED=1
 pnpm exec lint-staged --concurrent false
+./scripts/check-staged.sh

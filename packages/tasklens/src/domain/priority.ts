@@ -429,7 +429,7 @@ export function getPrioritizedTasks(
 
       return true;
     })
-    .map((enriched) => {
+    .map((enriched: EnrichedTask) => {
       const isReady = enriched.isPending && enriched.leadTimeFactor > 0;
 
       // Note: We return the enriched object cast as ComputedTask for performance.
