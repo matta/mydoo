@@ -6,7 +6,7 @@
  * exposed to the UI layer.
  */
 
-import type { PersistedTask, PlaceID, TaskID } from "./persistence";
+import type { PersistedTask, PlaceID } from "./persistence";
 import { DEFAULT_CREDIT_INCREMENT } from "./persistence";
 
 export { DEFAULT_CREDIT_INCREMENT };
@@ -171,17 +171,4 @@ export interface EnrichedTask extends PersistedTask {
    * - Exposed Via: `ComputedTask`
    */
   isReady: boolean;
-}
-
-/**
- * Data structure for an item in the Balance View.
- */
-export interface BalanceItemData {
-  id: TaskID;
-  title: string;
-  desiredCredits: number;
-  effectiveCredits: number;
-  targetPercent: number;
-  actualPercent: number;
-  isStarving: boolean;
 }

@@ -1,5 +1,4 @@
-import type { BalanceItemData } from "../types/internal";
-import type { ComputedTask } from "../types/ui";
+import type { BalanceItemData, ComputedTask } from "../types/ui";
 
 /**
  * The percentage of target credit allocation below which a goal is considered "starving".
