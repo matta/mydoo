@@ -1,5 +1,6 @@
 import type { Task, TaskID } from "@mydoo/tasklens";
-import { createMockTask, TaskStatus } from "@mydoo/tasklens";
+import { TaskStatus } from "@mydoo/tasklens";
+import { createMockTask } from "@mydoo/tasklens/test";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";

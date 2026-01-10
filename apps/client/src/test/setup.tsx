@@ -79,11 +79,8 @@ const mockRepo = new Repo({ network: [] });
  * Use this instead of @testing-library/react's render for Mantine components.
  */
 
-import {
-  createEmptyTunnelState,
-  createTaskLensStore,
-  TaskLensProvider,
-} from "@mydoo/tasklens";
+import { createTaskLensStore, TaskLensProvider } from "@mydoo/tasklens";
+import { createEmptyTunnelState } from "@mydoo/tasklens/test";
 
 const defaultDocHandle = mockRepo.create(createEmptyTunnelState());
 const defaultDocUrl = defaultDocHandle.url;

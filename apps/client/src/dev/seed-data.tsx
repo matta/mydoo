@@ -1,9 +1,6 @@
 import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
-import {
-  type TunnelState,
-  useTaskActions,
-  useTaskLensDocUrl,
-} from "@mydoo/tasklens";
+import { useTaskActions, useTaskLensDocUrl } from "@mydoo/tasklens";
+import type { TunnelState } from "@mydoo/tasklens/persistence";
 import { useEffect, useRef } from "react";
 
 // Importance constants

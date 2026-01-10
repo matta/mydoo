@@ -1,10 +1,10 @@
 import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
 import {
-  type TunnelState,
   useTaskActions,
   useTaskLensDocUrl,
   wakeUpRoutineTasks,
 } from "@mydoo/tasklens";
+import type { TunnelState } from "@mydoo/tasklens/persistence";
 import { useCallback, useMemo } from "react";
 
 export interface SystemIntents {

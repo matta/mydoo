@@ -3,7 +3,7 @@ import {
   generateAutomergeUrl,
   Repo,
 } from "@automerge/automerge-repo";
-import type { TunnelState } from "@mydoo/tasklens";
+import type { TunnelState } from "@mydoo/tasklens/persistence";
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
