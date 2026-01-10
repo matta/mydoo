@@ -22,6 +22,7 @@ ignore:
   - .moon
   - .specify
   - .vscode
+  - node_modules
   - apps/client/tests/e2e/.features-gen
   - tempcontext
   - "**/.turbo"

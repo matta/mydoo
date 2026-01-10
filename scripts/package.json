@@ -5,11 +5,13 @@
   "type": "module",
   "dependencies": {
     "glob": "catalog:",
+    "js-yaml": "catalog:",
     "minimatch": "catalog:",
     "minimist": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@types/js-yaml": "catalog:",
     "@types/minimist": "catalog:",
     "vitest": "catalog:"
   },
