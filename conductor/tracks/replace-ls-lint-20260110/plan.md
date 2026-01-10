@@ -6,9 +6,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Environment Setup & Tooling' (Protocol in workflow.md)
 
 ## Phase 2: Configuration & File Discovery
-- [ ] Task: Implement `.ls-lint.yml` parsing using `js-yaml`.
-- [ ] Task: Implement `git ls-files` retrieval via `child_process`.
-- [ ] Task: Write unit tests for configuration parsing and file discovery.
+- [x] Task: Implement `.ls-lint.yml` parsing using `js-yaml`.
+- [x] Task: Implement `git ls-files` retrieval via `child_process`.
+- [x] Task: Write unit tests for configuration parsing and file discovery.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Configuration & File Discovery' (Protocol in workflow.md)
 
 ## Phase 3: Validation Logic Implementation
