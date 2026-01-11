@@ -4,10 +4,10 @@ import {
   selectStoreReady,
   selectTaskEntities,
   type TaskID,
-  useTask,
 } from "@mydoo/tasklens";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
+import { useTask } from "../hooks/task-hooks";
 
 /**
  * Result of the useTaskDetails hook.

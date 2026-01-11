@@ -289,7 +289,7 @@ describe("TaskEditorModal", () => {
     );
   });
 
-  // TODO: Fix this test in Vitest Browser Mode. The clear button click is not registering.
+  // FIXME: Fix this test in Vitest Browser Mode. The clear button click is not registering.
   // This is covered by E2E tests.
   it.skip("removes repetition config when frequency cleared", async () => {
     const onSave = vi.fn();

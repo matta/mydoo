@@ -1,14 +1,17 @@
 import {
+  type AutomergeUrl,
   type DocHandle,
   Repo,
   type StorageAdapterInterface,
   type StorageKey,
 } from "@automerge/automerge-repo";
-import { createTaskLensStore, syncDoc, TaskStatus } from "@mydoo/tasklens";
+
+import { syncDoc, TaskStatus } from "@mydoo/tasklens";
 import type { TunnelState } from "@mydoo/tasklens/persistence";
 import { seedTask } from "@mydoo/tasklens/test";
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
 import { usePriorityList } from "./use-priority-list";
 
@@ -30,13 +33,13 @@ class DummyStorageAdapter implements StorageAdapterInterface {
 describe("usePriorityList", () => {
   let handle: DocHandle<TunnelState>;
   let repo: Repo;
-  let store: ReturnType<typeof createTaskLensStore>;
+  let store: ReturnType<typeof createClientStore>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repo = new Repo({ network: [], storage: new DummyStorageAdapter() });
     handle = repo.create({ tasks: {}, rootTaskIds: [], places: {} });
-    store = createTaskLensStore();
+    store = createClientStore(handle.url as AutomergeUrl, repo);
   });
 
   const renderWithSync = async () => {
@@ -51,7 +54,7 @@ describe("usePriorityList", () => {
       );
     }
     return renderHook(() => usePriorityList(), {
-      wrapper: createTestWrapper(repo, store),
+      wrapper: createTestWrapper(repo, handle.url as AutomergeUrl, store),
     });
   };
 
@@ -142,9 +145,15 @@ describe("usePriorityList", () => {
   it("returns loading state initially", async () => {
     // Without syncing, Redux store is empty, so isLoading should be true
     const { result } = renderHook(() => usePriorityList(), {
-      wrapper: createTestWrapper(repo, store),
+      wrapper: createTestWrapper(repo, handle.url as AutomergeUrl, store),
     });
     expect(result.current.tasks).toEqual([]);
     expect(result.current.isLoading).toBe(true);
+
+    // Wait for middleware async initialization to complete,
+    // preventing act() warnings about state updates outside of act.
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
   });
 });

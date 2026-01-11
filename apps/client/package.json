@@ -10,6 +10,7 @@
     "@mantine/hooks": "catalog:",
     "@mantine/notifications": "catalog:",
     "@mydoo/tasklens": "workspace:*",
+    "@reduxjs/toolkit": "catalog:",
     "@tabler/icons-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

@@ -10,6 +10,12 @@ test.describe("Mobile Drill-Down Navigation", () => {
     await page.evaluate(() => localStorage.clear());
     await page.goto("/?seed=true");
 
+    // Verify seeded data is loaded (wait for Quick Task in default view)
+    // "Project Alpha" is a parent and might be hidden in Do view. "Quick Task" is a leaf.
+    await expect(
+      page.getByText("Quick Task", { exact: false }).first(),
+    ).toBeVisible();
+
     // Switch to Plan View via mobile tab bar
     const planTab = page.getByRole("button", { name: "Plan" }).last(); // Footer is last usually
     await expect(planTab).toBeVisible();

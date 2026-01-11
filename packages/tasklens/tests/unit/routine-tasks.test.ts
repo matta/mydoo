@@ -65,7 +65,7 @@ describe("wakeUpRoutineTasks", () => {
 
     wakeUpRoutineTasks(handle);
 
-    const doc = handle.docSync();
+    const doc = handle.doc();
     const task = doc?.tasks["task-1" as TaskID];
 
     // Should be pending now
@@ -113,7 +113,7 @@ describe("wakeUpRoutineTasks", () => {
 
     wakeUpRoutineTasks(handle);
 
-    const doc = handle.docSync();
+    const doc = handle.doc();
     const task = doc?.tasks["task-1" as TaskID];
 
     // Should still be done
@@ -159,7 +159,7 @@ describe("wakeUpRoutineTasks", () => {
 
     wakeUpRoutineTasks(handle);
 
-    const doc = handle.docSync();
+    const doc = handle.doc();
     const task = doc?.tasks["task-min" as TaskID];
 
     expect(task?.status).toBe(TaskStatus.Pending);
@@ -203,7 +203,7 @@ describe("wakeUpRoutineTasks", () => {
 
     wakeUpRoutineTasks(handle);
 
-    const doc = handle.docSync();
+    const doc = handle.doc();
     const task = doc?.tasks["task-hour" as TaskID];
 
     expect(task?.status).toBe(TaskStatus.Pending);

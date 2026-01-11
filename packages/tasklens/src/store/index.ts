@@ -18,6 +18,17 @@ import tasksReducer from "./slices/tasks-slice";
  * to allow creating independent store instances for:
  * 1. The main application (singleton), below.
  * 2. Automated tests (ensuring isolation between tests).
+ *
+ * FIXME: This currently creates a "naked" store without the Automerge sync middleware.
+ * In a future refactor, we should move the factory logic from the client's store
+ * configuration (apps/client/src/store.ts) into this package as a standardized
+ * integration helper (e.g., `createTaskLensSyncStore`).
+ * Benefits:
+ * - Dramatically reduced boilerplate in tests (currently manual repo/docUrl/middleware wiring).
+ * - Guaranteed parity between test and production store configurations.
+ * Considerations:
+ * - Extensibility: The client app MUST be able to inject its own reducers/middleware.
+ * - Need to provide an "open" factory or a builder pattern to avoid a rigid store.
  */
 export function createTaskLensStore() {
   return configureStore({

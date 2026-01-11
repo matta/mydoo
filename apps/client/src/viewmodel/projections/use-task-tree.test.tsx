@@ -4,12 +4,12 @@ import {
   Repo,
 } from "@automerge/automerge-repo";
 
-import { createTaskLensStore, type TaskID } from "@mydoo/tasklens";
+import type { TaskID } from "@mydoo/tasklens";
 import { seedTask } from "@mydoo/tasklens/test";
 
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
 import { useTaskTree } from "./use-task-tree";
 
@@ -35,8 +35,8 @@ describe("useTaskTree", () => {
       parentId: "root1" as TaskID,
     });
 
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const store = createClientStore(docUrl, repo);
+    const wrapper = createTestWrapper(repo, docUrl, store);
     const { result } = renderHook(() => useTaskTree(), {
       wrapper,
     });
@@ -59,8 +59,8 @@ describe("useTaskTree", () => {
   });
 
   it("handles loading state initially", async () => {
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const store = createClientStore(docUrl, repo);
+    const wrapper = createTestWrapper(repo, docUrl, store);
     const { result } = renderHook(() => useTaskTree(), {
       wrapper,
     });

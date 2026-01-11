@@ -135,23 +135,26 @@ export type { Place };
 /**
  * The complete application state stored in the database.
  *
- * This is the root object that contains all tasks and places. It is stored
- * in Automerge (a CRDT library) for real-time synchronization between clients.
+ * This is the root object that contains all tasks and places. It is stored in
+ * Automerge (a CRDT library) for real-time synchronization between clients.
  *
- * @property nextPlaceId - Counter for generating unique place IDs.
- * @property nextTaskId - Counter for generating unique task IDs.
  * @property places - Map of place ID to Place object.
- * @property rootTaskIds - Ordered list of top-level task IDs (tasks with no parent).
- * @property tasks - Map of task ID to PersistedTask object. All tasks are stored flat here.
+ * @property rootTaskIds - Ordered list of top-level task IDs (tasks with no
+ * parent).
+ * @property tasks - Map of task ID to PersistedTask object. All tasks are
+ * stored flat here.
  *
  * The index signature is strictly required by @automerge/automerge types.
  * Without it, `Automerge.from<TunnelState>()` fails type checking.
+ *
+ * FIXME: Ideally this type is encapsulated in the persistence layer, and
+ * application code should not need to know about it.
  */
 export interface TunnelState {
   [key: string]: unknown;
-  places: Record<PlaceID, Place>;
-  rootTaskIds: TaskID[];
   tasks: Record<TaskID, PersistedTask>;
+  rootTaskIds: TaskID[];
+  places: Record<PlaceID, Place>;
 }
 
 export type CreateTaskOptions =

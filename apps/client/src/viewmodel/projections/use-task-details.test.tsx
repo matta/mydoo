@@ -8,6 +8,7 @@ import { seedTask } from "@mydoo/tasklens/test";
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
 import { useTaskDetails } from "./use-task-details";
 
@@ -37,8 +38,8 @@ describe("useTaskDetails", () => {
       parentId: "child-id" as TaskID,
     });
 
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, url);
+    const store = createClientStore(url, repo);
+    const wrapper = createTestWrapper(repo, url, store);
     const { result } = renderHook(() => useTaskDetails("child-id" as TaskID), {
       wrapper,
     });
@@ -57,8 +58,8 @@ describe("useTaskDetails", () => {
   it("handles root tasks (no parent)", async () => {
     seedTask(handle, { id: "root-id", title: "Root Task" });
 
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, url);
+    const store = createClientStore(url, repo);
+    const wrapper = createTestWrapper(repo, url, store);
     const { result } = renderHook(() => useTaskDetails("root-id" as TaskID), {
       wrapper,
     });
@@ -75,8 +76,8 @@ describe("useTaskDetails", () => {
   });
 
   it("returns null when task not found", async () => {
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, url);
+    const store = createClientStore(url, repo);
+    const wrapper = createTestWrapper(repo, url, store);
     const { result } = renderHook(
       () => useTaskDetails("non-existent" as TaskID),
       {
@@ -95,7 +96,7 @@ describe("useTaskDetails", () => {
 
   it("returns loading state initially", async () => {
     const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, url);
+    const wrapper = createTestWrapper(repo, url, store);
     const { result } = renderHook(() => useTaskDetails("any-task" as TaskID), {
       wrapper,
     });

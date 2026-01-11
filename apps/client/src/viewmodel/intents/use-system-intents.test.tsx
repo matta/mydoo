@@ -3,24 +3,25 @@ import {
   type DocHandle,
   Repo,
 } from "@automerge/automerge-repo";
-import { createTaskLensStore, type TaskID, TaskStatus } from "@mydoo/tasklens";
-import { seedTask } from "@mydoo/tasklens/test";
+import { type TaskID, TaskStatus } from "@mydoo/tasklens";
+import type { TunnelState } from "@mydoo/tasklens/persistence";
+import { createEmptyTunnelState, seedTask } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
 import { useSystemIntents } from "./use-system-intents";
 
 describe("useSystemIntents", () => {
   let repo: Repo;
-  // biome-ignore lint/suspicious/noExplicitAny: test handle
-  let handle: DocHandle<any>;
+  let handle: DocHandle<TunnelState>;
   let docUrl: AutomergeUrl;
 
   beforeEach(() => {
     repo = new Repo({ network: [] });
     window.location.hash = "";
-    handle = repo.create({ tasks: {}, rootTaskIds: [], places: {} });
+    handle = repo.create(createEmptyTunnelState());
     docUrl = handle.url;
   });
 
@@ -32,28 +33,30 @@ describe("useSystemIntents", () => {
     it("should acknowledge completed tasks", async () => {
       // 1. Seed Data
       seedTask(handle, {
-        id: "task1",
+        id: "task1" as TaskID,
         title: "task1",
         status: TaskStatus.Pending,
         isAcknowledged: false,
       });
       seedTask(handle, {
-        id: "task2",
+        id: "task2" as TaskID,
         title: "task2",
         status: TaskStatus.Done,
         isAcknowledged: false,
       });
       seedTask(handle, {
-        id: "task3",
+        id: "task3" as TaskID,
         title: "task3",
         status: TaskStatus.Done,
         isAcknowledged: true,
       });
 
       // 2. Setup Hook
-      const store = createTaskLensStore();
-      const wrapper = createTestWrapper(repo, store, docUrl);
-      const { result } = renderHook(() => useSystemIntents(), { wrapper });
+      const store = createClientStore(docUrl, repo);
+      const wrapper = createTestWrapper(repo, docUrl, store);
+      const { result } = renderHook(() => useSystemIntents(docUrl), {
+        wrapper,
+      });
 
       // Wait for Redux to have the tasks (to avoid race conditions in intents)
       await waitFor(() => {
@@ -102,9 +105,11 @@ describe("useSystemIntents", () => {
       });
 
       // 2. Setup Hook
-      const store = createTaskLensStore();
-      const wrapper = createTestWrapper(repo, store, docUrl);
-      const { result } = renderHook(() => useSystemIntents(), { wrapper });
+      const store = createClientStore(docUrl, repo);
+      const wrapper = createTestWrapper(repo, docUrl, store);
+      const { result } = renderHook(() => useSystemIntents(docUrl), {
+        wrapper,
+      });
 
       // Wait for Redux
       await waitFor(() => {
