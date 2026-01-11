@@ -28,6 +28,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./persistence": "./src/types/persistence.ts",
     "./test": "./src/test/test-utils.ts"
   },
   "keywords": [],

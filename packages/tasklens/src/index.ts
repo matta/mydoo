@@ -19,4 +19,5 @@ export {
 } from "./store/index";
 export * from "./store/selectors";
 export { syncDoc } from "./store/slices/tasks-slice";
+
 export * from "./types/ui";

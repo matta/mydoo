@@ -5,12 +5,18 @@
  * initializing test state.
  */
 
-import type { Repo } from "@automerge/automerge-repo";
+import type { DocHandle, Repo } from "@automerge/automerge-repo";
 
 import { initializeTunnelState } from "../domain/initialization";
+import { createTask, updateTask } from "../persistence/ops";
 import { TunnelStateSchema } from "../persistence/schemas";
-import type { TunnelState } from "../types/persistence";
-import type { ComputedTask, TaskID as UITaskID } from "../types/ui";
+import type {
+  TaskCreateInput,
+  TaskID,
+  TunnelState,
+} from "../types/persistence";
+
+import type { ComputedTask } from "../types/ui";
 
 /**
  * Creates a strict mock that throws if unexpected properties are accessed.
@@ -99,7 +105,7 @@ export function createMockTask(
   overrides: Partial<ComputedTask> = {},
 ): ComputedTask {
   const task: ComputedTask = {
-    id: "test-task" as UITaskID,
+    id: "test-task" as TaskID,
     title: "Test Task",
     status: "Pending",
     importance: 0.5,
@@ -123,7 +129,7 @@ export function createMockTask(
   // Automerge doesn't like undefined values being assigned.
   // We remove parentId if it's undefined to prevent RangeErrors when assigning to a doc.
   if (task.parentId === undefined) {
-    const taskWithoutParent = task as { parentId?: UITaskID };
+    const taskWithoutParent = task as { parentId?: TaskID };
     delete taskWithoutParent.parentId;
   }
 
@@ -140,6 +146,39 @@ export function createMockTaskLensDoc(repo: Repo) {
   const handle = repo.create<TunnelState>();
   handle.change(initializeTunnelState);
   return handle;
+}
+
+/**
+ * Seeds a task into an Automerge document using strict validation.
+ *
+ * This wrapper uses the actual application logic (`TunnelOps.createTask`)
+ * to ensure that test data complies with all invariants (e.g. hierarchy depth,
+ * valid field ranges).
+ *
+ * @param handle - The Automerge document handle.
+ * @param props - Task properties. Required fields (like title) are defaulted if omitted.
+ * @returns The ID of the created task.
+ */
+export function seedTask(
+  handle: DocHandle<TunnelState>,
+  props: Omit<Partial<TaskCreateInput>, "id"> & { id: string },
+): TaskID {
+  const id = props.id as TaskID;
+  const { id: _idStr, ...rest } = props;
+  const input: TaskCreateInput = {
+    title: "Test Task",
+    ...rest,
+    id,
+  };
+
+  handle.change((doc) => {
+    createTask(doc, input);
+    if (input.isAcknowledged) {
+      updateTask(doc, id, { isAcknowledged: true });
+    }
+  });
+
+  return id;
 }
 
 export { mockCurrentTimestamp, resetCurrentTimestampMock } from "../utils/time";

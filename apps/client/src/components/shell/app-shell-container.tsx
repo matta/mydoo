@@ -3,6 +3,7 @@ import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
 import { AppShell, Burger, Button, Group, Menu, Title } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { useTaskActions } from "@mydoo/tasklens";
+
 import {
   IconCheckbox,
   IconDotsVertical,
