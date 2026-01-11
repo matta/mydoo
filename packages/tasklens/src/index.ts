@@ -77,7 +77,6 @@ export {
   type RepeatConfigFields,
   type Schedule,
   type ScheduleFields,
-  type Task,
   type TaskCreateInput,
   type TaskCreateProps,
   type TaskFields,

@@ -25,11 +25,11 @@ import {
   TextInput,
 } from "@mantine/core";
 import {
+  type ComputedTask,
   DEFAULT_CREDIT_INCREMENT,
   DEFAULT_TASK_IMPORTANCE,
   DEFAULT_TASK_LEAD_TIME_HOURS,
   type RepeatConfig,
-  type Task,
   type TaskCreateProps,
   type TaskID,
 } from "@mydoo/tasklens";
@@ -42,13 +42,13 @@ interface TaskEditorModalProps {
   /** Callback to close the modal */
   onClose: () => void;
   /** The task being edited */
-  task: Task | undefined;
+  task: ComputedTask | undefined;
   /** Parent task title (read-only display) */
   parentTitle: string | undefined;
   /** Descendant count (for delete confirmation) */
   descendantCount: number;
   /** Callback to save changes */
-  onSave: (taskId: TaskID, updates: Partial<Task>) => void;
+  onSave: (taskId: TaskID, updates: Partial<ComputedTask>) => void;
   /** Callback to add a sibling task */
   onAddSibling: (parentId: TaskID | undefined) => void;
   /** Callback to add a child task */
@@ -225,7 +225,7 @@ export function TaskEditorModal({
       // Edit Mode
       const dueDateTimestamp = dueDate?.getTime();
 
-      const updates: Partial<Task> = {
+      const updates: Partial<ComputedTask> = {
         title,
         importance,
         creditIncrement: effort,

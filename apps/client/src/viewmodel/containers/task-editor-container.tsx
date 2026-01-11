@@ -1,8 +1,8 @@
 import { useMediaQuery } from "@mantine/hooks";
 import {
+  type ComputedTask,
   selectRootTaskIds,
   selectTaskEntities,
-  type Task,
   type TaskCreateProps,
   type TaskID,
 } from "@mydoo/tasklens";
@@ -72,13 +72,13 @@ export function TaskEditorContainer() {
     }
 
     // Edit mode
-    const editingTask = task as Task | undefined;
+    const editingTask = task as ComputedTask | undefined;
     if (!editingTask) return { task: undefined, parent: undefined };
 
     const parentId = editingTask.parentId;
     return {
       task: editingTask,
-      parent: parentId ? (tasks[parentId] as Task) : undefined,
+      parent: parentId ? (tasks[parentId] as ComputedTask) : undefined,
     };
   }, [tasks, modal, task]);
 
@@ -117,7 +117,7 @@ export function TaskEditorContainer() {
    * @param taskId - The ID of the task being updated.
    * @param updates - Partial task object with fields to update.
    */
-  const handleSave = (taskId: TaskID, updates: Partial<Task>) => {
+  const handleSave = (taskId: TaskID, updates: Partial<ComputedTask>) => {
     updateTask(taskId, updates);
   };
 
