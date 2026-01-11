@@ -14,6 +14,15 @@ import {
 } from "@testing-library/react";
 import type { PropsWithChildren } from "react";
 
+/**
+ * Custom render function that wraps components with MantineProvider and custom test theme.
+ * Use this instead of @testing-library/react's render for Mantine components.
+ */
+
+import { createEmptyTunnelState } from "@mydoo/tasklens/test";
+import { Provider } from "react-redux";
+import { createClientStore } from "../store";
+
 // Mock for window.matchMedia - required by Mantine's color scheme detection
 Object.defineProperty(window, "matchMedia", {
   writable: true,
@@ -73,15 +82,6 @@ const testingTheme = createTheme({
 
 // Mock Automerge Repo
 const mockRepo = new Repo({ network: [] });
-
-/**
- * Custom render function that wraps components with MantineProvider and custom test theme.
- * Use this instead of @testing-library/react's render for Mantine components.
- */
-
-import { createEmptyTunnelState } from "@mydoo/tasklens/test";
-import { Provider } from "react-redux";
-import { createClientStore } from "../store";
 
 const defaultDocHandle = mockRepo.create(createEmptyTunnelState());
 const defaultDocUrl = defaultDocHandle.url as AutomergeUrl;

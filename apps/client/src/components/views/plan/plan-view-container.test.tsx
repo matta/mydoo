@@ -6,6 +6,12 @@ import {
 import { useMediaQuery } from "@mantine/hooks";
 import { strictMock } from "@mydoo/tasklens/test";
 
+import { act, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { renderWithTestProviders } from "../../../test/setup";
+import { PlanViewContainer } from "./plan-view-container";
+
 // Create a minimal storage adapter using strictMock - only implements what Repo actually uses
 function createDummyStorageAdapter(): StorageAdapterInterface {
   return strictMock<StorageAdapterInterface>("DummyStorageAdapter", {
@@ -16,12 +22,6 @@ function createDummyStorageAdapter(): StorageAdapterInterface {
     removeRange: async () => {},
   });
 }
-
-import { act, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { renderWithTestProviders } from "../../../test/setup";
-import { PlanViewContainer } from "./plan-view-container";
 
 // Mock simple view-model hooks that are not the focus of this integration
 const mocks = vi.hoisted(() => ({

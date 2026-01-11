@@ -8,8 +8,8 @@ import {
   selectTaskById,
   selectTaskEntities,
 } from "../../src/store/selectors";
-import type { ComputedTask } from "../../src/types/ui";
-import { type TaskID, TaskStatus } from "../../src/types/ui";
+import { TaskStatus } from "../../src/types/persistence";
+import type { ComputedTask, TaskID } from "../../src/types/ui";
 
 describe("Redux Selectors", () => {
   const createMockState = (
