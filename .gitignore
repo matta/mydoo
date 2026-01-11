@@ -33,3 +33,4 @@ coverage
 ROLLING_CONTEXT.md
 **/__screenshots__
 **/.features-gen
+.ralph-state/

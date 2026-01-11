@@ -4,7 +4,10 @@ import {
   type StorageAdapterInterface,
 } from "@automerge/automerge-repo";
 import { useMediaQuery } from "@mantine/hooks";
-import { strictMock } from "@mydoo/tasklens/test";
+import {
+  createTaskLensTestEnvironment,
+  strictMock,
+} from "@mydoo/tasklens/test";
 
 import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -99,9 +102,13 @@ describe("PlanViewContainer", () => {
   // Reset mocks before each test
   beforeEach(() => {
     vi.clearAllMocks();
-    repo = new Repo({ network: [], storage: createDummyStorageAdapter() });
-    const handle = repo.create({ tasks: {}, rootTaskIds: [], places: {} });
-    docUrl = handle.url;
+    const customRepo = new Repo({
+      network: [],
+      storage: createDummyStorageAdapter(),
+    });
+    const env = createTaskLensTestEnvironment(customRepo);
+    repo = env.repo;
+    docUrl = env.docUrl;
   });
 
   it('renders "Add First Task" button when task list is empty', async () => {

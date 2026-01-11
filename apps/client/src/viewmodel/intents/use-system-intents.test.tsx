@@ -1,37 +1,17 @@
-import {
-  type AutomergeUrl,
-  type DocHandle,
-  Repo,
-} from "@automerge/automerge-repo";
-
 import { type TaskID, TaskStatus } from "@mydoo/tasklens";
-import type { TunnelState } from "@mydoo/tasklens/persistence";
 import {
-  createEmptyTunnelState,
+  createTaskLensTestEnvironment,
   mockCurrentTimestamp,
   resetCurrentTimestampMock,
 } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
 import { useSystemIntents } from "./use-system-intents";
 import { useTaskIntents } from "./use-task-intents";
 
 describe("useSystemIntents", () => {
-  let repo: Repo;
-  let handle: DocHandle<TunnelState>;
-  let docUrl: AutomergeUrl;
-
-  beforeEach(() => {
-    repo = new Repo({ network: [] });
-    window.location.hash = "";
-    handle = repo.create(createEmptyTunnelState());
-    docUrl = handle.url;
-    vi.useRealTimers();
-  });
-
   afterEach(() => {
     window.location.hash = "";
     vi.useRealTimers();
@@ -40,7 +20,7 @@ describe("useSystemIntents", () => {
   describe("refreshTaskList", () => {
     it("should acknowledge completed tasks", async () => {
       // 1. Setup Wrapper
-      const store = createClientStore(docUrl, repo);
+      const { repo, docUrl, store } = createTaskLensTestEnvironment();
       const wrapper = createTestWrapper(repo, docUrl, store);
 
       // 2. Seed Data using public API via useTaskIntents
@@ -109,7 +89,7 @@ describe("useSystemIntents", () => {
 
     it("should wake up routine tasks", async () => {
       // 1. Setup Wrapper and Time
-      const store = createClientStore(docUrl, repo);
+      const { repo, docUrl, store } = createTaskLensTestEnvironment();
       const wrapper = createTestWrapper(repo, docUrl, store);
 
       // Use internal mocking helper instead of vi.useFakeTimers

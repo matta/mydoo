@@ -1,31 +1,18 @@
-import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
 import type { TaskID } from "@mydoo/tasklens";
-import { createMockTaskLensDoc } from "@mydoo/tasklens/test";
+import { createTaskLensTestEnvironment } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
-import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
 import { useTaskIntents } from "./use-task-intents";
 
 describe("useTaskIntents (Move Interactions)", () => {
-  let repo: Repo;
-  let docUrl: AutomergeUrl;
-
-  beforeEach(() => {
-    repo = new Repo({ network: [] });
-    window.location.hash = "";
-
-    const handle = createMockTaskLensDoc(repo);
-    docUrl = handle.url;
-  });
-
   afterEach(() => {
     window.location.hash = "";
   });
 
   it("should indent a task (become child of previous sibling)", async () => {
-    const store = createClientStore(docUrl, repo);
+    const { repo, docUrl, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, docUrl, store);
     const { result } = renderHook(() => useTaskIntents(), { wrapper });
 
@@ -71,7 +58,7 @@ describe("useTaskIntents (Move Interactions)", () => {
   });
 
   it("should outdent a task (become sibling of parent)", async () => {
-    const store = createClientStore(docUrl, repo);
+    const { repo, docUrl, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, docUrl, store);
     const { result } = renderHook(() => useTaskIntents(), { wrapper });
 
@@ -123,7 +110,7 @@ describe("useTaskIntents (Move Interactions)", () => {
   });
 
   it("should not indent if no previous sibling", async () => {
-    const store = createClientStore(docUrl, repo);
+    const { repo, docUrl, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, docUrl, store);
     const { result } = renderHook(() => useTaskIntents(), { wrapper });
 

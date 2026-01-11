@@ -1,24 +1,15 @@
-import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
-import { createTaskLensDoc, type TaskID } from "@mydoo/tasklens";
+import type { TaskID } from "@mydoo/tasklens";
+import { createTaskLensTestEnvironment } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createClientStore } from "../../store";
+import { describe, expect, it, vi } from "vitest";
 import { createTestWrapper } from "../../test/setup";
 import { useTaskIntents } from "../intents/use-task-intents";
 import { useTaskTree } from "./use-task-tree";
 
 describe("useTaskTree", () => {
-  let repo: Repo;
-  let docUrl: AutomergeUrl;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    repo = new Repo({ network: [] });
-    docUrl = createTaskLensDoc(repo);
-  });
-
   it("builds a task tree from rootTaskIds", async () => {
-    const store = createClientStore(docUrl, repo);
+    vi.clearAllMocks();
+    const { repo, docUrl, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, docUrl, store);
     const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
 
@@ -76,7 +67,7 @@ describe("useTaskTree", () => {
   });
 
   it("handles loading state initially", async () => {
-    const store = createClientStore(docUrl, repo);
+    const { repo, docUrl, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, docUrl, store);
     const { result } = renderHook(() => useTaskTree(), {
       wrapper,

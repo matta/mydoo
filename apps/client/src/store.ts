@@ -1,6 +1,5 @@
 import type { Repo } from "@automerge/automerge-repo";
-import { createTaskLensMiddleware, tasksReducer } from "@mydoo/tasklens";
-import { configureStore } from "@reduxjs/toolkit";
+import { createTaskLensStore } from "@mydoo/tasklens";
 import {
   type TypedUseSelectorHook,
   useDispatch,
@@ -11,36 +10,17 @@ import { repo } from "./lib/db";
 /**
  * Creates the Redux store for the client application.
  *
- * This store:
- * 1. Uses the TaskLens `tasksReducer` to manage state.
- * 2. Injects the TaskLens middleware to sync with Automerge.
- * 3. Provides a thunk extra argument for type-safe document access.
- * 4. Uses the singleton `repo` instance by default, or an injected one for testing.
+ * This store delegates to the TaskLens store factory, which handles:
+ * 1. State management via `tasksReducer`.
+ * 2. Automerge sync middleware.
+ * 3. Thunk extra arguments for document access.
+ * 4. Serialization checks.
  *
  * @param docUrl - The Automerge document URL to sync with.
  * @param repoInstance - Optional repo instance (defaults to singleton).
  */
 export function createClientStore(docUrl: string, repoInstance: Repo = repo) {
-  const { middleware, getThunkExtra } = createTaskLensMiddleware(
-    repoInstance,
-    docUrl,
-  );
-
-  return configureStore({
-    reducer: {
-      tasks: tasksReducer,
-    },
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
-        thunk: {
-          extraArgument: getThunkExtra(),
-        },
-        serializableCheck: {
-          ignoredActionPaths: ["payload.newDoc", "payload.proxyDoc"],
-          ignoredPaths: ["tasks.lastDoc"],
-        },
-      }).concat(middleware),
-  });
+  return createTaskLensStore(repoInstance, docUrl);
 }
 
 // Infer types from the store factory

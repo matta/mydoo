@@ -25,7 +25,9 @@ export const TaskActions = {
 };
 export {
   createTaskLensStore,
+  getTaskLensReduxConfig,
   type TaskLensDispatch,
+  type TaskLensReduxConfig,
   type TaskLensState,
   taskLensStore,
 } from "./store/index";
