@@ -1,6 +1,11 @@
 import type { Repo } from "@automerge/automerge-repo";
 import { createTaskLensMiddleware, tasksReducer } from "@mydoo/tasklens";
 import { configureStore } from "@reduxjs/toolkit";
+import {
+  type TypedUseSelectorHook,
+  useDispatch,
+  useSelector,
+} from "react-redux";
 import { repo } from "./lib/db";
 
 /**
@@ -42,12 +47,6 @@ export function createClientStore(docUrl: string, repoInstance: Repo = repo) {
 type ConfiguredStore = ReturnType<typeof createClientStore>;
 type RootState = ReturnType<ConfiguredStore["getState"]>;
 export type AppDispatch = ConfiguredStore["dispatch"];
-
-import {
-  type TypedUseSelectorHook,
-  useDispatch,
-  useSelector,
-} from "react-redux";
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = () => useDispatch<AppDispatch>();

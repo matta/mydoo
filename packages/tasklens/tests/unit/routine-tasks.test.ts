@@ -6,6 +6,14 @@ import {
 } from "@automerge/automerge-repo";
 import { describe, expect, it } from "vitest";
 
+import { wakeUpRoutineTasks } from "../../src/domain/routine-tasks";
+import type {
+  PersistedTask,
+  TaskID,
+  TunnelState,
+} from "../../src/types/persistence";
+import { TaskStatus } from "../../src/types/persistence";
+
 class DummyStorageAdapter implements StorageAdapterInterface {
   async load(_key: StorageKey): Promise<Uint8Array | undefined> {
     return undefined;
@@ -17,14 +25,6 @@ class DummyStorageAdapter implements StorageAdapterInterface {
   }
   async removeRange(_keyPrefix: StorageKey) {}
 }
-
-import { wakeUpRoutineTasks } from "../../src/domain/routine-tasks";
-import type {
-  PersistedTask,
-  TaskID,
-  TunnelState,
-} from "../../src/types/persistence";
-import { TaskStatus } from "../../src/types/persistence";
 
 describe("wakeUpRoutineTasks", () => {
   it("should wake up a task when it is time", () => {

@@ -1,3 +1,11 @@
+import {
+  acknowledgeAllDoneTasks,
+  createTask,
+  deleteTask,
+  moveTask,
+  updateTask,
+} from "./redux/thunks";
+
 export * from "./domain/index";
 export * from "./domain/initialization";
 export * from "./domain/projections";
@@ -7,14 +15,6 @@ export * as TunnelOps from "./persistence/ops";
 export { TunnelStore } from "./persistence/store";
 export type { ThunkExtra } from "./redux/middleware";
 export * from "./redux/middleware";
-
-import {
-  acknowledgeAllDoneTasks,
-  createTask,
-  deleteTask,
-  moveTask,
-  updateTask,
-} from "./redux/thunks";
 
 export const TaskActions = {
   createTask,

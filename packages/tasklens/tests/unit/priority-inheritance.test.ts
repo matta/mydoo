@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { recalculatePriorities } from "../../src/domain/priority";
 import type { EnrichedTask } from "../../src/types/internal";
-import type { TaskID } from "../../src/types/persistence";
 import {
   ANYWHERE_PLACE_ID,
   DEFAULT_CREDIT_INCREMENT,
   type PlaceID,
+  type TaskID,
   TaskStatus,
   type TunnelState,
 } from "../../src/types/persistence";

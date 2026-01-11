@@ -28,6 +28,9 @@ export default tseslint.config(
     },
     rules: {
       "import-x/no-namespace": "error",
+      "import-x/first": "error",
+      "import-x/newline-after-import": "error",
+      "import-x/no-duplicates": "error",
 
       /**
        * Prevents "double casting" (e.g., const x = (y as unknown) as T).
