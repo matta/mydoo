@@ -1,42 +1,47 @@
-import {
-  type AutomergeUrl,
-  type DocHandle,
-  Repo,
-} from "@automerge/automerge-repo";
-
-import type { TaskID } from "@mydoo/tasklens";
-import { seedTask } from "@mydoo/tasklens/test";
-
-import { renderHook, waitFor } from "@testing-library/react";
+import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
+import { createTaskLensDoc, type TaskID } from "@mydoo/tasklens";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
+import { useTaskIntents } from "../intents/use-task-intents";
 import { useTaskTree } from "./use-task-tree";
 
 describe("useTaskTree", () => {
-  // biome-ignore lint/suspicious/noExplicitAny: test handle
-  let handle: DocHandle<any>;
   let repo: Repo;
   let docUrl: AutomergeUrl;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repo = new Repo({ network: [] });
-    handle = repo.create({ tasks: {}, rootTaskIds: [], places: {} });
-    docUrl = handle.url;
+    docUrl = createTaskLensDoc(repo);
   });
 
   it("builds a task tree from rootTaskIds", async () => {
-    seedTask(handle, { id: "root1", title: "Root 1" });
-    seedTask(handle, { id: "root2", title: "Root 2" });
-    seedTask(handle, {
-      id: "child1",
-      title: "Child 1",
-      parentId: "root1" as TaskID,
-    });
-
     const store = createClientStore(docUrl, repo);
     const wrapper = createTestWrapper(repo, docUrl, store);
+    const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
+
+    // Wait for initial Redux sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
+
+    let root1: TaskID = "r1" as TaskID;
+    let root2: TaskID = "r2" as TaskID;
+    let child1: TaskID = "c1" as TaskID;
+
+    await act(async () => {
+      // Create root1 then its child
+      root1 = intents.current.createTask({ title: "Root 1" });
+      child1 = intents.current.createTask({
+        title: "Child 1",
+        parentId: root1,
+      });
+
+      // Create root2
+      root2 = intents.current.createTask({ title: "Root 2" });
+    });
     const { result } = renderHook(() => useTaskTree(), {
       wrapper,
     });
@@ -49,13 +54,25 @@ describe("useTaskTree", () => {
       { timeout: 2000 },
     );
 
-    expect(result.current.roots[0]?.id).toBe("root1");
-    expect(result.current.roots[1]?.id).toBe("root2");
+    expect(result.current.roots[0]?.title).toBe("Root 1");
+    // Depending on sort order (creation time vs manual), check ID or content.
+    // If sort is insertion order or similar, root1 should be first.
+    // Let's check IDs or titles.
+    const rootTitles = result.current.roots.map((r) => r.title);
+    expect(rootTitles).toContain("Root 1");
+    expect(rootTitles).toContain("Root 2");
 
-    // Verify recursion
-    expect(result.current.roots[0]?.children).toHaveLength(1);
-    expect(result.current.roots[0]?.children[0]?.id).toBe("child1");
-    expect(result.current.roots[1]?.children).toHaveLength(0);
+    // Check structure of Root 1
+    const r1Node = result.current.roots.find((r) => r.id === root1);
+    expect(r1Node).toBeDefined();
+    expect(r1Node?.children).toHaveLength(1);
+    expect(r1Node?.children[0]?.title).toBe("Child 1");
+    expect(r1Node?.children[0]?.id).toBe(child1);
+
+    // Check structure of Root 2
+    const r2Node = result.current.roots.find((r) => r.id === root2);
+    expect(r2Node).toBeDefined();
+    expect(r2Node?.children).toHaveLength(0);
   });
 
   it("handles loading state initially", async () => {

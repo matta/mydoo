@@ -3,8 +3,8 @@ import {
   isValidAutomergeUrl,
 } from "@automerge/automerge-repo";
 import { useRepo } from "@automerge/automerge-repo-react-hooks";
+import { createTaskLensDoc } from "@mydoo/tasklens";
 import { useEffect, useState } from "react";
-import { createNewDocument } from "./document-utils";
 
 const STORAGE_KEY = "mydoo:doc_id";
 
@@ -58,7 +58,7 @@ export function useDocument(): AutomergeUrl | undefined {
 
   useEffect(() => {
     if (!docUrl) {
-      const handle = createNewDocument(repo);
+      const handle = createTaskLensDoc(repo);
       localStorage.setItem(STORAGE_KEY, handle);
       setDocUrl(handle);
     }

@@ -7,6 +7,7 @@ import {
   type TaskID,
 } from "@mydoo/tasklens";
 import type { TunnelState } from "@mydoo/tasklens/persistence";
+import { getTaskCount } from "@mydoo/tasklens/test";
 import { useEffect, useRef } from "react";
 import { type AppDispatch, useAppDispatch, useAppSelector } from "../store";
 
@@ -105,13 +106,11 @@ export function SeedData({ docUrl }: { docUrl: AutomergeUrl }) {
     // We need the doc to check if it's empty
     const doc = handle.doc();
     const params = new URLSearchParams(window.location.search);
-    if (params.get("seed") === "true") {
-      if (doc && !seeded.current) {
-        const taskCount = Object.keys(doc.tasks || {}).length;
-        if (taskCount === 0) {
-          seeded.current = true;
-          seedHierarchicalData(dispatch);
-        }
+    if (params.get("seed") === "true" && doc && !seeded.current) {
+      const taskCount = getTaskCount(doc);
+      if (taskCount === 0) {
+        seeded.current = true;
+        seedHierarchicalData(dispatch);
       }
     }
   }, [handle, dispatch, isReady]);

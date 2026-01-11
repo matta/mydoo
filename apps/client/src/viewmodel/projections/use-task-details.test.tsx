@@ -1,46 +1,45 @@
-import {
-  type AutomergeUrl,
-  type DocHandle,
-  Repo,
-} from "@automerge/automerge-repo";
-import { createTaskLensStore, type TaskID } from "@mydoo/tasklens";
-import { seedTask } from "@mydoo/tasklens/test";
-import { renderHook, waitFor } from "@testing-library/react";
+import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
+import { createTaskLensDoc, type TaskID } from "@mydoo/tasklens";
+
+import { act, renderHook, waitFor } from "@testing-library/react";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
+import { useTaskIntents } from "../intents/use-task-intents";
 import { useTaskDetails } from "./use-task-details";
 
 describe("useTaskDetails", () => {
-  // biome-ignore lint/suspicious/noExplicitAny: test handle
-  let handle: DocHandle<any>;
   let repo: Repo;
   let url: AutomergeUrl;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repo = new Repo({ network: [] });
-    handle = repo.create({ tasks: {}, rootTaskIds: [], places: {} });
-    url = handle.url;
+    url = createTaskLensDoc(repo);
   });
 
   it("returns task details correctly", async () => {
-    seedTask(handle, { id: "parent-id", title: "Parent Goal" });
-    seedTask(handle, {
-      id: "child-id",
-      title: "Child Task",
-      parentId: "parent-id" as TaskID,
-    });
-    seedTask(handle, {
-      id: "grandchild-id",
-      title: "Grandchild",
-      parentId: "child-id" as TaskID,
-    });
-
     const store = createClientStore(url, repo);
     const wrapper = createTestWrapper(repo, url, store);
-    const { result } = renderHook(() => useTaskDetails("child-id" as TaskID), {
+    const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
+
+    // Wait for initial Redux sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
+
+    let parentId: TaskID = "p" as TaskID;
+    let childId: TaskID = "c" as TaskID;
+
+    await act(async () => {
+      parentId = intents.current.createTask({ title: "Parent Goal" });
+      childId = intents.current.createTask({ title: "Child Task", parentId });
+      intents.current.createTask({ title: "Grandchild", parentId: childId });
+    });
+
+    const { result } = renderHook(() => useTaskDetails(childId), {
       wrapper,
     });
 
@@ -56,11 +55,22 @@ describe("useTaskDetails", () => {
   });
 
   it("handles root tasks (no parent)", async () => {
-    seedTask(handle, { id: "root-id", title: "Root Task" });
-
     const store = createClientStore(url, repo);
     const wrapper = createTestWrapper(repo, url, store);
-    const { result } = renderHook(() => useTaskDetails("root-id" as TaskID), {
+    const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
+
+    // Wait for initial Redux sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
+
+    let rootId: TaskID = "r" as TaskID;
+
+    await act(async () => {
+      rootId = intents.current.createTask({ title: "Root Task" });
+    });
+
+    const { result } = renderHook(() => useTaskDetails(rootId), {
       wrapper,
     });
 
@@ -95,7 +105,7 @@ describe("useTaskDetails", () => {
   });
 
   it("returns loading state initially", async () => {
-    const store = createTaskLensStore();
+    const store = createClientStore(url, repo);
     const wrapper = createTestWrapper(repo, url, store);
     const { result } = renderHook(() => useTaskDetails("any-task" as TaskID), {
       wrapper,

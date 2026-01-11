@@ -8,6 +8,8 @@ import { getIntervalMs } from "../utils/time";
  * This function is triggered manually by the user (e.g. via "Refresh").
  * It checks all "Done" + "Routinely" tasks to see if their wake-up window has arrived.
  * If so, it resets them to "Pending" and updates their due date to the next interval.
+ *
+ * @param handle - A DocHandle for the TunnelState document.
  */
 export function wakeUpRoutineTasks(handle: DocHandle<TunnelState>) {
   handle.change((doc) => {
