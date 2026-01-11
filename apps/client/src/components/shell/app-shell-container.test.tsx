@@ -1,5 +1,4 @@
-import { Repo } from "@automerge/automerge-repo";
-import { createEmptyTunnelState } from "@mydoo/tasklens/test";
+import { createTaskLensTestEnvironment } from "@mydoo/tasklens/test";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -26,9 +25,7 @@ describe("AppShellContainer", () => {
 
   it('should download the document as JSON when "Download JSON" is clicked', async () => {
     // Setup repo and doc
-    const repo = new Repo({ network: [] });
-    const handle = repo.create(createEmptyTunnelState());
-    const docUrl = handle.url;
+    const { repo, docUrl } = createTaskLensTestEnvironment();
 
     // Mock HTMLAnchorElement.prototype.click
     const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click");

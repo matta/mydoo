@@ -1,4 +1,4 @@
-import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
+import type { AutomergeUrl, Repo } from "@automerge/automerge-repo";
 import { RepoContext } from "@automerge/automerge-repo-react-hooks";
 import {
   createTheme,
@@ -7,19 +7,13 @@ import {
   Modal,
   Popover,
 } from "@mantine/core";
+import { createTaskLensTestEnvironment } from "@mydoo/tasklens/test";
 import {
   type RenderOptions,
   type RenderResult,
   render as testingLibraryRender,
 } from "@testing-library/react";
 import type { PropsWithChildren } from "react";
-
-/**
- * Custom render function that wraps components with MantineProvider and custom test theme.
- * Use this instead of @testing-library/react's render for Mantine components.
- */
-
-import { createEmptyTunnelState } from "@mydoo/tasklens/test";
 import { Provider } from "react-redux";
 import { createClientStore } from "../store";
 
@@ -81,10 +75,8 @@ const testingTheme = createTheme({
 });
 
 // Mock Automerge Repo
-const mockRepo = new Repo({ network: [] });
-
-const defaultDocHandle = mockRepo.create(createEmptyTunnelState());
-const defaultDocUrl = defaultDocHandle.url as AutomergeUrl;
+const { repo: mockRepo, docUrl: defaultDocUrl } =
+  createTaskLensTestEnvironment();
 
 export function createTestWrapper(
   repo: Repo = mockRepo,

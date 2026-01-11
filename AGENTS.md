@@ -278,3 +278,28 @@ Or use the standard Vitest `-t` flag (which runs all but skips non-matching):
 ```bash
 pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
 ```
+
+# Learnings
+
+## Strict Redux & TypeScript Strategies
+
+- **Prefer Inference over Casting:** When configuring a Redux store, rely on
+  `configureStore`'s automatic type inference. Avoid explicitly typing the
+  generic parameters if it leads to complex intersection types that require
+  casting.
+- **Middleware Composition:** Use `.concat()` for adding middleware (e.g.,
+  `getDefaultMiddleware().concat(myMiddleware)`). This preserves the specific
+  types of the middleware (like Thunk capabilities) better than `new Tuple()`,
+  allowing `AppDispatch` to correctly infer `ThunkDispatch` without manual
+  intervention.
+- **`combineReducers` for Safety:** Even if you only have one reducer, using
+  `combineReducers` can help satisfy TypeScript's `ReducersMapObject`
+  requirements more naturally than a raw object literal, avoiding the need for
+  `as Reducer` casts.
+- **Forbidden Casts:** `as any` and `as unknown` are strictly forbidden. If you
+  are tempted to use them, the architecture or the type definition is likely
+  wrong. Simplify the approach (e.g., switch to inference) rather than forcing
+  the type.
+- **File Corruption:** comprehensive file overwrite tools should never include
+  markdown code block delimiters (```) inside the replacement content unless
+  they are part of the string literal being written.

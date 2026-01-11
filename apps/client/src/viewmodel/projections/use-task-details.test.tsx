@@ -1,27 +1,18 @@
-import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
-import { createTaskLensDoc, type TaskID } from "@mydoo/tasklens";
+import type { TaskID } from "@mydoo/tasklens";
+import { createTaskLensTestEnvironment } from "@mydoo/tasklens/test";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
 import { useTaskIntents } from "../intents/use-task-intents";
 import { useTaskDetails } from "./use-task-details";
 
 describe("useTaskDetails", () => {
-  let repo: Repo;
-  let url: AutomergeUrl;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    repo = new Repo({ network: [] });
-    url = createTaskLensDoc(repo);
-  });
-
   it("returns task details correctly", async () => {
-    const store = createClientStore(url, repo);
+    vi.clearAllMocks();
+    const { repo, docUrl: url, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, url, store);
     const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
 
@@ -55,7 +46,7 @@ describe("useTaskDetails", () => {
   });
 
   it("handles root tasks (no parent)", async () => {
-    const store = createClientStore(url, repo);
+    const { repo, docUrl: url, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, url, store);
     const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
 
@@ -86,7 +77,7 @@ describe("useTaskDetails", () => {
   });
 
   it("returns null when task not found", async () => {
-    const store = createClientStore(url, repo);
+    const { repo, docUrl: url, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, url, store);
     const { result } = renderHook(
       () => useTaskDetails("non-existent" as TaskID),
@@ -105,7 +96,7 @@ describe("useTaskDetails", () => {
   });
 
   it("returns loading state initially", async () => {
-    const store = createClientStore(url, repo);
+    const { repo, docUrl: url, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, url, store);
     const { result } = renderHook(() => useTaskDetails("any-task" as TaskID), {
       wrapper,

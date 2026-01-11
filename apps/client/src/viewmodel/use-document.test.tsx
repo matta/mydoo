@@ -1,11 +1,11 @@
 import {
   type AutomergeUrl,
   generateAutomergeUrl,
-  Repo,
+  type Repo,
 } from "@automerge/automerge-repo";
 import { isDocInitialized } from "@mydoo/tasklens";
 import type { TunnelState } from "@mydoo/tasklens/persistence";
-import { createEmptyTunnelState } from "@mydoo/tasklens/test";
+import { createTaskLensTestEnvironment } from "@mydoo/tasklens/test";
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createTestWrapper } from "../test/setup";
@@ -16,14 +16,10 @@ describe("useDocument", () => {
   let docUrl: AutomergeUrl;
 
   beforeEach(() => {
-    // Setup repo
-    repo = new Repo({
-      network: [], // No network for tests
-    });
-
-    // Create a document so the middleware can find it
-    const handle = repo.create(createEmptyTunnelState());
-    docUrl = handle.url;
+    // Setup repo using test environment
+    const env = createTaskLensTestEnvironment();
+    repo = env.repo;
+    docUrl = env.docUrl;
 
     // Clear localStorage
     localStorage.clear();

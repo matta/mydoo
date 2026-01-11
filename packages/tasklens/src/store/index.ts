@@ -1,14 +1,14 @@
 import type { Repo } from "@automerge/automerge-repo";
 import {
+  type Action,
+  combineReducers,
   configureStore,
-  type EnhancedStore,
   type Middleware,
   type ReducersMapObject,
-  type ThunkDispatch,
   type UnknownAction,
 } from "@reduxjs/toolkit";
 import { createTaskLensMiddleware, type ThunkExtra } from "../redux/middleware";
-import tasksReducer from "./slices/tasks-slice";
+import tasksReducer, { type TasksState } from "./slices/tasks-slice";
 
 /**
  * Configuration object for integrating TaskLens into an existing Redux store.
@@ -60,15 +60,19 @@ export function getTaskLensReduxConfig(
 
 /**
  * Options for creating a TaskLens store.
+ * @template S - The type of the *extra* state (excluding `tasks`).
+ * @template A - The type of actions.
  */
-export interface CreateTaskLensStoreOptions {
+export interface CreateTaskLensStoreOptions<
+  S = object,
+  A extends Action = UnknownAction,
+> {
   /** Additional reducers to merge into the store. */
-  extraReducers?: ReducersMapObject;
+  extraReducers?: ReducersMapObject<S, A>;
   /** Additional middleware to prepend/append. */
   extraMiddleware?: Middleware[];
   /** Preloaded state for the store. */
-  // biome-ignore lint/suspicious/noExplicitAny: Redux preloaded state is complex
-  preloadedState?: any;
+  preloadedState?: Partial<{ tasks: TasksState } & S>;
 }
 
 /**
@@ -80,28 +84,19 @@ export interface CreateTaskLensStoreOptions {
  * @param options - Optional configuration for extra reducers/middleware.
  * @returns A configured Redux store.
  */
-export function createTaskLensStore(
-  repo: Repo,
-  docUrl: string,
-  options: CreateTaskLensStoreOptions = {},
-): EnhancedStore<
-  // biome-ignore lint/suspicious/noExplicitAny: State is extensible
-  any,
-  UnknownAction,
-  // biome-ignore lint/suspicious/noExplicitAny: Enhancers are complex
-  any
-> & {
-  // biome-ignore lint/suspicious/noExplicitAny: State is extensible
-  dispatch: ThunkDispatch<any, ThunkExtra, UnknownAction>;
-} {
+export function createTaskLensStore<
+  S = object,
+  A extends Action = UnknownAction,
+>(repo: Repo, docUrl: string, options: CreateTaskLensStoreOptions<S, A> = {}) {
   const config = getTaskLensReduxConfig(repo, docUrl);
 
+  const rootReducer = combineReducers({
+    tasks: config.reducer,
+    ...options.extraReducers,
+  });
+
   return configureStore({
-    reducer: {
-      tasks: config.reducer,
-      ...options.extraReducers,
-      // biome-ignore lint/suspicious/noExplicitAny: Fix TS overload resolution
-    } as any,
+    reducer: rootReducer,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         thunk: {
@@ -110,11 +105,11 @@ export function createTaskLensStore(
         serializableCheck: config.serializableCheckOptions,
       })
         .concat(config.middleware)
-        // biome-ignore lint/suspicious/noExplicitAny: Fix TS inference for middleware chain
-        .concat(options.extraMiddleware || []) as any,
-    preloadedState: options.preloadedState,
-    // biome-ignore lint/suspicious/noExplicitAny: State is extensible
-  }) as any;
+        .concat(options.extraMiddleware || []),
+    ...(options.preloadedState
+      ? { preloadedState: options.preloadedState }
+      : {}),
+  });
 }
 
 /**

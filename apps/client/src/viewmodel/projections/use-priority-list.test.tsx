@@ -1,36 +1,24 @@
-import {
-  type AutomergeUrl,
-  type DocHandle,
-  Repo,
-} from "@automerge/automerge-repo";
 import { type TaskID, TaskStatus } from "@mydoo/tasklens";
-import type { TunnelState } from "@mydoo/tasklens/persistence";
-import { createEmptyTunnelState } from "@mydoo/tasklens/test";
+import { createTaskLensTestEnvironment } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createClientStore } from "../../store";
+import { describe, expect, it, vi } from "vitest";
 import { createTestWrapper } from "../../test/setup";
 import { useTaskIntents } from "../intents/use-task-intents";
 import { usePriorityList } from "./use-priority-list";
 
 describe("usePriorityList", () => {
-  let repo: Repo;
-  let store: ReturnType<typeof createClientStore>;
-  let docUrl: AutomergeUrl;
-  let handle: DocHandle<TunnelState>;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    repo = new Repo({ network: [] });
-    handle = repo.create(createEmptyTunnelState());
-    docUrl = handle.url;
-    store = createClientStore(docUrl, repo);
-  });
   it("filters out completed tasks that are acknowledged", async () => {
+    vi.clearAllMocks();
+    const { repo, docUrl, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, docUrl, store);
 
     // 1. Setup Data via Intents
     const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
+
+    // Wait for initial Redux sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
 
     await act(async () => {
       intents.current.createTask({
@@ -62,7 +50,13 @@ describe("usePriorityList", () => {
   });
 
   it("includes completed tasks that are NOT acknowledged", async () => {
+    const { repo, docUrl, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, docUrl, store);
+
+    // Wait for initial Redux sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
 
     // 1. Setup Data via Intents
     const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
@@ -100,7 +94,13 @@ describe("usePriorityList", () => {
   });
 
   it("sorts tasks by priority (descending)", async () => {
+    const { repo, docUrl, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, docUrl, store);
+
+    // Wait for initial Redux sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
 
     // 1. Setup Data via Intents
     const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
@@ -147,6 +147,7 @@ describe("usePriorityList", () => {
 
   it("returns loading state initially", async () => {
     // Verify that the hook starts in a loading state before the initial Redux sync completes.
+    const { repo, docUrl, store } = createTaskLensTestEnvironment();
     const wrapper = createTestWrapper(repo, docUrl, store);
     const { result } = renderHook(() => usePriorityList(), { wrapper });
 
