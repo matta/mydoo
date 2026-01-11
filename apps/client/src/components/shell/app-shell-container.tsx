@@ -3,7 +3,7 @@ import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
 import { AppShell, Burger, Button, Group, Menu, Title } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { useTaskActions } from "@mydoo/tasklens";
-import type { TunnelState } from "@mydoo/tasklens/persistence";
+
 import {
   IconCheckbox,
   IconDotsVertical,
@@ -53,7 +53,7 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
   const actions = useTaskActions();
 
   // Get the document handle to access the data for download
-  const handle = useDocHandle<TunnelState>(docUrl);
+  const handle = useDocHandle(docUrl);
 
   // Responsive Breakpoint: 768px (sm)
   const isDesktop = useMediaQuery("(min-width: 768px)");

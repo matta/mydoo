@@ -1,13 +1,18 @@
-// src/utils/time.ts
-
-let now = Date.now;
+/**
+ * Internal override for the current timestamp.
+ * This global variable enables time mocking across the application without
+ * relying on potentially unstable system timer mocks (like `vi.useFakeTimers`).
+ *
+ * @internal This should only be modified via `mockCurrentTimestamp`.
+ */
+let customNow: (() => number) | null = null;
 
 /**
  * Returns the current timestamp in milliseconds.
  * Can be mocked for testing purposes.
  */
 export function getCurrentTimestamp(): number {
-  return now();
+  return customNow ? customNow() : Date.now();
 }
 
 /**
@@ -16,9 +21,9 @@ export function getCurrentTimestamp(): number {
  */
 export function mockCurrentTimestamp(timestamp: number | (() => number)): void {
   if (typeof timestamp === "number") {
-    now = () => timestamp;
+    customNow = () => timestamp;
   } else {
-    now = timestamp;
+    customNow = timestamp;
   }
 }
 
@@ -26,7 +31,7 @@ export function mockCurrentTimestamp(timestamp: number | (() => number)): void {
  * Resets the current timestamp mock.
  */
 export function resetCurrentTimestampMock(): void {
-  now = Date.now;
+  customNow = null;
 }
 
 /**

@@ -3,7 +3,7 @@ import {
   generateAutomergeUrl,
   Repo,
 } from "@automerge/automerge-repo";
-import type { TunnelState } from "@mydoo/tasklens/persistence";
+import { isDocInitialized } from "@mydoo/tasklens";
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -42,13 +42,11 @@ describe("useDocument", () => {
     expect(localStorage.getItem("mydoo:doc_id")).toBe(result.current);
 
     // Document should be initialized
-    const handle = await repo.find<TunnelState>(
-      result.current as string as DocumentId,
-    );
+    const handle = await repo.find(result.current as string as DocumentId);
 
     await handle.whenReady();
     const doc = handle.doc();
-    expect(doc.nextTaskId).toBe(1);
+    expect(isDocInitialized(doc)).toBe(true);
   });
 
   it("should use existing ID from storage if present", async () => {

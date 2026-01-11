@@ -12,6 +12,7 @@
       ]
     },
     "packages/tasklens": {
+      "entry": ["src/index.ts", "src/test/index.ts"],
       "project": ["src/**/*.{ts,tsx}!"]
     },
     "apps/client": {

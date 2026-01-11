@@ -8,9 +8,15 @@ import { getIntervalMs } from "../utils/time";
  * This function is triggered manually by the user (e.g. via "Refresh").
  * It checks all "Done" + "Routinely" tasks to see if their wake-up window has arrived.
  * If so, it resets them to "Pending" and updates their due date to the next interval.
+ *
+ * @param handle - A DocHandle for any document. The function internally casts to
+ *                 TunnelState to maintain type safety while allowing callers to
+ *                 remain decoupled from the schema details.
  */
-export function wakeUpRoutineTasks(handle: DocHandle<TunnelState>) {
-  handle.change((doc) => {
+// biome-ignore lint/suspicious/noExplicitAny: Intentional type erasure for client decoupling
+export function wakeUpRoutineTasks(handle: DocHandle<any>) {
+  handle.change((d) => {
+    const doc = d as TunnelState;
     const now = Date.now();
 
     for (const task of Object.values(doc.tasks)) {

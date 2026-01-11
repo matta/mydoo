@@ -1,7 +1,6 @@
 import { Repo } from "@automerge/automerge-repo";
 import { createTaskLensStore, type TaskID } from "@mydoo/tasklens";
-import type { TunnelState } from "@mydoo/tasklens/persistence";
-import { createEmptyTunnelState } from "@mydoo/tasklens/test";
+import { createMockTaskLensDoc } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -23,7 +22,7 @@ describe("useTaskIntents", () => {
 
   it("should create a task", async () => {
     // 1. Setup Document
-    const handle = repo.create<TunnelState>(createEmptyTunnelState());
+    const handle = createMockTaskLensDoc(repo);
     const docUrl = handle.url;
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);
@@ -65,7 +64,7 @@ describe("useTaskIntents", () => {
 
   it("should toggle task completion", async () => {
     // 1. Setup Document
-    const handle = repo.create<TunnelState>(createEmptyTunnelState());
+    const handle = createMockTaskLensDoc(repo);
     const docUrl = handle.url;
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);
@@ -124,7 +123,7 @@ describe("useTaskIntents", () => {
 
   it("should create a child task with parentId", async () => {
     // 1. Setup Document
-    const handle = repo.create<TunnelState>(createEmptyTunnelState());
+    const handle = createMockTaskLensDoc(repo);
     const docUrl = handle.url;
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, docUrl);

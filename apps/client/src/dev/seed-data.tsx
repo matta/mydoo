@@ -1,6 +1,6 @@
 import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
 import { useTaskActions, useTaskLensDocUrl } from "@mydoo/tasklens";
-import type { TunnelState } from "@mydoo/tasklens/persistence";
+import { getTaskCount } from "@mydoo/tasklens/test";
 import { useEffect, useRef } from "react";
 
 // Importance constants
@@ -85,18 +85,17 @@ export function seedHierarchicalData(
 export function SeedData() {
   const actions = useTaskActions();
   const docUrl = useTaskLensDocUrl();
-  // biome-ignore lint/suspicious/noExplicitAny: internal type erasure
-  const handle = useDocHandle(docUrl as any);
+  const handle = useDocHandle(docUrl);
   const seeded = useRef(false);
 
   useEffect(() => {
     if (!handle) return;
 
     // We need the doc to check if it's empty
-    const doc = handle.doc() as TunnelState | undefined;
+    const doc = handle.doc();
     const params = new URLSearchParams(window.location.search);
     if (params.get("seed") === "true" && doc && !seeded.current) {
-      const taskCount = Object.keys(doc.tasks || {}).length;
+      const taskCount = getTaskCount(doc);
       if (taskCount === 0 && !seeded.current) {
         seeded.current = true;
         seedHierarchicalData(actions);

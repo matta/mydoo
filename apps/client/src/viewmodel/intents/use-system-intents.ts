@@ -4,7 +4,6 @@ import {
   useTaskLensDocUrl,
   wakeUpRoutineTasks,
 } from "@mydoo/tasklens";
-import type { TunnelState } from "@mydoo/tasklens/persistence";
 import { useCallback, useMemo } from "react";
 
 export interface SystemIntents {
@@ -14,7 +13,7 @@ export interface SystemIntents {
 export function useSystemIntents(): SystemIntents {
   const { acknowledgeAllDoneTasks } = useTaskActions();
   const docUrl = useTaskLensDocUrl();
-  const handle = useDocHandle<TunnelState>(docUrl);
+  const handle = useDocHandle(docUrl);
 
   const refreshTaskList = useCallback(() => {
     if (handle) {
