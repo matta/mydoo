@@ -1,34 +1,24 @@
+import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
 import {
-  type AutomergeUrl,
-  type DocHandle,
-  Repo,
-} from "@automerge/automerge-repo";
-import {
+  createTaskLensDoc,
   createTaskLensStore,
   type TaskID,
-  type TunnelState,
 } from "@mydoo/tasklens";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestWrapper } from "../../test/setup";
 import { useTaskIntents } from "../intents/use-task-intents";
 import { useBreadcrumbs } from "./use-breadcrumbs";
 
 describe("useBreadcrumbs", () => {
   let repo: Repo;
-  let handle: DocHandle<TunnelState>;
   let docUrl: AutomergeUrl;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     repo = new Repo({ network: [] });
     window.location.hash = "";
-
-    handle = repo.create<TunnelState>({
-      tasks: {},
-      rootTaskIds: [],
-      places: {},
-    });
-    docUrl = handle.url;
+    docUrl = createTaskLensDoc(repo);
   });
 
   afterEach(() => {
@@ -59,29 +49,14 @@ describe("useBreadcrumbs", () => {
     });
 
     let parentId: TaskID;
-    act(() => {
-      parentId = intents.current.createTask({ title: "Parent" });
-    });
-
-    // Wait for parent in Redux
-    await waitFor(() => {
-      const state = store.getState();
-      if (!state.tasks.entities[parentId])
-        throw new Error("Parent not in store");
-    });
-
     let childId: TaskID;
-    act(() => {
+
+    await act(async () => {
+      parentId = intents.current.createTask({ title: "Parent" });
       childId = intents.current.createTask({
         title: "Child",
         parentId: parentId,
       });
-    });
-
-    // Wait for child in Redux
-    await waitFor(() => {
-      const state = store.getState();
-      if (!state.tasks.entities[childId]) throw new Error("Child not in store");
     });
 
     // 2. Test Breadcrumbs when focused on Child

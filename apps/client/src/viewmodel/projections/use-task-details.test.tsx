@@ -1,110 +1,41 @@
+import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
 import {
-  type AutomergeUrl,
-  type DocHandle,
-  Repo,
-} from "@automerge/automerge-repo";
-import {
-  createMockTask as createSharedMockTask,
+  createTaskLensDoc,
   createTaskLensStore,
-  type PersistedTask,
   type TaskID,
-  type TunnelState,
 } from "@mydoo/tasklens";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createTestWrapper } from "../../test/setup";
+import { useTaskIntents } from "../intents/use-task-intents";
 import { useTaskDetails } from "./use-task-details";
 
-const createPersistedTask = (
-  id: string,
-  title: string,
-  providedParentId?: string,
-  children: string[] = [],
-): PersistedTask => {
-  const base = createSharedMockTask({
-    id: id as TaskID,
-    title,
-    parentId: providedParentId as TaskID | undefined,
-    childTaskIds: children as TaskID[],
-  });
-
-  // Strip UI-only fields and handle undefineds for Automerge
-  const {
-    isContainer: _c,
-    isPending: _p,
-    isReady: _r,
-    effectiveCredits: _ec,
-    ...rest
-  } = base;
-
-  const result: PersistedTask = {
-    ...rest,
-    schedule: {
-      type: rest.schedule.type,
-      leadTime: rest.schedule.leadTime,
-    },
-  } as PersistedTask;
-
-  if (rest.schedule.dueDate !== undefined) {
-    result.schedule.dueDate = rest.schedule.dueDate;
-  }
-  if (rest.schedule.lastDone !== undefined) {
-    result.schedule.lastDone = rest.schedule.lastDone;
-  }
-
-  if (base.repeatConfig) {
-    result.repeatConfig = {
-      frequency: base.repeatConfig.frequency,
-      interval: base.repeatConfig.interval,
-    };
-  }
-
-  if (base.parentId) {
-    result.parentId = base.parentId;
-  }
-
-  return result;
-};
-
 describe("useTaskDetails", () => {
-  let handle: DocHandle<TunnelState>;
   let repo: Repo;
   let url: AutomergeUrl;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repo = new Repo({ network: [] });
-    handle = repo.create({ tasks: {}, rootTaskIds: [], places: {} });
-    url = handle.url;
+    url = createTaskLensDoc(repo);
   });
 
   it("returns task details correctly", async () => {
-    handle.change((doc: TunnelState) => {
-      const grandchild = createPersistedTask(
-        "grandchild-id",
-        "Grandchild",
-        "child-id",
-      );
-      const child = createPersistedTask("child-id", "Child Task", "parent-id", [
-        "grandchild-id",
-      ]);
-      const parent = createPersistedTask(
-        "parent-id",
-        "Parent Goal",
-        undefined,
-        ["child-id"],
-      );
-
-      doc.rootTaskIds = ["parent-id" as TaskID];
-      doc.tasks["parent-id" as TaskID] = parent;
-      doc.tasks["child-id" as TaskID] = child;
-      doc.tasks["grandchild-id" as TaskID] = grandchild;
-    });
-
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, url);
-    const { result } = renderHook(() => useTaskDetails("child-id" as TaskID), {
+    const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
+
+    let parentId: TaskID = "p" as TaskID;
+    let childId: TaskID = "c" as TaskID;
+
+    await act(async () => {
+      parentId = intents.current.createTask({ title: "Parent Goal" });
+      childId = intents.current.createTask({ title: "Child Task", parentId });
+      intents.current.createTask({ title: "Grandchild", parentId: childId });
+    });
+
+    const { result } = renderHook(() => useTaskDetails(childId), {
       wrapper,
     });
 
@@ -120,15 +51,17 @@ describe("useTaskDetails", () => {
   });
 
   it("handles root tasks (no parent)", async () => {
-    handle.change((doc: TunnelState) => {
-      const root = createPersistedTask("root-id", "Root Task");
-      doc.rootTaskIds = ["root-id" as TaskID];
-      doc.tasks["root-id" as TaskID] = root;
-    });
-
     const store = createTaskLensStore();
     const wrapper = createTestWrapper(repo, store, url);
-    const { result } = renderHook(() => useTaskDetails("root-id" as TaskID), {
+    const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
+
+    let rootId: TaskID = "r" as TaskID;
+
+    await act(async () => {
+      rootId = intents.current.createTask({ title: "Root Task" });
+    });
+
+    const { result } = renderHook(() => useTaskDetails(rootId), {
       wrapper,
     });
 

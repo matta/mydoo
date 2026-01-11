@@ -1,6 +1,5 @@
 import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
 import {
-  type TunnelState,
   useTaskActions,
   useTaskLensDocUrl,
   wakeUpRoutineTasks,
@@ -14,7 +13,7 @@ export interface SystemIntents {
 export function useSystemIntents(): SystemIntents {
   const { acknowledgeAllDoneTasks } = useTaskActions();
   const docUrl = useTaskLensDocUrl();
-  const handle = useDocHandle<TunnelState>(docUrl);
+  const handle = useDocHandle(docUrl);
 
   const refreshTaskList = useCallback(() => {
     if (handle) {

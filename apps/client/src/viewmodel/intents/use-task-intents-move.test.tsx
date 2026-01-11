@@ -1,13 +1,6 @@
-import {
-  type AutomergeUrl,
-  type DocHandle,
-  Repo,
-} from "@automerge/automerge-repo";
-import {
-  createTaskLensStore,
-  type TaskID,
-  type TunnelState,
-} from "@mydoo/tasklens";
+import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
+import { createTaskLensStore, type TaskID } from "@mydoo/tasklens";
+import { createMockTaskLensDoc } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -16,18 +9,13 @@ import { useTaskIntents } from "./use-task-intents";
 
 describe("useTaskIntents (Move Interactions)", () => {
   let repo: Repo;
-  let handle: DocHandle<TunnelState>;
   let docUrl: AutomergeUrl;
 
   beforeEach(() => {
     repo = new Repo({ network: [] });
     window.location.hash = "";
 
-    handle = repo.create<TunnelState>({
-      tasks: {},
-      rootTaskIds: [],
-      places: {},
-    });
+    const handle = createMockTaskLensDoc(repo);
     docUrl = handle.url;
   });
 
@@ -62,15 +50,16 @@ describe("useTaskIntents (Move Interactions)", () => {
       result.current.indentTask(targetId);
     });
 
-    // Validate structure
+    // Validate structure via Redux Store
     await waitFor(() => {
-      const docAfter = handle.doc();
-      const sibling = docAfter.tasks[siblingId];
-      if (!sibling) throw new Error("Sibling task not found");
-      expect(sibling.childTaskIds).toContain(targetId);
+      const state = store.getState();
+      const sibling = state.tasks.entities[siblingId];
+      const target = state.tasks.entities[targetId];
 
-      const target = docAfter.tasks[targetId];
+      if (!sibling) throw new Error("Sibling task not found");
       if (!target) throw new Error("Target task not found");
+
+      expect(sibling.childTaskIds).toContain(targetId);
       expect(target.parentId).toBe(siblingId);
     });
   });
@@ -111,12 +100,14 @@ describe("useTaskIntents (Move Interactions)", () => {
       result.current.outdentTask(childId);
     });
 
+    // Validate via Redux Store
     await waitFor(() => {
-      const docAfter = handle.doc();
-      expect(docAfter.rootTaskIds).toContain(childId);
-      const child = docAfter.tasks[childId];
+      const state = store.getState();
+      const child = state.tasks.entities[childId];
       if (!child) throw new Error("Child task not found");
+
       expect(child.parentId).toBeUndefined();
+      expect(state.tasks.rootTaskIds).toContain(childId);
     });
   });
 
@@ -140,11 +131,12 @@ describe("useTaskIntents (Move Interactions)", () => {
       result.current.indentTask(id);
     });
 
+    // Validate via Redux Store
     await waitFor(() => {
-      const doc = handle.doc();
-      expect(doc.rootTaskIds).toHaveLength(1);
-      const task = doc.tasks[id];
+      const state = store.getState();
+      const task = state.tasks.entities[id];
       if (!task) throw new Error("Task not found");
+
       expect(task.parentId).toBeUndefined();
     });
   });

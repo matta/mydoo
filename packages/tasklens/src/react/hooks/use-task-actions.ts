@@ -23,8 +23,7 @@ import { useTaskLensDocUrl } from "../task-lens-provider";
  */
 export function useTaskActions() {
   const docUrl = useTaskLensDocUrl();
-  // biome-ignore lint/suspicious/noExplicitAny: internal handle type erasure
-  const handle = useDocHandle<TunnelState>(docUrl as any);
+  const handle = useDocHandle<TunnelState>(docUrl);
 
   const mutate = useCallback(
     (callback: (d: TunnelState) => void) => {

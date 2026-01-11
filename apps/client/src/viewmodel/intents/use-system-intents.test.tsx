@@ -1,165 +1,174 @@
+import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
 import {
-  type AutomergeUrl,
-  type DocHandle,
-  Repo,
-} from "@automerge/automerge-repo";
-import {
-  createMockTask as createSharedMockTask,
+  createTaskLensDoc,
   createTaskLensStore,
-  type PersistedTask,
   type TaskID,
   TaskStatus,
-  type TunnelState,
 } from "@mydoo/tasklens";
+import {
+  mockCurrentTimestamp,
+  resetCurrentTimestampMock,
+} from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createTestWrapper } from "../../test/setup";
 import { useSystemIntents } from "./use-system-intents";
-
-const createMockTask = (
-  id: string,
-  title: string,
-  status: TaskStatus,
-  isAcknowledged: boolean,
-): PersistedTask => {
-  return createSharedMockTask({
-    id: id as TaskID,
-    title,
-    status,
-    isAcknowledged,
-    isPending: status === TaskStatus.Pending,
-    // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
-  }) as any;
-};
+import { useTaskIntents } from "./use-task-intents";
 
 describe("useSystemIntents", () => {
   let repo: Repo;
-  let handle: DocHandle<TunnelState>;
   let docUrl: AutomergeUrl;
 
   beforeEach(() => {
     repo = new Repo({ network: [] });
     window.location.hash = "";
-    handle = repo.create({ tasks: {}, rootTaskIds: [], places: {} });
-    docUrl = handle.url;
+    // Use public API to create the document
+    docUrl = createTaskLensDoc(repo);
+    vi.useRealTimers();
   });
 
   afterEach(() => {
     window.location.hash = "";
+    vi.useRealTimers();
   });
 
   describe("refreshTaskList", () => {
     it("should acknowledge completed tasks", async () => {
-      // 1. Seed Data
-      handle.change((d) => {
-        d.tasks["task1" as TaskID] = createMockTask(
-          "task1",
-          "Pending",
-          TaskStatus.Pending,
-          false,
-        );
-        d.tasks["task2" as TaskID] = createMockTask(
-          "task2",
-          "Done Unacked",
-          TaskStatus.Done,
-          false,
-        );
-        d.tasks["task3" as TaskID] = createMockTask(
-          "task3",
-          "Done Acked",
-          TaskStatus.Done,
-          true,
-        );
-        d.rootTaskIds = [
-          "task1" as TaskID,
-          "task2" as TaskID,
-          "task3" as TaskID,
-        ];
-      });
-
-      // 2. Setup Hook
+      // 1. Setup Wrapper
       const store = createTaskLensStore();
       const wrapper = createTestWrapper(repo, store, docUrl);
-      const { result } = renderHook(() => useSystemIntents(), { wrapper });
 
-      // Wait for Redux to have the tasks (to avoid race conditions in intents)
+      // 2. Seed Data using public API via useTaskIntents
+      const { result: intents } = renderHook(() => useTaskIntents(), {
+        wrapper,
+      });
+
+      let t1: TaskID;
+      let t2: TaskID;
+      let t3: TaskID;
+
+      await act(async () => {
+        // Task 1: Pending (should remain unacked)
+        t1 = intents.current.createTask({ title: "task1" });
+
+        // Task 2: Done (default unacked) -> Should be auto-acked
+        t2 = intents.current.createTask({ title: "task2" });
+        intents.current.updateTask(t2, { status: TaskStatus.Done });
+
+        // Task 3: Done + Acked (should remain acked)
+        t3 = intents.current.createTask({ title: "task3" });
+        intents.current.updateTask(t3, {
+          status: TaskStatus.Done,
+          isAcknowledged: true,
+        });
+      });
+
+      // Wait for Redux to have the tasks
       await waitFor(() => {
         const state = store.getState();
-        if (!state.tasks.entities["task1" as TaskID])
-          throw new Error("Task1 not in store");
+        if (!state.tasks.entities[t1]) throw new Error("Task1 not in store");
       });
 
-      // 3. Act
-      act(() => {
-        result.current.refreshTaskList();
+      // 3. Act - Refresh
+      const { result: systemIntents } = renderHook(() => useSystemIntents(), {
+        wrapper,
       });
 
-      // 4. Verify in Doc
+      await act(async () => {
+        systemIntents.current.refreshTaskList();
+      });
+
+      // 4. Verify in Store
       await waitFor(() => {
-        const doc = handle.doc();
-        const t1 = doc.tasks["task1" as TaskID];
-        const t2 = doc.tasks["task2" as TaskID];
-        const t3 = doc.tasks["task3" as TaskID];
+        const doc = store.getState().tasks.entities;
+        const task1 = doc[t1];
+        const task2 = doc[t2];
+        const task3 = doc[t3];
 
-        if (!t1 || !t2 || !t3) throw new Error("Tasks missing in final doc");
-        expect(t1.isAcknowledged).toBe(false);
-        expect(t2.isAcknowledged).toBe(true); // Changed!
-        expect(t3.isAcknowledged).toBe(true);
+        if (!task1 || !task2 || !task3)
+          throw new Error("Tasks missing in store");
+
+        expect(task1.isAcknowledged).toBe(false);
+        expect(task2.isAcknowledged).toBe(true); // Changed!
+        expect(task3.isAcknowledged).toBe(true);
       });
     });
 
     it("should wake up routine tasks", async () => {
-      // 1. Seed Data with a routine task ready to wake up
-      handle.change((d) => {
-        const routineTaskId = "routine-task" as TaskID;
-        d.tasks[routineTaskId] = createSharedMockTask({
-          id: routineTaskId,
-          title: "Morning Routine",
-          status: TaskStatus.Done,
-          isAcknowledged: true,
-          schedule: {
-            type: "Routinely",
-            leadTime: 3600000,
-            dueDate: 1000,
-          },
-          repeatConfig: {
-            frequency: "daily",
-            interval: 1,
-          },
-          lastCompletedAt: Date.now() - 1000 * 60 * 60 * 25, // 25 hours ago
-          // biome-ignore lint/suspicious/noExplicitAny: test doc assignment
-        }) as any;
-        d.rootTaskIds = [routineTaskId];
-      });
-
-      // 2. Setup Hook
+      // 1. Setup Wrapper and Time
       const store = createTaskLensStore();
       const wrapper = createTestWrapper(repo, store, docUrl);
-      const { result } = renderHook(() => useSystemIntents(), { wrapper });
 
-      // Wait for Redux
-      await waitFor(() => {
-        const state = store.getState();
-        if (!state.tasks.entities["routine-task" as TaskID])
-          throw new Error("Task not in store");
-      });
+      // Use internal mocking helper instead of vi.useFakeTimers
+      // This ensures code using getCurrentTimestamp() sees the mock,
+      // while preserving native async behavior (setTimeout, Promise, etc.)
+      const realNow = Date.now();
+      const yesterday = realNow - 1000 * 60 * 60 * 25;
 
-      // 3. Act
-      act(() => {
-        result.current.refreshTaskList();
-      });
+      try {
+        mockCurrentTimestamp(yesterday);
 
-      // 4. Verify in Doc
-      await waitFor(() => {
-        const doc = handle.doc();
-        const t = doc.tasks["routine-task" as TaskID];
-        if (!t) throw new Error("Task missing");
+        // 2. Seed Data using public API
+        const { result: intents } = renderHook(() => useTaskIntents(), {
+          wrapper,
+        });
 
-        // Should be woken up (Pending and Unacknowledged)
-        expect(t.status).toBe(TaskStatus.Pending);
-        expect(t.isAcknowledged).toBe(false);
-      });
+        let routineTaskId: TaskID;
+
+        await act(async () => {
+          routineTaskId = intents.current.createTask({
+            title: "Morning Routine",
+            schedule: {
+              type: "Routinely",
+              leadTime: 3600000,
+            },
+            repeatConfig: {
+              frequency: "daily",
+              interval: 1,
+            },
+          });
+
+          // Complete it "yesterday"
+          intents.current.updateTask(routineTaskId, {
+            status: TaskStatus.Done,
+            isAcknowledged: true,
+          });
+        });
+
+        // Advance time to "now"
+        mockCurrentTimestamp(realNow);
+
+        // Wait for Redux to have the task
+        await waitFor(() => {
+          const state = store.getState();
+          if (!state.tasks.entities[routineTaskId])
+            throw new Error("Task not in store");
+        });
+
+        // 3. Act - Refresh
+        const { result: systemIntents } = renderHook(() => useSystemIntents(), {
+          wrapper,
+        });
+
+        // FIXME: Replace with robust wait strategy instead of hardcoded delay
+        await act(async () => {
+          await new Promise((r) => setTimeout(r, 100));
+          systemIntents.current.refreshTaskList();
+        });
+
+        // 4. Verify in Store
+        await waitFor(() => {
+          const task = store.getState().tasks.entities[routineTaskId];
+          if (!task) throw new Error("Task missing");
+
+          // Should be woken up (Pending and Unacknowledged)
+          expect(task.status).toBe(TaskStatus.Pending);
+          expect(task.isAcknowledged).toBe(false);
+        });
+      } finally {
+        resetCurrentTimestampMock();
+      }
     });
   });
 });

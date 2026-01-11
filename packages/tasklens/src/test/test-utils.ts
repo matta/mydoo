@@ -5,6 +5,10 @@
  * initializing test state.
  */
 
+import type { Repo } from "@automerge/automerge-repo";
+
+import { initializeTunnelState } from "../domain/initialization";
+import { TunnelStateSchema } from "../persistence/schemas";
 import type { TunnelState } from "../types/persistence";
 import type { ComputedTask, TaskID as UITaskID } from "../types/ui";
 
@@ -68,6 +72,23 @@ export function createEmptyTunnelState(): TunnelState {
 }
 
 /**
+ * Gets the number of tasks in a document (validates schema first).
+ *
+ * @throws Error if the document does not match the TunnelState schema.
+ */
+export function getTaskCount(doc: unknown): number {
+  const result = TunnelStateSchema.safeParse(doc);
+
+  if (!result.success) {
+    throw new Error(
+      `getTaskCount failed: Document does not match schema.\n${result.error.message}`,
+    );
+  }
+
+  return Object.keys(result.data.tasks).length;
+}
+
+/**
  * Creates a mock ComputedTask with sensible defaults for tests.
  *
  * @param overrides - Optional object to override specific task properties.
@@ -108,3 +129,17 @@ export function createMockTask(
 
   return task;
 }
+
+/**
+ * Creates a mock/detached document handle for testing.
+ *
+ * @param repo - The Automerge Repo instance.
+ * @returns A DocHandle suitable for testing with full type visibility.
+ */
+export function createMockTaskLensDoc(repo: Repo) {
+  const handle = repo.create<TunnelState>();
+  handle.change(initializeTunnelState);
+  return handle;
+}
+
+export { mockCurrentTimestamp, resetCurrentTimestampMock } from "../utils/time";
