@@ -1,4 +1,4 @@
-import type { Task, TaskID } from "@mydoo/tasklens";
+import type { ComputedTask, TaskID } from "@mydoo/tasklens";
 import { createMockTask } from "@mydoo/tasklens/test";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -7,7 +7,7 @@ import { renderWithTestProviders } from "../../test/setup";
 
 import { TaskEditorModal } from "./task-editor-modal";
 
-const mockTask: Task = createMockTask({
+const mockTask: ComputedTask = createMockTask({
   id: "task-1" as TaskID,
   title: "Test Task",
   importance: 0.7,
@@ -291,9 +291,9 @@ describe("TaskEditorModal", () => {
 
   // FIXME: Fix this test in Vitest Browser Mode. The clear button click is not registering.
   // This is covered by E2E tests.
-  it.skip("removes repetition config when frequency cleared", async () => {
+  it("removes repetition config when frequency cleared", async () => {
     const onSave = vi.fn();
-    const taskWithRepeat: Task = {
+    const taskWithRepeat: ComputedTask = {
       ...mockTask,
       repeatConfig: { frequency: "daily", interval: 1 },
       schedule: { ...mockTask.schedule, type: "Routinely" },

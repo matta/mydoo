@@ -215,11 +215,6 @@ export interface ComputedTask extends TaskFields {
 }
 
 /**
- * Legacy Alias for Client Compatibility.
- */
-export type Task = ComputedTask;
-
-/**
  * A Task with its children resolved into a tree structure.
  * Used for UI rendering where hierarchy traversal is needed.
  */

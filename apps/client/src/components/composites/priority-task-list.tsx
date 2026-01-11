@@ -1,5 +1,5 @@
 import { Stack, Text } from "@mantine/core";
-import type { Task, TaskID } from "@mydoo/tasklens";
+import type { ComputedTask, TaskID } from "@mydoo/tasklens";
 
 import { TaskRow } from "../primitives/task-row";
 
@@ -24,7 +24,7 @@ export interface PriorityTaskListProps {
    * The list of tasks to display, sorted by priority.
    * Tasks are rendered as TaskRow components in order.
    */
-  tasks: Task[];
+  tasks: ComputedTask[];
 }
 
 /**
