@@ -1,8 +1,9 @@
 import { useMediaQuery } from "@mantine/hooks";
 import {
+  type ComputedTask,
   selectRootTaskIds,
   selectTaskEntities,
-  type Task,
+  type TaskCreateProps,
   type TaskID,
 } from "@mydoo/tasklens";
 import { useCallback, useEffect } from "react";
@@ -71,13 +72,13 @@ export function TaskEditorContainer() {
     }
 
     // Edit mode
-    const editingTask = task as Task | undefined;
+    const editingTask = task as ComputedTask | undefined;
     if (!editingTask) return { task: undefined, parent: undefined };
 
     const parentId = editingTask.parentId;
     return {
       task: editingTask,
-      parent: parentId ? (tasks[parentId] as Task) : undefined,
+      parent: parentId ? (tasks[parentId] as ComputedTask) : undefined,
     };
   }, [tasks, modal, task]);
 
@@ -116,7 +117,7 @@ export function TaskEditorContainer() {
    * @param taskId - The ID of the task being updated.
    * @param updates - Partial task object with fields to update.
    */
-  const handleSave = (taskId: TaskID, updates: Partial<Task>) => {
+  const handleSave = (taskId: TaskID, updates: Partial<ComputedTask>) => {
     updateTask(taskId, updates);
   };
 
@@ -162,33 +163,16 @@ export function TaskEditorContainer() {
    * @param title - The title of the new task.
    * @param props - Additional task properties (importance, effort, etc.)
    */
-  const handleCreate = (title: string, props?: Partial<Task>) => {
+  const handleCreate = (title: string, props?: TaskCreateProps) => {
     if (modal?.type !== "create") return;
 
-    let newTaskId: TaskID;
-
-    if (modal.afterTaskId) {
-      newTaskId = createTask(
-        title,
-        modal.parentId,
-        {
-          position: "after",
-          afterTaskId: modal.afterTaskId,
-        },
-        props,
-      );
-    } else if (modal.position) {
-      newTaskId = createTask(
-        title,
-        modal.parentId,
-        {
-          position: modal.position,
-        },
-        props,
-      );
-    } else {
-      newTaskId = createTask(title, modal.parentId, undefined, props);
-    }
+    const newTaskId = createTask({
+      title,
+      parentId: modal.parentId,
+      position: modal.afterTaskId ? "after" : modal.position || "end",
+      afterTaskId: modal.afterTaskId || undefined,
+      ...props,
+    });
 
     // UX: Highlight & Reveal
     setLastCreatedTaskId(newTaskId);

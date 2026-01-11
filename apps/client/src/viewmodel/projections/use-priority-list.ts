@@ -1,13 +1,15 @@
-import { useTasksStatus, useTodoList } from "@mydoo/tasklens";
+import { selectStoreReady } from "@mydoo/tasklens";
+import { useAppSelector } from "../../store";
+import { useTodoList } from "../hooks/task-hooks";
 
 /**
  * Hook to retrieve a prioritized list of pending tasks.
  *
- * Uses the Redux store populated by TaskLensProvider for stable, memoized access.
+ * Uses the Redux store for stable, memoized access.
  */
 export function usePriorityList() {
   const tasks = useTodoList();
-  const { isReady } = useTasksStatus();
+  const isReady = useAppSelector(selectStoreReady);
 
   return {
     tasks,

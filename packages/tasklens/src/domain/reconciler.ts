@@ -1,6 +1,6 @@
 import type { DocHandle } from "@automerge/automerge-repo";
 import { z } from "zod";
-import type { TaskID, TunnelState } from "../types";
+import type { TaskID, TunnelState } from "../types/persistence";
 
 // Define strict runtime schema for legacy tasks
 // We specifically look for tasks that have the OLD 'Recurring' type.

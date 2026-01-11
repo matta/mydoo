@@ -28,7 +28,8 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./test": "./src/test/test-utils.ts"
+    "./persistence": "./src/types/persistence.ts",
+    "./test": "./src/test/index.ts"
   },
   "keywords": [],
   "license": "ISC",
@@ -36,11 +37,11 @@
   "scripts": {
     "build": "tsc --emitDeclarationOnly",
     "check-eslint": "eslint .",
-    "check-format": "prettier --check . --ignore-path ../../.prettierignore",
+    "check-format": "prettier --check .",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist",
     "fix-eslint": "eslint . --fix",
-    "fix-format": "prettier --write . --ignore-path ../../.prettierignore",
+    "fix-format": "prettier --write .",
     "generate": "mkdir -p src/generated && json2ts ./specs/compliance/schemas/feature.schema.json ./src/generated/feature.d.ts && prettier --write ./src/generated/*.d.ts",
     "test": "vitest run --coverage"
   },

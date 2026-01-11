@@ -1,5 +1,5 @@
 import type { TaskID, TunnelNode } from "@mydoo/tasklens";
-import { createMockTask } from "@mydoo/tasklens";
+import { createMockTask } from "@mydoo/tasklens/test";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithTestProviders } from "../../../test/setup";

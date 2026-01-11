@@ -1,4 +1,4 @@
-import type { Schedule } from "../types";
+import type { ScheduleFields } from "../types/ui";
 
 /**
  * Calculates the Lead Time Factor for a task based on its schedule and the current time.
@@ -14,7 +14,7 @@ import type { Schedule } from "../types";
  * - Fully ramped at 1 * leadTime remaining.
  */
 export function calculateLeadTimeFactor(
-  schedule: Schedule,
+  schedule: ScheduleFields,
   currentTime: number,
 ): number {
   if (schedule.dueDate === undefined) {
@@ -39,7 +39,10 @@ export function calculateLeadTimeFactor(
  * A task is ready if its Lead Time Factor is greater than 0.
  * (i.e., we are within the window where timeRemaining <= 2 * leadTime).
  */
-export function isTaskReady(schedule: Schedule, currentTime: number): boolean {
+export function isTaskReady(
+  schedule: ScheduleFields,
+  currentTime: number,
+): boolean {
   if (schedule.dueDate === undefined) {
     return true;
   }

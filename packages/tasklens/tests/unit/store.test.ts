@@ -5,7 +5,7 @@ import {
   type PersistedTask,
   type RepeatConfig,
   TaskStatus,
-} from "../../src/types";
+} from "../../src/types/persistence";
 
 describe("TunnelStore", () => {
   let store: TunnelStore;

@@ -2,7 +2,7 @@
  * Validation invariants for the Tasklens domain.
  * These are pure functions that throw errors if invariants are violated.
  */
-import type { TaskID, TunnelState } from "../types";
+import type { TaskID, TunnelState } from "../types/persistence";
 
 /**
  * Validates that adding a task to a parent does not exceed the maximum depth limit.

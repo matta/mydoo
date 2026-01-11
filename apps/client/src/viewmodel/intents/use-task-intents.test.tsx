@@ -1,38 +1,21 @@
-import { Repo } from "@automerge/automerge-repo";
-import {
-  createTaskLensStore,
-  type TaskID,
-  type TunnelState,
-} from "@mydoo/tasklens";
+import type { TaskID } from "@mydoo/tasklens";
+import { createTaskLensTestEnvironment } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { createTestWrapper } from "../../test/setup";
 import { useTaskDetails } from "../projections/use-task-details";
 import { useTaskIntents } from "./use-task-intents";
 
 describe("useTaskIntents", () => {
-  let repo: Repo;
-
-  beforeEach(() => {
-    repo = new Repo({ network: [] });
-    window.location.hash = "";
-  });
-
   afterEach(() => {
     window.location.hash = "";
   });
 
   it("should create a task", async () => {
     // 1. Setup Document
-    const handle = repo.create<TunnelState>({
-      tasks: {},
-      rootTaskIds: [],
-      places: {},
-    });
-    const docUrl = handle.url;
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const { repo, handle, docUrl, store } = createTaskLensTestEnvironment();
+    const wrapper = createTestWrapper(repo, docUrl, store);
 
     // 2. Setup Intents Hook
     const { result } = renderHook(() => useTaskIntents(), { wrapper });
@@ -45,7 +28,7 @@ describe("useTaskIntents", () => {
     // 3. Create Task
     let taskId: TaskID;
     act(() => {
-      taskId = result.current.createTask("Buy Milk");
+      taskId = result.current.createTask({ title: "Buy Milk" });
     });
 
     // Wait for Redux to sync the new task
@@ -71,14 +54,8 @@ describe("useTaskIntents", () => {
 
   it("should toggle task completion", async () => {
     // 1. Setup Document
-    const handle = repo.create<TunnelState>({
-      tasks: {},
-      rootTaskIds: [],
-      places: {},
-    });
-    const docUrl = handle.url;
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const { repo, handle, docUrl, store } = createTaskLensTestEnvironment();
+    const wrapper = createTestWrapper(repo, docUrl, store);
 
     // 2. Setup observer hook to wait for reactive state
     const useObserver = () => {
@@ -90,10 +67,15 @@ describe("useTaskIntents", () => {
 
     const { result } = renderHook(() => useObserver(), { wrapper });
 
+    // Wait for initial sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
+
     // 3. Create Task
     let taskId: TaskID;
     act(() => {
-      taskId = result.current.intents.createTask("Walk Dog");
+      taskId = result.current.intents.createTask({ title: "Walk Dog" });
     });
 
     // Wait until the hook sees the task in Redux entities
@@ -134,14 +116,8 @@ describe("useTaskIntents", () => {
 
   it("should create a child task with parentId", async () => {
     // 1. Setup Document
-    const handle = repo.create<TunnelState>({
-      tasks: {},
-      rootTaskIds: [],
-      places: {},
-    });
-    const docUrl = handle.url;
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const { repo, handle, docUrl, store } = createTaskLensTestEnvironment();
+    const wrapper = createTestWrapper(repo, docUrl, store);
 
     // 2. Setup Intents Hook
     const { result } = renderHook(() => useTaskIntents(), { wrapper });
@@ -154,7 +130,7 @@ describe("useTaskIntents", () => {
     // 3. Create Parent Task
     let parentId: TaskID;
     act(() => {
-      parentId = result.current.createTask("Parent Task");
+      parentId = result.current.createTask({ title: "Parent Task" });
     });
 
     // Wait for parent task to sync to Redux
@@ -172,7 +148,10 @@ describe("useTaskIntents", () => {
     // 4. Create Child Task
     let childId: TaskID;
     act(() => {
-      childId = result.current.createTask("Child Task", parentTask.id);
+      childId = result.current.createTask({
+        title: "Child Task",
+        parentId: parentTask.id,
+      });
     });
 
     // Wait for child task to sync to Redux

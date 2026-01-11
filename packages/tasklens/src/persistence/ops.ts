@@ -22,19 +22,25 @@
  * object in tests). The `state.tasks` Record uses plain objects because
  * Automerge cannot proxy JavaScript Map or Set types.
  */
-import { CREDITS_HALF_LIFE_MILLIS } from "../domain/constants";
+import {
+  CREDITS_HALF_LIFE_MILLIS,
+  DEFAULT_TASK_IMPORTANCE,
+  DEFAULT_TASK_LEAD_TIME_MS,
+} from "../domain/constants";
 import { validateDepth, validateNoCycle } from "../domain/invariants";
+import { DEFAULT_CREDIT_INCREMENT } from "../types/internal";
 import {
   ANYWHERE_PLACE_ID,
   type CreateTaskOptions,
-  DEFAULT_CREDIT_INCREMENT,
   type PersistedTask,
   type Schedule,
+  type TaskCreateInput,
   type TaskID,
   TaskStatus,
+  type TaskUpdateInput,
   type TunnelState,
-} from "../types";
-import { getCurrentTimestamp, hoursToMilliseconds } from "../utils/time";
+} from "../types/persistence";
+import { getCurrentTimestamp } from "../utils/time";
 
 // --- Mutators ---
 
@@ -58,7 +64,7 @@ import { getCurrentTimestamp, hoursToMilliseconds } from "../utils/time";
  */
 export function createTask(
   state: TunnelState,
-  props: Partial<PersistedTask>,
+  props: TaskCreateInput,
   options: CreateTaskOptions = { position: "end" },
 ): PersistedTask {
   // Use UUID for CRDT compatibility - sequential counters cause conflicts
@@ -68,11 +74,11 @@ export function createTask(
   const defaultSchedule: Schedule = {
     type: "Once",
     dueDate: undefined,
-    leadTime: hoursToMilliseconds(8),
+    leadTime: DEFAULT_TASK_LEAD_TIME_MS,
   };
   const newTask: PersistedTask = {
     id: newTaskId,
-    title: props.title ?? "New Task",
+    title: props.title,
     parentId: props.parentId ?? undefined,
     // Inherit placeId from parent, or default to ANYWHERE_PLACE_ID for root tasks
     placeId:
@@ -82,7 +88,7 @@ export function createTask(
         : ANYWHERE_PLACE_ID) ??
       ANYWHERE_PLACE_ID,
     status: props.status ?? TaskStatus.Pending,
-    importance: props.importance ?? 1.0,
+    importance: props.importance ?? DEFAULT_TASK_IMPORTANCE,
     creditIncrement:
       props.creditIncrement ??
       (props.parentId
@@ -178,7 +184,7 @@ export function createTask(
 export function updateTask(
   state: TunnelState,
   id: TaskID,
-  props: Partial<PersistedTask>,
+  props: TaskUpdateInput,
 ): PersistedTask {
   const task = state.tasks[id];
   if (!task) throw new Error(`Task with ID ${id} not found.`);
@@ -218,7 +224,7 @@ export function updateTask(
 /**
  * Validates numeric properties of a task.
  */
-function validateNumericProps(props: Partial<PersistedTask>): void {
+function validateNumericProps(props: TaskUpdateInput): void {
   if (props.desiredCredits !== undefined && props.desiredCredits < 0) {
     throw new Error("DesiredCredits cannot be negative.");
   }
@@ -238,7 +244,7 @@ function validateNumericProps(props: Partial<PersistedTask>): void {
  */
 function assignTaskProperties(
   task: PersistedTask,
-  props: Partial<PersistedTask>,
+  props: TaskUpdateInput,
 ): void {
   const {
     title,
@@ -252,10 +258,9 @@ function assignTaskProperties(
     isSequential,
     isAcknowledged,
     notes,
-    // The following fields are handled in other update paths (moveTask or handleNestedProperties)
-    id,
+    // The following fields are handled separately. By destructuring them here,
+    // they are EXCLUDED from the `rest` object used for bulk assignment below.
     parentId,
-    childTaskIds,
     placeId,
     schedule,
     repeatConfig,
@@ -263,7 +268,9 @@ function assignTaskProperties(
     ...rest
   } = props;
 
-  // Propagate unknown fields (schema evolution)
+  // Propagate fields from unknown schema versions to ensure data integrity.
+  // This prevents this client from accidentally stripping fields it doesn't recognize
+  // when performing its own updates.
   Object.assign(task, rest);
 
   if (title !== undefined) task.title = title;
@@ -278,6 +285,7 @@ function assignTaskProperties(
   if (isSequential !== undefined) task.isSequential = isSequential;
   if (isAcknowledged !== undefined) task.isAcknowledged = isAcknowledged;
   if (notes !== undefined) task.notes = notes;
+  if (lastCompletedAt !== undefined) task.lastCompletedAt = lastCompletedAt;
 }
 
 /**
@@ -285,7 +293,7 @@ function assignTaskProperties(
  */
 function handleNestedProperties(
   task: PersistedTask,
-  props: Partial<PersistedTask>,
+  props: TaskUpdateInput,
 ): void {
   if (props.repeatConfig !== undefined) {
     task.repeatConfig = props.repeatConfig;

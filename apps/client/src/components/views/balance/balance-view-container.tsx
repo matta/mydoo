@@ -1,15 +1,13 @@
 import { Container, Paper, Stack, Text, Title } from "@mantine/core";
-import {
-  distributeCredits,
-  type TaskID,
-  useTaskActions,
-} from "@mydoo/tasklens";
+import { distributeCredits, TaskActions, type TaskID } from "@mydoo/tasklens";
+import { useDispatch } from "react-redux";
 import { useBalanceData } from "../../../hooks/use-balance-data";
+import type { AppDispatch } from "../../../store";
 import { BalanceItem } from "./balance-item";
 
 export function BalanceViewContainer() {
   const items = useBalanceData();
-  const { updateTask } = useTaskActions();
+  const dispatch = useDispatch<AppDispatch>();
 
   // 1. Calculate Global Constraints based on N (Total Budget = N)
   // Min = 1% of Total Share (where Total Share = N). So Min = 0.01 * N.
@@ -29,7 +27,12 @@ export function BalanceViewContainer() {
     // times to undo 1 drag) and pollutes history. We strictly need a
     // `updateTasks(updates)` action that wraps these in one `doc.change`.
     for (const update of updates) {
-      updateTask(update.id, { desiredCredits: update.desiredCredits });
+      dispatch(
+        TaskActions.updateTask({
+          id: update.id,
+          updates: { desiredCredits: update.desiredCredits },
+        }),
+      );
     }
   };
 

@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getPrioritizedTasks } from "../../domain/priority";
-import type { ComputedTask, TaskID, TunnelState } from "../../types";
+import type { TunnelState } from "../../types/persistence";
+import type { ComputedTask, TaskID } from "../../types/ui";
 
 /**
  * Redux state for the tasks slice.
@@ -73,9 +74,10 @@ export const syncDoc = createAsyncThunk(
       // Compare the raw Automerge Proxy references to detect changes.
       // If the task node reference hasn't changed in the raw document,
       // we can reuse the existing ComputedTask entity to save React renders.
+      const persistenceId = id;
       if (
         oldProxyDoc &&
-        oldProxyDoc.tasks[id] === proxy.tasks[id] &&
+        oldProxyDoc.tasks[persistenceId] === proxy.tasks[persistenceId] &&
         oldEntities[id]
       ) {
         newEntities[id] = oldEntities[id];
@@ -110,8 +112,5 @@ const tasksSlice = createSlice({
     });
   },
 });
-
-export const selectIsReady = (state: { tasks: TasksState }) =>
-  state.tasks.lastProxyDoc !== null;
 
 export default tasksSlice.reducer;

@@ -3,18 +3,17 @@ import {
   getDescendantCountFromEntities,
   selectStoreReady,
   selectTaskEntities,
-  type Task,
   type TaskID,
-  useTask,
 } from "@mydoo/tasklens";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
+import { useTask } from "../hooks/task-hooks";
 
 /**
  * Result of the useTaskDetails hook.
  */
 export interface TaskDetails {
-  task: Task | undefined;
+  task: ComputedTask | undefined;
   parentTitle: string | undefined;
   descendantCount: number;
   isLoading: boolean;
@@ -43,7 +42,7 @@ export function useTaskDetails(taskId: TaskID | undefined): TaskDetails {
  */
 function projectTaskDetails(
   tasks: Record<TaskID, ComputedTask>,
-  task: Task | undefined,
+  task: ComputedTask | undefined,
   taskId: TaskID | undefined,
   isReady: boolean,
 ): TaskDetails {

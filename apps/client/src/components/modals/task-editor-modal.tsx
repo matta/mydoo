@@ -25,9 +25,12 @@ import {
   TextInput,
 } from "@mantine/core";
 import {
+  type ComputedTask,
   DEFAULT_CREDIT_INCREMENT,
+  DEFAULT_TASK_IMPORTANCE,
+  DEFAULT_TASK_LEAD_TIME_HOURS,
   type RepeatConfig,
-  type Task,
+  type TaskCreateProps,
   type TaskID,
 } from "@mydoo/tasklens";
 import { useCallback, useEffect, useState } from "react";
@@ -39,13 +42,13 @@ interface TaskEditorModalProps {
   /** Callback to close the modal */
   onClose: () => void;
   /** The task being edited */
-  task: Task | undefined;
+  task: ComputedTask | undefined;
   /** Parent task title (read-only display) */
   parentTitle: string | undefined;
   /** Descendant count (for delete confirmation) */
   descendantCount: number;
   /** Callback to save changes */
-  onSave: (taskId: TaskID, updates: Partial<Task>) => void;
+  onSave: (taskId: TaskID, updates: Partial<ComputedTask>) => void;
   /** Callback to add a sibling task */
   onAddSibling: (parentId: TaskID | undefined) => void;
   /** Callback to add a child task */
@@ -53,7 +56,7 @@ interface TaskEditorModalProps {
   /** Callback to delete a task */
   onDelete: (taskId: TaskID, hasChildren: boolean) => void;
   /** Callback to handle creation of a new task */
-  onCreate?: (title: string, props?: Partial<Task>) => void;
+  onCreate?: (title: string, props?: TaskCreateProps) => void;
   /** Explicit mode: 'create' or 'edit'. Defaults to inference if not provided (legacy). */
   mode?: "create" | "edit" | undefined;
   /** Callback to indent the task */
@@ -122,13 +125,15 @@ export function TaskEditorModal({
 }: TaskEditorModalProps) {
   // Local form state
   const [title, setTitle] = useState("");
-  const [importance, setImportance] = useState(0.5);
+  const [importance, setImportance] = useState(DEFAULT_TASK_IMPORTANCE);
   const [effort, setEffort] = useState(0.5);
   const [dueDate, setDueDate] = useState<Date | null>(null);
 
   // Lead Time State
-  const [leadTimeScalar, setLeadTimeScalar] = useState<number | string>(7);
-  const [leadTimeUnit, setLeadTimeUnit] = useState<string>("Days");
+  const [leadTimeScalar, setLeadTimeScalar] = useState<number | string>(
+    DEFAULT_TASK_LEAD_TIME_HOURS,
+  );
+  const [leadTimeUnit, setLeadTimeUnit] = useState<string>("Hours");
 
   const [notes, setNotes] = useState("");
   const [frequency, setFrequency] = useState<string | null>(null);
@@ -192,12 +197,12 @@ export function TaskEditorModal({
     } else {
       // Create Mode: Reset to defaults
       setTitle("");
-      setImportance(0.5);
+      setImportance(DEFAULT_TASK_IMPORTANCE);
       setEffort(0.5);
       setDueDate(null);
-      // Default: 7 Days
-      setLeadTimeScalar(7);
-      setLeadTimeUnit("Days");
+      // Default: 8 Hours
+      setLeadTimeScalar(DEFAULT_TASK_LEAD_TIME_HOURS);
+      setLeadTimeUnit("Hours");
       setNotes("");
       setFrequency(null);
       setInterval(1);
@@ -220,7 +225,7 @@ export function TaskEditorModal({
       // Edit Mode
       const dueDateTimestamp = dueDate?.getTime();
 
-      const updates: Partial<Task> = {
+      const updates: Partial<ComputedTask> = {
         title,
         importance,
         creditIncrement: effort,
@@ -239,7 +244,7 @@ export function TaskEditorModal({
       onClose();
     } else if (onCreate) {
       // Create Mode
-      const newProps: Partial<Task> = {
+      const newProps: TaskCreateProps = {
         importance,
         creditIncrement: effort,
         notes,

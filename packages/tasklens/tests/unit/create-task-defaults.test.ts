@@ -1,8 +1,11 @@
-import { ANYWHERE_PLACE_ID, type PlaceID, type TaskID } from "@mydoo/tasklens";
 import { describe, expect, it } from "vitest";
-
 import { createTask } from "../../src/persistence/ops";
 import { TunnelStore } from "../../src/persistence/store";
+import {
+  ANYWHERE_PLACE_ID,
+  type PlaceID,
+  type TaskID,
+} from "../../src/types/persistence";
 
 describe("createTask - Default Values and Inheritance", () => {
   it("should set placeId to ANYWHERE_PLACE_ID for root tasks", () => {
@@ -77,6 +80,15 @@ describe("createTask - Default Values and Inheritance", () => {
     const task = createTask(store.state, { title: "Test Task" });
 
     expect(task.status).toBe("Pending");
+  });
+
+  it("should generate a valid UUID for task id", () => {
+    const store = new TunnelStore();
+    const task = createTask(store.state, { title: "Test Task" });
+
+    expect(task.id).toBeTruthy();
+    expect(typeof task.id).toBe("string");
+    expect(task.id.length).toBeGreaterThanOrEqual(32); // UUIDs are 36 chars
   });
 
   it("should initialize childTaskIds as empty array", () => {

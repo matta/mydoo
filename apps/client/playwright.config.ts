@@ -46,7 +46,7 @@ export default defineConfig({
     {
       name: "e2e",
       testDir: "tests/e2e",
-      testIgnore: ["features/**", "steps/**", ".features-gen*/**"],
+      testIgnore: ["features/**", "steps/**", ".features-gen/**"],
       use: { ...devices["Desktop Chrome"] },
     },
   ],

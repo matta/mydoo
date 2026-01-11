@@ -15,10 +15,10 @@ import type {
   TunnelAlgorithmFeatureSchema,
 } from "../../src/generated/feature";
 import { TunnelStore } from "../../src/persistence/store";
+import type { EnrichedTask } from "../../src/types/internal";
 import {
   ANYWHERE_PLACE_ID,
   DEFAULT_CREDIT_INCREMENT,
-  type EnrichedTask,
   type PersistedTask,
   type Place,
   type PlaceID,
@@ -26,8 +26,8 @@ import {
   type Schedule,
   TaskStatus as StoreTaskStatus,
   type TaskID,
-  type ViewFilter,
-} from "../../src/types";
+} from "../../src/types/persistence";
+import type { ViewFilter } from "../../src/types/ui";
 import {
   getCurrentTimestamp,
   mockCurrentTimestamp,

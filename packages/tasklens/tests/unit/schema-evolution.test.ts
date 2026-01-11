@@ -5,7 +5,7 @@ import type {
   PlaceID,
   TaskID,
   TunnelState,
-} from "../../src/types";
+} from "../../src/types/persistence";
 
 describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
   it("should preserve unknown task fields during update", () => {

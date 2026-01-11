@@ -1,0 +1,8 @@
+# Local Prettier Ignore for apps/client
+dist/
+dev-dist/
+node_modules/
+.features-gen/
+playwright-report/
+test-results/
+**/*.d.ts

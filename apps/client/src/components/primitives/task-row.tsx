@@ -1,5 +1,5 @@
 import { Checkbox, Group, Paper, Text } from "@mantine/core";
-import type { Task, TaskID } from "@mydoo/tasklens";
+import type { ComputedTask, TaskID } from "@mydoo/tasklens";
 
 /**
  * Props for the TaskRow component.
@@ -27,7 +27,7 @@ export interface TaskRowProps {
   /**
    * The task data to display. Contains title, status, etc.
    */
-  task: Task;
+  task: ComputedTask;
 }
 
 /**

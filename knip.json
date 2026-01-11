@@ -1,14 +1,19 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "ignore": ["pnpm-workspace.yaml"],
+  "ignore": ["pnpm-workspace.yaml", "tempcontext/**"],
   "ignoreBinaries": [],
   "workspaces": {
     ".": {},
     "scripts": {
-      "entry": ["check-turbo-inputs.ts", "check-dependency-health.ts"]
+      "entry": [
+        "check-turbo-inputs.ts",
+        "check-dependency-health.ts",
+        "lint-filenames.ts"
+      ]
     },
     "packages/tasklens": {
-      "project": ["src/**/*.ts!"]
+      "entry": ["src/index.ts", "src/test/index.ts"],
+      "project": ["src/**/*.{ts,tsx}!"]
     },
     "apps/client": {
       "entry": [

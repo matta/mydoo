@@ -55,6 +55,30 @@
   AGENT_GIT_COMMIT_SECRET="..." git commit [args]
   ```
 
+## Coding Guidelines
+
+# TypeScript Strictness & Type Safety Rules
+
+1.  **Zero-Tolerance for `any`:** Never use the `any` type. If a type is
+    difficult to express, you must define an interface, use a generic, or
+    utilize utility types (`Pick`, `Omit`, etc.) to construct it correctly.
+2.  **Prohibition on Casting:** Do not use `as` casting (e.g.,
+    `variable as Type`) or non-null assertions (`!`) to silence type errors.
+    Casting is only acceptable when bridging boundaries (e.g., parsing raw JSON)
+    and must be accompanied by runtime validation (like Zod) or a user-defined
+    type guard.
+3.  **Type Errors are Logical Defects:** Treat a compilation error as a
+    structural defect in the code's logic or data flow, not a hurdle to be
+    bypassed. If types do not match, change the implementation or the data
+    structures to align—do not relax the type definition to satisfy the
+    compiler.
+4.  **No `unknown` Lazy-Loading:** Do not type variables as `unknown` to defer
+    typing decisions. Only use `unknown` if the value is truly dynamic at
+    runtime, and immediately narrow it using control flow analysis.
+5.  **Exhaustiveness:** When handling unions (especially in `switch`
+    statements), ensure all cases are handled. Use a `assertUnreachable` utility
+    if necessary to guarantee exhaustiveness.
+
 ## Documentation
 
 - All new code must have documentation comments. Explain all non-obvious logic.
@@ -254,3 +278,28 @@ Or use the standard Vitest `-t` flag (which runs all but skips non-matching):
 ```bash
 pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
 ```
+
+# Learnings
+
+## Strict Redux & TypeScript Strategies
+
+- **Prefer Inference over Casting:** When configuring a Redux store, rely on
+  `configureStore`'s automatic type inference. Avoid explicitly typing the
+  generic parameters if it leads to complex intersection types that require
+  casting.
+- **Middleware Composition:** Use `.concat()` for adding middleware (e.g.,
+  `getDefaultMiddleware().concat(myMiddleware)`). This preserves the specific
+  types of the middleware (like Thunk capabilities) better than `new Tuple()`,
+  allowing `AppDispatch` to correctly infer `ThunkDispatch` without manual
+  intervention.
+- **`combineReducers` for Safety:** Even if you only have one reducer, using
+  `combineReducers` can help satisfy TypeScript's `ReducersMapObject`
+  requirements more naturally than a raw object literal, avoiding the need for
+  `as Reducer` casts.
+- **Forbidden Casts:** `as any` and `as unknown` are strictly forbidden. If you
+  are tempted to use them, the architecture or the type definition is likely
+  wrong. Simplify the approach (e.g., switch to inference) rather than forcing
+  the type.
+- **File Corruption:** comprehensive file overwrite tools should never include
+  markdown code block delimiters (```) inside the replacement content unless
+  they are part of the string literal being written.

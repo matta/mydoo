@@ -5,7 +5,20 @@
  * initializing test state.
  */
 
-import type { ComputedTask, TaskID, TunnelState } from "../types";
+import type { DocHandle } from "@automerge/automerge-repo";
+import { Repo } from "@automerge/automerge-repo";
+
+import { initializeTunnelState } from "../domain/initialization";
+import { createTask, updateTask } from "../persistence/ops";
+import { TunnelStateSchema } from "../persistence/schemas";
+import { createTaskLensStore } from "../store/index";
+import type {
+  TaskCreateInput,
+  TaskID,
+  TunnelState,
+} from "../types/persistence";
+
+import type { ComputedTask } from "../types/ui";
 
 /**
  * Creates a strict mock that throws if unexpected properties are accessed.
@@ -67,6 +80,23 @@ export function createEmptyTunnelState(): TunnelState {
 }
 
 /**
+ * Gets the number of tasks in a document (validates schema first).
+ *
+ * @throws Error if the document does not match the TunnelState schema.
+ */
+export function getTaskCount(doc: unknown): number {
+  const result = TunnelStateSchema.safeParse(doc);
+
+  if (!result.success) {
+    throw new Error(
+      `getTaskCount failed: Document does not match schema.\n${result.error.message}`,
+    );
+  }
+
+  return Object.keys(result.data.tasks).length;
+}
+
+/**
  * Creates a mock ComputedTask with sensible defaults for tests.
  *
  * @param overrides - Optional object to override specific task properties.
@@ -107,3 +137,71 @@ export function createMockTask(
 
   return task;
 }
+
+/**
+ * Creates a mock/detached document handle for testing.
+ *
+ * @param repo - The Automerge Repo instance.
+ * @returns A DocHandle suitable for testing with full type visibility.
+ */
+export function createMockTaskLensDoc(repo: Repo) {
+  const handle = repo.create<TunnelState>();
+  handle.change(initializeTunnelState);
+  return handle;
+}
+
+/**
+ * Creates a complete test environment with a Repo, Document, and Redux Store.
+ *
+ * @param repo - Optional Repo instance. If not provided, a fresh in-memory repo is created.
+ * @returns Object containing the repo, document handle, docUrl, and configured store.
+ */
+export function createTaskLensTestEnvironment(
+  repo: Repo = new Repo({ network: [] }),
+) {
+  const handle = createMockTaskLensDoc(repo);
+  const docUrl = handle.url;
+  const store = createTaskLensStore(repo, docUrl);
+
+  return {
+    repo,
+    handle,
+    docUrl,
+    store,
+  };
+}
+
+/**
+ * Seeds a task into an Automerge document using strict validation.
+ *
+ * This wrapper uses the actual application logic (`TunnelOps.createTask`)
+ * to ensure that test data complies with all invariants (e.g. hierarchy depth,
+ * valid field ranges).
+ *
+ * @param handle - The Automerge document handle.
+ * @param props - Task properties. Required fields (like title) are defaulted if omitted.
+ * @returns The ID of the created task.
+ */
+export function seedTask(
+  handle: DocHandle<TunnelState>,
+  props: Omit<Partial<TaskCreateInput>, "id"> & { id: string },
+): TaskID {
+  const id = props.id as TaskID;
+  const { id: _idStr, ...rest } = props;
+  const input: TaskCreateInput = {
+    title: "Test Task",
+    ...rest,
+    id,
+  };
+
+  handle.change((doc) => {
+    createTask(doc, input);
+    if (input.isAcknowledged) {
+      updateTask(doc, id, { isAcknowledged: true });
+    }
+  });
+
+  return id;
+}
+
+export { mockCurrentTimestamp, resetCurrentTimestampMock } from "../utils/time";

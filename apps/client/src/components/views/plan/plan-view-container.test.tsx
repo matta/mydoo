@@ -1,6 +1,19 @@
-import { Repo, type StorageAdapterInterface } from "@automerge/automerge-repo";
+import {
+  type AutomergeUrl,
+  Repo,
+  type StorageAdapterInterface,
+} from "@automerge/automerge-repo";
 import { useMediaQuery } from "@mantine/hooks";
-import { strictMock } from "@mydoo/tasklens/test";
+import {
+  createTaskLensTestEnvironment,
+  strictMock,
+} from "@mydoo/tasklens/test";
+
+import { act, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { renderWithTestProviders } from "../../../test/setup";
+import { PlanViewContainer } from "./plan-view-container";
 
 // Create a minimal storage adapter using strictMock - only implements what Repo actually uses
 function createDummyStorageAdapter(): StorageAdapterInterface {
@@ -12,12 +25,6 @@ function createDummyStorageAdapter(): StorageAdapterInterface {
     removeRange: async () => {},
   });
 }
-
-import { act, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { renderWithTestProviders } from "../../../test/setup";
-import { PlanViewContainer } from "./plan-view-container";
 
 // Mock simple view-model hooks that are not the focus of this integration
 const mocks = vi.hoisted(() => ({
@@ -90,12 +97,18 @@ describe("PlanViewContainer", () => {
   };
 
   let repo: Repo;
+  let docUrl: AutomergeUrl;
 
   // Reset mocks before each test
   beforeEach(() => {
     vi.clearAllMocks();
-    repo = new Repo({ network: [], storage: createDummyStorageAdapter() });
-    repo.create({ tasks: {}, rootTaskIds: [], places: {} });
+    const customRepo = new Repo({
+      network: [],
+      storage: createDummyStorageAdapter(),
+    });
+    const env = createTaskLensTestEnvironment(customRepo);
+    repo = env.repo;
+    docUrl = env.docUrl;
   });
 
   it('renders "Add First Task" button when task list is empty', async () => {
@@ -105,7 +118,7 @@ describe("PlanViewContainer", () => {
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
-      renderWithTestProviders(<PlanViewContainer />, { repo });
+      renderWithTestProviders(<PlanViewContainer />, { repo, url: docUrl });
     });
 
     expect(screen.getByText("No tasks found.")).toBeInTheDocument();
@@ -127,7 +140,7 @@ describe("PlanViewContainer", () => {
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
-      renderWithTestProviders(<PlanViewContainer />, { repo });
+      renderWithTestProviders(<PlanViewContainer />, { repo, url: docUrl });
     });
 
     expect(screen.getByLabelText("Add Task at Top")).toBeInTheDocument();
@@ -141,7 +154,7 @@ describe("PlanViewContainer", () => {
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
-      renderWithTestProviders(<PlanViewContainer />, { repo });
+      renderWithTestProviders(<PlanViewContainer />, { repo, url: docUrl });
     });
 
     expect(screen.queryByLabelText("Add Task at Top")).not.toBeInTheDocument();
@@ -154,7 +167,7 @@ describe("PlanViewContainer", () => {
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
-      renderWithTestProviders(<PlanViewContainer />, { repo });
+      renderWithTestProviders(<PlanViewContainer />, { repo, url: docUrl });
     });
 
     // The append button is an ActionIcon with an IconPlus, but no text.
@@ -172,7 +185,7 @@ describe("PlanViewContainer", () => {
     mocks.useTaskTree.roots = [{ id: "1" } as any];
     mocks.useTaskTree.isLoading = false;
     await act(async () => {
-      renderWithTestProviders(<PlanViewContainer />, { repo });
+      renderWithTestProviders(<PlanViewContainer />, { repo, url: docUrl });
     });
 
     const topPlus = screen.getByLabelText("Add Task at Top");

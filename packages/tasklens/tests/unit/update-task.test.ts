@@ -7,16 +7,15 @@
  * 3. Nested object handling (schedule)
  * 4. Round-trip serialization through Automerge save/load
  */
-import {
-  type PersistedTask,
-  type PlaceID,
-  type TaskID,
-  TaskStatus,
-} from "@mydoo/tasklens";
 import { beforeEach, describe, expect, it } from "vitest";
-
 import { createTask, updateTask } from "../../src/persistence/ops";
 import { TunnelStore } from "../../src/persistence/store";
+import type {
+  PersistedTask,
+  PlaceID,
+  TaskID,
+} from "../../src/types/persistence";
+import { TaskStatus } from "../../src/types/persistence";
 
 describe("updateTask - Exhaustive Field Coverage", () => {
   let store: TunnelStore;

@@ -1,24 +1,88 @@
-export * from "./domain/index";
-export * from "./domain/initialization";
-export * from "./domain/projections";
-export * from "./domain/routine-tasks";
-export * from "./domain/tree";
+import {
+  acknowledgeAllDoneTasks,
+  createTask,
+  deleteTask,
+  moveTask,
+  updateTask,
+} from "./redux/thunks";
+
+// --- Domain: Balance ---
+export { calculateBalanceData, STARVING_THRESHOLD } from "./domain/balance";
+export {
+  type BalanceItemSimple,
+  type CreditUpdate,
+  distributeCredits,
+} from "./domain/balance-distribution";
+
+// --- Domain: Constants ---
+export {
+  CREDITS_HALF_LIFE_MILLIS,
+  DEFAULT_TASK_IMPORTANCE,
+  DEFAULT_TASK_LEAD_TIME_HOURS,
+  DEFAULT_TASK_LEAD_TIME_MS,
+} from "./domain/constants";
+// --- Domain: Initialization ---
+export {
+  createTaskLensDoc,
+  initializeTunnelState,
+  isDocInitialized,
+} from "./domain/initialization";
+export { getPrioritizedTasks } from "./domain/priority";
+export {
+  getDescendantCountFromEntities,
+  toComputedTask,
+} from "./domain/projections";
+export { wakeUpRoutineTasks } from "./domain/routine-tasks";
+export { buildTunnelTree } from "./domain/tree";
 export * as TunnelOps from "./persistence/ops";
-export * from "./persistence/schemas";
 export { TunnelStore } from "./persistence/store";
-export * from "./react/hooks/use-task";
-export * from "./react/hooks/use-task-actions";
-export * from "./react/hooks/use-task-entities";
-export * from "./react/hooks/use-tasks-status";
-export * from "./react/hooks/use-todo-list";
-export * from "./react/task-lens-provider";
+export {
+  createTaskLensMiddleware,
+  type TaskLensMiddlewareResult,
+  type ThunkExtra,
+} from "./redux/middleware";
+export const TaskActions = {
+  createTask,
+  updateTask,
+  deleteTask,
+  moveTask,
+  acknowledgeAllDoneTasks,
+};
 export {
   createTaskLensStore,
+  getTaskLensReduxConfig,
   type TaskLensDispatch,
+  type TaskLensReduxConfig,
   type TaskLensState,
   taskLensStore,
 } from "./store/index";
-export * from "./store/selectors";
-export { syncDoc } from "./store/slices/tasks-slice";
-export * from "./test/test-utils";
-export * from "./types";
+export {
+  selectBalanceData,
+  selectLastProxyDoc,
+  selectRootTaskIds,
+  selectStoreReady,
+  selectTaskById,
+  selectTaskEntities,
+  selectTodoList,
+  selectTodoListIds,
+} from "./store/selectors";
+export { default as tasksReducer, syncDoc } from "./store/slices/tasks-slice";
+export {
+  type BalanceItemData,
+  type ComputedTask,
+  type CreateTaskOptions,
+  DEFAULT_CREDIT_INCREMENT,
+  type PlaceID,
+  type RepeatConfig,
+  type RepeatConfigFields,
+  type Schedule,
+  type ScheduleFields,
+  type TaskCreateInput,
+  type TaskCreateProps,
+  type TaskFields,
+  type TaskID,
+  TaskStatus,
+  type TaskUpdateInput,
+  type TunnelNode,
+  type ViewFilter,
+} from "./types/ui";

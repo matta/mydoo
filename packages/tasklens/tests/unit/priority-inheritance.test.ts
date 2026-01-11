@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { recalculatePriorities } from "../../src/domain/priority";
+import type { EnrichedTask } from "../../src/types/internal";
 import {
   ANYWHERE_PLACE_ID,
   DEFAULT_CREDIT_INCREMENT,
-  type EnrichedTask,
   type PlaceID,
   type TaskID,
   TaskStatus,
   type TunnelState,
-} from "../../src/types";
+} from "../../src/types/persistence";
 
 describe("Inheritance Logic", () => {
   it("should not overwrite child schedule if child has explicit due date", () => {

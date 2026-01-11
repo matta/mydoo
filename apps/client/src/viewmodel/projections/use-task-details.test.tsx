@@ -1,74 +1,36 @@
-import {
-  type AutomergeUrl,
-  type DocHandle,
-  Repo,
-} from "@automerge/automerge-repo";
-import {
-  createMockTask as createSharedMockTask,
-  createTaskLensStore,
-  type TaskID,
-  type TunnelNode,
-  type TunnelState,
-} from "@mydoo/tasklens";
-import { renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { TaskID } from "@mydoo/tasklens";
+import { createTaskLensTestEnvironment } from "@mydoo/tasklens/test";
+
+import { act, renderHook, waitFor } from "@testing-library/react";
+
+import { describe, expect, it, vi } from "vitest";
 
 import { createTestWrapper } from "../../test/setup";
+import { useTaskIntents } from "../intents/use-task-intents";
 import { useTaskDetails } from "./use-task-details";
 
-const createMockTask = (
-  id: string,
-  title: string,
-  parentId?: string,
-  children: string[] = [],
-): TunnelNode => {
-  return {
-    ...createSharedMockTask({
-      id: id as TaskID,
-      title,
-      parentId: parentId as TaskID | undefined,
-      childTaskIds: children as TaskID[],
-      isContainer: children.length > 0,
-    }),
-    children: [], // TunnelNode requires children array
-  };
-};
-
 describe("useTaskDetails", () => {
-  let handle: DocHandle<TunnelState>;
-  let repo: Repo;
-  let url: AutomergeUrl;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    repo = new Repo({ network: [] });
-    handle = repo.create({ tasks: {}, rootTaskIds: [], places: {} });
-    url = handle.url;
-  });
-
   it("returns task details correctly", async () => {
-    handle.change((doc: TunnelState) => {
-      const grandchild = createMockTask(
-        "grandchild-id",
-        "Grandchild",
-        "child-id",
-      );
-      const child = createMockTask("child-id", "Child Task", "parent-id", [
-        "grandchild-id",
-      ]);
-      const parent = createMockTask("parent-id", "Parent Goal", undefined, [
-        "child-id",
-      ]);
+    vi.clearAllMocks();
+    const { repo, docUrl: url, store } = createTaskLensTestEnvironment();
+    const wrapper = createTestWrapper(repo, url, store);
+    const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
 
-      doc.rootTaskIds = ["parent-id" as TaskID];
-      doc.tasks["parent-id" as TaskID] = parent;
-      doc.tasks["child-id" as TaskID] = child;
-      doc.tasks["grandchild-id" as TaskID] = grandchild;
+    // Wait for initial Redux sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
     });
 
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, url);
-    const { result } = renderHook(() => useTaskDetails("child-id" as TaskID), {
+    let parentId: TaskID = "p" as TaskID;
+    let childId: TaskID = "c" as TaskID;
+
+    await act(async () => {
+      parentId = intents.current.createTask({ title: "Parent Goal" });
+      childId = intents.current.createTask({ title: "Child Task", parentId });
+      intents.current.createTask({ title: "Grandchild", parentId: childId });
+    });
+
+    const { result } = renderHook(() => useTaskDetails(childId), {
       wrapper,
     });
 
@@ -84,15 +46,22 @@ describe("useTaskDetails", () => {
   });
 
   it("handles root tasks (no parent)", async () => {
-    handle.change((doc: TunnelState) => {
-      const root = createMockTask("root-id", "Root Task");
-      doc.rootTaskIds = ["root-id" as TaskID];
-      doc.tasks["root-id" as TaskID] = root;
+    const { repo, docUrl: url, store } = createTaskLensTestEnvironment();
+    const wrapper = createTestWrapper(repo, url, store);
+    const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
+
+    // Wait for initial Redux sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
     });
 
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, url);
-    const { result } = renderHook(() => useTaskDetails("root-id" as TaskID), {
+    let rootId: TaskID = "r" as TaskID;
+
+    await act(async () => {
+      rootId = intents.current.createTask({ title: "Root Task" });
+    });
+
+    const { result } = renderHook(() => useTaskDetails(rootId), {
       wrapper,
     });
 
@@ -108,8 +77,8 @@ describe("useTaskDetails", () => {
   });
 
   it("returns null when task not found", async () => {
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, url);
+    const { repo, docUrl: url, store } = createTaskLensTestEnvironment();
+    const wrapper = createTestWrapper(repo, url, store);
     const { result } = renderHook(
       () => useTaskDetails("non-existent" as TaskID),
       {
@@ -127,8 +96,8 @@ describe("useTaskDetails", () => {
   });
 
   it("returns loading state initially", async () => {
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, url);
+    const { repo, docUrl: url, store } = createTaskLensTestEnvironment();
+    const wrapper = createTestWrapper(repo, url, store);
     const { result } = renderHook(() => useTaskDetails("any-task" as TaskID), {
       wrapper,
     });

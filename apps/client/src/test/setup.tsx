@@ -1,4 +1,4 @@
-import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
+import type { AutomergeUrl, Repo } from "@automerge/automerge-repo";
 import { RepoContext } from "@automerge/automerge-repo-react-hooks";
 import {
   createTheme,
@@ -7,12 +7,15 @@ import {
   Modal,
   Popover,
 } from "@mantine/core";
+import { createTaskLensTestEnvironment } from "@mydoo/tasklens/test";
 import {
   type RenderOptions,
   type RenderResult,
   render as testingLibraryRender,
 } from "@testing-library/react";
 import type { PropsWithChildren } from "react";
+import { Provider } from "react-redux";
+import { createClientStore } from "../store";
 
 // Mock for window.matchMedia - required by Mantine's color scheme detection
 Object.defineProperty(window, "matchMedia", {
@@ -72,33 +75,22 @@ const testingTheme = createTheme({
 });
 
 // Mock Automerge Repo
-const mockRepo = new Repo({ network: [] });
-
-/**
- * Custom render function that wraps components with MantineProvider and custom test theme.
- * Use this instead of @testing-library/react's render for Mantine components.
- */
-
-import {
-  createEmptyTunnelState,
-  createTaskLensStore,
-  TaskLensProvider,
-} from "@mydoo/tasklens";
-
-const defaultDocHandle = mockRepo.create(createEmptyTunnelState());
-const defaultDocUrl = defaultDocHandle.url;
+const { repo: mockRepo, docUrl: defaultDocUrl } =
+  createTaskLensTestEnvironment();
 
 export function createTestWrapper(
   repo: Repo = mockRepo,
-  store = createTaskLensStore(),
   docUrl: AutomergeUrl = defaultDocUrl,
+  storeArg?: ReturnType<typeof createClientStore>,
 ) {
+  const store = storeArg ?? createClientStore(docUrl, repo);
+
   return function TestWrapper({ children }: PropsWithChildren) {
     return (
       <RepoContext.Provider value={repo}>
-        <TaskLensProvider docUrl={docUrl} store={store}>
+        <Provider store={store}>
           <MantineProvider theme={testingTheme}>{children}</MantineProvider>
-        </TaskLensProvider>
+        </Provider>
       </RepoContext.Provider>
     );
   };
@@ -110,7 +102,7 @@ export function createTestWrapper(
  */
 export interface TestRenderOptions extends Omit<RenderOptions, "wrapper"> {
   repo?: Repo;
-  store?: ReturnType<typeof createTaskLensStore>;
+  store?: ReturnType<typeof createClientStore>;
   url?: AutomergeUrl;
 }
 
@@ -125,7 +117,7 @@ export function renderWithTestProviders(
 ): RenderResult {
   const { repo, store, url, ...renderOptions } = options;
   return testingLibraryRender(ui, {
-    wrapper: createTestWrapper(repo, store, url),
+    wrapper: createTestWrapper(repo, url, store),
     ...renderOptions,
   });
 }

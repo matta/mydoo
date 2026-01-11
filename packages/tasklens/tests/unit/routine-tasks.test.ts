@@ -6,6 +6,14 @@ import {
 } from "@automerge/automerge-repo";
 import { describe, expect, it } from "vitest";
 
+import { wakeUpRoutineTasks } from "../../src/domain/routine-tasks";
+import type {
+  PersistedTask,
+  TaskID,
+  TunnelState,
+} from "../../src/types/persistence";
+import { TaskStatus } from "../../src/types/persistence";
+
 class DummyStorageAdapter implements StorageAdapterInterface {
   async load(_key: StorageKey): Promise<Uint8Array | undefined> {
     return undefined;
@@ -17,14 +25,6 @@ class DummyStorageAdapter implements StorageAdapterInterface {
   }
   async removeRange(_keyPrefix: StorageKey) {}
 }
-
-import { wakeUpRoutineTasks } from "../../src/domain/routine-tasks";
-import {
-  type PersistedTask,
-  type TaskID,
-  TaskStatus,
-  type TunnelState,
-} from "../../src/types";
 
 describe("wakeUpRoutineTasks", () => {
   it("should wake up a task when it is time", () => {
@@ -65,7 +65,7 @@ describe("wakeUpRoutineTasks", () => {
 
     wakeUpRoutineTasks(handle);
 
-    const doc = handle.docSync();
+    const doc = handle.doc();
     const task = doc?.tasks["task-1" as TaskID];
 
     // Should be pending now
@@ -113,7 +113,7 @@ describe("wakeUpRoutineTasks", () => {
 
     wakeUpRoutineTasks(handle);
 
-    const doc = handle.docSync();
+    const doc = handle.doc();
     const task = doc?.tasks["task-1" as TaskID];
 
     // Should still be done
@@ -159,7 +159,7 @@ describe("wakeUpRoutineTasks", () => {
 
     wakeUpRoutineTasks(handle);
 
-    const doc = handle.docSync();
+    const doc = handle.doc();
     const task = doc?.tasks["task-min" as TaskID];
 
     expect(task?.status).toBe(TaskStatus.Pending);
@@ -203,7 +203,7 @@ describe("wakeUpRoutineTasks", () => {
 
     wakeUpRoutineTasks(handle);
 
-    const doc = handle.docSync();
+    const doc = handle.doc();
     const task = doc?.tasks["task-hour" as TaskID];
 
     expect(task?.status).toBe(TaskStatus.Pending);

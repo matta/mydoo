@@ -2,7 +2,11 @@ import type { DocHandle } from "@automerge/automerge-repo";
 import { describe, expect, it, vi } from "vitest";
 import { runReconciler } from "../../src/domain/reconciler";
 import { strictMock } from "../../src/test/test-utils";
-import type { PersistedTask, TaskID, TunnelState } from "../../src/types";
+import type {
+  PersistedTask,
+  TaskID,
+  TunnelState,
+} from "../../src/types/persistence";
 
 // Helper to create a minimal TunnelState with the given tasks
 function createTestState(

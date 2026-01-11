@@ -26,9 +26,10 @@ import {
 import {
   ANYWHERE_PLACE_ID,
   type PersistedTask,
+  type TaskCreateInput,
   type TaskID,
   type TunnelState,
-} from "../types";
+} from "../types/persistence";
 import {
   completeTask,
   createTask,
@@ -149,14 +150,14 @@ export class TunnelStore {
   /**
    * Creates a new task and adds it to the state.
    *
-   * @param props - Partial task properties. Omitted properties use defaults.
+   * @param props - Task properties. Title is mandatory.
    * @returns The newly created Task object.
    * @throws Error if task creation fails.
    *
    * @example
    * const task = store.createTask({ title: "New task", parentId: "1" });
    */
-  createTask(props: Partial<PersistedTask>): PersistedTask {
+  createTask(props: TaskCreateInput): PersistedTask {
     let newTask: PersistedTask | undefined;
     this.doc = change(this.doc, "Create task", (doc) => {
       newTask = createTask(doc, props);

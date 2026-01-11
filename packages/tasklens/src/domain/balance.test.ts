@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createMockTask } from "../test/test-utils";
-import type { TaskID } from "../types";
+import type { TaskID } from "../types/ui";
 import { calculateBalanceData } from "./balance";
 
 describe("calculateBalanceData", () => {

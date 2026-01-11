@@ -91,17 +91,17 @@
     },
     "check-agent": {
       "outputLogs": "new-only",
-      "dependsOn": [
-        "//#check-deps-root",
-        "//#check-syncpack-root",
-        "test",
-        "test-e2e",
-        "check-types"
-      ]
+      "dependsOn": ["check-human", "test", "test-e2e"]
     },
     "check-human": {
       "outputLogs": "new-only",
-      "dependsOn": ["//#check-deps-root", "check-types"]
+      "dependsOn": [
+        "//#check-catalog-root",
+        "//#check-deps-root",
+        "//#check-syncpack-root",
+        "check-style",
+        "check-types"
+      ]
     },
     "//#check-deps-root": {
       "outputLogs": "new-only",
