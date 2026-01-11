@@ -29,7 +29,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./persistence": "./src/types/persistence.ts",
-    "./test": "./src/test/test-utils.ts"
+    "./test": "./src/test/index.ts"
   },
   "keywords": [],
   "license": "ISC",

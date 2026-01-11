@@ -6,16 +6,41 @@ import {
   updateTask,
 } from "./redux/thunks";
 
-export * from "./domain/index";
-export * from "./domain/initialization";
-export * from "./domain/projections";
-export * from "./domain/routine-tasks";
-export * from "./domain/tree";
+// --- Domain: Balance ---
+export { calculateBalanceData, STARVING_THRESHOLD } from "./domain/balance";
+export {
+  type BalanceItemSimple,
+  type CreditUpdate,
+  distributeCredits,
+} from "./domain/balance-distribution";
+
+// --- Domain: Constants ---
+export {
+  CREDITS_HALF_LIFE_MILLIS,
+  DEFAULT_TASK_IMPORTANCE,
+  DEFAULT_TASK_LEAD_TIME_HOURS,
+  DEFAULT_TASK_LEAD_TIME_MS,
+} from "./domain/constants";
+// --- Domain: Initialization ---
+export {
+  createTaskLensDoc,
+  initializeTunnelState,
+  isDocInitialized,
+} from "./domain/initialization";
+export { getPrioritizedTasks } from "./domain/priority";
+export {
+  getDescendantCountFromEntities,
+  toComputedTask,
+} from "./domain/projections";
+export { wakeUpRoutineTasks } from "./domain/routine-tasks";
+export { buildTunnelTree } from "./domain/tree";
 export * as TunnelOps from "./persistence/ops";
 export { TunnelStore } from "./persistence/store";
-export type { ThunkExtra } from "./redux/middleware";
-export * from "./redux/middleware";
-
+export {
+  createTaskLensMiddleware,
+  type TaskLensMiddlewareResult,
+  type ThunkExtra,
+} from "./redux/middleware";
 export const TaskActions = {
   createTask,
   updateTask,
@@ -31,6 +56,34 @@ export {
   type TaskLensState,
   taskLensStore,
 } from "./store/index";
-export * from "./store/selectors";
+export {
+  selectBalanceData,
+  selectLastProxyDoc,
+  selectRootTaskIds,
+  selectStoreReady,
+  selectTaskById,
+  selectTaskEntities,
+  selectTodoList,
+  selectTodoListIds,
+} from "./store/selectors";
 export { default as tasksReducer, syncDoc } from "./store/slices/tasks-slice";
-export * from "./types/ui";
+export {
+  type BalanceItemData,
+  type ComputedTask,
+  type CreateTaskOptions,
+  DEFAULT_CREDIT_INCREMENT,
+  type PlaceID,
+  type RepeatConfig,
+  type RepeatConfigFields,
+  type Schedule,
+  type ScheduleFields,
+  type Task,
+  type TaskCreateInput,
+  type TaskCreateProps,
+  type TaskFields,
+  type TaskID,
+  TaskStatus,
+  type TaskUpdateInput,
+  type TunnelNode,
+  type ViewFilter,
+} from "./types/ui";
