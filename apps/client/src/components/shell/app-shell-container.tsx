@@ -2,7 +2,6 @@ import type { AutomergeUrl } from "@automerge/automerge-repo";
 import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
 import { AppShell, Burger, Button, Group, Menu, Title } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { useTaskActions } from "@mydoo/tasklens";
 
 import {
   IconCheckbox,
@@ -13,6 +12,7 @@ import {
   IconScale,
   IconSeeding,
 } from "@tabler/icons-react";
+import { useDispatch } from "react-redux";
 import { seedHierarchicalData } from "../../dev/seed-data";
 import { DoViewContainer } from "../../viewmodel/containers/do-view-container";
 import { MovePickerContainer } from "../../viewmodel/containers/move-picker-container";
@@ -50,7 +50,7 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
   ] = useDisclosure(false);
 
   // Access actions for the Dev Tools menu actions (e.g. Seeding)
-  const actions = useTaskActions();
+  const dispatch = useDispatch();
 
   // Get the document handle to access the data for download
   const handle = useDocHandle(docUrl);
@@ -137,7 +137,7 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
                   <Menu.Label>Development</Menu.Label>
                   <Menu.Item
                     leftSection={<IconSeeding size={14} />}
-                    onClick={() => seedHierarchicalData(actions)}
+                    onClick={() => seedHierarchicalData(dispatch)}
                   >
                     Seed Data
                   </Menu.Item>
@@ -198,7 +198,7 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        {activeTab === "do" && <DoViewContainer />}
+        {activeTab === "do" && <DoViewContainer docUrl={docUrl} />}
         {activeTab === "plan" && <PlanViewContainer />}
         {activeTab === "balance" && <BalanceViewContainer />}
         <TaskEditorContainer />

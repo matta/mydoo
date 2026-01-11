@@ -1,12 +1,8 @@
 import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
-import {
-  createTaskLensDoc,
-  createTaskLensStore,
-  type TaskID,
-} from "@mydoo/tasklens";
+import { createTaskLensDoc, type TaskID } from "@mydoo/tasklens";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
 import { useTaskIntents } from "../intents/use-task-intents";
 import { useTaskTree } from "./use-task-tree";
@@ -22,9 +18,14 @@ describe("useTaskTree", () => {
   });
 
   it("builds a task tree from rootTaskIds", async () => {
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const store = createClientStore(docUrl, repo);
+    const wrapper = createTestWrapper(repo, docUrl, store);
     const { result: intents } = renderHook(() => useTaskIntents(), { wrapper });
+
+    // Wait for initial Redux sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
 
     let root1: TaskID = "r1" as TaskID;
     let root2: TaskID = "r2" as TaskID;
@@ -41,7 +42,6 @@ describe("useTaskTree", () => {
       // Create root2
       root2 = intents.current.createTask({ title: "Root 2" });
     });
-
     const { result } = renderHook(() => useTaskTree(), {
       wrapper,
     });
@@ -76,8 +76,8 @@ describe("useTaskTree", () => {
   });
 
   it("handles loading state initially", async () => {
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const store = createClientStore(docUrl, repo);
+    const wrapper = createTestWrapper(repo, docUrl, store);
     const { result } = renderHook(() => useTaskTree(), {
       wrapper,
     });

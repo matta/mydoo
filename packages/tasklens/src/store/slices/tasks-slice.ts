@@ -113,7 +113,4 @@ const tasksSlice = createSlice({
   },
 });
 
-export const selectIsReady = (state: { tasks: TasksState }) =>
-  state.tasks.lastProxyDoc !== null;
-
 export default tasksSlice.reducer;

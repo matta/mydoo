@@ -5,12 +5,24 @@ export * from "./domain/routine-tasks";
 export * from "./domain/tree";
 export * as TunnelOps from "./persistence/ops";
 export { TunnelStore } from "./persistence/store";
-export * from "./react/hooks/use-task";
-export * from "./react/hooks/use-task-actions";
-export * from "./react/hooks/use-task-entities";
-export * from "./react/hooks/use-tasks-status";
-export * from "./react/hooks/use-todo-list";
-export * from "./react/task-lens-provider";
+export type { ThunkExtra } from "./redux/middleware";
+export * from "./redux/middleware";
+
+import {
+  acknowledgeAllDoneTasks,
+  createTask,
+  deleteTask,
+  moveTask,
+  updateTask,
+} from "./redux/thunks";
+
+export const TaskActions = {
+  createTask,
+  updateTask,
+  deleteTask,
+  moveTask,
+  acknowledgeAllDoneTasks,
+};
 export {
   createTaskLensStore,
   type TaskLensDispatch,
@@ -18,6 +30,5 @@ export {
   taskLensStore,
 } from "./store/index";
 export * from "./store/selectors";
-export { syncDoc } from "./store/slices/tasks-slice";
-
+export { default as tasksReducer, syncDoc } from "./store/slices/tasks-slice";
 export * from "./types/ui";

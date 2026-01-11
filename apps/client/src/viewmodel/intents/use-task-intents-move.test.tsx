@@ -1,9 +1,10 @@
 import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
-import { createTaskLensStore, type TaskID } from "@mydoo/tasklens";
+import type { TaskID } from "@mydoo/tasklens";
 import { createMockTaskLensDoc } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
 import { useTaskIntents } from "./use-task-intents";
 
@@ -24,11 +25,16 @@ describe("useTaskIntents (Move Interactions)", () => {
   });
 
   it("should indent a task (become child of previous sibling)", async () => {
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const store = createClientStore(docUrl, repo);
+    const wrapper = createTestWrapper(repo, docUrl, store);
     const { result } = renderHook(() => useTaskIntents(), { wrapper });
 
     // Setup: Root -> [Sibling, Target]
+    // Wait for initial sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
+
     let siblingId: TaskID;
     let targetId: TaskID;
     act(() => {
@@ -65,11 +71,16 @@ describe("useTaskIntents (Move Interactions)", () => {
   });
 
   it("should outdent a task (become sibling of parent)", async () => {
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const store = createClientStore(docUrl, repo);
+    const wrapper = createTestWrapper(repo, docUrl, store);
     const { result } = renderHook(() => useTaskIntents(), { wrapper });
 
     // Setup: Root -> Parent -> Child
+    // Wait for initial sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
+
     let parentId: TaskID;
     let childId: TaskID;
     act(() => {
@@ -112,9 +123,13 @@ describe("useTaskIntents (Move Interactions)", () => {
   });
 
   it("should not indent if no previous sibling", async () => {
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const store = createClientStore(docUrl, repo);
+    const wrapper = createTestWrapper(repo, docUrl, store);
     const { result } = renderHook(() => useTaskIntents(), { wrapper });
+
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
 
     let id: TaskID;
     act(() => {

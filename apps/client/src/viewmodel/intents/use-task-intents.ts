@@ -1,14 +1,15 @@
 import {
   selectRootTaskIds,
   selectTaskEntities,
+  TaskActions,
   type TaskCreateInput,
   type TaskID,
   TaskStatus,
-  useTaskActions,
+  type TaskUpdateInput,
 } from "@mydoo/tasklens";
 
 import { useCallback } from "react";
-import { useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store";
 
 /**
  * Hook to manage user intentions for Tasks.
@@ -17,22 +18,46 @@ import { useSelector } from "react-redux";
  * providing domain-specific actions like "createTask" and "toggleTaskCompletion".
  */
 export function useTaskIntents() {
-  const {
-    createTask: baseCreateTask,
-    updateTask,
-    deleteTask,
-    moveTask,
-  } = useTaskActions();
+  const dispatch = useAppDispatch();
 
   // We need the data from Redux to perform logic like "indent" and "toggle"
-  const tasks = useSelector(selectTaskEntities);
-  const rootTaskIds = useSelector(selectRootTaskIds);
+  const tasks = useAppSelector((state) => selectTaskEntities(state));
+  const rootTaskIds = useAppSelector((state) => selectRootTaskIds(state));
 
   const createTask = useCallback(
     (input: TaskCreateInput): TaskID => {
-      return baseCreateTask(input);
+      // Generate ID synchronously to maintain legacy API contract
+      const id = crypto.randomUUID() as TaskID;
+      // Dispatch thunk (async action) - fire and forget
+      dispatch(TaskActions.createTask({ ...input, id }));
+      return id;
     },
-    [baseCreateTask],
+    [dispatch],
+  );
+
+  const updateTask = useCallback(
+    (id: TaskID, updates: TaskUpdateInput) => {
+      dispatch(TaskActions.updateTask({ id, updates }));
+    },
+    [dispatch],
+  );
+
+  const deleteTask = useCallback(
+    (id: TaskID) => {
+      dispatch(TaskActions.deleteTask(id));
+    },
+    [dispatch],
+  );
+
+  const moveTask = useCallback(
+    (
+      id: TaskID,
+      newParentId: TaskID | undefined,
+      afterTaskId: TaskID | undefined,
+    ) => {
+      dispatch(TaskActions.moveTask({ id, newParentId, afterTaskId }));
+    },
+    [dispatch],
   );
 
   /**
@@ -69,9 +94,15 @@ export function useTaskIntents() {
           ? prevSibling.childTaskIds[prevSibling.childTaskIds.length - 1]
           : undefined;
 
-      moveTask(id, prevSiblingId, newParentLastChildId);
+      dispatch(
+        TaskActions.moveTask({
+          id,
+          newParentId: prevSiblingId,
+          afterTaskId: newParentLastChildId,
+        }),
+      );
     },
-    [tasks, rootTaskIds, moveTask],
+    [tasks, rootTaskIds, dispatch],
   );
 
   /**
@@ -91,9 +122,15 @@ export function useTaskIntents() {
       if (!parent) return;
 
       // Move to be a sibling of the parent, immediately following it.
-      moveTask(id, parent.parentId, parentId);
+      dispatch(
+        TaskActions.moveTask({
+          id,
+          newParentId: parent.parentId,
+          afterTaskId: parentId,
+        }),
+      );
     },
-    [tasks, moveTask],
+    [tasks, dispatch],
   );
 
   /**
@@ -107,9 +144,9 @@ export function useTaskIntents() {
 
       const newStatus =
         task.status === TaskStatus.Done ? TaskStatus.Pending : TaskStatus.Done;
-      updateTask(id, { status: newStatus });
+      dispatch(TaskActions.updateTask({ id, updates: { status: newStatus } }));
     },
-    [tasks, updateTask],
+    [tasks, dispatch],
   );
 
   return {

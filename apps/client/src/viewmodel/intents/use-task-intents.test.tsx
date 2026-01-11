@@ -1,9 +1,10 @@
 import { Repo } from "@automerge/automerge-repo";
-import { createTaskLensStore, type TaskID } from "@mydoo/tasklens";
+import type { TaskID } from "@mydoo/tasklens";
 import { createMockTaskLensDoc } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
 import { useTaskDetails } from "../projections/use-task-details";
 import { useTaskIntents } from "./use-task-intents";
@@ -24,8 +25,8 @@ describe("useTaskIntents", () => {
     // 1. Setup Document
     const handle = createMockTaskLensDoc(repo);
     const docUrl = handle.url;
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const store = createClientStore(docUrl, repo);
+    const wrapper = createTestWrapper(repo, docUrl, store);
 
     // 2. Setup Intents Hook
     const { result } = renderHook(() => useTaskIntents(), { wrapper });
@@ -66,8 +67,8 @@ describe("useTaskIntents", () => {
     // 1. Setup Document
     const handle = createMockTaskLensDoc(repo);
     const docUrl = handle.url;
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const store = createClientStore(docUrl, repo);
+    const wrapper = createTestWrapper(repo, docUrl, store);
 
     // 2. Setup observer hook to wait for reactive state
     const useObserver = () => {
@@ -78,6 +79,11 @@ describe("useTaskIntents", () => {
     };
 
     const { result } = renderHook(() => useObserver(), { wrapper });
+
+    // Wait for initial sync
+    await waitFor(() => {
+      expect(store.getState().tasks.lastProxyDoc).toBeDefined();
+    });
 
     // 3. Create Task
     let taskId: TaskID;
@@ -125,8 +131,8 @@ describe("useTaskIntents", () => {
     // 1. Setup Document
     const handle = createMockTaskLensDoc(repo);
     const docUrl = handle.url;
-    const store = createTaskLensStore();
-    const wrapper = createTestWrapper(repo, store, docUrl);
+    const store = createClientStore(docUrl, repo);
+    const wrapper = createTestWrapper(repo, docUrl, store);
 
     // 2. Setup Intents Hook
     const { result } = renderHook(() => useTaskIntents(), { wrapper });

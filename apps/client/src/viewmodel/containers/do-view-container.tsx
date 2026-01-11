@@ -1,3 +1,4 @@
+import type { AutomergeUrl } from "@automerge/automerge-repo";
 import {
   Button,
   Container,
@@ -17,13 +18,17 @@ import { useTaskIntents } from "../intents/use-task-intents";
 import { usePriorityList } from "../projections/use-priority-list";
 import { useNavigationState } from "../ui/use-navigation-state";
 
+interface DoViewContainerProps {
+  docUrl: AutomergeUrl;
+}
+
 /**
  * DoViewContainer: Main container for the "Do" view (priority list).
  */
-export function DoViewContainer() {
+export function DoViewContainer({ docUrl }: DoViewContainerProps) {
   const { tasks, isLoading } = usePriorityList();
   const { createTask, toggleTask } = useTaskIntents();
-  const { refreshTaskList } = useSystemIntents();
+  const { refreshTaskList } = useSystemIntents(docUrl);
   const { openEditModal } = useNavigationState();
 
   const handleToggle = useCallback(

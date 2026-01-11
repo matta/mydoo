@@ -18,7 +18,7 @@ catalogs:
     "@mantine/hooks": 8.3.10
     "@mantine/notifications": ^8.3.10
     "@playwright/test": ^1.57.0
-    "@reduxjs/toolkit": ^2.5.0
+    "@reduxjs/toolkit": ^2.11.2
     "@tabler/icons-react": ^3.36.0
     "@testing-library/react": ^16.3.1
     "@testing-library/user-event": ^14.6.1

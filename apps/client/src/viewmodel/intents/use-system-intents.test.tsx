@@ -1,30 +1,34 @@
-import { type AutomergeUrl, Repo } from "@automerge/automerge-repo";
 import {
-  createTaskLensDoc,
-  createTaskLensStore,
-  type TaskID,
-  TaskStatus,
-} from "@mydoo/tasklens";
+  type AutomergeUrl,
+  type DocHandle,
+  Repo,
+} from "@automerge/automerge-repo";
+
+import { type TaskID, TaskStatus } from "@mydoo/tasklens";
+import type { TunnelState } from "@mydoo/tasklens/persistence";
 import {
+  createEmptyTunnelState,
   mockCurrentTimestamp,
   resetCurrentTimestampMock,
 } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createClientStore } from "../../store";
 import { createTestWrapper } from "../../test/setup";
 import { useSystemIntents } from "./use-system-intents";
 import { useTaskIntents } from "./use-task-intents";
 
 describe("useSystemIntents", () => {
   let repo: Repo;
+  let handle: DocHandle<TunnelState>;
   let docUrl: AutomergeUrl;
 
   beforeEach(() => {
     repo = new Repo({ network: [] });
     window.location.hash = "";
-    // Use public API to create the document
-    docUrl = createTaskLensDoc(repo);
+    handle = repo.create(createEmptyTunnelState());
+    docUrl = handle.url;
     vi.useRealTimers();
   });
 
@@ -36,12 +40,17 @@ describe("useSystemIntents", () => {
   describe("refreshTaskList", () => {
     it("should acknowledge completed tasks", async () => {
       // 1. Setup Wrapper
-      const store = createTaskLensStore();
-      const wrapper = createTestWrapper(repo, store, docUrl);
+      const store = createClientStore(docUrl, repo);
+      const wrapper = createTestWrapper(repo, docUrl, store);
 
       // 2. Seed Data using public API via useTaskIntents
       const { result: intents } = renderHook(() => useTaskIntents(), {
         wrapper,
+      });
+
+      // Wait for initial Redux sync
+      await waitFor(() => {
+        expect(store.getState().tasks.lastProxyDoc).toBeDefined();
       });
 
       let t1: TaskID;
@@ -71,9 +80,12 @@ describe("useSystemIntents", () => {
       });
 
       // 3. Act - Refresh
-      const { result: systemIntents } = renderHook(() => useSystemIntents(), {
-        wrapper,
-      });
+      const { result: systemIntents } = renderHook(
+        () => useSystemIntents(docUrl),
+        {
+          wrapper,
+        },
+      );
 
       await act(async () => {
         systemIntents.current.refreshTaskList();
@@ -97,8 +109,8 @@ describe("useSystemIntents", () => {
 
     it("should wake up routine tasks", async () => {
       // 1. Setup Wrapper and Time
-      const store = createTaskLensStore();
-      const wrapper = createTestWrapper(repo, store, docUrl);
+      const store = createClientStore(docUrl, repo);
+      const wrapper = createTestWrapper(repo, docUrl, store);
 
       // Use internal mocking helper instead of vi.useFakeTimers
       // This ensures code using getCurrentTimestamp() sees the mock,
@@ -112,6 +124,11 @@ describe("useSystemIntents", () => {
         // 2. Seed Data using public API
         const { result: intents } = renderHook(() => useTaskIntents(), {
           wrapper,
+        });
+
+        // Wait for initial Redux sync
+        await waitFor(() => {
+          expect(store.getState().tasks.lastProxyDoc).toBeDefined();
         });
 
         let routineTaskId: TaskID;
@@ -147,9 +164,12 @@ describe("useSystemIntents", () => {
         });
 
         // 3. Act - Refresh
-        const { result: systemIntents } = renderHook(() => useSystemIntents(), {
-          wrapper,
-        });
+        const { result: systemIntents } = renderHook(
+          () => useSystemIntents(docUrl),
+          {
+            wrapper,
+          },
+        );
 
         // FIXME: Replace with robust wait strategy instead of hardcoded delay
         await act(async () => {

@@ -79,23 +79,26 @@ const mockRepo = new Repo({ network: [] });
  * Use this instead of @testing-library/react's render for Mantine components.
  */
 
-import { createTaskLensStore, TaskLensProvider } from "@mydoo/tasklens";
-import { createMockTaskLensDoc } from "@mydoo/tasklens/test";
+import { createEmptyTunnelState } from "@mydoo/tasklens/test";
+import { Provider } from "react-redux";
+import { createClientStore } from "../store";
 
-const defaultDocHandle = createMockTaskLensDoc(mockRepo);
-const defaultDocUrl = defaultDocHandle.url;
+const defaultDocHandle = mockRepo.create(createEmptyTunnelState());
+const defaultDocUrl = defaultDocHandle.url as AutomergeUrl;
 
 export function createTestWrapper(
   repo: Repo = mockRepo,
-  store = createTaskLensStore(),
   docUrl: AutomergeUrl = defaultDocUrl,
+  storeArg?: ReturnType<typeof createClientStore>,
 ) {
+  const store = storeArg ?? createClientStore(docUrl, repo);
+
   return function TestWrapper({ children }: PropsWithChildren) {
     return (
       <RepoContext.Provider value={repo}>
-        <TaskLensProvider docUrl={docUrl} store={store}>
+        <Provider store={store}>
           <MantineProvider theme={testingTheme}>{children}</MantineProvider>
-        </TaskLensProvider>
+        </Provider>
       </RepoContext.Provider>
     );
   };
@@ -107,7 +110,7 @@ export function createTestWrapper(
  */
 export interface TestRenderOptions extends Omit<RenderOptions, "wrapper"> {
   repo?: Repo;
-  store?: ReturnType<typeof createTaskLensStore>;
+  store?: ReturnType<typeof createClientStore>;
   url?: AutomergeUrl;
 }
 
@@ -122,7 +125,7 @@ export function renderWithTestProviders(
 ): RenderResult {
   const { repo, store, url, ...renderOptions } = options;
   return testingLibraryRender(ui, {
-    wrapper: createTestWrapper(repo, store, url),
+    wrapper: createTestWrapper(repo, url, store),
     ...renderOptions,
   });
 }
