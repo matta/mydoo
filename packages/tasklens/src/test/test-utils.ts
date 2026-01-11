@@ -5,11 +5,13 @@
  * initializing test state.
  */
 
-import type { DocHandle, Repo } from "@automerge/automerge-repo";
+import type { DocHandle } from "@automerge/automerge-repo";
+import { Repo } from "@automerge/automerge-repo";
 
 import { initializeTunnelState } from "../domain/initialization";
 import { createTask, updateTask } from "../persistence/ops";
 import { TunnelStateSchema } from "../persistence/schemas";
+import { createTaskLensStore } from "../store/index";
 import type {
   TaskCreateInput,
   TaskID,
@@ -146,6 +148,27 @@ export function createMockTaskLensDoc(repo: Repo) {
   const handle = repo.create<TunnelState>();
   handle.change(initializeTunnelState);
   return handle;
+}
+
+/**
+ * Creates a complete test environment with a Repo, Document, and Redux Store.
+ *
+ * @param repo - Optional Repo instance. If not provided, a fresh in-memory repo is created.
+ * @returns Object containing the repo, document handle, docUrl, and configured store.
+ */
+export function createTaskLensTestEnvironment(
+  repo: Repo = new Repo({ network: [] }),
+) {
+  const handle = createMockTaskLensDoc(repo);
+  const docUrl = handle.url;
+  const store = createTaskLensStore(repo, docUrl);
+
+  return {
+    repo,
+    handle,
+    docUrl,
+    store,
+  };
 }
 
 /**

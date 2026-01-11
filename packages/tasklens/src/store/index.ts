@@ -1,70 +1,129 @@
-import { configureStore } from "@reduxjs/toolkit";
+import type { Repo } from "@automerge/automerge-repo";
+import {
+  configureStore,
+  type EnhancedStore,
+  type Middleware,
+  type ReducersMapObject,
+  type ThunkDispatch,
+  type UnknownAction,
+} from "@reduxjs/toolkit";
+import { createTaskLensMiddleware, type ThunkExtra } from "../redux/middleware";
 import tasksReducer from "./slices/tasks-slice";
 
 /**
- * Creates a fresh Redux store instance for TaskLens.
- *
- * @returns An configured Redux `EnhancedStore` holding the `RootState`.
- *   - **State**: Contains the `tasks` slice (`TasksState`) managing Automerge
- *     data.
- *   - **Middleware**: In Redux, middleware provides a third-party extension point
- *     between dispatching an action, and the moment it reaches the reducer.
- *     We use it here to:
- *       1. Handle async logic (Thunks).
- *       2. Enforce immutability guarantees.
- *       3. Check for non-serializable data (ignoring specific Automerge paths).
- *
- * We expose this as a factory function (rather than a singleton directly)
- * to allow creating independent store instances for:
- * 1. The main application (singleton), below.
- * 2. Automated tests (ensuring isolation between tests).
- *
- * FIXME: This currently creates a "naked" store without the Automerge sync middleware.
- * In a future refactor, we should move the factory logic from the client's store
- * configuration (apps/client/src/store.ts) into this package as a standardized
- * integration helper (e.g., `createTaskLensSyncStore`).
- * Benefits:
- * - Dramatically reduced boilerplate in tests (currently manual repo/docUrl/middleware wiring).
- * - Guaranteed parity between test and production store configurations.
- * Considerations:
- * - Extensibility: The client app MUST be able to inject its own reducers/middleware.
- * - Need to provide an "open" factory or a builder pattern to avoid a rigid store.
+ * Configuration object for integrating TaskLens into an existing Redux store.
  */
-export function createTaskLensStore() {
-  return configureStore({
-    reducer: {
-      tasks: tasksReducer,
-    },
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
-        serializableCheck: {
-          ignoredActionPaths: ["payload.newDoc"],
-          ignoredPaths: ["tasks.lastDoc"],
-        },
-      }),
-  });
+export interface TaskLensReduxConfig {
+  /** The tasks slice reducer. Must be mounted at `state.tasks`. */
+  reducer: typeof tasksReducer;
+  /** The middleware that syncs Redux actions with Automerge. */
+  middleware: Middleware;
+  /**
+   * The thunk extra argument providing access to the Automerge handle.
+   * Pass this to `getDefaultMiddleware({ thunk: { extraArgument: ... } })`.
+   */
+  thunkExtra: ThunkExtra;
+  /**
+   * Recommended configuration for `serializableCheck` middleware.
+   * Pass this to `getDefaultMiddleware({ serializableCheck: ... })`.
+   */
+  serializableCheckOptions: {
+    ignoredActionPaths: string[];
+    ignoredPaths: string[];
+  };
 }
 
 /**
- * The Redux store for TaskLens.
+ * Generates the configuration needed to integrate TaskLens into a Redux store.
+ * Use this if you are adding TaskLens to an existing application store.
  *
- * This store provides a stable, memoized view of task data derived from
- * Automerge documents. It ensures referential stability for computed tasks,
- * preventing unnecessary React re-renders when sibling tasks are modified.
- *
- * The store is configured with serialization checks disabled for the
- * `lastDoc` path since TunnelState may contain Automerge-specific structures.
+ * @param repo - The Automerge Repo instance.
+ * @param docUrl - The Automerge document URL to sync with.
+ * @returns The Redux configuration parts (reducer, middleware, settings).
  */
-export const taskLensStore = createTaskLensStore();
+export function getTaskLensReduxConfig(
+  repo: Repo,
+  docUrl: string,
+): TaskLensReduxConfig {
+  const { middleware, getThunkExtra } = createTaskLensMiddleware(repo, docUrl);
+
+  return {
+    reducer: tasksReducer,
+    middleware,
+    thunkExtra: getThunkExtra(),
+    serializableCheckOptions: {
+      ignoredActionPaths: ["payload.newDoc", "payload.proxyDoc"],
+      ignoredPaths: ["tasks.lastDoc"],
+    },
+  };
+}
 
 /**
- * The root state type for the TaskLens Redux store.
- * Use this type when accessing store state in selectors.
+ * Options for creating a TaskLens store.
  */
+export interface CreateTaskLensStoreOptions {
+  /** Additional reducers to merge into the store. */
+  extraReducers?: ReducersMapObject;
+  /** Additional middleware to prepend/append. */
+  extraMiddleware?: Middleware[];
+  /** Preloaded state for the store. */
+  // biome-ignore lint/suspicious/noExplicitAny: Redux preloaded state is complex
+  preloadedState?: any;
+}
+
+/**
+ * Creates a fully configured Redux store for TaskLens.
+ * Use this for creating independent store instances for apps or tests.
+ *
+ * @param repo - The Automerge Repo instance.
+ * @param docUrl - The Automerge document URL to sync with.
+ * @param options - Optional configuration for extra reducers/middleware.
+ * @returns A configured Redux store.
+ */
+export function createTaskLensStore(
+  repo: Repo,
+  docUrl: string,
+  options: CreateTaskLensStoreOptions = {},
+): EnhancedStore<
+  // biome-ignore lint/suspicious/noExplicitAny: State is extensible
+  any,
+  UnknownAction,
+  // biome-ignore lint/suspicious/noExplicitAny: Enhancers are complex
+  any
+> & {
+  // biome-ignore lint/suspicious/noExplicitAny: State is extensible
+  dispatch: ThunkDispatch<any, ThunkExtra, UnknownAction>;
+} {
+  const config = getTaskLensReduxConfig(repo, docUrl);
+
+  return configureStore({
+    reducer: {
+      tasks: config.reducer,
+      ...options.extraReducers,
+      // biome-ignore lint/suspicious/noExplicitAny: Fix TS overload resolution
+    } as any,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        thunk: {
+          extraArgument: config.thunkExtra,
+        },
+        serializableCheck: config.serializableCheckOptions,
+      })
+        .concat(config.middleware)
+        // biome-ignore lint/suspicious/noExplicitAny: Fix TS inference for middleware chain
+        .concat(options.extraMiddleware || []) as any,
+    preloadedState: options.preloadedState,
+    // biome-ignore lint/suspicious/noExplicitAny: State is extensible
+  }) as any;
+}
+
+/**
+ * @deprecated Use `createTaskLensStore` instead.
+ * This export exists only for backward compatibility during refactoring.
+ */
+export const taskLensStore = configureStore({
+  reducer: { tasks: tasksReducer },
+});
+
 export type TaskLensState = ReturnType<typeof taskLensStore.getState>;
-
-/**
- * The dispatch type for the TaskLens Redux store.
- * Use this type for strongly-typed dispatch in components and thunks.
- */
 export type TaskLensDispatch = typeof taskLensStore.dispatch;
