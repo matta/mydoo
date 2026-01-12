@@ -16,11 +16,13 @@ const testDirMobile = defineBddConfig({
   outputDir: "tests/e2e/.features-gen/mobile",
 });
 
+const isCI = !!process.env.CI;
+
 export default defineConfig({
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  ...(process.env.CI ? { workers: 1 } : {}),
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  ...(isCI && { workers: 4 }),
   reporter: [["html", { open: "never" }]],
   use: {
     baseURL: "http://localhost:5179",
@@ -31,7 +33,7 @@ export default defineConfig({
   webServer: {
     command: "pnpm run dev --port 5179 --strictPort",
     url: "http://localhost:5179",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !isCI,
   },
   projects: [
     {
