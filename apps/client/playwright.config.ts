@@ -1,8 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import { defineBddConfig } from "playwright-bdd";
 
-const isAgent = !!process.env.ANTIGRAVITY_AGENT || !!process.env.GEMINI_CLI;
-
 const bddCommon = {
   features: "tests/e2e/features/*.feature",
   steps: "tests/e2e/{steps/*.steps.ts,fixtures.ts}",
@@ -23,7 +21,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   ...(process.env.CI ? { workers: 1 } : {}),
-  reporter: isAgent || process.env.CI ? [["html", { open: "never" }]] : "html",
+  reporter: [["html", { open: "never" }]],
   use: {
     baseURL: "http://localhost:5179",
     trace: "on-first-retry",

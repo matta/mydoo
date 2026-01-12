@@ -96,6 +96,24 @@ IndexedDB persistence.
 pnpm --filter @mydoo/client test:e2e
 ```
 
+### Running Individual Tests
+
+For faster iteration, you can run specific tests or patterns:
+
+1.  **By Pattern (Grep)**:
+    ```bash
+    pnpm --filter @mydoo/client exec playwright test -g "some scenario name"
+    ```
+2.  **Specific Spec File**:
+    - **Native Specs**:
+      `pnpm --filter @mydoo/client exec playwright test tests/e2e/interactions.spec.ts`
+    - **BDD Features**: First run `pnpm run generate`, then:
+      `pnpm --filter @mydoo/client exec playwright test tests/e2e/.features-gen/desktop/tests/e2e/features/due-dates.feature.spec.js`
+3.  **UI Mode**:
+    ```bash
+    pnpm --filter @mydoo/client exec playwright test --ui
+    ```
+
 ---
 
 ## Pre-Commit Quality Gates
