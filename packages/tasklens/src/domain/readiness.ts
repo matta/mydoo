@@ -1,7 +1,5 @@
-import type { ScheduleFields } from "../types/ui";
-
 /**
- * Calculates the Lead Time Factor for a task based on its schedule and the current time.
+ * Calculates the Lead Time Factor for a task based on its due date and the current time.
  *
  * The Lead Time Factor determines how "ready" or "urgent" a task is relative to its due date.
  * - 0.0: The task is "Too Early" (hidden).
@@ -12,24 +10,27 @@ import type { ScheduleFields } from "../types/ui";
  * - If no due date, the factor is 1.0.
  * - Ramp starts at 2 * leadTime remaining.
  * - Fully ramped at 1 * leadTime remaining.
+ *
+ * @param dueDate - The task's due date timestamp (ms), or undefined if no due date
+ * @param leadTime - The lead time in milliseconds
+ * @param currentTime - The current timestamp in milliseconds
  */
 export function calculateLeadTimeFactor(
-  schedule: ScheduleFields,
+  dueDate: number | undefined,
+  leadTime: number,
   currentTime: number,
 ): number {
-  if (schedule.dueDate === undefined) {
+  if (dueDate === undefined) {
     return 1.0;
   }
 
-  const dueDate = schedule.dueDate;
-  const leadTimeMillis = schedule.leadTime;
   const timeRemaining = dueDate - currentTime;
 
-  if (timeRemaining > 2 * leadTimeMillis) {
+  if (timeRemaining > 2 * leadTime) {
     return 0.0;
   }
 
-  const rawFactor = (2 * leadTimeMillis - timeRemaining) / leadTimeMillis;
+  const rawFactor = (2 * leadTime - timeRemaining) / leadTime;
   return Math.max(0, Math.min(1, rawFactor));
 }
 
@@ -38,18 +39,20 @@ export function calculateLeadTimeFactor(
  *
  * A task is ready if its Lead Time Factor is greater than 0.
  * (i.e., we are within the window where timeRemaining <= 2 * leadTime).
+ *
+ * @param dueDate - The task's due date timestamp (ms), or undefined if no due date
+ * @param leadTime - The lead time in milliseconds
+ * @param currentTime - The current timestamp in milliseconds
  */
 export function isTaskReady(
-  schedule: ScheduleFields,
+  dueDate: number | undefined,
+  leadTime: number,
   currentTime: number,
 ): boolean {
-  if (schedule.dueDate === undefined) {
+  if (dueDate === undefined) {
     return true;
   }
 
-  const dueDate = schedule.dueDate;
-  const leadTimeMillis = schedule.leadTime;
   const timeRemaining = dueDate - currentTime;
-
-  return timeRemaining <= 2 * leadTimeMillis;
+  return timeRemaining <= 2 * leadTime;
 }

@@ -13,7 +13,7 @@ describe("DateInput", () => {
   });
 
   it("displays a date value in YYYY-MM-DD format", () => {
-    const testDate = new Date(2026, 0, 15); // Jan 15, 2026
+    const testDate = new Date(Date.UTC(2026, 0, 15)); // Jan 15, 2026
     renderWithTestProviders(
       <DateInput label="Due Date" value={testDate} onChange={() => {}} />,
     );
@@ -44,15 +44,15 @@ describe("DateInput", () => {
 
     expect(handleChange).toHaveBeenCalled();
     const resultDate = handleChange.mock.lastCall?.[0] as Date;
-    expect(resultDate.getFullYear()).toBe(2026);
-    expect(resultDate.getMonth()).toBe(2); // March = 2
-    expect(resultDate.getDate()).toBe(20);
+    expect(resultDate?.getUTCFullYear()).toBe(2026);
+    expect(resultDate?.getUTCMonth()).toBe(2); // March (0-indexed)
+    expect(resultDate?.getUTCDate()).toBe(20);
   });
 
   it("calls onChange with null when user clears the date", async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();
-    const testDate = new Date(2026, 0, 15);
+    const testDate = new Date(Date.UTC(2026, 0, 15));
     renderWithTestProviders(
       <DateInput label="Due Date" value={testDate} onChange={handleChange} />,
     );

@@ -122,9 +122,12 @@ describe("Inheritance Logic", () => {
 
     const cResult = enrichedTasks.find((t) => t.id === cId);
 
-    // Child should have GP's due date
-    expect(cResult?.schedule.dueDate).toBe(1000);
-    expect(cResult?.schedule.leadTime).toBe(100);
+    // Child should have GP's effective due date (inherited)
+    expect(cResult?.effectiveDueDate).toBe(1000);
+    expect(cResult?.effectiveLeadTime).toBe(100);
+    expect(cResult?.effectiveScheduleSource).toBe("ancestor");
+    expect(cResult?.schedule.dueDate).toBeUndefined();
+    expect(cResult?.schedule.leadTime).toBe(0);
   });
 });
 
@@ -154,7 +157,10 @@ function baseTask(id: TaskID): EnrichedTask {
     visibility: true,
     isContainer: false,
     isPending: true,
-    isReady: true,
+    isReady: false,
     outlineIndex: 0,
+    effectiveDueDate: undefined,
+    effectiveLeadTime: undefined,
+    effectiveScheduleSource: undefined,
   };
 }

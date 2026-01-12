@@ -42,7 +42,9 @@ export function wakeUpRoutineTasks(handle: DocHandle<TunnelState>) {
           task.isAcknowledged = false;
 
           // Update the schedule for the new cycle
-          task.schedule.dueDate = nextDueDate;
+          task.schedule.lastDone = lastCompletedAt;
+          // We can clear the explicit due date since priority.ts will calculate it from lastDone
+          delete task.schedule.dueDate;
         }
       }
     }

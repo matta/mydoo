@@ -20,6 +20,7 @@ import { useTaskIntents } from "../../../viewmodel/intents/use-task-intents";
 import { useTaskTree } from "../../../viewmodel/projections/use-task-tree";
 import { useBreadcrumbs } from "../../../viewmodel/ui/use-breadcrumbs";
 import { useNavigationState } from "../../../viewmodel/ui/use-navigation-state";
+import { DueDateBadge } from "../../primitives/due-date-badge";
 import { OutlineTree } from "./outline-tree";
 
 /**
@@ -173,7 +174,27 @@ export function PlanViewContainer() {
                       c={isLast ? "text" : "dimmed"}
                       px={4}
                     >
-                      {item.title}
+                      <Group gap={6} wrap="nowrap">
+                        <Text
+                          span
+                          size="xs"
+                          inherit
+                          style={{
+                            maxWidth: isLast ? "unset" : "120px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {item.title}
+                        </Text>
+                        <DueDateBadge
+                          effectiveDueDate={item.effectiveDueDate}
+                          effectiveLeadTime={item.effectiveLeadTime}
+                          size="xs"
+                          ml={2}
+                        />
+                      </Group>
                     </Button>
                   );
                 })}

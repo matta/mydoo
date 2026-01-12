@@ -1,5 +1,5 @@
 import { Input } from "@mantine/core";
-import { useCallback } from "react";
+import { useCallback, useId } from "react";
 
 /**
  * Props for the DateInput component.
@@ -43,12 +43,13 @@ export function DateInput({
   style,
   placeholder,
 }: DateInputProps) {
+  const generatedId = useId();
   // Convert Date to YYYY-MM-DD string
   const formatDate = (date: Date | null): string => {
     if (!date) return "";
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
@@ -61,10 +62,11 @@ export function DateInput({
         onChange(null);
         return;
       }
-      // Create date from YYYY-MM-DD string in local time
+      // Create date from YYYY-MM-DD string in UTC
       const [year, month, day] = val.split("-").map(Number);
       if (year !== undefined && month !== undefined && day !== undefined) {
-        const newDate = new Date(year, month - 1, day);
+        // Construct UTC midnight date
+        const newDate = new Date(Date.UTC(year, month - 1, day));
         onChange(newDate);
       }
     },
@@ -73,6 +75,7 @@ export function DateInput({
 
   return (
     <Input.Wrapper
+      id={generatedId}
       label={label}
       description={description}
       error={error}
@@ -81,6 +84,7 @@ export function DateInput({
       {...(style ? { style } : {})}
     >
       <Input
+        id={generatedId}
         component="input"
         type="date"
         value={inputValue}

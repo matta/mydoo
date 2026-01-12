@@ -71,6 +71,15 @@ export interface PlanFixture {
   getCurrentDocumentId: () => Promise<string | undefined>;
   createNewDocument: () => Promise<void>;
   switchToDocument: (id: string) => Promise<void>;
+
+  setClock: (now: Date) => Promise<void>;
+  closeEditor: () => Promise<void>;
+  setTaskDueDate: (dateString: string) => Promise<void>;
+  setTaskLeadTime: (value: number, unit: string) => Promise<void>;
+  verifyTaskUrgency: (taskTitle: string, urgency: string) => Promise<void>;
+  verifyNoDueDateIndicator: (taskTitle: string) => Promise<void>;
+  verifyDueDateText: (taskTitle: string, text: string) => Promise<void>;
+  verifyDueDateTextContains: (taskTitle: string, part: string) => Promise<void>;
 }
 
 /**
@@ -212,10 +221,11 @@ export class PlanPage implements PlanFixture {
     }
 
     // Final attempt (or failure if loop exhausted)
-    await this.page
+    const finalRow = this.page
       .locator(`[data-testid="task-item"]`, { hasText: title })
-      .first()
-      .click();
+      .first();
+    await finalRow.waitFor({ state: "visible" });
+    await finalRow.click();
     await expect(modal).toBeVisible();
   }
 
@@ -354,7 +364,10 @@ export class PlanPage implements PlanFixture {
 
   async setDueDate(dateString: string): Promise<void> {
     // Assumes the Task Editor modal is already open
-    await this.page.getByLabel("Due Date").fill(dateString);
+    const input = this.page.getByTestId("date-input");
+    await input.fill(dateString);
+    await expect(input).toHaveValue(dateString);
+    await input.blur();
   }
 
   async setLeadTime(value: number, unit: string): Promise<void> {
@@ -362,6 +375,14 @@ export class PlanPage implements PlanFixture {
     await this.page.locator("#lead-time-scalar-input").fill(value.toString());
     await this.page.locator("#lead-time-unit-select").click();
     await this.page.getByRole("option", { name: unit }).click();
+  }
+
+  async setTaskDueDate(dateString: string): Promise<void> {
+    await this.setDueDate(dateString);
+  }
+
+  async setTaskLeadTime(value: number, unit: string): Promise<void> {
+    await this.setLeadTime(value, unit);
   }
 
   async createTaskWithDueDate(
@@ -382,12 +403,6 @@ export class PlanPage implements PlanFixture {
     title: string,
     shouldBeSequential: boolean,
   ): Promise<void> {
-    console.log(
-      "DEBUG: setSequential called for",
-      title,
-      "to",
-      shouldBeSequential,
-    );
     await this.openTaskEditor(title);
     const modal = this.page.getByRole("dialog", { name: "Edit Task" });
     const toggle = modal.getByLabel("Sequential Project");
@@ -607,5 +622,84 @@ export class PlanPage implements PlanFixture {
         .getByRole("button", { name: "Plan" })
         .last(),
     ).toBeVisible();
+  }
+
+  // --- Clock Control ---
+
+  async setClock(now: Date): Promise<void> {
+    await this.setupClock();
+    await this.page.clock.setFixedTime(now);
+  }
+
+  // --- UI Helpers ---
+
+  async closeEditor(): Promise<void> {
+    const modal = this.page.getByRole("dialog", { name: "Edit Task" });
+    if (await modal.isVisible()) {
+      await modal.getByRole("button", { name: "Save Changes" }).click();
+      await expect(modal).not.toBeVisible();
+    }
+  }
+
+  // --- Verification ---
+
+  async verifyTaskUrgency(taskTitle: string, urgency: string): Promise<void> {
+    const row = this.page
+      .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
+      .first();
+    const breadcrumb = this.page
+      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
+      .first();
+
+    const badge = row.locator(`.mantine-Badge-root[data-urgency="${urgency}"]`);
+    const breadcrumbBadge = breadcrumb.locator(
+      `.mantine-Badge-root[data-urgency="${urgency}"]`,
+    );
+
+    await expect(badge.or(breadcrumbBadge)).toBeVisible();
+  }
+
+  async verifyNoDueDateIndicator(taskTitle: string): Promise<void> {
+    const row = this.page
+      .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
+      .first();
+    const breadcrumb = this.page
+      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
+      .first();
+
+    // Badges have .mantine-Badge-root
+    await expect(row.locator(".mantine-Badge-root")).not.toBeVisible();
+    await expect(breadcrumb.locator(".mantine-Badge-root")).not.toBeVisible();
+  }
+
+  async verifyDueDateText(
+    taskTitle: string,
+    expectedText: string,
+  ): Promise<void> {
+    const row = this.page
+      .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
+      .first();
+    const breadcrumb = this.page
+      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
+      .first();
+
+    const rowText = row.getByText(expectedText, { exact: true });
+    const breadcrumbText = breadcrumb.getByText(expectedText, { exact: true });
+
+    await expect(rowText.or(breadcrumbText)).toBeVisible();
+  }
+
+  async verifyDueDateTextContains(
+    taskTitle: string,
+    part: string,
+  ): Promise<void> {
+    const row = this.page
+      .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
+      .first();
+    const breadcrumb = this.page
+      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
+      .first();
+
+    await expect(row.or(breadcrumb)).toContainText(part);
   }
 }

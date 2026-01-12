@@ -68,9 +68,12 @@ describe("wakeUpRoutineTasks", () => {
     const doc = handle.doc();
     const task = doc?.tasks["task-1" as TaskID];
 
-    // Should be pending now
     expect(task?.status).toBe(TaskStatus.Pending);
     expect(task?.isAcknowledged).toBe(false);
+
+    // Verify schedule update
+    expect(task?.schedule.lastDone).toBe(task?.lastCompletedAt);
+    expect(task?.schedule.dueDate).toBeUndefined();
 
     // Due date should be updated (lastCompletedAt + 1 day)
     // 24 hours ago + 24 hours = Now.

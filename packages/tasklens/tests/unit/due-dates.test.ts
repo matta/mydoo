@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getUrgencyStatus, UrgencyStatus } from "../../src/domain/dates";
 import { calculateLeadTimeFactor } from "../../src/domain/readiness";
 import { createTask, updateTask } from "../../src/persistence/ops";
 import { TunnelStore } from "../../src/persistence/store";
@@ -54,8 +55,7 @@ describe("Due Date Logic", () => {
       // Time remaining = 3 days. 2x lead time = 2 days.
       // 3 days > 2 days -> Should be 0.0
 
-      const schedule = { type: "Once" as const, leadTime, dueDate };
-      const factor = calculateLeadTimeFactor(schedule, now);
+      const factor = calculateLeadTimeFactor(dueDate, leadTime, now);
 
       expect(factor).toBe(0.0);
     });
@@ -69,8 +69,7 @@ describe("Due Date Logic", () => {
       // 2x lead time = 2 days.
       // Formula: (2*L - R) / L = (2 - 1.5) / 1 = 0.5
 
-      const schedule = { type: "Once" as const, leadTime, dueDate };
-      const factor = calculateLeadTimeFactor(schedule, now);
+      const factor = calculateLeadTimeFactor(dueDate, leadTime, now);
 
       expect(factor).toBeCloseTo(0.5);
     });
@@ -84,8 +83,7 @@ describe("Due Date Logic", () => {
       // 2*L - R = 2 - 0.5 = 1.5.
       // 1.5 / 1 = 1.5 -> Clamped to 1.0
 
-      const schedule = { type: "Once" as const, leadTime, dueDate };
-      const factor = calculateLeadTimeFactor(schedule, now);
+      const factor = calculateLeadTimeFactor(dueDate, leadTime, now);
 
       expect(factor).toBe(1.0);
     });
@@ -95,10 +93,72 @@ describe("Due Date Logic", () => {
       const leadTime = daysToMilliseconds(1);
       const dueDate = now - daysToMilliseconds(1); // Overdue
 
-      const schedule = { type: "Once" as const, leadTime, dueDate };
-      const factor = calculateLeadTimeFactor(schedule, now);
+      const factor = calculateLeadTimeFactor(dueDate, leadTime, now);
 
       expect(factor).toBe(1.0);
+    });
+  });
+
+  describe("Urgency Status (getUrgencyStatus)", () => {
+    const now = REFERENCE_TIME; // 2001-09-09T01:46:40.000Z
+
+    it.each([
+      {
+        scenario: "due date is in the past (Overdue)",
+        daysDue: -1,
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Overdue,
+      },
+      {
+        scenario: "due date is today (Urgent)",
+        daysDue: 0.5,
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Urgent,
+      },
+      {
+        scenario: "due date is strictly overdue but same UTC day (Urgent)",
+        daysDue: -(46 / 60 / 24), // -46 minutes
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Urgent,
+      },
+      {
+        scenario: "due soon within lead time (Active)",
+        daysDue: 3,
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Active,
+      },
+      {
+        scenario: "due shortly outside lead time within buffer (Upcoming)",
+        daysDue: 8,
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Upcoming,
+      },
+      {
+        scenario: "due far in the future (None)",
+        daysDue: 10,
+        leadTimeDays: 7,
+        expected: UrgencyStatus.None,
+      },
+      {
+        // Urgent threshold: timeBuffer <= leadTime * 0.25
+        // With leadTime=7 days, threshold is 1.75 days; 1 day remaining qualifies.
+        scenario: "due in final 25% of lead time (Urgent)",
+        daysDue: 1,
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Urgent,
+      },
+    ])(
+      "should return $expected when $scenario",
+      ({ daysDue, leadTimeDays, expected }) => {
+        const dueDate = now + daysToMilliseconds(daysDue);
+        const leadTime = daysToMilliseconds(leadTimeDays);
+        expect(getUrgencyStatus(dueDate, leadTime, now)).toBe(expected);
+      },
+    );
+
+    it("should return None if dates are undefined", () => {
+      expect(getUrgencyStatus(undefined, 1000, now)).toBe(UrgencyStatus.None);
+      expect(getUrgencyStatus(1000, undefined, now)).toBe(UrgencyStatus.None);
     });
   });
 });

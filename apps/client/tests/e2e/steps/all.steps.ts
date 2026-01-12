@@ -1,3 +1,4 @@
+import { UrgencyStatus } from "@mydoo/tasklens";
 import { createBdd } from "playwright-bdd";
 import { formatDateAsISO } from "../../../src/test/utils/date-formatter";
 import {
@@ -213,5 +214,94 @@ Given(
     await plan.switchToPlanView();
     await plan.openTaskEditor(parentTitle);
     await plan.addChild(childTitle);
+  },
+);
+
+// --- Due Date Feature Steps ---
+
+Given("the current time is {string}", async ({ plan }, isoTime) => {
+  await plan.setClock(new Date(isoTime));
+});
+
+When("I create a task {string}", async ({ plan }, title) => {
+  // Navigate to Plan view if not there
+  await plan.switchToPlanView();
+  await plan.createTask(title);
+});
+
+When(
+  "I add a child task {string} to {string}",
+  async ({ plan }, childTitle, parentTitle) => {
+    await plan.switchToPlanView();
+    await plan.openTaskEditor(parentTitle);
+    await plan.addChild(childTitle);
+    // Close editor to return to list? Or stay?
+    // addChild usually stays in editor or returns.
+    // Assuming we need to close to see the list update or verify indicators.
+    // Let's ensure we close it.
+    await plan.closeEditor();
+  },
+);
+
+When(
+  "I set the due date of {string} to {string}",
+  async ({ plan }, taskTitle, dateStr) => {
+    await plan.openTaskEditor(taskTitle);
+    await plan.setTaskDueDate(dateStr); // YYYY-MM-DD
+    await plan.closeEditor();
+  },
+);
+
+When(
+  "I set the lead time of {string} to {string}",
+  async ({ plan }, taskTitle, leadTimeStr) => {
+    await plan.openTaskEditor(taskTitle);
+    const lead = parseDuration(leadTimeStr);
+    await plan.setTaskLeadTime(lead.value, lead.uiUnit);
+    await plan.closeEditor();
+  },
+);
+
+const STATUS_MAP: Record<string, UrgencyStatus> = {
+  overdue: UrgencyStatus.Overdue,
+  urgent: UrgencyStatus.Urgent,
+  active: UrgencyStatus.Active,
+  upcoming: UrgencyStatus.Upcoming,
+  none: UrgencyStatus.None,
+};
+
+// Use regex to avoid conflict with "should be visible"
+Then(
+  "the task {string} should have urgency {string}",
+  async ({ plan }, taskTitle, status) => {
+    const urgency = STATUS_MAP[status.toLowerCase()];
+    if (!urgency) {
+      throw new Error(`Unknown urgency status in step: "${status}"`);
+    }
+    await plan.verifyTaskUrgency(taskTitle, urgency);
+  },
+);
+
+Given("I have a clean workspace", async ({ page, plan }) => {
+  await plan.setupClock();
+  await page.goto("/");
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await plan.setupClock();
+});
+
+Then(
+  "the task {string} should be due {string}",
+  async ({ plan }, taskTitle, dateText) => {
+    // Use verifyDueDateTextContains to be robust against "Jun 5" vs "Jun 5, 2024" if needed,
+    // but the scenario says "should be due 'Tomorrow'".
+    // If the dateText is short ("Tomorrow", "Yesterday"), exact match is better.
+    // If it is "Jun 5", exact match might be "Jun 5".
+    // Let's us contains for robustness if it's a date string.
+    if (["Tomorrow", "Yesterday", "Today"].includes(dateText)) {
+      await plan.verifyDueDateText(taskTitle, dateText);
+    } else {
+      await plan.verifyDueDateTextContains(taskTitle, dateText);
+    }
   },
 );

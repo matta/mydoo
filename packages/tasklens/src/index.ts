@@ -21,6 +21,7 @@ export {
   DEFAULT_TASK_LEAD_TIME_HOURS,
   DEFAULT_TASK_LEAD_TIME_MS,
 } from "./domain/constants";
+export { getUrgencyStatus, UrgencyStatus } from "./domain/dates";
 // --- Domain: Initialization ---
 export {
   createTaskLensDoc,

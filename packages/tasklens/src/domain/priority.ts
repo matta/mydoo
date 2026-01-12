@@ -158,6 +158,9 @@ function hydrateTask(persisted: PersistedTask): EnrichedTask {
     isPending,
     isReady: false,
     outlineIndex: 0,
+    effectiveDueDate: undefined,
+    effectiveLeadTime: undefined,
+    effectiveScheduleSource: undefined,
   };
 }
 
@@ -180,9 +183,27 @@ export function recalculatePriorities(
   // --- Phase 1: Linear Local Computation ---
   calculateContextualVisibility(state, enrichedTasks, viewFilter, currentTime);
 
-  // Compute LeadTimeFactor for all tasks
+  // Initialize Effective Schedule (Self) before recursion overrides it
   for (const task of enrichedTasks) {
-    task.leadTimeFactor = calculateLeadTimeFactor(task.schedule, currentTime);
+    if (task.schedule.dueDate !== undefined) {
+      task.effectiveDueDate = task.schedule.dueDate;
+      task.effectiveLeadTime = task.schedule.leadTime;
+      task.effectiveScheduleSource = "self";
+    } else if (task.effectiveDueDate === undefined) {
+      task.effectiveDueDate = undefined;
+      task.effectiveLeadTime = undefined;
+      task.effectiveScheduleSource = undefined;
+    }
+  }
+
+  // Compute LeadTimeFactor for all tasks
+  // (Note: This will be re-computed during processChildren if inheritance occurs)
+  for (const task of enrichedTasks) {
+    task.leadTimeFactor = calculateLeadTimeFactor(
+      task.effectiveDueDate,
+      task.effectiveLeadTime ?? task.schedule.leadTime,
+      currentTime,
+    );
 
     // Safety check for NaN
     if (Number.isNaN(task.leadTimeFactor)) {
@@ -286,14 +307,17 @@ function processChildren(
   let hasActiveChild = false; // Track sequential state
 
   for (const child of children) {
-    // Inherit Schedule
+    // Inherit Schedule (Atomic Inheritance w/ Override)
+    // Rule 1: Child explicit schedule ALWAYS wins (already set in initialization loop).
+    // Rule 2: If Child has NO due date, inherit Parent's effective due date & lead time.
+
     if (
-      child.schedule.type === "Once" &&
-      parent.schedule.dueDate !== undefined &&
-      child.schedule.dueDate === undefined
+      child.effectiveDueDate === undefined &&
+      parent.effectiveDueDate !== undefined
     ) {
-      child.schedule.dueDate = parent.schedule.dueDate;
-      child.schedule.leadTime = parent.schedule.leadTime;
+      child.effectiveDueDate = parent.effectiveDueDate;
+      child.effectiveLeadTime = parent.effectiveLeadTime;
+      child.effectiveScheduleSource = "ancestor";
     }
 
     // Propagate Weights & Sequential Logic
@@ -327,8 +351,12 @@ function processChildren(
     }
 
     // Compute LeadTimeFactor (Must occur after Schedule Inheritance)
-    // (Note: Blocked sequential tasks already set to 0 and skipped via continue above)
-    child.leadTimeFactor = calculateLeadTimeFactor(child.schedule, currentTime);
+    // Pass effective dates so inheritance is respected without mutating schedule.
+    child.leadTimeFactor = calculateLeadTimeFactor(
+      child.effectiveDueDate,
+      child.effectiveLeadTime ?? child.schedule.leadTime,
+      currentTime,
+    );
 
     // Safety check for NaN again (in case inheritance caused issues)
     if (Number.isNaN(child.leadTimeFactor)) {
@@ -378,7 +406,9 @@ export function getPrioritizedTasks(
           repeatConfig.frequency,
           repeatConfig.interval,
         );
-        task.schedule.dueDate = lastDone + intervalMs;
+        task.effectiveDueDate = lastDone + intervalMs;
+        task.effectiveLeadTime = task.schedule.leadTime;
+        task.effectiveScheduleSource = "self";
       }
     }
     // DueDate type tasks already have explicit dueDate in schedule.dueDate (from persistence).
@@ -420,7 +450,8 @@ export function getPrioritizedTasks(
 
       // 3. Priority Threshold (Focus Mode)
       // Hidden tasks or explicit dump requests bypass this.
-      if (!options.includeHidden) {
+      // Plan Outline mode should show all tasks regardless of priority.
+      if (!options.includeHidden && options.mode !== "plan-outline") {
         const p = t.priority ?? 0;
         if (p <= MIN_PRIORITY) {
           return false;
@@ -443,6 +474,9 @@ export function getPrioritizedTasks(
         isContainer: enriched.isContainer,
         isPending: enriched.isPending,
         isReady,
+        effectiveDueDate: enriched.effectiveDueDate,
+        effectiveLeadTime: enriched.effectiveLeadTime,
+        effectiveScheduleSource: enriched.effectiveScheduleSource,
       };
 
       return computed;

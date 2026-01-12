@@ -171,4 +171,25 @@ export interface EnrichedTask extends PersistedTask {
    * - Exposed Via: `ComputedTask`
    */
   isReady: boolean;
+
+  // =========================================================================
+  // Effective Schedule State (Inheritance)
+  // These fields store the resolved deadline after applying inheritance rules.
+  // =========================================================================
+
+  /**
+   * The effective due date (timestamp) derived from the task's schedule
+   * or inherited from an ancestor.
+   */
+  effectiveDueDate: number | undefined;
+
+  /**
+   * The effective lead time derived from the task's schedule or inherited.
+   */
+  effectiveLeadTime: number | undefined;
+
+  /**
+   * Indicates where the effective schedule came from.
+   */
+  effectiveScheduleSource?: "self" | "ancestor" | undefined;
 }

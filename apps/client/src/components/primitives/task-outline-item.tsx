@@ -20,6 +20,7 @@ import {
 } from "@tabler/icons-react";
 import { memo, useEffect, useRef } from "react";
 
+import { DueDateBadge } from "./due-date-badge";
 import "./task-outline-item.css";
 
 /**
@@ -251,6 +252,11 @@ export const TaskOutlineItem = memo(function TaskOutlineItem({
         )}
         {node.title}
       </Text>
+
+      <DueDateBadge
+        effectiveDueDate={node.effectiveDueDate}
+        effectiveLeadTime={node.effectiveLeadTime}
+      />
 
       {/* Drill Down Action (Mobile Only) - Always visible in drill mode to allow adding children */}
       {showDrillDown && (
