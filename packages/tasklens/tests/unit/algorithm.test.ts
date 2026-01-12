@@ -5,6 +5,7 @@ import addFormats from "ajv-formats";
 import { load } from "js-yaml";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import featureSchemaJson from "../../specs/compliance/schemas/feature.schema.json";
+import { getUrgencyStatus } from "../../src/domain/dates";
 import { getPrioritizedTasks } from "../../src/domain/priority";
 import type {
   InitialState,
@@ -165,7 +166,8 @@ function parseTaskInput(
     task.repeatConfig = repeatConfig;
   }
 
-  if (parentId) task.parentId = parentId as TaskID;
+  const effectiveParentId = (parentId ?? input.parent_id) as TaskID | undefined;
+  if (effectiveParentId) task.parentId = effectiveParentId;
 
   if (input.due_date) {
     task.schedule.dueDate = new Date(input.due_date).getTime();
@@ -446,12 +448,34 @@ function verifySingleTaskProp(
         ? new Date(expected[propKey] as string).getTime()
         : undefined;
 
+      // Verifies the raw 'schedule.dueDate' stored in persistence.
+      // Note: This does NOT reflect inheritance. To verify the calculated date used by the UI,
+      // use the 'effective_due_date' property in your feature file.
       expect(task.schedule?.dueDate).toBe(expectedDate);
       break;
     }
     case "lead_time":
       expect(task.schedule?.leadTime).toBe(Number(expected[propKey]));
       break;
+    case "effective_due_date": {
+      const expectedDate = expected[propKey]
+        ? new Date(expected[propKey] as string).getTime()
+        : undefined;
+      expect(task.effectiveDueDate).toBe(expectedDate);
+      break;
+    }
+    case "effective_lead_time":
+      expect(task.effectiveLeadTime).toBe(Number(expected[propKey]));
+      break;
+    case "urgency_status": {
+      const status = getUrgencyStatus(
+        task.effectiveDueDate,
+        task.effectiveLeadTime ?? task.schedule?.leadTime,
+        getCurrentTimestamp(),
+      );
+      expect(status).toBe(expected[propKey]);
+      break;
+    }
     default:
       throw new Error(`Unhandled assertion property: ${propKey}`);
   }

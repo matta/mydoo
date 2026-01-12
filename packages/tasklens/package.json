@@ -5,7 +5,6 @@
   "author": "",
   "dependencies": {
     "@reduxjs/toolkit": "catalog:",
-    "date-fns": "^4.1.0",
     "zod": "catalog:"
   },
   "peerDependencies": {

@@ -162,6 +162,7 @@ export function TaskEditorModal({
 
     if (task) {
       const {
+        id,
         title,
         importance,
         creditIncrement,
@@ -169,7 +170,31 @@ export function TaskEditorModal({
         notes,
         repeatConfig,
         isSequential,
+        // Uneditable / Handled elsewhere
+        parentId,
+        childTaskIds,
+        placeId,
+        status,
+        credits,
+        desiredCredits,
+        creditsTimestamp,
+        priorityTimestamp,
+        isAcknowledged,
+        lastCompletedAt,
+        // Computed Properties
+        effectiveCredits,
+        isContainer,
+        isPending,
+        isReady,
+        effectiveDueDate,
+        effectiveLeadTime,
+        effectiveScheduleSource,
+        ...rest
       } = task;
+
+      // Ensure no properties are missed
+      const _exhaustiveCheck: Record<string, never> = rest;
+      void _exhaustiveCheck;
 
       setTitle(title);
       setImportance(importance);

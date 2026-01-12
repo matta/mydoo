@@ -1,3 +1,4 @@
+import { UrgencyStatus } from "@mydoo/tasklens";
 import { createBdd } from "playwright-bdd";
 import { formatDateAsISO } from "../../../src/test/utils/date-formatter";
 import {
@@ -261,19 +262,22 @@ When(
   },
 );
 
-// ... (Existing steps) ...
+const STATUS_MAP: Record<string, UrgencyStatus> = {
+  overdue: UrgencyStatus.Overdue,
+  urgent: UrgencyStatus.Urgent,
+  active: UrgencyStatus.Active,
+  upcoming: UrgencyStatus.Upcoming,
+  none: UrgencyStatus.None,
+};
 
 // Use regex to avoid conflict with "should be visible"
 Then(
-  /^the task "([^"]+)" should be (overdue|urgent|active|upcoming)$/,
+  "the task {string} should have urgency {string}",
   async ({ plan }, taskTitle, status) => {
-    // Map Gherkin status to UrgencyStatus used in data-urgency
-    // "overdue" -> "Overdue"
-    // "urgent" -> "Urgent"
-    // "active" -> "Active"
-    // "upcoming" -> "Upcoming"
-    const urgency =
-      status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    const urgency = STATUS_MAP[status.toLowerCase()];
+    if (!urgency) {
+      throw new Error(`Unknown urgency status in step: "${status}"`);
+    }
     await plan.verifyTaskUrgency(taskTitle, urgency);
   },
 );
@@ -285,13 +289,6 @@ Given("I have a clean workspace", async ({ page, plan }) => {
   await page.reload();
   await plan.setupClock();
 });
-
-Then(
-  "the task {string} should have no urgency status",
-  async ({ plan }, taskTitle) => {
-    await plan.verifyNoDueDateIndicator(taskTitle);
-  },
-);
 
 Then(
   "the task {string} should be due {string}",

@@ -55,8 +55,7 @@ describe("Due Date Logic", () => {
       // Time remaining = 3 days. 2x lead time = 2 days.
       // 3 days > 2 days -> Should be 0.0
 
-      const schedule = { type: "Once" as const, leadTime, dueDate };
-      const factor = calculateLeadTimeFactor(schedule, now);
+      const factor = calculateLeadTimeFactor(dueDate, leadTime, now);
 
       expect(factor).toBe(0.0);
     });
@@ -70,8 +69,7 @@ describe("Due Date Logic", () => {
       // 2x lead time = 2 days.
       // Formula: (2*L - R) / L = (2 - 1.5) / 1 = 0.5
 
-      const schedule = { type: "Once" as const, leadTime, dueDate };
-      const factor = calculateLeadTimeFactor(schedule, now);
+      const factor = calculateLeadTimeFactor(dueDate, leadTime, now);
 
       expect(factor).toBeCloseTo(0.5);
     });
@@ -85,8 +83,7 @@ describe("Due Date Logic", () => {
       // 2*L - R = 2 - 0.5 = 1.5.
       // 1.5 / 1 = 1.5 -> Clamped to 1.0
 
-      const schedule = { type: "Once" as const, leadTime, dueDate };
-      const factor = calculateLeadTimeFactor(schedule, now);
+      const factor = calculateLeadTimeFactor(dueDate, leadTime, now);
 
       expect(factor).toBe(1.0);
     });
@@ -96,8 +93,7 @@ describe("Due Date Logic", () => {
       const leadTime = daysToMilliseconds(1);
       const dueDate = now - daysToMilliseconds(1); // Overdue
 
-      const schedule = { type: "Once" as const, leadTime, dueDate };
-      const factor = calculateLeadTimeFactor(schedule, now);
+      const factor = calculateLeadTimeFactor(dueDate, leadTime, now);
 
       expect(factor).toBe(1.0);
     });
@@ -144,10 +140,10 @@ describe("Due Date Logic", () => {
         expected: UrgencyStatus.None,
       },
       {
+        // Urgent threshold: timeBuffer <= leadTime * 0.25
+        // With leadTime=7 days, threshold is 1.75 days; 1 day remaining qualifies.
         scenario: "due in final 25% of lead time (Urgent)",
-        daysDue: 1, // 1 day vs 7 days lead time (1/7 = ~14% remaining buffer? No, logic is timeBuffer <= 0.25 * leadTime)
-                    // Wait, logic: timeBuffer <= leadTime * 0.25
-                    // 1 day <= 1.75 days. Yes.
+        daysDue: 1,
         leadTimeDays: 7,
         expected: UrgencyStatus.Urgent,
       },

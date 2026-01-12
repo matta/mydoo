@@ -17,7 +17,9 @@ export function toComputedTask<T extends TaskFields>(task: T): ComputedTask {
   const isPending = task.status === "Pending";
   const isContainer = task.childTaskIds.length > 0;
 
-  const isReady = isPending && isTaskReady(task.schedule, currentTime);
+  const isReady =
+    isPending &&
+    isTaskReady(task.schedule.dueDate, task.schedule.leadTime, currentTime);
 
   // Compute decayed credits
   const timeDelta = currentTime - task.creditsTimestamp;

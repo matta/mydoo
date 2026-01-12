@@ -13,6 +13,8 @@ import { useSelector } from "react-redux";
 export interface BreadcrumbItem {
   id: TaskID;
   title: string;
+  effectiveDueDate: number | undefined;
+  effectiveLeadTime: number | undefined;
 }
 
 /**
@@ -44,6 +46,8 @@ export function useBreadcrumbs(
       path.unshift({
         id: task.id,
         title: task.title,
+        effectiveDueDate: task.effectiveDueDate,
+        effectiveLeadTime: task.effectiveLeadTime,
       });
 
       currentId = task.parentId;

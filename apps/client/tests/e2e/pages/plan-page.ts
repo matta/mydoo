@@ -403,12 +403,6 @@ export class PlanPage implements PlanFixture {
     title: string,
     shouldBeSequential: boolean,
   ): Promise<void> {
-    console.log(
-      "DEBUG: setSequential called for",
-      title,
-      "to",
-      shouldBeSequential,
-    );
     await this.openTaskEditor(title);
     const modal = this.page.getByRole("dialog", { name: "Edit Task" });
     const toggle = modal.getByLabel("Sequential Project");
@@ -653,17 +647,29 @@ export class PlanPage implements PlanFixture {
     const row = this.page
       .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
       .first();
+    const breadcrumb = this.page
+      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
+      .first();
 
     const badge = row.locator(`.mantine-Badge-root[data-urgency="${urgency}"]`);
-    await expect(badge).toBeVisible();
+    const breadcrumbBadge = breadcrumb.locator(
+      `.mantine-Badge-root[data-urgency="${urgency}"]`,
+    );
+
+    await expect(badge.or(breadcrumbBadge)).toBeVisible();
   }
 
   async verifyNoDueDateIndicator(taskTitle: string): Promise<void> {
     const row = this.page
       .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
       .first();
+    const breadcrumb = this.page
+      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
+      .first();
+
     // Badges have .mantine-Badge-root
     await expect(row.locator(".mantine-Badge-root")).not.toBeVisible();
+    await expect(breadcrumb.locator(".mantine-Badge-root")).not.toBeVisible();
   }
 
   async verifyDueDateText(
@@ -673,7 +679,14 @@ export class PlanPage implements PlanFixture {
     const row = this.page
       .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
       .first();
-    await expect(row.getByText(expectedText, { exact: true })).toBeVisible();
+    const breadcrumb = this.page
+      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
+      .first();
+
+    const rowText = row.getByText(expectedText, { exact: true });
+    const breadcrumbText = breadcrumb.getByText(expectedText, { exact: true });
+
+    await expect(rowText.or(breadcrumbText)).toBeVisible();
   }
 
   async verifyDueDateTextContains(
@@ -683,6 +696,10 @@ export class PlanPage implements PlanFixture {
     const row = this.page
       .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
       .first();
-    await expect(row).toContainText(part);
+    const breadcrumb = this.page
+      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
+      .first();
+
+    await expect(row.or(breadcrumb)).toContainText(part);
   }
 }

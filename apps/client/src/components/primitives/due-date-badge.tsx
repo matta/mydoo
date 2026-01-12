@@ -13,7 +13,7 @@ const STATUS_COLORS: Record<UrgencyStatus, MantineColor | undefined> = {
   [UrgencyStatus.Urgent]: "orange",
   [UrgencyStatus.Active]: "yellow",
   [UrgencyStatus.Upcoming]: "green",
-  [UrgencyStatus.None]: undefined,
+  [UrgencyStatus.None]: "gray",
 };
 
 export function DueDateBadge({
@@ -25,8 +25,8 @@ export function DueDateBadge({
     return getUrgencyStatus(effectiveDueDate, effectiveLeadTime, Date.now());
   }, [effectiveDueDate, effectiveLeadTime]);
 
-  // If no status or None, render nothing
-  if (status === UrgencyStatus.None || effectiveDueDate === undefined) {
+  // If no effectiveDueDate, render nothing
+  if (effectiveDueDate === undefined) {
     return null;
   }
 

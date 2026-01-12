@@ -115,7 +115,8 @@ export function createTask(
   // Enforce Routine Task Default (Immediate Initialization)
   if (
     newTask.schedule.type === "Routinely" &&
-    newTask.schedule.dueDate === undefined
+    newTask.schedule.dueDate === undefined &&
+    newTask.schedule.lastDone === undefined
   ) {
     newTask.schedule.dueDate = getCurrentTimestamp();
   }
@@ -337,7 +338,8 @@ function handleNestedProperties(
   // If we switched to Routinely (or were already) and have no eligible due date, force it to Now.
   if (
     task.schedule.type === "Routinely" &&
-    task.schedule.dueDate === undefined
+    task.schedule.dueDate === undefined &&
+    task.schedule.lastDone === undefined
   ) {
     task.schedule.dueDate = getCurrentTimestamp();
   }

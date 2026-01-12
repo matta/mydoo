@@ -1,14 +1,14 @@
-import {
-  type AutomergeUrl,
-  Repo,
-  type StorageAdapterInterface,
+import type {
+  AutomergeUrl,
+  StorageAdapterInterface,
 } from "@automerge/automerge-repo";
+import { Repo } from "@automerge/automerge-repo";
 import { useMediaQuery } from "@mantine/hooks";
+import type { TaskID } from "@mydoo/tasklens";
 import {
   createTaskLensTestEnvironment,
   strictMock,
 } from "@mydoo/tasklens/test";
-
 import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -49,8 +49,7 @@ const mocks = vi.hoisted(() => ({
     viewPath: [],
   },
   useTaskTree: {
-    // biome-ignore lint/suspicious/noExplicitAny: Mocking
-    roots: [] as any[],
+    roots: [] as Array<{ id: string }>,
     isLoading: false,
   },
 }));
@@ -82,7 +81,7 @@ vi.mock("../../../viewmodel/ui/use-navigation-state", () => ({
 }));
 
 vi.mock("../../../viewmodel/ui/use-breadcrumbs", () => ({
-  useBreadcrumbs: () => [],
+  useBreadcrumbs: vi.fn(() => []),
 }));
 
 // Mock OutlineTree to simplify rendering
@@ -135,8 +134,7 @@ describe("PlanViewContainer", () => {
 
   it("renders Bottom Bar only on mobile", async () => {
     mockViewport(false); // Mobile
-    // biome-ignore lint/suspicious/noExplicitAny: Mocking
-    mocks.useTaskTree.roots = [{ id: "1" } as any];
+    mocks.useTaskTree.roots = [{ id: "1" }];
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
@@ -149,8 +147,7 @@ describe("PlanViewContainer", () => {
 
   it("does NOT render Bottom Bar on desktop", async () => {
     mockViewport(true); // Desktop
-    // biome-ignore lint/suspicious/noExplicitAny: Mocking
-    mocks.useTaskTree.roots = [{ id: "1" } as any];
+    mocks.useTaskTree.roots = [{ id: "1" }];
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
@@ -162,8 +159,7 @@ describe("PlanViewContainer", () => {
 
   it("renders IconPlus (Append Row) button when tasks exist", async () => {
     mockViewport(true);
-    // biome-ignore lint/suspicious/noExplicitAny: Mocking
-    mocks.useTaskTree.roots = [{ id: "1" } as any];
+    mocks.useTaskTree.roots = [{ id: "1" }];
     mocks.useTaskTree.isLoading = false;
 
     await act(async () => {
@@ -181,8 +177,7 @@ describe("PlanViewContainer", () => {
   it('calls openCreateModal with position="start" when Top "+" tapped (Mobile)', async () => {
     const user = userEvent.setup();
     mockViewport(false);
-    // biome-ignore lint/suspicious/noExplicitAny: Mocking
-    mocks.useTaskTree.roots = [{ id: "1" } as any];
+    mocks.useTaskTree.roots = [{ id: "1" }];
     mocks.useTaskTree.isLoading = false;
     await act(async () => {
       renderWithTestProviders(<PlanViewContainer />, { repo, url: docUrl });
@@ -196,5 +191,42 @@ describe("PlanViewContainer", () => {
       undefined,
       "start",
     );
+  });
+
+  it("renders due date badges in breadcrumbs when present", async () => {
+    mockViewport(false); // Mobile
+    const { useBreadcrumbs } =
+      await import("../../../viewmodel/ui/use-breadcrumbs");
+    vi.mocked(useBreadcrumbs).mockReturnValue([
+      {
+        id: "parent" as TaskID,
+        title: "Parent Task",
+        effectiveDueDate: Date.now() + 86400000,
+        effectiveLeadTime: 28800000,
+      },
+      {
+        id: "child" as TaskID,
+        title: "Child Task",
+        effectiveDueDate: undefined,
+        effectiveLeadTime: undefined,
+      },
+    ]);
+
+    mocks.useTaskTree.roots = [{ id: "child" }];
+
+    await act(async () => {
+      renderWithTestProviders(<PlanViewContainer />, { repo, url: docUrl });
+    });
+
+    // Check parent breadcrumb has a badge (which should have an urgency attribute)
+    const breadcrumbButtons = screen.getAllByRole("button");
+    const parentButton = breadcrumbButtons.find((b) =>
+      b.textContent?.includes("Parent Task"),
+    );
+    expect(parentButton).toBeInTheDocument();
+
+    // The DueDateBadge renders a Mantine Badge which has data-urgency
+    const badge = parentButton?.querySelector("[data-urgency]");
+    expect(badge).toBeInTheDocument();
   });
 });

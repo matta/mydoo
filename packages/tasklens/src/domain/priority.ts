@@ -189,7 +189,7 @@ export function recalculatePriorities(
       task.effectiveDueDate = task.schedule.dueDate;
       task.effectiveLeadTime = task.schedule.leadTime;
       task.effectiveScheduleSource = "self";
-    } else {
+    } else if (task.effectiveDueDate === undefined) {
       task.effectiveDueDate = undefined;
       task.effectiveLeadTime = undefined;
       task.effectiveScheduleSource = undefined;
@@ -199,7 +199,11 @@ export function recalculatePriorities(
   // Compute LeadTimeFactor for all tasks
   // (Note: This will be re-computed during processChildren if inheritance occurs)
   for (const task of enrichedTasks) {
-    task.leadTimeFactor = calculateLeadTimeFactor(task.schedule, currentTime);
+    task.leadTimeFactor = calculateLeadTimeFactor(
+      task.effectiveDueDate,
+      task.effectiveLeadTime ?? task.schedule.leadTime,
+      currentTime,
+    );
 
     // Safety check for NaN
     if (Number.isNaN(task.leadTimeFactor)) {
@@ -314,13 +318,6 @@ function processChildren(
       child.effectiveDueDate = parent.effectiveDueDate;
       child.effectiveLeadTime = parent.effectiveLeadTime;
       child.effectiveScheduleSource = "ancestor";
-
-      // CRITICAL: We also temporarily mutate the child's `schedule` object
-      // so that `calculateLeadTimeFactor` (which reads task.schedule) works correctly.
-      // This mutated schedule is NOT persisting to DB, only living in this ephemeral EnrichedTask.
-      child.schedule.dueDate = parent.effectiveDueDate;
-      child.schedule.leadTime =
-        parent.effectiveLeadTime ?? child.schedule.leadTime;
     }
 
     // Propagate Weights & Sequential Logic
@@ -354,8 +351,12 @@ function processChildren(
     }
 
     // Compute LeadTimeFactor (Must occur after Schedule Inheritance)
-    // (Note: Blocked sequential tasks already set to 0 and skipped via continue above)
-    child.leadTimeFactor = calculateLeadTimeFactor(child.schedule, currentTime);
+    // Pass effective dates so inheritance is respected without mutating schedule.
+    child.leadTimeFactor = calculateLeadTimeFactor(
+      child.effectiveDueDate,
+      child.effectiveLeadTime ?? child.schedule.leadTime,
+      currentTime,
+    );
 
     // Safety check for NaN again (in case inheritance caused issues)
     if (Number.isNaN(child.leadTimeFactor)) {
@@ -405,7 +406,9 @@ export function getPrioritizedTasks(
           repeatConfig.frequency,
           repeatConfig.interval,
         );
-        task.schedule.dueDate = lastDone + intervalMs;
+        task.effectiveDueDate = lastDone + intervalMs;
+        task.effectiveLeadTime = task.schedule.leadTime;
+        task.effectiveScheduleSource = "self";
       }
     }
     // DueDate type tasks already have explicit dueDate in schedule.dueDate (from persistence).
@@ -447,7 +450,8 @@ export function getPrioritizedTasks(
 
       // 3. Priority Threshold (Focus Mode)
       // Hidden tasks or explicit dump requests bypass this.
-      if (!options.includeHidden) {
+      // Plan Outline mode should show all tasks regardless of priority.
+      if (!options.includeHidden && options.mode !== "plan-outline") {
         const p = t.priority ?? 0;
         if (p <= MIN_PRIORITY) {
           return false;

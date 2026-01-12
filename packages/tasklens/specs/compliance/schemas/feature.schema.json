@@ -200,6 +200,26 @@
               "effective_credits": {
                 "type": ["number", "string"]
               },
+              "effective_due_date": {
+                "type": ["string", "null"]
+              },
+              "effective_lead_time": {
+                "type": ["number", "string"]
+              },
+              "due_date": {
+                "type": ["string", "null"]
+              },
+              "urgency_status": {
+                "type": ["string", "null"],
+                "enum": [
+                  "Overdue",
+                  "Urgent",
+                  "Active",
+                  "Upcoming",
+                  "None",
+                  null
+                ]
+              },
               "normalized_importance": {
                 "type": ["number", "string"]
               },
@@ -244,6 +264,9 @@
       "properties": {
         "id": {
           "type": "string"
+        },
+        "parent_id": {
+          "type": ["string", "null"]
         },
         "children": {
           "type": "array",
