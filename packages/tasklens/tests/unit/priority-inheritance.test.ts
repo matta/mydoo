@@ -154,7 +154,10 @@ function baseTask(id: TaskID): EnrichedTask {
     visibility: true,
     isContainer: false,
     isPending: true,
-    isReady: true,
+    isReady: false,
     outlineIndex: 0,
+    effectiveDueDate: undefined,
+    effectiveLeadTime: undefined,
+    effectiveScheduleSource: undefined,
   };
 }

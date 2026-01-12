@@ -33,7 +33,7 @@ import {
   type TaskCreateProps,
   type TaskID,
 } from "@mydoo/tasklens";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DateInput } from "../ui/date-input";
 
 interface TaskEditorModalProps {
@@ -141,8 +141,24 @@ export function TaskEditorModal({
   const [isSequential, setIsSequential] = useState(false);
 
   // Sync form state when the modal opens or the task changes
+  // We use a ref to track the last synced task ID to prevent resetting local state
+  // when the task updates in the background (e.g. priority calc) but is the same task.
+  const lastSyncedTaskId = useRef<TaskID | "create" | undefined>(undefined);
+
   useEffect(() => {
-    if (!opened) return;
+    if (!opened) {
+      lastSyncedTaskId.current = undefined;
+      return;
+    }
+
+    const currentId = task?.id || "create";
+
+    // Only sync if the task ID has changed since last sync
+    if (lastSyncedTaskId.current === currentId) {
+      return;
+    }
+
+    lastSyncedTaskId.current = currentId;
 
     if (task) {
       const {
@@ -153,28 +169,7 @@ export function TaskEditorModal({
         notes,
         repeatConfig,
         isSequential,
-        // The following fields are handled implicitly or not edited in this form
-        id,
-        parentId,
-        childTaskIds,
-        placeId,
-        status,
-        credits,
-        desiredCredits,
-        creditsTimestamp,
-        priorityTimestamp,
-        isAcknowledged,
-        lastCompletedAt,
-        // Computed fields from EnrichedTask/ComputedTask
-        effectiveCredits,
-        isContainer,
-        isPending,
-        isReady,
-        ...rest
       } = task;
-
-      const _exhaustiveCheck: Record<string, never> = rest;
-      void _exhaustiveCheck;
 
       setTitle(title);
       setImportance(importance);
@@ -458,6 +453,7 @@ export function TaskEditorModal({
               onChange={setLeadTimeScalar}
               value={leadTimeScalar}
               style={{ flex: 1 }}
+              disabled={!dueDate && !frequency}
             />
             <Select
               id="lead-time-unit-select"
@@ -467,6 +463,7 @@ export function TaskEditorModal({
               onChange={(val) => val && setLeadTimeUnit(val)}
               style={{ width: "100px" }}
               allowDeselect={false}
+              disabled={!dueDate && !frequency}
               comboboxProps={{
                 // Force the dropdown to render inside the Modal to avoid
                 // FocusTrap conflicts (wedging) caused by Portals in

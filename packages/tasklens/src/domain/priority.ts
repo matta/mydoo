@@ -158,6 +158,9 @@ function hydrateTask(persisted: PersistedTask): EnrichedTask {
     isPending,
     isReady: false,
     outlineIndex: 0,
+    effectiveDueDate: undefined,
+    effectiveLeadTime: undefined,
+    effectiveScheduleSource: undefined,
   };
 }
 
@@ -180,7 +183,21 @@ export function recalculatePriorities(
   // --- Phase 1: Linear Local Computation ---
   calculateContextualVisibility(state, enrichedTasks, viewFilter, currentTime);
 
+  // Initialize Effective Schedule (Self) before recursion overrides it
+  for (const task of enrichedTasks) {
+    if (task.schedule.dueDate !== undefined) {
+      task.effectiveDueDate = task.schedule.dueDate;
+      task.effectiveLeadTime = task.schedule.leadTime;
+      task.effectiveScheduleSource = "self";
+    } else {
+      task.effectiveDueDate = undefined;
+      task.effectiveLeadTime = undefined;
+      task.effectiveScheduleSource = undefined;
+    }
+  }
+
   // Compute LeadTimeFactor for all tasks
+  // (Note: This will be re-computed during processChildren if inheritance occurs)
   for (const task of enrichedTasks) {
     task.leadTimeFactor = calculateLeadTimeFactor(task.schedule, currentTime);
 
@@ -286,14 +303,24 @@ function processChildren(
   let hasActiveChild = false; // Track sequential state
 
   for (const child of children) {
-    // Inherit Schedule
+    // Inherit Schedule (Atomic Inheritance w/ Override)
+    // Rule 1: Child explicit schedule ALWAYS wins (already set in initialization loop).
+    // Rule 2: If Child has NO due date, inherit Parent's effective due date & lead time.
+
     if (
-      child.schedule.type === "Once" &&
-      parent.schedule.dueDate !== undefined &&
-      child.schedule.dueDate === undefined
+      child.effectiveDueDate === undefined &&
+      parent.effectiveDueDate !== undefined
     ) {
-      child.schedule.dueDate = parent.schedule.dueDate;
-      child.schedule.leadTime = parent.schedule.leadTime;
+      child.effectiveDueDate = parent.effectiveDueDate;
+      child.effectiveLeadTime = parent.effectiveLeadTime;
+      child.effectiveScheduleSource = "ancestor";
+
+      // CRITICAL: We also temporarily mutate the child's `schedule` object
+      // so that `calculateLeadTimeFactor` (which reads task.schedule) works correctly.
+      // This mutated schedule is NOT persisting to DB, only living in this ephemeral EnrichedTask.
+      child.schedule.dueDate = parent.effectiveDueDate;
+      child.schedule.leadTime =
+        parent.effectiveLeadTime ?? child.schedule.leadTime;
     }
 
     // Propagate Weights & Sequential Logic
@@ -443,6 +470,9 @@ export function getPrioritizedTasks(
         isContainer: enriched.isContainer,
         isPending: enriched.isPending,
         isReady,
+        effectiveDueDate: enriched.effectiveDueDate,
+        effectiveLeadTime: enriched.effectiveLeadTime,
+        effectiveScheduleSource: enriched.effectiveScheduleSource,
       };
 
       return computed;

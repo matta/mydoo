@@ -27,6 +27,8 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:5179",
     trace: "on-first-retry",
+    timezoneId: "Asia/Tokyo",
+    locale: "en-US",
   },
   webServer: {
     command: "pnpm run dev --port 5179 --strictPort",

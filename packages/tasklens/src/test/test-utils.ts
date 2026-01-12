@@ -124,7 +124,10 @@ export function createMockTask(
     notes: "",
     isContainer: false,
     isPending: true,
-    isReady: true,
+    isReady: false,
+    effectiveDueDate: undefined,
+    effectiveLeadTime: undefined,
+    effectiveScheduleSource: undefined,
     ...overrides,
   };
 

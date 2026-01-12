@@ -42,6 +42,14 @@ export interface TaskFields {
   readonly priorityTimestamp: number;
   readonly schedule: Schedule;
   readonly repeatConfig?: RepeatConfig | undefined;
+
+  // -- Effective Schedule (Computed / Ephemeral) --
+  // These fields do NOT exist in the persisted database.
+  // They are populated during the enrichment phase (domain layer)
+  // and are required in the ComputedTask view model.
+  readonly effectiveDueDate?: number | undefined;
+  readonly effectiveLeadTime?: number | undefined;
+  readonly effectiveScheduleSource?: "self" | "ancestor" | undefined;
 }
 
 /**
@@ -212,6 +220,28 @@ export interface ComputedTask extends TaskFields {
    * True if current time is within Lead Time window matching the Schedule.
    */
   readonly isReady: boolean;
+
+  /**
+   * The effective due date (timestamp) derived from the task's schedule
+   * or inherited from an ancestor.
+   *
+   * - Used for: Displaying "Due: <Date>" badges.
+   * - Inherited via: Atomic Inheritance (Parent Date + Parent Lead Time).
+   */
+  readonly effectiveDueDate: number | undefined;
+
+  /**
+   * The effective lead time derived from the task's schedule or inherited.
+   *
+   * - Used for: Calculating urgency status.
+   */
+  readonly effectiveLeadTime: number | undefined;
+
+  /**
+   * Indicates where the effective schedule came from.
+   * Useful for UI affordances (e.g. "inherited from parent").
+   */
+  readonly effectiveScheduleSource: "self" | "ancestor" | undefined;
 }
 
 /**

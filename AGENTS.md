@@ -303,3 +303,32 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
 - **File Corruption:** comprehensive file overwrite tools should never include
   markdown code block delimiters (```) inside the replacement content unless
   they are part of the string literal being written.
+
+## E2E & BDD Strategy (Playwright)
+
+- **Feature File Location:** `playwright-bdd` is strict about file location. For
+  `@mydoo/client`, feature files MUST be placed in
+  `apps/client/tests/e2e/features/`. Placing them in other folders (like the
+  root `tests/`) will cause them to be ignored by the generator.
+- **Generation Workflow:** Any change to a `.feature` file requires running the
+  generator: `pnpm exec turbo run generate --filter @mydoo/client`. Tests are
+  not auto-generated at runtime. Stale specs cause misleading failures.
+- **Semantic Selectors:** Avoid checking CSS styles (e.g. colors) or fragile
+  label text. Instead, modify components to emit stable data attributes (e.g.,
+  `data-urgency="Overdue"` or `data-testid="my-element"`) and assert on those.
+- **Timezone Pitfalls:** `page.clock.setFixedTime(...)` sets the system time
+  (often UTC in CI), but `new Date()` in the browser uses the browser's local
+  timezone. When testing date boundaries (e.g., "due today"), ensure the test
+  environment and browser timezone align, or use ISO strings that force specific
+  handling.
+- **Declarative Steps:** Prefer high-level domain actions ("Given I have a clean
+  workspace") over implementation details ("Given I click the settings button").
+- **Debugging "Element Not Found":**
+  1.  **Inject Console Relays:** In the Page Object constructor, adding
+      `page.on("console", msg => console.log(msg.text()))` renders browser logs
+      in the Node process. This is the only way to see what's happening inside
+      the app during a headless run.
+  2.  **Verify Component Existence:** If expected logs from a child component
+      (e.g., `[DEBUG] Rendering Badge`) do not appear, the issue is likely that
+      the **parent is not rendering the child at all**, not that the child logic
+      is broken. Check the parent's `render` method immediately.

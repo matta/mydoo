@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getUrgencyStatus, UrgencyStatus } from "../../src/domain/dates";
 import { calculateLeadTimeFactor } from "../../src/domain/readiness";
 import { createTask, updateTask } from "../../src/persistence/ops";
 import { TunnelStore } from "../../src/persistence/store";
@@ -99,6 +100,69 @@ describe("Due Date Logic", () => {
       const factor = calculateLeadTimeFactor(schedule, now);
 
       expect(factor).toBe(1.0);
+    });
+  });
+
+  describe("Urgency Status (getUrgencyStatus)", () => {
+    const now = REFERENCE_TIME; // 2001-09-09T01:46:40.000Z
+
+    it.each([
+      {
+        scenario: "due date is in the past (Overdue)",
+        daysDue: -1,
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Overdue,
+      },
+      {
+        scenario: "due date is today (Urgent)",
+        daysDue: 0.5,
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Urgent,
+      },
+      {
+        scenario: "due date is strictly overdue but same UTC day (Urgent)",
+        daysDue: -(46 / 60 / 24), // -46 minutes
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Urgent,
+      },
+      {
+        scenario: "due soon within lead time (Active)",
+        daysDue: 3,
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Active,
+      },
+      {
+        scenario: "due shortly outside lead time within buffer (Upcoming)",
+        daysDue: 8,
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Upcoming,
+      },
+      {
+        scenario: "due far in the future (None)",
+        daysDue: 10,
+        leadTimeDays: 7,
+        expected: UrgencyStatus.None,
+      },
+      {
+        scenario: "due in final 25% of lead time (Urgent)",
+        daysDue: 1, // 1 day vs 7 days lead time (1/7 = ~14% remaining buffer? No, logic is timeBuffer <= 0.25 * leadTime)
+                    // Wait, logic: timeBuffer <= leadTime * 0.25
+                    // 1 day <= 1.75 days. Yes.
+        leadTimeDays: 7,
+        expected: UrgencyStatus.Urgent,
+      },
+    ])(
+      "should return $expected when $scenario",
+      ({ daysDue, leadTimeDays, expected }) => {
+        const dueDate = now + daysToMilliseconds(daysDue);
+        const leadTime = daysToMilliseconds(leadTimeDays);
+        expect(getUrgencyStatus(dueDate, leadTime, now)).toBe(expected);
+      },
+    );
+
+    it("should return None if dates are undefined", () => {
+      expect(getUrgencyStatus(undefined, 1000, now)).toBe(UrgencyStatus.None);
+      expect(getUrgencyStatus(1000, undefined, now)).toBe(UrgencyStatus.None);
     });
   });
 });

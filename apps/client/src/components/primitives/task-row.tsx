@@ -1,5 +1,6 @@
 import { Checkbox, Group, Paper, Text } from "@mantine/core";
 import type { ComputedTask, TaskID } from "@mydoo/tasklens";
+import { DueDateBadge } from "./due-date-badge";
 
 /**
  * Props for the TaskRow component.
@@ -68,6 +69,11 @@ export function TaskRow({ task, onToggle, onTitleTap, style }: TaskRowProps) {
         >
           {task.title}
         </Text>
+
+        <DueDateBadge
+          effectiveDueDate={task.effectiveDueDate}
+          effectiveLeadTime={task.effectiveLeadTime}
+        />
       </Group>
     </Paper>
   );

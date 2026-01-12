@@ -30,6 +30,9 @@ export function toComputedTask<T extends TaskFields>(task: T): ComputedTask {
     isContainer,
     isPending,
     isReady,
+    effectiveDueDate: task.effectiveDueDate,
+    effectiveLeadTime: task.effectiveLeadTime,
+    effectiveScheduleSource: task.effectiveScheduleSource,
   } as ComputedTask;
 }
 
