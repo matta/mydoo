@@ -87,6 +87,8 @@
 - **Code Review Guidance:** See
   [docs/guidance/code-review.md](docs/guidance/code-review.md) for best
   practices on TypeScript, React, Redux, and testing conventions.
+- **Testing Strategy:** See [docs/design/testing.md](docs/design/testing.md) for
+  the authoritative guide on unit, integration, and E2E testing execution.
 - **Markdown Style:** Use markdown bold and italics rarely.
 
 ## Testing Requirements
@@ -143,6 +145,9 @@ For efforts spanning multiple sessions or commits, we maintain a root-level
     effort. It is not tracked in git.
 
 ## Testing Strategy
+
+For a detailed implementation guide, see
+[docs/design/testing.md](docs/design/testing.md).
 
 ### Core Philosophy: Fidelity First
 
