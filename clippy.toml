@@ -1,0 +1,12 @@
+# Clippy complexity lints configuration
+# Initial values were chosen to enforce stricter code quality.
+# If these are relaxed to avoid warnings, the original target is noted in comments.
+
+# Target: 15
+cognitive-complexity-threshold = 15
+
+# Target: 5
+too-many-arguments-threshold = 5
+
+# Target: 160
+type-complexity-threshold = 250

@@ -4,6 +4,11 @@ members = [
   "crates/*",
 ]
 
+[workspace.lints.clippy]
+cognitive_complexity = "warn"
+too_many_arguments = "warn"
+type_complexity = "warn"
+
 [workspace.package]
 version = "0.1.0"
 authors = ["Matt Armstrong <matt@rfc20.org>"]
