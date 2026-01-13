@@ -95,7 +95,7 @@ _Goal: Working Rust domain logic and basic persistence._
 
 - [x] **Milestone 1.1**: Create Rust workspace structure (or efficient usage of
       `todo_mvp`).
-- [ ] **Milestone 1.2**: Port `TunnelState`, `Task`, and basic types to Rust
+- [x] **Milestone 1.2**: Port `TunnelState`, `Task`, and basic types to Rust
       structs.
   - **Destination**: `crates/tasklens-core`
   - **Source Types**:
