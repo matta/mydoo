@@ -269,10 +269,15 @@ pub struct ComputedTask {
     pub is_sequential: bool,
     pub is_acknowledged: bool,
     pub last_completed_at: Option<u64>,
+    // TODO: Remove - logic detail hidden from view layer
     pub score: f64,
+    // TODO: Remove - logic detail hidden from view layer
     pub normalized_importance: f64,
+    // TODO: Remove - logic detail hidden from view layer
     pub is_blocked: bool,
+    // TODO: Remove - logic detail hidden from view layer
     pub is_visible: bool,
+    // TODO: Remove - UI state, not domain state
     pub is_open: bool,
     pub is_container: bool,
     pub is_pending: bool,
@@ -280,6 +285,7 @@ pub struct ComputedTask {
     pub effective_due_date: Option<u64>,
     pub effective_lead_time: Option<u64>,
     pub effective_schedule_source: Option<ScheduleSource>,
+    // TODO: Remove - computed in UI component in TS
     pub urgency_status: UrgencyStatus,
 }
 

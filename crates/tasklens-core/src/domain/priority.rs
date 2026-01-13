@@ -456,10 +456,10 @@ pub fn get_prioritized_tasks(
                 last_completed_at: e.last_completed_at,
                 score: e.priority,
                 normalized_importance: e.normalized_importance,
-                // TODO: Implement proper blocking logic based on sequential parent state
+                // TODO: Remove this field (doesn't exist in TS ComputedTask)
                 is_blocked: !is_ready && e.is_pending,
                 is_visible: e.visibility,
-                // TODO: Implement open/closed state for collapsible task containers
+                // TODO: Remove this field (doesn't exist in TS ComputedTask)
                 is_open: true,
                 is_container: e.is_container,
                 is_pending: e.is_pending,
