@@ -1,4 +1,5 @@
 [application]
+platform = "web"
 
 [web.app]
 

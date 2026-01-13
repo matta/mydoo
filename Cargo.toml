@@ -25,4 +25,4 @@ wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
 web-sys = "0.3"
-getrandom = { version = "0.2", features = ["js"] }
+getrandom = { version = "0.3.4", features = ["wasm_js"] }
