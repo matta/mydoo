@@ -168,6 +168,44 @@ _Goal: Working Rust domain logic and basic persistence._
       specs against the Rust domain crate.
   - _Success Criteria_: Rust domain tests pass the same scenarios as TS domain
     tests.
+  - **Implementation Details**:
+    - **[MODIFY] `crates/tasklens-core/Cargo.toml`**:
+      - Add `serde_yaml`, `anyhow`, `glob` to `dev-dependencies`.
+    - **[NEW] `crates/tasklens-core/tests/compliance.rs`**:
+      - **Structs**: Define `Feature`, `Background`, `Scenario`, `Step`,
+        `Given`, `When`, `Then`, `TaskDef`, `TaskUpdate` matching the YAML
+        schema.
+      - **Harness**:
+        - Iterate all files in
+          `packages/tasklens/specs/compliance/fixtures/*.yaml`.
+        - **Setup**: `TunnelState` from `background` + `given`.
+        - **Execution**: Apply `when` mutations (status changes, etc.) and run
+          `priority::recalculate_priorities`.
+        - **Assertion**:
+          - `expected_order`: Verify `TunnelState.view.task_order` matches IDs.
+          - `expected_props`: Verify specific fields (e.g. `urgency_status`,
+            `effective_due_date`) on `ComputedTask` or `PersistedTask`.
+    - **[NOTE]**: Some YAMLs use `legacy_description` or implicit `when` blocks.
+      The parser must be robust or we must clean up the YAMLs (prefer parser
+      robustness/flexibility).
+    - **Verification**:
+      - [ ] **Exhaustive Field Usage Check**: The test runner must enforce that
+            every field present in the YAML fixtures is both _defined_ in the
+            Rust structs and _consumed_ by the test logic.
+        - **Problem**: Standard `serde` deserialization ignores unknown fields
+          (YAML has it, Struct doesn't) and dot-access ignores unused fields
+          (Struct has it, Code doesn't read it).
+        - **Solution**:
+          1.  Apply `#[serde(deny_unknown_fields)]` to all BDD structs
+              (`Scenario`, `Step`, etc.). This ensures the Rust structs match
+              the YAML schema exactly.
+          2.  Use **Exhaustive Destructuring** in the test runner logic. Do not
+              access fields via `step.field`. Instead, pattern match:
+              `let Step { given, when, then } = step;`. This forces the compiler
+              to flag unused fields if the logic ignores parts of the struct.
+      - [ ] `cargo test` passes.
+      - [ ] `cargo fmt --check` passes.
+      - [ ] `pnpm check` passes.
 
 ### Epoch 2: The Walking Skeleton
 
