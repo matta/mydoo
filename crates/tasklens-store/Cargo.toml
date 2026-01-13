@@ -1,0 +1,12 @@
+[package]
+name = "tasklens-store"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+tasklens-core = { path = "../tasklens-core" }
+anyhow.workspace = true
+serde.workspace = true
+automerge.workspace = true
+samod.workspace = true

@@ -1,0 +1,28 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/*",
+]
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Matt Armstrong <matt@rfc20.org>"]
+edition = "2024"
+
+[workspace.dependencies]
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde", "wasmbind"] }
+uuid = { version = "1.19.0", features = ["v4", "serde", "js"] }
+tracing = "0.1"
+dioxus = { version = "0.7.1" }
+dioxus-logger = "0.7.2"
+automerge = { version = "0.7.2" }
+autosurgeon = "0.10.1"
+samod = { git = "https://github.com/alexjg/samod" }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+web-sys = "0.3"
+getrandom = { version = "0.2", features = ["js"] }

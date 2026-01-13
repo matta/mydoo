@@ -93,7 +93,7 @@ members = [
 
 _Goal: Working Rust domain logic and basic persistence._
 
-- [ ] **Milestone 1.1**: Create Rust workspace structure (or efficient usage of
+- [x] **Milestone 1.1**: Create Rust workspace structure (or efficient usage of
       `todo_mvp`).
 - [ ] **Milestone 1.2**: Port `TunnelState`, `Task`, and basic types to Rust
       structs.

@@ -337,3 +337,26 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
       (e.g., `[DEBUG] Rendering Badge`) do not appear, the issue is likely that
       the **parent is not rendering the child at all**, not that the child logic
       is broken. Check the parent's `render` method immediately.
+
+## Rust & Dioxus Workspace Strategies (Migration)
+
+- **Root Workspace Pattern:** For hybrid JS/Rust monorepos, use a root-level
+  `Cargo.toml` with a `[workspace]` definition. This allows `cargo` commands to
+  be run from the root.
+- **Member Isolation (`crates/` vs `apps/`):** During a migration, isolate ALL
+  new Rust crates (logic, stores, and UI) inside a top-level `crates/`
+  directory. This prevents confusion with legacy Node.js-based `apps/` and
+  `packages/`.
+- **Dependency Centralization:** Define all shared dependencies in the root
+  `Cargo.toml` under `[workspace.dependencies]`. In individual crates, use
+  `dependency_name.workspace = true`. This ensures version parity across the
+  migration effort.
+- **Dioxus Config Isolation:** Each Dioxus app (UI crate) needs its own
+  `Dioxus.toml` within its crate directory.
+- **WASM Feature Flags:** When targeting WASM (Dioxus), ensure dependencies
+  supporting browser environments (e.g., `getrandom`, `uuid`, `chrono`) have the
+  `js` or `wasmbind` features enabled in the root workspace dependencies to
+  prevent compilation errors in the WASM target.
+- **Gitignore Hygiene:** Add `target/` and binary output directories to the root
+  `.gitignore` early to prevent accidental inclusion of heavy Rust build
+  artifacts.

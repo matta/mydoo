@@ -35,3 +35,9 @@ ROLLING_CONTEXT.md
 **/.features-gen
 .ralph-state/
 .gemini/commands/my
+
+# Rust
+target/
+**/*.rs.bk
+debug/
+release/
