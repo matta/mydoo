@@ -164,13 +164,13 @@ _Goal: Working Rust domain logic and basic persistence._
     - [x] Unit tests for `calculateLeadTimeFactor` in `readiness.rs`.
     - [x] Integration smoke test in `priority.rs`: Build a tree, prioritize,
           assert order.
-- [ ] **Milestone 1.4**: Implement a test runner to execute existing YAML BDD
+- [x] **Milestone 1.4**: Implement a test runner to execute existing YAML BDD
       specs against the Rust domain crate.
   - _Success Criteria_: Rust domain tests pass the same scenarios as TS domain
     tests.
   - **Implementation Details**:
     - **[MODIFY] `crates/tasklens-core/Cargo.toml`**:
-      - Add `serde_yaml`, `anyhow`, `glob` to `dev-dependencies`.
+      - Add `serde_yaml_ng`, `anyhow`, `glob` to `dev-dependencies`.
     - **[NEW] `crates/tasklens-core/tests/compliance.rs`**:
       - **Structs**: Define `Feature`, `Background`, `Scenario`, `Step`,
         `Given`, `When`, `Then`, `TaskDef`, `TaskUpdate` matching the YAML
@@ -189,23 +189,16 @@ _Goal: Working Rust domain logic and basic persistence._
       The parser must be robust or we must clean up the YAMLs (prefer parser
       robustness/flexibility).
     - **Verification**:
-      - [ ] **Exhaustive Field Usage Check**: The test runner must enforce that
+      - [x] **Exhaustive Field Usage Check**: The test runner enforces that
             every field present in the YAML fixtures is both _defined_ in the
             Rust structs and _consumed_ by the test logic.
-        - **Problem**: Standard `serde` deserialization ignores unknown fields
-          (YAML has it, Struct doesn't) and dot-access ignores unused fields
-          (Struct has it, Code doesn't read it).
         - **Solution**:
-          1.  Apply `#[serde(deny_unknown_fields)]` to all BDD structs
-              (`Scenario`, `Step`, etc.). This ensures the Rust structs match
-              the YAML schema exactly.
-          2.  Use **Exhaustive Destructuring** in the test runner logic. Do not
-              access fields via `step.field`. Instead, pattern match:
-              `let Step { given, when, then } = step;`. This forces the compiler
-              to flag unused fields if the logic ignores parts of the struct.
-      - [ ] `cargo test` passes.
-      - [ ] `cargo fmt --check` passes.
-      - [ ] `pnpm check` passes.
+          1.  Applied `#[serde(deny_unknown_fields)]` to all BDD structs.
+          2.  Used **Exhaustive Destructuring** in the test runner logic to
+              ensure all fields are matched.
+      - [x] `cargo test` passes.
+      - [x] `cargo fmt --check` passes.
+      - [x] `pnpm check` passes.
 
 ### Epoch 2: The Walking Skeleton
 

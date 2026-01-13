@@ -130,7 +130,8 @@ pub struct Schedule {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub due_date: Option<u64>,
     /// Lead time in milliseconds before due date to start showing urgency.
-    pub lead_time: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lead_time: Option<u64>,
     /// Timestamp of last completion (for Routinely tasks).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_done: Option<u64>,
@@ -259,6 +260,7 @@ pub struct ComputedTask {
     pub importance: f64,
     pub credit_increment: Option<f64>,
     pub credits: f64,
+    pub effective_credits: f64,
     pub desired_credits: f64,
     pub credits_timestamp: u64,
     pub priority_timestamp: u64,
@@ -267,13 +269,18 @@ pub struct ComputedTask {
     pub is_sequential: bool,
     pub is_acknowledged: bool,
     pub last_completed_at: Option<u64>,
-
+    pub score: f64,
+    pub normalized_importance: f64,
+    pub is_blocked: bool,
+    pub is_visible: bool,
+    pub is_open: bool,
     pub is_container: bool,
     pub is_pending: bool,
     pub is_ready: bool,
     pub effective_due_date: Option<u64>,
     pub effective_lead_time: Option<u64>,
     pub effective_schedule_source: Option<ScheduleSource>,
+    pub urgency_status: UrgencyStatus,
 }
 
 /// Runtime context for algorithm calculations.
@@ -373,7 +380,7 @@ mod tests {
             schedule: Schedule {
                 schedule_type: ScheduleType::Once,
                 due_date: None,
-                lead_time: 0,
+                lead_time: Some(0),
                 last_done: None,
             },
             repeat_config: None,
@@ -430,7 +437,7 @@ mod tests {
                 schedule: Schedule {
                     schedule_type: ScheduleType::Once,
                     due_date: None,
-                    lead_time: 0,
+                    lead_time: Some(0),
                     last_done: None,
                 },
                 repeat_config: None,

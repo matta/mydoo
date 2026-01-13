@@ -1,3 +1,4 @@
+use crate::domain::constants::DEFAULT_TASK_LEAD_TIME_MS;
 use crate::types::{ScheduleType, TaskStatus, TunnelState};
 use crate::utils::time::get_interval_ms;
 
@@ -21,7 +22,8 @@ pub fn wake_up_routine_tasks(state: &mut TunnelState, current_time: u64) {
             let next_due_date = last_completed_at + interval_ms;
 
             // Lead Time defines how early the task appears before it's due
-            let wake_up_time = next_due_date.saturating_sub(task.schedule.lead_time);
+            let lead_time = task.schedule.lead_time.unwrap_or(DEFAULT_TASK_LEAD_TIME_MS);
+            let wake_up_time = next_due_date.saturating_sub(lead_time);
 
             if current_time >= wake_up_time {
                 // Wake up the task!
@@ -67,7 +69,7 @@ mod tests {
                 schedule: Schedule {
                     schedule_type: ScheduleType::Routinely,
                     due_date: None,
-                    lead_time: 1000,
+                    lead_time: Some(1000),
                     last_done: None,
                 },
                 repeat_config: Some(RepeatConfig {
@@ -89,14 +91,14 @@ mod tests {
         };
 
         // Current time: 100500 ms
-        // Next due: 100000 + (24*60*60*1000) = 86,500,000 + 100,000 = 86,600,000
-        // Wake up time: 86,600,000 - 1,000 = 86,599,000
-        // 100500 < 86599000, so it shouldn't wake up.
+        // Next due: 100000 + (24*60*60*1000) = 86,400,000 + 100,000 = 86,500,000
+        // Wake up time: 86,500,000 - 1,000 = 86,499,000
+        // 100500 < 86499000, so it shouldn't wake up.
         wake_up_routine_tasks(&mut state, 100500);
         assert_eq!(state.tasks[&task_id].status, TaskStatus::Done);
 
-        // Current time: 86600000 (Exactly at due date)
-        wake_up_routine_tasks(&mut state, 86600000);
+        // Current time: 86500000 (Exactly at due date)
+        wake_up_routine_tasks(&mut state, 86500000);
         assert_eq!(state.tasks[&task_id].status, TaskStatus::Pending);
         assert!(!state.tasks[&task_id].is_acknowledged);
     }

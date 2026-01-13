@@ -1,3 +1,6 @@
+use crate::domain::constants::{
+    CREDITS_HALF_LIFE_MILLIS, DEFAULT_CREDIT_INCREMENT, DEFAULT_TASK_LEAD_TIME_MS, MIN_PRIORITY,
+};
 use crate::domain::feedback::calculate_feedback_factors;
 use crate::domain::readiness::calculate_lead_time_factor;
 use crate::domain::visibility::calculate_contextual_visibility;
@@ -9,9 +12,6 @@ use crate::utils::time::{get_current_timestamp, get_interval_ms};
 
 use std::collections::HashMap;
 
-const CREDITS_HALF_LIFE_MILLIS: f64 = 4.0 * 60.0 * 60.0 * 1000.0; // 4 hours
-const DEFAULT_CREDIT_INCREMENT: f64 = 0.5;
-const MIN_PRIORITY: f64 = 0.001;
 const PRIORITY_EPSILON: f64 = 0.000001;
 
 /// Builds lookup indexes for tasks and sorts children based on explicit order logic.
@@ -100,8 +100,12 @@ fn traverse_assign(
         for &idx in child_indices {
             enriched_tasks[idx].outline_index = *current_index;
             *current_index += 1;
-            let id = enriched_tasks[idx].id.clone();
-            traverse_assign(Some(id), enriched_tasks, children_index, current_index);
+            traverse_assign(
+                Some(enriched_tasks[idx].id.clone()),
+                enriched_tasks,
+                children_index,
+                current_index,
+            );
         }
     }
 }
@@ -110,6 +114,26 @@ fn traverse_assign(
 fn hydrate_task(persisted: &PersistedTask) -> EnrichedTask {
     let is_container = !persisted.child_task_ids.is_empty();
     let is_pending = persisted.status == TaskStatus::Pending;
+
+    let effective_due_date = match persisted.schedule.schedule_type {
+        ScheduleType::Routinely => {
+            if let (Some(last_done), Some(config)) =
+                (persisted.schedule.last_done, &persisted.repeat_config)
+            {
+                Some(last_done + get_interval_ms(config.frequency, config.interval))
+            } else {
+                persisted.schedule.due_date
+            }
+        }
+        ScheduleType::Once | ScheduleType::DueDate | ScheduleType::Calendar => {
+            persisted.schedule.due_date
+        }
+    };
+
+    let effective_lead_time = persisted
+        .schedule
+        .lead_time
+        .or(Some(DEFAULT_TASK_LEAD_TIME_MS));
 
     EnrichedTask {
         id: persisted.id.clone(),
@@ -120,7 +144,9 @@ fn hydrate_task(persisted: &PersistedTask) -> EnrichedTask {
         place_id: persisted.place_id.clone(),
         status: persisted.status,
         importance: persisted.importance,
-        credit_increment: persisted.credit_increment,
+        credit_increment: persisted
+            .credit_increment
+            .or(Some(DEFAULT_CREDIT_INCREMENT)),
         credits: persisted.credits,
         desired_credits: persisted.desired_credits,
         credits_timestamp: persisted.credits_timestamp,
@@ -142,9 +168,12 @@ fn hydrate_task(persisted: &PersistedTask) -> EnrichedTask {
         is_pending,
         is_ready: false,
 
-        effective_due_date: persisted.schedule.due_date,
-        effective_lead_time: Some(persisted.schedule.lead_time),
-        effective_schedule_source: if persisted.schedule.due_date.is_some() {
+        effective_due_date,
+        effective_lead_time,
+        effective_schedule_source: if persisted.schedule.due_date.is_some()
+            || (persisted.schedule.schedule_type == ScheduleType::Routinely
+                && persisted.schedule.last_done.is_some())
+        {
             Some(ScheduleSource::Myself)
         } else {
             None
@@ -175,7 +204,8 @@ pub fn recalculate_priorities(
     for task in enriched_tasks.iter_mut() {
         task.lead_time_factor = calculate_lead_time_factor(
             task.effective_due_date,
-            task.effective_lead_time.unwrap_or(task.schedule.lead_time),
+            task.effective_lead_time
+                .unwrap_or(task.schedule.lead_time.unwrap_or(0)),
             current_time,
         );
 
@@ -243,8 +273,9 @@ fn evaluate_task_recursive(
     } else {
         // Compute Final Priority
         let visibility_factor = if task.visibility { 1.0 } else { 0.0 };
-        let lead_time_factor = task.lead_time_factor;
+
         let normalized_importance = task.normalized_importance;
+        let lead_time_factor = task.lead_time_factor;
 
         let safe_lead_time = if lead_time_factor.is_nan() {
             0.0
@@ -322,7 +353,7 @@ fn process_children(
         // Re-compute lead time factor after inheritance
         let lead_time = enriched_tasks[child_idx]
             .effective_lead_time
-            .unwrap_or(enriched_tasks[child_idx].schedule.lead_time);
+            .unwrap_or(enriched_tasks[child_idx].schedule.lead_time.unwrap_or(0));
         enriched_tasks[child_idx].lead_time_factor = calculate_lead_time_factor(
             enriched_tasks[child_idx].effective_due_date,
             lead_time,
@@ -344,21 +375,7 @@ pub fn get_prioritized_tasks(
     // --- Stage 1: Hydrate & Initialize ---
     let mut enriched_tasks: Vec<EnrichedTask> = state.tasks.values().map(hydrate_task).collect();
 
-    // Phase 0: Date Resolution (Pass 1)
-    for task in enriched_tasks.iter_mut() {
-        if let (ScheduleType::Routinely, Some(last_done), Some(repeat_config)) = (
-            task.schedule.schedule_type,
-            task.schedule.last_done,
-            &task.repeat_config,
-        ) {
-            let interval_ms = get_interval_ms(repeat_config.frequency, repeat_config.interval);
-            task.effective_due_date = Some(last_done + interval_ms);
-            task.effective_lead_time = Some(task.schedule.lead_time);
-            task.effective_schedule_source = Some(ScheduleSource::Myself);
-        }
-    }
-
-    // --- Stage 2: Process ---
+    // --- Stage 2: Core Algorithm ---
     recalculate_priorities(
         state,
         &mut enriched_tasks,
@@ -366,11 +383,13 @@ pub fn get_prioritized_tasks(
         options.context.as_ref(),
     );
 
-    // --- Stage 3: Sanitize & Sort ---
+    // --- Stage 3: Sorting ---
+    // Sort by: Priority (desc) -> Importance (desc) -> Outline Index (asc)
     enriched_tasks.sort_by(|a, b| {
         if (a.priority - b.priority).abs() > PRIORITY_EPSILON {
             b.priority.partial_cmp(&a.priority).unwrap()
         } else if (a.importance - b.importance).abs() > f64::EPSILON {
+            // Tiebreaker: higher importance first
             b.importance.partial_cmp(&a.importance).unwrap()
         } else {
             a.outline_index.cmp(&b.outline_index)
@@ -386,7 +405,8 @@ pub fn get_prioritized_tasks(
             }
 
             // Status Check
-            if options.mode != Some(PriorityMode::PlanOutline)
+            if !options.include_hidden
+                && options.mode != Some(PriorityMode::PlanOutline)
                 && t.status == TaskStatus::Done
                 && t.is_acknowledged
             {
@@ -405,6 +425,15 @@ pub fn get_prioritized_tasks(
         })
         .map(|e| {
             let is_ready = e.is_pending && e.lead_time_factor > 0.0;
+            let status = crate::domain::dates::get_urgency_status(
+                e.effective_due_date,
+                e.effective_lead_time,
+                options
+                    .context
+                    .as_ref()
+                    .map(|c| c.current_time)
+                    .unwrap_or_else(get_current_timestamp),
+            );
             ComputedTask {
                 id: e.id,
                 title: e.title,
@@ -416,6 +445,7 @@ pub fn get_prioritized_tasks(
                 importance: e.importance,
                 credit_increment: e.credit_increment,
                 credits: e.credits,
+                effective_credits: e.effective_credits,
                 desired_credits: e.desired_credits,
                 credits_timestamp: e.credits_timestamp,
                 priority_timestamp: e.priority_timestamp,
@@ -424,12 +454,20 @@ pub fn get_prioritized_tasks(
                 is_sequential: e.is_sequential,
                 is_acknowledged: e.is_acknowledged,
                 last_completed_at: e.last_completed_at,
+                score: e.priority,
+                normalized_importance: e.normalized_importance,
+                // TODO: Implement proper blocking logic based on sequential parent state
+                is_blocked: !is_ready && e.is_pending,
+                is_visible: e.visibility,
+                // TODO: Implement open/closed state for collapsible task containers
+                is_open: true,
                 is_container: e.is_container,
                 is_pending: e.is_pending,
                 is_ready,
                 effective_due_date: e.effective_due_date,
                 effective_lead_time: e.effective_lead_time,
                 effective_schedule_source: e.effective_schedule_source,
+                urgency_status: status,
             }
         })
         .collect()
