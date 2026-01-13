@@ -12,13 +12,16 @@ use crate::utils::time::{get_current_timestamp, get_interval_ms};
 
 use std::collections::HashMap;
 
+type TaskLookup = HashMap<TaskID, usize>;
+type ChildrenLookup = HashMap<Option<TaskID>, Vec<usize>>;
+
 const PRIORITY_EPSILON: f64 = 0.000001;
 
 /// Builds lookup indexes for tasks and sorts children based on explicit order logic.
 fn build_indexes(
     state: &TunnelState,
     enriched_tasks: &[EnrichedTask],
-) -> (HashMap<TaskID, usize>, HashMap<Option<TaskID>, Vec<usize>>) {
+) -> (TaskLookup, ChildrenLookup) {
     let mut task_map = HashMap::new();
     let mut children_index = HashMap::new();
 
@@ -82,10 +85,7 @@ fn build_indexes(
 }
 
 /// Assigns outline index via DFS traversal.
-fn assign_outline_indexes(
-    enriched_tasks: &mut [EnrichedTask],
-    children_index: &HashMap<Option<TaskID>, Vec<usize>>,
-) {
+fn assign_outline_indexes(enriched_tasks: &mut [EnrichedTask], children_index: &ChildrenLookup) {
     let mut current_index = 0;
     traverse_assign(None, enriched_tasks, children_index, &mut current_index);
 }
@@ -93,7 +93,7 @@ fn assign_outline_indexes(
 fn traverse_assign(
     parent_id: Option<TaskID>,
     enriched_tasks: &mut [EnrichedTask],
-    children_index: &HashMap<Option<TaskID>, Vec<usize>>,
+    children_index: &ChildrenLookup,
     current_index: &mut u32,
 ) {
     if let Some(child_indices) = children_index.get(&parent_id) {
@@ -239,7 +239,7 @@ fn evaluate_task_recursive(
     task_idx: usize,
     root_idx: Option<usize>,
     enriched_tasks: &mut [EnrichedTask],
-    children_index: &HashMap<Option<TaskID>, Vec<usize>>,
+    children_index: &ChildrenLookup,
     current_time: u64,
 ) -> bool {
     let child_indices = children_index
