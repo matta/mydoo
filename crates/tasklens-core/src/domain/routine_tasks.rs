@@ -79,7 +79,7 @@ mod tests {
                 is_sequential: false,
                 is_acknowledged: true,
                 last_completed_at: Some(100000),
-                extra_fields: HashMap::new(),
+                extra_fields: crate::types::ExtraFields::default(),
             },
         );
 
@@ -87,7 +87,7 @@ mod tests {
             tasks,
             root_task_ids: vec![task_id.clone()],
             places: HashMap::new(),
-            extra_fields: HashMap::new(),
+            extra_fields: crate::types::ExtraFields::default(),
         };
 
         // Current time: 100500 ms

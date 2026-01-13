@@ -4,12 +4,54 @@
 //! `TaskSchema` for Automerge document interchange. They use camelCase
 //! JSON serialization to match the existing TypeScript schema.
 
+use autosurgeon::{Hydrate, Reconcile};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
+/// Wrapper for extra JSON fields that Autosurgeon should ignore.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct ExtraFields(pub HashMap<String, serde_json::Value>);
+
+impl Default for ExtraFields {
+    fn default() -> Self {
+        Self(HashMap::new())
+    }
+}
+
+impl std::ops::Deref for ExtraFields {
+    type Target = HashMap<String, serde_json::Value>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for ExtraFields {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl Hydrate for ExtraFields {
+    fn hydrate<D: autosurgeon::ReadDoc>(
+        _doc: &D,
+        _obj: &automerge::ObjId,
+        _prop: autosurgeon::Prop<'_>,
+    ) -> Result<Self, autosurgeon::HydrateError> {
+        Ok(Self::default())
+    }
+}
+
+impl Reconcile for ExtraFields {
+    type Key<'a> = autosurgeon::reconcile::NoKey;
+    fn reconcile<R: autosurgeon::Reconciler>(&self, _reconciler: R) -> Result<(), R::Error> {
+        Ok(())
+    }
+}
+
 /// Unique identifier for a task.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Hydrate, Reconcile)]
 pub struct TaskID(String);
 
 impl TaskID {
@@ -18,6 +60,12 @@ impl TaskID {
     }
 
     pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl AsRef<str> for TaskID {
+    fn as_ref(&self) -> &str {
         &self.0
     }
 }
@@ -47,7 +95,7 @@ impl std::fmt::Display for TaskID {
 }
 
 /// Unique identifier for a place/context.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Hydrate, Reconcile)]
 pub struct PlaceID(String);
 
 impl PlaceID {
@@ -56,6 +104,12 @@ impl PlaceID {
     }
 
     pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl AsRef<str> for PlaceID {
+    fn as_ref(&self) -> &str {
         &self.0
     }
 }
@@ -88,7 +142,7 @@ impl std::fmt::Display for PlaceID {
 pub const ANYWHERE_PLACE_ID: &str = "Anywhere";
 
 /// The completion status of a task.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hydrate, Reconcile)]
 pub enum TaskStatus {
     /// Task is not yet completed.
     Pending,
@@ -97,7 +151,7 @@ pub enum TaskStatus {
 }
 
 /// The urgency status of a task.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hydrate, Reconcile)]
 pub enum UrgencyStatus {
     Overdue,
     Urgent,
@@ -107,7 +161,7 @@ pub enum UrgencyStatus {
 }
 
 /// The scheduling strategy for a task.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hydrate, Reconcile)]
 pub enum ScheduleType {
     /// A one-time task with no recurrence.
     Once,
@@ -120,25 +174,29 @@ pub enum ScheduleType {
 }
 
 /// Scheduling configuration for a task.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub struct Schedule {
     /// The type of schedule (Once, Routinely, DueDate, Calendar).
     #[serde(rename = "type")]
+    #[autosurgeon(rename = "type")]
     pub schedule_type: ScheduleType,
     /// Optional due date as Unix timestamp in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[autosurgeon(rename = "dueDate")]
     pub due_date: Option<u64>,
     /// Lead time in milliseconds before due date to start showing urgency.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[autosurgeon(rename = "leadTime")]
     pub lead_time: Option<u64>,
     /// Timestamp of last completion (for Routinely tasks).
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[autosurgeon(rename = "lastDone")]
     pub last_done: Option<u64>,
 }
 
 /// Frequency unit for recurring tasks.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hydrate, Reconcile)]
 #[serde(rename_all = "lowercase")]
 pub enum Frequency {
     Minutes,
@@ -150,7 +208,7 @@ pub enum Frequency {
 }
 
 /// Configuration for task repetition.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 pub struct RepeatConfig {
     /// The unit of frequency (daily, weekly, etc.).
     pub frequency: Frequency,
@@ -162,7 +220,7 @@ pub struct RepeatConfig {
 ///
 /// Uses `extra_fields` with `#[serde(flatten)]` to preserve any
 /// unknown fields during roundtrip serialization.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub struct PersistedTask {
     pub id: TaskID,
@@ -191,11 +249,11 @@ pub struct PersistedTask {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_completed_at: Option<u64>,
     #[serde(flatten)]
-    pub extra_fields: HashMap<String, serde_json::Value>,
+    pub extra_fields: ExtraFields,
 }
 
 /// Internal Mutable Object for Algorithm Processing.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hydrate, Reconcile)]
 pub struct EnrichedTask {
     // Flattened PersistedTask fields
     pub id: TaskID,
@@ -236,7 +294,7 @@ pub struct EnrichedTask {
 }
 
 /// Indicates where the effective schedule came from.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub enum ScheduleSource {
     /// The schedule is defined on the task itself.
@@ -247,7 +305,7 @@ pub enum ScheduleSource {
 }
 
 /// A task as projected for the View Layer.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub struct ComputedTask {
     pub id: TaskID,
@@ -290,7 +348,7 @@ pub struct ComputedTask {
 }
 
 /// Runtime context for algorithm calculations.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub struct Context {
     pub current_place_id: Option<PlaceID>,
@@ -298,7 +356,7 @@ pub struct Context {
 }
 
 /// Options to control which tasks are included in the prioritized output.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub struct PriorityOptions {
     pub include_hidden: bool,
@@ -306,7 +364,7 @@ pub struct PriorityOptions {
     pub context: Option<Context>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[serde(rename_all = "kebab-case")]
 pub enum PriorityMode {
     DoList,
@@ -314,14 +372,14 @@ pub enum PriorityMode {
 }
 
 /// Filter criteria for the view.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewFilter {
     pub place_id: Option<String>, // "All", "Anywhere", or a specific ID
 }
 
 /// Defines the operating hours for a place.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[serde(rename_all = "snake_case")]
 pub enum OpenHoursMode {
     AlwaysOpen,
@@ -329,7 +387,7 @@ pub enum OpenHoursMode {
     Custom,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub struct OpenHours {
     pub mode: OpenHoursMode,
@@ -338,7 +396,7 @@ pub struct OpenHours {
 }
 
 /// A place/context where tasks can be performed.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub struct Place {
     pub id: PlaceID,
@@ -346,20 +404,20 @@ pub struct Place {
     pub hours: String,
     pub included_places: Vec<PlaceID>,
     #[serde(flatten)]
-    pub extra_fields: HashMap<String, serde_json::Value>,
+    pub extra_fields: ExtraFields,
 }
 
 /// The root state of a TaskLens document.
 ///
 /// This is the top-level structure serialized to/from Automerge.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub struct TunnelState {
     pub tasks: HashMap<TaskID, PersistedTask>,
     pub root_task_ids: Vec<TaskID>,
     pub places: HashMap<PlaceID, Place>,
     #[serde(flatten)]
-    pub extra_fields: HashMap<String, serde_json::Value>,
+    pub extra_fields: ExtraFields,
 }
 
 #[cfg(test)]
@@ -393,7 +451,7 @@ mod tests {
             is_sequential: false,
             is_acknowledged: false,
             last_completed_at: None,
-            extra_fields: HashMap::new(),
+            extra_fields: ExtraFields::default(),
         };
 
         let serialized = serde_json::to_value(&task).unwrap();
@@ -450,7 +508,7 @@ mod tests {
                 is_sequential: false,
                 is_acknowledged: false,
                 last_completed_at: None,
-                extra_fields: HashMap::new(),
+                extra_fields: ExtraFields::default(),
             },
         );
 
@@ -458,7 +516,7 @@ mod tests {
             tasks,
             root_task_ids: vec![task_id.clone()],
             places: HashMap::new(),
-            extra_fields: HashMap::new(),
+            extra_fields: ExtraFields::default(),
         };
 
         let serialized = serde_json::to_value(&state).unwrap();

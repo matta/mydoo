@@ -10,6 +10,8 @@ serde.workspace = true
 serde_json.workspace = true
 chrono.workspace = true
 uuid.workspace = true
+autosurgeon.workspace = true
+automerge.workspace = true
 
 [dev-dependencies]
 serde_yaml_ng = "0.10"

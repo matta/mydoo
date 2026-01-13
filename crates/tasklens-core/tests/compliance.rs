@@ -355,7 +355,7 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
         tasks: HashMap::new(),
         root_task_ids: Vec::new(),
         places: HashMap::new(),
-        extra_fields: HashMap::new(),
+        extra_fields: tasklens_core::types::ExtraFields::default(),
     };
 
     let mut current_time = parse_date("2025-01-01T12:00:00Z")?;
@@ -681,7 +681,7 @@ fn apply_place_input(state: &mut TunnelState, p: &PlaceInput) -> Result<()> {
             .as_ref()
             .map(|ips| ips.iter().map(|s| PlaceID::from(s.clone())).collect())
             .unwrap_or_default(),
-        extra_fields: HashMap::new(),
+        extra_fields: tasklens_core::types::ExtraFields::default(),
     };
     state.places.insert(place_id, place);
     Ok(())
@@ -757,7 +757,7 @@ fn apply_task_input(
             is_sequential: false,
             is_acknowledged: false,
             last_completed_at: None,
-            extra_fields: HashMap::new(),
+            extra_fields: tasklens_core::types::ExtraFields::default(),
         }
     };
 

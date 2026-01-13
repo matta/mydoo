@@ -181,7 +181,7 @@ mod tests {
                 id: PlaceID::from("office"),
                 hours: r#"{"mode":"always_open"}"#.to_string(),
                 included_places: vec![],
-                extra_fields: HashMap::new(),
+                extra_fields: crate::types::ExtraFields::default(),
             },
         );
 
@@ -189,7 +189,7 @@ mod tests {
             tasks: HashMap::new(),
             root_task_ids: vec![],
             places,
-            extra_fields: HashMap::new(),
+            extra_fields: crate::types::ExtraFields::default(),
         };
 
         let mut tasks = vec![
@@ -240,7 +240,7 @@ mod tests {
             id: PlaceID::from("office"),
             hours: r#"{"mode":"custom","schedule":{"Mon":["09:00-17:00"]}}"#.to_string(),
             included_places: vec![],
-            extra_fields: HashMap::new(),
+            extra_fields: crate::types::ExtraFields::default(),
         };
 
         // Monday, January 12, 2026 at 10:00:00 UTC
