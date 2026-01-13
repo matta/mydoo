@@ -202,13 +202,49 @@ _Goal: Working Rust domain logic and basic persistence._
 
 ### Epoch 2: The Walking Skeleton
 
-_Goal: A minimal Dioxus app that syncs data._
+_Goal: A minimal Dioxus app that permanently syncs data via Samod._
 
-- [ ] **Milestone 2.1**: Integrate `samod` into the Dioxus app.
-- [ ] **Milestone 2.2**: Implement basic "Load" and "Save" to IndexedDB.
-- [ ] **Milestone 2.3**: Render a raw list of tasks (no fancy UI) from the
-      persisted state.
-- [ ] **Milestone 2.4**: Verify sync with the existing Sync Server.
+- [ ] **Milestone 2.1**: `tasklens-store` Initialization & Samod Setup.
+  - **Goal**: Create the persistence layer wrapping `samod`.
+  - **Dependencies**: `samod`, `tasklens-core`, `autosurgeon`, `uuid` (v4),
+    `serde`.
+  - **Implementation Details**:
+    - **[MODIFY] `crates/tasklens-store/Cargo.toml`**:
+      - Add `samod` (git dependency), `autosurgeon`, `automerge`.
+    - **[NEW] `crates/tasklens-store/src/store.rs`**:
+      - Define `AppStore` struct.
+      - Initialize `samod::Repo`.
+      - Configure `IndexedDB` storage adapter using `samod`'s features or
+        `automerge_repo` traits.
+      - **Sync Functionality**:
+        - `get_state(&self) -> TunnelState`: Hydrate state from the Doc using
+          `autosurgeon::reconcile`.
+        - `dispatch(&self, action: Action)`: Apply changes to the Doc.
+- [ ] **Milestone 2.2**: Dioxus State Integration.
+  - **Goal**: Inject the store into the Dioxus app and reflect state changes.
+  - **Implementation Details**:
+    - **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
+      - Initialize `AppStore` in `App` component (or passed in).
+      - Use `use_context_provider` to share the store.
+      - **Reactive State**:
+        - Create a `Signal<TunnelState>` that mirrors the Automerge document.
+        - Set up a subscription/listener to `AppStore` changes that updates this
+          Signal.
+- [ ] **Milestone 2.3**: Basic Task List Rendering.
+  - **Goal**: Verify data loading by rendering a raw list.
+  - **Implementation Details**:
+    - **[NEW] `crates/tasklens-ui/src/components/debug_list.rs`**:
+      - Simple `ul` / `li` loop iterating over `TunnelState.tasks`.
+      - Display Task ID, Title, and Status.
+- [ ] **Milestone 2.4**: Sync Verification.
+  - **Goal**: Connect to the local sync server.
+  - **Implementation Details**:
+    - **[MODIFY] `crates/tasklens-store/src/store.rs`**:
+      - Add WebSocket network adapter to `samod` config.
+      - Connect to local sync server (e.g., `ws://localhost:8080`).
+  - **Verification**:
+    - Open React app, make changes (e.g., rename a task).
+    - Refresh/Watch Dioxus app, see changes appear in `debug_list`.
 
 ### Epoch 3: Feature Parity (The Grind)
 
@@ -266,6 +302,6 @@ We will leverage the high investment in existing tests:
 
 ## Next Steps
 
-1.  Initialize the `tasklens-core` Rust crate.
-2.  Begin porting `TunnelState` types.
-3.  Set up the YAML test harness in Rust.
+1.  Implement **Milestone 2.1**: Initialize `tasklens-store` and integrate
+    `samod`.
+2.  Implement **Milestone 2.2**: Connect Dioxus to the store.
