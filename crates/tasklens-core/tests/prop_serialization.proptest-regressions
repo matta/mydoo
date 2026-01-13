@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 8aba0f550f8624c0047401167930dee60b268bfe031b5b401c4e18461d8d8f9b # shrinks to state = TunnelState { tasks: {}, root_task_ids: [], places: {}, extra_fields: ExtraFields({"a": String("a")}) }

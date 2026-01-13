@@ -10,15 +10,16 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 /// Wrapper for extra JSON fields that Autosurgeon should ignore.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(transparent)]
-pub struct ExtraFields(pub HashMap<String, serde_json::Value>);
-
-impl Default for ExtraFields {
-    fn default() -> Self {
-        Self(HashMap::new())
-    }
-}
+pub struct ExtraFields(
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::arbitrary_extra_fields()")
+    )]
+    pub HashMap<String, serde_json::Value>,
+);
 
 impl std::ops::Deref for ExtraFields {
     type Target = HashMap<String, serde_json::Value>;
@@ -51,8 +52,27 @@ impl Reconcile for ExtraFields {
 }
 
 /// Unique identifier for a task.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Hydrate, Reconcile)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
+#[serde(transparent)]
 pub struct TaskID(String);
+
+impl Reconcile for TaskID {
+    type Key<'a> = autosurgeon::reconcile::NoKey;
+    fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
+        self.0.reconcile(reconciler)
+    }
+}
+
+impl Hydrate for TaskID {
+    fn hydrate<D: autosurgeon::ReadDoc>(
+        doc: &D,
+        obj: &automerge::ObjId,
+        prop: autosurgeon::Prop<'_>,
+    ) -> Result<Self, autosurgeon::HydrateError> {
+        Ok(TaskID(String::hydrate(doc, obj, prop)?))
+    }
+}
 
 impl TaskID {
     pub fn new() -> Self {
@@ -95,8 +115,27 @@ impl std::fmt::Display for TaskID {
 }
 
 /// Unique identifier for a place/context.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Hydrate, Reconcile)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
+#[serde(transparent)]
 pub struct PlaceID(String);
+
+impl Reconcile for PlaceID {
+    type Key<'a> = autosurgeon::reconcile::NoKey;
+    fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
+        self.0.reconcile(reconciler)
+    }
+}
+
+impl Hydrate for PlaceID {
+    fn hydrate<D: autosurgeon::ReadDoc>(
+        doc: &D,
+        obj: &automerge::ObjId,
+        prop: autosurgeon::Prop<'_>,
+    ) -> Result<Self, autosurgeon::HydrateError> {
+        Ok(PlaceID(String::hydrate(doc, obj, prop)?))
+    }
+}
 
 impl PlaceID {
     pub fn new() -> Self {
@@ -143,6 +182,7 @@ pub const ANYWHERE_PLACE_ID: &str = "Anywhere";
 
 /// The completion status of a task.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hydrate, Reconcile)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 pub enum TaskStatus {
     /// Task is not yet completed.
     Pending,
@@ -152,6 +192,7 @@ pub enum TaskStatus {
 
 /// The urgency status of a task.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hydrate, Reconcile)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 pub enum UrgencyStatus {
     Overdue,
     Urgent,
@@ -162,6 +203,7 @@ pub enum UrgencyStatus {
 
 /// The scheduling strategy for a task.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hydrate, Reconcile)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 pub enum ScheduleType {
     /// A one-time task with no recurrence.
     Once,
@@ -175,6 +217,7 @@ pub enum ScheduleType {
 
 /// Scheduling configuration for a task.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
 pub struct Schedule {
     /// The type of schedule (Once, Routinely, DueDate, Calendar).
@@ -197,6 +240,7 @@ pub struct Schedule {
 
 /// Frequency unit for recurring tasks.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hydrate, Reconcile)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "lowercase")]
 pub enum Frequency {
     Minutes,
@@ -209,6 +253,7 @@ pub enum Frequency {
 
 /// Configuration for task repetition.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 pub struct RepeatConfig {
     /// The unit of frequency (daily, weekly, etc.).
     pub frequency: Frequency,
@@ -221,6 +266,7 @@ pub struct RepeatConfig {
 /// Uses `extra_fields` with `#[serde(flatten)]` to preserve any
 /// unknown fields during roundtrip serialization.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
 pub struct PersistedTask {
     pub id: TaskID,
@@ -228,9 +274,15 @@ pub struct PersistedTask {
     #[serde(default)]
     pub notes: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub parent_id: Option<TaskID>,
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::arbitrary_vec_task_id()")
+    )]
     pub child_task_ids: Vec<TaskID>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub place_id: Option<PlaceID>,
     pub status: TaskStatus,
     pub importance: f64,
@@ -397,11 +449,16 @@ pub struct OpenHours {
 
 /// A place/context where tasks can be performed.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
 pub struct Place {
     pub id: PlaceID,
     /// Stringified JSON of OpenHours
     pub hours: String,
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::arbitrary_vec_place_id()")
+    )]
     pub included_places: Vec<PlaceID>,
     #[serde(flatten)]
     pub extra_fields: ExtraFields,
@@ -411,10 +468,23 @@ pub struct Place {
 ///
 /// This is the top-level structure serialized to/from Automerge.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
 pub struct TunnelState {
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::arbitrary_tasks_map()")
+    )]
     pub tasks: HashMap<TaskID, PersistedTask>,
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::arbitrary_vec_task_id()")
+    )]
     pub root_task_ids: Vec<TaskID>,
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::arbitrary_places_map()")
+    )]
     pub places: HashMap<PlaceID, Place>,
     #[serde(flatten)]
     pub extra_fields: ExtraFields,
@@ -523,5 +593,44 @@ mod tests {
         assert!(serialized.get("tasks").is_some());
         assert!(serialized.get("rootTaskIds").is_some());
         assert!(serialized.get("places").is_some());
+    }
+}
+
+#[cfg(any(test, feature = "test-utils"))]
+/// Property test strategies for generating arbitrary domain types.
+///
+/// These strategies are designed to generate valid, self-consistent
+/// domain objects while avoiding orphan references (e.g., `parent_id`
+/// pointing to non-existent tasks).
+pub mod test_strategies {
+    use super::*;
+    use proptest::prelude::*;
+    use serde_json::Value;
+
+    /// Always returns an empty `HashMap`.
+    ///
+    /// The property tests in `prop_serialization.rs` verify that data roundtrips
+    /// identically through both Serde (JSON) and Autosurgeon (Automerge). But
+    /// Autosurgeon only preserves fields with known schemas—arbitrary JSON values
+    /// in `ExtraFields` would be lost during hydration, causing the parity check
+    /// to fail. We sidestep this by never generating extra fields in tests.
+    pub fn arbitrary_extra_fields() -> impl Strategy<Value = HashMap<String, Value>> {
+        Just(HashMap::new())
+    }
+
+    pub fn arbitrary_vec_task_id() -> impl Strategy<Value = Vec<TaskID>> {
+        proptest::collection::vec(any::<TaskID>(), 0..3)
+    }
+
+    pub fn arbitrary_vec_place_id() -> impl Strategy<Value = Vec<PlaceID>> {
+        proptest::collection::vec(any::<PlaceID>(), 0..3)
+    }
+
+    pub fn arbitrary_tasks_map() -> impl Strategy<Value = HashMap<TaskID, PersistedTask>> {
+        proptest::collection::hash_map(any::<TaskID>(), any::<PersistedTask>(), 0..3)
+    }
+
+    pub fn arbitrary_places_map() -> impl Strategy<Value = HashMap<PlaceID, Place>> {
+        proptest::collection::hash_map(any::<PlaceID>(), any::<Place>(), 0..3)
     }
 }

@@ -204,22 +204,49 @@ _Goal: Working Rust domain logic and basic persistence._
 
 _Goal: A minimal Dioxus app that permanently syncs data via Samod._
 
-- [ ] **Milestone 2.1**: `tasklens-store` Initialization & Samod Setup.
+- [/] **Milestone 2.1**: `tasklens-store` Initialization & Samod Setup.
   - **Goal**: Create the persistence layer wrapping `samod`.
   - **Dependencies**: `samod`, `tasklens-core`, `autosurgeon`, `uuid` (v4),
     `serde`.
   - **Implementation Details**:
-    - **[MODIFY] `crates/tasklens-store/Cargo.toml`**:
+    - [x] **[MODIFY] `crates/tasklens-store/Cargo.toml`**:
       - Add `samod` (git dependency), `autosurgeon`, `automerge`.
-    - **[NEW] `crates/tasklens-store/src/store.rs`**:
-      - Define `AppStore` struct.
-      - Initialize `samod::Repo`.
-      - Configure `IndexedDB` storage adapter using `samod`'s features or
-        `automerge_repo` traits.
-      - **Sync Functionality**:
-        - `get_state(&self) -> TunnelState`: Hydrate state from the Doc using
-          `autosurgeon::reconcile`.
-        - `dispatch(&self, action: Action)`: Apply changes to the Doc.
+    - [/] **[NEW] `crates/tasklens-store/src/store.rs`**:
+      - [x] Define `AppStore` struct with `Repo` and `DocHandle`.
+      - [x] Initialize `samod::Repo` in `AppStore::new()`.
+      - [ ] Configure `IndexedDB` storage adapter (currently using
+            `InMemoryStorage`).
+        - **Concrete Steps**:
+          1. Check `samod` for an IndexedDB storage adapter (e.g.,
+             `samod::storage::IndexedDbStorage` or feature flag).
+          2. If available, replace `InMemoryStorage::default()` with the
+             IndexedDB adapter. Pass a database name (e.g., `"tasklens"`).
+          3. If not available, check `automerge-repo` for a storage trait we can
+             implement against `web-sys` IndexedDB bindings.
+          4. Add `#[cfg(target_arch = "wasm32")]` conditional compilation to use
+             IndexedDB in browser, `InMemoryStorage` in tests.
+      - [x] **`get_state(&self) -> TunnelState`**: Hydrate state from the Doc
+            using `autosurgeon::hydrate`. ✅ Implemented.
+      - [ ] **`dispatch(&self, action: Action)`**: Apply changes to the Doc.
+        - **Concrete Steps**:
+          1. **[NEW] `crates/tasklens-store/src/actions.rs`**: Define the
+             `Action` enum with variants for all mutations:
+             ```rust
+             pub enum Action {
+                 CreateTask { parent_id: Option<TaskID>, title: String },
+                 UpdateTask { id: TaskID, updates: TaskUpdates },
+                 DeleteTask { id: TaskID },
+                 CompleteTask { id: TaskID },
+                 MoveTask { id: TaskID, new_parent_id: Option<TaskID> },
+                 // ... additional actions as needed
+             }
+             ```
+          2. **[MODIFY] `store.rs`**: Implement `dispatch` to:
+             - Match on `Action` variant.
+             - Call `handle.with_document()` to get mutable access.
+             - Apply the mutation to `TunnelState` (clone, mutate, reconcile).
+             - Commit the transaction.
+          3. Add unit tests for each action variant.
 - [ ] **Milestone 2.2**: Dioxus State Integration.
   - **Goal**: Inject the store into the Dioxus app and reflect state changes.
   - **Implementation Details**:
