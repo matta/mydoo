@@ -1,10 +1,17 @@
-use anyhow::Result;
+use crate::actions::Action;
+#[cfg(target_arch = "wasm32")]
+use crate::storage::IndexedDbStorage;
+use anyhow::{Result, anyhow};
 use autosurgeon::{hydrate, reconcile};
+#[cfg(not(target_arch = "wasm32"))]
 use samod::runtime::RuntimeHandle;
+#[cfg(not(target_arch = "wasm32"))]
 use samod::storage::InMemoryStorage;
 use samod::{DocHandle, Repo};
 use std::collections::HashMap;
-use tasklens_core::types::{ExtraFields, TunnelState};
+use tasklens_core::types::{
+    PersistedTask, Schedule, ScheduleType, TaskID, TaskStatus, TunnelState,
+};
 
 #[derive(Clone, Debug)]
 pub struct AppStore {
@@ -13,12 +20,13 @@ pub struct AppStore {
 }
 
 impl AppStore {
-    pub async fn new<R: RuntimeHandle>(runtime: R) -> Result<Self> {
-        // TODO: Configure IndexedDB storage adapter using samod's features or automerge_repo traits.
-        // Currently defaulting to InMemoryStorage as per available documentation.
-        let repo = Repo::builder(runtime)
-            .with_storage(InMemoryStorage::default())
-            .load()
+    #[cfg(target_arch = "wasm32")]
+    pub async fn new(runtime: futures::executor::LocalSpawner) -> Result<Self> {
+        let storage = IndexedDbStorage::new("tasklens");
+
+        let repo = Repo::build_localpool(runtime)
+            .with_storage(storage)
+            .load_local()
             .await;
 
         Ok(Self {
@@ -27,32 +35,49 @@ impl AppStore {
         })
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn new<R: RuntimeHandle>(runtime: R) -> Result<Self> {
+        let storage = InMemoryStorage::default();
+
+        let repo = Repo::builder(runtime).with_storage(storage).load().await;
+
+        Ok(Self {
+            repo,
+            root_handle: None,
+        })
+    }
+
     /// Initialize the store by creating a new document or loading an existing one.
-    /// In a real app, this might accept a DocumentId.
     pub async fn init(&mut self) -> Result<()> {
+        // TODO: In a real app, we'd probably try to find an existing document ID in storage
+        // or accept one as an argument. For Milestone 2.1, we'll try to load or create.
+
         let handle = self
             .repo
             .create(automerge::Automerge::new())
             .await
-            .map_err(|_| anyhow::anyhow!("Failed to create document"))?;
+            .map_err(|_| anyhow!("Failed to create document"))?;
 
-        // Seed with initial state
+        // Seed with initial state if empty
         let mut result = Ok(());
         handle.with_document(|doc| {
-            let initial_state = TunnelState {
-                tasks: HashMap::new(),
-                places: HashMap::new(),
-                root_task_ids: Vec::new(),
-                extra_fields: ExtraFields::default(),
-            };
-            let mut tx = doc.transaction();
-            // We must reconcile against the transaction
-            let res = reconcile(&mut tx, &initial_state)
-                .map_err(|e| anyhow::anyhow!("Init reconciliation failed: {}", e));
-            if res.is_ok() {
-                tx.commit();
+            let current_state: Result<TunnelState, _> = hydrate(doc);
+            if current_state.is_err() || current_state.as_ref().unwrap().tasks.is_empty() {
+                let initial_state = TunnelState {
+                    next_task_id: 1.0,
+                    next_place_id: 1.0,
+                    tasks: HashMap::new(),
+                    places: HashMap::new(),
+                    root_task_ids: Vec::new(),
+                };
+                let mut tx = doc.transaction();
+                let res = reconcile(&mut tx, &initial_state)
+                    .map_err(|e| anyhow!("Init reconciliation failed: {}", e));
+                if res.is_ok() {
+                    tx.commit();
+                }
+                result = res;
             }
-            result = res;
         });
         result?;
 
@@ -64,18 +89,135 @@ impl AppStore {
         let handle = self
             .root_handle
             .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("AppStore not initialized"))?;
+            .ok_or_else(|| anyhow!("AppStore not initialized"))?;
 
-        // Assuming with_document returns the closure result, otherwise we need capture
-        let mut state = Err(anyhow::anyhow!("Hydration failed internal"));
+        let mut state = Err(anyhow!("Hydration failed internal"));
         handle.with_document(|doc| {
-            state = hydrate(doc).map_err(|e| anyhow::anyhow!("Hydration failed: {}", e));
+            state = hydrate(doc).map_err(|e| anyhow!("Hydration failed: {}", e));
         });
         state
     }
 
-    pub fn dispatch(&self, _action: ()) {
-        // TODO: Implement dispatch
+    pub fn dispatch(&self, action: Action) -> Result<()> {
+        let handle = self
+            .root_handle
+            .as_ref()
+            .ok_or_else(|| anyhow!("AppStore not initialized"))?;
+
+        let mut result = Ok(());
+        handle.with_document(|doc| {
+            let mut state: TunnelState = match hydrate(doc) {
+                Ok(s) => s,
+                Err(e) => {
+                    result = Err(anyhow!("Dispatch hydration failed: {}", e));
+                    return;
+                }
+            };
+
+            match action {
+                Action::CreateTask { parent_id, title } => {
+                    let id = TaskID::new();
+                    let task = PersistedTask {
+                        id: id.clone(),
+                        title,
+                        notes: String::new(),
+                        parent_id: parent_id.clone(),
+                        child_task_ids: Vec::new(),
+                        place_id: None,
+                        status: TaskStatus::Pending,
+                        importance: 1.0,
+                        credit_increment: None,
+                        credits: 0.0,
+                        desired_credits: 1.0,
+                        credits_timestamp: 0.0,
+                        priority_timestamp: 0.0,
+                        schedule: Schedule {
+                            schedule_type: ScheduleType::Once,
+                            due_date: None,
+                            lead_time: Some(0.0),
+                            last_done: None,
+                        },
+                        repeat_config: None,
+                        is_sequential: false,
+                        is_acknowledged: false,
+                        last_completed_at: None,
+                    };
+                    state.tasks.insert(id.clone(), task);
+                    if let Some(pid) = parent_id {
+                        if let Some(parent) = state.tasks.get_mut(&pid) {
+                            parent.child_task_ids.push(id);
+                        }
+                    } else {
+                        state.root_task_ids.push(id);
+                    }
+                }
+                Action::UpdateTask { id, updates } => {
+                    if let Some(task) = state.tasks.get_mut(&id) {
+                        if let Some(title) = updates.title {
+                            task.title = title;
+                        }
+                        if let Some(status) = updates.status {
+                            task.status = status;
+                        }
+                        if let Some(place_id) = updates.place_id {
+                            task.place_id = place_id;
+                        }
+                        if let Some(due_date) = updates.due_date {
+                            task.schedule.due_date = due_date;
+                        }
+                    }
+                }
+                Action::DeleteTask { id } => {
+                    if let Some(task) = state.tasks.remove(&id) {
+                        if let Some(pid) = task.parent_id {
+                            if let Some(parent) = state.tasks.get_mut(&pid) {
+                                parent.child_task_ids.retain(|cid| cid != &id);
+                            }
+                        } else {
+                            state.root_task_ids.retain(|rid| rid != &id);
+                        }
+                    }
+                }
+                Action::CompleteTask { id } => {
+                    if let Some(task) = state.tasks.get_mut(&id) {
+                        task.status = TaskStatus::Done;
+                    }
+                }
+                Action::MoveTask { id, new_parent_id } => {
+                    let old_parent_id = state.tasks.get(&id).and_then(|t| t.parent_id.clone());
+
+                    // Remove from old parent or root
+                    if let Some(opid) = old_parent_id {
+                        if let Some(parent) = state.tasks.get_mut(&opid) {
+                            parent.child_task_ids.retain(|cid| cid != &id);
+                        }
+                    } else {
+                        state.root_task_ids.retain(|rid| rid != &id);
+                    }
+
+                    // Add to new parent or root
+                    if let Some(npid) = new_parent_id.clone() {
+                        if let Some(parent) = state.tasks.get_mut(&npid) {
+                            parent.child_task_ids.push(id.clone());
+                        }
+                    } else {
+                        state.root_task_ids.push(id.clone());
+                    }
+
+                    // Update task's parent_id
+                    if let Some(task) = state.tasks.get_mut(&id) {
+                        task.parent_id = new_parent_id;
+                    }
+                }
+            }
+            let mut tx = doc.transaction();
+            if let Err(e) = reconcile(&mut tx, &state) {
+                result = Err(anyhow!("Dispatch reconciliation failed: {}", e));
+            } else {
+                tx.commit();
+            }
+        });
+        result
     }
 }
 
@@ -89,12 +231,181 @@ mod tests {
         let mut pool = LocalPool::new();
         let spawner = pool.spawner();
 
-        pool.run_until(async move {
+        let store = pool.run_until(async move {
             let mut store = AppStore::new(spawner).await.unwrap();
             store.init().await.unwrap();
-            let state = store.get_state().unwrap();
-            assert!(state.tasks.is_empty());
-            assert!(state.extra_fields.0.is_empty());
+            store
         });
+
+        let state = store.get_state().unwrap();
+        assert!(state.tasks.is_empty());
+    }
+
+    #[test]
+    fn test_dispatch_create() {
+        let mut pool = LocalPool::new();
+        let spawner = pool.spawner();
+
+        let store = pool.run_until(async move {
+            let mut store = AppStore::new(spawner).await.unwrap();
+            store.init().await.unwrap();
+            store
+        });
+
+        store
+            .dispatch(Action::CreateTask {
+                parent_id: None,
+                title: "Test Task".to_string(),
+            })
+            .unwrap();
+
+        let state = store.get_state().unwrap();
+        assert_eq!(state.tasks.len(), 1);
+        let task = state.tasks.values().next().unwrap();
+        assert_eq!(task.title, "Test Task");
+        assert!(state.root_task_ids.contains(&task.id));
+    }
+
+    #[test]
+    fn test_dispatch_update() {
+        let mut pool = LocalPool::new();
+        let spawner = pool.spawner();
+        let store = pool.run_until(async move {
+            let mut store = AppStore::new(spawner).await.unwrap();
+            store.init().await.unwrap();
+            store
+        });
+
+        store
+            .dispatch(Action::CreateTask {
+                parent_id: None,
+                title: "Original".to_string(),
+            })
+            .unwrap();
+
+        let id = store.get_state().unwrap().root_task_ids[0].clone();
+
+        store
+            .dispatch(Action::UpdateTask {
+                id: id.clone(),
+                updates: crate::actions::TaskUpdates {
+                    title: Some("Updated".to_string()),
+                    status: Some(TaskStatus::Done),
+                    ..Default::default()
+                },
+            })
+            .unwrap();
+
+        let state = store.get_state().unwrap();
+        let task = state.tasks.get(&id).unwrap();
+        assert_eq!(task.title, "Updated");
+        assert_eq!(task.status, TaskStatus::Done);
+    }
+
+    #[test]
+    fn test_dispatch_delete() {
+        let mut pool = LocalPool::new();
+        let spawner = pool.spawner();
+        let store = pool.run_until(async move {
+            let mut store = AppStore::new(spawner).await.unwrap();
+            store.init().await.unwrap();
+            store
+        });
+
+        store
+            .dispatch(Action::CreateTask {
+                parent_id: None,
+                title: "To Delete".to_string(),
+            })
+            .unwrap();
+
+        let id = store.get_state().unwrap().root_task_ids[0].clone();
+        store
+            .dispatch(Action::DeleteTask { id: id.clone() })
+            .unwrap();
+
+        let state = store.get_state().unwrap();
+        assert!(state.tasks.is_empty());
+        assert!(state.root_task_ids.is_empty());
+    }
+
+    #[test]
+    fn test_dispatch_complete() {
+        let mut pool = LocalPool::new();
+        let spawner = pool.spawner();
+        let store = pool.run_until(async move {
+            let mut store = AppStore::new(spawner).await.unwrap();
+            store.init().await.unwrap();
+            store
+        });
+
+        store
+            .dispatch(Action::CreateTask {
+                parent_id: None,
+                title: "To Complete".to_string(),
+            })
+            .unwrap();
+
+        let id = store.get_state().unwrap().root_task_ids[0].clone();
+        store
+            .dispatch(Action::CompleteTask { id: id.clone() })
+            .unwrap();
+
+        let state = store.get_state().unwrap();
+        assert_eq!(state.tasks.get(&id).unwrap().status, TaskStatus::Done);
+    }
+
+    #[test]
+    fn test_dispatch_move() {
+        let mut pool = LocalPool::new();
+        let spawner = pool.spawner();
+        let store = pool.run_until(async move {
+            let mut store = AppStore::new(spawner).await.unwrap();
+            store.init().await.unwrap();
+            store
+        });
+
+        // Create Parent
+        store
+            .dispatch(Action::CreateTask {
+                parent_id: None,
+                title: "Parent".to_string(),
+            })
+            .unwrap();
+        let parent_id = store.get_state().unwrap().root_task_ids[0].clone();
+
+        // Create Child as root task initially
+        store
+            .dispatch(Action::CreateTask {
+                parent_id: None,
+                title: "Child".to_string(),
+            })
+            .unwrap();
+        let child_id = store
+            .get_state()
+            .unwrap()
+            .root_task_ids
+            .iter()
+            .find(|&id| id != &parent_id)
+            .unwrap()
+            .clone();
+
+        // Move Child under Parent
+        store
+            .dispatch(Action::MoveTask {
+                id: child_id.clone(),
+                new_parent_id: Some(parent_id.clone()),
+            })
+            .unwrap();
+
+        let state = store.get_state().unwrap();
+        assert_eq!(state.root_task_ids.len(), 1);
+        assert_eq!(state.root_task_ids[0], parent_id);
+
+        let parent = state.tasks.get(&parent_id).unwrap();
+        assert!(parent.child_task_ids.contains(&child_id));
+
+        let child = state.tasks.get(&child_id).unwrap();
+        assert_eq!(child.parent_id, Some(parent_id));
     }
 }

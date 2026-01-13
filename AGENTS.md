@@ -394,3 +394,71 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     changes (`[NEW]`, `[MODIFY]`) and task lists.
   - _Context:_ This ensures a single source of truth for the multi-epoch
     migration effort.
+
+## Rust Async Testing & Framework Gotchas
+
+- **Async Testing with `LocalPool`**: When using `futures::executor::LocalPool`
+  in unit tests:
+  - _Trap:_ `pollster::block_on` only blocks on the provided future and **does
+    not poll background tasks** spawned on the `Spawner`. This can lead to hangs
+    or `SpawnError("shutdown")` if the pool is dropped while background tasks
+    are still pending.
+  - _Fix:_ Always use `pool.run_until(async { ... })` and ensure the `pool`
+    variable is kept alive (named `pool`, not `_pool`, as per project
+    preference) throughout the test execution.
+- **Autosurgeon Hydration Errors (`Unexpected String`)**:
+  - _Symptom:_ `hydrate` fails with `Some(Unexpected(String))` or
+    `unexpected string`.
+  - _Cause:_ This often indicates a mismatch between the Automerge document
+    structure and the Rust type. It frequently occurs with `transparent`
+    wrappers (like `TaskID(String)`) or nested fields where `autosurgeon`
+    expects a specific container type but finds a scalar.
+  - _Action:_ Verify that `autosurgeon` attributes (like `#[autosurgeon(key)]`
+    or `#[autosurgeon(rename = "...")]`) align with the data actually present in
+    the Automerge document.
+- **WASM Dependency Gating in Cargo**:
+  - _Pattern:_ Use `[target.'cfg(target_arch = "wasm32")'.dependencies]` to
+    isolate web-specific crates (`rexie`, `wasm-bindgen`) from native builds.
+    This avoids compilation errors on native targets that don't satisfy
+    web-specific feature requirements.
+
+## Rust-JavaScript Interoperability
+
+- **Numeric Type Requirement for Automerge/JavaScript Interop**:
+  - _Rule:_ ALL numeric fields in Rust types that serialize to/from Automerge
+    documents MUST use 64-bit double-precision IEEE 754 floating-point values
+    (`f64`). This is a critical requirement to guarantee interoperability with
+    JavaScript implementations.
+  - _Rationale:_ JavaScript's `Number` type is exclusively IEEE 754 double
+    precision. Using `u64`, `i64`, `u32`, or other integer types in Rust will
+    cause type mismatches and data corruption when round-tripping through
+    JavaScript/TypeScript code.
+  - _Scope:_ This applies to ALL numeric fields including:
+    - Timestamps (milliseconds since epoch)
+    - Counters and IDs (e.g., `nextTaskId`, `nextPlaceId`)
+    - Durations and intervals (e.g., `leadTime`, `interval`)
+    - Scores, priorities, and other computed values
+    - Credit/importance values
+  - _Exception:_ Internal Rust-only types that never cross the FFI boundary may
+    use native integer types, but this should be rare in a hybrid codebase.
+- **Fixture Testing with Immutable JSON**:
+  - _Pattern:_ When testing against immutable JSON fixtures (e.g., production
+    data snapshots), use a normalization function to convert all JSON numbers to
+    `f64` representation before comparison.
+  - _Implementation:_ Create a recursive `normalize_json()` helper that converts
+    `serde_json::Value::Number` to consistent `f64` values, preserving booleans
+    and other types.
+  - _Rationale:_ This allows Rust's `f64`-based serialization (which produces
+    `1.0`, `604800000.0`) to be compared against legacy JSON fixtures with
+    integer notation (`1`, `604800000`) without modifying the immutable fixture.
+- **Type Conversion Cascade**:
+  - _Pattern:_ When converting a codebase from integer types to `f64`, the
+    change cascades through multiple layers:
+    1. Core domain types (structs with `#[derive(Serialize, Deserialize)]`)
+    2. Function signatures in domain logic
+    3. Test fixtures and mock data (all integer literals → `f64` literals)
+    4. Compliance/BDD test infrastructure (date parsing, time arithmetic)
+    5. Constants and default values
+  - _Verification:_ Run `cargo check`, `cargo clippy`, and all test suites
+    (`cargo test`) to catch every location requiring updates. The compiler will
+    identify all type mismatches.

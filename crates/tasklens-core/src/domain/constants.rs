@@ -3,7 +3,7 @@ pub const CREDITS_HALF_LIFE_MILLIS: f64 = 7.0 * 24.0 * 60.0 * 60.0 * 1000.0;
 
 /// Default lead time in milliseconds (1 week).
 /// Note: Compliance tests assume 1 week ramp.
-pub const DEFAULT_TASK_LEAD_TIME_MS: u64 = 7 * 24 * 60 * 60 * 1000;
+pub const DEFAULT_TASK_LEAD_TIME_MS: f64 = 7.0 * 24.0 * 60.0 * 60.0 * 1000.0;
 
 /// Default credit increment for tasks without explicit assignment.
 pub const DEFAULT_CREDIT_INCREMENT: f64 = 0.5;

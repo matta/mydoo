@@ -12,6 +12,7 @@ chrono.workspace = true
 uuid.workspace = true
 autosurgeon.workspace = true
 automerge.workspace = true
+getrandom.workspace = true
 proptest = { version = "1.9.0", optional = true }
 proptest-derive = { version = "0.7.0", optional = true }
 
@@ -24,6 +25,7 @@ glob = "0.3"
 path-clean = "1.0"
 proptest = "1.9.0"
 proptest-derive = "0.7.0"
+assert-json-diff = "2.0"
 # Why does tasklens-core depend on itself here?
 #
 # tests/prop_serialization.rs needs TunnelState to have the `Arbitrary` trait
