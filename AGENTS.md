@@ -360,3 +360,35 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
 - **Gitignore Hygiene:** Add `target/` and binary output directories to the root
   `.gitignore` early to prevent accidental inclusion of heavy Rust build
   artifacts.
+- **Dioxus Workspace Platform Detection:** `dx build` and `dx serve` may fail to
+  detect the target platform in a workspace if running from the root.
+  - _Fix:_ Explicitly add `platform = "web"` to the `[application]` section of
+    the crate's `Dioxus.toml`.
+  - _Fix:_ Ensure the `dioxus` dependency in `Cargo.toml` has the `web` feature
+    enabled (e.g., `features = ["web"]`).
+- **Schema Source of Truth (Migration Trap):** When migrating TypeScript types
+  to Rust, be wary of mismatched schemas.
+  - _Trap:_ `feature.schema.json` (BDD) often uses **recursive** structures for
+    test convenience.
+  - _Truth:_ The actual persistence schema (e.g., `schemas.ts` / Zod) often uses
+    **flat** relational structures for database efficiency.
+  - _Action:_ Always port types from the **Persistence/Zod** layer, NOT the
+    BDD/Test layer, to ensure the data model satisfies the storage engine
+    (Automerge).
+- **Autosurgeon Bridge Strategy:**
+  - _Context:_ We use `autosurgeon` to bridge Rust structs and Automerge
+    documents.
+  - _Mechanism:_ `autosurgeon` relies on `serde::Serialize` and
+    `serde::Deserialize` traits.
+  - _Verification:_ Validating that a Rust struct serializes to the exact same
+    JSON as the TypeScript `TaskSchema` (Zod) is a valid proxy for verifying
+    Automerge compatibility, as both `autosurgeon` and `JSON.stringify` follow
+    the Serde data model.
+- **Migration Governance:**
+  - _Plan Authority:_ `docs/plan/rust_migration.md` is the authoritative,
+    persistent implementation plan for the migration.
+  - _Workflow:_ Do not create ephemeral `implementation_plan.md` artifacts for
+    migration tasks. Update `docs/plan/rust_migration.md` with concrete file
+    changes (`[NEW]`, `[MODIFY]`) and task lists.
+  - _Context:_ This ensures a single source of truth for the multi-epoch
+    migration effort.

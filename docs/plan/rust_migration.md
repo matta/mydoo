@@ -97,6 +97,43 @@ _Goal: Working Rust domain logic and basic persistence._
       `todo_mvp`).
 - [ ] **Milestone 1.2**: Port `TunnelState`, `Task`, and basic types to Rust
       structs.
+  - **Destination**: `crates/tasklens-core`
+  - **Source Types**:
+    - `TunnelState` (`packages/tasklens/src/types/persistence.ts`)
+    - `PersistedTask` (`packages/tasklens/src/persistence/schemas.ts`)
+    - `Place` (`packages/tasklens/src/persistence/schemas.ts`)
+    - `Schedule`, `RepeatConfig`, `TaskID`, `PlaceID`
+  - **Strategy: Autosurgeon Compatibility via Serde**:
+    - **Objective**: Use `autosurgeon` to bridge Rust structs and Automerge
+      documents.
+    - **Mechanism**: `autosurgeon` relies on `serde::Serialize` and
+      `serde::Deserialize` traits to map Rust structs to Automerge document
+      structures.
+    - **Interim Step**: Implementing `serde` traits is the critical interim
+      step. While we will verify these via JSON serialization tests, the
+      ultimate goal is `transplant`ing these structs into an Automerge document.
+    - **Validation**:
+      - Serialize Rust structs to JSON.
+      - Compare against expected JSON output from the TypeScript `TaskSchema`.
+      - Use the "personal todos" dataset or a synthetic complex task tree as a
+        test case to ensure exact structural alignment.
+  - **Implementation Details**:
+    - **[NEW] `crates/tasklens-core/src/types.rs`**:
+      - Define `TaskID` and `PlaceID` as "NewType" constructs (tuple structs)
+        for type safety.
+      - Define enums: `TaskStatus`.
+      - Define structs: `Schedule`, `RepeatConfig`, `PersistedTask`, `Place`,
+        `TunnelState`.
+      - derive `serde::Serialize` and `serde::Deserialize` for all types to
+        match the existing JSON schema exactly.
+    - **[MODIFY] `crates/tasklens-core/src/lib.rs`**:
+      - Export `types` module.
+    - Ensure strict compatibility with `automerge` via `autosurgeon` (or manual
+      implementations where necessary).
+  - **Verification**:
+    - Create unit tests in `tasklens-core` that serialize these structs to JSON.
+    - Validate that the generated JSON matches the structure expected by the
+      TypeScript `TaskSchema`.
 - [ ] **Milestone 1.3**: Port `priority.ts` and `schedules` logic.
 - [ ] **Milestone 1.4**: Implement a test runner to execute existing YAML BDD
       specs against the Rust domain crate.
