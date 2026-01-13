@@ -1,3 +1,5 @@
+See also @AGENTS_DIOXUS.md
+
 # Behavior Guidelines
 
 - Always address the user with the salutation "Howdy".

@@ -134,31 +134,35 @@ _Goal: Working Rust domain logic and basic persistence._
     - Create unit tests in `tasklens-core` that serialize these structs to JSON.
     - Validate that the generated JSON matches the structure expected by the
       TypeScript `TaskSchema`.
-- [ ] **Milestone 1.3**: Port `priority.ts` and `schedules` logic.
+- [x] **Milestone 1.3**: Port `priority.ts` and `schedules` logic.
   - **Goal**: Implement purely functional domain logic in Rust.
   - **Source Files**: `priority.ts`, `routine-tasks.ts`, `dates.ts`,
     `visibility.ts`, `readiness.ts`, `feedback.ts`.
   - **Implementation Details**:
     - **[NEW] `crates/tasklens-core/src/utils/time.rs`**:
       - Implement `get_current_timestamp` and `get_interval_ms`.
-      - _Note_: helper functions only. Domain logic will accept `current_time`
-        as an argument to avoid global mocking.
+      - _Note_: Domain logic will accept `current_time` as an argument.
     - **[NEW] `crates/tasklens-core/src/domain/`**:
-      - `dates.rs`: Port `getUrgencyStatus`, `isSameDayUTC`.
-      - `readiness.rs`: Port `calculateLeadTimeFactor`.
-      - `visibility.rs`: Port `calculateContextualVisibility`.
-      - `feedback.rs`: Port `calculateFeedbackFactors`.
-      - `routine_tasks.rs`: Port `wakeUpRoutineTasks` as
-        `pub fn wake_up_routine_tasks(state: &mut TunnelState, current_time: i64)`.
-      - `priority.rs`: Port `hydrateTask`, `recalculatePriorities`,
-        `getPrioritizedTasks`.
+      - `dates.rs`: Port `get_urgency_status` (returns `UrgencyStatus`),
+        `is_same_day_utc`.
+      - `readiness.rs`: Port `calculate_lead_time_factor`.
+      - `visibility.rs`: Port `calculate_contextual_visibility` and
+        `is_place_open`.
+      - `feedback.rs`: Port `calculate_feedback_factors`.
+      - `routine_tasks.rs`: Port
+        `wake_up_routine_tasks(state: &mut TunnelState, current_time: u64)`.
+      - `priority.rs`: Port `hydrate_task`, `recalculate_priorities`,
+        `get_prioritized_tasks` (returns `Vec<ComputedTask>`).
     - **[MODIFY] `crates/tasklens-core/src/types.rs`**:
-      - Add `EnrichedTask` (extensions), `Context`, `PriorityOptions`,
-        `ViewFilter`.
+      - Add `UrgencyStatus` enum.
+      - Add `EnrichedTask` (transient computation state), `Context`,
+        `PriorityOptions`, `ViewFilter`, `ComputedTask`.
+      - Add `ScheduleSource` enum (`Self`, `Ancestor`).
+      - Add `OpenHours` struct/enum for location schedule parsing.
   - **Verification**:
-    - [ ] Unit tests for `UrgencyStatus` in `dates.rs`.
-    - [ ] Unit tests for `calculateLeadTimeFactor` in `readiness.rs`.
-    - [ ] Integration smoke test in `priority.rs`: Build a tree, prioritize,
+    - [x] Unit tests for `UrgencyStatus` in `dates.rs`.
+    - [x] Unit tests for `calculateLeadTimeFactor` in `readiness.rs`.
+    - [x] Integration smoke test in `priority.rs`: Build a tree, prioritize,
           assert order.
 - [ ] **Milestone 1.4**: Implement a test runner to execute existing YAML BDD
       specs against the Rust domain crate.

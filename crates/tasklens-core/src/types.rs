@@ -16,6 +16,10 @@ impl TaskID {
     pub fn new() -> Self {
         Self(Uuid::new_v4().to_string())
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 impl Default for TaskID {
@@ -27,6 +31,12 @@ impl Default for TaskID {
 impl From<String> for TaskID {
     fn from(s: String) -> Self {
         Self(s)
+    }
+}
+
+impl From<&str> for TaskID {
+    fn from(s: &str) -> Self {
+        Self(s.to_string())
     }
 }
 
@@ -44,6 +54,10 @@ impl PlaceID {
     pub fn new() -> Self {
         Self(Uuid::new_v4().to_string())
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 impl Default for PlaceID {
@@ -58,11 +72,20 @@ impl From<String> for PlaceID {
     }
 }
 
+impl From<&str> for PlaceID {
+    fn from(s: &str) -> Self {
+        Self(s.to_string())
+    }
+}
+
 impl std::fmt::Display for PlaceID {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
+
+/// Reserved Place ID representing "any location".
+pub const ANYWHERE_PLACE_ID: &str = "Anywhere";
 
 /// The completion status of a task.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -71,6 +94,16 @@ pub enum TaskStatus {
     Pending,
     /// Task has been completed.
     Done,
+}
+
+/// The urgency status of a task.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub enum UrgencyStatus {
+    Overdue,
+    Urgent,
+    Active,
+    Upcoming,
+    None,
 }
 
 /// The scheduling strategy for a task.
@@ -160,11 +193,143 @@ pub struct PersistedTask {
     pub extra_fields: HashMap<String, serde_json::Value>,
 }
 
+/// Internal Mutable Object for Algorithm Processing.
+#[derive(Debug, Clone, PartialEq)]
+pub struct EnrichedTask {
+    // Flattened PersistedTask fields
+    pub id: TaskID,
+    pub title: String,
+    pub notes: String,
+    pub parent_id: Option<TaskID>,
+    pub child_task_ids: Vec<TaskID>,
+    pub place_id: Option<PlaceID>,
+    pub status: TaskStatus,
+    pub importance: f64,
+    pub credit_increment: Option<f64>,
+    pub credits: f64,
+    pub desired_credits: f64,
+    pub credits_timestamp: u64,
+    pub priority_timestamp: u64,
+    pub schedule: Schedule,
+    pub repeat_config: Option<RepeatConfig>,
+    pub is_sequential: bool,
+    pub is_acknowledged: bool,
+    pub last_completed_at: Option<u64>,
+
+    // Ephemeral scratchpad values
+    pub effective_credits: f64,
+    pub feedback_factor: f64,
+    pub lead_time_factor: f64,
+    pub normalized_importance: f64,
+    pub priority: f64,
+    pub visibility: bool,
+    pub outline_index: u32,
+    pub is_container: bool,
+    pub is_pending: bool,
+    pub is_ready: bool,
+
+    // Effective Schedule State (Inheritance)
+    pub effective_due_date: Option<u64>,
+    pub effective_lead_time: Option<u64>,
+    pub effective_schedule_source: Option<ScheduleSource>,
+}
+
+/// Indicates where the effective schedule came from.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum ScheduleSource {
+    /// The schedule is defined on the task itself.
+    #[serde(rename = "self")]
+    Myself,
+    /// The schedule is inherited from an ancestor.
+    Ancestor,
+}
+
+/// A task as projected for the View Layer.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ComputedTask {
+    pub id: TaskID,
+    pub title: String,
+    pub notes: String,
+    pub parent_id: Option<TaskID>,
+    pub child_task_ids: Vec<TaskID>,
+    pub place_id: Option<PlaceID>,
+    pub status: TaskStatus,
+    pub importance: f64,
+    pub credit_increment: Option<f64>,
+    pub credits: f64,
+    pub desired_credits: f64,
+    pub credits_timestamp: u64,
+    pub priority_timestamp: u64,
+    pub schedule: Schedule,
+    pub repeat_config: Option<RepeatConfig>,
+    pub is_sequential: bool,
+    pub is_acknowledged: bool,
+    pub last_completed_at: Option<u64>,
+
+    pub is_container: bool,
+    pub is_pending: bool,
+    pub is_ready: bool,
+    pub effective_due_date: Option<u64>,
+    pub effective_lead_time: Option<u64>,
+    pub effective_schedule_source: Option<ScheduleSource>,
+}
+
+/// Runtime context for algorithm calculations.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Context {
+    pub current_place_id: Option<PlaceID>,
+    pub current_time: u64,
+}
+
+/// Options to control which tasks are included in the prioritized output.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct PriorityOptions {
+    pub include_hidden: bool,
+    pub mode: Option<PriorityMode>,
+    pub context: Option<Context>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "kebab-case")]
+pub enum PriorityMode {
+    DoList,
+    PlanOutline,
+}
+
+/// Filter criteria for the view.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct ViewFilter {
+    pub place_id: Option<String>, // "All", "Anywhere", or a specific ID
+}
+
+/// Defines the operating hours for a place.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum OpenHoursMode {
+    AlwaysOpen,
+    AlwaysClosed,
+    Custom,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct OpenHours {
+    pub mode: OpenHoursMode,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub schedule: Option<HashMap<String, Vec<String>>>,
+}
+
 /// A place/context where tasks can be performed.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Place {
     pub id: PlaceID,
+    /// Stringified JSON of OpenHours
     pub hours: String,
     pub included_places: Vec<PlaceID>,
     #[serde(flatten)]
