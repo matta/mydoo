@@ -53,6 +53,40 @@ We can identify three major layers that can be tackled somewhat independently:
       React-like, this is a structural translation. CSS/Tailwind can be largely
       reused.
 
+## Directory Structure
+
+To support the migration and coexistence, we will utilize a Cargo Workspace at
+the root of the repository. All new Rust code will live in `crates/` to keep the
+migration clean and isolated.
+
+```text
+/
+├── Cargo.toml              # Workspace Root
+├── apps/
+│   └── client/             # Existing React implementation
+├── crates/                 # [NEW] Rust Workspace Members
+│   ├── tasklens-core/      # Domain logic (pure Rust)
+│   ├── tasklens-store/     # Persistence & Sync logic
+│   └── tasklens-ui/        # [NEW] Dioxus WASM implementation
+├── packages/               # Existing Node.js packages
+└── ...
+```
+
+### Cargo Workspace Setup
+
+The root `Cargo.toml` will define the workspace members:
+
+```toml
+[workspace]
+resolver = "2"
+members = [
+  "crates/*",
+]
+
+[workspace.dependencies]
+# Shared dependencies like serde, chrono, uuid, etc.
+```
+
 ## Epochs & Milestones
 
 ### Epoch 1: Foundation & Domain Parity
