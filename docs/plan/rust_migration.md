@@ -223,26 +223,67 @@ Server._
     the "custom wrapper" part already. We just need to ensure it aligns with
     `todo_mvp`'s `store.rs`.
 
-- [ ] **Milestone 2.2**: Sync Foundation (`sync-protocol` & `sync-server`).
-  - **Goal**: Implement the server-side infrastructure for syncing.
-  - **Source**: `todo_mvp`
+- [ ] **Milestone 2.2**: Sync Protocol (`sync-protocol`).
+  - **Goal**: Define shared types and protocol for syncing.
+  - **Source**: `todo_mvp/sync_protocol`
   - **Implementation Details**:
-    - **[NEW] `crates/sync-protocol`**:
-      - Create crate.
-      - Port `todo_mvp/sync_protocol/src/lib.rs` (Types: `ClientMessage`,
-        `ServerMessage`, `EncryptedBlob`).
-    - **[NEW] `crates/sync-server`**:
-      - Create crate.
-      - Port `todo_mvp/sync_server/src/main.rs` (Axum server, WebSocket
-        handler).
-      - Port `todo_mvp/sync_server/src/db.rs` (SQLite/SQLx persistence for
-        history).
-      - Add dependencies: `axum`, `tokio`, `sqlx`, `tracing`.
-  - **Verification**:
-    - Run the server locally.
-    - Connect via `wscat` or a simple test script to verify handshake.
+    - [ ] Create directory: `crates/sync-protocol`
+    - [ ] Create `crates/sync-protocol/Cargo.toml`:
+      - [ ] Add `[package]` section (name="sync_protocol", version="0.1.0",
+            edition="2021").
+      - [ ] Add `[dependencies]` section with
+            `serde = { version = "1.0", features = ["derive"] }`.
+    - [ ] Create `crates/sync-protocol/src/lib.rs`:
+      - [ ] Add `use serde::{Deserialize, Serialize};`.
+      - [ ] Implement `EncryptedBlob` struct:
+        - [ ] Field: `nonce: [u8; 24]` (XChaCha20 uses 24-byte nonce).
+        - [ ] Field: `ciphertext: Vec<u8>`.
+        - [ ] Derive: `Debug, Clone, Serialize, Deserialize`.
+      - [ ] Implement `ClientMessage` enum:
+        - [ ] Variant
+              `Hello { client_id: String, sync_id: String, last_sequence: i64 }`.
+        - [ ] Variant
+              `SubmitChange { sync_id: String, payload: EncryptedBlob }`.
+        - [ ] Derive: `Debug, Clone, Serialize, Deserialize`.
+      - [ ] Implement `ServerMessage` enum:
+        - [ ] Variant
+              `ChangeOccurred { sequence_id: i64, sync_id: String, source_client_id: String, payload: EncryptedBlob }`.
+        - [ ] Derive: `Debug, Clone, Serialize, Deserialize`.
 
-- [ ] **Milestone 2.3**: Client Networking (`tasklens-store`).
+- [ ] **Milestone 2.3**: Sync Server (`sync-server`).
+  - **Goal**: Implement the WebSocket sync server.
+  - **Source**: `todo_mvp/sync_server`
+  - **Implementation Details**:
+    - **Step 1: Crate Setup**
+      - [ ] Create directory: `crates/sync-server`
+      - [ ] Create `crates/sync-server/Cargo.toml` (deps: axum, tokio, sqlx,
+            etc).
+      - [ ] Create `crates/sync-server/src/main.rs` (skeleton).
+    - **Step 2: Database**
+      - [ ] Create `crates/sync-server/src/db.rs`.
+      - [ ] Implement `init_pool`, `append_update`, `get_changes_since`.
+    - **Step 3: Server Logic**
+      - [ ] Implement `AppState` and `main` (setup router).
+      - [ ] Implement `ws_handler` and `handle_socket` (handshake + loop).
+  - **Verification**:
+    - [ ] Run `cargo run -p sync-server`.
+
+- [ ] **Milestone 2.4**: Store Refactor & Samod Removal (`tasklens-store`).
+  - **Goal**: Remove `samod` and use `automerge` directly.
+  - **Implementation Details**:
+    - [ ] **[MODIFY] `crates/tasklens-store/Cargo.toml`**:
+      - Remove `samod` dependency.
+      - Ensure `automerge`, `autosurgeon`, `unfold` are available.
+    - [ ] **[Refactor] `crates/tasklens-store/src/store.rs`**:
+      - Replace `Repo` usage with `automerge::AutoCommit`.
+      - Remove `start_sync`.
+      - Implement `subscribe` using internal signals or polling.
+    - [ ] **[Cleanup] Workspace**:
+      - Remove `samod` from root `Cargo.toml`.
+  - **Verification**:
+    - [ ] `cargo check -p tasklens-store`.
+
+- [ ] **Milestone 2.5**: Client Networking (`tasklens-store`).
   - **Goal**: Connect the client `Store` to the `sync-server`.
   - **Source**: `todo_mvp`
   - **Implementation Details**:
@@ -261,7 +302,7 @@ Server._
     - Integration test: Ensure `SyncService` can talk to a running
       `sync-server`.
 
-- [ ] **Milestone 2.4**: Dioxus Integration (UI Connection).
+- [ ] **Milestone 2.6**: Dioxus Integration (UI Connection).
   - **Goal**: Hook up the sync loop in the Dioxus app.
   - **Implementation Details**:
     - **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
@@ -340,5 +381,6 @@ in their respective environments.
 
 ## Next Steps
 
-1.  Implement **Milestone 2.1**: Initialize `tasklens-store` and integrate
-    `samod`.
+1.  Implement **Milestone 2.2**: Sync Protocol (`sync-protocol`).
+2.  Implement **Milestone 2.3**: Sync Server (`sync-server`).
+3.  Implement **Milestone 2.4**: Store Refactor & Samod Removal.
