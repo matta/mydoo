@@ -1,5 +1,4 @@
 use dioxus::prelude::*;
-use futures::StreamExt;
 use tasklens_core::types::TunnelState;
 use tasklens_store::store::AppStore;
 
@@ -18,38 +17,29 @@ fn App() -> Element {
     let mut state_sig = use_signal(TunnelState::default);
     let mut store_ready = use_signal(|| false);
 
-    // Initialize store and subscribe in one coroutine
+    // Initialize store
+    // NOTE: Reactive updates via subscribe will be implemented in Milestone 2.5
+    // when we add the sync service. For now, we just load the initial state.
     use_coroutine(move |_: UnboundedReceiver<()>| async move {
         tracing::info!("Initializing AppStore...");
 
-        #[cfg(target_arch = "wasm32")]
-        let store_result = AppStore::new().await;
+        let mut store = AppStore::new();
+        if let Err(e) = store.init() {
+            tracing::error!("Failed to init store: {}", e);
+            return;
+        }
 
-        #[cfg(not(target_arch = "wasm32"))]
-        let store_result: anyhow::Result<AppStore> = {
-            tracing::error!("AppStore not supported on non-WASM in this UI yet");
-            Err(anyhow::anyhow!("Not supported on non-WASM"))
-        };
+        tracing::info!("AppStore initialized");
 
-        match store_result {
-            Ok(mut store) => {
-                if let Err(e) = store.init().await {
-                    tracing::error!("Failed to init store: {}", e);
-                    return;
-                }
-
-                tracing::info!("AppStore initialized, subscribing...");
+        // Load initial state
+        match store.get_state() {
+            Ok(state) => {
+                state_sig.set(state);
                 store_ready.set(true);
-
-                let stream = store.subscribe();
-                let mut stream = Box::pin(stream);
-                while let Some(new_state) = stream.next().await {
-                    state_sig.set(new_state);
-                    tracing::info!("State updated");
-                }
+                tracing::info!("Initial state loaded");
             }
             Err(e) => {
-                tracing::error!("Failed to create store: {}", e);
+                tracing::error!("Failed to get state: {}", e);
             }
         }
     });

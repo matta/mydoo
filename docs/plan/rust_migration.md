@@ -279,20 +279,22 @@ Server._
     - [x] Diff against `todo_mvp` equivalents and revert gratuitous changes
           (keep implementations as close as possible).
 
-- [ ] **Milestone 2.4**: Store Refactor & Samod Removal (`tasklens-store`).
+- [x] **Milestone 2.4**: Store Refactor & Samod Removal (`tasklens-store`).
   - **Goal**: Remove `samod` and use `automerge` directly.
   - **Implementation Details**:
-    - [ ] **[MODIFY] `crates/tasklens-store/Cargo.toml`**:
+    - [x] **[MODIFY] `crates/tasklens-store/Cargo.toml`**:
       - Remove `samod` dependency.
       - Ensure `automerge`, `autosurgeon`, `unfold` are available.
-    - [ ] **[Refactor] `crates/tasklens-store/src/store.rs`**:
+    - [x] **[Refactor] `crates/tasklens-store/src/store.rs`**:
       - Replace `Repo` usage with `automerge::AutoCommit`.
       - Remove `start_sync`.
       - Implement `subscribe` using internal signals or polling.
-    - [ ] **[Cleanup] Workspace**:
+    - [x] **[Cleanup] Workspace**:
       - Remove `samod` from root `Cargo.toml`.
   - **Verification**:
-    - [ ] `cargo check -p tasklens-store`.
+    - [x] `cargo check -p tasklens-store`.
+    - [x] `cargo build --target wasm32-unknown-unknown -p tasklens-store`.
+    - [x] All tests pass.
 
 - [ ] **Milestone 2.5**: Client Networking (`tasklens-store`).
   - **Goal**: Connect the client `Store` to the `tasklens-sync-server`.

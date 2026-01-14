@@ -9,7 +9,6 @@ tasklens-core = { path = "../tasklens-core" }
 anyhow.workspace = true
 serde.workspace = true
 automerge.workspace = true
-samod.workspace = true
 autosurgeon.workspace = true
 uuid.workspace = true
 tracing.workspace = true

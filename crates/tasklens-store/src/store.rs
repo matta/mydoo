@@ -2,301 +2,227 @@ use crate::actions::Action;
 #[cfg(target_arch = "wasm32")]
 use crate::storage::IndexedDbStorage;
 use anyhow::{Result, anyhow};
+use automerge::AutoCommit;
 use autosurgeon::{hydrate, reconcile};
-use futures::StreamExt;
-#[cfg(not(target_arch = "wasm32"))]
-use samod::runtime::RuntimeHandle;
-#[cfg(not(target_arch = "wasm32"))]
-use samod::storage::InMemoryStorage;
-use samod::{DocHandle, Repo};
 use std::collections::HashMap;
 
 use tasklens_core::types::{
     PersistedTask, Schedule, ScheduleType, TaskID, TaskStatus, TunnelState,
 };
 
+/// A wrapper around the Automerge CRDT document.
+///
+/// This struct manages the application's state using Automerge for CRDT-based
+/// persistence and synchronization.
 #[derive(Clone, Debug)]
 pub struct AppStore {
-    repo: Repo,
-    root_handle: Option<DocHandle>,
+    /// The underlying Automerge document backend.
+    pub doc: AutoCommit,
 }
 
 impl AppStore {
-    #[cfg(target_arch = "wasm32")]
-    pub async fn new() -> Result<Self> {
-        let storage = IndexedDbStorage::new("tasklens");
-        let runtime = WasmRuntime;
-
-        let repo = Repo::builder(runtime)
-            .with_storage(storage)
-            .load_local()
-            .await;
-
-        Ok(Self {
-            repo,
-            root_handle: None,
-        })
+    /// Creates a new, empty AppStore.
+    pub fn new() -> Self {
+        let doc = AutoCommit::new();
+        Self { doc }
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    pub async fn new<R: RuntimeHandle>(runtime: R) -> Result<Self> {
-        let storage = InMemoryStorage::default();
-
-        let repo = Repo::builder(runtime).with_storage(storage).load().await;
-
-        Ok(Self {
-            repo,
-            root_handle: None,
-        })
-    }
-
-    /// Initialize the store by creating a new document or loading an existing one.
-    pub async fn init(&mut self) -> Result<()> {
-        // TODO: In a real app, we'd probably try to find an existing document ID in storage
-        // or accept one as an argument. For Milestone 2.1, we'll try to load or create.
-
-        let handle = self
-            .repo
-            .create(automerge::Automerge::new())
-            .await
-            .map_err(|_| anyhow!("Failed to create document"))?;
-
-        // Seed with initial state if empty
-        let mut result = Ok(());
-        handle.with_document(|doc| {
-            let current_state: Result<TunnelState, _> = hydrate(doc);
-            if current_state.is_err() || current_state.as_ref().unwrap().tasks.is_empty() {
-                let initial_state = TunnelState {
-                    next_task_id: 1.0,
-                    next_place_id: 1.0,
-                    tasks: HashMap::new(),
-                    places: HashMap::new(),
-                    root_task_ids: Vec::new(),
-                };
-                let mut tx = doc.transaction();
-                let res = reconcile(&mut tx, &initial_state)
-                    .map_err(|e| anyhow!("Init reconciliation failed: {}", e));
-                if res.is_ok() {
-                    tx.commit();
-                }
-                result = res;
-            }
-        });
-        result?;
-
-        self.root_handle = Some(handle);
-        Ok(())
-    }
-
-    pub fn get_state(&self) -> Result<TunnelState> {
-        let handle = self
-            .root_handle
-            .as_ref()
-            .ok_or_else(|| anyhow!("AppStore not initialized"))?;
-
-        let mut state = Err(anyhow!("Hydration failed internal"));
-        handle.with_document(|doc| {
-            state = hydrate(doc).map_err(|e| anyhow!("Hydration failed: {}", e));
-        });
-        state
-    }
-
-    pub fn dispatch(&self, action: Action) -> Result<()> {
-        let handle = self
-            .root_handle
-            .as_ref()
-            .ok_or_else(|| anyhow!("AppStore not initialized"))?;
-
-        let mut result = Ok(());
-        handle.with_document(|doc| {
-            let mut state: TunnelState = match hydrate(doc) {
-                Ok(s) => s,
-                Err(e) => {
-                    result = Err(anyhow!("Dispatch hydration failed: {}", e));
-                    return;
-                }
-            };
-
-            match action {
-                Action::CreateTask { parent_id, title } => {
-                    let id = TaskID::new();
-                    let task = PersistedTask {
-                        id: id.clone(),
-                        title,
-                        notes: String::new(),
-                        parent_id: parent_id.clone(),
-                        child_task_ids: Vec::new(),
-                        place_id: None,
-                        status: TaskStatus::Pending,
-                        importance: 1.0,
-                        credit_increment: None,
-                        credits: 0.0,
-                        desired_credits: 1.0,
-                        credits_timestamp: 0.0,
-                        priority_timestamp: 0.0,
-                        schedule: Schedule {
-                            schedule_type: ScheduleType::Once,
-                            due_date: None,
-                            lead_time: Some(0.0),
-                            last_done: None,
-                        },
-                        repeat_config: None,
-                        is_sequential: false,
-                        is_acknowledged: false,
-                        last_completed_at: None,
-                    };
-                    state.tasks.insert(id.clone(), task);
-                    if let Some(pid) = parent_id {
-                        if let Some(parent) = state.tasks.get_mut(&pid) {
-                            parent.child_task_ids.push(id);
-                        }
-                    } else {
-                        state.root_task_ids.push(id);
-                    }
-                }
-                Action::UpdateTask { id, updates } => {
-                    if let Some(task) = state.tasks.get_mut(&id) {
-                        if let Some(title) = updates.title {
-                            task.title = title;
-                        }
-                        if let Some(status) = updates.status {
-                            task.status = status;
-                        }
-                        if let Some(place_id) = updates.place_id {
-                            task.place_id = place_id;
-                        }
-                        if let Some(due_date) = updates.due_date {
-                            task.schedule.due_date = due_date;
-                        }
-                    }
-                }
-                Action::DeleteTask { id } => {
-                    if let Some(task) = state.tasks.remove(&id) {
-                        if let Some(pid) = task.parent_id {
-                            if let Some(parent) = state.tasks.get_mut(&pid) {
-                                parent.child_task_ids.retain(|cid| cid != &id);
-                            }
-                        } else {
-                            state.root_task_ids.retain(|rid| rid != &id);
-                        }
-                    }
-                }
-                Action::CompleteTask { id } => {
-                    if let Some(task) = state.tasks.get_mut(&id) {
-                        task.status = TaskStatus::Done;
-                    }
-                }
-                Action::MoveTask { id, new_parent_id } => {
-                    let old_parent_id = state.tasks.get(&id).and_then(|t| t.parent_id.clone());
-
-                    // Remove from old parent or root
-                    if let Some(opid) = old_parent_id {
-                        if let Some(parent) = state.tasks.get_mut(&opid) {
-                            parent.child_task_ids.retain(|cid| cid != &id);
-                        }
-                    } else {
-                        state.root_task_ids.retain(|rid| rid != &id);
-                    }
-
-                    // Add to new parent or root
-                    if let Some(npid) = new_parent_id.clone() {
-                        if let Some(parent) = state.tasks.get_mut(&npid) {
-                            parent.child_task_ids.push(id.clone());
-                        }
-                    } else {
-                        state.root_task_ids.push(id.clone());
-                    }
-
-                    // Update task's parent_id
-                    if let Some(task) = state.tasks.get_mut(&id) {
-                        task.parent_id = new_parent_id;
-                    }
-                }
-            }
-            let mut tx = doc.transaction();
-            if let Err(e) = reconcile(&mut tx, &state) {
-                result = Err(anyhow!("Dispatch reconciliation failed: {}", e));
-            } else {
-                tx.commit();
-            }
-        });
-        result
-    }
-
-    /// Subscribe to state changes.
-    ///
-    /// Returns a stream that yields the current state whenever the underlying
-    /// Automerge document changes. The stream will yield the initial state
-    /// immediately, then subsequent states as changes occur.
-    pub fn subscribe(&self) -> impl futures::Stream<Item = TunnelState> + '_ {
-        let handle = self.root_handle.as_ref().expect("Store not initialized");
-
-        let initial_state = self.get_state().unwrap_or_else(|_| TunnelState {
-            next_task_id: 1.0,
-            next_place_id: 1.0,
-            tasks: HashMap::new(),
-            places: HashMap::new(),
-            root_task_ids: Vec::new(),
-        });
-
-        let changes_stream = handle.changes();
-        let handle_for_map = handle.clone();
-
-        let updates = changes_stream.map(move |_| {
-            let mut state = None;
-            handle_for_map.with_document(|doc| {
-                if let Ok(s) = hydrate(doc) {
-                    state = Some(s);
-                } else {
-                    tracing::warn!("Failed to hydrate state in subscribe");
-                }
-            });
-            state.unwrap_or(TunnelState {
+    /// Initialize the store with default state if empty.
+    pub fn init(&mut self) -> Result<()> {
+        let current_state: Result<TunnelState, _> = hydrate(&self.doc);
+        if current_state.is_err() || current_state.as_ref().unwrap().tasks.is_empty() {
+            let initial_state = TunnelState {
                 next_task_id: 1.0,
                 next_place_id: 1.0,
                 tasks: HashMap::new(),
                 places: HashMap::new(),
                 root_task_ids: Vec::new(),
-            })
-        });
+            };
+            reconcile(&mut self.doc, &initial_state)
+                .map_err(|e| anyhow!("Init reconciliation failed: {}", e))?;
+        }
+        Ok(())
+    }
 
-        futures::stream::once(async move { initial_state }).chain(updates)
+    /// Hydrates a Rust struct from the Automerge document.
+    pub fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T, autosurgeon::HydrateError> {
+        autosurgeon::hydrate(&self.doc)
+    }
+
+    /// Reconciles a Rust struct with the Automerge document.
+    pub fn reconcile<T: autosurgeon::Reconcile>(
+        &mut self,
+        data: &T,
+    ) -> Result<(), autosurgeon::ReconcileError> {
+        autosurgeon::reconcile(&mut self.doc, data)
+    }
+
+    pub fn get_state(&self) -> Result<TunnelState> {
+        hydrate(&self.doc).map_err(|e| anyhow!("Hydration failed: {}", e))
+    }
+
+    pub fn dispatch(&mut self, action: Action) -> Result<()> {
+        let mut state: TunnelState = self.get_state()?;
+
+        match action {
+            Action::CreateTask { parent_id, title } => {
+                let id = TaskID::new();
+                let task = PersistedTask {
+                    id: id.clone(),
+                    title,
+                    notes: String::new(),
+                    parent_id: parent_id.clone(),
+                    child_task_ids: Vec::new(),
+                    place_id: None,
+                    status: TaskStatus::Pending,
+                    importance: 1.0,
+                    credit_increment: None,
+                    credits: 0.0,
+                    desired_credits: 1.0,
+                    credits_timestamp: 0.0,
+                    priority_timestamp: 0.0,
+                    schedule: Schedule {
+                        schedule_type: ScheduleType::Once,
+                        due_date: None,
+                        lead_time: Some(0.0),
+                        last_done: None,
+                    },
+                    repeat_config: None,
+                    is_sequential: false,
+                    is_acknowledged: false,
+                    last_completed_at: None,
+                };
+                state.tasks.insert(id.clone(), task);
+                if let Some(pid) = parent_id {
+                    if let Some(parent) = state.tasks.get_mut(&pid) {
+                        parent.child_task_ids.push(id);
+                    }
+                } else {
+                    state.root_task_ids.push(id);
+                }
+            }
+            Action::UpdateTask { id, updates } => {
+                if let Some(task) = state.tasks.get_mut(&id) {
+                    if let Some(title) = updates.title {
+                        task.title = title;
+                    }
+                    if let Some(status) = updates.status {
+                        task.status = status;
+                    }
+                    if let Some(place_id) = updates.place_id {
+                        task.place_id = place_id;
+                    }
+                    if let Some(due_date) = updates.due_date {
+                        task.schedule.due_date = due_date;
+                    }
+                }
+            }
+            Action::DeleteTask { id } => {
+                if let Some(task) = state.tasks.remove(&id) {
+                    if let Some(pid) = task.parent_id {
+                        if let Some(parent) = state.tasks.get_mut(&pid) {
+                            parent.child_task_ids.retain(|cid| cid != &id);
+                        }
+                    } else {
+                        state.root_task_ids.retain(|rid| rid != &id);
+                    }
+                }
+            }
+            Action::CompleteTask { id } => {
+                if let Some(task) = state.tasks.get_mut(&id) {
+                    task.status = TaskStatus::Done;
+                }
+            }
+            Action::MoveTask { id, new_parent_id } => {
+                let old_parent_id = state.tasks.get(&id).and_then(|t| t.parent_id.clone());
+
+                // Remove from old parent or root
+                if let Some(opid) = old_parent_id {
+                    if let Some(parent) = state.tasks.get_mut(&opid) {
+                        parent.child_task_ids.retain(|cid| cid != &id);
+                    }
+                } else {
+                    state.root_task_ids.retain(|rid| rid != &id);
+                }
+
+                // Add to new parent or root
+                if let Some(npid) = new_parent_id.clone() {
+                    if let Some(parent) = state.tasks.get_mut(&npid) {
+                        parent.child_task_ids.push(id.clone());
+                    }
+                } else {
+                    state.root_task_ids.push(id.clone());
+                }
+
+                // Update task's parent_id
+                if let Some(task) = state.tasks.get_mut(&id) {
+                    task.parent_id = new_parent_id;
+                }
+            }
+        }
+
+        reconcile(&mut self.doc, &state)
+            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+        Ok(())
+    }
+
+    /// Exports the current Automerge document state as a binary blob.
+    pub fn export_save(&mut self) -> Vec<u8> {
+        self.doc.save()
+    }
+
+    /// Loads the persisted state from the browser's IndexedDB.
+    #[cfg(target_arch = "wasm32")]
+    pub async fn load_from_db() -> Result<Option<Vec<u8>>> {
+        IndexedDbStorage::load_from_db().await
+    }
+
+    /// Persists the current state to the browser's IndexedDB.
+    #[cfg(target_arch = "wasm32")]
+    pub async fn save_to_db(bytes: Vec<u8>) -> Result<()> {
+        IndexedDbStorage::save_to_db(bytes).await
+    }
+
+    /// Replaces the current backend with one loaded from the provided bytes.
+    pub fn load_from_bytes(&mut self, bytes: Vec<u8>) {
+        match AutoCommit::load(&bytes) {
+            Ok(doc) => self.doc = doc,
+            Err(e) => tracing::error!("Failed to load returned bytes into AutoCommit: {:?}", e),
+        }
+    }
+
+    /// Imports incremental changes from the server.
+    pub fn import_changes(&mut self, changes: Vec<u8>) {
+        if let Err(e) = self.doc.load_incremental(&changes) {
+            tracing::error!("Failed to load incremental changes: {:?}", e);
+        }
+    }
+
+    /// Gets the changes made since the last sync/save.
+    pub fn get_recent_changes(&mut self) -> Option<Vec<u8>> {
+        let changes = self.doc.save_incremental();
+        if changes.is_empty() {
+            None
+        } else {
+            Some(changes)
+        }
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-#[derive(Clone, Debug)]
-pub struct WasmRuntime;
-
-#[cfg(target_arch = "wasm32")]
-impl samod::runtime::RuntimeHandle for WasmRuntime {
-    fn spawn(&self, f: std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + 'static>>) {
-        wasm_bindgen_futures::spawn_local(f);
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-impl samod::runtime::LocalRuntimeHandle for WasmRuntime {
-    fn spawn(&self, f: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>) {
-        wasm_bindgen_futures::spawn_local(f);
+impl Default for AppStore {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures::executor::LocalPool;
 
     #[test]
     fn test_store_init() {
-        let mut pool = LocalPool::new();
-        let spawner = pool.spawner();
-
-        let store = pool.run_until(async move {
-            let mut store = AppStore::new(spawner).await.unwrap();
-            store.init().await.unwrap();
-            store
-        });
+        let mut store = AppStore::new();
+        store.init().unwrap();
 
         let state = store.get_state().unwrap();
         assert!(state.tasks.is_empty());
@@ -304,14 +230,8 @@ mod tests {
 
     #[test]
     fn test_dispatch_create() {
-        let mut pool = LocalPool::new();
-        let spawner = pool.spawner();
-
-        let store = pool.run_until(async move {
-            let mut store = AppStore::new(spawner).await.unwrap();
-            store.init().await.unwrap();
-            store
-        });
+        let mut store = AppStore::new();
+        store.init().unwrap();
 
         store
             .dispatch(Action::CreateTask {
@@ -329,13 +249,8 @@ mod tests {
 
     #[test]
     fn test_dispatch_update() {
-        let mut pool = LocalPool::new();
-        let spawner = pool.spawner();
-        let store = pool.run_until(async move {
-            let mut store = AppStore::new(spawner).await.unwrap();
-            store.init().await.unwrap();
-            store
-        });
+        let mut store = AppStore::new();
+        store.init().unwrap();
 
         store
             .dispatch(Action::CreateTask {
@@ -365,13 +280,8 @@ mod tests {
 
     #[test]
     fn test_dispatch_delete() {
-        let mut pool = LocalPool::new();
-        let spawner = pool.spawner();
-        let store = pool.run_until(async move {
-            let mut store = AppStore::new(spawner).await.unwrap();
-            store.init().await.unwrap();
-            store
-        });
+        let mut store = AppStore::new();
+        store.init().unwrap();
 
         store
             .dispatch(Action::CreateTask {
@@ -392,13 +302,8 @@ mod tests {
 
     #[test]
     fn test_dispatch_complete() {
-        let mut pool = LocalPool::new();
-        let spawner = pool.spawner();
-        let store = pool.run_until(async move {
-            let mut store = AppStore::new(spawner).await.unwrap();
-            store.init().await.unwrap();
-            store
-        });
+        let mut store = AppStore::new();
+        store.init().unwrap();
 
         store
             .dispatch(Action::CreateTask {
@@ -418,13 +323,8 @@ mod tests {
 
     #[test]
     fn test_dispatch_move() {
-        let mut pool = LocalPool::new();
-        let spawner = pool.spawner();
-        let store = pool.run_until(async move {
-            let mut store = AppStore::new(spawner).await.unwrap();
-            store.init().await.unwrap();
-            store
-        });
+        let mut store = AppStore::new();
+        store.init().unwrap();
 
         // Create Parent
         store
@@ -468,41 +368,5 @@ mod tests {
 
         let child = state.tasks.get(&child_id).unwrap();
         assert_eq!(child.parent_id, Some(parent_id));
-    }
-
-    #[test]
-    fn test_subscribe() {
-        let mut pool = LocalPool::new();
-        let spawner = pool.spawner();
-
-        pool.run_until(async move {
-            // Setup store
-            let mut store = AppStore::new(spawner).await.unwrap();
-            store.init().await.unwrap();
-
-            // Subscribe
-            let stream = store.subscribe();
-            let mut stream = Box::pin(stream);
-
-            // Initial state
-            let initial = stream.next().await.unwrap();
-            assert!(initial.tasks.is_empty());
-
-            // Dispatch
-            store
-                .dispatch(Action::CreateTask {
-                    parent_id: None,
-                    title: "Reactive Task".to_string(),
-                })
-                .unwrap();
-
-            // Expect update
-            let updated = stream.next().await.unwrap();
-            assert_eq!(updated.tasks.len(), 1);
-            assert_eq!(
-                updated.tasks.values().next().unwrap().title,
-                "Reactive Task"
-            );
-        });
     }
 }

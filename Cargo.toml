@@ -1,8 +1,11 @@
 [workspace]
 resolver = "2"
 members = [
+  "crates/tasklens-core",
+  "crates/tasklens-store",
   "crates/tasklens-sync-protocol",
   "crates/tasklens-sync-server",
+  "crates/tasklens-ui",
 ]
 
 [workspace.lints.clippy]
@@ -27,7 +30,6 @@ dioxus = { version = "0.7.1" }
 dioxus-logger = "0.7.2"
 automerge = { version = "0.7.2" }
 autosurgeon = "0.10.1"
-samod = { git = "https://github.com/alexjg/samod" }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
