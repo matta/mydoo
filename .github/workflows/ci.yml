@@ -54,7 +54,11 @@ jobs:
         run: |
           DIOXUS_VERSION=$(cargo tree -p dioxus --depth 0 --prefix none | cut -d v -f 2)
           echo "Installing dioxus-cli version $DIOXUS_VERSION"
-          cargo binstall dioxus-cli --version $DIOXUS_VERSION --locked -y
+          cargo binstall dioxus-cli --version $DIOXUS_VERSION --locked -y --force
+          echo "Checking dx binary:"
+          ls -l ~/.cargo/bin/dx || echo "dx not found in ~/.cargo/bin"
+          echo "PATH is $PATH"
+          which dx || echo "dx not found in PATH"
 
       - name: Check Rust
         run: cargo check --workspace --all-targets
