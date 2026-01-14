@@ -10,7 +10,7 @@ ls:
   .svg: kebab-case
   .cjs: regex:use-js-instead
   .mjs: regex:use-js-instead
-  .md: kebab-case | SCREAMING_SNAKE_CASE
+  .md: kebab-case | SCREAMING_SNAKE_CASE | snake_case
   .dir: kebab-case | snake_case
 
 ignore:
