@@ -11,6 +11,7 @@
     "check-format": "prettier --check .",
     "fix-format": "prettier --write .",
     "generate": "rm -rf tests/e2e/.features-gen && bddgen",
+    "build": "dx build --platform web",
     "test-e2e": "playwright test"
   }
 }
