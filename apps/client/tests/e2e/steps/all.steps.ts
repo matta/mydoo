@@ -9,7 +9,7 @@ import { expect, test } from "../fixtures";
 
 const { Given, When, Then } = createBdd(test);
 
-// --- Common Steps ---
+// --- Common / Setup Steps ---
 
 Given(
   "the user launches the app with a clean slate",
@@ -22,9 +22,251 @@ Given(
   },
 );
 
+Given("I have a clean workspace", async ({ page, plan }) => {
+  await plan.setupClock();
+  await page.goto("/");
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await plan.setupClock();
+});
+
+Given("I start with a clean workspace", async ({ page, plan }) => {
+  await plan.setupClock();
+  await page.goto("/");
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await plan.setupClock();
+});
+
+Given("I have a workspace seeded with sample data", async ({ plan }) => {
+  await plan.primeWithSampleData();
+});
+
+Given("I am on a mobile device", async () => {
+  // Viewport is set by the project config (@mobile tag -> bdd-mobile project)
+  // We can verify if needed, but usually redundant.
+});
+
+// --- Navigation Steps ---
+
+When("I see the welcome screen", async ({ page }) => {
+  // Assuming welcome screen just means the app is loaded initially
+  await expect(page.locator("#root")).toBeVisible();
+});
+
+When("I switch to Plan view", async ({ plan }) => {
+  await plan.switchToPlanView();
+});
+
+When("I switch to Do view", async ({ plan }) => {
+  await plan.switchToDoView();
+});
+
+When("I reload the page", async ({ page }) => {
+  await page.reload();
+});
+
+When("I refresh the page", async ({ page }) => {
+  await page.reload();
+});
+
+// --- Task Lifecycle Steps ---
+
+When("I create the first task {string}", async ({ plan }, title) => {
+  await plan.addFirstTask(title);
+});
+
+When("I create a task {string}", async ({ plan }, title) => {
+  await plan.createTask(title);
+});
+
 Given("the user creates a task {string}", async ({ plan }, title: string) => {
   await plan.createTask(title);
 });
+
+Then("I should see {string} visible", async ({ plan }, title) => {
+  await plan.verifyTaskVisible(title);
+});
+
+Then("I should not see {string} visible", async ({ plan }, title) => {
+  await plan.verifyTaskHidden(title);
+});
+
+When("I rename {string} to {string}", async ({ plan }, oldTitle, newTitle) => {
+  await plan.editTaskTitle(oldTitle, newTitle);
+});
+
+When(
+  "I add a sibling {string} to {string}",
+  async ({ plan }, sibling, target) => {
+    await plan.addSibling(target, sibling);
+  },
+);
+
+When("I add a child {string} to {string}", async ({ plan }, child, parent) => {
+  await plan.openTaskEditor(parent);
+  await plan.addChild(child);
+});
+
+When("I complete the task {string}", async ({ plan }, title) => {
+  await plan.completeTask(title);
+});
+
+Then("I should see {string} marked as completed", async ({ plan }, title) => {
+  await plan.verifyTaskCompleted(title);
+});
+
+When("I clear completed tasks", async ({ plan }) => {
+  await plan.clearCompletedTasks();
+});
+
+When("I refresh the Do list", async ({ plan }) => {
+  await plan.refreshDoList();
+});
+
+When("I create a task {string} in Do view", async ({ plan }, title) => {
+  await plan.createTaskInDoView(title);
+});
+
+// --- Plan Management Steps ---
+
+When("I expand {string}", async ({ plan }, title) => {
+  await plan.toggleExpand(title, true);
+});
+
+When("I collapse {string}", async ({ plan }, title) => {
+  await plan.toggleExpand(title, false);
+});
+
+When("I find {string} in Plan", async ({ plan }, title) => {
+  await plan.findInPlan(title);
+});
+
+Then("I should be in Plan view", async ({ page }) => {
+  // Verify Plan view is active by checking for a unique element (Collapse All button)
+  // Checking tab attribute proved brittle or timing-dependent.
+  await expect(
+    page.getByRole("button", { name: "Collapse All" }),
+  ).toBeVisible();
+});
+
+Given(
+  "I have a task {string} with child {string}",
+  async ({ plan }, parent, child) => {
+    await plan.createTask(parent);
+    await plan.openTaskEditor(parent);
+    await plan.addChild(child);
+  },
+);
+
+When("I delete {string}", async ({ plan }, title) => {
+  await plan.deleteTask(title);
+});
+
+// --- Task Moving Steps ---
+
+Given("I have a task {string}", async ({ plan }, title) => {
+  await plan.createTask(title);
+});
+
+Given(
+  "I have a task {string} as a child of {string}",
+  async ({ plan }, child, parent) => {
+    try {
+      await plan.toggleExpand(parent, true);
+    } catch {
+      // Parent might not be expandable yet
+    }
+    await plan.openTaskEditor(parent);
+    await plan.addChild(child);
+  },
+);
+
+When("I move {string} to {string}", async ({ plan }, child, target) => {
+  await plan.openMovePicker(child);
+  await plan.moveTaskTo(target);
+});
+
+When("I open the move picker for {string}", async ({ plan }, title) => {
+  await plan.openMovePicker(title);
+});
+
+Then(
+  "I should see {string} disabled or hidden in move picker",
+  async ({ plan }, title) => {
+    await plan.verifyMovePickerExcludes(title);
+  },
+);
+
+// --- Task Creation Defaults Steps ---
+
+When("I open the Create Task modal", async ({ page }) => {
+  const addTop = page.getByLabel("Add Task at Top");
+  if (await addTop.isVisible()) {
+    await addTop.click();
+  } else {
+    // Fallback: Add sibling to first task if "Add Task at Top" isn't visible
+    // This handles cases where data is already seeded (Add First Task is gone)
+    // and we are on desktop where 'Add Task at Top' might not be available or different.
+    // Actually, if we are in Plan view with data, we should use 'Add Sibling' via menu
+    // OR find if there is a header button for adding tasks.
+    // But for "Task Defaults" test, we just need ANY Create Task modal.
+
+    // Try finding a task and adding a sibling
+    const firstTask = page.locator(`[data-testid="task-item"]`).first();
+    if (await firstTask.isVisible()) {
+      await firstTask.hover();
+      await firstTask.getByTestId("task-menu-trigger").click();
+      await page.getByRole("menuitem", { name: "Add Sibling" }).click();
+    } else {
+      await page.getByRole("button", { name: "Add First Task" }).click();
+    }
+  }
+});
+
+Then("I should see {string}", async ({ page }, text) => {
+  await expect(page.getByText(text).first()).toBeVisible();
+});
+
+Then(
+  "I should see Lead Time {string} {string}",
+  async ({ page }, val, unit) => {
+    await expect(page.locator("#lead-time-scalar-input")).toHaveValue(val);
+    await expect(page.locator("#lead-time-unit-select")).toHaveValue(unit);
+  },
+);
+
+When("I add a child to {string}", async ({ plan, page }, title) => {
+  await plan.openTaskEditor(title);
+  const modal = page.getByRole("dialog", { name: "Edit Task" });
+  await modal.getByRole("button", { name: "Add Child" }).click();
+});
+
+// --- Mobile Steps ---
+
+Then("I should see the mobile bottom bar", async ({ plan }) => {
+  await plan.mobileVerifyMobileBottomBar();
+});
+
+When("I drill down into {string}", async ({ plan }, title) => {
+  await plan.mobileDrillDown(title);
+});
+
+Then("the view title should be {string}", async ({ plan }, title) => {
+  await plan.mobileVerifyViewTitle(title);
+});
+
+When("I navigate up a level", async ({ plan }) => {
+  await plan.mobileNavigateUpLevel();
+});
+
+Then("I should see {string} in breadcrumbs", async ({ page }, title) => {
+  await expect(page.getByRole("button", { name: title })).toBeVisible();
+});
+
+// --- Existing / Other Steps (kept for compatibility) ---
+
+// ... (Keeping existing Document Steps, Routine Steps, etc. that were in the file)
 
 // --- Document Steps ---
 
@@ -223,22 +465,12 @@ Given("the current time is {string}", async ({ plan }, isoTime) => {
   await plan.setClock(new Date(isoTime));
 });
 
-When("I create a task {string}", async ({ plan }, title) => {
-  // Navigate to Plan view if not there
-  await plan.switchToPlanView();
-  await plan.createTask(title);
-});
-
 When(
   "I add a child task {string} to {string}",
   async ({ plan }, childTitle, parentTitle) => {
     await plan.switchToPlanView();
     await plan.openTaskEditor(parentTitle);
     await plan.addChild(childTitle);
-    // Close editor to return to list? Or stay?
-    // addChild usually stays in editor or returns.
-    // Assuming we need to close to see the list update or verify indicators.
-    // Let's ensure we close it.
     await plan.closeEditor();
   },
 );
@@ -282,22 +514,9 @@ Then(
   },
 );
 
-Given("I have a clean workspace", async ({ page, plan }) => {
-  await plan.setupClock();
-  await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
-  await plan.setupClock();
-});
-
 Then(
   "the task {string} should be due {string}",
   async ({ plan }, taskTitle, dateText) => {
-    // Use verifyDueDateTextContains to be robust against "Jun 5" vs "Jun 5, 2024" if needed,
-    // but the scenario says "should be due 'Tomorrow'".
-    // If the dateText is short ("Tomorrow", "Yesterday"), exact match is better.
-    // If it is "Jun 5", exact match might be "Jun 5".
-    // Let's us contains for robustness if it's a date string.
     if (["Tomorrow", "Yesterday", "Today"].includes(dateText)) {
       await plan.verifyDueDateText(taskTitle, dateText);
     } else {
