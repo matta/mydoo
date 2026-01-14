@@ -45,8 +45,13 @@ jobs:
       - name: Cache Rust
         uses: swatinem/rust-cache@v2
 
+      - name: Install cargo-binstall
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-binstall
+
       - name: Install dioxus-cli
-        run: cargo install dioxus-cli --version 0.7.1 --locked
+        run: cargo binstall dioxus-cli --version 0.7.1 --locked -y
 
       - name: Check Rust
         run: cargo check --workspace --all-targets
