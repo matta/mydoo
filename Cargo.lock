@@ -4920,6 +4920,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "sync-protocol"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "sync_protocol"
 version = "0.1.0"
 dependencies = [

@@ -223,32 +223,32 @@ Server._
     the "custom wrapper" part already. We just need to ensure it aligns with
     `todo_mvp`'s `store.rs`.
 
-- [ ] **Milestone 2.2**: Sync Protocol (`sync-protocol`).
+- [x] **Milestone 2.2**: Sync Protocol (`sync-protocol`).
   - **Goal**: Define shared types and protocol for syncing.
   - **Source**: `todo_mvp/sync_protocol`
   - **Implementation Details**:
-    - [ ] Create directory: `crates/sync-protocol`
-    - [ ] Create `crates/sync-protocol/Cargo.toml`:
-      - [ ] Add `[package]` section (name="sync_protocol", version="0.1.0",
+    - [x] Create directory: `crates/sync-protocol`
+    - [x] Create `crates/sync-protocol/Cargo.toml`:
+      - [x] Add `[package]` section (name="sync_protocol", version="0.1.0",
             edition="2021").
-      - [ ] Add `[dependencies]` section with
+      - [x] Add `[dependencies]` section with
             `serde = { version = "1.0", features = ["derive"] }`.
-    - [ ] Create `crates/sync-protocol/src/lib.rs`:
-      - [ ] Add `use serde::{Deserialize, Serialize};`.
-      - [ ] Implement `EncryptedBlob` struct:
-        - [ ] Field: `nonce: [u8; 24]` (XChaCha20 uses 24-byte nonce).
-        - [ ] Field: `ciphertext: Vec<u8>`.
-        - [ ] Derive: `Debug, Clone, Serialize, Deserialize`.
-      - [ ] Implement `ClientMessage` enum:
-        - [ ] Variant
+    - [x] Create `crates/sync-protocol/src/lib.rs`:
+      - [x] Add `use serde::{Deserialize, Serialize};`.
+      - [x] Implement `EncryptedBlob` struct:
+        - [x] Field: `nonce: [u8; 24]` (XChaCha20 uses 24-byte nonce).
+        - [x] Field: `ciphertext: Vec<u8>`.
+        - [x] Derive: `Debug, Clone, Serialize, Deserialize`.
+      - [x] Implement `ClientMessage` enum:
+        - [x] Variant
               `Hello { client_id: String, sync_id: String, last_sequence: i64 }`.
-        - [ ] Variant
+        - [x] Variant
               `SubmitChange { sync_id: String, payload: EncryptedBlob }`.
-        - [ ] Derive: `Debug, Clone, Serialize, Deserialize`.
-      - [ ] Implement `ServerMessage` enum:
-        - [ ] Variant
+        - [x] Derive: `Debug, Clone, Serialize, Deserialize`.
+      - [x] Implement `ServerMessage` enum:
+        - [x] Variant
               `ChangeOccurred { sequence_id: i64, sync_id: String, source_client_id: String, payload: EncryptedBlob }`.
-        - [ ] Derive: `Debug, Clone, Serialize, Deserialize`.
+        - [x] Derive: `Debug, Clone, Serialize, Deserialize`.
 
 - [ ] **Milestone 2.3**: Sync Server (`sync-server`).
   - **Goal**: Implement the WebSocket sync server.
