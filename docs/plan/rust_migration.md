@@ -23,11 +23,12 @@ version is fully feature-complete and verified.
 
 ### Target (Rust)
 
-- **Domain:** Rust Crate (`tasklens-rs` or similar) - Port of domain logic.
-- **State:** Dioxus State Management (Signals/Context) + `samod` (Automerge Repo
-  in Rust).
+- **Domain:** Rust Crate (`tasklens-core`) - Port of domain logic.
+- **State:** Dioxus State Management + `tasklens-store` (Custom Automerge
+  Wrapper).
 - **UI:** Dioxus (WASM).
-- **Persistence:** IndexedDB (via `samod`/`automerge-repo` storage adapters).
+- **Persistence:** IndexedDB (via `automerge` storage adapters).
+- **Sync:** Custom WebSocket Server (`sync-server`) + Client `SyncService`.
 
 ## Subsystems & Isolation
 
@@ -41,11 +42,17 @@ We can identify three major layers that can be tackled somewhat independently:
     - **Verification**: Unit tests matching the logic of existing TS tests. Can
       reuse BDD YAML fixtures.
 
-2.  **Persistence & Sync (`tasklens-store`)**:
+2.  **Persistence & Sync (`tasklens-store`, `sync-protocol`, `sync-server`)**:
     - **Description**: Handling Automerge documents, loading/saving to
       IndexedDB, syncing over WebSocket.
-    - **Porting Strategy**: Integrate `samod`. Replace Redux middleware with a
-      Dioxus-friendly store/controller that wraps the `samod` Repo.
+    - **Pivot Decision**: We are moving away from `samod` to a custom
+      implementation (ported from `todo_mvp`) to avoid WASM incompatibility
+      issues.
+    - **Porting Strategy**:
+      - `sync-protocol`: Shared types for encryption and messaging.
+      - `sync-server`: Axum-based WebSocket server.
+      - `tasklens-store`: Manages the `automerge` document and connects to the
+        sync server.
 
 3.  **User Interface (`tasklens-ui`)**:
     - **Description**: The views and components.
@@ -66,8 +73,10 @@ migration clean and isolated.
 │   └── client/             # Existing React implementation
 ├── crates/                 # [NEW] Rust Workspace Members
 │   ├── tasklens-core/      # Domain logic (pure Rust)
-│   ├── tasklens-store/     # Persistence & Sync logic
-│   └── tasklens-ui/        # [NEW] Dioxus WASM implementation
+│   ├── tasklens-store/     # Persistence & Networking
+│   ├── tasklens-ui/        # Dioxus WASM implementation
+│   ├── sync-protocol/      # [NEW] Shared sync types
+│   └── sync-server/        # [NEW] WebSocket server
 ├── packages/               # Existing Node.js packages
 └── ...
 ```
@@ -202,97 +211,64 @@ _Goal: Working Rust domain logic and basic persistence._
 
 ### Epoch 2: The Walking Skeleton
 
-_Goal: A minimal Dioxus app that permanently syncs data via Samod._
+_Goal: A minimal Dioxus app that permanently syncs data via our custom Sync
+Server._
 
-- [x] **Milestone 2.1**: `tasklens-store` Initialization & Samod Setup.
-  - **Goal**: Create the persistence layer wrapping `samod`.
-  - **Dependencies**: `samod`, `tasklens-core`, `autosurgeon`, `uuid` (v4),
-    `serde`.
+- [x] **Milestone 2.1**: `tasklens-store` Initialization (Local).
+  - **Goal**: Create the local persistence layer wrapping `automerge`.
+  - **Status**: Completed (re-verified against new plan). The current `Store`
+    implementation in `tasklens-store` matches the requirements (direct
+    `automerge` usage).
+  - **Note**: The original plan used `samod`. We have effectively implemented
+    the "custom wrapper" part already. We just need to ensure it aligns with
+    `todo_mvp`'s `store.rs`.
+
+- [ ] **Milestone 2.2**: Sync Foundation (`sync-protocol` & `sync-server`).
+  - **Goal**: Implement the server-side infrastructure for syncing.
+  - **Source**: `todo_mvp`
   - **Implementation Details**:
-    - [x] **[MODIFY] `crates/tasklens-store/Cargo.toml`**:
-      - Add `samod` (git dependency), `autosurgeon`, `automerge`.
-    - [x] **[NEW] `crates/tasklens-store/src/store.rs`**:
-      - [x] Define `AppStore` struct with `Repo` and `DocHandle`.
-      - [x] Initialize `samod::Repo` in `AppStore::new()`.
-      - [x] Configure `IndexedDB` storage adapter.
-  - [x] **`get_state(&self) -> TunnelState`**: Hydrate state from the Doc using
-        `autosurgeon::hydrate`. ✅ Implemented.
-  - [x] **`dispatch(&self, action: Action)`**: Apply changes to the Doc.
-    - [x] **[NEW] `crates/tasklens-store/src/actions.rs`**: Define the `Action`
-          enum with variants for all mutations.
-    - [x] **[MODIFY] `store.rs`**: Implement `dispatch` to match on `Action`,
-          apply mutation to `TunnelState`, and reconcile.
-    - [x] Add unit tests for each action variant.
-- [x] **Milestone 2.2**: Dioxus State Integration.
-  - **Goal**: Inject the store into the Dioxus app and reflect state changes.
-  - **Implementation Details**:
-    - **[MODIFY] `crates/tasklens-store/src/store.rs`**:
-      - **Runtime Abstraction (WASM)**:
-        - [x] Remove `futures::executor::LocalSpawner` argument/dependency from
-              `AppStore::new` on `wasm32`.
-        - [x] Research `samod` usage for WASM (typically `Repo::builder()`
-              without arguments or with a WASM runtime handle).
-        - [x] Fallback: If `samod` requires a runtime trait implementation,
-              execute `impl samod::runtime::Runtime for WasmRuntime` using
-              `wasm_bindgen_futures`.
-      - **Method**:
-        `pub fn subscribe(&self) -> impl Stream<Item = TunnelState>`.
-      - **Internal Logic**:
-        - [x] Use `self.root_handle.clone().expect(...).changed()` to await
-              changes.
-        - [x] Use `futures::stream::unfold` (or chain) to create a stream: wait
-              for change -> hydrate state -> yield `Some(state)`.
-        - [x] Handle potential race conditions by yielding current state
-              immediately.
-    - **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
-      - **Initialization**:
-        - [x] Call `AppStore::new().await` (no runtime argument).
-        - [x] Use `use_coroutine` (refactored from `use_resource`).
-        - [x] Render "Loading..." until store resolves.
-      - **Context Injection**:
-        - [x] Create a signal:
-              `let mut state_sig = use_signal(|| TunnelState::default());`.
-        - [x] Provide context: `use_context_provider(|| state_sig)`.
-      - **Subscription Loop**:
-        - [x] Use `use_coroutine`.
-        - [x] Inside coroutine:
-              `let mut stream = store.subscribe(); while let Some(State) = stream.next().await { state_sig.set(State); }`.
+    - **[NEW] `crates/sync-protocol`**:
+      - Create crate.
+      - Port `todo_mvp/sync_protocol/src/lib.rs` (Types: `ClientMessage`,
+        `ServerMessage`, `EncryptedBlob`).
+    - **[NEW] `crates/sync-server`**:
+      - Create crate.
+      - Port `todo_mvp/sync_server/src/main.rs` (Axum server, WebSocket
+        handler).
+      - Port `todo_mvp/sync_server/src/db.rs` (SQLite/SQLx persistence for
+        history).
+      - Add dependencies: `axum`, `tokio`, `sqlx`, `tracing`.
   - **Verification**:
-    - **Visual Check**:
-      - Display `state_sig.read().tasks.len()` in the UI text.
-      - Add a temporary "Add Task" button calling
-        `store.dispatch(Action::CreateTask...)`.
-      - Observe count incrementing without page reload.
-    - **Console Verification**:
-      - "AppStore initialized" log.
-      - "State updated" logs.- [ ] **Milestone 2.3**: Basic Task List Rendering.
-  - **Goal**: Verify data loading by rendering a raw list.
+    - Run the server locally.
+    - Connect via `wscat` or a simple test script to verify handshake.
+
+- [ ] **Milestone 2.3**: Client Networking (`tasklens-store`).
+  - **Goal**: Connect the client `Store` to the `sync-server`.
+  - **Source**: `todo_mvp`
   - **Implementation Details**:
-    - **[NEW] `crates/tasklens-ui/src/components/mod.rs`**:
-      - [ ] File creation: `pub mod debug_list;`
-    - **[NEW] `crates/tasklens-ui/src/components/debug_list.rs`**:
-      - [ ] Component Definition: `#[component] pub fn DebugList() -> Element`
-      - [ ] State consumption: `use_context::<Signal<TunnelState>>()` (or
-            `Resource` depending on 2.2 impl, but 2.2 specifies context).
-      - [ ] Rendering:
-        - `ul` element.
-        - Iterate `state.read().tasks.values()` (sorted by ID or Title for
-          stability if desired, or just raw iteration).
-        - Render `li` with
-          `"{task.id.as_str()} - {task.title} [{task.status:?}]"`.
-    - **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
-      - [ ] Module registration: `mod components;`
-      - [ ] Import: `use components::debug_list::DebugList;`
-      - [ ] Usage: Add `DebugList {}` to the `App` rsx.
-- [ ] **Milestone 2.4**: Sync Verification.
-  - **Goal**: Connect to the local sync server.
-  - **Implementation Details**:
+    - **[NEW] `crates/tasklens-store/src/crypto.rs`**:
+      - Port `todo_mvp/src/crypto.rs` (Encryption/Decryption logic using
+        `chacha20poly1305`, Key Derivation).
+    - **[NEW] `crates/tasklens-store/src/network.rs`**:
+      - Port `todo_mvp/src/network.rs` (`SyncService`, WebSocket loop, retry
+        logic).
+      - Dependence: `gloo-net`, `web-sys`, `wasm-bindgen-futures`.
     - **[MODIFY] `crates/tasklens-store/src/store.rs`**:
-      - Add WebSocket network adapter to `samod` config.
-      - Connect to local sync server (e.g., `ws://localhost:8080`).
+      - Expose methods needed for sync (extract changes, apply changes).
+      - Integrate `run_sync_loop` or expose it for the UI to consume.
   - **Verification**:
-    - Open React app, make changes (e.g., rename a task).
-    - Refresh/Watch Dioxus app, see changes appear in `debug_list`.
+    - Add unit tests for `crypto.rs`.
+    - Integration test: Ensure `SyncService` can talk to a running
+      `sync-server`.
+
+- [ ] **Milestone 2.4**: Dioxus Integration (UI Connection).
+  - **Goal**: Hook up the sync loop in the Dioxus app.
+  - **Implementation Details**:
+    - **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
+      - Initialize `SyncService` / start sync loop in a coroutine.
+      - Pass the Master Key (hardcoded or from local storage for now).
+    - **[NEW] `crates/tasklens-ui/components/debug_list.rs`**:
+      - Basic list to verify data sync.
 
 ### Epoch 3: Feature Parity (The Grind)
 
@@ -300,20 +276,17 @@ _Goal: Porting UI components to match functionality._
 
 - [ ] **Milestone 3.1**: Task List & Inspection (Read-only view matches React).
 - [ ] **Milestone 3.2**: Task Creation & Editing (Forms, Mutators).
-- [ ] **Milestone 3.3**: Drag & Drop / Reordering (if applicable).
+- [ ] **Milestone 3.3**: Drag & Drop / Reordering.
 - [ ] **Milestone 3.4**: Settings & Configuration.
 
 ### Epoch 4: Verification & Switchover
 
 _Goal: rigorous testing and final cutover._
 
-- [ ] **Milestone 4.1**: Point Playwright E2E tests at the Rust WASM app.
-  - _Strategy_: Run Dioxus app on a local port (e.g., 8080) and update
-    `playwright.config.ts` to test against it.
-- [ ] **Milestone 4.2**: Fix UI discrepancies (CSS, accessibility labels) to
-      make tests pass.
+- [ ] **Milestone 4.1**: Playwright E2E tests.
+- [ ] **Milestone 4.2**: Fix UI discrepancies.
 - [ ] **Milestone 4.3**: Performance tuning.
-- [ ] **Milestone 4.4**: "Retire" React app (remove from build, archive code).
+- [ ] **Milestone 4.4**: "Retire" React app.
 
 ## Testing Strategy
 
@@ -343,10 +316,18 @@ We will leverage the high investment in existing tests:
   in Dioxus.
   - _Mitigation_: Dioxus is generally fast. Avoid excessive JS interop. Use
     `web-sys` carefully.
-- **Ecosystem Gaps**: React libraries (e.g., Mantine) don't exist in Dioxus.
   - _Mitigation_: We are using Tailwind, so styling is portable. Complex
     components (DatePickers, Comboboxes) will need to be built or found in the
     Dioxus ecosystem (headless UI libraries).
+
+## Panic/Blocker Analysis: Samod Resolution
+
+We previously encountered a panic with `samod` on WASM due to `SystemTime`.
+**Resolution**: We have pivoted to a custom sync implementation based on
+`todo_mvp`. This gives us full control over the stack and avoids blocking
+upstream dependencies. The custom solution uses `automerge` directly and
+standard WebSocket libraries (`gloo-net`, `axum`) which are known to work well
+in their respective environments.
 
 ## Future Considerations
 
@@ -354,9 +335,10 @@ We will leverage the high investment in existing tests:
   IndexedDB storage. Run with `wasm-pack test --headless --chrome` to test in a
   real browser environment without Playwright. This would provide lightweight
   WASM testing without the overhead of full E2E tests.
+- **E2E Sync Testing**: Verify verified data consistency between two browser
+  instances.
 
 ## Next Steps
 
 1.  Implement **Milestone 2.1**: Initialize `tasklens-store` and integrate
     `samod`.
-2.  Implement **Milestone 2.2**: Connect Dioxus to the store.
