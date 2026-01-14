@@ -7,7 +7,7 @@ use crate::components::*;
 use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
 use futures::StreamExt;
-use tasklens_core::types::{PersistedTask, TaskID, TaskStatus, TunnelState};
+use tasklens_core::types::{PersistedTask, TaskStatus, TunnelState};
 use tasklens_store::actions::{Action, TaskUpdates};
 use tasklens_store::network;
 use tasklens_store::store::AppStore;
@@ -30,7 +30,7 @@ pub fn TaskPage(
 
     // Hydrate state from the store
     let state = use_memo(move || {
-        store.read().hydrate::<TunnelState>().unwrap_or_else(|e| {
+        store.read().hydrate::<TunnelState>().unwrap_or_else(|_| {
             // tracing::error!("Failed to hydrate state: {:?}", e);
             // Return empty state on failure or initial load
             TunnelState::default()
@@ -153,11 +153,9 @@ pub fn TaskPage(
 
             TaskInput { value: input_text, on_add: move |_| add_task() }
 
-            TaskList { tasks: tasks, on_toggle: toggle_task }
+            TaskList { tasks, on_toggle: toggle_task }
 
-            div { class: "mt-8 text-center text-sm text-gray-500",
-                "Build: {crate::BUILD_VERSION}"
-            }
+            div { class: "mt-8 text-center text-sm text-gray-500", "Build: {crate::BUILD_VERSION}" }
         }
     }
 }
@@ -168,16 +166,25 @@ fn Header(
     service_worker_active: bool,
     on_settings_click: EventHandler<()>,
 ) -> Element {
+    let indicator_color = if master_key_present {
+        "bg-green-500"
+    } else {
+        "bg-gray-300"
+    };
+    let indicator_title = if master_key_present {
+        "Sync Active"
+    } else {
+        "Local Only"
+    };
+    let indicator_class = format!("h-3 w-3 rounded-full {} mr-2", indicator_color);
+
     rsx! {
         div { class: "flex justify-between items-center mb-6",
             h1 { class: "text-2xl font-bold", "TaskLens" }
             div { class: "flex items-center space-x-2",
                 div {
-                    class: format!(
-                        "h-3 w-3 rounded-full {} mr-2",
-                        if master_key_present { "bg-green-500" } else { "bg-gray-300" },
-                    ),
-                    title: if master_key_present { "Sync Active" } else { "Local Only" }
+                    class: "{indicator_class}",
+                    title: "{indicator_title}",
                 }
 
                 if service_worker_active {

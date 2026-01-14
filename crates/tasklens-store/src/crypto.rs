@@ -146,8 +146,6 @@ pub fn derive_key(phrase: &str) -> Result<[u8; 32]> {
 #[allow(dead_code)]
 const STORAGE_KEY: &str = "tasklens_master_key";
 
-use gloo_storage::{LocalStorage, SessionStorage, Storage};
-
 /// strategies for storing the Master Key.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(dead_code)]
@@ -158,6 +156,9 @@ pub enum StorageMode {
     Local,
 }
 
+#[cfg(target_arch = "wasm32")]
+use gloo_storage::{LocalStorage, SessionStorage, Storage};
+
 /// Stores the Master Key in the browser's storage.
 ///
 /// # Arguments
@@ -165,6 +166,7 @@ pub enum StorageMode {
 /// * `key` - The 32-byte master key.
 /// * `mode` - The storage strategy to use.
 #[allow(dead_code)]
+#[cfg(target_arch = "wasm32")]
 pub fn save_key(key: &[u8; 32], mode: StorageMode) -> Result<()> {
     match mode {
         StorageMode::Local => {
@@ -182,10 +184,18 @@ pub fn save_key(key: &[u8; 32], mode: StorageMode) -> Result<()> {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[allow(dead_code)]
+pub fn save_key(_key: &[u8; 32], _mode: StorageMode) -> Result<()> {
+    tracing::warn!("save_key is not supported on non-wasm targets");
+    Ok(())
+}
+
 /// Attempts to load the Master Key from storage.
 ///
 /// Checks `SessionStorage` first (active session), then `LocalStorage` (remembered session).
 #[allow(dead_code)]
+#[cfg(target_arch = "wasm32")]
 pub fn load_key() -> Result<Option<[u8; 32]>> {
     // 1. Check SessionStorage
     if let Ok(key) = SessionStorage::get::<[u8; 32]>(STORAGE_KEY) {
@@ -200,13 +210,24 @@ pub fn load_key() -> Result<Option<[u8; 32]>> {
     Ok(None)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[allow(dead_code)]
+pub fn load_key() -> Result<Option<[u8; 32]>> {
+    Ok(None)
+}
+
 /// Clears the Master Key from both SessionStorage and LocalStorage.
 ///
 /// Call this on "Logout".
 #[allow(dead_code)]
+#[cfg(target_arch = "wasm32")]
 pub fn clear_key() {
     LocalStorage::delete(STORAGE_KEY);
 }
+
+#[cfg(not(target_arch = "wasm32"))]
+#[allow(dead_code)]
+pub fn clear_key() {}
 
 /// Encrypts a binary blob using XChaCha20Poly1305 and the Master Key.
 ///
