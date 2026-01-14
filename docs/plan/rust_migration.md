@@ -401,17 +401,52 @@ Server._
 - [ ] **Milestone 2.7**: Service Worker Integration (PWA).
   - **Goal**: Enable PWA capabilities matching `todo_mvp`.
   - **Implementation Details**:
-    - [ ] **[MODIFY] `crates/tasklens-ui/src/main.rs`**: Add PWA
-          lifecycle/update handler.
-    - [ ] **[VERIFY]**: Check `build.rs` output matches expectation
-          (version.js).
-    - [ ] **[VERIFY]**: PWA installation available in browser.
+    - [ ] **[VERIFY]**: Check `build.rs` generates `public/version.js` and
+          `OUT_DIR/build_version.rs`.
+    - [ ] **[VERIFY]**: PWA installation available in browser (Localhost or via
+          ngrok if needed).
+    - [ ] **[VERIFY]**: Service worker update cycle (Force update on reload).
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/main.rs`**: Ensure
+          `register_service_worker` is called and status is tracked. (Already
+          present, verify behavior).
 
 ### Epoch 3: Feature Parity (The Grind)
 
 _Goal: Porting UI components to match functionality._
 
 - [ ] **Milestone 3.1**: Task List & Inspection (Read-only view matches React).
+  - **Goal**: Implement the "Do" list view with full algorithmic sorting and
+    visual fidelity.
+  - **Reference**: `prd.md` §5.2 "The Do View".
+  - **Implementation Details**:
+    - [ ] **[NEW] `crates/tasklens-ui/src/utils.rs`**:
+      - Add date formatting helpers (e.g. "Today", "Tomm", "Jan 12").
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
+      - Register `mod utils;`.
+    - [ ] **[NEW] `crates/tasklens-ui/src/components/task_row.rs`**:
+      - Create `TaskRow` component (replacing/enhancing `TaskItem`).
+      - **Props**: `task: ComputedTask`, `on_toggle: EventHandler<TaskID>`.
+      - **Render**:
+        - Checkbox (Left).
+        - **Content** (Center):
+          - Title.
+          - Metadata Row: Parent Project Name (needs lookup), Due Date Icon +
+            Text.
+        - **Visual Cues**:
+          - **Overdue**: Red Text/Accent (`urgency_status == Overdue`).
+          - **Inbox**: distinct border/style (`place_id == INBOX`).
+          - **Stale**: visual indicator.
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/views/task_page.rs`**:
+      - **State**: Use `use_memo` to call
+        `tasklens_core::get_prioritized_tasks(&state)` to get
+        `Vec<ComputedTask>` sorted by priority.
+      - **Render**: Pass `ComputedTask`s to `TaskList` -> `TaskRow`.
+      - **Cues**: Pass necessary lookups (e.g. `PlaceID` -> Name map, `TaskID`
+        -> Title map for parents).
+  - **Verification**:
+    - [ ] Visual Inspection: Compare against React App (or Screenshots).
+    - [ ] Verify Sort Order matches `tasklens-core` tests.
+
 - [ ] **Milestone 3.2**: Task Creation & Editing (Forms, Mutators).
 - [ ] **Milestone 3.3**: Drag & Drop / Reordering.
 - [ ] **Milestone 3.4**: Settings & Configuration.
