@@ -12,6 +12,7 @@ automerge.workspace = true
 samod.workspace = true
 autosurgeon.workspace = true
 uuid.workspace = true
+tracing.workspace = true
 futures = "0.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

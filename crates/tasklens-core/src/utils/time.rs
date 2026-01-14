@@ -3,10 +3,17 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Returns the current timestamp in milliseconds since the Unix Epoch.
 pub fn get_current_timestamp() -> f64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards")
-        .as_millis() as f64
+    #[cfg(target_arch = "wasm32")]
+    {
+        js_sys::Date::now()
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_millis() as f64
+    }
 }
 
 pub const DEFAULT_TASK_LEAD_TIME_MS: f64 = 7.0 * 24.0 * 60.0 * 60.0 * 1000.0;

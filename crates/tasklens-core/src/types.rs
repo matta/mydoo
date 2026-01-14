@@ -825,6 +825,18 @@ pub struct TunnelState {
     pub places: HashMap<PlaceID, Place>,
 }
 
+impl Default for TunnelState {
+    fn default() -> Self {
+        Self {
+            next_task_id: 1.0,
+            next_place_id: 1.0,
+            tasks: HashMap::new(),
+            places: HashMap::new(),
+            root_task_ids: Vec::new(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

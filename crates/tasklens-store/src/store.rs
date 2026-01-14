@@ -3,12 +3,14 @@ use crate::actions::Action;
 use crate::storage::IndexedDbStorage;
 use anyhow::{Result, anyhow};
 use autosurgeon::{hydrate, reconcile};
+use futures::StreamExt;
 #[cfg(not(target_arch = "wasm32"))]
 use samod::runtime::RuntimeHandle;
 #[cfg(not(target_arch = "wasm32"))]
 use samod::storage::InMemoryStorage;
 use samod::{DocHandle, Repo};
 use std::collections::HashMap;
+
 use tasklens_core::types::{
     PersistedTask, Schedule, ScheduleType, TaskID, TaskStatus, TunnelState,
 };
@@ -21,10 +23,11 @@ pub struct AppStore {
 
 impl AppStore {
     #[cfg(target_arch = "wasm32")]
-    pub async fn new(runtime: futures::executor::LocalSpawner) -> Result<Self> {
+    pub async fn new() -> Result<Self> {
         let storage = IndexedDbStorage::new("tasklens");
+        let runtime = WasmRuntime;
 
-        let repo = Repo::build_localpool(runtime)
+        let repo = Repo::builder(runtime)
             .with_storage(storage)
             .load_local()
             .await;
@@ -219,6 +222,64 @@ impl AppStore {
         });
         result
     }
+
+    /// Subscribe to state changes.
+    ///
+    /// Returns a stream that yields the current state whenever the underlying
+    /// Automerge document changes. The stream will yield the initial state
+    /// immediately, then subsequent states as changes occur.
+    pub fn subscribe(&self) -> impl futures::Stream<Item = TunnelState> + '_ {
+        let handle = self.root_handle.as_ref().expect("Store not initialized");
+
+        let initial_state = self.get_state().unwrap_or_else(|_| TunnelState {
+            next_task_id: 1.0,
+            next_place_id: 1.0,
+            tasks: HashMap::new(),
+            places: HashMap::new(),
+            root_task_ids: Vec::new(),
+        });
+
+        let changes_stream = handle.changes();
+        let handle_for_map = handle.clone();
+
+        let updates = changes_stream.map(move |_| {
+            let mut state = None;
+            handle_for_map.with_document(|doc| {
+                if let Ok(s) = hydrate(doc) {
+                    state = Some(s);
+                } else {
+                    tracing::warn!("Failed to hydrate state in subscribe");
+                }
+            });
+            state.unwrap_or(TunnelState {
+                next_task_id: 1.0,
+                next_place_id: 1.0,
+                tasks: HashMap::new(),
+                places: HashMap::new(),
+                root_task_ids: Vec::new(),
+            })
+        });
+
+        futures::stream::once(async move { initial_state }).chain(updates)
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Clone, Debug)]
+pub struct WasmRuntime;
+
+#[cfg(target_arch = "wasm32")]
+impl samod::runtime::RuntimeHandle for WasmRuntime {
+    fn spawn(&self, f: std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + 'static>>) {
+        wasm_bindgen_futures::spawn_local(f);
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl samod::runtime::LocalRuntimeHandle for WasmRuntime {
+    fn spawn(&self, f: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>) {
+        wasm_bindgen_futures::spawn_local(f);
+    }
 }
 
 #[cfg(test)]
@@ -407,5 +468,41 @@ mod tests {
 
         let child = state.tasks.get(&child_id).unwrap();
         assert_eq!(child.parent_id, Some(parent_id));
+    }
+
+    #[test]
+    fn test_subscribe() {
+        let mut pool = LocalPool::new();
+        let spawner = pool.spawner();
+
+        pool.run_until(async move {
+            // Setup store
+            let mut store = AppStore::new(spawner).await.unwrap();
+            store.init().await.unwrap();
+
+            // Subscribe
+            let stream = store.subscribe();
+            let mut stream = Box::pin(stream);
+
+            // Initial state
+            let initial = stream.next().await.unwrap();
+            assert!(initial.tasks.is_empty());
+
+            // Dispatch
+            store
+                .dispatch(Action::CreateTask {
+                    parent_id: None,
+                    title: "Reactive Task".to_string(),
+                })
+                .unwrap();
+
+            // Expect update
+            let updated = stream.next().await.unwrap();
+            assert_eq!(updated.tasks.len(), 1);
+            assert_eq!(
+                updated.tasks.values().next().unwrap().title,
+                "Reactive Task"
+            );
+        });
     }
 }

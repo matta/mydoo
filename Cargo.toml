@@ -21,6 +21,7 @@ serde_json = "1.0"
 chrono = { version = "0.4", features = ["serde", "wasmbind"] }
 uuid = { version = "1.19.0", features = ["v4", "serde", "js"] }
 tracing = "0.1"
+futures = "0.3"
 dioxus = { version = "0.7.1" }
 dioxus-logger = "0.7.2"
 automerge = { version = "0.7.2" }
@@ -31,3 +32,8 @@ wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
 web-sys = "0.3"
 getrandom = { version = "0.3.4", features = ["wasm_js"] }
+
+
+[profile.dev]
+debug = true
+split-debuginfo = "off"

@@ -223,22 +223,67 @@ _Goal: A minimal Dioxus app that permanently syncs data via Samod._
     - [x] **[MODIFY] `store.rs`**: Implement `dispatch` to match on `Action`,
           apply mutation to `TunnelState`, and reconcile.
     - [x] Add unit tests for each action variant.
-- [ ] **Milestone 2.2**: Dioxus State Integration.
+- [x] **Milestone 2.2**: Dioxus State Integration.
   - **Goal**: Inject the store into the Dioxus app and reflect state changes.
   - **Implementation Details**:
+    - **[MODIFY] `crates/tasklens-store/src/store.rs`**:
+      - **Runtime Abstraction (WASM)**:
+        - [x] Remove `futures::executor::LocalSpawner` argument/dependency from
+              `AppStore::new` on `wasm32`.
+        - [x] Research `samod` usage for WASM (typically `Repo::builder()`
+              without arguments or with a WASM runtime handle).
+        - [x] Fallback: If `samod` requires a runtime trait implementation,
+              execute `impl samod::runtime::Runtime for WasmRuntime` using
+              `wasm_bindgen_futures`.
+      - **Method**:
+        `pub fn subscribe(&self) -> impl Stream<Item = TunnelState>`.
+      - **Internal Logic**:
+        - [x] Use `self.root_handle.clone().expect(...).changed()` to await
+              changes.
+        - [x] Use `futures::stream::unfold` (or chain) to create a stream: wait
+              for change -> hydrate state -> yield `Some(state)`.
+        - [x] Handle potential race conditions by yielding current state
+              immediately.
     - **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
-      - Initialize `AppStore` in `App` component (or passed in).
-      - Use `use_context_provider` to share the store.
-      - **Reactive State**:
-        - Create a `Signal<TunnelState>` that mirrors the Automerge document.
-        - Set up a subscription/listener to `AppStore` changes that updates this
-          Signal.
-- [ ] **Milestone 2.3**: Basic Task List Rendering.
+      - **Initialization**:
+        - [x] Call `AppStore::new().await` (no runtime argument).
+        - [x] Use `use_coroutine` (refactored from `use_resource`).
+        - [x] Render "Loading..." until store resolves.
+      - **Context Injection**:
+        - [x] Create a signal:
+              `let mut state_sig = use_signal(|| TunnelState::default());`.
+        - [x] Provide context: `use_context_provider(|| state_sig)`.
+      - **Subscription Loop**:
+        - [x] Use `use_coroutine`.
+        - [x] Inside coroutine:
+              `let mut stream = store.subscribe(); while let Some(State) = stream.next().await { state_sig.set(State); }`.
+  - **Verification**:
+    - **Visual Check**:
+      - Display `state_sig.read().tasks.len()` in the UI text.
+      - Add a temporary "Add Task" button calling
+        `store.dispatch(Action::CreateTask...)`.
+      - Observe count incrementing without page reload.
+    - **Console Verification**:
+      - "AppStore initialized" log.
+      - "State updated" logs.- [ ] **Milestone 2.3**: Basic Task List Rendering.
   - **Goal**: Verify data loading by rendering a raw list.
   - **Implementation Details**:
+    - **[NEW] `crates/tasklens-ui/src/components/mod.rs`**:
+      - [ ] File creation: `pub mod debug_list;`
     - **[NEW] `crates/tasklens-ui/src/components/debug_list.rs`**:
-      - Simple `ul` / `li` loop iterating over `TunnelState.tasks`.
-      - Display Task ID, Title, and Status.
+      - [ ] Component Definition: `#[component] pub fn DebugList() -> Element`
+      - [ ] State consumption: `use_context::<Signal<TunnelState>>()` (or
+            `Resource` depending on 2.2 impl, but 2.2 specifies context).
+      - [ ] Rendering:
+        - `ul` element.
+        - Iterate `state.read().tasks.values()` (sorted by ID or Title for
+          stability if desired, or just raw iteration).
+        - Render `li` with
+          `"{task.id.as_str()} - {task.title} [{task.status:?}]"`.
+    - **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
+      - [ ] Module registration: `mod components;`
+      - [ ] Import: `use components::debug_list::DebugList;`
+      - [ ] Usage: Add `DebugList {}` to the `App` rsx.
 - [ ] **Milestone 2.4**: Sync Verification.
   - **Goal**: Connect to the local sync server.
   - **Implementation Details**:

@@ -462,3 +462,33 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
   - _Verification:_ Run `cargo check`, `cargo clippy`, and all test suites
     (`cargo test`) to catch every location requiring updates. The compiler will
     identify all type mismatches.
+
+## Dioxus & WASM Debugging
+
+- **Server-Side Runtime Requirement**: Unlike static file hosting, Dioxus
+  applications (especially when using `dx serve`) require the development server
+  to be actively running to serve the WASM/JS bundle and handle HMR.
+  - _Symptom:_ "Connection Refused" or failed checks on `localhost:8080` when
+    investigating runtime issues.
+  - _Fix:_ Always ensure `dx serve` is running in a background process (like
+    `npm run dev`) before attempting to debug runtime behavior or browse the
+    app.
+- **Verify Build Status Before Browsing**: When using `dx serve`, always verify
+  that the build has succeeded (by checking terminal output or a quick page load
+  check) before launching a long-running browser agent task. Accessing the app
+  while the build is failing or still compiling will waste time and tokens.
+  Dioxus displays build errors directly in the browser window; if you see these,
+  bail immediately.
+- **Ambiguity Analysis & Debug Symbols**:
+  - **Interpretation**: If you see raw `wasm-function[...]` offsets in a stack
+    trace, you are likely missing debug symbols (common in release builds).
+  - **Action**: Enable debug symbols in `Cargo.toml`
+    (`[profile.release] debug = true`) to resolve function names. Note this
+    increases binary size significantly.
+  - **Tooling**: Use `console_error_panic_hook` to translate Rust panics into
+    readable JS/console errors.
+  - **Time Panic**: The error `time not implemented on this platform` on
+    `wasm32-unknown-unknown` almost always means `std::time` is being used
+    directly or by a dependency without WASM support features enabled. Fix by
+    using `web-time`, `instant`, or enabling `wasm-bindgen`/`js` features on
+    dependencies (e.g., `chrono`).
