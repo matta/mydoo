@@ -28,7 +28,8 @@ version is fully feature-complete and verified.
   Wrapper).
 - **UI:** Dioxus (WASM).
 - **Persistence:** IndexedDB (via `automerge` storage adapters).
-- **Sync:** Custom WebSocket Server (`sync-server`) + Client `SyncService`.
+- **Sync:** Custom WebSocket Server (`tasklens-sync-server`) + Client
+  `SyncService`.
 
 ## Subsystems & Isolation
 
@@ -42,15 +43,16 @@ We can identify three major layers that can be tackled somewhat independently:
     - **Verification**: Unit tests matching the logic of existing TS tests. Can
       reuse BDD YAML fixtures.
 
-2.  **Persistence & Sync (`tasklens-store`, `sync-protocol`, `sync-server`)**:
+2.  **Persistence & Sync (`tasklens-store`, `tasklens-sync-protocol`,
+    `tasklens-sync-server`)**:
     - **Description**: Handling Automerge documents, loading/saving to
       IndexedDB, syncing over WebSocket.
     - **Pivot Decision**: We are moving away from `samod` to a custom
       implementation (ported from `todo_mvp`) to avoid WASM incompatibility
       issues.
     - **Porting Strategy**:
-      - `sync-protocol`: Shared types for encryption and messaging.
-      - `sync-server`: Axum-based WebSocket server.
+      - `tasklens-sync-protocol`: Shared types for encryption and messaging.
+      - `tasklens-sync-server`: Axum-based WebSocket server.
       - `tasklens-store`: Manages the `automerge` document and connects to the
         sync server.
 
@@ -75,8 +77,8 @@ migration clean and isolated.
 │   ├── tasklens-core/      # Domain logic (pure Rust)
 │   ├── tasklens-store/     # Persistence & Networking
 │   ├── tasklens-ui/        # Dioxus WASM implementation
-│   ├── sync-protocol/      # [NEW] Shared sync types
-│   └── sync-server/        # [NEW] WebSocket server
+│   ├── tasklens-sync-protocol/      # [NEW] Shared sync types
+│   └── tasklens-sync-server/        # [NEW] WebSocket server
 ├── packages/               # Existing Node.js packages
 └── ...
 ```
@@ -223,17 +225,17 @@ Server._
     the "custom wrapper" part already. We just need to ensure it aligns with
     `todo_mvp`'s `store.rs`.
 
-- [x] **Milestone 2.2**: Sync Protocol (`sync-protocol`).
+- [x] **Milestone 2.2**: Sync Protocol (`tasklens-sync-protocol`).
   - **Goal**: Define shared types and protocol for syncing.
   - **Source**: `todo_mvp/sync_protocol`
   - **Implementation Details**:
-    - [x] Create directory: `crates/sync-protocol`
-    - [x] Create `crates/sync-protocol/Cargo.toml`:
-      - [x] Add `[package]` section (name="sync_protocol", version="0.1.0",
-            edition="2021").
+    - [x] Create directory: `crates/tasklens-sync-protocol`
+    - [x] Create `crates/tasklens-sync-protocol/Cargo.toml`:
+      - [x] Add `[package]` section (name="tasklens-sync-protocol",
+            version="0.1.0", edition="2021").
       - [x] Add `[dependencies]` section with
             `serde = { version = "1.0", features = ["derive"] }`.
-    - [x] Create `crates/sync-protocol/src/lib.rs`:
+    - [x] Create `crates/tasklens-sync-protocol/src/lib.rs`:
       - [x] Add `use serde::{Deserialize, Serialize};`.
       - [x] Implement `EncryptedBlob` struct:
         - [x] Field: `nonce: [u8; 24]` (XChaCha20 uses 24-byte nonce).
@@ -250,23 +252,32 @@ Server._
               `ChangeOccurred { sequence_id: i64, sync_id: String, source_client_id: String, payload: EncryptedBlob }`.
         - [x] Derive: `Debug, Clone, Serialize, Deserialize`.
 
-- [x] **Milestone 2.3**: Sync Server (`sync-server`).
+- [x] **Milestone 2.3**: Sync Server (`tasklens-sync-server`).
   - **Goal**: Implement the WebSocket sync server.
   - **Source**: `todo_mvp/sync_server`
   - **Implementation Details**:
     - **Step 1: Crate Setup**
-      - [x] Create directory: `crates/sync_server`
-      - [x] Create `crates/sync_server/Cargo.toml` (deps: axum, tokio, rusqlite,
-            etc).
-      - [x] Create `crates/sync_server/src/main.rs` (skeleton).
+      - [x] Create directory: `crates/tasklens-sync-server`
+      - [x] Create `crates/tasklens-sync-server/Cargo.toml` (deps: axum, tokio,
+            rusqlite, etc).
+      - [x] Create `crates/tasklens-sync-server/src/main.rs` (skeleton).
     - **Step 2: Database**
-      - [x] Create `crates/sync_server/src/db.rs`.
+      - [x] Create `crates/tasklens-sync-server/src/db.rs`.
       - [x] Implement `init_pool`, `append_update`, `get_changes_since`.
     - **Step 3: Server Logic**
       - [x] Implement `AppState` and `main` (setup router).
       - [x] Implement `ws_handler` and `handle_socket` (handshake + loop).
   - **Verification**:
-    - [x] Run `cargo run -p sync_server`.
+    - [x] Run `cargo run -p tasklens-sync-server`.
+
+- [x] **Milestone 2.3.5**: Rename & Align Sync Crates.
+  - **Goal**: Rename crates to `tasklens-sync-protocol` and
+    `tasklens-sync-server` and ensure 1:1 parity with `todo_mvp`.
+  - **Details**:
+    - [x] Rename `sync_protocols` -> `tasklens-sync-protocol`.
+    - [x] Rename `sync_server` -> `tasklens-sync-server`.
+    - [x] Diff against `todo_mvp` equivalents and revert gratuitous changes
+          (keep implementations as close as possible).
 
 - [ ] **Milestone 2.4**: Store Refactor & Samod Removal (`tasklens-store`).
   - **Goal**: Remove `samod` and use `automerge` directly.
@@ -284,7 +295,7 @@ Server._
     - [ ] `cargo check -p tasklens-store`.
 
 - [ ] **Milestone 2.5**: Client Networking (`tasklens-store`).
-  - **Goal**: Connect the client `Store` to the `sync-server`.
+  - **Goal**: Connect the client `Store` to the `tasklens-sync-server`.
   - **Source**: `todo_mvp`
   - **Implementation Details**:
     - **[NEW] `crates/tasklens-store/src/crypto.rs`**:
@@ -300,7 +311,7 @@ Server._
   - **Verification**:
     - Add unit tests for `crypto.rs`.
     - Integration test: Ensure `SyncService` can talk to a running
-      `sync-server`.
+      `tasklens-sync-server`.
 
 - [ ] **Milestone 2.6**: Dioxus Integration (UI Connection).
   - **Goal**: Hook up the sync loop in the Dioxus app.
@@ -381,6 +392,6 @@ in their respective environments.
 
 ## Next Steps
 
-1.  Implement **Milestone 2.2**: Sync Protocol (`sync-protocol`).
-2.  Implement **Milestone 2.3**: Sync Server (`sync-server`).
+1.  Implement **Milestone 2.2**: Sync Protocol (`tasklens-sync-protocol`).
+2.  Implement **Milestone 2.3**: Sync Server (`tasklens-sync-server`).
 3.  Implement **Milestone 2.4**: Store Refactor & Samod Removal.

@@ -1,5 +1,5 @@
 use std::sync::{Arc, Mutex};
-use sync_protocol::{EncryptedBlob, ServerMessage};
+use tasklens_sync_protocol::{EncryptedBlob, ServerMessage};
 
 pub type DbPool = Arc<Mutex<rusqlite::Connection>>;
 

@@ -1,6 +1,6 @@
 use futures::{SinkExt, StreamExt};
 use std::time::Duration;
-use sync_protocol::{ClientMessage, EncryptedBlob, ServerMessage};
+use tasklens_sync_protocol::{ClientMessage, EncryptedBlob, ServerMessage};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{
     MaybeTlsStream, WebSocketStream, connect_async, tungstenite::protocol::Message,
@@ -63,7 +63,7 @@ async fn test_sync_flow() {
         .args([
             "run",
             "-p",
-            "sync_server",
+            "tasklens-sync-server",
             "--",
             "-d",
             db_url,
@@ -152,7 +152,7 @@ async fn test_room_isolation() {
         .args([
             "run",
             "-p",
-            "sync_server",
+            "tasklens-sync-server",
             "--",
             "-d",
             db_url,

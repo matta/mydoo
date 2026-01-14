@@ -7,7 +7,7 @@ use axum::{
     routing::get,
 };
 use futures::{SinkExt, StreamExt};
-use sync_protocol::{ClientMessage, ServerMessage};
+use tasklens_sync_protocol::{ClientMessage, ServerMessage};
 use tokio::sync::broadcast;
 
 mod db;
