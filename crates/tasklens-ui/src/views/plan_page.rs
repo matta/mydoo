@@ -9,7 +9,7 @@ pub fn PlanPage() -> Element {
     let mut store = use_context::<Signal<AppStore>>();
     // Track expanded task IDs. Default to empty (collapsed) or pre-expanded?
     // Test says "When I expand 'Project Alpha'". implies it starts collapsed.
-    let mut expanded_tasks = use_signal(|| std::collections::HashSet::<TaskID>::new());
+    let mut expanded_tasks = use_signal(std::collections::HashSet::<TaskID>::new);
 
     let flattened_tasks = use_memo(move || {
         let store_read = store.read();
@@ -78,18 +78,20 @@ pub fn PlanPage() -> Element {
 
             div { class: "bg-white shadow rounded-lg overflow-hidden",
                 if flattened_tasks().is_empty() {
-                    div { class: "p-4 text-center text-gray-500", "No tasks found. Try adding seed data? (?seed=true)" }
+                    div { class: "p-4 text-center text-gray-500",
+                        "No tasks found. Try adding seed data? (?seed=true)"
+                    }
                 } else {
-                    for (task, depth, has_children, is_expanded) in flattened_tasks() {
+                    for (task , depth , has_children , is_expanded) in flattened_tasks() {
                         // TODO: TaskRow needs to support expansion toggle
                         TaskRow {
                             key: "{task.id}",
                             task: task.clone(),
-                            depth: depth,
+                            depth,
                             on_toggle: toggle_task,
-                            has_children: has_children,
-                            is_expanded: is_expanded,
-                            on_expand_toggle: toggle_expand
+                            has_children,
+                            is_expanded,
+                            on_expand_toggle: toggle_expand,
                         }
                     }
                 }
