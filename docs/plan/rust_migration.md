@@ -412,6 +412,39 @@ Server._
           `register_service_worker` is called and status is tracked. (Already
           present, verified behavior).
 
+- [ ] **Milestone 2.8**: Playwright Infrastructure & BDD Port.
+  - **Goal**: Establish the E2E testing harness for Dioxus by porting BDD specs from the React app.
+  - **Strategy**: Copy configuration and feature files verbatim, setting up the infrastructure to run them against the Dioxus app.
+  - **Implementation Details**:
+    - [ ] **[MODIFY] `crates/tasklens-ui/package.json`**:
+      - Add `playwright-bdd`, `@playwright/test`, and related dependencies.
+      - Add scripts: `test-e2e`, `generate`.
+    - [ ] **[NEW] `crates/tasklens-ui/playwright.config.ts`**:
+      - Port from `apps/client/playwright.config.ts`.
+      - Configure `webServer` to run `dx serve` with a fixed port (e.g. `5180`).
+      - Adjust paths to point to `tests/e2e`.
+    - [ ] **[NEW] `crates/tasklens-ui/tests/e2e/features/`**:
+      - Copy all `.feature` files from `apps/client` verbatim.
+    - [ ] **[NEW] `crates/tasklens-ui/tests/e2e/steps/`**:
+      - Copy `all.steps.ts` from `apps/client`.
+    - [ ] **[NEW] `crates/tasklens-ui/tests/e2e/fixtures.ts`**:
+      - Copy from `apps/client`.
+    - [ ] **[NEW] `crates/tasklens-ui/tests/e2e/pages/`**:
+      - Copy Page Objects from `apps/client`.
+    - [ ] **[VERIFY] Tool Configuration**:
+      - Ensure `prettier`, `biome`, and `eslint` are configured to ignore `.features-gen`.
+  - **Verification**:
+    - [ ] **Generate Tests**: Run `pnpm generate` and verify `tests/e2e/.features-gen` is populated with `.spec.ts` files.
+    - [ ] **Verify Harness**: Create a minimal "Smoke" feature that checks the app title or a static element to confirm the harness works.
+    - [ ] **[MODIFY] `crates/tasklens-ui/playwright.config.ts`**:
+      - Configure `grepInvert: /@migration-pending/` to skip unimplemented features.
+    - [ ] **[MODIFY] Feature Files**:
+      - Bulk add `@migration-pending` tag to all ported feature files (since functionality is not yet implemented).
+  - **Verification**:
+    - [ ] **Generate Tests**: Run `pnpm generate` and verify `tests/e2e/.features-gen` is populated with `.spec.ts` files.
+    - [ ] **Verify Harness**: Create a minimal "Smoke" feature (tagged `@smoke`) that checks the app title to confirm the harness works.
+    - [ ] **Run Tests**: Execute `pnpm test-e2e` (MUST PASS: expecting 0 failures due to `@migration-pending` exclusion).
+
 ### Epoch 3: Feature Parity (The Grind)
 
 _Goal: Porting UI components to match functionality._
@@ -446,6 +479,9 @@ _Goal: Porting UI components to match functionality._
       - **Cues**: Pass necessary lookups (e.g. `PlaceID` -> Name map, `TaskID`
         -> Title map for parents).
   - **Verification**:
+    - [ ] **[VERIFY]**: Pass `routine-tasks.feature`.
+    - [ ] **[VERIFY]**: Pass `due-dates.feature` (Visualization scenarios).
+    - [ ] **[VERIFY]**: Pass `sequential-projects.feature` (Visibility rules).
     - [ ] Visual Inspection: Compare against React App (or Screenshots).
     - [ ] Verify Sort Order matches `tasklens-core` tests.
 
