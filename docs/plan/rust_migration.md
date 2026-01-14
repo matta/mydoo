@@ -459,45 +459,126 @@ Server._
 
 _Goal: Porting UI components to match functionality._
 
-- [ ] **Milestone 3.1**: Task List & Inspection (Read-only view matches React).
-  - **Goal**: Implement the "Do" list view with full algorithmic sorting and
-    visual fidelity.
-  - **Reference**: `prd.md` §5.2 "The Do View".
+- [ ] **Milestone 3.1**: Foundation & "Plan" View.
+  - **Goal**: Render a static hierarchy of tasks in the "Plan" view and support
+    seeding sample data.
+  - **Why**: "Plan" view is simpler (no priority sorting) and standardizes the
+    data loading and rendering pipeline.
+  - **Reference**: `prd.md` §5.1 "The Plan View".
+  - **Dioxus Component Library Integration**:
+    - **Policy**: Prefer standard components from the Dioxus component library
+      over custom implementations.
+    - **Installation**: Use `dx components add [name]`.
+    - **Available Primitives**:
+      - Layout: `Aspect Ratio`, `Card`, `Collapsible`, `Scroll Area`,
+        `Separator`, `Sheet`
+      - Navigation: `Menubar`, `NavBar`, `Tabs`, `Toolbar`
+      - Form: `Button`, `Checkbox`, `Input`, `Label`, `Radio Group`, `Select`,
+        `Slider`, `Switch`, `Textarea`, `Toggle`, `Toggle Group`
+      - Feedback: `Alert Dialog`, `Dialog`, `Popover`, `Progress`, `Skeleton`,
+        `Toast`, `Tooltip`
+      - Other: `Accordion`, `Avatar`, `Calendar`, `Context Menu`, `Date Picker`,
+        `Dropdown Menu`, `Hover Card`
+      - _Missing_: `Badge` (Custom implementation required).
   - **Implementation Details**:
-    - [ ] **[NEW] `crates/tasklens-ui/src/utils.rs`**:
-      - Add date formatting helpers (e.g. "Today", "Tomm", "Jan 12").
-    - [ ] **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
-      - Register `mod utils;`.
-    - [ ] **[NEW] `crates/tasklens-ui/src/components/task_row.rs`**:
-      - Create `TaskRow` component (replacing/enhancing `TaskItem`).
-      - **Props**: `task: ComputedTask`, `on_toggle: EventHandler<TaskID>`.
-      - **Render**:
-        - Checkbox (Left).
-        - **Content** (Center):
-          - Title.
-          - Metadata Row: Parent Project Name (needs lookup), Due Date Icon +
-            Text.
-        - **Visual Cues**:
-          - **Overdue**: Red Text/Accent (`urgency_status == Overdue`).
-          - **Inbox**: distinct border/style (`place_id == INBOX`).
-          - **Stale**: visual indicator.
-    - [ ] **[MODIFY] `crates/tasklens-ui/src/views/task_page.rs`**:
-      - **State**: Use `use_memo` to call
-        `tasklens_core::get_prioritized_tasks(&state)` to get
-        `Vec<ComputedTask>` sorted by priority.
-      - **Render**: Pass `ComputedTask`s to `TaskList` -> `TaskRow`.
-      - **Cues**: Pass necessary lookups (e.g. `PlaceID` -> Name map, `TaskID`
-        -> Title map for parents).
-  - **Verification**:
-    - [ ] **[VERIFY]**: Pass `routine-tasks.feature`.
-    - [ ] **[VERIFY]**: Pass `due-dates.feature` (Visualization scenarios).
-    - [ ] **[VERIFY]**: Pass `sequential-projects.feature` (Visibility rules).
-    - [ ] Visual Inspection: Compare against React App (or Screenshots).
-    - [ ] Verify Sort Order matches `tasklens-core` tests.
+    - **Step 1: Router & Navigation Foundation**
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/views/mod.rs`**:
+        - [ ] Export `plan_page`.
+      - [ ] **[CMD] Install NavBar**: `dx components add navbar`.
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/navbar.rs`**:
+        - [ ] Customize the installed `NavBar` to render links to `/plan`,
+              `/do`, `/balance`.
+        - [ ] Ensure it uses `Outlet` for child content.
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
+        - [ ] Define `Route` enum with `#[derive(Routable)]`.
+        - [ ] Add `#[route("/")]`, `#[route("/plan")]`, `#[route("/do")]`.
+        - [ ] Wrap routes in `#[layout(NavBar)]`.
+        - [ ] Update `App` to render `Router::<Route> {}`.
 
-- [ ] **Milestone 3.2**: Task Creation & Editing (Forms, Mutators).
-- [ ] **Milestone 3.3**: Drag & Drop / Reordering.
-- [ ] **Milestone 3.4**: Settings & Configuration.
+    - **Step 2: Seed Data (Test Fixtures)**
+      - [ ] **[NEW] `crates/tasklens-ui/src/seed.rs`**:
+        - [ ] Implement `prime_store_with_sample_data(store: &AppStore)`.
+        - [ ] Create a "Root Project" task.
+        - [ ] Create 3-5 child tasks (some with deeper nesting) to verify
+              hierarchy.
+        - [ ] Ensure `TaskID`s are valid UUIDs or deterministic strings for
+              testing.
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
+        - [ ] In the startup future, check
+              `web_sys::window().location().search()` for `?seed=true`.
+        - [ ] If present, await `prime_store_with_sample_data`.
+
+    - **Step 3: UI Components**
+      - [ ] **[CMD] Install Atoms**: `dx components add checkbox`.
+      - [ ] **[NEW] `crates/tasklens-ui/src/components/task_row.rs`**:
+        - [ ] Create `TaskRow` component.
+        - [ ] **Props**:
+          - `task: PersistedTask` (The data to show)
+          - `depth: usize` (For indentation)
+        - [ ] **Render**:
+          - `div` container with `pl-[depth * 20px]`.
+          - `Checkbox` (library component, disabled state).
+          - `span` Task Title.
+          - `div` debug text (small gray) showing `id`.
+
+    - **Step 4: Plan View Implementation**
+      - [ ] **[NEW] `crates/tasklens-ui/src/views/plan_page.rs`**:
+        - [ ] Create `PlanPage` component.
+        - [ ] **State Access**: Use `use_context::<Signal<AppStore>>()` (or
+              `use_signal` depending on architecture).
+        - [ ] **Tree Flattening**:
+          - Implement logic to traverse `store.read().tasks` starting from
+            `root_task_ids`.
+          - Recursively maximize checking `child_task_ids`.
+          - Produce a flat `Vec<(usize, PersistedTask)>` (depth, task).
+        - [ ] **Render**: Loop over the flat list and render `TaskRow`.
+
+  - **Verification**:
+    - [ ] **[VERIFY]**: Navigate to `http://localhost:8080/?seed=true`.
+    - [ ] **[VERIFY]**: Observe "Plan", "Do", "Balance" links in NavBar.
+    - [ ] **[VERIFY]**: Click "Plan". Verify the hierarchy is rendered with
+          correct indentation.
+    - [ ] **[VERIFY]**: Verify `plan-management.feature` scenario "Render task
+          hierarchy" (manual walkthroug or automated if harness allows).
+
+- [ ] **Milestone 3.2**: Basic Mutation (Create & Toggle).
+  - **Goal**: Allow users to create new tasks and toggle completion status.
+  - **Implementation Details**:
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
+      - Add "Add Task" input (simple text input at top or bottom).
+      - Dispatch `Action::CreateTask`.
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_row.rs`**:
+      - Wire up Checkbox `onclick` to dispatch `Action::UpdateTask(status)`.
+  - **Verification**:
+    - [ ] **[VERIFY]**: Pass `task-creation.feature` (Basic creation).
+    - [ ] **[VERIFY]**: Pass `task-lifecycle.feature` (Completion).
+
+- [ ] **Milestone 3.3**: The "Do" View (Priority List).
+  - **Goal**: Implement the algorithmic priority list ("Do" View).
+  - **Implementation Details**:
+    - [ ] **[NEW] `crates/tasklens-ui/src/views/do_page.rs`**:
+      - Use `tasklens_core::get_prioritized_tasks` to sort.
+      - Render flat list of `TaskRow`s.
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_row.rs`**:
+      - Add visual cues: Due Dates, Urgency Coloring (Red/Orange/Green), Project
+        path breadcrumbs.
+  - **Verification**:
+    - [ ] **[VERIFY]**: Pass `routine-tasks.feature` (Appearance in Do view).
+    - [ ] **[VERIFY]**: Pass `due-dates.feature` (Sorting & Badges).
+
+- [ ] **Milestone 3.4**: Task Details & Editing.
+  - **Goal**: Full task modification (Dates, Notes, Lead Time, Repetition).
+  - **Implementation Details**:
+    - [ ] **[NEW] `crates/tasklens-ui/src/components/task_editor.rs`**:
+      - Modal or Slide-over panel.
+      - Fields: Title, Notes, Due Date (Date Picker), Lead Time (Duration
+        Parser), Repetition.
+  - **Verification**:
+    - [ ] **[VERIFY]**: Pass `task-creation.feature` (Defaults, Child
+          inheritance).
+
+- [ ] **Milestone 3.5**: Drag & Drop Reordering.
+- [ ] **Milestone 3.6**: Settings & Mobile Polish.
 
 ### Epoch 4: Verification & Switchover
 
