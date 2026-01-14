@@ -250,23 +250,23 @@ Server._
               `ChangeOccurred { sequence_id: i64, sync_id: String, source_client_id: String, payload: EncryptedBlob }`.
         - [x] Derive: `Debug, Clone, Serialize, Deserialize`.
 
-- [ ] **Milestone 2.3**: Sync Server (`sync-server`).
+- [x] **Milestone 2.3**: Sync Server (`sync-server`).
   - **Goal**: Implement the WebSocket sync server.
   - **Source**: `todo_mvp/sync_server`
   - **Implementation Details**:
     - **Step 1: Crate Setup**
-      - [ ] Create directory: `crates/sync-server`
-      - [ ] Create `crates/sync-server/Cargo.toml` (deps: axum, tokio, sqlx,
+      - [x] Create directory: `crates/sync_server`
+      - [x] Create `crates/sync_server/Cargo.toml` (deps: axum, tokio, rusqlite,
             etc).
-      - [ ] Create `crates/sync-server/src/main.rs` (skeleton).
+      - [x] Create `crates/sync_server/src/main.rs` (skeleton).
     - **Step 2: Database**
-      - [ ] Create `crates/sync-server/src/db.rs`.
-      - [ ] Implement `init_pool`, `append_update`, `get_changes_since`.
+      - [x] Create `crates/sync_server/src/db.rs`.
+      - [x] Implement `init_pool`, `append_update`, `get_changes_since`.
     - **Step 3: Server Logic**
-      - [ ] Implement `AppState` and `main` (setup router).
-      - [ ] Implement `ws_handler` and `handle_socket` (handshake + loop).
+      - [x] Implement `AppState` and `main` (setup router).
+      - [x] Implement `ws_handler` and `handle_socket` (handshake + loop).
   - **Verification**:
-    - [ ] Run `cargo run -p sync-server`.
+    - [x] Run `cargo run -p sync_server`.
 
 - [ ] **Milestone 2.4**: Store Refactor & Samod Removal (`tasklens-store`).
   - **Goal**: Remove `samod` and use `automerge` directly.
