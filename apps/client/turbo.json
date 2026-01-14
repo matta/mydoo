@@ -15,11 +15,15 @@
         "!**/.turbo/**",
         "!**/__screenshots__/**",
         "!**/coverage/**",
+        "!**/debug/**",
         "!**/dev-dist/**",
         "!**/dist/**",
         "!**/generated/**",
         "!**/node_modules/**",
         "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
         "!**/test-results/**"
       ],
       "outputs": ["tests/e2e/.features-gen/**"]
