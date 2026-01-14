@@ -466,16 +466,16 @@ export class PlanPage implements PlanFixture {
     // On Mobile: Navbar (Hidden), Footer (Visible). last() gets Footer.
     // On Desktop: Navbar (Visible), Footer (Absent). last() gets Navbar.
     await this.page
-      .locator("nav, footer")
-      .getByRole("button", { name: "Plan" })
+      .locator("nav, footer, .navbar")
+      .getByText("Plan")
       .last()
       .click();
   }
 
   async switchToDoView(): Promise<void> {
     await this.page
-      .locator("nav, footer")
-      .getByRole("button", { name: "Do" })
+      .locator("nav, footer, .navbar")
+      .getByText("Do")
       .last()
       .click();
   }
@@ -553,13 +553,10 @@ export class PlanPage implements PlanFixture {
     await this.page.evaluate(() => localStorage.clear());
 
     // Now navigate to seed URL
-    await this.page.goto("/?seed=true");
+    await this.page.goto("/plan?seed=true");
     // Ensure the app is loaded by waiting for the Plan button
     await expect(
-      this.page
-        .locator("nav, footer")
-        .getByRole("button", { name: "Plan" })
-        .last(),
+      this.page.locator("nav, footer, .navbar").getByText("Plan").last(),
     ).toBeVisible();
   }
 
@@ -627,10 +624,7 @@ export class PlanPage implements PlanFixture {
 
     // The page should reload. Wait for the app to be ready.
     await expect(
-      this.page
-        .locator("nav, footer")
-        .getByRole("button", { name: "Plan" })
-        .last(),
+      this.page.locator("nav, footer, .navbar").getByText("Plan").last(),
     ).toBeVisible();
   }
 

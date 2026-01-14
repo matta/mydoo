@@ -1,4 +1,3 @@
-@migration-pending
 Feature: Plan Management
     As a user
     I want to manage my task hierarchy in Plan view

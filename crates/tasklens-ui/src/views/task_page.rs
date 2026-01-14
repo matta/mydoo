@@ -6,10 +6,8 @@
 use crate::components::*;
 use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
-use futures::StreamExt;
 use tasklens_core::types::{PersistedTask, TaskStatus, TunnelState};
 use tasklens_store::actions::{Action, TaskUpdates};
-use tasklens_store::network;
 use tasklens_store::store::AppStore;
 
 /// The main application page component.
@@ -20,11 +18,11 @@ use tasklens_store::store::AppStore;
 /// - Orchestrates the background synchronization task `sync_task`.
 /// - Integrates the `SettingsModal` for identity management.
 #[component]
-pub fn TaskPage(
-    master_key: Signal<Option<[u8; 32]>>,
-    service_worker_active: ReadSignal<bool>,
-) -> Element {
-    let mut store = use_signal(AppStore::new);
+pub fn TaskPage() -> Element {
+    let master_key = use_context::<Signal<Option<[u8; 32]>>>();
+    let service_worker_active = use_context::<Signal<bool>>(); // Assuming bool not ReadSignal for context simplicity, or ReadSignal
+    let mut store = use_context::<Signal<AppStore>>();
+
     let mut input_text = use_signal(String::new);
     let mut show_settings = use_signal(|| false);
 
@@ -35,35 +33,6 @@ pub fn TaskPage(
             // Return empty state on failure or initial load
             TunnelState::default()
         })
-    });
-
-    // Load from storage on startup
-    use_future(move || async move {
-        match AppStore::load_from_db().await {
-            Ok(Some(bytes)) => {
-                tracing::info!("Loaded {} bytes from storage", bytes.len());
-                store.write().load_from_bytes(bytes);
-            }
-            Ok(None) => tracing::info!("No persisted data found"),
-            Err(e) => tracing::error!("Failed to load from storage: {:?}", e),
-        }
-    });
-
-    // Sync Service Task
-    let sync_task = use_coroutine(move |rx_local: UnboundedReceiver<Vec<u8>>| async move {
-        // Create a channel for incoming (remote) changes
-        let (tx_remote, rx_remote) = futures::channel::mpsc::unbounded();
-
-        // Spawn a helper to apply remote changes to the store
-        spawn(handle_remote_changes(rx_remote, store));
-
-        network::run_sync_loop(
-            rx_local,
-            tx_remote,
-            move || *master_key.read(),
-            move || store.write().export_save(),
-        )
-        .await;
     });
 
     let mut save_and_sync = move || {
@@ -77,9 +46,17 @@ pub fn TaskPage(
             }
         });
 
-        // 2. Sync
+        // 2. Sync (using global sync task via store action or just rely on store state?)
+        // The previous sync_task was a Coroutine. Moving to App means we need a way to signal it?
+        // Actually, if we lift sync_task, we need to pass the coroutine handle down or expose it via context.
+        // OR, better: the store logic itself could handle it? No, store is pure.
+        // The sync loop needs to know when local changes happen.
+        // In the original code, `sync_task.send(change)` was called.
+        // We can expose `Coroutine<Vec<u8>>` via context.
+
         if let Some(change) = changes_opt {
-            sync_task.send(change);
+            let sync_tx = use_context::<Coroutine<Vec<u8>>>();
+            sync_tx.send(change);
         }
     };
 
@@ -182,10 +159,7 @@ fn Header(
         div { class: "flex justify-between items-center mb-6",
             h1 { class: "text-2xl font-bold", "TaskLens" }
             div { class: "flex items-center space-x-2",
-                div {
-                    class: "{indicator_class}",
-                    title: "{indicator_title}",
-                }
+                div { class: "{indicator_class}", title: "{indicator_title}" }
 
                 if service_worker_active {
                     div {
@@ -276,14 +250,5 @@ fn TaskItem(task: PersistedTask, on_toggle: EventHandler<PersistedTask>) -> Elem
             }
             span { class: if is_done { "line-through text-gray-500" } else { "" }, "{task.title}" }
         }
-    }
-}
-
-async fn handle_remote_changes(
-    mut rx_remote: futures::channel::mpsc::UnboundedReceiver<Vec<u8>>,
-    mut store: Signal<AppStore>,
-) {
-    while let Some(change) = rx_remote.next().await {
-        store.write().import_changes(change);
     }
 }

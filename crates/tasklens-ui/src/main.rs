@@ -4,12 +4,18 @@
 include!(concat!(env!("OUT_DIR"), "/build_version.rs"));
 
 use dioxus::prelude::*;
+use futures::StreamExt;
+use futures::channel::mpsc::UnboundedReceiver;
 
 mod components;
+mod router;
+mod seed;
 mod views;
 
-use crate::views::task_page::TaskPage;
+use crate::router::Route;
 use tasklens_store::crypto;
+use tasklens_store::network;
+use tasklens_store::store::AppStore;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -47,6 +53,14 @@ fn App() -> Element {
     #[allow(unused_mut)]
     let mut service_worker_active = use_signal(|| false);
 
+    // Store State
+    let mut store = use_signal(AppStore::new);
+
+    // Provide context
+    use_context_provider(|| master_key);
+    use_context_provider(|| service_worker_active);
+    use_context_provider(|| store);
+
     // The master key is required for all encrypted storage operations.
     // We check local storage asynchronously on startup.
     use_future(move || async move {
@@ -63,7 +77,55 @@ fn App() -> Element {
             }
         }
         is_checking.set(false);
+
+        // Check for seed flag
+        #[cfg(target_arch = "wasm32")]
+        {
+            let window = web_sys::window().unwrap();
+            let search = window.location().search().unwrap_or_default();
+            if search.contains("seed=true") {
+                crate::seed::prime_store_with_sample_data(&mut store.write()).await;
+            }
+        }
     });
+
+    // Load store from DB on startup
+    use_future(move || async move {
+        match AppStore::load_from_db().await {
+            Ok(Some(bytes)) => {
+                tracing::info!("Loaded {} bytes from storage", bytes.len());
+                store.write().load_from_bytes(bytes);
+            }
+            Ok(None) => {
+                tracing::info!("No persisted data found; initializing new store");
+                if let Err(e) = store.write().init() {
+                    tracing::error!("Failed to initialize store: {:?}", e);
+                }
+            }
+            Err(e) => tracing::error!("Failed to load from storage: {:?}", e),
+        }
+    });
+
+    // Sync Service Task
+    let sync_task = use_coroutine(move |rx_local: UnboundedReceiver<Vec<u8>>| async move {
+        // Create a channel for incoming (remote) changes
+        let (tx_remote, rx_remote) = futures::channel::mpsc::unbounded();
+
+        // Spawn a helper to apply remote changes to the store
+        spawn(handle_remote_changes(rx_remote, store));
+
+        network::run_sync_loop(
+            rx_local,
+            tx_remote,
+            move || *master_key.read(),
+            move || store.write().export_save(),
+        )
+        .await;
+    });
+
+    // Provide sync task to children (so they can trigger sync)
+    // TaskPage and others can use use_context::<Coroutine<Vec<u8>>>()
+    use_context_provider(|| sync_task);
 
     // Subscribe to Service Worker controller changes via JS glue (WASM only).
     // The closure is leaked intentionally: JS holds a permanent reference via addEventListener.
@@ -97,8 +159,16 @@ fn App() -> Element {
             href: asset!("/assets/tailwind.css"),
         }
 
-        TaskPage { master_key, service_worker_active }
+        Router::<Route> {}
+    }
+}
 
+async fn handle_remote_changes(
+    mut rx_remote: futures::channel::mpsc::UnboundedReceiver<Vec<u8>>,
+    mut store: Signal<AppStore>,
+) {
+    while let Some(change) = rx_remote.next().await {
+        store.write().import_changes(change);
     }
 }
 
