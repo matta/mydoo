@@ -40,12 +40,13 @@ export default defineConfig({
       name: "bdd-desktop",
       testDir: testDirDesktop,
       use: { ...devices["Desktop Chrome"] },
+      grepInvert: /@mobile/,
     },
     {
       name: "bdd-mobile",
       testDir: testDirMobile,
       use: { ...devices["Pixel 7"] },
-      grepInvert: /@skip-mobile/,
+      grep: /@mobile/,
     },
     {
       name: "e2e",
