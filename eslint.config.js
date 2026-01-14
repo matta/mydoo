@@ -13,6 +13,7 @@ export default tseslint.config(
       "**/dev-dist/**",
       "**/.vercel/**",
       "**/pnpm-lock.yaml",
+      "**/target/**",
       "packages/tasklens/specs/compliance/schemas/test-case.d.ts",
     ],
   },
