@@ -51,7 +51,10 @@ jobs:
           tool: cargo-binstall
 
       - name: Install dioxus-cli
-        run: cargo binstall dioxus-cli --version 0.7.1 --locked -y
+        run: |
+          DIOXUS_VERSION=$(grep 'dioxus.*=' Cargo.toml | head -n1 | sed -E 's/.*version = "([^"]+)".*/\1/')
+          echo "Installing dioxus-cli version $DIOXUS_VERSION"
+          cargo binstall dioxus-cli --version $DIOXUS_VERSION --locked -y
 
       - name: Check Rust
         run: cargo check --workspace --all-targets
