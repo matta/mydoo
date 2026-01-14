@@ -296,7 +296,7 @@ Server._
     - [x] `cargo build --target wasm32-unknown-unknown -p tasklens-store`.
     - [x] All tests pass.
 
-- [ ] **Milestone 2.5**: Client Networking (`tasklens-store`).
+- [x] **Milestone 2.5**: Client Networking (`tasklens-store`).
   - **Goal**: Connect the client `Store` to the `tasklens-sync-server`.
   - **Source**: `todo_mvp`
   - **Implementation Details**:
@@ -311,9 +311,9 @@ Server._
       - Expose methods needed for sync (extract changes, apply changes).
       - Integrate `run_sync_loop` or expose it for the UI to consume.
   - **Verification**:
-    - Add unit tests for `crypto.rs`.
-    - Integration test: Ensure `SyncService` can talk to a running
-      `tasklens-sync-server`.
+    - [x] Add unit tests for `crypto.rs`.
+    - [x] Integration test: Ensure `SyncService` can talk to a running
+          `tasklens-sync-server`.
 
 - [ ] **Milestone 2.6**: Dioxus Integration (UI Connection).
   - **Goal**: Hook up the sync loop in the Dioxus app.

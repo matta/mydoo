@@ -6,21 +6,35 @@ edition.workspace = true
 
 [dependencies]
 tasklens-core = { path = "../tasklens-core" }
+tasklens-sync-protocol = { path = "../tasklens-sync-protocol" }
 anyhow.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 automerge.workspace = true
 autosurgeon.workspace = true
 uuid.workspace = true
 tracing.workspace = true
 futures = "0.3"
+hex = "0.4"
+rand = "0.8"
+getrandom = { version = "0.2", features = ["js"] }
+
+# Crypto dependencies
+chacha20poly1305 = "0.10"
+argon2 = "0.5"
+bip39 = "2.0"
+sha2 = "0.10"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 rexie = "0.6.2"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
-web-sys = { version = "0.3", features = ["console"] }
+web-sys = { version = "0.3", features = ["console", "Window", "Location", "Performance"] }
 serde-wasm-bindgen = "0.6"
+gloo-net = { version = "0.6", features = ["websocket"] }
+gloo-storage = "0.3"
+gloo-timers = { version = "0.3", features = ["futures"] }
 
 [dev-dependencies]
 pollster = "0.4.0"
