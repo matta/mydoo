@@ -9,7 +9,7 @@
  * This behavior is implicit. Renaming this file or moving it will cause the build
  * system to silently ignore it.
  */
-@import 'tailwindcss';
+@import "tailwindcss";
 @source "./src/**/*.{rs,html,css}";
 
 /*

@@ -1,0 +1,8 @@
+{
+  "name": "@mydoo/tasklens-ui",
+  "private": true,
+  "scripts": {
+    "check-format": "prettier --check .",
+    "fix-format": "prettier --write ."
+  }
+}

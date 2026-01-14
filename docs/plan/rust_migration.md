@@ -398,17 +398,19 @@ Server._
           "Sync Active" indicator (green dot) appears when a key is
           generated/entered.
 
-- [ ] **Milestone 2.7**: Service Worker Integration (PWA).
+- [x] **Milestone 2.7**: Service Worker Integration (PWA).
   - **Goal**: Enable PWA capabilities matching `todo_mvp`.
   - **Implementation Details**:
-    - [ ] **[VERIFY]**: Check `build.rs` generates `public/version.js` and
+    - [x] **[NEW] `crates/tasklens-ui/index.html`**: Copied from `todo_mvp` with
+          updated title.
+    - [x] **[VERIFY]**: Check `build.rs` generates `public/version.js` and
           `OUT_DIR/build_version.rs`.
-    - [ ] **[VERIFY]**: PWA installation available in browser (Localhost or via
+    - [x] **[VERIFY]**: PWA installation available in browser (Localhost or via
           ngrok if needed).
-    - [ ] **[VERIFY]**: Service worker update cycle (Force update on reload).
-    - [ ] **[MODIFY] `crates/tasklens-ui/src/main.rs`**: Ensure
+    - [x] **[VERIFY]**: Service worker update cycle (Force update on reload).
+    - [x] **[VERIFY] `crates/tasklens-ui/src/main.rs`**: Ensure
           `register_service_worker` is called and status is tracked. (Already
-          present, verify behavior).
+          present, verified behavior).
 
 ### Epoch 3: Feature Parity (The Grind)
 

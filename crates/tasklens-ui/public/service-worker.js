@@ -20,9 +20,9 @@
 // We rely on `build.rs` to generate `version.js` in the public directory.
 // This sets a global `BUILD_VERSION` variable.
 try {
-  importScripts('version.js');
+  importScripts("version.js");
 } catch (e) {
-  console.warn('version.js missing', e);
+  console.warn("version.js missing", e);
 }
 
 // ------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ try {
  */
 function getVersion() {
   const v = self.__TODO_MVP_BUILD_VERSION__;
-  return typeof v === 'string' ? v : 'unknown';
+  return typeof v === "string" ? v : "unknown";
 }
 
 // ------------------------------------------------------------------------------
@@ -44,8 +44,8 @@ function getVersion() {
 // WHY: Console logs in Service Workers can be lost if the worker is killed/restarted.
 // IndexedDB provides a durable record of what happened.
 
-const LOG_DB_NAME = 'TodoMVPLogs';
-const LOG_STORE_NAME = 'logs';
+const LOG_DB_NAME = "TodoMVPLogs";
+const LOG_STORE_NAME = "logs";
 
 /**
  * Writes a message to IndexedDB with a timestamp.
@@ -66,7 +66,7 @@ function logToIDB(type, message) {
     const db = event.target.result;
     if (!db.objectStoreNames.contains(LOG_STORE_NAME)) {
       db.createObjectStore(LOG_STORE_NAME, {
-        keyPath: 'id',
+        keyPath: "id",
         autoIncrement: true,
       });
     }
@@ -75,7 +75,7 @@ function logToIDB(type, message) {
   request.onsuccess = (event) => {
     const db = event.target.result;
     try {
-      const transaction = db.transaction(LOG_STORE_NAME, 'readwrite');
+      const transaction = db.transaction(LOG_STORE_NAME, "readwrite");
       const store = transaction.objectStore(LOG_STORE_NAME);
       const addRequest = store.add({
         timestamp: new Date().toISOString(),
@@ -84,15 +84,15 @@ function logToIDB(type, message) {
         message: message,
       });
       addRequest.onerror = (e) => {
-        console.error('Failed to add log entry:', e.target.error);
+        console.error("Failed to add log entry:", e.target.error);
       };
     } catch (e) {
-      console.error('Failed to write log to IDB:', e);
+      console.error("Failed to write log to IDB:", e);
     }
   };
 
   request.onerror = (e) => {
-    console.error('IDB Error:', e.target.error);
+    console.error("IDB Error:", e.target.error);
   };
 }
 
@@ -102,10 +102,10 @@ function logToIDB(type, message) {
 // WHEN: This fires when the browser sees a new `service-worker.js` (byte difference)
 // or a new `BUILD_VERSION` inside `version.js`.
 
-self.addEventListener('install', (_event) => {
+self.addEventListener("install", (_event) => {
   const version = getVersion();
   const msg = `Installing Service Worker v${version}`;
-  logToIDB('install', msg);
+  logToIDB("install", msg);
 
   // WHY skipWaiting():
   // Normally, a new SW waits in the "waiting" state until all old tabs are closed.
@@ -121,9 +121,9 @@ self.addEventListener('install', (_event) => {
 // WHEN: This fires after the "waiting" phase is over and this SW becomes the
 // active controller.
 
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   const msg = `Service Worker v${getVersion()} is now ACTIVE`;
-  logToIDB('activate', msg);
+  logToIDB("activate", msg);
 
   // Take control of all pages immediately.
   event.waitUntil(self.clients.claim());

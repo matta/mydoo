@@ -3,6 +3,7 @@ packages:
   - packages/*
   - docs
   - scripts
+  - crates/tasklens-ui
 
 catalogs:
   default:
