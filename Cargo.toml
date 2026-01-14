@@ -19,6 +19,8 @@ authors = ["Matt Armstrong <matt@rfc20.org>"]
 edition = "2024"
 
 [workspace.dependencies]
+tasklens-core = { path = "crates/tasklens-core", version = "0.1.0" }
+tasklens-store = { path = "crates/tasklens-store", version = "0.1.0" }
 anyhow = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -35,6 +37,7 @@ wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
 web-sys = "0.3"
 getrandom = { version = "0.3.4", features = ["wasm_js"] }
+console_error_panic_hook = "0.1.7"
 
 
 [profile.dev]

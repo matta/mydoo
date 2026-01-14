@@ -315,14 +315,97 @@ Server._
     - [x] Integration test: Ensure `SyncService` can talk to a running
           `tasklens-sync-server`.
 
-- [ ] **Milestone 2.6**: Dioxus Integration (UI Connection).
-  - **Goal**: Hook up the sync loop in the Dioxus app.
+- [x] **Milestone 2.6**: Dioxus Integration ("Wholesale Port" Strategy).
+  - **Goal**: Adopt the `todo_mvp` UI structure and connect the sync loop.
+  - **Strategy**: Copy `todo_mvp` components 1:1 and adapt the main views to
+    `tasklens` models. **STRICT REQUIREMENT** use the `cp` command to copy
+    files, then edit them.
   - **Implementation Details**:
-    - **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
-      - Initialize `SyncService` / start sync loop in a coroutine.
-      - Pass the Master Key (hardcoded or from local storage for now).
-    - **[NEW] `crates/tasklens-ui/components/debug_list.rs`**:
-      - Basic list to verify data sync.
+    - **1. Dependencies & Configuration**:
+      - [x] **[MODIFY] `crates/tasklens-ui/Cargo.toml`**: Add `gloo-storage`,
+            `bip39`, `argon2`, `chacha20poly1305`, `rand`, `hex`, `sha2`
+            dependencies (referencing `todo_mvp/Cargo.toml` versions).
+      - [x] **[MODIFY] `crates/tasklens-ui/Cargo.toml`**: Ensure
+            `features = ["pwa"]` is present and aligned with `todo_mvp`.
+      - [x] **[NEW] `crates/tasklens-ui/assets/`**: Create directory.
+      - [x] **[NEW] `crates/tasklens-ui/public/`**: Create directory.
+      - [x] **[CMD]**: Copy `todo_mvp/public/*` to `crates/tasklens-ui/public/`
+            (PWA files).
+      - [x] **[CMD]**: Copy `todo_mvp/assets/*` to `crates/tasklens-ui/assets/`
+            (Shared assets).
+      - [x] **[CMD]**: Copy `todo_mvp/tailwind.css` to
+            `crates/tasklens-ui/tailwind.css` (Source).
+      - [x] **[CMD]**: Copy `todo_mvp/assets/tailwind.css` to
+            `crates/tasklens-ui/assets/tailwind.css` (Compiled output).
+    - **2. Components (1:1 Copy)**:
+      - [x] **[NEW] `crates/tasklens-ui/src/components/mod.rs`**: Copy from
+            `todo_mvp/src/components/mod.rs`.
+      - [x] **[NEW] `crates/tasklens-ui/src/components/alert.rs`**: Copy from
+            `todo_mvp/src/components/alert.rs`.
+      - [x] **[NEW] `crates/tasklens-ui/src/components/back_button.rs`**: Copy
+            from `todo_mvp/src/components/back_button.rs`.
+      - [x] **[NEW] `crates/tasklens-ui/src/components/button.rs`**: Copy from
+            `todo_mvp/src/components/button.rs`.
+      - [x] **[NEW] `crates/tasklens-ui/src/components/checkbox.rs`**: Copy from
+            `todo_mvp/src/components/checkbox.rs`.
+      - [x] **[NEW] `crates/tasklens-ui/src/components/input.rs`**: Copy from
+            `todo_mvp/src/components/input.rs`.
+      - [x] **[NEW] `crates/tasklens-ui/src/components/loading.rs`**: Copy from
+            `todo_mvp/src/components/loading.rs`.
+    - **3. Views: Authentication**:
+      - [x] **[NEW] `crates/tasklens-ui/src/views/auth.rs`**: Copy from
+            `todo_mvp/src/views/auth.rs`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/auth.rs`**: Refactor
+            `use crate::crypto` to `use tasklens_store::crypto`.
+    - **4. Views: Task Page (The Adapter)**:
+      - [x] **[NEW] `crates/tasklens-ui/src/views/mod.rs`**: Create module file
+            exposing `auth` and `task_page`.
+      - [x] **[NEW] `crates/tasklens-ui/src/views/task_page.rs`**: Port content
+            from `todo_mvp/src/views/todo.rs`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/task_page.rs`**: Rename
+            component `TodoPage` -> `TaskPage`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/task_page.rs`**: Update
+            state imports: `crate::model::AppState` ->
+            `tasklens_core::types::TunnelState`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/task_page.rs`**: Update
+            store imports: `crate::store::Store` ->
+            `tasklens_store::store::AppStore`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/task_page.rs`**: Update
+            model imports: `crate::model::Todo` ->
+            `tasklens_core::types::PersistedTask`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/task_page.rs`**: Refactor
+            `add_todo` to use
+            `store.write().dispatch(Action::CreateTask { ... })`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/task_page.rs`**: Refactor
+            `toggle_todo` to use
+            `store.write().dispatch(Action::UpdateTask { ... })`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/task_page.rs`**: Update
+            `TodoList` component to accept `HashMap<TaskID, PersistedTask>` (or
+            convert to Vec) and render `PersistedTask` fields.
+    - **5. Main Entry Point**:
+      - [x] **[MODIFY] `crates/tasklens-ui/src/main.rs`**: Initialize
+            `master_key` signal.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/main.rs`**: Add startup future to
+            load key from storage (`tasklens_store::crypto::load_key()`).
+      - [x] **[MODIFY] `crates/tasklens-ui/src/main.rs`**: Replace root
+            component logic to render `TaskPage` (passing `master_key`).
+      - [x] **[MODIFY] `crates/tasklens-ui/src/main.rs`**: (Optional) Add PWA
+            initialization logic if using service worker.
+  - **Verification**:
+    - [x] `cargo check -p tasklens-ui` passes.
+    - [x] `cargo build --target wasm32-unknown-unknown -p tasklens-ui` passes.
+    - [x] `dx serve --package tasklens-ui`: Launch app, verify UI loads, and
+          "Sync Active" indicator (green dot) appears when a key is
+          generated/entered.
+
+- [ ] **Milestone 2.7**: Service Worker Integration (PWA).
+  - **Goal**: Enable PWA capabilities matching `todo_mvp`.
+  - **Implementation Details**:
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/main.rs`**: Add PWA
+          lifecycle/update handler.
+    - [ ] **[VERIFY]**: Check `build.rs` output matches expectation
+          (version.js).
+    - [ ] **[VERIFY]**: PWA installation available in browser.
 
 ### Epoch 3: Feature Parity (The Grind)
 

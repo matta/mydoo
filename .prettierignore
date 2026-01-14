@@ -20,3 +20,4 @@
 **/test-results/**
 **/*.d.ts
 packages/tasklens/specs/compliance/schemas/test-case.d.ts
+tempcontext

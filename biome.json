@@ -20,8 +20,15 @@
       "!**/.features-gen",
       "!**/*.d.ts",
       "!**/.prettierignore",
-      "!**/tempcontext"
+      "!**/tempcontext",
+      "!crates/tasklens-ui/assets/tailwind.css"
     ]
+  },
+  "css": {
+    "parser": {
+      "cssModules": true,
+      "tailwindDirectives": true
+    }
   },
   "formatter": {
     "enabled": false,
