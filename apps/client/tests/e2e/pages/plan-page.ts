@@ -38,6 +38,7 @@ export interface PlanFixture {
     title: string,
     config: { dueDate: string; leadTimeVal: number; leadTimeUnit: string },
   ) => Promise<void>;
+  createTaskInDoView: (title: string) => Promise<void>;
 
   // Verification Helpers
   verifyTaskVisible: (title: string) => Promise<void>;
@@ -129,6 +130,15 @@ export class PlanPage implements PlanFixture {
         .locator(`[data-testid="task-item"]`, { hasText: title })
         .first(),
     ).toBeVisible();
+  }
+
+  async createTaskInDoView(title: string): Promise<void> {
+    const input = this.page.getByPlaceholder("Add a new task...");
+    await expect(input).toBeVisible();
+    await input.fill(title);
+    await this.page.keyboard.press("Enter");
+
+    await expect(this.page.getByText(title).first()).toBeVisible();
   }
 
   async addFirstTask(title: string): Promise<void> {
