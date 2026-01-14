@@ -319,7 +319,17 @@ importers:
         specifier: 'catalog:'
         version: 7.4.0
 
-  crates/tasklens-ui: {}
+  crates/tasklens-ui:
+    devDependencies:
+      '@mydoo/tasklens':
+        specifier: workspace:*
+        version: link:../../packages/tasklens
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.57.0
+      playwright-bdd:
+        specifier: 'catalog:'
+        version: 8.4.2(@playwright/test@1.57.0)
 
   docs: {}
 

@@ -2,9 +2,7 @@
 platform = "web"
 
 [web.app]
-
-# HTML title tag content
-title = "tasklens-ui"
+title = "TaskLens"
 
 # include `assets` in web platform
 [web.resource]
