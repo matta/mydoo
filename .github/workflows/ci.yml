@@ -52,7 +52,7 @@ jobs:
 
       - name: Install dioxus-cli
         run: |
-          DIOXUS_VERSION=$(grep 'dioxus.*=' Cargo.toml | head -n1 | sed -E 's/.*version = "([^"]+)".*/\1/')
+          DIOXUS_VERSION=$(cargo tree -p dioxus --depth 0 --prefix none | cut -d v -f 2)
           echo "Installing dioxus-cli version $DIOXUS_VERSION"
           cargo binstall dioxus-cli --version $DIOXUS_VERSION --locked -y
 
