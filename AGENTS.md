@@ -89,6 +89,11 @@
 5.  **Exhaustiveness:** When handling unions (especially in `switch`
     statements), ensure all cases are handled. Use a `assertUnreachable` utility
     if necessary to guarantee exhaustiveness.
+6.  **The Protocol of Strictness:** If you cannot express a type correctly
+    without using `any` or `as` casting, **STOP**. A complex type puzzle you
+    cannot solve is a signal to pause and ask the user for guidance, not a
+    license to bypass the type system. Lowering the quality bar to achieve
+    autonomy is **unacceptable**.
 
 ## Documentation
 
