@@ -31,6 +31,8 @@ scenarios:
             # but should sort SECOND due to tiebreaker
             - id: low-importance
               title: Low Importance Task
+              desired_credits: 0 # Disables Balance algorithm to isolate this test
+              lead_time_seconds: 604800
               importance: 0.3
               # Due date in the past => overdue => lead_time_factor = 1.0
               # priority = 0.3 * 1.0 = 0.3
@@ -40,6 +42,8 @@ scenarios:
             # but should sort FIRST due to tiebreaker
             - id: high-importance
               title: High Importance Task
+              desired_credits: 0 # Disables Balance algorithm to isolate this test
+              lead_time_seconds: 604800
               importance: 0.6
               # For factor=0.5 with leadTime=7 days:
               # timeRemaining = 1.5 * leadTime = 10.5 days

@@ -20,6 +20,7 @@ scenarios:
                   repeat_config:
                     frequency: daily
                     interval: 1
+                  lead_time_seconds: 604800
                   last_done: "2025-01-01T00:00:00Z"
                   # Next due: Jan 2
                   # If it inherited, it would be Jan 10.
@@ -41,6 +42,7 @@ scenarios:
                 - id: Child_DueDate
                   schedule_type: DueDate
                   due_date: "2025-01-05T00:00:00Z" # Own explicit date
+                  lead_time_seconds: 604800
                   # If it inherited, it would be Jan 10.
       - then:
           expected_props:
@@ -61,6 +63,7 @@ scenarios:
               repeat_config:
                 frequency: daily
                 interval: 1
+              lead_time_seconds: 604800
               last_done: "2025-01-01T00:00:00Z"
               # Next due: Jan 2
               children:
@@ -101,6 +104,7 @@ scenarios:
               repeat_config:
                 frequency: daily
                 interval: 1
+              lead_time_seconds: 604800
               last_done: "2025-01-01T00:00:00Z"
               # Next due: Jan 2
               children:
@@ -130,6 +134,7 @@ scenarios:
               children:
                 - id: Child
                   schedule_type: Once
+                  lead_time_seconds: 604800
                   # Inherits Jan 10
       - then:
           expected_props:
@@ -164,6 +169,7 @@ scenarios:
                   repeat_config:
                     frequency: daily
                     interval: 1
+                  lead_time_seconds: 604800
                   last_done: "2025-01-01T00:00:00Z" # Due Jan 2
       - then:
           expected_props:

@@ -1,5 +1,5 @@
 use crate::domain::constants::{
-    CREDITS_HALF_LIFE_MILLIS, DEFAULT_CREDIT_INCREMENT, DEFAULT_TASK_LEAD_TIME_MS, MIN_PRIORITY,
+    CREDITS_HALF_LIFE_MILLIS, DEFAULT_CREDIT_INCREMENT, DEFAULT_LEAD_TIME_MILLIS, MIN_PRIORITY,
 };
 use crate::domain::feedback::calculate_feedback_factors;
 use crate::domain::readiness::calculate_lead_time_factor;
@@ -133,7 +133,7 @@ fn hydrate_task(persisted: &PersistedTask) -> EnrichedTask {
     let effective_lead_time = persisted
         .schedule
         .lead_time
-        .or(Some(DEFAULT_TASK_LEAD_TIME_MS));
+        .or(Some(DEFAULT_LEAD_TIME_MILLIS));
 
     EnrichedTask {
         id: persisted.id.clone(),

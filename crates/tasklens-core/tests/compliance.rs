@@ -4,11 +4,11 @@ use glob::glob;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
-use tasklens_core::domain::constants::{DEFAULT_CREDIT_INCREMENT, DEFAULT_TASK_LEAD_TIME_MS};
+
 use tasklens_core::domain::priority::get_prioritized_tasks;
 use tasklens_core::types::{
-    Context, Frequency, PersistedTask, Place, PlaceID, PriorityOptions, RepeatConfig, Schedule,
-    ScheduleType, TaskID, TaskStatus, TunnelState, UrgencyStatus, ViewFilter,
+    Context, Frequency, Place, PlaceID, PriorityOptions, RepeatConfig, ScheduleType, TaskID,
+    TaskStatus, TunnelState, UrgencyStatus, ViewFilter,
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -723,41 +723,18 @@ fn apply_task_input(
     let mut persisted = if let Some(existing) = state.tasks.remove(&task_id) {
         existing
     } else {
-        // Create new with defaults
-        let mut inherited_place_id = None;
-        let mut inherited_credit_increment = None;
-        if let Some(parent) = parent_id.as_ref().and_then(|pid| state.tasks.get(pid)) {
-            inherited_place_id = parent.place_id.clone();
-            inherited_credit_increment = parent.credit_increment;
-        }
+        // Create new using domain logic
+        let parent_ref = parent_id.as_ref().and_then(|pid| state.tasks.get(pid));
+        let mut task = tasklens_core::create_new_task(String::new(), parent_ref);
 
-        PersistedTask {
-            id: task_id.clone(),
-            title: String::new(),
-            notes: String::new(),
-            parent_id: parent_id
-                .clone()
-                .or_else(|| yaml_parent_id.clone().map(TaskID::from)),
-            child_task_ids: Vec::new(),
-            place_id: inherited_place_id,
-            status: TaskStatus::Pending,
-            importance: 1.0,
-            credit_increment: inherited_credit_increment.or(Some(DEFAULT_CREDIT_INCREMENT)),
-            credits: 0.0,
-            desired_credits: 0.0,
-            credits_timestamp: current_time,
-            priority_timestamp: current_time,
-            schedule: Schedule {
-                schedule_type: ScheduleType::Once,
-                due_date: None,
-                lead_time: Some(DEFAULT_TASK_LEAD_TIME_MS),
-                last_done: None,
-            },
-            repeat_config: None,
-            is_sequential: false,
-            is_acknowledged: false,
-            last_completed_at: None,
-        }
+        // Override with test harness specifics
+        task.id = task_id.clone();
+
+        // Compliance tests assume creation at `current_time`
+        task.credits_timestamp = current_time;
+        task.priority_timestamp = current_time;
+
+        task
     };
 
     // 2. Override with input fields

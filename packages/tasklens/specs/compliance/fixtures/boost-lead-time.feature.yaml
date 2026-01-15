@@ -10,10 +10,12 @@ background:
       title: Task A (Control)
       desired_credits: 0
       importance: 1
+      lead_time_seconds: 604800
     - id: Rushing
       title: Task B (Will become Urgent)
       desired_credits: 0
       importance: 1
+      lead_time_seconds: 604800
 scenarios:
   - name: Legacy Scenario
     steps:

@@ -6,9 +6,7 @@ use automerge::AutoCommit;
 use autosurgeon::{hydrate, reconcile};
 use std::collections::HashMap;
 
-use tasklens_core::types::{
-    PersistedTask, Schedule, ScheduleType, TaskID, TaskStatus, TunnelState,
-};
+use tasklens_core::types::{TaskStatus, TunnelState};
 
 /// A wrapper around the Automerge CRDT document.
 ///
@@ -66,37 +64,14 @@ impl AppStore {
 
         match action {
             Action::CreateTask { parent_id, title } => {
-                let id = TaskID::new();
-                let task = PersistedTask {
-                    id: id.clone(),
-                    title,
-                    notes: String::new(),
-                    parent_id: parent_id.clone(),
-                    child_task_ids: Vec::new(),
-                    place_id: None,
-                    status: TaskStatus::Pending,
-                    importance: 1.0,
-                    credit_increment: None,
-                    credits: 0.0,
-                    desired_credits: 1.0,
-                    credits_timestamp: 0.0,
-                    priority_timestamp: 0.0,
-                    schedule: Schedule {
-                        schedule_type: ScheduleType::Once,
-                        due_date: None,
-                        lead_time: Some(0.0),
-                        last_done: None,
-                    },
-                    repeat_config: None,
-                    is_sequential: false,
-                    is_acknowledged: false,
-                    last_completed_at: None,
-                };
+                let parent = parent_id.as_ref().and_then(|pid| state.tasks.get(pid));
+                let task = tasklens_core::create_new_task(title, parent);
+                let id = task.id.clone();
                 state.tasks.insert(id.clone(), task);
-                if let Some(pid) = parent_id {
-                    if let Some(parent) = state.tasks.get_mut(&pid) {
-                        parent.child_task_ids.push(id);
-                    }
+                if let Some(pid) = parent_id
+                    && let Some(parent) = state.tasks.get_mut(&pid)
+                {
+                    parent.child_task_ids.push(id);
                 } else {
                     state.root_task_ids.push(id);
                 }

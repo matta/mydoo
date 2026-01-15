@@ -128,6 +128,7 @@ scenarios:
               title: Child Task
               parent_id: parent_override
               due_date: "2024-06-05"
+              lead_time_seconds: 604800
       - then:
           expected_props:
             - id: parent_override

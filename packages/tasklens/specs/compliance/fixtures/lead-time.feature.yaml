@@ -9,6 +9,7 @@ background:
     - id: Task
       desired_credits: 0
       importance: 1
+      lead_time_seconds: 604800
       due_date: "2025-01-21T00:00:00Z"
 scenarios:
   - name: Legacy Scenario

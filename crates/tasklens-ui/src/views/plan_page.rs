@@ -1,22 +1,21 @@
 use crate::components::TaskInput;
 use crate::components::task_row::TaskRow;
+use crate::controllers::task_controller;
 use dioxus::prelude::*;
-use tasklens_core::types::{PersistedTask, TaskID, TaskStatus, TunnelState};
-use tasklens_store::actions::{Action, TaskUpdates};
+use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
 use tasklens_store::store::AppStore;
 
 #[component]
 pub fn PlanPage() -> Element {
     let mut store = use_context::<Signal<AppStore>>();
-    // Track expanded task IDs. Default to empty (collapsed) or pre-expanded?
-    // Test says "When I expand 'Project Alpha'". implies it starts collapsed.
-    let mut expanded_tasks = use_signal(std::collections::HashSet::<TaskID>::new);
+    let sync_tx = use_context::<Coroutine<Vec<u8>>>();
 
+    // Track expanded task IDs.
+    let mut expanded_tasks = use_signal(std::collections::HashSet::<TaskID>::new);
     let mut input_text = use_signal(String::new);
 
     let flattened_tasks = use_memo(move || {
         let store = store.write();
-        // Ensure hydration, defaulting to empty state if failed (e.g. fresh load)
         let state = store
             .hydrate::<TunnelState>()
             .unwrap_or_else(|_| TunnelState::default());
@@ -25,22 +24,8 @@ pub fn PlanPage() -> Element {
         flatten_tasks(&state, &expanded)
     });
 
-    let mut add_task = move || {
-        let text = input_text();
-        if text.trim().is_empty() {
-            return;
-        }
-
-        if let Err(e) = store.write().dispatch(Action::CreateTask {
-            parent_id: None,
-            title: text.clone(),
-        }) {
-            tracing::error!("Failed to create task: {:?}", e);
-            return;
-        }
-
-        // Sync and Save logic
-        let sync_tx = use_context::<Coroutine<Vec<u8>>>();
+    // Helper to trigger sync and save
+    let mut trigger_sync = move || {
         let changes_opt = store.write().get_recent_changes();
         if let Some(changes) = changes_opt {
             sync_tx.send(changes);
@@ -49,41 +34,50 @@ pub fn PlanPage() -> Element {
                 let _ = AppStore::save_to_db(bytes).await;
             });
         }
+    };
 
+    let mut add_task = move || {
+        let text = input_text();
+        if text.trim().is_empty() {
+            return;
+        }
+
+        task_controller::create_task(&mut store, None, text);
+        trigger_sync();
         input_text.set(String::new());
     };
 
     let toggle_task = move |task: PersistedTask| {
-        // ... (existing toggle logic) ...
-        let new_status = match task.status {
-            TaskStatus::Done => TaskStatus::Pending,
-            TaskStatus::Pending => TaskStatus::Done,
-        };
+        task_controller::toggle_task_status(&mut store, task.id);
+        trigger_sync();
+    };
 
-        let action = match new_status {
-            TaskStatus::Done => Action::CompleteTask { id: task.id },
-            TaskStatus::Pending => Action::UpdateTask {
-                id: task.id,
-                updates: TaskUpdates {
-                    status: Some(TaskStatus::Pending),
-                    ..Default::default()
-                },
-            },
-        };
+    let handle_rename = move |(id, new_title): (TaskID, String)| {
+        task_controller::rename_task(&mut store, id, new_title);
+        trigger_sync();
+    };
 
-        if let Err(e) = store.write().dispatch(action) {
-            tracing::error!("Failed to toggle task: {:?}", e);
-        } else {
-            let sync_tx = use_context::<Coroutine<Vec<u8>>>();
-            let changes_opt = store.write().get_recent_changes();
-            if let Some(changes) = changes_opt {
-                sync_tx.send(changes);
-                let bytes = store.write().export_save();
-                spawn(async move {
-                    let _ = AppStore::save_to_db(bytes).await;
-                });
-            }
-        }
+    let handle_delete = move |id: TaskID| {
+        task_controller::delete_task(&mut store, id);
+        trigger_sync();
+    };
+
+    let handle_create_subtask = move |parent_id: TaskID| {
+        // For now, create a generic subtask or prompt?
+        // Plan says "Add Subtask" -> task_controller::create_task(..., Some(id), ...).
+        // UX: Maybe adding "New Subtask" string is okay, user can rename it.
+        // Or we could eventually trigger the task creation form.
+        // Let's create a default one for now to match the "create and then rename" flow used in some apps,
+        // or just empty title? Controller checks empty title.
+        // Let's create "New Task".
+
+        task_controller::create_task(&mut store, Some(parent_id.clone()), "New Task".to_string());
+
+        // Auto-expand the parent so we can see the child
+        let mut expanded = expanded_tasks.write();
+        expanded.insert(parent_id);
+
+        trigger_sync();
     };
 
     let toggle_expand = move |id: TaskID| {
@@ -106,14 +100,13 @@ pub fn PlanPage() -> Element {
 
             TaskInput { value: input_text, on_add: move |_| add_task() }
 
-            div { class: "bg-white shadow rounded-lg overflow-hidden",
+            div { class: "bg-white shadow rounded-lg overflow-hidden mt-4",
                 if flattened_tasks().is_empty() {
                     div { class: "p-4 text-center text-gray-500",
                         "No tasks found. Try adding seed data? (?seed=true)"
                     }
                 } else {
                     for (task , depth , has_children , is_expanded) in flattened_tasks() {
-                        // TODO: TaskRow needs to support expansion toggle
                         TaskRow {
                             key: "{task.id}",
                             task: task.clone(),
@@ -122,6 +115,9 @@ pub fn PlanPage() -> Element {
                             has_children,
                             is_expanded,
                             on_expand_toggle: toggle_expand,
+                            on_rename: handle_rename,
+                            on_delete: handle_delete,
+                            on_create_subtask: handle_create_subtask,
                         }
                     }
                 }

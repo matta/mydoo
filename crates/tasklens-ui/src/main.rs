@@ -8,6 +8,7 @@ use futures::StreamExt;
 use futures::channel::mpsc::UnboundedReceiver;
 
 mod components;
+mod controllers;
 mod router;
 mod seed;
 mod views;

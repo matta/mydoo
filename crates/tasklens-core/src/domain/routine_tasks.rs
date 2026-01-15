@@ -1,4 +1,4 @@
-use crate::domain::constants::DEFAULT_TASK_LEAD_TIME_MS;
+use crate::domain::constants::DEFAULT_LEAD_TIME_MILLIS;
 use crate::types::{ScheduleType, TaskStatus, TunnelState};
 use crate::utils::time::get_interval_ms;
 
@@ -22,7 +22,7 @@ pub fn wake_up_routine_tasks(state: &mut TunnelState, current_time: f64) {
             let next_due_date = last_completed_at + interval_ms;
 
             // Lead Time defines how early the task appears before it's due
-            let lead_time = task.schedule.lead_time.unwrap_or(DEFAULT_TASK_LEAD_TIME_MS);
+            let lead_time = task.schedule.lead_time.unwrap_or(DEFAULT_LEAD_TIME_MILLIS);
             let wake_up_time = next_due_date - lead_time;
 
             if current_time >= wake_up_time {
