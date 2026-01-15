@@ -1,4 +1,13 @@
-See also @AGENTS_DIOXUS.md
+# Project Memories
+
+## Immutable Design Decisions
+
+- **Track Generated CSS:** The file `crates/tasklens-ui/assets/tailwind.css`
+  MUST be tracked in Git. It is NOT to be gitignored.
+- **Formatting Authority:** To resolve formatting conflicts for
+  `assets/tailwind.css`, it is added to `.prettierignore` so that the Dioxus
+  build process remains the primary authority for its formatting, while it
+  remains tracked in the repository.
 
 # Behavior Guidelines
 
@@ -125,6 +134,23 @@ pnpm exec turbo run test-e2e --filter <package> -- --project=<project> -g <patte
 
 # Fully build everything and re-run all tests including e2e (monorepo-wide), ignoring cache
 TURBO_FORCE=true pnpm exec turbo run check-agent
+```
+
+### Rust Validation
+
+The `pnpm verify` command includes Rust checks via `scripts/check-rust.sh`. You
+can also run Rust checks independently:
+
+```bash
+# Full Rust validation (fmt, clippy, WASM build, dx build, tests)
+pnpm check-rust
+
+# Individual checks during development
+cargo fmt --check                                    # Formatting
+cargo clippy --all-targets -- -D warnings           # Lints
+cargo build --target wasm32-unknown-unknown -p tasklens-store  # WASM build
+dx build -p tasklens-ui                             # Dioxus build
+cargo test                                          # Tests
 ```
 
 ## Context Convention: `ROLLING_CONTEXT.md`
