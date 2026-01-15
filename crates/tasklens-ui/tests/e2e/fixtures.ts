@@ -43,9 +43,13 @@ export const test = bddTest.extend<MyFixtures>({
         console.log(`URL: ${page.url()}`);
 
         try {
-          const snapshot = await page.accessibility.snapshot();
-          console.log("--- ACCESSIBILITY TREE ---");
-          console.log(JSON.stringify(snapshot, null, 2));
+          if (page.accessibility) {
+            const snapshot = await page.accessibility.snapshot();
+            console.log("--- ACCESSIBILITY TREE ---");
+            console.log(JSON.stringify(snapshot, null, 2));
+          } else {
+            console.log("Accessibility API not available on this page");
+          }
         } catch (e) {
           console.log("A11y snapshot failed:", e);
         }

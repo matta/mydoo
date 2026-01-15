@@ -62,36 +62,19 @@ fn App() -> Element {
     use_context_provider(|| service_worker_active);
     use_context_provider(|| store);
 
-    // The master key is required for all encrypted storage operations.
-    // We check local storage asynchronously on startup.
+    // Unified Store Initialization: Key Load -> Data Load -> Seeding
     use_future(move || async move {
+        // 1. Load Master Key
         match crypto::load_key() {
             Ok(Some(key)) => {
                 tracing::info!("Loaded key from storage");
                 master_key.set(Some(key));
             }
-            Ok(None) => {
-                tracing::info!("No key found in storage");
-            }
-            Err(e) => {
-                tracing::error!("Error loading key: {:?}", e);
-            }
+            Ok(None) => tracing::info!("No key found in storage"),
+            Err(e) => tracing::error!("Error loading key: {:?}", e),
         }
-        is_checking.set(false);
 
-        // Check for seed flag
-        #[cfg(target_arch = "wasm32")]
-        {
-            let window = web_sys::window().unwrap();
-            let search = window.location().search().unwrap_or_default();
-            if search.contains("seed=true") {
-                crate::seed::prime_store_with_sample_data(&mut store.write()).await;
-            }
-        }
-    });
-
-    // Load store from DB on startup
-    use_future(move || async move {
+        // 2. Load Data from DB
         match AppStore::load_from_db().await {
             Ok(Some(bytes)) => {
                 tracing::info!("Loaded {} bytes from storage", bytes.len());
@@ -105,6 +88,18 @@ fn App() -> Element {
             }
             Err(e) => tracing::error!("Failed to load from storage: {:?}", e),
         }
+
+        // 3. Apply Seed if requested
+        #[cfg(target_arch = "wasm32")]
+        {
+            let window = web_sys::window().unwrap();
+            let search = window.location().search().unwrap_or_default();
+            if search.contains("seed=true") {
+                crate::seed::prime_store_with_sample_data(&mut store.write()).await;
+            }
+        }
+
+        is_checking.set(false);
     });
 
     // Sync Service Task

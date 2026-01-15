@@ -17,5 +17,6 @@ pub use task_input::TaskInput;
 pub mod app_navbar;
 pub mod loading;
 pub mod navbar;
+pub mod priority_task_row;
 pub mod task_input;
 pub mod task_row;

@@ -1,4 +1,4 @@
-@migration-pending
+@plan-management
 Feature: Plan Management
     As a user
     I want to manage my task hierarchy in Plan view
@@ -17,6 +17,7 @@ Feature: Plan Management
         Then I should see "Research Requirements" visible
         And I should see "Design UI Mocks" visible
 
+    @migration-pending
     Scenario: Find in Plan from Do view
         When I switch to Do view
         Then I should see "Research Requirements" visible
@@ -27,6 +28,7 @@ Feature: Plan Management
         And I should see "Research Requirements" visible
         And I should see "Design UI Mocks" visible
 
+    @migration-pending
     Scenario: Edit task properties and persist
         When I create a task "Task to Edit"
         And I rename "Task to Edit" to "Edited Task Title"
@@ -37,6 +39,7 @@ Feature: Plan Management
         And I switch to Plan view
         Then I should see "Edited Task Title" visible
 
+    @migration-pending
     Scenario: Delete task with cascade
         Given I have a task "Parent Task" with child "Child Task"
         When I delete "Parent Task"

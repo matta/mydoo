@@ -2,10 +2,16 @@ use crate::components::*;
 use dioxus::prelude::*;
 
 #[component]
-pub fn TaskInput(value: Signal<String>, on_add: EventHandler<()>) -> Element {
+pub fn TaskInput(
+    value: Signal<String>,
+    on_add: EventHandler<()>,
+    #[props(default)] data_testid: Option<String>,
+) -> Element {
     let mut value = value;
     rsx! {
-        div { class: "flex gap-2 mb-4",
+        div {
+            class: "flex gap-2 mb-4",
+            "data-testid": data_testid,
             Input {
                 value: "{value}",
                 oninput: move |t| value.set(t),

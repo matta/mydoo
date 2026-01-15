@@ -17,7 +17,7 @@ pub fn AppNavBar() -> Element {
                 NavbarItem {
                     index: active_index,
                     value: 1usize,
-                    to: Route::TaskPage {},
+                    to: Route::DoPage {},
                     "Do"
                 }
                 NavbarItem {

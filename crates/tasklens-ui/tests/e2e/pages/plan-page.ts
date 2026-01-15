@@ -114,7 +114,9 @@ export class PlanPage implements PlanFixture {
     } else if (await addTop.isVisible()) {
       await addTop.click();
     } else {
-      const input = this.page.getByPlaceholder("Add a new task...");
+      const input = this.page
+        .getByTestId("plan-task-input")
+        .getByPlaceholder("Add a new task...");
       await expect(input).toBeVisible();
       await input.fill(title);
       await this.page.keyboard.press("Enter");
@@ -138,7 +140,9 @@ export class PlanPage implements PlanFixture {
   }
 
   async createTaskInDoView(title: string): Promise<void> {
-    const input = this.page.getByPlaceholder("Add a new task...");
+    const input = this.page
+      .getByTestId("do-task-input")
+      .getByPlaceholder("Add a new task...");
     await expect(input).toBeVisible();
     await input.fill(title);
     await this.page.keyboard.press("Enter");
@@ -660,9 +664,11 @@ export class PlanPage implements PlanFixture {
       .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
       .first();
 
-    const badge = row.locator(`.mantine-Badge-root[data-urgency="${urgency}"]`);
+    const badge = row.locator(
+      `[data-testid="urgency-badge"][data-urgency="${urgency}"]`,
+    );
     const breadcrumbBadge = breadcrumb.locator(
-      `.mantine-Badge-root[data-urgency="${urgency}"]`,
+      `[data-testid="urgency-badge"][data-urgency="${urgency}"]`,
     );
 
     await expect(badge.or(breadcrumbBadge)).toBeVisible();
@@ -676,9 +682,13 @@ export class PlanPage implements PlanFixture {
       .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
       .first();
 
-    // Badges have .mantine-Badge-root
-    await expect(row.locator(".mantine-Badge-root")).not.toBeVisible();
-    await expect(breadcrumb.locator(".mantine-Badge-root")).not.toBeVisible();
+    // Badges have data-testid="urgency-badge"
+    await expect(
+      row.locator('[data-testid="urgency-badge"]'),
+    ).not.toBeVisible();
+    await expect(
+      breadcrumb.locator('[data-testid="urgency-badge"]'),
+    ).not.toBeVisible();
   }
 
   async verifyDueDateText(

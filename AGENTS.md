@@ -37,6 +37,15 @@
     Agent MUST explicitly state "Waiting for git commit command" and STOP. The
     Agent must NOT infer or assume permission to commit from context, prior
     commits, or phrases like "continue" or "finish this."
+- **No Auto-Staging Rule**: The Agent MUST NOT stage its own manual code edits
+  using `git add`. The user relies on unstaged changes to review the Agent's
+  work via the diff.
+  - **The Content-Stage Heuristic**: If the Agent touch the content of a file
+    (logic or documentation), the Agent MUST NOT touch the stage for that file.
+    Meta-documentation updates (like `AGENTS.md`) are NOT exceptions.
+  - **Exception**: Staging IS permitted and encouraged for results produced by
+    vetted automated tools (e.g., `./scripts/format`, `cargo fmt`, `pnpm fix`)
+    or when explicitly instructed by prompts, commands, workflows, or skills.
   - **Future Tense Prohibition:** Phrases like "we'll commit", "undo and redo",
     or "fix and commit" act as plans, NOT commands. You must execute the work
     (e.g., the undo/fix) and then **STOP** to request a fresh commit command.
@@ -543,8 +552,9 @@ To validate changes in this project, run:
 
 # Coding Standards
 
-- When using `#[allow(dead_code)]`, you must add a comment
-  `// TODO: remove this when this is used`.
+- **Dead Code Handling**: Prefer `#[expect(dead_code)]` over
+  `#[allow(dead_code)]` for code that is intentionally left in place but
+  currently unused (e.g., library variants).
 - Do not use "conventional commit" prefixes (e.g. `feat:`, `fix:`) in commit
   messages.
 - Do not use markdown quoting (backticks) in commit messages.
@@ -739,6 +749,27 @@ fn Counter() -> Element {
 		}
 	}
 }
+```
+
+### Passing Signals
+
+In Dioxus 0.7, `Signal<T>` is a shallowly copyable handle with internal
+mutability.
+
+- **Pass by Value**: Always pass `Signal` by value to child components,
+  controllers, and asynchronous closures.
+- **Avoid Borrowing**: Do not use `&mut Signal<T>` or `&Signal<T>` for handles.
+  Passing by value prevents complex borrow checker conflicts especially when
+  multiple UI elements or tasks need to write to the same state simultaneously.
+
+```rust
+// ✅ Correct: Passing by value
+pub fn update_name(mut store: Signal<AppStore>, name: String) {
+    store.write().name = name;
+}
+
+// ❌ Avoid: Passing by reference
+pub fn update_name(store: &mut Signal<AppStore>, name: String) { ... }
 ```
 
 ## Context API

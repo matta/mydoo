@@ -1,4 +1,4 @@
-@migration-pending
+@task-creation @migration-pending
 Feature: Task Creation Defaults
     As a user
     I want new tasks to have sensible default values

@@ -104,6 +104,7 @@ pub fn TaskRow(
             } else {
                 span {
                     class: if is_done { "line-through text-gray-400 flex-grow cursor-pointer" } else { "text-gray-800 flex-grow cursor-pointer" },
+                    "data-testid": "task-title",
                     onclick: move |_| is_editing.set(true),
                     "{task.title}"
                 }

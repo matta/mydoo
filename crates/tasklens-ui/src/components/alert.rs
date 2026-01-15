@@ -4,10 +4,13 @@ use dioxus::prelude::*;
 #[derive(PartialEq, Clone, Copy)]
 pub enum AlertVariant {
     /// Blue-styled information alert.
+    #[expect(dead_code)]
     Info,
     /// Green-styled success alert.
+    #[expect(dead_code)]
     Success,
     /// Red-styled error alert.
+    #[expect(dead_code)]
     Error,
 }
 

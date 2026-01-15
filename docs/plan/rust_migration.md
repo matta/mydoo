@@ -593,46 +593,46 @@ _Goal: Porting UI components to match functionality._
     - [ ] **[VERIFY]**: Verify `plan-management.feature` scenario "Delete task
           with cascade". (Test flaky/Env issue)
 
-- [ ] **Milestone 3.3**: The "Do" View (Priority List).
+- [x] **Milestone 3.3**: The "Do" View (Priority List).
   - **Goal**: Implement the algorithmic priority list ("Do" View) and
     navigation.
   - **Gaps Addressed**: `plan-management.feature` (Find in Plan from Do view).
   - **Implementation Details**:
-    - [ ] **[NEW] `crates/tasklens-ui/src/components/priority_task_row.rs`**:
-      - [ ] Create `PriorityTaskRow` component.
-      - [ ] **Props**: `task: ComputedTask`.
-      - [ ] **Render**:
-        - [ ] Checkbox (toggles status via `task_controller`).
-        - [ ] Title (Strikethrough if done).
-        - [ ] Metadata: Due Date (if present), Project Name (Breadcrumbs -
+    - [x] **[NEW] `crates/tasklens-ui/src/components/priority_task_row.rs`**:
+      - [x] Create `PriorityTaskRow` component.
+      - [x] **Props**: `task: ComputedTask`.
+      - [x] **Render**:
+        - [x] Checkbox (toggles status via `task_controller`).
+        - [x] Title (Strikethrough if done).
+        - [x] Metadata: Due Date (if present), Project Name (Breadcrumbs -
               requires parent lookup).
-        - [ ] **Visual Cues**:
-          - [ ] Urgency Coloring (Red if `UrgencyStatus::Overdue`, Orange if
+        - [x] **Visual Cues**:
+          - [x] Urgency Coloring (Red if `UrgencyStatus::Overdue`, Orange if
                 `UrgencyStatus::DueSoon`).
-          - [ ] Inbox Border (if `place_id` is Inbox).
-    - [ ] **[NEW] `crates/tasklens-ui/src/views/do_page.rs`**:
-      - [ ] Create `DoPage` component.
-      - [ ] **State**:
-        - [ ] Access `AppStore`.
-        - [ ] `use_memo` to call
+          - [x] Inbox Border (if `place_id` is Inbox).
+    - [x] **[NEW] `crates/tasklens-ui/src/views/do_page.rs`**:
+      - [x] Create `DoPage` component.
+      - [x] **State**:
+        - [x] Access `AppStore`.
+        - [x] `use_memo` to call
               `tasklens_core::domain::priority::get_prioritized_tasks`.
-        - [ ] Construct `ViewFilter` (Show all valid) and `PriorityOptions`.
-      - [ ] **Render**:
-        - [ ] Header: "Work" (or Context Selector later).
-        - [ ] List: Iterate `prioritized_tasks` and render `PriorityTaskRow`.
-        - [ ] "No tasks ready" empty state.
-    - [ ] **[MODIFY] `crates/tasklens-ui/src/router.rs`**:
-      - [ ] Map `/do` to `DoPage`.
-      - [ ] Remove legacy `TaskPage` reference if unused (or keep as detail view
+        - [x] Construct `ViewFilter` (Show all valid) and `PriorityOptions`.
+      - [x] **Render**:
+        - [x] Header: "Work" (or Context Selector later).
+        - [x] List: Iterate `prioritized_tasks` and render `PriorityTaskRow`.
+        - [x] "No tasks ready" empty state.
+    - [x] **[MODIFY] `crates/tasklens-ui/src/router.rs`**:
+      - [x] Map `/do` to `DoPage`.
+      - [x] Remove legacy `TaskPage` reference if unused (or keep as detail view
             later).
-    - [ ] **[MODIFY] `crates/tasklens-ui/src/views/mod.rs`**:
-      - [ ] Export `do_page`.
+    - [x] **[MODIFY] `crates/tasklens-ui/src/views/mod.rs`**:
+      - [x] Export `do_page`.
   - **Verification**:
-    - [ ] **[VERIFY]**: "Do" view renders tasks sorted by score.
-    - [ ] **[VERIFY]**: visual cues (Red/Orange) appear for urgent tasks
+    - [x] **[VERIFY]**: "Do" view renders tasks sorted by score.
+    - [x] **[VERIFY]**: visual cues (Red/Orange) appear for urgent tasks
           (Requires seed data with dates).
-    - [ ] **[VERIFY]**: Checking a task strikes it through (local state update).
-    - [ ] **[VERIFY]**: Verify `plan-management.feature` scenario "Find in Plan
+    - [x] **[VERIFY]**: Checking a task strikes it through (local state update).
+    - [x] **[VERIFY]**: Verify `plan-management.feature` scenario "Find in Plan
           from Do view" (Part 1: Rendering).
 
 - [ ] **Milestone 3.4**: Task Details & Editing.

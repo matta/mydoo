@@ -15,7 +15,7 @@ pub fn PlanPage() -> Element {
     let mut input_text = use_signal(String::new);
 
     let flattened_tasks = use_memo(move || {
-        let store = store.write();
+        let store = store.read();
         let state = store
             .hydrate::<TunnelState>()
             .unwrap_or_else(|_| TunnelState::default());
@@ -42,23 +42,23 @@ pub fn PlanPage() -> Element {
             return;
         }
 
-        task_controller::create_task(&mut store, None, text);
+        task_controller::create_task(store, None, text);
         trigger_sync();
         input_text.set(String::new());
     };
 
     let toggle_task = move |task: PersistedTask| {
-        task_controller::toggle_task_status(&mut store, task.id);
+        task_controller::toggle_task_status(store, task.id);
         trigger_sync();
     };
 
     let handle_rename = move |(id, new_title): (TaskID, String)| {
-        task_controller::rename_task(&mut store, id, new_title);
+        task_controller::rename_task(store, id, new_title);
         trigger_sync();
     };
 
     let handle_delete = move |id: TaskID| {
-        task_controller::delete_task(&mut store, id);
+        task_controller::delete_task(store, id);
         trigger_sync();
     };
 
@@ -71,7 +71,7 @@ pub fn PlanPage() -> Element {
         // or just empty title? Controller checks empty title.
         // Let's create "New Task".
 
-        task_controller::create_task(&mut store, Some(parent_id.clone()), "New Task".to_string());
+        task_controller::create_task(store, Some(parent_id.clone()), "New Task".to_string());
 
         // Auto-expand the parent so we can see the child
         let mut expanded = expanded_tasks.write();
@@ -98,7 +98,13 @@ pub fn PlanPage() -> Element {
                 h1 { class: "text-2xl font-bold", "Plan" }
             }
 
-            TaskInput { value: input_text, on_add: move |_| add_task() }
+            div { class: "mb-6",
+                TaskInput {
+                    data_testid: "plan-task-input",
+                    value: input_text,
+                    on_add: move |_| add_task()
+                }
+            }
 
             div { class: "bg-white shadow rounded-lg overflow-hidden mt-4",
                 if flattened_tasks().is_empty() {

@@ -1,4 +1,5 @@
 use crate::components::app_navbar::AppNavBar;
+use crate::views::do_page::DoPage;
 use crate::views::plan_page::PlanPage;
 use crate::views::task_page::TaskPage;
 use dioxus::prelude::*;
@@ -14,7 +15,7 @@ pub enum Route {
     PlanPage {},
 
     #[route("/do")]
-    TaskPage {}, // Maps to TaskPage component
+    DoPage {},
 
     #[route("/balance")]
     Balance {}, // Placeholder

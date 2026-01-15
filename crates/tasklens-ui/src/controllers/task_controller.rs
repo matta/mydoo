@@ -7,7 +7,7 @@ use tasklens_store::store::AppStore;
 ///
 /// If `parent_id` is provided, the task is created as a child of that task.
 /// Empty or whitespace-only titles are silently ignored.
-pub fn create_task(store: &mut Signal<AppStore>, parent_id: Option<TaskID>, title: String) {
+pub fn create_task(mut store: Signal<AppStore>, parent_id: Option<TaskID>, title: String) {
     if title.trim().is_empty() {
         return;
     }
@@ -24,7 +24,7 @@ pub fn create_task(store: &mut Signal<AppStore>, parent_id: Option<TaskID>, titl
 ///
 /// If the task is `Pending`, it will be marked as `Done`.
 /// If the task is `Done`, it will be marked as `Pending`.
-pub fn toggle_task_status(store: &mut Signal<AppStore>, task_id: TaskID) {
+pub fn toggle_task_status(mut store: Signal<AppStore>, task_id: TaskID) {
     let current_status = {
         let read = store.read();
         if let Ok(state) = read.get_state() {
@@ -53,7 +53,7 @@ pub fn toggle_task_status(store: &mut Signal<AppStore>, task_id: TaskID) {
 }
 
 /// Deletes a task by ID.
-pub fn delete_task(store: &mut Signal<AppStore>, task_id: TaskID) {
+pub fn delete_task(mut store: Signal<AppStore>, task_id: TaskID) {
     if let Err(e) = store.write().dispatch(Action::DeleteTask { id: task_id }) {
         tracing::error!("Failed to delete task: {:?}", e);
     }
@@ -62,7 +62,7 @@ pub fn delete_task(store: &mut Signal<AppStore>, task_id: TaskID) {
 /// Renames a task.
 ///
 /// Empty or whitespace-only titles are silently ignored.
-pub fn rename_task(store: &mut Signal<AppStore>, task_id: TaskID, new_title: String) {
+pub fn rename_task(mut store: Signal<AppStore>, task_id: TaskID, new_title: String) {
     if new_title.trim().is_empty() {
         return;
     }

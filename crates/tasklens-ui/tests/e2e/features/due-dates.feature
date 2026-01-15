@@ -1,4 +1,4 @@
-@migration-pending
+@due-dates @migration-pending
 Feature: Due Date Indicators and Inheritance
 
     Background:

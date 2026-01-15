@@ -153,6 +153,7 @@ pub fn SettingsModal(master_key: Signal<Option<[u8; 32]>>, on_close: EventHandle
 }
 
 /// Represents the current state of the authentication flow within the settings modal.
+#[expect(dead_code)]
 #[derive(PartialEq, Clone, Copy)]
 enum AuthMode {
     /// The initial view presenting "Create New" or "Existing Key" options.
