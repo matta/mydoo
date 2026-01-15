@@ -637,20 +637,104 @@ _Goal: Porting UI components to match functionality._
 
 - [ ] **Milestone 3.4**: Task Details & Editing.
   - **Goal**: Full task modification and "Find in Plan" navigation.
-  - **Gaps Addressed**: `plan-management.feature` (Find in Plan action).
+  - **Gaps Addressed**: `plan-management.feature` (Find in Plan action),
+    `task-creation.feature`.
   - **Implementation Details**:
-    - [ ] **[NEW] `crates/tasklens-ui/src/components/task_editor.rs`**:
-      - Modal or Slide-over panel.
-      - Fields: Title, Notes, Due Date, Lead Time, Repetition.
-      - Actions: "Find in Plan" button.
-    - [ ] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
-      - Implement `scroll_into_view` logic for "Find in Plan".
-      - Auto-expand parents of target task.
+    - **Step 1: Component Installation**
+      - [ ] **[CMD]**: `dx components add sheet` (Slide-over panel for details).
+      - [ ] **[CMD]**: `dx components add dialog` (Confirmation modals).
+      - [ ] **[CMD]**: `dx components add slider` (Importance/Effort).
+      - [ ] **[CMD]**: `dx components add select` (Dropdowns for
+            Place/Schedule).
+      - [ ] **[CMD]**: `dx components add textarea` (Notes).
+      - [ ] **[CMD]**: `dx components add date-picker` (Due Dates).
+    - **Step 2: Core Task Editor Component**
+      - [ ] **[NEW] `crates/tasklens-ui/src/components/task_editor.rs`**:
+        - [ ] Define `TaskEditor` component.
+        - [ ] **Props**:
+          - `task_id: Option<TaskID>` (None = Create Mode).
+          - `initial_parent_id: Option<TaskID>` (For Create Mode).
+          - `on_close: EventHandler<()>`.
+        - [ ] **State**:
+          - Use `use_signal` to hold `DraftTask` (local struct mirroring
+            `PersistedTask` fields).
+          - **Initialization**:
+            - If `Edit Mode`: Deep clone from `AppStore`.
+            - If `Create Mode`: Apply Defaults (Importance=1.0,
+              Effort=Inherited/0.5, Place=Inherited/Anywhere).
+        - [ ] **Render**:
+          - Wrap in `Sheet` component.
+          - **Header**:
+            - Title Input (`Input`).
+            - "Find in Plan" button (Only in Edit Mode).
+          - **Body**:
+            - **Core**:
+              - Importance: `Slider` (0.0 - 1.0).
+              - Effort: `Slider` (0.0 - 1.0).
+              - Place: `Select` (Inbox, Home, Work, etc - derived from Store).
+            - **Scheduling**:
+              - Type: `Select` (Once, Routinely, DueDate, Calendar).
+              - _Conditional Fields_:
+                - **Routinely**: Period (Number + Unit Select), Lead Time
+                  (Number).
+                - **DueDate**: Date Picker, Lead Time.
+            - **Notes**: `Textarea` (Markdown support deferred).
+          - **Footer**:
+            - "Save" Button (Calls `task_controller::create_task` or
+              `update_task`).
+            - "Delete" Button (Calls `task_controller::delete_task` with
+              `Dialog` confirmation).
+            - "Indent/Outdent" Buttons (Calls `task_controller`).
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/mod.rs`**:
+        - [ ] Export `task_editor`.
+
+    - **Step 3: Integration with Views**
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/views/do_page.rs`**:
+        - [ ] Add state: `selected_task: Signal<Option<TaskID>>`.
+        - [ ] Render `TaskEditor` (conditional or passing signal) at root of
+              view.
+        - [ ] **Interaction**: Clicking `PriorityTaskRow` (non-checkbox area)
+              sets `selected_task`.
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
+        - [ ] Add state: `selected_task: Signal<Option<TaskID>>`.
+        - [ ] Render `TaskEditor` at root of view.
+        - [ ] **Interaction**: Clicking `TaskRow` title sets `selected_task`.
+
+    - **Step 4: "Find in Plan" Navigation**
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
+        - [ ] Accept Query Param `focus_task` or use Global Signal.
+        - [ ] **Logic (`expose_task`)**:
+          1.  Find target task in Store.
+          2.  Collect all ancestor IDs.
+          3.  Update `expanded_tasks` set to include all ancestors.
+          4.  Force re-render.
+          5.  Scroll element into view (using `web_sys` DOM access by ID).
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
+        - [ ] "Find in Plan" button action:
+          1.  Close Editor.
+          2.  Navigate to `/plan` with target ID context.
+
   - **Verification**:
-    - [ ] **[VERIFY]**: Verify `plan-management.feature` scenario "Find in Plan
-          from Do view" (Part 2: Navigation).
-    - [ ] **[VERIFY]**: Pass `task-creation.feature` (Defaults, Child
-          inheritance).
+    - [ ] **[VERIFY]**: "Do" view click opens Editor.
+    - [ ] **[VERIFY]**: Create new Task via Editor (check defaults).
+    - [ ] **[VERIFY]**: Edit existing Task (check persistence).
+    - [ ] **[VERIFY]**: "Find in Plan" correctly expands tree and highlights
+          task.
+    - [ ] **[VERIFY]**: "Find in Plan" correctly expands tree and highlights
+          task.
+    - [ ] **[VERIFY]**: Run `plan-management.feature` (All scenarios should now
+          pass or be close).
+    - [ ] **[VERIFY]**: Run `task-creation.feature`.
+
+    - **Step 5: Enable BDD Tests**
+      - [ ] **[MODIFY]
+            `crates/tasklens-ui/tests/e2e/features/plan-management.feature`**:
+        - [ ] Remove `@migration-pending` tag.
+      - [ ] **[MODIFY]
+            `crates/tasklens-ui/tests/e2e/features/task-creation.feature`**:
+        - [ ] Remove `@migration-pending` tag.
+      - [ ] **[VERIFY]**: Run `pnpm test-e2e` and ensure these features pass in
+            the CI flow.
 
 _Goal: rigorous testing and final cutover._
 
