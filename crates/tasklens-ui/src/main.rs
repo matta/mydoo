@@ -170,6 +170,8 @@ fn App() -> Element {
     }
 
     rsx! {
+        // Global Component Theme
+        document::Link { rel: "stylesheet", href: asset!("/assets/dx-components-theme.css") }
         // The Stylesheet component inserts a style link into the head of the document
         document::Stylesheet {
             // Urls are relative to your Cargo.toml file

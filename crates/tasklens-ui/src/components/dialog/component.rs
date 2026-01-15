@@ -23,7 +23,16 @@ pub fn DialogRoot(props: DialogRootProps) -> Element {
 #[component]
 pub fn DialogContent(props: DialogContentProps) -> Element {
     rsx! {
-        dialog::DialogContent { class: "dialog", id: props.id, attributes: props.attributes, {props.children} }
+        dialog::DialogContent {
+            class: if let Some(c) = &props.class {
+                format!("dialog {}", c)
+            } else {
+                "dialog".to_string()
+            },
+            id: props.id,
+            attributes: props.attributes,
+            {props.children}
+        }
     }
 }
 
