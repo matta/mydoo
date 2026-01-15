@@ -379,6 +379,14 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
       (e.g., `[DEBUG] Rendering Badge`) do not appear, the issue is likely that
       the **parent is not rendering the child at all**, not that the child logic
       is broken. Check the parent's `render` method immediately.
+- **Migration Tagging (`@migration-pending`)**: When porting test suites, import
+  all features but tag unimplemented ones with `@migration-pending` (configured
+  with `grepInvert`). This validates the harness immediately while maintaining a
+  "Green CI" baseline during incremental implementation.
+- **Framework-Specific Selector Purge**: When porting E2E tests, immediately
+  replace legacy framework selectors (e.g., `.mantine-Badge-root`) with semantic
+  `data-testid` attributes. Do not attempt to emulate legacy class names in the
+  new implementation; decouple the test instead.
 
 ## Rust & Dioxus Workspace Strategies (Migration)
 
