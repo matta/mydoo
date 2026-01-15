@@ -1,4 +1,3 @@
-@migration-pending
 Feature: Routine Tasks
 
   Scenario: Routine task reappears after lead time

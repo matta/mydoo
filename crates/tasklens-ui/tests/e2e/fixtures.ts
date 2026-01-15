@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import { test as bddTest } from "playwright-bdd";
 import { type PlanFixture, PlanPage } from "./pages/plan-page";
+import { dumpFailureContext } from "./utils/debug-utils";
 
 export { expect };
 
@@ -39,20 +40,7 @@ export const test = bddTest.extend<MyFixtures>({
     ) => {
       await use(null);
       if (testInfo.status !== "passed" && testInfo.status !== "skipped") {
-        console.log(`\n=== FAILURE CONTEXT: ${testInfo.title} ===`);
-        console.log(`URL: ${page.url()}`);
-
-        try {
-          if (page.accessibility) {
-            const snapshot = await page.accessibility.snapshot();
-            console.log("--- ACCESSIBILITY TREE ---");
-            console.log(JSON.stringify(snapshot, null, 2));
-          } else {
-            console.log("Accessibility API not available on this page");
-          }
-        } catch (e) {
-          console.log("A11y snapshot failed:", e);
-        }
+        await dumpFailureContext(page, testInfo);
       }
     },
     { auto: true },

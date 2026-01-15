@@ -88,7 +88,10 @@ pub fn TaskPage() -> Element {
         // Store has a specific CompleteTask action, let's use it if status is Done.
         // For un-completing, we use UpdateTask.
         let result = match new_status {
-            TaskStatus::Done => store.write().dispatch(Action::CompleteTask { id: task.id }),
+            TaskStatus::Done => store.write().dispatch(Action::CompleteTask {
+                id: task.id,
+                current_time: js_sys::Date::now(),
+            }),
             TaskStatus::Pending => store.write().dispatch(Action::UpdateTask {
                 id: task.id,
                 updates: TaskUpdates {

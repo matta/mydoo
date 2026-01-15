@@ -736,51 +736,94 @@ _Goal: Porting UI components to match functionality._
       - [x] **[VERIFY]**: Run `pnpm test-e2e` and ensure these features pass in
             the CI flow.
 
-- [ ] **Milestone 3.5**: Task Lifecycle (Refresh & Acknowledge).
+- [x] **Milestone 3.5**: Task Lifecycle (Refresh & Acknowledge).
   - **Goal**: Implement the "Refresh" cycle that acknowledges completed tasks
     (removing them from the Do list) and wakes up routine tasks.
   - **Gaps Addressed**: Missing "Refresh" action on Do view, accumulation of
     completed tasks.
   - **Implementation Details**:
     - **Step 1: Domain Logic**
-      - [ ] **[NEW] `crates/tasklens-core/src/domain/lifecycle.rs`**:
-      - [ ] Implement `acknowledge_completed_tasks(state: &mut TunnelState)`.
+      - [x] **[NEW] `crates/tasklens-core/src/domain/lifecycle.rs`**:
+      - [x] Implement `acknowledge_completed_tasks(state: &mut TunnelState)`.
         - Iterates all tasks.
         - If `status == Done` and `!is_acknowledged`:
           - Set `is_acknowledged = true`.
-      - [ ] **[MODIFY] `crates/tasklens-core/src/domain/mod.rs`**: Export
+      - [x] **[MODIFY] `crates/tasklens-core/src/domain/mod.rs`**: Export
             `lifecycle`.
     - **Step 2: Store Action**
-      - [ ] **[MODIFY] `crates/tasklens-store/src/store.rs`**:
-      - [ ] Add `Action::RefreshLifecycle { current_time: f64 }`.
-      - [ ] In `dispatch`:
+      - [x] **[MODIFY] `crates/tasklens-store/src/store.rs`**:
+      - [x] Add `Action::RefreshLifecycle { current_time: f64 }`.
+      - [x] In `dispatch`:
         1. Call `tasklens_core::domain::lifecycle::acknowledge_completed_tasks`.
         2. Call `tasklens_core::domain::routine_tasks::wake_up_routine_tasks`.
     - **Step 3: UI Integration**
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/views/do_page.rs`**:
-      - [ ] Add "Refresh" Button to header (right aligned).
-      - [ ] On click:
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/do_page.rs`**:
+      - [x] Add "Refresh" Button to header (right aligned).
+      - [x] On click:
         - Get `Date::now()`.
         - Dispatch `Action::RefreshLifecycle`.
     - **Step 4: Controller Update**
-      - [ ] **[MODIFY]
+      - [x] **[MODIFY]
             `crates/tasklens-ui/src/controllers/task_controller.rs`**:
-      - [ ] Add `refresh_lifecycle(store: &mut Signal<AppStore>)` helper.
+      - [x] Add `refresh_lifecycle(store: &mut Signal<AppStore>)` helper.
 
   - **Verification**:
-    - [ ] **[VERIFY]**: Mark a task as Done. It stays visible (struck through).
-    - [ ] **[VERIFY]**: Click "Refresh". The Done task disappears (is
+    - [x] **[VERIFY]**: Mark a task as Done. It stays visible (struck through).
+    - [x] **[VERIFY]**: Click "Refresh". The Done task disappears (is
           acknowledged).
-    - [ ] **[VERIFY]**: Mark a "Routinely" task as Done. Click "Refresh". Verify
+    - [x] **[VERIFY]**: Mark a "Routinely" task as Done. Click "Refresh". Verify
           it disappears (if interval not passed) or resets to Pending (if
           interval passed - requires cheating time or short interval).
 
-_Goal: rigorous testing and final cutover._
+- [ ] **Milestone 3.6: Advanced Plan Management ("Find in Plan")**.
+  - **Goal**: Enable remaining `plan-management.feature` scenarios.
+  - **Key Feature**: "Find in Plan from Do view".
+  - **Details**:
+    - Implement the logic to locate a task in the hierarchy, expand its parents,
+      and scroll it into view when navigating from the "Do" list.
+    - **UX Improvement**: Automatically expand parent task when a new child is
+      added (currently requires manual toggle).
 
-- [ ] **Milestone 4.1**: Playwright E2E tests.
-- [ ] **Milestone 4.2**: Fix UI discrepancies.
-- [ ] **Milestone 4.3**: Performance tuning.
-- [ ] **Milestone 4.4**: "Retire" React app.
+- [ ] **Milestone 3.7: Task Movement & Reordering**.
+  - **Goal**: Enable `task-moving.feature`.
+  - **Key Feature**: Drag-and-drop or keyboard-based reordering in Plan view.
+  - **Details**: Implement `Action::MoveTask` logic and UI controls to reparent
+    or reorder tasks within the tree.
+
+- [ ] **Milestone 3.8: Due Dates & Timing**.
+  - **Goal**: Enable `due-dates.feature`.
+  - **Key Feature**: Date picker integration and Due Date inheritance.
+  - **Details**:
+    - Finalize `DatePicker` component.
+    - Implement `Action::UpdateTask` support for due dates.
+    - Visualize due/overdue states in Plan and Do views.
+    - Add Lead Time input to Task Editor for Routine tasks (currently defaults
+      to 8 hours).
+
+- [ ] **Milestone 3.9: Sequential Projects**.
+  - **Goal**: Enable `sequential-projects.feature`.
+  - **Key Feature**: Dependency blocking.
+  - **Details**:
+    - Implement "Project" vs "Parallel" vs "Sequential" modes for tasks.
+    - Ensure sequential tasks block their siblings in the "Do" view (only the
+      first child is actionable).
+
+- [ ] **Milestone 3.10: Mobile Journeys & Context Switching**.
+  - **Goal**: Enable `mobile-journeys.feature` and `document-switching.feature`.
+  - **Key Features**: Mobile-specific UI (sheets/drawers) and Multi-doc support.
+  - **Details**:
+    - Verify touch targets and responsive layouts on mobile.
+    - Implement sidebar/drawer for switching between multiple Automerge
+      documents (if applicable).
+
+### Epoch 4: Evaluation & Polish
+
+_Goal: Rigorous testing, performance tuning, and final cutover._
+
+- [ ] **Milestone 4.1**: Full Regression Suite.
+  - Ensure all 22+ feature files pass reliably.
+- [ ] **Milestone 4.2**: "Retire" React app.
+  - Remove `apps/client` and promote `crates/tasklens-ui` to primary frontend.
 
 ## Testing Strategy
 

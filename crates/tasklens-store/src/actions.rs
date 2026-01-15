@@ -16,10 +16,14 @@ pub enum Action {
     },
     CompleteTask {
         id: TaskID,
+        current_time: f64,
     },
     MoveTask {
         id: TaskID,
         new_parent_id: Option<TaskID>,
+    },
+    RefreshLifecycle {
+        current_time: f64,
     },
 }
 
@@ -31,5 +35,7 @@ pub struct TaskUpdates {
     pub place_id: Option<Option<PlaceID>>,
     /// Optional update: `Some(None)` clears the due date, `Some(Some(ts))` sets it, `None` keeps current.
     pub due_date: Option<Option<f64>>,
-    // Add more fields as needed based on PersistedTask
+    pub schedule_type: Option<tasklens_core::types::ScheduleType>,
+    pub lead_time: Option<Option<f64>>,
+    pub repeat_config: Option<Option<tasklens_core::types::RepeatConfig>>,
 }

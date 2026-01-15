@@ -579,6 +579,47 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     asynchronously. Never let the context be `None` during initial render.
   - _Pattern:_ Prefer `use_context_provider(|| AppStore::default())` over
     `use_context_provider(|| load_from_db().await)`.
+- **Dioxus Toast "Parking" Pattern**:
+  - _Symptom:_ The Dioxus hot-reload toast (`#__dx-toast-text`) appears in the
+    DOM even when not visible, causing E2E tests to potentially interact with it
+    or wait for it incorrectly.
+  - _Root Cause:_ Dioxus "parks" the toast off-screen using `right: -1000px`
+    rather than `display: none`. It remains in the DOM tree.
+  - _Fix:_ When creating DOM introspection utilities (e.g., synthetic DOM
+    serializers for debugging), use geometric visibility checks
+    (`getBoundingClientRect()` vs viewport) not just `display`/`visibility`
+    styles.
+
+## E2E & BDD Strategy (Playwright)
+
+- **Dioxus Child Task Visibility Requires Parent Expansion**:
+  - _Symptom:_ Child tasks created via "Add Child" are not found by Playwright
+    locators even though the action succeeded.
+  - _Root Cause:_ In the Dioxus Plan view, child elements are only rendered into
+    the DOM when their parent task is expanded. Collapsed parents do not render
+    their children.
+  - _Fix (WORKAROUND):_ After creating a child task, explicitly call
+    `toggleExpand(parent, true)` in the fixture before asserting child
+    visibility. Do not assume the UI auto-expands.
+  - _Intent:_ The UI _should_ automatically expand the parent when a child is
+    added. This workaround exists because that feature is TBD. The test logic
+    should be removed once implemented.
+- **IndexedDB.deleteDatabase() is Async (Fire-and-Forget Trap)**:
+  - _Trap:_ `indexedDB.deleteDatabase("name")` returns an `IDBOpenDBRequest`,
+    not a Promise. Calling it without awaiting `onsuccess` means the database
+    may not be deleted before the test proceeds.
+  - _Fix:_ Wrap in a Promise:
+    ```typescript
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve, reject) => {
+          const req = indexedDB.deleteDatabase("tasklens_db");
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
+        }),
+    );
+    ```
+- **Feature File Location:** `playwright-bdd` is strict about file location. For
 - **Platform-Specific Import Guards**:
   - _Symptom:_ Unused import warnings for `std::time::{SystemTime, UNIX_EPOCH}`
     when building for WASM, but the types are actually used in a

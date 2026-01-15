@@ -125,6 +125,9 @@ pub fn TaskEditor(
                         status: Some(d.status),
                         place_id: Some(d.place_id),
                         due_date: Some(d.schedule.due_date),
+                        schedule_type: Some(d.schedule.schedule_type),
+                        lead_time: Some(d.schedule.lead_time),
+                        repeat_config: Some(d.repeat_config),
                     },
                 });
             } else {
@@ -311,6 +314,75 @@ pub fn TaskEditor(
                             option { value: "DueDate", "Due Date" }
                         }
                     }
+                    // Routine Repetition (Conditional)
+                    if matches!(current_draft.schedule.schedule_type, ScheduleType::Routinely) {
+                        div { class: "p-3 bg-blue-50 rounded-md border border-blue-100 space-y-3",
+                            div {
+                                label {
+                                    class: "block text-sm font-medium text-blue-800",
+                                    r#for: "repetition-frequency-select",
+                                    "Repeat Every"
+                                }
+                                div { class: "flex gap-2",
+                                    input {
+                                        r#type: "number",
+                                        id: "repetition-interval-input",
+                                        class: "w-20 border rounded p-1 text-sm",
+                                        value: current_draft.repeat_config.as_ref().map(|r| r.interval).unwrap_or(1.0),
+                                        oninput: move |e| {
+                                            if let Ok(val) = e.value().parse::<f64>() {
+                                                let mut d = draft().expect("draft should be initialized");
+                                                let mut config = d
+                                                    .repeat_config
+                                                    .unwrap_or(RepeatConfig {
+                                                        frequency: tasklens_core::types::Frequency::Daily,
+                                                        interval: 1.0,
+                                                    });
+                                                config.interval = val;
+                                                d.repeat_config = Some(config);
+                                                draft.set(Some(d));
+                                            }
+                                        },
+                                    }
+                                    select {
+                                        id: "repetition-frequency-select",
+                                        class: "flex-grow border rounded p-1 text-sm",
+                                        value: current_draft
+                                            .repeat_config
+                                            .as_ref()
+                                            .map(|r| match r.frequency {
+                                                tasklens_core::types::Frequency::Minutes => "Minutes",
+                                                tasklens_core::types::Frequency::Hours => "Hours",
+                                                tasklens_core::types::Frequency::Daily => "Daily",
+                                                tasklens_core::types::Frequency::Weekly
+                                                | tasklens_core::types::Frequency::Monthly
+                                                | tasklens_core::types::Frequency::Yearly => "Daily",
+                                            })
+                                            .unwrap_or("Daily"),
+                                        onchange: move |e| {
+                                            let mut d = draft().expect("draft should be initialized");
+                                            let mut config = d
+                                                .repeat_config
+                                                .unwrap_or(RepeatConfig {
+                                                    frequency: tasklens_core::types::Frequency::Daily,
+                                                    interval: 1.0,
+                                                });
+                                            config.frequency = match e.value().as_str() {
+                                                "Minutes" => tasklens_core::types::Frequency::Minutes,
+                                                "Hours" => tasklens_core::types::Frequency::Hours,
+                                                _ => tasklens_core::types::Frequency::Daily,
+                                            };
+                                            d.repeat_config = Some(config);
+                                            draft.set(Some(d));
+                                        },
+                                        option { value: "Minutes", "Minutes" }
+                                        option { value: "Hours", "Hours" }
+                                        option { value: "Daily", "Daily" }
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     // Due Date (Conditional)
                     if matches!(
@@ -332,9 +404,7 @@ pub fn TaskEditor(
                                         let _secs = (ts / 1000.0) as i64;
                                         String::new()
                                     }),
-                                onchange: // Parse YYYY-MM-DD to timestamp
-                                // TODO: Implement parsing
-                                move |_v: String| {},
+                                onchange: move |_v: String| {},
                             }
                         }
                     }

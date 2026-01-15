@@ -52,7 +52,14 @@ pub fn DoPage() -> Element {
 
     rsx! {
         div { class: "container mx-auto px-4 py-6 max-w-3xl",
-            h1 { class: "text-2xl font-bold text-gray-900 mb-6", "Work" }
+            div { class: "flex justify-between items-center mb-6",
+                h1 { class: "text-2xl font-bold text-gray-900", "Work" }
+                button {
+                    class: "px-3 py-1 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center shadow-sm",
+                    onclick: move |_| task_controller::refresh_lifecycle(store),
+                    "Refresh"
+                }
+            }
 
             TaskInput {
                 data_testid: "do-task-input",

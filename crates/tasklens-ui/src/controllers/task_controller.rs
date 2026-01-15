@@ -36,7 +36,10 @@ pub fn toggle_task_status(mut store: Signal<AppStore>, task_id: TaskID) {
 
     if let Some(status) = current_status {
         let result = match status {
-            TaskStatus::Pending => store.write().dispatch(Action::CompleteTask { id: task_id }),
+            TaskStatus::Pending => store.write().dispatch(Action::CompleteTask {
+                id: task_id,
+                current_time: js_sys::Date::now(),
+            }),
             TaskStatus::Done => store.write().dispatch(Action::UpdateTask {
                 id: task_id,
                 updates: TaskUpdates {
@@ -75,5 +78,16 @@ pub fn rename_task(mut store: Signal<AppStore>, task_id: TaskID, new_title: Stri
         },
     }) {
         tracing::error!("Failed to rename task: {:?}", e);
+    }
+}
+
+/// Triggers the lifecycle refresh cycle (acknowledge completed tasks and wake up routine tasks).
+pub fn refresh_lifecycle(mut store: Signal<AppStore>) {
+    let current_time = js_sys::Date::now();
+    if let Err(e) = store
+        .write()
+        .dispatch(Action::RefreshLifecycle { current_time })
+    {
+        tracing::error!("Failed to refresh lifecycle: {:?}", e);
     }
 }

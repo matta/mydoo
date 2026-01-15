@@ -13,18 +13,34 @@ Given(
   async ({ page, plan }) => {
     await plan.setupClock();
     await page.goto("/");
-    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => {
+      localStorage.clear();
+      return new Promise<void>((resolve, reject) => {
+        const req = indexedDB.deleteDatabase("tasklens_db");
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    });
     await page.reload();
     await plan.setupClock();
+    await plan.waitForAppReady();
   },
 );
 
 Given("I have a clean workspace", async ({ page, plan }) => {
   await plan.setupClock();
   await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => {
+    localStorage.clear();
+    return new Promise<void>((resolve, reject) => {
+      const req = indexedDB.deleteDatabase("tasklens_db");
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  });
   await page.reload();
   await plan.setupClock();
+  await plan.waitForAppReady();
 });
 
 Given("I start with a clean workspace", async ({ page, plan }) => {
@@ -33,6 +49,7 @@ Given("I start with a clean workspace", async ({ page, plan }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await plan.setupClock();
+  await plan.waitForAppReady();
 });
 
 Given("I have a workspace seeded with sample data", async ({ plan }) => {
@@ -48,7 +65,7 @@ Given("I am on a mobile device", async () => {
 
 When("I see the welcome screen", async ({ page }) => {
   // Assuming welcome screen just means the app is loaded initially
-  await expect(page.locator("#root")).toBeVisible();
+  await expect(page.locator("#main")).toBeVisible();
 });
 
 When("I switch to Plan view", async ({ plan }) => {

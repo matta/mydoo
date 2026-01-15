@@ -90,6 +90,15 @@ impl AppStore {
                     if let Some(due_date) = updates.due_date {
                         task.schedule.due_date = due_date;
                     }
+                    if let Some(schedule_type) = updates.schedule_type {
+                        task.schedule.schedule_type = schedule_type;
+                    }
+                    if let Some(lead_time) = updates.lead_time {
+                        task.schedule.lead_time = lead_time;
+                    }
+                    if let Some(repeat_config) = updates.repeat_config {
+                        task.repeat_config = repeat_config;
+                    }
                 }
             }
             Action::DeleteTask { id } => {
@@ -103,9 +112,10 @@ impl AppStore {
                     }
                 }
             }
-            Action::CompleteTask { id } => {
+            Action::CompleteTask { id, current_time } => {
                 if let Some(task) = state.tasks.get_mut(&id) {
                     task.status = TaskStatus::Done;
+                    task.last_completed_at = Some(current_time);
                 }
             }
             Action::MoveTask { id, new_parent_id } => {
@@ -133,6 +143,13 @@ impl AppStore {
                 if let Some(task) = state.tasks.get_mut(&id) {
                     task.parent_id = new_parent_id;
                 }
+            }
+            Action::RefreshLifecycle { current_time } => {
+                tasklens_core::domain::lifecycle::acknowledge_completed_tasks(&mut state);
+                tasklens_core::domain::routine_tasks::wake_up_routine_tasks(
+                    &mut state,
+                    current_time,
+                );
             }
         }
 
@@ -299,7 +316,10 @@ mod tests {
 
         let id = store.get_state().unwrap().root_task_ids[0].clone();
         store
-            .dispatch(Action::CompleteTask { id: id.clone() })
+            .dispatch(Action::CompleteTask {
+                id: id.clone(),
+                current_time: 100.0,
+            })
             .unwrap();
 
         let state = store.get_state().unwrap();
@@ -353,5 +373,90 @@ mod tests {
 
         let child = state.tasks.get(&child_id).unwrap();
         assert_eq!(child.parent_id, Some(parent_id));
+    }
+
+    #[test]
+    fn test_dispatch_refresh_lifecycle() {
+        let mut store = AppStore::new();
+        store.init().unwrap();
+
+        // Create a Done task
+        store
+            .dispatch(Action::CreateTask {
+                parent_id: None,
+                title: "To Acknowledge".to_string(),
+            })
+            .unwrap();
+        let id = store.get_state().unwrap().root_task_ids[0].clone();
+        store
+            .dispatch(Action::CompleteTask {
+                id: id.clone(),
+                current_time: 100.0,
+            })
+            .unwrap();
+
+        assert!(!store.get_state().unwrap().tasks[&id].is_acknowledged);
+
+        // Refresh
+        store
+            .dispatch(Action::RefreshLifecycle {
+                current_time: 100.0,
+            })
+            .unwrap();
+
+        assert!(store.get_state().unwrap().tasks[&id].is_acknowledged);
+    }
+
+    #[test]
+    fn test_dispatch_refresh_lifecycle_with_routine() {
+        let mut store = AppStore::new();
+        store.init().unwrap();
+
+        // Create a Routinely task and complete it
+        store
+            .dispatch(Action::CreateTask {
+                parent_id: None,
+                title: "Routine".to_string(),
+            })
+            .unwrap();
+        let id = store.get_state().unwrap().root_task_ids[0].clone();
+
+        // Manually update it to be Routinely with short interval
+        let mut state = store.get_state().unwrap();
+        let task = state.tasks.get_mut(&id).unwrap();
+        task.status = TaskStatus::Done;
+        task.schedule.schedule_type = tasklens_core::types::ScheduleType::Routinely;
+        task.schedule.lead_time = Some(100.0);
+        task.repeat_config = Some(tasklens_core::types::RepeatConfig {
+            frequency: tasklens_core::types::Frequency::Daily,
+            interval: 1.0,
+        });
+        task.last_completed_at = Some(1000.0);
+        store.reconcile(&state).unwrap();
+
+        // Next due: 1000 + (24*60*60*1000) = 86,401,000
+        // Wake up time: 86,401,000 - 100 = 86,400,900
+
+        // Refresh before wake up
+        store
+            .dispatch(Action::RefreshLifecycle {
+                current_time: 1000.0,
+            })
+            .unwrap();
+        assert_eq!(
+            store.get_state().unwrap().tasks[&id].status,
+            TaskStatus::Done
+        );
+
+        // Refresh after wake up
+        store
+            .dispatch(Action::RefreshLifecycle {
+                current_time: 86401000.0,
+            })
+            .unwrap();
+        assert_eq!(
+            store.get_state().unwrap().tasks[&id].status,
+            TaskStatus::Pending
+        );
     }
 }

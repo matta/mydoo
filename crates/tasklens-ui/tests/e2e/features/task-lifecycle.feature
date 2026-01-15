@@ -1,4 +1,3 @@
-@migration-pending
 Feature: Task Lifecycle
     As a user
     I want to manage my tasks through their entire lifecycle
