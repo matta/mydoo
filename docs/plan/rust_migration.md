@@ -635,34 +635,34 @@ _Goal: Porting UI components to match functionality._
     - [x] **[VERIFY]**: Verify `plan-management.feature` scenario "Find in Plan
           from Do view" (Part 1: Rendering).
 
-- [ ] **Milestone 3.4**: Task Details & Editing.
+- [x] **Milestone 3.4**: Task Details & Editing.
   - **Goal**: Full task modification and "Find in Plan" navigation.
   - **Gaps Addressed**: `plan-management.feature` (Find in Plan action),
     `task-creation.feature`.
   - **Implementation Details**:
     - **Step 1: Component Installation**
-      - [ ] **[CMD]**: `dx components add sheet` (Slide-over panel for details).
-      - [ ] **[CMD]**: `dx components add dialog` (Confirmation modals).
-      - [ ] **[CMD]**: `dx components add slider` (Importance/Effort).
-      - [ ] **[CMD]**: `dx components add select` (Dropdowns for
+      - [x] **[CMD]**: `dx components add sheet` (Slide-over panel for details).
+      - [x] **[CMD]**: `dx components add dialog` (Confirmation modals).
+      - [x] **[CMD]**: `dx components add slider` (Importance/Effort).
+      - [x] **[CMD]**: `dx components add select` (Dropdowns for
             Place/Schedule).
-      - [ ] **[CMD]**: `dx components add textarea` (Notes).
-      - [ ] **[CMD]**: `dx components add date-picker` (Due Dates).
+      - [x] **[CMD]**: `dx components add textarea` (Notes).
+      - [x] **[CMD]**: `dx components add date-picker` (Due Dates).
     - **Step 2: Core Task Editor Component**
-      - [ ] **[NEW] `crates/tasklens-ui/src/components/task_editor.rs`**:
-        - [ ] Define `TaskEditor` component.
-        - [ ] **Props**:
+      - [x] **[NEW] `crates/tasklens-ui/src/components/task_editor.rs`**:
+        - [x] Define `TaskEditor` component.
+        - [x] **Props**:
           - `task_id: Option<TaskID>` (None = Create Mode).
           - `initial_parent_id: Option<TaskID>` (For Create Mode).
           - `on_close: EventHandler<()>`.
-        - [ ] **State**:
+        - [x] **State**:
           - Use `use_signal` to hold `DraftTask` (local struct mirroring
             `PersistedTask` fields).
           - **Initialization**:
             - If `Edit Mode`: Deep clone from `AppStore`.
             - If `Create Mode`: Apply Defaults (Importance=1.0,
               Effort=Inherited/0.5, Place=Inherited/Anywhere).
-        - [ ] **Render**:
+        - [x] **Render**:
           - Wrap in `Sheet` component.
           - **Header**:
             - Title Input (`Input`).
@@ -685,56 +685,95 @@ _Goal: Porting UI components to match functionality._
             - "Delete" Button (Calls `task_controller::delete_task` with
               `Dialog` confirmation).
             - "Indent/Outdent" Buttons (Calls `task_controller`).
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/mod.rs`**:
-        - [ ] Export `task_editor`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/components/mod.rs`**:
+        - [x] Export `task_editor`.
 
     - **Step 3: Integration with Views**
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/views/do_page.rs`**:
-        - [ ] Add state: `selected_task: Signal<Option<TaskID>>`.
-        - [ ] Render `TaskEditor` (conditional or passing signal) at root of
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/do_page.rs`**:
+        - [x] Add state: `selected_task: Signal<Option<TaskID>>`.
+        - [x] Render `TaskEditor` (conditional or passing signal) at root of
               view.
-        - [ ] **Interaction**: Clicking `PriorityTaskRow` (non-checkbox area)
+        - [x] **Interaction**: Clicking `PriorityTaskRow` (non-checkbox area)
               sets `selected_task`.
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
-        - [ ] Add state: `selected_task: Signal<Option<TaskID>>`.
-        - [ ] Render `TaskEditor` at root of view.
-        - [ ] **Interaction**: Clicking `TaskRow` title sets `selected_task`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
+        - [x] Add state: `selected_task: Signal<Option<TaskID>>`.
+        - [x] Render `TaskEditor` at root of view.
+        - [x] **Interaction**: Clicking `TaskRow` title sets `selected_task`.
 
     - **Step 4: "Find in Plan" Navigation**
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
-        - [ ] Accept Query Param `focus_task` or use Global Signal.
-        - [ ] **Logic (`expose_task`)**:
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
+        - [x] Accept Query Param `focus_task` or use Global Signal.
+        - [x] **Logic (`expose_task`)**:
           1.  Find target task in Store.
           2.  Collect all ancestor IDs.
           3.  Update `expanded_tasks` set to include all ancestors.
           4.  Force re-render.
           5.  Scroll element into view (using `web_sys` DOM access by ID).
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
-        - [ ] "Find in Plan" button action:
+      - [x] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
+        - [x] "Find in Plan" button action:
           1.  Close Editor.
           2.  Navigate to `/plan` with target ID context.
 
   - **Verification**:
-    - [ ] **[VERIFY]**: "Do" view click opens Editor.
-    - [ ] **[VERIFY]**: Create new Task via Editor (check defaults).
-    - [ ] **[VERIFY]**: Edit existing Task (check persistence).
-    - [ ] **[VERIFY]**: "Find in Plan" correctly expands tree and highlights
+    - [x] **[VERIFY]**: "Do" view click opens Editor.
+    - [x] **[VERIFY]**: Create new Task via Editor (check defaults).
+    - [x] **[VERIFY]**: Edit existing Task (check persistence).
+    - [x] **[VERIFY]**: "Find in Plan" correctly expands tree and highlights
           task.
-    - [ ] **[VERIFY]**: "Find in Plan" correctly expands tree and highlights
+    - [x] **[VERIFY]**: "Find in Plan" correctly expands tree and highlights
           task.
-    - [ ] **[VERIFY]**: Run `plan-management.feature` (All scenarios should now
+    - [x] **[VERIFY]**: Run `plan-management.feature` (All scenarios should now
           pass or be close).
-    - [ ] **[VERIFY]**: Run `task-creation.feature`.
+    - [x] **[VERIFY]**: Run `task-creation.feature`.
 
     - **Step 5: Enable BDD Tests**
-      - [ ] **[MODIFY]
+      - [x] **[MODIFY]
             `crates/tasklens-ui/tests/e2e/features/plan-management.feature`**:
-        - [ ] Remove `@migration-pending` tag.
-      - [ ] **[MODIFY]
+        - [x] Remove `@migration-pending` tag.
+      - [x] **[MODIFY]
             `crates/tasklens-ui/tests/e2e/features/task-creation.feature`**:
-        - [ ] Remove `@migration-pending` tag.
-      - [ ] **[VERIFY]**: Run `pnpm test-e2e` and ensure these features pass in
+        - [x] Remove `@migration-pending` tag.
+      - [x] **[VERIFY]**: Run `pnpm test-e2e` and ensure these features pass in
             the CI flow.
+
+- [ ] **Milestone 3.5**: Task Lifecycle (Refresh & Acknowledge).
+  - **Goal**: Implement the "Refresh" cycle that acknowledges completed tasks
+    (removing them from the Do list) and wakes up routine tasks.
+  - **Gaps Addressed**: Missing "Refresh" action on Do view, accumulation of
+    completed tasks.
+  - **Implementation Details**:
+    - **Step 1: Domain Logic**
+      - [ ] **[NEW] `crates/tasklens-core/src/domain/lifecycle.rs`**:
+      - [ ] Implement `acknowledge_completed_tasks(state: &mut TunnelState)`.
+        - Iterates all tasks.
+        - If `status == Done` and `!is_acknowledged`:
+          - Set `is_acknowledged = true`.
+      - [ ] **[MODIFY] `crates/tasklens-core/src/domain/mod.rs`**: Export
+            `lifecycle`.
+    - **Step 2: Store Action**
+      - [ ] **[MODIFY] `crates/tasklens-store/src/store.rs`**:
+      - [ ] Add `Action::RefreshLifecycle { current_time: f64 }`.
+      - [ ] In `dispatch`:
+        1. Call `tasklens_core::domain::lifecycle::acknowledge_completed_tasks`.
+        2. Call `tasklens_core::domain::routine_tasks::wake_up_routine_tasks`.
+    - **Step 3: UI Integration**
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/views/do_page.rs`**:
+      - [ ] Add "Refresh" Button to header (right aligned).
+      - [ ] On click:
+        - Get `Date::now()`.
+        - Dispatch `Action::RefreshLifecycle`.
+    - **Step 4: Controller Update**
+      - [ ] **[MODIFY]
+            `crates/tasklens-ui/src/controllers/task_controller.rs`**:
+      - [ ] Add `refresh_lifecycle(store: &mut Signal<AppStore>)` helper.
+
+  - **Verification**:
+    - [ ] **[VERIFY]**: Mark a task as Done. It stays visible (struck through).
+    - [ ] **[VERIFY]**: Click "Refresh". The Done task disappears (is
+          acknowledged).
+    - [ ] **[VERIFY]**: Mark a "Routinely" task as Done. Click "Refresh". Verify
+          it disappears (if interval not passed) or resets to Pending (if
+          interval passed - requires cheating time or short interval).
 
 _Goal: rigorous testing and final cutover._
 
