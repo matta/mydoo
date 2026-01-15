@@ -13,6 +13,7 @@ type DocumentContextFixture = {
 // Combine all fixtures
 type MyFixtures = {
   plan: PlanFixture;
+  debugFailure: null;
 } & DocumentContextFixture;
 
 export const test = bddTest.extend<MyFixtures>({
@@ -30,4 +31,26 @@ export const test = bddTest.extend<MyFixtures>({
   ) => {
     await use({ documents: new Map() });
   },
+  debugFailure: [
+    async (
+      { page }: { page: Page },
+      use: (r: null) => Promise<void>,
+      testInfo: import("@playwright/test").TestInfo,
+    ) => {
+      await use(null);
+      if (testInfo.status !== "passed" && testInfo.status !== "skipped") {
+        console.log(`\n=== FAILURE CONTEXT: ${testInfo.title} ===`);
+        console.log(`URL: ${page.url()}`);
+
+        try {
+          const snapshot = await page.accessibility.snapshot();
+          console.log("--- ACCESSIBILITY TREE ---");
+          console.log(JSON.stringify(snapshot, null, 2));
+        } catch (e) {
+          console.log("A11y snapshot failed:", e);
+        }
+      }
+    },
+    { auto: true },
+  ],
 });
