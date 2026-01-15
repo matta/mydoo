@@ -518,6 +518,17 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     directly or by a dependency without WASM support features enabled. Fix by
     using `web-time`, `instant`, or enabling `wasm-bindgen`/`js` features on
     dependencies (e.g., `chrono`). Include context from @AGENTS.md
+- **Dioxus Hydration & Store Initialization**:
+  - _Symptom:_ `Hydration failed: unexpected None` when loading views that
+    depend on `use_context`.
+  - _Root Cause:_ The `use_context_provider` call must happen _before_ any child
+    components attempt `use_context`. If state initialization is async or
+    conditional, children may render before context is available.
+  - _Fix:_ Initialize the store with default/empty state synchronously in the
+    root component's `use_context_provider`, then hydrate from persistence
+    asynchronously. Never let the context be `None` during initial render.
+  - _Pattern:_ Prefer `use_context_provider(|| AppStore::default())` over
+    `use_context_provider(|| load_from_db().await)`.
 
 # Validation
 
