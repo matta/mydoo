@@ -677,6 +677,7 @@ fn apply_place_input(state: &mut TunnelState, p: &PlaceInput) -> Result<()> {
 
     let place = Place {
         id: place_id.clone(),
+        name: id.clone(),
         hours: hours_json,
         included_places: included_places
             .as_ref()

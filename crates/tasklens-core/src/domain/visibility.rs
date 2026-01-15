@@ -179,6 +179,7 @@ mod tests {
             PlaceID::from("office"),
             Place {
                 id: PlaceID::from("office"),
+                name: "Office".to_string(),
                 hours: r#"{"mode":"always_open"}"#.to_string(),
                 included_places: vec![],
             },
@@ -238,6 +239,7 @@ mod tests {
     fn test_is_place_open_custom() {
         let place = Place {
             id: PlaceID::from("office"),
+            name: "Office".to_string(),
             hours: r#"{"mode":"custom","schedule":{"Mon":["09:00-17:00"]}}"#.to_string(),
             included_places: vec![],
         };

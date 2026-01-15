@@ -1,4 +1,4 @@
-@task-creation @migration-pending
+@task-creation
 Feature: Task Creation Defaults
     As a user
     I want new tasks to have sensible default values
@@ -12,6 +12,8 @@ Feature: Task Creation Defaults
         When I open the Create Task modal
         Then I should see "Importance: 1.00"
         And I should see Lead Time "8" "Hours"
+        And I should see the "Place" selector
+        And I should see the "Schedule Type" selector
 
     Scenario: Child tasks inherit defaults correctly
         Given I have a task "Root Task for Defaults"

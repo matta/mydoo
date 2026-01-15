@@ -11,6 +11,13 @@ pub fn DoPage() -> Element {
     let store = use_context::<Signal<AppStore>>();
     let mut input_text = use_signal(String::new);
 
+    #[derive(Debug, Clone, PartialEq)]
+    enum EditorState {
+        Edit(TaskID),
+        Create { parent_id: Option<TaskID> },
+    }
+    let mut editor_state = use_signal(|| None::<EditorState>);
+
     let prioritized_tasks = use_memo(move || {
         let store_read = store.read();
         let state = store_read.get_state().unwrap_or_default();
@@ -29,9 +36,8 @@ pub fn DoPage() -> Element {
         task_controller::toggle_task_status(store, id);
     };
 
-    let on_title_tap = move |_id: TaskID| {
-        // TODO: Open task editor or navigate to details
-        tracing::info!("Task title tapped: {}", _id);
+    let on_title_tap = move |id: TaskID| {
+        editor_state.set(Some(EditorState::Edit(id)));
     };
 
     let handle_add = move |_| {
@@ -67,6 +73,26 @@ pub fn DoPage() -> Element {
                             task: task.clone(),
                             on_toggle,
                             on_title_tap,
+                        }
+                    }
+                }
+            }
+
+            if let Some(state) = editor_state() {
+                match state {
+                    EditorState::Edit(id) => rsx! {
+                        crate::components::TaskEditor {
+                            task_id: Some(id),
+                            on_close: move |_| editor_state.set(None),
+                            on_add_child: move |parent_id| {
+                                editor_state.set(Some(EditorState::Create { parent_id: Some(parent_id) }));
+                            }
+                        }
+                    },
+                    EditorState::Create { parent_id } => rsx! {
+                        crate::components::TaskEditor {
+                            initial_parent_id: parent_id,
+                            on_close: move |_| editor_state.set(None),
                         }
                     }
                 }

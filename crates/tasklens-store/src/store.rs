@@ -1,4 +1,4 @@
-use crate::actions::Action;
+pub use crate::actions::{Action, TaskUpdates};
 #[cfg(target_arch = "wasm32")]
 use crate::storage::IndexedDbStorage;
 use anyhow::{Result, anyhow};

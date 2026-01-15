@@ -11,7 +11,7 @@ pub fn AppNavBar() -> Element {
                 NavbarItem {
                     index: active_index,
                     value: 0usize,
-                    to: Route::PlanPage {},
+                    to: Route::PlanPage { focus_task: None },
                     "Plan"
                 }
                 NavbarItem {

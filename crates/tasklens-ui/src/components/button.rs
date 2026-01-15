@@ -6,13 +6,11 @@ pub enum ButtonVariant {
     /// Solid blue background, white text. Primary action.
     Primary,
     /// White background, gray border. Secondary action.
-    #[expect(dead_code)]
     Secondary,
     /// Solid red background, white text. Destructive action.
     #[expect(dead_code)]
     Destructive,
     /// No background, hover effect only. Low emphasis.
-    #[expect(dead_code)]
     Ghost,
 }
 

@@ -387,6 +387,16 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
   replace legacy framework selectors (e.g., `.mantine-Badge-root`) with semantic
   `data-testid` attributes. Do not attempt to emulate legacy class names in the
   new implementation; decouple the test instead.
+- **Focus Traps Break Focus Assertions**: When testing components that use modal
+  dialogs with focus traps (like `Dialog`), avoid
+  `expect(locator).toBeFocused()` assertions. The focus trap may steal focus
+  from the expected element.
+  - _Pattern:_ Instead of asserting focus, directly click and fill the input:
+    ```typescript
+    // ❌ Brittle: await expect(titleInput).toBeFocused();
+    // ✅ Robust:
+    await modal.getByLabel("Title").fill(title);
+    ```
 
 ## Rust & Dioxus Workspace Strategies (Migration)
 
@@ -442,6 +452,24 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     changes (`[NEW]`, `[MODIFY]`) and task lists.
   - _Context:_ This ensures a single source of truth for the multi-epoch
     migration effort.
+- **Dioxus Router URL Parameter Types**:
+  - _Requirement:_ Custom types used as URL parameters in Dioxus routes (e.g.,
+    `Route::PlanPage { focus_task: Option<TaskID> }`) must implement
+    `std::fmt::Display` and `std::str::FromStr` traits.
+  - _Symptom:_ Navigation fails silently or produces confusing serialization
+    errors.
+  - _Fix:_ Implement both traits for ID wrapper types:
+    ```rust
+    impl std::fmt::Display for TaskID {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}", self.0)
+        }
+    }
+    impl std::str::FromStr for TaskID {
+        type Err = std::convert::Infallible;
+        fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(Self(s.to_string())) }
+    }
+    ```
 
 ## Rust Async Testing & Framework Gotchas
 
@@ -551,6 +579,34 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     asynchronously. Never let the context be `None` during initial render.
   - _Pattern:_ Prefer `use_context_provider(|| AppStore::default())` over
     `use_context_provider(|| load_from_db().await)`.
+- **Platform-Specific Import Guards**:
+  - _Symptom:_ Unused import warnings for `std::time::{SystemTime, UNIX_EPOCH}`
+    when building for WASM, but the types are actually used in a
+    `#[cfg(not(target_arch = "wasm32"))]` block.
+  - _Fix:_ Apply `#[cfg(not(target_arch = "wasm32"))]` to the `use` statement
+    itself, not just the code block that uses it:
+    ```rust
+    #[cfg(not(target_arch = "wasm32"))]
+    use std::time::{SystemTime, UNIX_EPOCH};
+    ```
+- **Prefer `expect()` over `unwrap()` in WASM**: In WASM builds, panic messages
+  are harder to trace. Always use `expect("descriptive message")` instead of
+  `unwrap()` to provide context in crash logs.
+  - _Example:_ `draft().expect("draft should be initialized")` vs
+    `draft().unwrap()`
+
+## Project Management
+
+- **Milestone Granularity - The "View" Trap**: "Views" are often deceptively
+  large milestones because they implicitly require implementing all mutation and
+  component infrastructure to be testable.
+  - _Hard-won lesson:_ Milestone 3.3 (Do View) absorbed Milestone 3.4 (Task
+    Editor) because we couldn't easily verify the view without creating/editing
+    data. This resulted in a massive, hard-to-review change set.
+  - _Mitigation:_ Break milestones by **Capability** (e.g. "Data Rendering",
+    "Status Toggling", "Creation Flow"), not by **View**. If a milestone
+    requires a complex new component (like a DatePicker), that component is a
+    milestone of its own.
 
 # Validation
 

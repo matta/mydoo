@@ -62,6 +62,13 @@ impl From<String> for TaskID {
     }
 }
 
+impl std::str::FromStr for TaskID {
+    type Err = std::convert::Infallible;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.to_string()))
+    }
+}
+
 impl From<&str> for TaskID {
     fn from(s: &str) -> Self {
         Self(s.to_string())
@@ -122,6 +129,13 @@ impl Default for PlaceID {
 impl From<String> for PlaceID {
     fn from(s: String) -> Self {
         Self(s)
+    }
+}
+
+impl std::str::FromStr for PlaceID {
+    type Err = std::convert::Infallible;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.to_string()))
     }
 }
 
@@ -786,6 +800,7 @@ pub struct OpenHours {
 #[serde(rename_all = "camelCase")]
 pub struct Place {
     pub id: PlaceID,
+    pub name: String,
     /// Stringified JSON of OpenHours
     pub hours: String,
     #[cfg_attr(

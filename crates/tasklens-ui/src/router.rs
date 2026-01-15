@@ -3,16 +3,17 @@ use crate::views::do_page::DoPage;
 use crate::views::plan_page::PlanPage;
 use crate::views::task_page::TaskPage;
 use dioxus::prelude::*;
+use tasklens_core::types::TaskID;
 
 #[derive(Clone, Routable, Debug, PartialEq)]
 pub enum Route {
     #[layout(AppNavBar)]
     #[route("/")]
-    #[redirect("/", || Route::PlanPage {})]
+    #[redirect("/", || Route::PlanPage { focus_task: None })]
     Home {},
 
-    #[route("/plan")]
-    PlanPage {},
+    #[route("/plan?:focus_task")]
+    PlanPage { focus_task: Option<TaskID> },
 
     #[route("/do")]
     DoPage {},

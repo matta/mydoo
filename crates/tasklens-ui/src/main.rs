@@ -142,6 +142,27 @@ fn App() -> Element {
         callback.forget();
     });
 
+    // Persistence Effect: Save to DB on every store change
+    use_effect(move || {
+        // Subscribe to store changes by reading the signal
+        let s = store.read();
+
+        // Do not save if we are still loading (to avoid overwriting DB with empty state)
+        if is_checking() {
+            return;
+        }
+
+        // Clone doc to get a mutable copy for saving (AutoCommit::save requires &mut self)
+        let mut doc_clone = s.doc.clone();
+        let bytes = doc_clone.save();
+
+        spawn(async move {
+            if let Err(e) = AppStore::save_to_db(bytes).await {
+                tracing::error!("Failed to save to DB: {:?}", e);
+            }
+        });
+    });
+
     if is_checking() {
         return rsx! {
             components::loading::Loading {}

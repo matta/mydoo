@@ -6,13 +6,49 @@ use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
 use tasklens_store::store::AppStore;
 
 #[component]
-pub fn PlanPage() -> Element {
+pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
     let mut store = use_context::<Signal<AppStore>>();
     let sync_tx = use_context::<Coroutine<Vec<u8>>>();
 
     // Track expanded task IDs.
     let mut expanded_tasks = use_signal(std::collections::HashSet::<TaskID>::new);
     let mut input_text = use_signal(String::new);
+
+    #[derive(Debug, Clone, PartialEq)]
+    enum EditorState {
+        Edit(TaskID),
+        Create { parent_id: Option<TaskID> },
+    }
+    let mut editor_state = use_signal(|| None::<EditorState>);
+
+    // Handle focus_task (Find in Plan)
+    use_effect(move || {
+        if let Some(target_id) = focus_task.clone() {
+            let state = store.read().get_state().unwrap_or_default();
+            let mut current_id = target_id.clone();
+            let mut to_expand = Vec::new();
+
+            // Walk up the tree
+            while let Some(task) = state.tasks.get(&current_id) {
+                if let Some(pid) = &task.parent_id {
+                    to_expand.push(pid.clone());
+                    current_id = pid.clone();
+                } else {
+                    break;
+                }
+            }
+
+            if !to_expand.is_empty() {
+                let mut expanded = expanded_tasks.write();
+                for id in to_expand {
+                    expanded.insert(id);
+                }
+            }
+
+            // Optionally select the task to highlight it
+            editor_state.set(Some(EditorState::Edit(target_id)));
+        }
+    });
 
     let flattened_tasks = use_memo(move || {
         let store = store.read();
@@ -63,14 +99,6 @@ pub fn PlanPage() -> Element {
     };
 
     let handle_create_subtask = move |parent_id: TaskID| {
-        // For now, create a generic subtask or prompt?
-        // Plan says "Add Subtask" -> task_controller::create_task(..., Some(id), ...).
-        // UX: Maybe adding "New Subtask" string is okay, user can rename it.
-        // Or we could eventually trigger the task creation form.
-        // Let's create a default one for now to match the "create and then rename" flow used in some apps,
-        // or just empty title? Controller checks empty title.
-        // Let's create "New Task".
-
         task_controller::create_task(store, Some(parent_id.clone()), "New Task".to_string());
 
         // Auto-expand the parent so we can see the child
@@ -89,6 +117,10 @@ pub fn PlanPage() -> Element {
         }
     };
 
+    let on_title_tap = move |id: TaskID| {
+        editor_state.set(Some(EditorState::Edit(id)));
+    };
+
     rsx! {
         div {
             class: "p-4 container mx-auto max-w-2xl",
@@ -96,6 +128,14 @@ pub fn PlanPage() -> Element {
 
             div { class: "flex justify-between items-center mb-6",
                 h1 { class: "text-2xl font-bold", "Plan" }
+                if !flattened_tasks().is_empty() {
+                    button {
+                        class: "p-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700",
+                        aria_label: "Add Task at Top",
+                        onclick: move |_| editor_state.set(Some(EditorState::Create { parent_id: None })),
+                        "Add Task"
+                    }
+                }
             }
 
             div { class: "mb-6",
@@ -108,8 +148,13 @@ pub fn PlanPage() -> Element {
 
             div { class: "bg-white shadow rounded-lg overflow-hidden mt-4",
                 if flattened_tasks().is_empty() {
-                    div { class: "p-4 text-center text-gray-500",
-                        "No tasks found. Try adding seed data? (?seed=true)"
+                    div { class: "p-8 text-center",
+                        p { class: "text-gray-500 mb-4", "No tasks found. Try adding seed data? (?seed=true)" }
+                        button {
+                            class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700",
+                            onclick: move |_| editor_state.set(Some(EditorState::Create { parent_id: None })),
+                            "Add First Task"
+                        }
                     }
                 } else {
                     for (task , depth , has_children , is_expanded) in flattened_tasks() {
@@ -124,8 +169,29 @@ pub fn PlanPage() -> Element {
                             on_rename: handle_rename,
                             on_delete: handle_delete,
                             on_create_subtask: handle_create_subtask,
+                            on_title_tap,
                         }
                     }
+                }
+            }
+
+            if let Some(state) = editor_state() {
+                match state {
+                    EditorState::Edit(id) => rsx! {
+                        crate::components::TaskEditor {
+                            task_id: Some(id),
+                            on_close: move |_| editor_state.set(None),
+                            on_add_child: move |parent_id| {
+                                editor_state.set(Some(EditorState::Create { parent_id: Some(parent_id) }));
+                            },
+                        }
+                    },
+                    EditorState::Create { parent_id } => rsx! {
+                        crate::components::TaskEditor {
+                            initial_parent_id: parent_id,
+                            on_close: move |_| editor_state.set(None),
+                        }
+                    },
                 }
             }
         }

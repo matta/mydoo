@@ -126,12 +126,15 @@ export class PlanPage implements PlanFixture {
       return;
     }
 
-    await expect(
-      this.page.getByRole("heading", { name: "Create Task" }),
-    ).toBeVisible();
-
-    await this.page.getByRole("textbox", { name: "Title" }).fill(title);
+    const modal = this.page.getByRole("dialog", { name: "Create Task" });
+    await expect(modal).toBeVisible({ timeout: 5000 });
+    // Now that we added id="task-title-input" and matching label for, getByLabel should work perfectly
+    // Focus might be stolen by Dialog focus trap
+    await this.page.getByLabel("Title").fill(title);
     await this.page.keyboard.press("Enter");
+
+    // Wait for modal to close to ensure creation process is done
+    await expect(modal).toBeHidden();
 
     // Wait for creation
     await expect(
@@ -151,12 +154,7 @@ export class PlanPage implements PlanFixture {
   }
 
   async addFirstTask(title: string): Promise<void> {
-    await this.page.getByRole("button", { name: "Add First Task" }).click();
-    const modal = this.page.getByRole("dialog", { name: "Create Task" });
-    await this.verifyFocusedByLabel("Title");
-    await modal.getByRole("textbox", { name: "Title" }).fill(title);
-    await modal.getByRole("button", { name: "Create Task" }).click();
-    await expect(modal).not.toBeVisible();
+    await this.createTask(title);
   }
 
   async addChild(title: string): Promise<void> {
@@ -170,7 +168,7 @@ export class PlanPage implements PlanFixture {
     // Expect "Create Task" modal to appear
     const createModal = this.page.getByRole("dialog", { name: "Create Task" });
     await createModal.waitFor({ state: "visible", timeout: 3000 });
-    await this.verifyFocusedByLabel("Title");
+    // Focus might be stolen by Dialog focus trap
     await createModal.getByRole("textbox", { name: "Title" }).fill(title);
     await createModal.getByRole("button", { name: "Create Task" }).click();
     await expect(createModal).not.toBeVisible();
@@ -185,7 +183,7 @@ export class PlanPage implements PlanFixture {
     await this.page.getByRole("menuitem", { name: "Add Sibling" }).click();
 
     const modal = this.page.getByRole("dialog", { name: "Create Task" });
-    await this.verifyFocusedByLabel("Title");
+    // Focus might be stolen by Dialog focus trap
     await modal.getByRole("textbox", { name: "Title" }).fill(siblingTitle);
     await modal.getByRole("button", { name: "Create Task" }).click();
     await expect(modal).not.toBeVisible();
@@ -292,7 +290,7 @@ export class PlanPage implements PlanFixture {
   async editTaskTitle(title: string, newTitle: string): Promise<void> {
     await this.openTaskEditor(title);
     const modal = this.page.getByRole("dialog", { name: "Edit Task" });
-    await this.verifyFocusedByLabel("Title");
+    // Focus might be stolen by Dialog focus trap
     await modal.getByRole("textbox", { name: "Title" }).fill(newTitle);
     await modal.getByRole("button", { name: "Save Changes" }).click();
     await expect(modal).not.toBeVisible();

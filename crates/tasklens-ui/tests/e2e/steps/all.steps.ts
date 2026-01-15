@@ -60,16 +60,23 @@ When("I switch to Do view", async ({ plan }) => {
 });
 
 When("I reload the page", async ({ page }) => {
+  // Wait for IndexedDB persistence to flush
+  await page.waitForTimeout(1500);
   await page.reload();
 });
 
 When("I refresh the page", async ({ page }) => {
+  await page.waitForTimeout(1500);
   await page.reload();
 });
 
 // --- Task Lifecycle Steps ---
 
 When("I create the first task {string}", async ({ plan }, title) => {
+  await plan.addFirstTask(title);
+});
+
+When("I create a root task {string}", async ({ plan }, title) => {
   await plan.addFirstTask(title);
 });
 
@@ -137,6 +144,11 @@ When("I collapse {string}", async ({ plan }, title) => {
 
 When("I find {string} in Plan", async ({ plan }, title) => {
   await plan.findInPlan(title);
+});
+
+Then("I should see {string} in the Plan view", async ({ plan }, title) => {
+  await plan.switchToPlanView();
+  await plan.verifyTaskVisible(title);
 });
 
 Then("I should be in Plan view", async ({ page }) => {
@@ -222,16 +234,43 @@ When("I open the Create Task modal", async ({ page }) => {
 });
 
 Then("I should see {string}", async ({ page }, text) => {
-  await expect(page.getByText(text).first()).toBeVisible();
+  try {
+    await expect(page.getByText(text).first()).toBeVisible({ timeout: 2000 });
+  } catch (e) {
+    console.log(`DEBUG: Failed to find text "${text}"`);
+    throw e;
+  }
 });
 
 Then(
   "I should see Lead Time {string} {string}",
   async ({ page }, val, unit) => {
-    await expect(page.locator("#lead-time-scalar-input")).toHaveValue(val);
-    await expect(page.locator("#lead-time-unit-select")).toHaveValue(unit);
+    try {
+      await expect(page.locator("#lead-time-scalar-input")).toHaveValue(val, {
+        timeout: 2000,
+      });
+      await expect(page.locator("#lead-time-unit-select")).toHaveValue(unit, {
+        timeout: 2000,
+      });
+    } catch (e) {
+      console.log(`DEBUG: Failed Lead Time assertion. Expected ${val} ${unit}`);
+      const actualVal = await page
+        .locator("#lead-time-scalar-input")
+        .inputValue();
+      const actualUnit = await page
+        .locator("#lead-time-unit-select")
+        .inputValue();
+      console.log(`DEBUG: Actual values: ${actualVal} ${actualUnit}`);
+      throw e;
+    }
   },
 );
+
+Then("I should see the {string} selector", async ({ page }, label) => {
+  // Logic: Find a nearby select or role="combobox"
+  // Robust approach: Expect a visible element with appropriate role identifiable by the label
+  await expect(page.getByLabel(label)).toBeVisible({ timeout: 2000 });
+});
 
 When("I add a child to {string}", async ({ plan, page }, title) => {
   await plan.openTaskEditor(title);

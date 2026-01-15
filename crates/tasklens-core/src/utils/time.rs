@@ -1,4 +1,6 @@
 use crate::types::Frequency;
+
+#[cfg(not(target_arch = "wasm32"))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Returns the current timestamp in milliseconds since the Unix Epoch.

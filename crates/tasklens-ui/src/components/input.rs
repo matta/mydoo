@@ -16,28 +16,35 @@ use dioxus::prelude::*;
 #[component]
 pub fn Input(
     value: String,
+    #[props(default = false)] autofocus: bool,
     oninput: EventHandler<String>,
     placeholder: Option<String>,
     r#type: Option<String>,
     class: Option<String>,
     onkeypress: Option<EventHandler<KeyboardEvent>>,
+    onkeydown: Option<EventHandler<KeyboardEvent>>,
     id: Option<String>,
 ) -> Element {
     let type_str = r#type.unwrap_or("text".to_string());
-    let placeholder_str = placeholder.unwrap_or_default();
-    let extra_classes = class.unwrap_or_default();
     let id_str = id.unwrap_or_default();
+    let class_str = class.unwrap_or_default();
 
     rsx! {
         input {
             id: "{id_str}",
             r#type: "{type_str}",
-            class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm {extra_classes}",
-            placeholder: "{placeholder_str}",
+            class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm {class_str}",
+            placeholder: placeholder.unwrap_or_default(),
             value: "{value}",
+            autofocus: autofocus,
             oninput: move |evt| oninput.call(evt.value()),
             onkeypress: move |evt| {
-                if let Some(handler) = onkeypress {
+                if let Some(handler) = onkeypress.as_ref() {
+                    handler.call(evt);
+                }
+            },
+            onkeydown: move |evt| {
+                if let Some(handler) = onkeydown.as_ref() {
                     handler.call(evt);
                 }
             },

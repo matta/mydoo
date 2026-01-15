@@ -31,9 +31,10 @@ export default defineConfig({
     locale: "en-US",
   },
   webServer: {
-    command: "dx serve --package tasklens-ui --port 5180",
+    command:
+      "pnpm dlx serve ../../target/dx/tasklens-ui/release/web/public -p 5180 -s",
     url: "http://localhost:5180",
-    reuseExistingServer: !isCI,
+    reuseExistingServer: false,
   },
   projects: [
     {
