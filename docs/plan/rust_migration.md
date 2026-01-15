@@ -598,14 +598,40 @@ _Goal: Porting UI components to match functionality._
     navigation.
   - **Gaps Addressed**: `plan-management.feature` (Find in Plan from Do view).
   - **Implementation Details**:
+    - [ ] **[NEW] `crates/tasklens-ui/src/components/priority_task_row.rs`**:
+      - [ ] Create `PriorityTaskRow` component.
+      - [ ] **Props**: `task: ComputedTask`.
+      - [ ] **Render**:
+        - [ ] Checkbox (toggles status via `task_controller`).
+        - [ ] Title (Strikethrough if done).
+        - [ ] Metadata: Due Date (if present), Project Name (Breadcrumbs -
+              requires parent lookup).
+        - [ ] **Visual Cues**:
+          - [ ] Urgency Coloring (Red if `UrgencyStatus::Overdue`, Orange if
+                `UrgencyStatus::DueSoon`).
+          - [ ] Inbox Border (if `place_id` is Inbox).
     - [ ] **[NEW] `crates/tasklens-ui/src/views/do_page.rs`**:
-      - Use `tasklens_core::get_prioritized_tasks` to sort.
-      - Render flat list of `TaskRow`s (reusing component).
-      - Filter out hidden/blocked tasks.
-    - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_row.rs`**:
-      - Add visual cues: Due Dates, Urgency Coloring (Red/Orange/Green).
-      - Add Project path breadcrumbs.
+      - [ ] Create `DoPage` component.
+      - [ ] **State**:
+        - [ ] Access `AppStore`.
+        - [ ] `use_memo` to call
+              `tasklens_core::domain::priority::get_prioritized_tasks`.
+        - [ ] Construct `ViewFilter` (Show all valid) and `PriorityOptions`.
+      - [ ] **Render**:
+        - [ ] Header: "Work" (or Context Selector later).
+        - [ ] List: Iterate `prioritized_tasks` and render `PriorityTaskRow`.
+        - [ ] "No tasks ready" empty state.
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/router.rs`**:
+      - [ ] Map `/do` to `DoPage`.
+      - [ ] Remove legacy `TaskPage` reference if unused (or keep as detail view
+            later).
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/views/mod.rs`**:
+      - [ ] Export `do_page`.
   - **Verification**:
+    - [ ] **[VERIFY]**: "Do" view renders tasks sorted by score.
+    - [ ] **[VERIFY]**: visual cues (Red/Orange) appear for urgent tasks
+          (Requires seed data with dates).
+    - [ ] **[VERIFY]**: Checking a task strikes it through (local state update).
     - [ ] **[VERIFY]**: Verify `plan-management.feature` scenario "Find in Plan
           from Do view" (Part 1: Rendering).
 
