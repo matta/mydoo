@@ -46,9 +46,7 @@ pub fn Alert(
                     if let Some(t) = title {
                         h3 { class: "text-sm font-bold {heading_color}", "{t}" }
                     }
-                    div { class: "mt-2 text-sm {text_color}",
-                        {children}
-                    }
+                    div { class: "mt-2 text-sm {text_color}", {children} }
                 }
             }
         }

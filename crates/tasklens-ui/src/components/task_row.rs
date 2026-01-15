@@ -24,8 +24,7 @@ pub fn TaskRow(
             "data-testid": "task-item",
 
             // Expand/Collapse Chevron
-            div {
-                class: "w-6 flex justify-center",
+            div { class: "w-6 flex justify-center",
                 if has_children {
                     div {
                         class: "cursor-pointer p-1 rounded hover:bg-gray-200 text-gray-500",
@@ -35,12 +34,36 @@ pub fn TaskRow(
                         },
                         "aria-label": "Toggle expansion",
                         "data-expanded": "{is_expanded}",
-                         if is_expanded {
+                        if is_expanded {
                             // Down Chevron
-                            svg { class: "w-4 h-4", xmlns: "http://www.w3.org/2000/svg", fill: "none", view_box: "0 0 24 24", stroke: "currentColor", path { stroke_linecap: "round", stroke_linejoin: "round", stroke_width: "2", d: "M19 9l-7 7-7-7" } }
+                            svg {
+                                class: "w-4 h-4",
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                view_box: "0 0 24 24",
+                                stroke: "currentColor",
+                                path {
+                                    stroke_linecap: "round",
+                                    stroke_linejoin: "round",
+                                    stroke_width: "2",
+                                    d: "M19 9l-7 7-7-7",
+                                }
+                            }
                         } else {
                             // Right Chevron
-                            svg { class: "w-4 h-4", xmlns: "http://www.w3.org/2000/svg", fill: "none", view_box: "0 0 24 24", stroke: "currentColor", path { stroke_linecap: "round", stroke_linejoin: "round", stroke_width: "2", d: "M9 5l7 7-7 7" } }
+                            svg {
+                                class: "w-4 h-4",
+                                xmlns: "http://www.w3.org/2000/svg",
+                                fill: "none",
+                                view_box: "0 0 24 24",
+                                stroke: "currentColor",
+                                path {
+                                    stroke_linecap: "round",
+                                    stroke_linejoin: "round",
+                                    stroke_width: "2",
+                                    d: "M9 5l7 7-7 7",
+                                }
+                            }
                         }
                     }
                 } else {
@@ -56,7 +79,9 @@ pub fn TaskRow(
                 class: "cursor-pointer mr-2",
             }
 
-            span { class: if is_done { "line-through text-gray-400" } else { "text-gray-800" }, "{task.title}" }
+            span { class: if is_done { "line-through text-gray-400" } else { "text-gray-800" },
+                "{task.title}"
+            }
 
             div { class: "ml-auto text-xs text-gray-300 font-mono pr-2", "{task_id_debug}" }
         }

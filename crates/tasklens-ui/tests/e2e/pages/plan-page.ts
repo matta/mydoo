@@ -114,7 +114,14 @@ export class PlanPage implements PlanFixture {
     } else if (await addTop.isVisible()) {
       await addTop.click();
     } else {
-      throw new Error("No create task trigger found (Empty, Append, or Top)");
+      const input = this.page.getByPlaceholder("Add a new task...");
+      await expect(input).toBeVisible();
+      await input.fill(title);
+      await this.page.keyboard.press("Enter");
+      await expect(
+        this.page.locator(`[data-testid="task-item"]`, { hasText: title }),
+      ).toBeVisible();
+      return;
     }
 
     await expect(
@@ -126,9 +133,7 @@ export class PlanPage implements PlanFixture {
 
     // Wait for creation
     await expect(
-      this.page
-        .locator(`[data-testid="task-item"]`, { hasText: title })
-        .first(),
+      this.page.locator(`[data-testid="task-item"]`, { hasText: title }),
     ).toBeVisible();
   }
 

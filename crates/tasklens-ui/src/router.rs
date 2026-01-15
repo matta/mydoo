@@ -34,12 +34,16 @@ fn PageNotFound(route: Vec<String>) -> Element {
 // Temporary placeholders if pages don't exist yet
 #[component]
 fn Balance() -> Element {
-    rsx! { div { "Balance View (Coming Soon)" } }
+    rsx! {
+        div { "Balance View (Coming Soon)" }
+    }
 }
 
 #[component]
 fn Home() -> Element {
-    rsx! { div { "Redirecting..." } }
+    rsx! {
+        div { "Redirecting..." }
+    }
 }
 
 #[component]

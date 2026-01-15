@@ -1,3 +1,4 @@
+use crate::components::TaskInput;
 use crate::components::task_row::TaskRow;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskID, TaskStatus, TunnelState};
@@ -11,19 +12,46 @@ pub fn PlanPage() -> Element {
     // Test says "When I expand 'Project Alpha'". implies it starts collapsed.
     let mut expanded_tasks = use_signal(std::collections::HashSet::<TaskID>::new);
 
-    let flattened_tasks = use_memo(move || {
-        let store_read = store.read();
-        let state_res = store_read.get_state();
-        let expanded = expanded_tasks.read();
+    let mut input_text = use_signal(String::new);
 
-        match state_res {
-            Ok(state) => flatten_tasks(&state, &expanded),
-            Err(e) => {
-                tracing::error!("Failed to get state for plan view: {:?}", e);
-                Vec::new()
-            }
-        }
+    let flattened_tasks = use_memo(move || {
+        let store = store.write();
+        // Ensure hydration, defaulting to empty state if failed (e.g. fresh load)
+        let state = store
+            .hydrate::<TunnelState>()
+            .unwrap_or_else(|_| TunnelState::default());
+
+        let expanded = expanded_tasks.read();
+        flatten_tasks(&state, &expanded)
     });
+
+    let mut add_task = move || {
+        let text = input_text();
+        if text.trim().is_empty() {
+            return;
+        }
+
+        if let Err(e) = store.write().dispatch(Action::CreateTask {
+            parent_id: None,
+            title: text.clone(),
+        }) {
+            tracing::error!("Failed to create task: {:?}", e);
+            return;
+        }
+
+        // Sync and Save logic
+        let sync_tx = use_context::<Coroutine<Vec<u8>>>();
+        let changes_opt = store.write().get_recent_changes();
+        if let Some(changes) = changes_opt {
+            sync_tx.send(changes);
+            let bytes = store.write().export_save();
+            spawn(async move {
+                let _ = AppStore::save_to_db(bytes).await;
+            });
+        }
+
+        input_text.set(String::new());
+    };
 
     let toggle_task = move |task: PersistedTask| {
         // ... (existing toggle logic) ...
@@ -75,6 +103,8 @@ pub fn PlanPage() -> Element {
             div { class: "flex justify-between items-center mb-6",
                 h1 { class: "text-2xl font-bold", "Plan" }
             }
+
+            TaskInput { value: input_text, on_add: move |_| add_task() }
 
             div { class: "bg-white shadow rounded-lg overflow-hidden",
                 if flattened_tasks().is_empty() {

@@ -20,8 +20,7 @@
       "!**/.features-gen",
       "!**/*.d.ts",
       "!**/.prettierignore",
-      "!**/tempcontext",
-      "!crates/tasklens-ui/assets/tailwind.css"
+      "!**/tempcontext"
     ]
   },
   "css": {
@@ -77,5 +76,12 @@
         "useConsistentArrayType": "error"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["crates/tasklens-ui/assets/tailwind.css"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
+    }
+  ]
 }

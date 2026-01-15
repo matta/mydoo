@@ -40,7 +40,7 @@ pub fn Input(
                 if let Some(handler) = onkeypress {
                     handler.call(evt);
                 }
-            }
+            },
         }
     }
 }

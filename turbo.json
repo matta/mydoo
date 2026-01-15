@@ -16,8 +16,7 @@
       "cache": true
     },
     "//#fix-format-root": {
-      "outputLogs": "errors-only",
-      "cache": false
+      "outputLogs": "new-only"
     },
     "//#check-biome-root": {
       "outputLogs": "new-only",
@@ -43,8 +42,7 @@
       "outputs": []
     },
     "//#fix-biome-root": {
-      "outputLogs": "errors-only",
-      "cache": false
+      "outputLogs": "new-only"
     },
     "//#check-syncpack-root": {
       "outputLogs": "new-only",
@@ -98,8 +96,7 @@
       "outputs": []
     },
     "//#fix-syncpack-root": {
-      "outputLogs": "errors-only",
-      "cache": false
+      "outputLogs": "new-only"
     },
     "check-agent": {
       "outputLogs": "new-only",
@@ -319,16 +316,13 @@
       "outputs": []
     },
     "//#fix-eslint-root": {
-      "outputLogs": "errors-only",
-      "cache": false
+      "outputLogs": "new-only"
     },
     "fix-eslint": {
-      "outputLogs": "errors-only",
-      "cache": false
+      "outputLogs": "new-only"
     },
     "fix-format": {
-      "outputLogs": "errors-only",
-      "cache": false
+      "outputLogs": "new-only"
     },
     "fix-style": {
       "dependsOn": [

@@ -62,7 +62,7 @@ pub fn Button(
         button {
             r#type: "{type_str}",
             class: "{base_classes} {variant_classes} {padding_classes} {extra_classes}",
-            disabled: disabled,
+            disabled,
             onclick: move |evt| {
                 if let Some(handler) = onclick.as_ref().filter(|_| !disabled) {
                     handler.call(evt);

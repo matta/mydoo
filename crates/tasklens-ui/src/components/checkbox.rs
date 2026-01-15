@@ -26,7 +26,7 @@ pub fn Checkbox(
             id: "{id_str}",
             r#type: "checkbox",
             class: "focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded {extra_classes}",
-            checked: checked,
+            checked,
             onchange: move |evt| onchange.call(evt.checked()),
             onclick: move |evt| evt.stop_propagation(), // often useful in lists
         }
