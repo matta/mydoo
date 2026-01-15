@@ -547,21 +547,51 @@ _Goal: Porting UI components to match functionality._
   - **Gaps Addressed**: `plan-management.feature` (Creation, Deletion,
     Hierarchy).
   - **Implementation Details**:
-    - [ ] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
-      - Add "Add Task" UI triggers (Add First, Append, Add at Top).
-      - Implement "Delete" logic (with cascade confirmation).
-    - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_row.rs`**:
-      - Wire up Checkbox `onclick` to dispatch `Action::UpdateTask(status)`.
-      - Add "Add Child" / "Add Sibling" context actions (or menu).
+    - [ ] **[MODIFY] `crates/tasklens-store/src/store.rs`**:
+      - [ ] Update `Action::CreateTask` handler to implement PRD Section 3.1
+            Inheritance Rules:
+        - [ ] Inherit `place_id` from parent (or `None`/`Anywhere` if root).
+        - [ ] Inherit `credit_increment` (Effort) from parent (or default `0.5`
+              if root).
+        - [ ] Set default `lead_time` to `28,800,000` (8 hours).
+    - [ ] **[NEW] `crates/tasklens-ui/src/controllers/mod.rs`**:
+      - [ ] Create module and export `task_controller`.
     - [ ] **[NEW] `crates/tasklens-ui/src/controllers/task_controller.rs`**:
-      - Centralize logic for adding children (updating parent's
-        `child_task_ids`).
-      - Delete logic: Recursive cleanup of children.
+      - [ ] Implement
+            `create_task(store: &mut Signal<AppStore>, parent_id: Option<TaskID>, name: String)`.
+        - [ ] Wrapper around
+              `store.write().dispatch(Action::CreateTask { ... })`.
+      - [ ] Implement
+            `toggle_task_status(store: &mut Signal<AppStore>, task_id: TaskID)`.
+        - [ ] Wrapper around
+              `store.write().dispatch(Action::UpdateTask { ... })`.
+      - [ ] Implement
+            `delete_task(store: &mut Signal<AppStore>, task_id: TaskID)`.
+        - [ ] Wrapper around
+              `store.write().dispatch(Action::DeleteTask { ... })`.
+      - [ ] Implement
+            `rename_task(store: &mut Signal<AppStore>, task_id: TaskID, new_title: String)`.
+        - [ ] Wrapper around
+              `store.write().dispatch(Action::UpdateTask { ... })`.
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
+      - [ ] Add "Add Root Task" button at the bottom of the list (or top).
+      - [ ] Implement `handle_create` using `task_controller`.
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_row.rs`**:
+      - [ ] Wire up Checkbox `onclick` -> `task_controller::toggle_task_status`.
+      - [ ] Make Title editable (or ad-hoc input) ->
+            `task_controller::rename_task`.
+      - [ ] Add UI controls for:
+        - [ ] "Add Subtask" ->
+              `task_controller::create_task(..., Some(id), ...)`.
+        - [ ] "Delete" -> `task_controller::delete_task`.
   - **Verification**:
+    - [ ] **[VERIFY]**: Run `dx serve` and verify manual creation of task
+          hierarchy.
     - [ ] **[VERIFY]**: Verify `plan-management.feature` scenario "Edit task
-          properties and persist".
+          properties and persist" (Create/Rename/Reload).
     - [ ] **[VERIFY]**: Verify `plan-management.feature` scenario "Delete task
-          with cascade".
+          with cascade" (Create Parent+Child, Delete Parent, Reload, Verify both
+          gone).
 
 - [ ] **Milestone 3.3**: The "Do" View (Priority List).
   - **Goal**: Implement the algorithmic priority list ("Do" View) and
