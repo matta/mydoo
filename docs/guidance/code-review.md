@@ -169,6 +169,27 @@ including interface segregation and the `strictMock` utility.
 
 ---
 
+## Rust & Dioxus Conventions
+
+### Prefer Top-Level Imports
+
+Place all `use` statements at the top of the file. Avoid nesting `use`
+statements inside function bodies or `rsx!` blocks.
+
+**Rationale**: Nested imports make dependencies harder to track and lead to
+redundant imports in large component files.
+
+### Avoid Silent Failures in Event Handlers
+
+Never use silent failures (e.g., `if let Ok(...) { ... }` without an `else`) in
+UI event handlers. Use `tracing::warn!` to log parsing or logic errors.
+
+**Rationale**: Debugging WASM in the browser is difficult. Without explicit
+logging, it is impossible to distinguish between a intentional "no-op" and an
+unexpected failure.
+
+---
+
 ## General
 
 ### Verification Before Commit
