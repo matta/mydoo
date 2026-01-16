@@ -2,10 +2,12 @@
   "name": "@mydoo/tasklens-ui",
   "private": true,
   "devDependencies": {
-    "@playwright/test": "catalog:",
-    "playwright-bdd": "catalog:",
     "@mydoo/tasklens": "workspace:*",
-    "@types/node": "catalog:"
+    "@playwright/test": "catalog:",
+    "@types/js-yaml": "catalog:",
+    "@types/node": "catalog:",
+    "js-yaml": "catalog:",
+    "playwright-bdd": "catalog:"
   },
   "scripts": {
     "check-format": "prettier --check .",

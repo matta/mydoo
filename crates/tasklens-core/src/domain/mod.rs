@@ -2,6 +2,7 @@ pub mod constants;
 pub mod creation;
 pub mod dates;
 pub mod feedback;
+pub mod hierarchy;
 pub mod lifecycle;
 pub mod priority;
 pub mod readiness;

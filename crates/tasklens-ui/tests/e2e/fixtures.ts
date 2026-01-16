@@ -23,6 +23,19 @@ export const test = bddTest.extend<MyFixtures>({
     use: (r: PlanPage) => Promise<void>,
   ) => {
     const planPage = new PlanPage(page);
+    page.on("console", (msg) => {
+      const type = msg.type();
+      const text = `PAGE ${type}: ${msg.text()}`;
+      if (type === "error") {
+        console.error(text);
+      } else if (type === "warning") {
+        console.warn(text);
+      } else if (type === "debug") {
+        console.debug(text);
+      } else {
+        console.log(text);
+      }
+    });
     await use(planPage);
   },
   documentContext: async (

@@ -108,6 +108,24 @@ pub fn TaskEditor(
 
     let current_draft = draft().expect("draft should be initialized");
 
+    let mut show_move_picker = use_signal(|| false);
+
+    let can_outdent = if let (Some(id), Ok(state)) = (task_id.as_ref(), store.read().get_state()) {
+        state
+            .tasks
+            .get(id)
+            .map(|t| t.parent_id.is_some())
+            .unwrap_or(false)
+    } else {
+        false
+    };
+
+    let can_indent = if let (Some(id), Ok(state)) = (task_id.as_ref(), store.read().get_state()) {
+        tasklens_core::domain::hierarchy::get_previous_sibling(&state, id).is_some()
+    } else {
+        false
+    };
+
     let mut save_handler = {
         let mut store = store;
         let draft = draft;
@@ -174,27 +192,26 @@ pub fn TaskEditor(
         DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
             DialogContent { class: "task-editor-content",
                 DialogTitle {
-                    div { class: "flex justify-between items-center",
-                        span {
-                            if task_id.is_some() {
-                                "Edit Task"
-                            } else {
-                                "Create Task"
-                            }
-                        }
-                        if let Some(id) = task_id.clone() {
-                            Button {
-                                variant: ButtonVariant::Ghost,
-                                class: "text-xs",
-                                onclick: move |_| {
-                                    let nav = navigator();
-                                    nav.push(crate::router::Route::PlanPage {
-                                        focus_task: Some(id.clone()),
-                                    });
-                                    on_close.call(());
-                                },
-                                "Find in Plan"
-                            }
+                    if task_id.is_some() {
+                        "Edit Task"
+                    } else {
+                        "Create Task"
+                    }
+                }
+
+                if let Some(id) = task_id.clone() {
+                    div { class: "flex justify-end px-4 -mt-8 mb-4",
+                        Button {
+                            variant: ButtonVariant::Ghost,
+                            class: "text-xs",
+                            onclick: move |_| {
+                                let nav = navigator();
+                                nav.push(crate::router::Route::PlanPage {
+                                    focus_task: Some(id.clone()),
+                                });
+                                on_close.call(());
+                            },
+                            "Find in Plan"
                         }
                     }
                 }
@@ -469,17 +486,48 @@ pub fn TaskEditor(
                     }
 
                     // Footer Actions
-                    div { class: "flex justify-between items-center pt-4 border-t",
-                        div { class: "flex gap-2",
-                            if task_id.is_some() {
+                    div { class: "flex flex-col sm:flex-row justify-between items-center pt-4 border-t gap-4",
+                        div { class: "flex flex-wrap gap-2 justify-center sm:justify-start",
+                            if let Some(id) = task_id.clone() {
+                                Button {
+                                    variant: ButtonVariant::Ghost,
+                                    onclick: move |_| show_move_picker.set(true),
+                                    "Move..."
+                                }
+                                if can_outdent {
+                                    Button {
+                                        variant: ButtonVariant::Ghost,
+                                        onclick: {
+                                            let id = id.clone();
+                                            move |_| {
+                                                crate::controllers::task_controller::outdent_task(store, id.clone());
+                                                on_close.call(());
+                                            }
+                                        },
+                                        "← Outdent"
+                                    }
+                                }
+                                if can_indent {
+                                    Button {
+                                        variant: ButtonVariant::Ghost,
+                                        onclick: {
+                                            let id = id.clone();
+                                            move |_| {
+                                                crate::controllers::task_controller::indent_task(store, id.clone());
+                                                on_close.call(());
+                                            }
+                                        },
+                                        "Indent →"
+                                    }
+                                }
                                 Button {
                                     variant: ButtonVariant::Ghost,
                                     onclick: {
-                                        let task_id = task_id.clone();
+                                        let id = id.clone();
                                         let on_add_child = on_add_child;
                                         move |_| {
-                                            if let (Some(id), Some(handler)) = (task_id.clone(), on_add_child.as_ref()) {
-                                                handler.call(id);
+                                            if let Some(handler) = on_add_child.as_ref() {
+                                                handler.call(id.clone());
                                             }
                                         }
                                     },
@@ -487,7 +535,7 @@ pub fn TaskEditor(
                                 }
                             }
                         }
-                        div { class: "flex gap-2",
+                        div { class: "flex flex-wrap gap-2 justify-center sm:justify-end",
                             if task_id.is_some() {
                                 Button {
                                     variant: ButtonVariant::Secondary,
@@ -511,6 +559,20 @@ pub fn TaskEditor(
                             }
                         }
                     }
+                }
+            }
+        }
+        // Render MovePicker as a sibling dialog outside TaskEditor's DialogRoot
+        if show_move_picker() {
+            if let Some(id) = task_id.clone() {
+                crate::components::MovePicker {
+                    task_id: id.clone(),
+                    on_select: move |new_parent_id| {
+                        crate::controllers::task_controller::move_task(store, id.clone(), new_parent_id);
+                        show_move_picker.set(false);
+                        on_close.call(());
+                    },
+                    on_close: move |_| show_move_picker.set(false),
                 }
             }
         }

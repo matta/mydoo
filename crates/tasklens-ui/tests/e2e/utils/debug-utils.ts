@@ -1,25 +1,26 @@
+import { writeFile } from "node:fs/promises";
 import type { Page, TestInfo } from "@playwright/test";
+import yaml from "js-yaml";
 
 /**
- * Serializes the current DOM into a simplified JSON structure optimized for
- * AI Agents. It prioritizes semantic elements and specific attributes
- * (data-testid, role) while stripping out layout noise.
+ * Captures a synthetic DOM snapshot on test failure and writes it to disk.
+ * The output is a YAML tree optimized for AI agent debugging, prioritizing
+ * semantic elements (data-testid, role, aria-*) while stripping layout noise.
  */
 export async function dumpFailureContext(page: Page, testInfo: TestInfo) {
-  console.log(`\n=== FAILURE CONTEXT: ${testInfo.title} ===`);
-  console.log(`URL: ${page.url()}`);
-
   try {
     const syntheticTree = await page.evaluate(() => {
       // CONFIG: Attributes we trust for unique identification
       const RELEVANT_ATTRIBUTES = [
-        "data-testid",
-        "data-cy",
-        "name",
-        "id",
-        "role",
+        "aria-expanded",
         "aria-label",
+        "data-cy",
+        "data-expanded",
+        "data-testid",
+        "id",
+        "name",
         "placeholder",
+        "role",
       ];
 
       // HELPER: Should this element appear in the Agent's view?
@@ -51,6 +52,7 @@ export async function dumpFailureContext(page: Page, testInfo: TestInfo) {
         if (
           el.hasAttribute("data-expanded") ||
           el.hasAttribute("aria-label") ||
+          el.hasAttribute("aria-expanded") ||
           el.hasAttribute("onclick")
         )
           return true;
@@ -177,12 +179,33 @@ export async function dumpFailureContext(page: Page, testInfo: TestInfo) {
       return serialize(document.body);
     });
 
-    console.log("--- SYNTHETIC DOM SNAPSHOT (Agent Optimized) ---");
-    console.log(JSON.stringify(syntheticTree, null, 2));
-    console.log("------------------------------------------------");
-  } catch (e) {
-    console.log("Failed to generate synthetic DOM:", e);
-  }
+    const yamlContent = yaml.dump(syntheticTree, {
+      lineWidth: -1,
+      noRefs: true,
+    });
+    const markdownContent = `# Failure Context: ${testInfo.title}
 
-  console.log("==============================================\n");
+**URL:** ${page.url()}
+
+## Synthetic DOM Snapshot
+
+\`\`\`yaml
+${yamlContent}
+\`\`\`
+
+---
+*This snapshot shows the DOM state at the time of failure, optimized for debugging.*
+`;
+
+    // Write to disk and attach to test report (mirrors Playwright's error-context.md pattern)
+    const filePath = testInfo.outputPath("synthetic-dom.md");
+    await writeFile(filePath, markdownContent, "utf-8");
+    await testInfo.attach("synthetic-dom.md", {
+      path: filePath,
+      contentType: "text/markdown",
+    });
+    console.log(`Saved synthetic DOM to: ${filePath}`);
+  } catch (e) {
+    console.error("Failed to generate synthetic DOM:", e);
+  }
 }

@@ -31,3 +31,5 @@ pub mod task_row;
 pub use date_picker::DatePicker;
 pub use select::Select;
 pub use task_editor::TaskEditor;
+pub mod move_picker;
+pub use move_picker::MovePicker;

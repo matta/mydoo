@@ -1,4 +1,4 @@
-@migration-pending
+@task-moving
 Feature: Task Moving
     As a user
     I want to move tasks to different parents

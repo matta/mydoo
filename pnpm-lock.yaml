@@ -327,9 +327,15 @@ importers:
       '@playwright/test':
         specifier: 'catalog:'
         version: 1.57.0
+      '@types/js-yaml':
+        specifier: 'catalog:'
+        version: 4.0.9
       '@types/node':
         specifier: 'catalog:'
         version: 25.0.3
+      js-yaml:
+        specifier: 'catalog:'
+        version: 4.1.1
       playwright-bdd:
         specifier: 'catalog:'
         version: 8.4.2(@playwright/test@1.57.0)

@@ -90,6 +90,72 @@ pub fn rename_task(mut store: Signal<AppStore>, task_id: TaskID, new_title: Stri
     }
 }
 
+/// Moves a task to a new parent.
+pub fn move_task(mut store: Signal<AppStore>, task_id: TaskID, new_parent_id: Option<TaskID>) {
+    if let Err(e) = store.write().dispatch(Action::MoveTask {
+        id: task_id,
+        new_parent_id,
+    }) {
+        tracing::error!("Failed to move task: {:?}", e);
+    }
+}
+
+/// Indents a task: moves it under its previous sibling.
+pub fn indent_task(store: Signal<AppStore>, task_id: TaskID) {
+    let new_parent_id = {
+        let read = store.read();
+        if let Ok(state) = read.get_state() {
+            tasklens_core::domain::hierarchy::get_previous_sibling(&state, &task_id)
+        } else {
+            None
+        }
+    };
+
+    if let Some(pid) = new_parent_id {
+        move_task(store, task_id, Some(pid));
+    }
+}
+
+/// Outdents a task: moves it up one level in the hierarchy.
+pub fn outdent_task(store: Signal<AppStore>, task_id: TaskID) {
+    let new_parent_id = {
+        let read = store.read();
+        if let Ok(state) = read.get_state() {
+            state.tasks.get(&task_id).and_then(|task| {
+                if let Some(parent_id) = &task.parent_id {
+                    let parent = state.tasks.get(parent_id)?;
+                    parent.parent_id.clone()
+                } else {
+                    None
+                }
+            })
+        } else {
+            None
+        }
+    };
+
+    // Note: If task is a child of a root task, task.parent_id is Some(root),
+    // and root's parent_id is None. So outdenting moves it to root (new_parent_id = None).
+    // If task is already root, outdent does nothing (or we should check it).
+
+    let is_root = {
+        let read = store.read();
+        if let Ok(state) = read.get_state() {
+            state
+                .tasks
+                .get(&task_id)
+                .map(|t| t.parent_id.is_none())
+                .unwrap_or(true)
+        } else {
+            true
+        }
+    };
+
+    if !is_root {
+        move_task(store, task_id, new_parent_id);
+    }
+}
+
 /// Triggers the lifecycle refresh cycle (acknowledge completed tasks and wake up routine tasks).
 pub fn refresh_lifecycle(mut store: Signal<AppStore>) {
     let current_time = js_sys::Date::now();

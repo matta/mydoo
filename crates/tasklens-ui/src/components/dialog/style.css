@@ -65,6 +65,8 @@
   gap: 16px;
   text-align: center;
   transform: translate(-50%, -50%);
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .dialog-title {

@@ -409,8 +409,8 @@ Given(
 Given(
   "the user creates a routine task {string} repeating every {string} with lead time {string}",
   async ({ plan }, title, repeatStr, leadTimeStr) => {
-    await plan.setupClock();
     await plan.primeWithSampleData();
+    await plan.setupClock();
 
     const repeat = parseDuration(repeatStr);
     const lead = parseDuration(leadTimeStr);

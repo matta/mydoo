@@ -302,6 +302,16 @@ files.
 3.  **Stale Files:** If you delete or rename a `.feature` file, you MUST run
     `bddgen` to remove the corresponding stale `.spec.js` file. Stale files will
     cause `test-e2e` failures.
+4.  **Test Output Locations:** Playwright saves test outputs to these
+    directories within the tasklens-ui crate:
+    - `test-results/` — Per-test output directories. Each failed test gets a
+      subdirectory (e.g.,
+      `tests-e2e-features-task-mo-f6890-Move-Task-...-bdd-desktop/`) containing
+      attachments like `synthetic-dom.md` and `error-context.md`.
+    - `playwright-report/` — HTML report viewable with
+      `npx playwright show-report`. Open `playwright-report/index.html` to
+      browse test results with attachments.
+    - Note: `test-results/` is cleaned at the start of each test run.
 
 ## Testing Workflows
 
@@ -397,6 +407,22 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     // ✅ Robust:
     await modal.getByLabel("Title").fill(title);
     ```
+- **Dialog Stacking (Occlusion & Focus)**:
+  - _Symptom:_ Click actions fail with timeouts because "element is intercepted
+    by..." or focus is trapped in an invisible/background dialog.
+  - _Root Cause:_ A previous dialog was not explicitly closed, or a transparent
+    backdrop from a "closed" but not unmounted component is covering the UI.
+  - _Fix:_ Ensure all dialogs (like `TaskEditor`) explicitly call their
+    `on_close` handler and unmount from the DOM upon action completion. Do not
+    rely on "fire-and-forget" logic if the UI state depends on the dialog being
+    gone.
+- **Browser Console Logging**:
+  - _Technique:_ `fixtures.ts` should attach a console listener to the page
+    (`page.on("console", ...)`) to forward `PAGE LOG` and `PAGE ERROR` to the
+    Node process stdout.
+  - _Value:_ This is often the _only_ way to trace logic inside WASM/JS during
+    headless runs. Use `console.log` (or `tracing::info!` in Rust) to debug
+    internal state discrepancies that the DOM does not reveal.
 
 ## Rust & Dioxus Workspace Strategies (Migration)
 
