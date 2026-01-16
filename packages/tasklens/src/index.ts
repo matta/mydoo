@@ -36,6 +36,7 @@ export {
 export { wakeUpRoutineTasks } from "./domain/routine-tasks";
 export { buildTunnelTree } from "./domain/tree";
 export * as TunnelOps from "./persistence/ops";
+export { TunnelStateSchema } from "./persistence/schemas";
 export { TunnelStore } from "./persistence/store";
 export {
   createTaskLensMiddleware,

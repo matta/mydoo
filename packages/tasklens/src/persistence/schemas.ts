@@ -211,4 +211,9 @@ export const TunnelStateSchema = z.looseObject({
   rootTaskIds: z.array(TaskIDSchema),
   tasks: AutomergeRecord(TaskIDSchema, TaskSchema),
   places: AutomergeRecord(PlaceIDSchema, PlaceSchema),
+  metadata: z
+    .object({
+      automerge_url: z.string().optional(),
+    })
+    .optional(),
 });

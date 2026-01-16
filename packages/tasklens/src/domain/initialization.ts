@@ -20,7 +20,10 @@ export function initializeTunnelState(doc: TunnelState) {
  */
 export function createTaskLensDoc(repo: Repo): AutomergeUrl {
   const handle = repo.create<TunnelState>();
-  handle.change(initializeTunnelState);
+  handle.change((doc) => {
+    initializeTunnelState(doc);
+    doc.metadata = { automerge_url: handle.url };
+  });
   return handle.url;
 }
 

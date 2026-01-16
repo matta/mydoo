@@ -465,19 +465,42 @@ export class PlanPage implements PlanFixture {
     // We target 'nav' (Desktop Navbar) or 'footer' (Mobile Bottom Bar) to exclude Breadcrumbs (in 'main')
     // On Mobile: Navbar (Hidden), Footer (Visible). last() gets Footer.
     // On Desktop: Navbar (Visible), Footer (Absent). last() gets Navbar.
-    await this.page
-      .locator("nav, footer")
-      .getByRole("button", { name: "Plan" })
-      .last()
-      .click();
+    const footerBtn = this.page
+      .locator("footer")
+      .getByRole("button", { name: "Plan" });
+    const navBtn = this.page
+      .locator("nav")
+      .getByRole("button", { name: "Plan" });
+
+    if (await footerBtn.isVisible()) {
+      await footerBtn.click();
+    } else {
+      await navBtn.filter({ visible: true }).first().click();
+    }
+
+    // Wait for something that exists on both mobile and desktop Plan view
+    await expect(
+      this.page
+        .getByTestId("append-row-button")
+        .or(this.page.getByRole("button", { name: "Add First Task" })),
+    ).toBeVisible();
   }
 
   async switchToDoView(): Promise<void> {
-    await this.page
-      .locator("nav, footer")
-      .getByRole("button", { name: "Do" })
-      .last()
-      .click();
+    const footerBtn = this.page
+      .locator("footer")
+      .getByRole("button", { name: "Do" });
+    const navBtn = this.page.locator("nav").getByRole("button", { name: "Do" });
+
+    if (await footerBtn.isVisible()) {
+      await footerBtn.click();
+    } else {
+      await navBtn.filter({ visible: true }).first().click();
+    }
+
+    await expect(
+      this.page.getByRole("heading", { name: "Priorities" }),
+    ).toBeVisible();
   }
 
   // --- Mobile Helpers ---
