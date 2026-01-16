@@ -1054,14 +1054,106 @@ _Goal: Porting UI components to match functionality._
         Add Child A, Child B. Verify only A is visible in Do view. Complete A.
         Refresh. Verify B appears.
 
-#### [ ] Milestone 3.11: Mobile Journeys & Context Switching
+#### [ ] Milestone 3.11: Document ID Management
 
-- **Goal**: Enable `mobile-journeys.feature` and `document-switching.feature`.
-- **Key Features**: Mobile-specific UI (sheets/drawers) and Multi-doc support.
+- **Goal**: Enable `document-switching.feature` by implementing UI for managing
+  document identifiers.
+- **Context**: Unlike the React impl which uses `automerge-repo` and deals in
+  automerge URLs, the Rust impl uses a simpler document ID model. The document
+  ID is a cryptographically random string that:
+  - Identifies the local Automerge document in IndexedDB
+  - When combined with the master key, determines the sync channel
+- **Reference**: `tempcontext/todo_mvp` contains similar patterns for sync_id
+  generation and persistence.
+- **Implementation Details**:
+  - **Step 1: Store-Level Document ID Support**
+    - [ ] **[MODIFY] `crates/tasklens-store/src/lib.rs`**:
+      - [ ] Add `doc_id` module export.
+    - [ ] **[NEW] `crates/tasklens-store/src/doc_id.rs`**:
+      - [ ] Define `DOC_ID_STORAGE_KEY` constant (`"tasklens_doc_id"`).
+      - [ ] Implement `generate_doc_id() -> String`:
+        - Use `rand::thread_rng()` and `hex::encode()` to produce a 32-byte
+          random hex string.
+      - [ ] Implement `save_doc_id(doc_id: &str) -> Result<()>`:
+        - Persist to LocalStorage via `gloo_storage::LocalStorage`.
+      - [ ] Implement `load_doc_id() -> Result<Option<String>>`:
+        - Read from LocalStorage.
+      - [ ] Implement `clear_doc_id()`:
+        - Remove from LocalStorage.
+    - [ ] **[MODIFY] `crates/tasklens-store/src/store.rs`**:
+      - [ ] Update `build_db()` to use the current `doc_id` for database name
+            (e.g., `tasklens_db_{doc_id}`) OR use a single DB with doc_id as a
+            key prefix. Choose the simpler approach: use doc_id as part of the
+            IndexedDB key (e.g., `doc:{doc_id}:root`).
+      - [ ] Update `save_to_db()` and `load_from_db()` to accept `doc_id`
+            parameter.
+  - **Step 2: UI Components**
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/views/auth.rs`**:
+      - [ ] Add a new `DocumentSection` component within `SyncActiveView` (or as
+            a sibling) that shows the current document ID.
+      - [ ] Display the truncated doc ID (first 8 chars + "...") with a "Copy
+            Full ID" button.
+    - [ ] **[NEW] `crates/tasklens-ui/src/components/doc_id_manager.rs`**:
+      - [ ] Create `DocIdManager` component.
+      - [ ] **Props**:
+        - `current_doc_id: Signal<Option<String>>`
+        - `on_change: EventHandler<String>` (called when doc ID changes)
+      - [ ] **UI Elements**:
+        - [ ] "Current Document" label with truncated ID display.
+        - [ ] "Copy ID" button (copies full ID to clipboard).
+        - [ ] "New Document" button:
+          - Generates new random doc_id via `doc_id::generate_doc_id()`.
+          - Clears the store (calls `Store::new()`).
+          - Saves new doc_id via `doc_id::save_doc_id()`.
+          - Calls `on_change`.
+        - [ ] "Enter ID" button/input:
+          - Shows input field for manual ID entry.
+          - On submit, validates (non-empty, alphanumeric), saves, reloads store
+            from that doc_id's data.
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/components/mod.rs`**:
+      - [ ] Export `doc_id_manager`.
+  - **Step 3: App Integration**
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/main.rs`**:
+      - [ ] Add `doc_id: Signal<Option<String>>` state.
+      - [ ] In startup future:
+        1. Load doc_id from storage via `doc_id::load_doc_id()`.
+        2. If None, generate a new one and save it.
+        3. Pass doc_id to `AppStore::load_from_db(doc_id)`.
+      - [ ] Provide `doc_id` as context for child components.
+      - [ ] Update persistence effect to use current doc_id.
+    - [ ] **[MODIFY] `crates/tasklens-ui/src/views/auth.rs`**:
+      - [ ] Import and render `DocIdManager` in `SettingsModal` below the
+            identity section.
+      - [ ] Wire `on_change` to trigger store reload and re-render.
+  - **Step 4: Enable BDD Tests**
+    - [ ] **[MODIFY]
+          `crates/tasklens-ui/tests/e2e/features/document-switching.feature`**:
+      - [ ] Remove `@migration-pending` tag.
+    - [ ] **[MODIFY] `crates/tasklens-ui/tests/e2e/steps/all.steps.ts`**:
+      - [ ] Implement steps for document switching:
+        - "When the user creates a new document"
+        - "Then the document ID changes"
+        - "When the user switches to document {string} by its ID"
+    - [ ] **[MODIFY] `crates/tasklens-ui/tests/e2e/pages/`**:
+      - [ ] Add Page Object methods for interacting with `DocIdManager`.
+- **Verification**:
+  - [ ] **[VERIFY]**: Run
+        `pnpm --filter @mydoo/tasklens-ui test-e2e -g "document-switching"`.
+  - [ ] **[VERIFY]**: Manual: Open Settings, observe current doc ID.
+  - [ ] **[VERIFY]**: Manual: Click "New Document", verify ID changes and task
+        list is empty.
+  - [ ] **[VERIFY]**: Manual: Enter a known doc ID, verify tasks from that
+        document load.
+
+#### [ ] Milestone 3.12: Mobile Journeys
+
+- **Goal**: Enable `mobile-journeys.feature`.
+- **Key Features**: Mobile-specific UI (drill-down navigation, bottom bar,
+  breadcrumbs).
 - **Details**:
   - Verify touch targets and responsive layouts on mobile.
-  - Implement sidebar/drawer for switching between multiple Automerge documents
-    (if applicable).
+  - Implement mobile drill-down navigation in Plan view.
+  - Add mobile bottom bar with navigation controls.
 
 ### Epoch 4: Evaluation & Polish
 
@@ -1130,7 +1222,7 @@ in their respective environments.
 
 ## Next Steps
 
-1.  Implement **Milestone 3.10**: Sequential Projects (Completed 3.9 Routine
-    Tasks).
+1.  Implement **Milestone 3.11**: Document ID Management (Completed 3.10
+    Sequential Projects).
 2.  Continue un-tagging features from `@migration-pending` as implementation
     progresses.
