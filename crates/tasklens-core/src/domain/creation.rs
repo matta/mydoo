@@ -7,8 +7,7 @@ use crate::domain::constants::{DEFAULT_CREDIT_INCREMENT, DEFAULT_LEAD_TIME_MILLI
 use crate::types::{PersistedTask, Schedule, ScheduleType, TaskID, TaskStatus};
 
 /// Creates a new task with default values and inheritance from parent.
-pub fn create_new_task(title: String, parent: Option<&PersistedTask>) -> PersistedTask {
-    let id = TaskID::new();
+pub fn create_new_task(id: TaskID, title: String, parent: Option<&PersistedTask>) -> PersistedTask {
     let parent_id = parent.map(|p| p.id.clone());
 
     // Inheritance Rules
@@ -55,7 +54,7 @@ mod tests {
 
     #[test]
     fn test_create_new_task_defaults() {
-        let task = create_new_task("Root Task".to_string(), None);
+        let task = create_new_task(TaskID::new(), "Root Task".to_string(), None);
         assert_eq!(task.title, "Root Task");
         assert_eq!(task.parent_id, None);
         assert_eq!(task.place_id, None);
@@ -65,11 +64,11 @@ mod tests {
 
     #[test]
     fn test_create_new_task_inheritance() {
-        let mut parent = create_new_task("Parent".to_string(), None);
+        let mut parent = create_new_task(TaskID::new(), "Parent".to_string(), None);
         parent.place_id = Some(PlaceID::from("Work"));
         parent.credit_increment = Some(2.0);
 
-        let child = create_new_task("Child".to_string(), Some(&parent));
+        let child = create_new_task(TaskID::new(), "Child".to_string(), Some(&parent));
 
         // Inherited
         assert_eq!(child.place_id, parent.place_id);

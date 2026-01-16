@@ -7,16 +7,25 @@ use tasklens_store::store::AppStore;
 ///
 /// If `parent_id` is provided, the task is created as a child of that task.
 /// Empty or whitespace-only titles are silently ignored.
-pub fn create_task(mut store: Signal<AppStore>, parent_id: Option<TaskID>, title: String) {
+pub fn create_task(
+    mut store: Signal<AppStore>,
+    parent_id: Option<TaskID>,
+    title: String,
+) -> Option<TaskID> {
     if title.trim().is_empty() {
-        return;
+        return None;
     }
 
-    if let Err(e) = store
-        .write()
-        .dispatch(Action::CreateTask { parent_id, title })
-    {
+    let id = TaskID::new();
+    if let Err(e) = store.write().dispatch(Action::CreateTask {
+        id: id.clone(),
+        parent_id,
+        title,
+    }) {
         tracing::error!("Failed to create task: {:?}", e);
+        None
+    } else {
+        Some(id)
     }
 }
 

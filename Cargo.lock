@@ -5255,6 +5255,7 @@ dependencies = [
  "futures",
  "getrandom 0.2.17",
  "gloo-storage",
+ "gloo-timers",
  "hex",
  "js-sys",
  "rand 0.8.5",

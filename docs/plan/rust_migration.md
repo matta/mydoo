@@ -775,7 +775,7 @@ _Goal: Porting UI components to match functionality._
           it disappears (if interval not passed) or resets to Pending (if
           interval passed - requires cheating time or short interval).
 
-- [ ] **Milestone 3.6: Advanced Plan Management ("Find in Plan")**.
+- [x] **Milestone 3.6: Advanced Plan Management ("Find in Plan")**.
   - **Goal**: Polish the Plan View navigation and hierarchy management to
     satisfy remaining `plan-management.feature` scenarios.
   - **Key Implementations**:
@@ -786,60 +786,36 @@ _Goal: Porting UI components to match functionality._
     - **Test Enablement**: Activating pending BDD scenarios.
   - **Implementation Details**:
     - **Step 1: Auto-Expand on Creation**
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
-        - [ ] Expose a method or signal to `task_controller` (or via `AppStore`)
-              to request expansion of specific IDs.
-        - [ ] Alternatively, handle `Action::CreateTask` side-effects in the
-              View if possible, OR add `Action::ExpandTask` to the Store if
-              expansion state moves to Global Store (PRD implies "Zoom Context"
-              is a view state, but expansion might be persisted or at least
-              globally accessible).
-        - [ ] **Decision**: Keep expansion state local to `PlanPage` for now,
-              but expose a way to trigger it. OR, better: Update
-              `task_controller.rs` to return the `parent_id` of created tasks,
-              and let `PlanPage` react to it.
-        - [ ] **Implementation**:
-          - Update `PlanPage` to listen for a "Task Created" event or Signal.
-          - When a child is created, ensure its parent ID is added to
-            `expanded_tasks`.
+      - [x] **[MODIFY] `crates/tasklens-store/src/actions.rs`**:
+        - [x] Update `Action::CreateTask` to include `id: TaskID`.
+      - [x] **[MODIFY] `crates/tasklens-store/src/store.rs`**:
+        - [x] Update `Action::CreateTask` handler to use the provided `id`.
+      - [x] **[MODIFY] `crates/tasklens-core/src/domain/creation.rs`**:
+        - [x] Update `create_new_task` to accept `id: TaskID` as an argument.
+      - [x] **[MODIFY]
+            `crates/tasklens-ui/src/controllers/task_controller.rs`**:
+        - [x] Update `create_task` to generate a `TaskID` first and return it.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
+        - [x] Update `add_task` and `on_add_child` handlers to use the returned
+              `TaskID`.
+        - [x] Ensure `parent_id` is expanded when a child is created.
     - **Step 2: "Find in Plan" Visuals (Highlighting)**
-      - [ ] **[NEW] `crates/tasklens-ui/assets/animations.css`**: (Or inside
-            `tailwind.css` layer):
-        - [ ] Define `@keyframes flash-yellow` (yellow background fading to
-              transparent).
-        - [ ] Define utility class `.animate-flash`.
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_row.rs`**:
-        - [ ] Accept `is_highlighted: bool` prop.
-        - [ ] Apply `.animate-flash` class if true.
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
-        - [ ] Track `highlighted_task_id: Signal<Option<TaskID>>`.
-        - [ ] Pass `is_highlighted` to `TaskRow` logic.
-        - [ ] In `expose_task` (Find in Plan logic), set `highlighted_task_id`
-              along with expansion.
-        - [ ] Use `gloo_timers` to clear `highlighted_task_id` after 2-3
-              seconds.
-    - **Step 3: Playwright Workaround Removal**
-      - [ ] **[MODIFY] `crates/tasklens-ui/tests/e2e/fixtures.ts`** (or relevant
-            Step Definitions):
-        - [ ] Remove the manual `toggleExpand` call in "I create a subtask..."
-              steps.
-        - [ ] Rely on the application's native behavior to reveal the new child.
-    - **Step 4: Enable BDD Scenarios**
-      - [ ] **[MODIFY]
+      - [x] **[MODIFY] `crates/tasklens-ui/tailwind.css`**:
+        - [x] Add `@keyframes flash-yellow` and `@utility animate-flash`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/components/task_row.rs`**:
+        - [x] Add `is_highlighted` prop and apply `animate-flash` class.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/views/plan_page.rs`**:
+        - [x] Implement signal-based highlighting with `gloo-timers` auto-clear.
+    - **Step 3: Test Cleanup**
+      - [x] **[MODIFY] `crates/tasklens-ui/tests/e2e/pages/plan-page.ts`**:
+        - [x] Remove manual `toggleExpand` workaround.
+      - [x] **[MODIFY]
             `crates/tasklens-ui/tests/e2e/features/plan-management.feature`**:
-        - [ ] Remove `@migration-pending` from "Find in Plan from Do view".
-        - [ ] Remove `@migration-pending` from "Persist data across reloads".
+        - [x] Remove `@migration-pending` tags.
   - **Verification**:
-    - [ ] **[VERIFY]**: "Find in Plan" from Do View:
-      - [ ] Navigates to Plan View.
-      - [ ] Expands hierarchy to show task.
-      - [ ] Scrolls task into view.
-      - [ ] **Flashes task row yellow**.
-    - [ ] **[VERIFY]**: Creating a child task:
-      - [ ] Automatically expands the parent.
-      - [ ] Shows the new child immediately.
-    - [ ] **[VERIFY]**: Run `pnpm test-e2e` (All `plan-management` scenarios
-          pass).
+    - [x] "Find in Plan" from Do View navigates, expands, and highlights.
+    - [x] Creating a child task auto-expands the parent.
+    - [x] All `plan-management.feature` scenarios pass.
 
 - [ ] **Milestone 3.7: Task Movement & Reordering**.
   - **Goal**: Enable `task-moving.feature`.

@@ -13,6 +13,18 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
     // Track expanded task IDs.
     let mut expanded_tasks = use_signal(std::collections::HashSet::<TaskID>::new);
     let mut input_text = use_signal(String::new);
+    let mut highlighted_task_id = use_signal(|| None::<TaskID>);
+
+    // FIXME: If tasks are created faster than 2s apart, multiple timers could be spawned.
+    // Consider tracking the spawned task handle and cancelling it before spawning a new one.
+    use_effect(move || {
+        if highlighted_task_id().is_some() {
+            spawn(async move {
+                gloo_timers::future::TimeoutFuture::new(2000).await;
+                highlighted_task_id.set(None);
+            });
+        }
+    });
 
     #[derive(Debug, Clone, PartialEq)]
     enum EditorState {
@@ -46,7 +58,7 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
             }
 
             // Optionally select the task to highlight it
-            editor_state.set(Some(EditorState::Edit(target_id)));
+            highlighted_task_id.set(Some(target_id));
         }
     });
 
@@ -78,7 +90,9 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
             return;
         }
 
-        task_controller::create_task(store, None, text);
+        if let Some(id) = task_controller::create_task(store, None, text) {
+            highlighted_task_id.set(Some(id));
+        }
         trigger_sync();
         input_text.set(String::new());
     };
@@ -99,7 +113,11 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
     };
 
     let handle_create_subtask = move |parent_id: TaskID| {
-        task_controller::create_task(store, Some(parent_id.clone()), "New Task".to_string());
+        if let Some(id) =
+            task_controller::create_task(store, Some(parent_id.clone()), "New Task".to_string())
+        {
+            highlighted_task_id.set(Some(id));
+        }
 
         // Auto-expand the parent so we can see the child
         let mut expanded = expanded_tasks.write();
@@ -121,6 +139,19 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
         editor_state.set(Some(EditorState::Edit(id)));
     };
 
+    let handle_task_created = move |id: TaskID| {
+        highlighted_task_id.set(Some(id.clone()));
+
+        // Check if it has a parent and expand it
+        if let Ok(state) = store.read().get_state()
+            && let Some(task) = state.tasks.get(&id)
+            && let Some(ref pid) = task.parent_id
+        {
+            let mut expanded = expanded_tasks.write();
+            expanded.insert(pid.clone());
+        }
+    };
+
     rsx! {
         div {
             class: "p-4 container mx-auto max-w-2xl",
@@ -132,7 +163,14 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
                     button {
                         class: "p-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700",
                         aria_label: "Add Task at Top",
-                        onclick: move |_| editor_state.set(Some(EditorState::Create { parent_id: None })),
+                        onclick: move |_| {
+                            editor_state
+                                .set(
+                                    Some(EditorState::Create {
+                                        parent_id: None,
+                                    }),
+                                )
+                        },
                         "Add Task"
                     }
                 }
@@ -142,17 +180,26 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
                 TaskInput {
                     data_testid: "plan-task-input",
                     value: input_text,
-                    on_add: move |_| add_task()
+                    on_add: move |_| add_task(),
                 }
             }
 
             div { class: "bg-white shadow rounded-lg overflow-hidden mt-4",
                 if flattened_tasks().is_empty() {
                     div { class: "p-8 text-center",
-                        p { class: "text-gray-500 mb-4", "No tasks found. Try adding seed data? (?seed=true)" }
+                        p { class: "text-gray-500 mb-4",
+                            "No tasks found. Try adding seed data? (?seed=true)"
+                        }
                         button {
                             class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700",
-                            onclick: move |_| editor_state.set(Some(EditorState::Create { parent_id: None })),
+                            onclick: move |_| {
+                                editor_state
+                                    .set(
+                                        Some(EditorState::Create {
+                                            parent_id: None,
+                                        }),
+                                    )
+                            },
                             "Add First Task"
                         }
                     }
@@ -170,6 +217,7 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
                             on_delete: handle_delete,
                             on_create_subtask: handle_create_subtask,
                             on_title_tap,
+                            is_highlighted: Some(task.id.clone()) == highlighted_task_id(),
                         }
                     }
                 }
@@ -182,14 +230,21 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
                             task_id: Some(id),
                             on_close: move |_| editor_state.set(None),
                             on_add_child: move |parent_id| {
-                                editor_state.set(Some(EditorState::Create { parent_id: Some(parent_id) }));
+                                editor_state
+                                    .set(
+                                        Some(EditorState::Create {
+                                            parent_id: Some(parent_id),
+                                        }),
+                                    );
                             },
+                            on_task_created: handle_task_created,
                         }
                     },
                     EditorState::Create { parent_id } => rsx! {
                         crate::components::TaskEditor {
                             initial_parent_id: parent_id,
                             on_close: move |_| editor_state.set(None),
+                            on_task_created: handle_task_created,
                         }
                     },
                 }

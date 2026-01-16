@@ -93,13 +93,15 @@ pub fn DoPage() -> Element {
                             on_close: move |_| editor_state.set(None),
                             on_add_child: move |parent_id| {
                                 editor_state.set(Some(EditorState::Create { parent_id: Some(parent_id) }));
-                            }
+                            },
+                            on_task_created: None,
                         }
                     },
                     EditorState::Create { parent_id } => rsx! {
                         crate::components::TaskEditor {
                             initial_parent_id: parent_id,
                             on_close: move |_| editor_state.set(None),
+                            on_task_created: None,
                         }
                     }
                 }

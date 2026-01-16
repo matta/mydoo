@@ -14,6 +14,7 @@ pub fn TaskRow(
     on_delete: EventHandler<TaskID>,
     on_create_subtask: EventHandler<TaskID>,
     on_title_tap: EventHandler<TaskID>,
+    #[props(default = false)] is_highlighted: bool,
 ) -> Element {
     let indentation = depth * 20;
     let is_done = task.status == TaskStatus::Done;
@@ -31,6 +32,7 @@ pub fn TaskRow(
     rsx! {
         div {
             class: "flex items-center py-2 border-b border-gray-100 hover:bg-gray-50 group pr-2",
+            class: if is_highlighted { "animate-flash" } else { "" },
             style: "padding-left: {indentation}px",
             "data-testid": "task-item",
 

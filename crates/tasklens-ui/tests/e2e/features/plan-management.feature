@@ -17,7 +17,6 @@ Feature: Plan Management
         Then I should see "Research Requirements" visible
         And I should see "Design UI Mocks" visible
 
-    @migration-pending
     Scenario: Find in Plan from Do view
         When I switch to Do view
         Then I should see "Research Requirements" visible
@@ -44,7 +43,7 @@ Feature: Plan Management
         Then I should not see "Parent Task" visible
         And I should not see "Child Task" visible
 
-    @plan-management @migration-pending
+
     Scenario: Persist data across reloads
         When I create a task "Persistent Task"
         And I reload the page

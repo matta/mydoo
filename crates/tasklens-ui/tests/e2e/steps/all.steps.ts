@@ -169,11 +169,8 @@ Then("I should see {string} in the Plan view", async ({ plan }, title) => {
 });
 
 Then("I should be in Plan view", async ({ page }) => {
-  // Verify Plan view is active by checking for a unique element (Collapse All button)
-  // Checking tab attribute proved brittle or timing-dependent.
-  await expect(
-    page.getByRole("button", { name: "Collapse All" }),
-  ).toBeVisible();
+  // Verify Plan view is active by checking for the "Plan" heading
+  await expect(page.getByRole("heading", { name: "Plan" })).toBeVisible();
 });
 
 Given(
@@ -198,11 +195,6 @@ Given("I have a task {string}", async ({ plan }, title) => {
 Given(
   "I have a task {string} as a child of {string}",
   async ({ plan }, child, parent) => {
-    try {
-      await plan.toggleExpand(parent, true);
-    } catch {
-      // Parent might not be expandable yet
-    }
     await plan.openTaskEditor(parent);
     await plan.addChild(child);
   },

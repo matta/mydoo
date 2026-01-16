@@ -63,10 +63,13 @@ impl AppStore {
         let mut state: TunnelState = self.get_state()?;
 
         match action {
-            Action::CreateTask { parent_id, title } => {
+            Action::CreateTask {
+                id,
+                parent_id,
+                title,
+            } => {
                 let parent = parent_id.as_ref().and_then(|pid| state.tasks.get(pid));
-                let task = tasklens_core::create_new_task(title, parent);
-                let id = task.id.clone();
+                let task = tasklens_core::create_new_task(id.clone(), title, parent);
                 state.tasks.insert(id.clone(), task);
                 if let Some(pid) = parent_id
                     && let Some(parent) = state.tasks.get_mut(&pid)
@@ -219,6 +222,8 @@ impl Default for AppStore {
 
 #[cfg(test)]
 mod tests {
+    use tasklens_core::TaskID;
+
     use super::*;
 
     #[test]
@@ -237,6 +242,7 @@ mod tests {
 
         store
             .dispatch(Action::CreateTask {
+                id: TaskID::new(),
                 parent_id: None,
                 title: "Test Task".to_string(),
             })
@@ -256,6 +262,7 @@ mod tests {
 
         store
             .dispatch(Action::CreateTask {
+                id: TaskID::new(),
                 parent_id: None,
                 title: "Original".to_string(),
             })
@@ -287,6 +294,7 @@ mod tests {
 
         store
             .dispatch(Action::CreateTask {
+                id: TaskID::new(),
                 parent_id: None,
                 title: "To Delete".to_string(),
             })
@@ -309,6 +317,7 @@ mod tests {
 
         store
             .dispatch(Action::CreateTask {
+                id: TaskID::new(),
                 parent_id: None,
                 title: "To Complete".to_string(),
             })
@@ -334,6 +343,7 @@ mod tests {
         // Create Parent
         store
             .dispatch(Action::CreateTask {
+                id: TaskID::new(),
                 parent_id: None,
                 title: "Parent".to_string(),
             })
@@ -343,6 +353,7 @@ mod tests {
         // Create Child as root task initially
         store
             .dispatch(Action::CreateTask {
+                id: TaskID::new(),
                 parent_id: None,
                 title: "Child".to_string(),
             })
@@ -383,6 +394,7 @@ mod tests {
         // Create a Done task
         store
             .dispatch(Action::CreateTask {
+                id: TaskID::new(),
                 parent_id: None,
                 title: "To Acknowledge".to_string(),
             })
@@ -415,6 +427,7 @@ mod tests {
         // Create a Routinely task and complete it
         store
             .dispatch(Action::CreateTask {
+                id: TaskID::new(),
                 parent_id: None,
                 title: "Routine".to_string(),
             })

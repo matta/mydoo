@@ -63,7 +63,13 @@
   body {
     overscroll-behavior-y: none;
     min-height: 100vh;
-    min-height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  }
+
+  @supports (min-height: 100dvh) {
+    html,
+    body {
+      min-height: 100dvh; /* Dynamic viewport height for mobile browsers */
+    }
   }
 
   body {
@@ -88,4 +94,19 @@
       -webkit-user-select: none;
     }
   }
+}
+@keyframes flash-yellow {
+  0% {
+    background-color: transparent;
+  }
+  15% {
+    background-color: #fef08a; /* yellow-200 */
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@utility animate-flash {
+  animation: flash-yellow 2s ease-out;
 }

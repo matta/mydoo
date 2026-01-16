@@ -726,10 +726,7 @@ fn apply_task_input(
     } else {
         // Create new using domain logic
         let parent_ref = parent_id.as_ref().and_then(|pid| state.tasks.get(pid));
-        let mut task = tasklens_core::create_new_task(String::new(), parent_ref);
-
-        // Override with test harness specifics
-        task.id = task_id.clone();
+        let mut task = tasklens_core::create_new_task(task_id.clone(), String::new(), parent_ref);
 
         // Compliance tests assume creation at `current_time`
         task.credits_timestamp = current_time;

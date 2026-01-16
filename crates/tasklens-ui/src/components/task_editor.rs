@@ -45,6 +45,7 @@ pub fn TaskEditor(
     initial_parent_id: Option<TaskID>,
     on_close: EventHandler<()>,
     on_add_child: Option<EventHandler<TaskID>>,
+    on_task_created: Option<EventHandler<TaskID>>,
 ) -> Element {
     let store = use_context::<Signal<AppStore>>();
     let mut draft = use_signal(|| None::<DraftTask>);
@@ -130,11 +131,26 @@ pub fn TaskEditor(
                         repeat_config: Some(d.repeat_config),
                     },
                 });
-            } else {
-                // Create
-                let _ = store.write().dispatch(Action::CreateTask {
-                    parent_id: initial_parent_id.clone(),
-                    title: d.title,
+            } else if let Some(id) = crate::controllers::task_controller::create_task(
+                store,
+                initial_parent_id.clone(),
+                d.title.clone(),
+            ) {
+                if let Some(handler) = on_task_created.as_ref() {
+                    handler.call(id.clone());
+                }
+                // After creation, update with other draft fields
+                let _ = store.write().dispatch(Action::UpdateTask {
+                    id,
+                    updates: TaskUpdates {
+                        title: Some(d.title),
+                        status: Some(d.status),
+                        place_id: Some(d.place_id),
+                        due_date: Some(d.schedule.due_date),
+                        schedule_type: Some(d.schedule.schedule_type),
+                        lead_time: Some(d.schedule.lead_time),
+                        repeat_config: Some(d.repeat_config),
+                    },
                 });
             }
             on_close.call(());

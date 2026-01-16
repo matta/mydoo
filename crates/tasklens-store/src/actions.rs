@@ -4,6 +4,7 @@ use tasklens_core::types::{PlaceID, TaskID, TaskStatus};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Action {
     CreateTask {
+        id: TaskID,
         parent_id: Option<TaskID>,
         title: String,
     },

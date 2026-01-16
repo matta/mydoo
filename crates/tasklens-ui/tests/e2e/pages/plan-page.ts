@@ -174,12 +174,7 @@ export class PlanPage implements PlanFixture {
 
   async addChild(title: string): Promise<void> {
     const editModal = this.page.getByRole("dialog", { name: "Edit Task" });
-    let parentTitle: string | undefined;
-
     if (await editModal.isVisible()) {
-      parentTitle = await editModal
-        .getByRole("textbox", { name: "Title" })
-        .inputValue();
       await editModal.getByRole("button", { name: "Add Child" }).click();
     } else {
       // Fallback: If no editor, we'd need the parent title passed in.
@@ -197,13 +192,6 @@ export class PlanPage implements PlanFixture {
     await createModal.getByRole("button", { name: "Create Task" }).click();
     await expect(createModal).not.toBeVisible();
     await this.waitForAppReady();
-
-    // Ensure parent is expanded so child is rendered
-    // FIXME: This is a WORKAROUND. The UI should auto-expand on child creation.
-    // Once implemented, remove this manual expansion block.
-    if (parentTitle) {
-      await this.toggleExpand(parentTitle, true);
-    }
 
     const child = this.page.getByText(title, { exact: true }).first();
     await expect(child).toBeVisible();

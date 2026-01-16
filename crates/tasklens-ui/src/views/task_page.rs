@@ -66,11 +66,7 @@ pub fn TaskPage() -> Element {
             return;
         }
 
-        if let Err(e) = store.write().dispatch(Action::CreateTask {
-            parent_id: None,
-            title: text.clone(),
-        }) {
-            tracing::error!("Failed to create task: {:?}", e);
+        if crate::controllers::task_controller::create_task(store, None, text.clone()).is_none() {
             return;
         }
 
