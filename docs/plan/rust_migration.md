@@ -907,25 +907,95 @@ _Goal: Porting UI components to match functionality._
     - [x] **[VERIFY]**: Cycle detection: Cannot move a task to its own
           descendant (descendants hidden in Move Picker).
 
-- [ ] **Milestone 3.8: Due Dates & Timing**.
-  - **Goal**: Enable `due-dates.feature`.
-  - **Key Feature**: Date picker integration and Due Date inheritance.
-  - **Details**:
-    - Finalize `DatePicker` component.
-    - Implement `Action::UpdateTask` support for due dates.
-    - Visualize due/overdue states in Plan and Do views.
-    - Add Lead Time input to Task Editor for Routine tasks (currently defaults
-      to 8 hours).
+- [ ] **Milestone 3.8: Due Dates & Urgency**.
+  - **Goal**: Enable `due-dates.feature` and basic `task-creation.feature`.
+  - **Key Feature**: Date picker integration, "Due Date" schedule type, and
+    Urgency visualization.
+  - **Implementation Details**:
+    - **Step 1: Component Installation**
+      - [ ] **[CMD]**: `dx components add date-picker`.
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/mod.rs`**: Export
+            `date_picker`.
+    - **Step 2: Task Editor Integration (Due Dates)**
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
+        - [ ] Replace placeholder `DatePicker` with real component.
+        - [ ] Implement `f64` (timestamp) <-> `String` (YYYY-MM-DD) conversion
+              for `due_date`.
+        - [ ] Add "Lead Time" input (number + unit).
+        - [ ] Bind to `draft.schedule.due` and `draft.schedule.lead_time`.
+        - [ ] Ensure `schedule.type` defaults to `Once` (or `DueDate` if date
+              set).
+    - **Step 3: Visual Feedback (Plan View)**
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_row.rs`**:
+        - [ ] Import `tasklens_core::domain::dates::get_urgency_status`.
+        - [ ] Check `task.schedule.due_date` and compute urgency relative to
+              `Context::now()`.
+        - [ ] Render Due Date badge/text if present.
+        - [ ] Apply "text-red-600" if Overdue `UrgencyStatus::Overdue`.
+        - [ ] Apply "text-orange-500" if `UrgencyStatus::DueSoon` or `Active`.
+    - **Step 4: Enable BDD Tests**
+      - [ ] **[MODIFY]
+            `crates/tasklens-ui/tests/e2e/features/due-dates.feature`**:
+        - [ ] Remove `@migration-pending` tag.
+  - **Verification**:
+    - [ ] **[VERIFY]**: Run
+          `pnpm --filter @mydoo/tasklens-ui test-e2e -g "due-dates"`.
+    - [ ] **[VERIFY]**: Manual: Create task with Due Date "Tomorrow", Lead Time
+          "2 days". Verify "Active" status (Orange).
+    - [ ] **[VERIFY]**: Manual: Check Do View for proper color coding of
+          Urgent/Overdue tasks.
 
-- [ ] **Milestone 3.9: Sequential Projects**.
+- [ ] **Milestone 3.9: Routine Tasks Configuration**.
+  - **Goal**: Enable routine task creation and management.
+  - **Key Feature**: "Routinely" schedule type, Period configuration, and "Last
+    Done" updates.
+  - **Implementation Details**:
+    - **Step 1: Task Editor Integration (Routines)**
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
+        - [ ] Add `Select` for `schedule.type` options: `Once`, `Routinely`,
+              `DueDate`.
+        - [ ] **Conditional Rendering**: If `type == 'Routinely'`:
+          - [ ] Show "Every" input (number) and "Unit" select
+                (Days/Weeks/Months).
+          - [ ] Bind to `draft.schedule.period` (convert unit to ms).
+    - **Step 2: Logic & defaults**
+      - [ ] **[MODIFY]
+            `crates/tasklens-ui/src/controllers/task_controller.rs`**:
+        - [ ] Ensure `create_task` handles `Routinely` defaults (e.g.
+              `last_done = None`).
+    - **Step 3: Verification**
+      - [ ] **[VERIFY]**: Create a helper/test for creating a Routine task and
+            verifying its `period` persistence.
+  - **Verification**:
+    - [ ] **[VERIFY]**: Manual: Create "Clean Desk", set "Routinely" every 3
+          days. Save & Refresh. Verify persistence.
+
+- [ ] **Milestone 3.10: Sequential Projects**.
   - **Goal**: Enable `sequential-projects.feature`.
-  - **Key Feature**: Dependency blocking.
-  - **Details**:
-    - Implement "Project" vs "Parallel" vs "Sequential" modes for tasks.
-    - Ensure sequential tasks block their siblings in the "Do" view (only the
-      first child is actionable).
+  - **Key Feature**: Sequential task execution (blocking siblings).
+  - **Implementation Details**:
+    - **Step 1: Store Support**
+      - [ ] **[MODIFY] `crates/tasklens-store/src/actions.rs`**: Add
+            `is_sequential: Option<bool>` to `TaskUpdates` struct.
+      - [ ] **[MODIFY] `crates/tasklens-store/src/store.rs`**: Handle
+            `is_sequential` in `Action::UpdateTask`.
+    - **Step 2: Task Editor UI**
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
+        - [ ] Add a checkbox/toggle for "Sequential Project" (aka "Do steps in
+              order").
+        - [ ] Ensure it binds to `draft.is_sequential`.
+    - **Step 3: Verification**
+      - [ ] **[MODIFY]
+            `crates/tasklens-ui/tests/e2e/features/sequential-projects.feature`**:
+            Remove `@migration-pending` tag.
+  - **Verification**:
+    - [ ] **[VERIFY]**: Run
+          `pnpm --filter @mydoo/tasklens-ui test-e2e -g "sequential-projects"`.
+    - [ ] **[VERIFY]**: Manual: Create parent "Project S". Toggle "Sequential".
+          Add Child A, Child B. Verify only A is visible in Do view. Complete A.
+          Verify B appears.
 
-- [ ] **Milestone 3.10: Mobile Journeys & Context Switching**.
+- [ ] **Milestone 3.11: Mobile Journeys & Context Switching**.
   - **Goal**: Enable `mobile-journeys.feature` and `document-switching.feature`.
   - **Key Features**: Mobile-specific UI (sheets/drawers) and Multi-doc support.
   - **Details**:

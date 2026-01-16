@@ -1034,3 +1034,20 @@ UI rendered on the server.
   client has the data immediately for its first render.
 - Any code that relies on browser-specific APIs (like accessing `localStorage`)
   must be run _after_ hydration. Place this code inside a `use_effect` hook.
+
+## UI Component & Layout Robustness
+
+- **Unconstrained Dialogs Cause Occlusion**: Reusable components like `Dialog`
+  MUST explicitly handle viewport overflow. Relying on default behavior causes
+  content to become unclickable (off-screen) when new features increase
+  component height, especially in constrained test viewports (e.g., 1280x720).
+  - _Symptom_: Playwright fails to click a button because it is "occluded" or
+    outside the viewport, erroneously suggesting a visibility race condition.
+  - _Fix_: Apply `max-height: 90vh` and `overflow-y: auto` to the dialog
+    container.
+- **Responsive Toolbar Wrapping**: Toolbars with multiple actions (e.g., Task
+  Editor footer) MUST use `flex-wrap` or responsive direction switching
+  (`flex-col` on mobile) to avoid button occlusion.
+  - _Symptom_: Buttons are reachable on Desktop but unclickable/hidden on Mobile
+    viewports, causing split-brain test failures.
+  - _Fix_: Use `flex-col sm:flex-row` pattern for dense action bars.
