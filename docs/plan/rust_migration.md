@@ -819,9 +819,94 @@ _Goal: Porting UI components to match functionality._
 
 - [ ] **Milestone 3.7: Task Movement & Reordering**.
   - **Goal**: Enable `task-moving.feature`.
-  - **Key Feature**: Drag-and-drop or keyboard-based reordering in Plan view.
-  - **Details**: Implement `Action::MoveTask` logic and UI controls to reparent
-    or reorder tasks within the tree.
+  - **Key Feature**: Move Picker dialog with cycle detection, Indent/Outdent
+    buttons in Task Editor.
+  - **PRD Reference**: §5.5 "Task Editing (Details Modal)" - Hierarchy Controls.
+  - **Implementation Details**:
+    - **Step 1: Domain Helpers (Cycle Detection)**
+      - [ ] **[NEW] `crates/tasklens-core/src/domain/hierarchy.rs`**:
+        - [ ] Implement
+              `get_descendant_ids(state: &TunnelState, task_id: &TaskID)     -> HashSet<TaskID>`.
+          - Recursively collects all descendant IDs of a given task.
+          - Used to filter out invalid move targets in the Move Picker.
+        - [ ] Implement
+              `get_ancestor_ids(state: &TunnelState, task_id: &TaskID)     -> Vec<TaskID>`.
+          - Collects all ancestor IDs up to the root.
+        - [ ] Implement
+              `get_previous_sibling(state: &TunnelState, task_id:     &TaskID) -> Option<TaskID>`.
+          - Returns the previous sibling in the parent's `child_task_ids` list.
+          - Used for Indent operation (move as child of previous sibling).
+      - [ ] **[MODIFY] `crates/tasklens-core/src/domain/mod.rs`**: Export
+            `hierarchy` module.
+
+    - **Step 2: Controller Actions**
+      - [ ] **[MODIFY]
+            `crates/tasklens-ui/src/controllers/task_controller.rs`**:
+        - [ ] Implement
+              `move_task(store: &mut Signal<AppStore>, task_id: TaskID,     new_parent_id: Option<TaskID>)`.
+          - Wrapper around `store.write().dispatch(Action::MoveTask { ... })`.
+        - [ ] Implement
+              `indent_task(store: &mut Signal<AppStore>, task_id:     TaskID)`.
+          - Get previous sibling via `get_previous_sibling`.
+          - If exists, call `move_task` with
+            `new_parent_id = Some(previous_sibling)`.
+        - [ ] Implement
+              `outdent_task(store: &mut Signal<AppStore>, task_id:     TaskID)`.
+          - Get parent's parent ID.
+          - If exists, call `move_task` with `new_parent_id = grandparent_id`.
+          - If parent is a root, call `move_task` with `new_parent_id = None`.
+
+    - **Step 3: Move Picker Component**
+      - [ ] **[NEW] `crates/tasklens-ui/src/components/move_picker.rs`**:
+        - [ ] Create `MovePicker` component.
+        - [ ] **Props**:
+          - `task_id: TaskID` (The task being moved).
+          - `on_select: EventHandler<Option<TaskID>>` (Selected new parent, None
+            = root).
+          - `on_close: EventHandler<()>`.
+        - [ ] **State**:
+          - Access `AppStore` via `use_context`.
+          - Compute `excluded_ids: HashSet<TaskID>` containing:
+            - The task itself.
+            - All descendants (via `get_descendant_ids`).
+        - [ ] **Render**:
+          - Wrap in `DialogRoot` / `DialogContent`.
+          - `DialogTitle`: "Move \"[task.title]\"".
+          - Body: Render flat tree of all tasks (roots + nested), excluding
+            `excluded_ids`.
+          - Each row: Task title, click handler calls `on_select(task_id)`.
+          - "Make Root Task" button at top: calls `on_select(None)`.
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/mod.rs`**: Export
+            `move_picker`.
+
+    - **Step 4: Task Editor Integration**
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
+        - [ ] Add state: `show_move_picker: Signal<bool>`.
+        - [ ] Add "Move..." button in Edit Mode (next to "Find in Plan").
+        - [ ] On click: Set `show_move_picker(true)`.
+        - [ ] Render `MovePicker` conditionally when `show_move_picker`.
+        - [ ] On select:
+          1. Call `task_controller::move_task`.
+          2. Set `show_move_picker(false)`.
+          3. Close editor.
+        - [ ] Add "← Outdent" button (visible if task has a parent).
+        - [ ] Add "Indent →" button (visible if task has a previous sibling).
+        - [ ] Wire buttons to `task_controller::indent_task` / `outdent_task`.
+
+    - **Step 5: Enable BDD Tests**
+      - [ ] **[MODIFY]
+            `crates/tasklens-ui/tests/e2e/features/task-moving.feature`**:
+        - [ ] Remove `@migration-pending` tag.
+
+  - **Verification**:
+    - [ ] **[VERIFY]**: Run
+          `pnpm --filter @mydoo/tasklens-ui test-e2e -g     "task-moving"` and
+          ensure all scenarios pass.
+    - [ ] **[VERIFY]**: Manual test: Open Task Editor, click "Move...", select a
+          new parent, verify task is reparented.
+    - [ ] **[VERIFY]**: Manual test: Indent/Outdent buttons work correctly.
+    - [ ] **[VERIFY]**: Cycle detection: Cannot move a task to its own
+          descendant (descendants hidden in Move Picker).
 
 - [ ] **Milestone 3.8: Due Dates & Timing**.
   - **Goal**: Enable `due-dates.feature`.
@@ -910,6 +995,6 @@ in their respective environments.
 
 ## Next Steps
 
-1.  Implement **Milestone 3.1**: Task List & Inspection.
-2.  Begin un-tagging features from `@migration-pending` as implementation
+1.  Implement **Milestone 3.7**: Task Movement & Reordering.
+2.  Continue un-tagging features from `@migration-pending` as implementation
     progresses.
