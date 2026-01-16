@@ -9,11 +9,14 @@ use tasklens_core::types::TaskID;
 pub enum Route {
     #[layout(AppNavBar)]
     #[route("/")]
-    #[redirect("/", || Route::PlanPage { focus_task: None })]
+    #[redirect("/", || Route::PlanPage { focus_task: None, seed: None })]
     Home {},
 
-    #[route("/plan?:focus_task")]
-    PlanPage { focus_task: Option<TaskID> },
+    #[route("/plan?:focus_task&:seed")]
+    PlanPage {
+        focus_task: Option<TaskID>,
+        seed: Option<bool>,
+    },
 
     #[route("/do")]
     DoPage {},

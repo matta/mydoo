@@ -15,12 +15,11 @@ use tasklens_store::store::AppStore;
 /// `TaskPage` allows the user to view, add, and toggle tasks. It also:
 /// - Manages the local `AppStore` state.
 /// - Handles hydration from persistent storage (IndexedDB).
-/// - Orchestrates the background synchronization task `sync_task`.
+/// - Orchestrates the background synchronization task.
 /// - Integrates the `SettingsModal` for identity management.
 #[component]
 pub fn TaskPage() -> Element {
-    let master_key = use_context::<Signal<Option<[u8; 32]>>>();
-    let mut doc_id = use_context::<Signal<Option<String>>>();
+    let mut doc_id = use_context::<Signal<Option<tasklens_store::doc_id::DocumentId>>>();
     let service_worker_active = use_context::<Signal<bool>>(); // Assuming bool not ReadSignal for context simplicity, or ReadSignal
     let mut store = use_context::<Signal<AppStore>>();
 
@@ -38,12 +37,11 @@ pub fn TaskPage() -> Element {
 
     let mut save_and_sync = move || {
         let changes_opt = store.write().get_recent_changes();
-        let bytes = store.write().export_save(); // Full save for persistence
 
         // 1. Persist
-        let current_doc_id = doc_id().expect("doc_id should be set");
+        let mut s_clone = store.read().clone();
         spawn(async move {
-            if let Err(e) = AppStore::save_to_db(&current_doc_id, bytes).await {
+            if let Err(e) = s_clone.save_to_db().await {
                 tracing::error!("Failed to save: {:?}", e);
             }
         });
@@ -53,7 +51,7 @@ pub fn TaskPage() -> Element {
         // Actually, if we lift sync_task, we need to pass the coroutine handle down or expose it via context.
         // OR, better: the store logic itself could handle it? No, store is pure.
         // The sync loop needs to know when local changes happen.
-        // In the original code, `sync_task.send(change)` was called.
+        // In the original code, `sync_tx.send(change)` was called.
         // We can expose `Coroutine<Vec<u8>>` via context.
 
         if let Some(change) = changes_opt {
@@ -115,32 +113,40 @@ pub fn TaskPage() -> Element {
         t
     };
 
-    let handle_doc_change = move |new_doc_id: String| {
-        tracing::info!("Document ID changed to: {}", &new_doc_id[..8]);
-
-        // Update the doc_id signal
-        doc_id.set(Some(new_doc_id.clone()));
-
-        // Reload store from new document
+    let handle_doc_change = move |new_doc_id: tasklens_store::doc_id::DocumentId| {
+        tracing::info!("Attempting to switch to Document ID: {}", new_doc_id);
         spawn(async move {
+            // 1. Load without lock
             match AppStore::load_from_db(&new_doc_id).await {
                 Ok(Some(bytes)) => {
-                    tracing::info!("Loaded {} bytes for new document", bytes.len());
-                    let mut new_store = AppStore::new();
-                    new_store.load_from_bytes(bytes);
-                    store.set(new_store);
-                }
-                Ok(None) => {
-                    tracing::info!("No data for new document, initializing empty store");
-                    let mut new_store = AppStore::new();
-                    if let Err(e) = new_store.init() {
-                        tracing::error!("Failed to initialize new store: {:?}", e);
+                    // 2. Update with lock
+                    {
+                        let mut s = store.write();
+                        s.current_id = new_doc_id.clone();
+                        s.load_from_bytes(bytes);
                     }
-                    store.set(new_store);
+                    // 3. Side effects
+                    AppStore::save_active_doc_id(&new_doc_id);
+
+                    tracing::info!("Switch successful");
+                    doc_id.set(Some(new_doc_id));
                 }
-                Err(e) => {
-                    tracing::error!("Failed to load new document: {:?}", e);
+                Ok(None) => tracing::error!("Doc not found: {}", new_doc_id),
+                Err(e) => tracing::error!("Switch failed: {:?}", e),
+            }
+        });
+    };
+
+    let handle_create_doc = move |_| {
+        tracing::info!("Creating new document");
+        spawn(async move {
+            let mut s = store.write();
+            match s.create_new() {
+                Ok(new_id) => {
+                    tracing::info!("Created new doc successfully: {}", new_id);
+                    doc_id.set(Some(new_id));
                 }
+                Err(e) => tracing::error!("Failed to create doc: {:?}", e),
             }
         });
     };
@@ -148,10 +154,10 @@ pub fn TaskPage() -> Element {
     rsx! {
         if show_settings() {
             SettingsModal {
-                master_key,
                 on_close: move |_| show_settings.set(false),
                 doc_id: doc_id,
                 on_doc_change: handle_doc_change,
+                on_create_doc: handle_create_doc,
             }
         }
 
@@ -159,7 +165,6 @@ pub fn TaskPage() -> Element {
             class: "container mx-auto max-w-md p-4",
             style: "padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
             Header {
-                master_key_present: master_key().is_some(),
                 service_worker_active: service_worker_active(),
                 on_settings_click: move |_| show_settings.set(true),
             }
@@ -174,21 +179,9 @@ pub fn TaskPage() -> Element {
 }
 
 #[component]
-fn Header(
-    master_key_present: bool,
-    service_worker_active: bool,
-    on_settings_click: EventHandler<()>,
-) -> Element {
-    let indicator_color = if master_key_present {
-        "bg-green-500"
-    } else {
-        "bg-gray-300"
-    };
-    let indicator_title = if master_key_present {
-        "Sync Active"
-    } else {
-        "Local Only"
-    };
+fn Header(service_worker_active: bool, on_settings_click: EventHandler<()>) -> Element {
+    let indicator_color = "bg-green-500";
+    let indicator_title = "Sync Active";
     let indicator_class = format!("h-3 w-3 rounded-full {} mr-2", indicator_color);
 
     rsx! {

@@ -9,7 +9,6 @@ pub mod checkbox;
 pub mod input;
 
 pub use alert::{Alert, AlertVariant};
-pub use back_button::BackButton;
 pub use button::{Button, ButtonVariant};
 pub use checkbox::Checkbox;
 pub use input::Input;

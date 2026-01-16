@@ -58,7 +58,7 @@ pub fn TaskEditor(
         if let Some(ref id) = task_id {
             let store_read = store.read();
             let task_ref = store_read
-                .get_state()
+                .hydrate::<tasklens_core::types::TunnelState>()
                 .ok()
                 .and_then(|s| s.tasks.get(id).cloned());
             if let Some(task) = task_ref {
@@ -70,7 +70,7 @@ pub fn TaskEditor(
             let store_read = store.read();
             let (place_id, credit_increment) = if let Some(p_id) = parent_id {
                 let parent = store_read
-                    .get_state()
+                    .hydrate::<tasklens_core::types::TunnelState>()
                     .ok()
                     .and_then(|s| s.tasks.get(p_id).cloned());
                 if let Some(p) = parent {
@@ -112,7 +112,10 @@ pub fn TaskEditor(
 
     let mut show_move_picker = use_signal(|| false);
 
-    let can_outdent = if let (Some(id), Ok(state)) = (task_id.as_ref(), store.read().get_state()) {
+    let can_outdent = if let (Some(id), Ok(state)) = (
+        task_id.as_ref(),
+        store.read().hydrate::<tasklens_core::types::TunnelState>(),
+    ) {
         state
             .tasks
             .get(id)
@@ -122,7 +125,10 @@ pub fn TaskEditor(
         false
     };
 
-    let can_indent = if let (Some(id), Ok(state)) = (task_id.as_ref(), store.read().get_state()) {
+    let can_indent = if let (Some(id), Ok(state)) = (
+        task_id.as_ref(),
+        store.read().hydrate::<tasklens_core::types::TunnelState>(),
+    ) {
         tasklens_core::domain::hierarchy::get_previous_sibling(&state, id).is_some()
     } else {
         false
@@ -213,6 +219,7 @@ pub fn TaskEditor(
                                 let nav = navigator();
                                 nav.push(crate::router::Route::PlanPage {
                                     focus_task: Some(id.clone()),
+                                    seed: None,
                                 });
                                 on_close.call(());
                             },
@@ -302,7 +309,7 @@ pub fn TaskEditor(
                         }
                         {
                             let store_read = store.read();
-                            let state = store_read.get_state().unwrap_or_default();
+                            let state = store_read.hydrate::<tasklens_core::types::TunnelState>().unwrap_or_default();
                             let places = state.places.values().collect::<Vec<_>>();
 
                             rsx! {

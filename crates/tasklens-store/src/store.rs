@@ -1,6 +1,9 @@
 pub use crate::actions::{Action, TaskUpdates};
+use crate::doc_id::DocumentId;
 #[cfg(target_arch = "wasm32")]
-use crate::storage::IndexedDbStorage;
+use crate::doc_id::TaskLensUrl;
+#[cfg(target_arch = "wasm32")]
+use crate::storage::{ActiveDocStorage, IndexedDbStorage};
 use anyhow::{Result, anyhow};
 use automerge::AutoCommit;
 use autosurgeon::{hydrate, reconcile};
@@ -8,24 +11,27 @@ use std::collections::HashMap;
 
 use tasklens_core::types::{TaskStatus, TunnelState};
 
-/// A wrapper around the Automerge CRDT document.
+/// A manager for Automerge documents and persistence.
 ///
-/// This struct manages the application's state using Automerge for CRDT-based
-/// persistence and synchronization.
+/// This struct implements a Repo-like pattern, managing the current
+/// document and providing methods for document lifecycle management.
 #[derive(Clone, Debug)]
 pub struct AppStore {
+    /// The ID of the currently loaded document.
+    pub current_id: DocumentId,
     /// The underlying Automerge document backend.
     pub doc: AutoCommit,
 }
 
 impl AppStore {
-    /// Creates a new, empty AppStore.
+    /// Creates a new AppStore with a fresh document.
     pub fn new() -> Self {
+        let current_id = DocumentId::new();
         let doc = AutoCommit::new();
-        Self { doc }
+        Self { current_id, doc }
     }
 
-    /// Initialize the store with default state if empty.
+    /// Initialize the current document with default state if empty.
     pub fn init(&mut self) -> Result<()> {
         let current_state: Result<TunnelState, _> = hydrate(&self.doc);
         if current_state.is_err() || current_state.as_ref().unwrap().tasks.is_empty() {
@@ -42,9 +48,78 @@ impl AppStore {
         Ok(())
     }
 
+    /// Resets the document to an empty state.
+    pub fn reset(&mut self) -> Result<()> {
+        self.doc = AutoCommit::new();
+        self.init()
+    }
+
+    /// Creates a new document and switches to it.
+    pub fn create_new(&mut self) -> Result<DocumentId> {
+        let new_id = DocumentId::new();
+        let mut new_doc = AutoCommit::new();
+
+        let initial_state = TunnelState {
+            next_task_id: 1.0,
+            next_place_id: 1.0,
+            tasks: HashMap::new(),
+            places: HashMap::new(),
+            root_task_ids: Vec::new(),
+        };
+        reconcile(&mut new_doc, &initial_state)
+            .map_err(|e| anyhow!("New doc reconciliation failed: {}", e))?;
+
+        self.current_id = new_id.clone();
+        self.doc = new_doc;
+
+        #[cfg(target_arch = "wasm32")]
+        ActiveDocStorage::save_active_url(&TaskLensUrl::from(new_id.clone()));
+
+        Ok(new_id)
+    }
+
+    /// Switches to an existing document by ID.
+    #[cfg(target_arch = "wasm32")]
+    pub async fn switch_doc(&mut self, id: DocumentId) -> Result<()> {
+        if let Some(bytes) = IndexedDbStorage::load_from_db(&id).await? {
+            match AutoCommit::load(&bytes) {
+                Ok(doc) => {
+                    self.current_id = id.clone();
+                    self.doc = doc;
+                    ActiveDocStorage::save_active_url(&TaskLensUrl::from(id));
+                    Ok(())
+                }
+                Err(e) => Err(anyhow!("Failed to load doc bytes: {:?}", e)),
+            }
+        } else {
+            Err(anyhow!("Document not found: {}", id))
+        }
+    }
+
+    /// Deletes a document.
+    #[cfg(target_arch = "wasm32")]
+    pub async fn delete_doc(&mut self, id: DocumentId) -> Result<()> {
+        IndexedDbStorage::delete_doc(&id).await?;
+        if self.current_id == id {
+            // If we deleted the current doc, create a new one
+            self.create_new()?;
+        }
+        Ok(())
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn switch_doc(&mut self, _id: DocumentId) -> Result<()> {
+        Ok(())
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn delete_doc(&mut self, _id: DocumentId) -> Result<()> {
+        Ok(())
+    }
+
     /// Hydrates a Rust struct from the Automerge document.
-    pub fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T, autosurgeon::HydrateError> {
-        autosurgeon::hydrate(&self.doc)
+    pub fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T> {
+        autosurgeon::hydrate(&self.doc).map_err(|e| anyhow!("Hydration failed: {}", e))
     }
 
     /// Reconciles a Rust struct with the Automerge document.
@@ -55,12 +130,8 @@ impl AppStore {
         autosurgeon::reconcile(&mut self.doc, data)
     }
 
-    pub fn get_state(&self) -> Result<TunnelState> {
-        hydrate(&self.doc).map_err(|e| anyhow!("Hydration failed: {}", e))
-    }
-
     pub fn dispatch(&mut self, action: Action) -> Result<()> {
-        let mut state: TunnelState = self.get_state()?;
+        let mut state: TunnelState = self.hydrate()?;
 
         match action {
             Action::CreateTask {
@@ -169,34 +240,57 @@ impl AppStore {
         self.doc.save()
     }
 
-    /// Loads the persisted state from the browser's IndexedDB.
-    ///
-    /// # Arguments
-    ///
-    /// * `doc_id` - The document ID to load.
+    /// Loads the persisted state from the browser's IndexedDB for a given ID.
     #[cfg(target_arch = "wasm32")]
-    pub async fn load_from_db(doc_id: &str) -> Result<Option<Vec<u8>>> {
+    pub async fn load_from_db(doc_id: &DocumentId) -> Result<Option<Vec<u8>>> {
         IndexedDbStorage::load_from_db(doc_id).await
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub async fn load_from_db(_doc_id: &str) -> Result<Option<Vec<u8>>> {
+    pub async fn load_from_db(_doc_id: &DocumentId) -> Result<Option<Vec<u8>>> {
         Ok(None)
     }
 
     /// Persists the current state to the browser's IndexedDB.
-    ///
-    /// # Arguments
-    ///
-    /// * `doc_id` - The document ID to save under.
-    /// * `bytes` - The serialized document data.
     #[cfg(target_arch = "wasm32")]
-    pub async fn save_to_db(doc_id: &str, bytes: Vec<u8>) -> Result<()> {
-        IndexedDbStorage::save_to_db(doc_id, bytes).await
+    pub async fn save_to_db(&mut self) -> Result<()> {
+        let bytes = self.doc.save();
+        IndexedDbStorage::save_to_db(&self.current_id, bytes).await
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub async fn save_to_db(_doc_id: &str, _bytes: Vec<u8>) -> Result<()> {
+    pub async fn save_to_db(&mut self) -> Result<()> {
+        Ok(())
+    }
+
+    /// Static helper to load the active document ID preference.
+    #[cfg(target_arch = "wasm32")]
+    pub fn load_active_doc_id() -> Option<DocumentId> {
+        ActiveDocStorage::load_active_url().map(|url| url.document_id)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn load_active_doc_id() -> Option<DocumentId> {
+        None
+    }
+
+    /// Static helper to save the active document ID preference.
+    #[cfg(target_arch = "wasm32")]
+    pub fn save_active_doc_id(id: &DocumentId) {
+        ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn save_active_doc_id(_id: &DocumentId) {}
+
+    /// Static helper to persist raw document data.
+    #[cfg(target_arch = "wasm32")]
+    pub async fn save_doc_data_async(id: &DocumentId, data: Vec<u8>) -> Result<()> {
+        IndexedDbStorage::save_to_db(id, data).await
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn save_doc_data_async(_id: &DocumentId, _data: Vec<u8>) -> Result<()> {
         Ok(())
     }
 
@@ -243,7 +337,7 @@ mod tests {
         let mut store = AppStore::new();
         store.init().unwrap();
 
-        let state = store.get_state().unwrap();
+        let state: TunnelState = store.hydrate().unwrap();
         assert!(state.tasks.is_empty());
     }
 
@@ -260,7 +354,7 @@ mod tests {
             })
             .unwrap();
 
-        let state = store.get_state().unwrap();
+        let state: TunnelState = store.hydrate().unwrap();
         assert_eq!(state.tasks.len(), 1);
         let task = state.tasks.values().next().unwrap();
         assert_eq!(task.title, "Test Task");
@@ -280,7 +374,7 @@ mod tests {
             })
             .unwrap();
 
-        let id = store.get_state().unwrap().root_task_ids[0].clone();
+        let id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
 
         store
             .dispatch(Action::UpdateTask {
@@ -293,7 +387,7 @@ mod tests {
             })
             .unwrap();
 
-        let state = store.get_state().unwrap();
+        let state: TunnelState = store.hydrate().unwrap();
         let task = state.tasks.get(&id).unwrap();
         assert_eq!(task.title, "Updated");
         assert_eq!(task.status, TaskStatus::Done);
@@ -312,12 +406,12 @@ mod tests {
             })
             .unwrap();
 
-        let id = store.get_state().unwrap().root_task_ids[0].clone();
+        let id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
         store
             .dispatch(Action::DeleteTask { id: id.clone() })
             .unwrap();
 
-        let state = store.get_state().unwrap();
+        let state: TunnelState = store.hydrate().unwrap();
         assert!(state.tasks.is_empty());
         assert!(state.root_task_ids.is_empty());
     }
@@ -335,7 +429,7 @@ mod tests {
             })
             .unwrap();
 
-        let id = store.get_state().unwrap().root_task_ids[0].clone();
+        let id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
         store
             .dispatch(Action::CompleteTask {
                 id: id.clone(),
@@ -343,7 +437,7 @@ mod tests {
             })
             .unwrap();
 
-        let state = store.get_state().unwrap();
+        let state: TunnelState = store.hydrate().unwrap();
         assert_eq!(state.tasks.get(&id).unwrap().status, TaskStatus::Done);
     }
 
@@ -360,7 +454,7 @@ mod tests {
                 title: "Parent".to_string(),
             })
             .unwrap();
-        let parent_id = store.get_state().unwrap().root_task_ids[0].clone();
+        let parent_id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
 
         // Create Child as root task initially
         store
@@ -371,7 +465,7 @@ mod tests {
             })
             .unwrap();
         let child_id = store
-            .get_state()
+            .hydrate::<TunnelState>()
             .unwrap()
             .root_task_ids
             .iter()
@@ -387,7 +481,7 @@ mod tests {
             })
             .unwrap();
 
-        let state = store.get_state().unwrap();
+        let state: TunnelState = store.hydrate().unwrap();
         assert_eq!(state.root_task_ids.len(), 1);
         assert_eq!(state.root_task_ids[0], parent_id);
 
@@ -411,7 +505,7 @@ mod tests {
                 title: "To Acknowledge".to_string(),
             })
             .unwrap();
-        let id = store.get_state().unwrap().root_task_ids[0].clone();
+        let id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
         store
             .dispatch(Action::CompleteTask {
                 id: id.clone(),
@@ -419,7 +513,7 @@ mod tests {
             })
             .unwrap();
 
-        assert!(!store.get_state().unwrap().tasks[&id].is_acknowledged);
+        assert!(!store.hydrate::<TunnelState>().unwrap().tasks[&id].is_acknowledged);
 
         // Refresh
         store
@@ -428,7 +522,7 @@ mod tests {
             })
             .unwrap();
 
-        assert!(store.get_state().unwrap().tasks[&id].is_acknowledged);
+        assert!(store.hydrate::<TunnelState>().unwrap().tasks[&id].is_acknowledged);
     }
 
     #[test]
@@ -444,10 +538,10 @@ mod tests {
                 title: "Routine".to_string(),
             })
             .unwrap();
-        let id = store.get_state().unwrap().root_task_ids[0].clone();
+        let id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
 
         // Manually update it to be Routinely with short interval
-        let mut state = store.get_state().unwrap();
+        let mut state = store.hydrate::<TunnelState>().unwrap();
         let task = state.tasks.get_mut(&id).unwrap();
         task.status = TaskStatus::Done;
         task.schedule.schedule_type = tasklens_core::types::ScheduleType::Routinely;
@@ -469,7 +563,7 @@ mod tests {
             })
             .unwrap();
         assert_eq!(
-            store.get_state().unwrap().tasks[&id].status,
+            store.hydrate::<TunnelState>().unwrap().tasks[&id].status,
             TaskStatus::Done
         );
 
@@ -480,7 +574,7 @@ mod tests {
             })
             .unwrap();
         assert_eq!(
-            store.get_state().unwrap().tasks[&id].status,
+            store.hydrate::<TunnelState>().unwrap().tasks[&id].status,
             TaskStatus::Pending
         );
     }

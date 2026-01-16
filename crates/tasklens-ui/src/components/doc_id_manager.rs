@@ -7,7 +7,6 @@
 
 use crate::components::*;
 use dioxus::prelude::*;
-use tasklens_store::doc_id;
 
 /// Document ID Manager component for switching between documents.
 ///
@@ -17,8 +16,9 @@ use tasklens_store::doc_id;
 /// * `on_change` - Event handler called when the document ID changes.
 #[component]
 pub fn DocIdManager(
-    current_doc_id: Signal<Option<String>>,
-    on_change: EventHandler<String>,
+    current_doc_id: Signal<Option<tasklens_store::doc_id::DocumentId>>,
+    on_change: EventHandler<tasklens_store::doc_id::DocumentId>,
+    on_create: EventHandler<()>,
 ) -> Element {
     let mut show_input = use_signal(|| false);
     let mut input_value = use_signal(String::new);
@@ -27,43 +27,36 @@ pub fn DocIdManager(
 
     let truncated_id = use_memo(move || {
         current_doc_id().map(|id| {
-            if id.len() > 8 {
-                format!("{}...", &id[..8])
+            let s = id.to_string();
+            if s.len() > 8 {
+                format!("{}...", &s[..8])
             } else {
-                id
+                s
             }
         })
     });
 
     let handle_new_document = move |_| {
-        let new_id = doc_id::generate_doc_id();
-        if let Err(e) = doc_id::save_doc_id(&new_id) {
-            tracing::error!("Failed to save new document ID: {:?}", e);
-            error_msg.set(format!("Failed to save: {}", e));
-            return;
-        }
-        on_change.call(new_id);
+        on_create.call(());
     };
 
     let handle_enter_id = move |_| {
-        let id = input_value().trim().to_string();
+        let text = input_value().trim().to_string();
 
-        // Validate: non-empty and alphanumeric (hex)
-        if id.is_empty() {
+        if text.is_empty() {
             error_msg.set("Document ID cannot be empty".to_string());
             return;
         }
 
-        if !id.chars().all(|c| c.is_ascii_hexdigit()) {
-            error_msg.set("Document ID must be hexadecimal".to_string());
+        // Try to parse as TaskLensUrl first, then as plain DocumentId
+        let id = if let Ok(url) = text.parse::<tasklens_store::doc_id::TaskLensUrl>() {
+            url.document_id
+        } else if let Ok(id) = text.parse::<tasklens_store::doc_id::DocumentId>() {
+            id
+        } else {
+            error_msg.set("Invalid Document ID or tasklens: URL".to_string());
             return;
-        }
-
-        if let Err(e) = doc_id::save_doc_id(&id) {
-            tracing::error!("Failed to save document ID: {:?}", e);
-            error_msg.set(format!("Failed to save: {}", e));
-            return;
-        }
+        };
 
         error_msg.set(String::new());
         show_input.set(false);
@@ -73,15 +66,16 @@ pub fn DocIdManager(
 
     let handle_copy = move |_| {
         if let Some(id) = current_doc_id() {
+            let url = tasklens_store::doc_id::TaskLensUrl::from(id).to_string();
             spawn(async move {
                 match document::eval(&format!(
                     "return navigator.clipboard.writeText('{}').then(() => true)",
-                    id
+                    url
                 ))
                 .await
                 {
                     Ok(_) => {
-                        tracing::info!("Document ID copied to clipboard");
+                        tracing::info!("Document URL copied to clipboard");
                         show_copy_toast.set(true);
                         if let Err(e) = document::eval(
                             "return new Promise(r => setTimeout(() => r(true), 3000))",
@@ -183,7 +177,7 @@ pub fn DocIdManager(
                     Input {
                         value: "{input_value}",
                         oninput: move |val| input_value.set(val),
-                        placeholder: "Enter hexadecimal document ID...",
+                        placeholder: "Enter Base58 document ID...",
                         class: "w-full font-mono text-sm",
                         data_testid: "document-id-input",
                     }

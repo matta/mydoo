@@ -12,7 +12,7 @@ pub fn MovePicker(
 ) -> Element {
     let store = use_context::<Signal<AppStore>>();
 
-    let state = use_memo(move || store.read().get_state().unwrap_or_default());
+    let state = use_memo(move || store.read().hydrate::<TunnelState>().unwrap_or_default());
 
     let task_id_clone = task_id.clone();
     let task_title = use_memo(move || {

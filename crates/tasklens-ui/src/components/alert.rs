@@ -6,6 +6,7 @@ pub enum AlertVariant {
     /// Blue-styled information alert.
     Info,
     /// Green-styled success alert.
+    #[expect(dead_code)]
     Success,
     /// Red-styled error alert.
     Error,

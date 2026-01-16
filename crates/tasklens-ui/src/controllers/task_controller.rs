@@ -36,7 +36,7 @@ pub fn create_task(
 pub fn toggle_task_status(mut store: Signal<AppStore>, task_id: TaskID) {
     let current_status = {
         let read = store.read();
-        if let Ok(state) = read.get_state() {
+        if let Ok(state) = read.hydrate::<tasklens_core::types::TunnelState>() {
             state.tasks.get(&task_id).map(|task| task.status)
         } else {
             None
@@ -124,7 +124,7 @@ pub fn move_task(mut store: Signal<AppStore>, task_id: TaskID, new_parent_id: Op
 pub fn indent_task(store: Signal<AppStore>, task_id: TaskID) {
     let new_parent_id = {
         let read = store.read();
-        if let Ok(state) = read.get_state() {
+        if let Ok(state) = read.hydrate::<tasklens_core::types::TunnelState>() {
             tasklens_core::domain::hierarchy::get_previous_sibling(&state, &task_id)
         } else {
             None
@@ -140,7 +140,7 @@ pub fn indent_task(store: Signal<AppStore>, task_id: TaskID) {
 pub fn outdent_task(store: Signal<AppStore>, task_id: TaskID) {
     let new_parent_id = {
         let read = store.read();
-        if let Ok(state) = read.get_state() {
+        if let Ok(state) = read.hydrate::<tasklens_core::types::TunnelState>() {
             state.tasks.get(&task_id).and_then(|task| {
                 if let Some(parent_id) = &task.parent_id {
                     let parent = state.tasks.get(parent_id)?;
@@ -160,7 +160,7 @@ pub fn outdent_task(store: Signal<AppStore>, task_id: TaskID) {
 
     let is_root = {
         let read = store.read();
-        if let Ok(state) = read.get_state() {
+        if let Ok(state) = read.hydrate::<tasklens_core::types::TunnelState>() {
             state
                 .tasks
                 .get(&task_id)

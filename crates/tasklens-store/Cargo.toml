@@ -25,6 +25,7 @@ argon2 = "0.5"
 bip39 = "2.0"
 sha2 = "0.10"
 scopeguard = "1.2.0"
+bs58 = { version = "0.5.1", features = ["check"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 rexie = "0.6.2"

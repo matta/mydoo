@@ -2,11 +2,11 @@
 use tasklens_core::types::{PersistedTask, Schedule, ScheduleType, TaskID, TaskStatus};
 use tasklens_store::store::AppStore;
 
-pub async fn prime_store_with_sample_data(store: &mut AppStore) {
+pub fn prime_store_with_sample_data(store: &mut AppStore) {
     tracing::info!("Priming store with sample data...");
 
     // Get current state or default
-    let mut state = store.get_state().unwrap_or_default();
+    let mut state: tasklens_core::types::TunnelState = store.hydrate().unwrap_or_default();
 
     // Clear existing for seed? Or just append?
     // Let's assume clear if we are seeding strictly.

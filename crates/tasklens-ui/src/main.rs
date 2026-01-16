@@ -5,7 +5,7 @@ include!(concat!(env!("OUT_DIR"), "/build_version.rs"));
 
 use dioxus::prelude::*;
 use futures::StreamExt;
-use futures::channel::mpsc::UnboundedReceiver;
+use tasklens_store::doc_id::DocumentId;
 
 mod components;
 mod controllers;
@@ -15,8 +15,6 @@ mod utils;
 mod views;
 
 use crate::router::Route;
-use tasklens_store::crypto;
-use tasklens_store::network;
 use tasklens_store::store::AppStore;
 
 #[cfg(target_arch = "wasm32")]
@@ -93,8 +91,8 @@ fn main() {
 
 fn App() -> Element {
     // Session state
-    let mut master_key = use_signal(|| None::<[u8; 32]>);
-    let mut doc_id = use_signal(|| None::<String>);
+    let mut doc_id = use_signal(|| None::<DocumentId>);
+    // Loading state is true by default until initial doc load completes
     let mut is_checking = use_signal(|| true);
     // Mutated inside #[cfg(target_arch = "wasm32")] block below.
     #[allow(unused_mut)]
@@ -103,118 +101,139 @@ fn App() -> Element {
     // Store State
     let mut store = use_signal(AppStore::new);
 
+    // Sync Task: Bridge between local store and remote protocol
+    let sync_tx = use_coroutine(|mut rx: UnboundedReceiver<Vec<u8>>| async move {
+        while let Some(change) = rx.next().await {
+            // Placeholder for sync logic
+            tracing::info!("Syncing change: {} bytes", change.len());
+        }
+    });
+
     // Provide context
-    use_context_provider(|| master_key);
     use_context_provider(|| doc_id);
     use_context_provider(|| service_worker_active);
     use_context_provider(|| store);
+    use_context_provider(|| sync_tx);
 
-    // Unified Store Initialization: Doc ID -> Key Load -> Data Load -> Seeding
+    // 2. Data Loading Effect: REMOVED.
+    // We now handle loading explicitly in initialization and switch actions.
+
+    // Unified Reactive Initialization
     use_future(move || async move {
-        // 1. Load or Generate Document ID
-        let current_doc_id = match tasklens_store::doc_id::load_doc_id() {
-            Ok(Some(id)) => {
-                tracing::info!("Loaded document ID: {}", &id[..8.min(id.len())]);
-                id
-            }
-            Ok(None) => {
-                let new_id = tasklens_store::doc_id::generate_doc_id();
-                tracing::info!("Generated new document ID: {}", &new_id[..8]);
-                if let Err(e) = tasklens_store::doc_id::save_doc_id(&new_id) {
-                    tracing::error!("Failed to save new document ID: {:?}", e);
-                }
-                new_id
-            }
-            Err(e) => {
-                tracing::error!("Error loading document ID: {:?}", e);
-                let new_id = tasklens_store::doc_id::generate_doc_id();
-                tracing::warn!("Using fallback document ID: {}", &new_id[..8]);
-                new_id
+        // --- Document Discovery ---
+        tracing::info!("Initialization: Document Discovery");
+
+        // Determine Initial Document ID
+        // Determine Initial Document ID
+        let (initial_id, must_create) = {
+            if let Some(id) = AppStore::load_active_doc_id() {
+                tracing::info!("Found active document ID: {}", id);
+                (id, false)
+            } else {
+                let new_id = DocumentId::new();
+                tracing::info!("No active doc. Generated new ID: {}", new_id);
+                (new_id, true)
             }
         };
-        doc_id.set(Some(current_doc_id.clone()));
 
-        // 2. Load Master Key from Browser Storage (LocalStorage/SessionStorage)
-        match crypto::load_key() {
-            Ok(Some(key)) => {
-                tracing::info!("Loaded Master Key from browser storage");
-                master_key.set(Some(key));
-            }
-            Ok(None) => tracing::info!("No Master Key found in browser storage"),
-            Err(e) => tracing::error!("Error loading Master Key: {:?}", e),
-        }
+        // Perform Initial Load
+        is_checking.set(true);
 
-        // 3. Load App Store Data from IndexedDB
-        match AppStore::load_from_db(&current_doc_id).await {
-            Ok(Some(bytes)) => {
-                tracing::info!(
-                    "Loaded {} bytes of App Store data from IndexedDB",
-                    bytes.len()
-                );
-                store.write().load_from_bytes(bytes);
+        let load_result = if must_create {
+            Err(anyhow::anyhow!("Must create"))
+        } else {
+            // Load bytes first without holding lock
+            match AppStore::load_from_db(&initial_id).await {
+                Ok(Some(bytes)) => {
+                    let mut s = store.write();
+                    s.current_id = initial_id.clone();
+                    s.load_from_bytes(bytes);
+                    AppStore::save_active_doc_id(&initial_id);
+                    Ok(())
+                }
+                Ok(None) => Err(anyhow::anyhow!("Doc not found")),
+                Err(e) => Err(e),
             }
-            Ok(None) => {
-                tracing::info!(
-                    "No persisted App Store data found in IndexedDB; initializing new store"
-                );
-                if let Err(e) = store.write().init() {
-                    tracing::error!("Failed to initialize App Store: {:?}", e);
+        };
+
+        match load_result {
+            Ok(_) => {
+                tracing::info!("Initial load successful for: {}", initial_id);
+                doc_id.set(Some(initial_id));
+            }
+            Err(_) => {
+                tracing::info!("Initial load failed/new. Creating fresh doc.");
+                let create_result = {
+                    let mut s = store.write();
+                    s.create_new()
+                };
+
+                match create_result {
+                    Ok(new_id) => {
+                        tracing::info!("Created new doc: {}", new_id);
+
+                        // Async Save without holding lock
+                        let save_data = {
+                            let mut s = store.write();
+                            (s.current_id.clone(), s.export_save())
+                        };
+
+                        spawn(async move {
+                            if let Err(e) =
+                                AppStore::save_doc_data_async(&save_data.0, save_data.1).await
+                            {
+                                tracing::error!("Failed to persist new doc: {:?}", e);
+                            }
+                        });
+
+                        doc_id.set(Some(new_id));
+                    }
+                    Err(e) => tracing::error!("CRITICAL: Failed to create new doc: {:?}", e),
                 }
             }
-            Err(e) => tracing::error!("Failed to load App Store from IndexedDB: {:?}", e),
         }
 
-        // 3. Apply Seed if requested
         #[cfg(target_arch = "wasm32")]
         {
+            // Handle seed query param
+            thread_local! {
+                static INITIAL_LOAD_SEED_CHECKED: std::cell::Cell<bool> = std::cell::Cell::new(false);
+            }
             let window = web_sys::window().unwrap();
             let search = window.location().search().unwrap_or_default();
-            if search.contains("seed=true") {
-                crate::seed::prime_store_with_sample_data(&mut store.write()).await;
+            let trigger = search.contains("seed=true") && !INITIAL_LOAD_SEED_CHECKED.get();
+            INITIAL_LOAD_SEED_CHECKED.set(true);
+
+            if trigger {
+                tracing::info!("Applying seed data...");
+                {
+                    let mut s = store.write();
+                    crate::seed::prime_store_with_sample_data(&mut s);
+                } // ensure lock dropped
+
+                // Force save seeded data
+                let save_data = {
+                    let mut s = store.write();
+                    (s.current_id.clone(), s.export_save())
+                };
+                spawn(async move {
+                    if let Err(e) = AppStore::save_doc_data_async(&save_data.0, save_data.1).await {
+                        tracing::error!("Failed to persist seeded doc: {:?}", e);
+                    }
+                });
+
+                // Clean up URL
+                if let Ok(history) = window.history() {
+                    let _ = history.replace_state_with_url(
+                        &wasm_bindgen::JsValue::NULL,
+                        "",
+                        Some("/plan"),
+                    );
+                }
             }
         }
 
         is_checking.set(false);
-    });
-
-    // Sync Service Task
-    let sync_task = use_coroutine(move |rx_local: UnboundedReceiver<Vec<u8>>| async move {
-        // Create a channel for incoming (remote) changes
-        let (tx_remote, rx_remote) = futures::channel::mpsc::unbounded();
-
-        // Spawn a helper to apply remote changes to the store
-        spawn(handle_remote_changes(rx_remote, store));
-
-        network::run_sync_loop(
-            rx_local,
-            tx_remote,
-            move || *master_key.read(),
-            move || store.write().export_save(),
-        )
-        .await;
-    });
-
-    // Provide sync task to children (so they can trigger sync)
-    // TaskPage and others can use use_context::<Coroutine<Vec<u8>>>()
-    use_context_provider(|| sync_task);
-
-    // Subscribe to Service Worker controller changes via JS glue (WASM only).
-    // The closure is leaked intentionally: JS holds a permanent reference via addEventListener.
-    #[cfg(target_arch = "wasm32")]
-    use_hook(|| {
-        let callback = Closure::<dyn FnMut(bool)>::new(move |is_active: bool| {
-            tracing::info!(
-                "Service Worker status: {}",
-                if is_active { "active" } else { "inactive" }
-            );
-            service_worker_active.set(is_active);
-        });
-
-        if let Err(e) = subscribe_to_service_worker_status(&callback) {
-            tracing::error!("Service Worker status subscription failed: {:?}", e);
-        }
-
-        callback.forget();
     });
 
     // Persistence Effect: Save to DB on every store change
@@ -227,21 +246,10 @@ fn App() -> Element {
             return;
         }
 
-        // Get current doc_id
-        let current_doc_id = match doc_id() {
-            Some(id) => id,
-            None => {
-                tracing::warn!("No document ID available for persistence");
-                return;
-            }
-        };
-
-        // Clone doc to get a mutable copy for saving (AutoCommit::save requires &mut self)
-        let mut doc_clone = s.doc.clone();
-        let bytes = doc_clone.save();
+        let mut s_clone = s.clone();
 
         spawn(async move {
-            if let Err(e) = AppStore::save_to_db(&current_doc_id, bytes).await {
+            if let Err(e) = s_clone.save_to_db().await {
                 tracing::error!("Failed to save to DB: {:?}", e);
             }
         });
@@ -269,6 +277,7 @@ fn App() -> Element {
     }
 }
 
+#[expect(dead_code)]
 async fn handle_remote_changes(
     mut rx_remote: futures::channel::mpsc::UnboundedReceiver<Vec<u8>>,
     mut store: Signal<AppStore>,

@@ -5,17 +5,21 @@ use crate::utils::time_conversion::DEFAULT_LEAD_TIME_MS;
 use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
+use tasklens_store::doc_id::DocumentId;
 use tasklens_store::store::AppStore;
 
 #[component]
-pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
-    let master_key = use_context::<Signal<Option<[u8; 32]>>>();
+pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
+    // let master_key = use_context::<Signal<Option<[u8; 32]>>>(); // Removed
     let mut store = use_context::<Signal<AppStore>>();
-    let mut doc_id = use_context::<Signal<Option<String>>>();
+    let mut doc_id = use_context::<Signal<Option<DocumentId>>>();
     let sync_tx = use_context::<Coroutine<Vec<u8>>>();
 
+    // ... rest of use_signals ...
+
     // Track expanded task IDs.
-    let mut expanded_tasks = use_signal(std::collections::HashSet::<TaskID>::new);
+    let mut expanded_tasks: Signal<std::collections::HashSet<TaskID>> =
+        use_signal(std::collections::HashSet::<TaskID>::new);
     let mut input_text = use_signal(String::new);
     let mut highlighted_task_id = use_signal(|| None::<TaskID>);
     let mut show_settings = use_signal(|| false);
@@ -41,7 +45,7 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
     // Handle focus_task (Find in Plan)
     use_effect(move || {
         if let Some(target_id) = focus_task.clone() {
-            let state = store.read().get_state().unwrap_or_default();
+            let state = store.read().hydrate::<TunnelState>().unwrap_or_default();
             let mut current_id = target_id.clone();
             let mut to_expand = Vec::new();
 
@@ -67,6 +71,21 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
         }
     });
 
+    // Helper to trigger sync and save
+    let mut trigger_sync = move || {
+        let changes_opt = store.write().get_recent_changes();
+
+        // 1. Persist (clone to avoid lifetime issue with WriteLock in static spawn)
+        let mut s_clone = store.read().clone();
+        spawn(async move {
+            let _ = s_clone.save_to_db().await;
+        });
+
+        if let Some(changes) = changes_opt {
+            sync_tx.send(changes);
+        }
+    };
+
     let flattened_tasks = use_memo(move || {
         let store = store.read();
         let state = store
@@ -76,19 +95,6 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
         let expanded = expanded_tasks.read();
         flatten_tasks(&state, &expanded)
     });
-
-    // Helper to trigger sync and save
-    let mut trigger_sync = move || {
-        let changes_opt = store.write().get_recent_changes();
-        if let Some(changes) = changes_opt {
-            sync_tx.send(changes);
-            let bytes = store.write().export_save();
-            let current_doc_id = doc_id().expect("doc_id should be set");
-            spawn(async move {
-                let _ = AppStore::save_to_db(&current_doc_id, bytes).await;
-            });
-        }
-    };
 
     let mut add_task = move || {
         let text = input_text();
@@ -149,7 +155,7 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
         highlighted_task_id.set(Some(id.clone()));
 
         // Check if it has a parent and expand it
-        if let Ok(state) = store.read().get_state()
+        if let Ok(state) = store.read().hydrate::<TunnelState>()
             && let Some(task) = state.tasks.get(&id)
             && let Some(ref pid) = task.parent_id
         {
@@ -158,32 +164,40 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
         }
     };
 
-    let handle_doc_change = move |new_doc_id: String| {
-        tracing::info!("Document ID changed to: {}", &new_doc_id[..8]);
-
-        // Update the doc_id signal
-        doc_id.set(Some(new_doc_id.clone()));
-
-        // Reload store from new document
+    let handle_doc_change = move |new_doc_id: DocumentId| {
+        tracing::info!("Attempting to switch to Document ID: {}", new_doc_id);
         spawn(async move {
+            // 1. Load without lock
             match AppStore::load_from_db(&new_doc_id).await {
                 Ok(Some(bytes)) => {
-                    tracing::info!("Loaded {} bytes for new document", bytes.len());
-                    let mut new_store = AppStore::new();
-                    new_store.load_from_bytes(bytes);
-                    store.set(new_store);
-                }
-                Ok(None) => {
-                    tracing::info!("No data for new document, initializing empty store");
-                    let mut new_store = AppStore::new();
-                    if let Err(e) = new_store.init() {
-                        tracing::error!("Failed to initialize new store: {:?}", e);
+                    // 2. Update with lock
+                    {
+                        let mut s = store.write();
+                        s.current_id = new_doc_id.clone();
+                        s.load_from_bytes(bytes);
                     }
-                    store.set(new_store);
+                    // 3. Side effects
+                    AppStore::save_active_doc_id(&new_doc_id);
+
+                    tracing::info!("Switch successful");
+                    doc_id.set(Some(new_doc_id));
                 }
-                Err(e) => {
-                    tracing::error!("Failed to load new document: {:?}", e);
+                Ok(None) => tracing::error!("Doc not found: {}", new_doc_id),
+                Err(e) => tracing::error!("Switch failed: {:?}", e),
+            }
+        });
+    };
+
+    let handle_create_doc = move |_| {
+        tracing::info!("Creating new document");
+        spawn(async move {
+            let mut s = store.write();
+            match s.create_new() {
+                Ok(new_id) => {
+                    tracing::info!("Created new doc successfully: {}", new_id);
+                    doc_id.set(Some(new_id));
                 }
+                Err(e) => tracing::error!("Failed to create doc: {:?}", e),
             }
         });
     };
@@ -191,10 +205,10 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
     rsx! {
         if show_settings() {
             SettingsModal {
-                master_key,
                 on_close: move |_| show_settings.set(false),
                 doc_id: doc_id,
                 on_doc_change: handle_doc_change,
+                on_create_doc: handle_create_doc,
             }
         }
         div {

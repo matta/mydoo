@@ -1,7 +1,7 @@
 Feature: Document Switching
 
     Background:
-        Given the user launches the app with a clean slate
+        Given I have a clean workspace
 
     Scenario: User creates a new document
         Given the user is on a document

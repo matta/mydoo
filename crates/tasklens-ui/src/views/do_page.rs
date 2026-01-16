@@ -20,7 +20,9 @@ pub fn DoPage() -> Element {
 
     let prioritized_tasks = use_memo(move || {
         let store_read = store.read();
-        let state = store_read.get_state().unwrap_or_default();
+        let state = store_read
+            .hydrate::<tasklens_core::types::TunnelState>()
+            .unwrap_or_default();
         let view_filter = ViewFilter {
             place_id: Some("All".to_string()),
         };

@@ -1,120 +1,127 @@
-//! Document ID management for multi-document support.
-//!
-//! This module provides utilities for generating, storing, and retrieving document IDs.
-//! Unlike the React implementation which uses automerge-repo URLs, the Rust implementation
-//! uses cryptographically random document IDs that:
-//! - Identify the local Automerge document in IndexedDB
-//! - When combined with the master key, determine the sync channel
-
-#[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 use anyhow::{Result, anyhow};
-use rand::RngCore;
+use serde::{Deserialize, Serialize};
+use std::fmt;
+use std::str::FromStr;
+use uuid::Uuid;
 
-/// Key used for storing the document ID in LocalStorage.
-#[allow(dead_code)] // Used in WASM-only functions
-const DOC_ID_STORAGE_KEY: &str = "tasklens_doc_id";
+/// Unique identifier for a TaskLens document.
+///
+/// Wraps a UUID and serializes to a Base58Check string.
+/// Bit-identical format to the Automerge Repo (samod) DocumentId.
+#[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct DocumentId(Uuid);
 
-/// Generates a new cryptographically random document ID.
-///
-/// # Returns
-///
-/// A 64-character hex string (32 bytes of randomness).
-///
-/// # Example
-///
-/// ```rust,ignore
-/// let doc_id = tasklens_store::doc_id::generate_doc_id();
-/// println!("New document ID: {}", doc_id);
-/// // Output: "a1b2c3d4e5f6..."
-/// ```
-#[allow(dead_code)]
-pub fn generate_doc_id() -> String {
-    let mut bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut bytes);
-    hex::encode(bytes)
-}
-
-/// Saves the document ID to LocalStorage.
-///
-/// # Arguments
-///
-/// * `doc_id` - The document ID to persist.
-///
-/// # Returns
-///
-/// * `Ok(())` on success.
-/// * `Err` if storage fails.
-#[allow(dead_code)]
-#[cfg(target_arch = "wasm32")]
-pub fn save_doc_id(doc_id: &str) -> Result<()> {
-    use gloo_storage::{LocalStorage, Storage};
-    LocalStorage::set(DOC_ID_STORAGE_KEY, doc_id)
-        .map_err(|e| anyhow!("Failed to save document ID: {}", e))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(dead_code)]
-pub fn save_doc_id(_doc_id: &str) -> Result<()> {
-    tracing::warn!("save_doc_id is not supported on non-wasm targets");
-    Ok(())
-}
-
-/// Loads the document ID from LocalStorage.
-///
-/// # Returns
-///
-/// * `Ok(Some(String))` - If a document ID exists.
-/// * `Ok(None)` - If no document ID is found (first run).
-/// * `Err` - If storage access fails.
-#[allow(dead_code)]
-#[cfg(target_arch = "wasm32")]
-pub fn load_doc_id() -> Result<Option<String>> {
-    use gloo_storage::{LocalStorage, Storage};
-    match LocalStorage::get::<String>(DOC_ID_STORAGE_KEY) {
-        Ok(doc_id) => Ok(Some(doc_id)),
-        Err(gloo_storage::errors::StorageError::KeyNotFound(_)) => Ok(None),
-        Err(e) => Err(anyhow!("Failed to load document ID: {}", e)),
+impl DocumentId {
+    /// Generates a new random document ID.
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(dead_code)]
-pub fn load_doc_id() -> Result<Option<String>> {
-    Ok(None)
+impl Default for DocumentId {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
-/// Clears the document ID from LocalStorage.
+impl fmt::Display for DocumentId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let as_string = bs58::encode(self.0.as_bytes()).with_check().into_string();
+        write!(f, "{}", as_string)
+    }
+}
+
+impl fmt::Debug for DocumentId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "DocumentId({})", self)
+    }
+}
+
+impl FromStr for DocumentId {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let bytes = bs58::decode(s)
+            .with_check(None)
+            .into_vec()
+            .map_err(|e| anyhow!("Invalid Base58Check: {}", e))?;
+
+        let uuid = Uuid::from_slice(&bytes).map_err(|e| anyhow!("Invalid UUID: {}", e))?;
+        Ok(Self(uuid))
+    }
+}
+
+/// A user-facing locator for a TaskLens document.
 ///
-/// Call this when creating a new document or resetting the application.
-#[allow(dead_code)]
-#[cfg(target_arch = "wasm32")]
-pub fn clear_doc_id() {
-    use gloo_storage::{LocalStorage, Storage};
-    LocalStorage::delete(DOC_ID_STORAGE_KEY);
+/// Encapsulates the "tasklens:{DocumentId}" format.
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct TaskLensUrl {
+    pub document_id: DocumentId,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(dead_code)]
-pub fn clear_doc_id() {}
+impl fmt::Display for TaskLensUrl {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "tasklens:{}", self.document_id)
+    }
+}
+
+impl fmt::Debug for TaskLensUrl {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "TaskLensUrl({})", self)
+    }
+}
+
+impl FromStr for TaskLensUrl {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let suffix = s
+            .strip_prefix("tasklens:")
+            .ok_or_else(|| anyhow!("Invalid TaskLens URL: missing 'tasklens:' prefix"))?;
+
+        let document_id = DocumentId::from_str(suffix)?;
+        Ok(Self { document_id })
+    }
+}
+
+impl From<DocumentId> for TaskLensUrl {
+    fn from(document_id: DocumentId) -> Self {
+        Self { document_id }
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_generate_doc_id() {
-        let id1 = generate_doc_id();
-        let id2 = generate_doc_id();
+    fn test_document_id_serialization() {
+        let id = DocumentId::new();
+        let s = id.to_string();
+        let id2 = DocumentId::from_str(&s).unwrap();
+        assert_eq!(id, id2);
 
-        // Should be 64 hex characters (32 bytes)
-        assert_eq!(id1.len(), 64);
-        assert_eq!(id2.len(), 64);
+        // Verify it looks like Base58 (no '0', 'O', 'I', 'l')
+        assert!(!s.contains('0'));
+        assert!(!s.contains('O'));
+        assert!(!s.contains('I'));
+        assert!(!s.contains('l'));
+    }
 
-        // Should be different
-        assert_ne!(id1, id2);
+    #[test]
+    fn test_tasklens_url_parsing() {
+        let id = DocumentId::new();
+        let url = TaskLensUrl::from(id.clone());
+        let s = url.to_string();
+        assert!(s.starts_with("tasklens:"));
 
-        // Should be valid hex
-        assert!(id1.chars().all(|c| c.is_ascii_hexdigit()));
-        assert!(id2.chars().all(|c| c.is_ascii_hexdigit()));
+        let url2 = TaskLensUrl::from_str(&s).unwrap();
+        assert_eq!(url.document_id, url2.document_id);
+    }
+
+    #[test]
+    fn test_invalid_id() {
+        assert!(DocumentId::from_str("invalid").is_err());
+        assert!(DocumentId::from_str("123456789ABCDEF").is_err()); // Wrong length/checksum
     }
 }
