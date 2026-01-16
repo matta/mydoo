@@ -2,6 +2,7 @@
   "name": "@mydoo/client",
   "version": "0.0.0",
   "dependencies": {
+    "@automerge/automerge": "catalog:",
     "@automerge/automerge-repo": "catalog:",
     "@automerge/automerge-repo-network-websocket": "catalog:",
     "@automerge/automerge-repo-react-hooks": "catalog:",
@@ -13,7 +14,8 @@
     "@tabler/icons-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-redux": "catalog:"
+    "react-redux": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@playwright/test": "catalog:",

@@ -66,6 +66,11 @@ export function createTaskLensMiddleware(
           }
         };
 
+        // Listen for changes
+        handle.on("change", ({ doc }) => {
+          processAndSync(doc);
+        });
+
         // Initial Load
         const doc = handle.doc();
         if (doc) {
@@ -74,11 +79,6 @@ export function createTaskLensMiddleware(
             processAndSync(doc);
           }
         }
-
-        // Listen for changes
-        handle.on("change", ({ doc }) => {
-          processAndSync(doc);
-        });
       })
       .catch((err) => {
         // Log locally but don't crash the process. This is common in tests

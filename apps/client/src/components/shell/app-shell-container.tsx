@@ -1,8 +1,10 @@
-import type { AutomergeUrl } from "@automerge/automerge-repo";
-import { useDocHandle } from "@automerge/automerge-repo-react-hooks";
+import { load } from "@automerge/automerge";
+import type { AutomergeUrl, DocumentId } from "@automerge/automerge-repo";
+import { isValidAutomergeUrl } from "@automerge/automerge-repo";
+import { useDocHandle, useRepo } from "@automerge/automerge-repo-react-hooks";
 import { AppShell, Burger, Button, Group, Menu, Title } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-
+import { notifications } from "@mantine/notifications";
 import {
   IconCheckbox,
   IconDotsVertical,
@@ -11,8 +13,11 @@ import {
   IconNetwork,
   IconScale,
   IconSeeding,
+  IconUpload,
 } from "@tabler/icons-react";
+import { useRef } from "react";
 import { useDispatch } from "react-redux";
+import { z } from "zod";
 import { seedHierarchicalData } from "../../dev/seed-data";
 import { DoViewContainer } from "../../viewmodel/containers/do-view-container";
 import { MovePickerContainer } from "../../viewmodel/containers/move-picker-container";
@@ -54,6 +59,60 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
 
   // Get the document handle to access the data for download
   const handle = useDocHandle(docUrl);
+  const repo = useRepo();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const binary = new Uint8Array(arrayBuffer);
+
+      // Load temporarily to inspect metadata
+      const loadedDoc = load(binary);
+      // Validate structure and extract metadata safely using a minimal schema
+      // We avoid validating the entire document to prevent failures from unrelated schema mismatches
+      const MetadataSchema = z.object({
+        metadata: z.object({ automerge_url: z.string().optional() }).optional(),
+      });
+      const parsed = MetadataSchema.safeParse(loadedDoc);
+      const url = parsed.success
+        ? parsed.data.metadata?.automerge_url
+        : undefined;
+
+      // biome-ignore lint/suspicious/noExplicitAny: experimental API
+      let importedHandle: any;
+      if (url && isValidAutomergeUrl(url)) {
+        // Extract DocumentId from AutomergeUrl (remove "automerge:" prefix)
+        const docId = url.replace(/^automerge:/, "") as DocumentId;
+
+        // Delete existing document to allow restoration of old state (overwrite local changes)
+        repo.delete(docId);
+
+        // Attempt to import with existing ID
+        // biome-ignore lint/suspicious/noExplicitAny: experimental API
+        importedHandle = (repo as any).import(binary, { docId });
+      } else {
+        importedHandle = repo.import(binary);
+      }
+
+      if (importedHandle) {
+        localStorage.setItem("mydoo:doc_id", importedHandle.url);
+        window.location.reload();
+      }
+    } catch (e) {
+      console.error("Import failed", e);
+      notifications.show({
+        title: "Import Failed",
+        message: String(e),
+        color: "red",
+      });
+    }
+  };
 
   // Responsive Breakpoint: 768px (sm)
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -129,6 +188,31 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
                 }}
               >
                 Download JSON
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconDownload size={14} />}
+                onClick={async () => {
+                  if (!handle) return;
+                  const binary = await repo.export(handle.documentId);
+                  if (!binary) return;
+                  const blob = new Blob([new Uint8Array(binary).buffer], {
+                    type: "application/octet-stream",
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `mydoo-backup-${new Date().toISOString()}.automerge`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                Download Binary
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconUpload size={14} />}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Upload Binary
               </Menu.Item>
 
               {import.meta.env.DEV && (
@@ -256,6 +340,13 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
           </Button>
         </AppShell.Footer>
       )}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        accept=".automerge"
+        onChange={handleFileUpload}
+      />
     </AppShell>
   );
 }
