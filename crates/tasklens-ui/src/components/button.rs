@@ -8,7 +8,6 @@ pub enum ButtonVariant {
     /// White background, gray border. Secondary action.
     Secondary,
     /// Solid red background, white text. Destructive action.
-    #[expect(dead_code)]
     Destructive,
     /// No background, hover effect only. Low emphasis.
     Ghost,
@@ -34,6 +33,7 @@ pub fn Button(
     class: Option<String>,
     disabled: Option<bool>,
     r#type: Option<String>,
+    data_testid: Option<String>,
 ) -> Element {
     let variant = variant.unwrap_or(ButtonVariant::Primary);
     let disabled = disabled.unwrap_or(false);
@@ -64,6 +64,7 @@ pub fn Button(
             r#type: "{type_str}",
             class: "{base_classes} {variant_classes} {padding_classes} {extra_classes}",
             disabled,
+            "data-testid": data_testid,
             onclick: move |evt| {
                 if let Some(handler) = onclick.as_ref().filter(|_| !disabled) {
                     handler.call(evt);

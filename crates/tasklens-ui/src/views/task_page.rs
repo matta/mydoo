@@ -20,6 +20,7 @@ use tasklens_store::store::AppStore;
 #[component]
 pub fn TaskPage() -> Element {
     let master_key = use_context::<Signal<Option<[u8; 32]>>>();
+    let mut doc_id = use_context::<Signal<Option<String>>>();
     let service_worker_active = use_context::<Signal<bool>>(); // Assuming bool not ReadSignal for context simplicity, or ReadSignal
     let mut store = use_context::<Signal<AppStore>>();
 
@@ -40,8 +41,9 @@ pub fn TaskPage() -> Element {
         let bytes = store.write().export_save(); // Full save for persistence
 
         // 1. Persist
+        let current_doc_id = doc_id().expect("doc_id should be set");
         spawn(async move {
-            if let Err(e) = AppStore::save_to_db(bytes).await {
+            if let Err(e) = AppStore::save_to_db(&current_doc_id, bytes).await {
                 tracing::error!("Failed to save: {:?}", e);
             }
         });
@@ -113,9 +115,44 @@ pub fn TaskPage() -> Element {
         t
     };
 
+    let handle_doc_change = move |new_doc_id: String| {
+        tracing::info!("Document ID changed to: {}", &new_doc_id[..8]);
+
+        // Update the doc_id signal
+        doc_id.set(Some(new_doc_id.clone()));
+
+        // Reload store from new document
+        spawn(async move {
+            match AppStore::load_from_db(&new_doc_id).await {
+                Ok(Some(bytes)) => {
+                    tracing::info!("Loaded {} bytes for new document", bytes.len());
+                    let mut new_store = AppStore::new();
+                    new_store.load_from_bytes(bytes);
+                    store.set(new_store);
+                }
+                Ok(None) => {
+                    tracing::info!("No data for new document, initializing empty store");
+                    let mut new_store = AppStore::new();
+                    if let Err(e) = new_store.init() {
+                        tracing::error!("Failed to initialize new store: {:?}", e);
+                    }
+                    store.set(new_store);
+                }
+                Err(e) => {
+                    tracing::error!("Failed to load new document: {:?}", e);
+                }
+            }
+        });
+    };
+
     rsx! {
         if show_settings() {
-            SettingsModal { master_key, on_close: move |_| show_settings.set(false) }
+            SettingsModal {
+                master_key,
+                on_close: move |_| show_settings.set(false),
+                doc_id: doc_id,
+                on_doc_change: handle_doc_change,
+            }
         }
 
         div {

@@ -94,6 +94,7 @@ fn main() {
 fn App() -> Element {
     // Session state
     let mut master_key = use_signal(|| None::<[u8; 32]>);
+    let mut doc_id = use_signal(|| None::<String>);
     let mut is_checking = use_signal(|| true);
     // Mutated inside #[cfg(target_arch = "wasm32")] block below.
     #[allow(unused_mut)]
@@ -104,12 +105,36 @@ fn App() -> Element {
 
     // Provide context
     use_context_provider(|| master_key);
+    use_context_provider(|| doc_id);
     use_context_provider(|| service_worker_active);
     use_context_provider(|| store);
 
-    // Unified Store Initialization: Key Load -> Data Load -> Seeding
+    // Unified Store Initialization: Doc ID -> Key Load -> Data Load -> Seeding
     use_future(move || async move {
-        // 1. Load Master Key from Browser Storage (LocalStorage/SessionStorage)
+        // 1. Load or Generate Document ID
+        let current_doc_id = match tasklens_store::doc_id::load_doc_id() {
+            Ok(Some(id)) => {
+                tracing::info!("Loaded document ID: {}", &id[..8.min(id.len())]);
+                id
+            }
+            Ok(None) => {
+                let new_id = tasklens_store::doc_id::generate_doc_id();
+                tracing::info!("Generated new document ID: {}", &new_id[..8]);
+                if let Err(e) = tasklens_store::doc_id::save_doc_id(&new_id) {
+                    tracing::error!("Failed to save new document ID: {:?}", e);
+                }
+                new_id
+            }
+            Err(e) => {
+                tracing::error!("Error loading document ID: {:?}", e);
+                let new_id = tasklens_store::doc_id::generate_doc_id();
+                tracing::warn!("Using fallback document ID: {}", &new_id[..8]);
+                new_id
+            }
+        };
+        doc_id.set(Some(current_doc_id.clone()));
+
+        // 2. Load Master Key from Browser Storage (LocalStorage/SessionStorage)
         match crypto::load_key() {
             Ok(Some(key)) => {
                 tracing::info!("Loaded Master Key from browser storage");
@@ -119,8 +144,8 @@ fn App() -> Element {
             Err(e) => tracing::error!("Error loading Master Key: {:?}", e),
         }
 
-        // 2. Load App Store Data from IndexedDB
-        match AppStore::load_from_db().await {
+        // 3. Load App Store Data from IndexedDB
+        match AppStore::load_from_db(&current_doc_id).await {
             Ok(Some(bytes)) => {
                 tracing::info!(
                     "Loaded {} bytes of App Store data from IndexedDB",
@@ -202,12 +227,21 @@ fn App() -> Element {
             return;
         }
 
+        // Get current doc_id
+        let current_doc_id = match doc_id() {
+            Some(id) => id,
+            None => {
+                tracing::warn!("No document ID available for persistence");
+                return;
+            }
+        };
+
         // Clone doc to get a mutable copy for saving (AutoCommit::save requires &mut self)
         let mut doc_clone = s.doc.clone();
         let bytes = doc_clone.save();
 
         spawn(async move {
-            if let Err(e) = AppStore::save_to_db(bytes).await {
+            if let Err(e) = AppStore::save_to_db(&current_doc_id, bytes).await {
                 tracing::error!("Failed to save to DB: {:?}", e);
             }
         });

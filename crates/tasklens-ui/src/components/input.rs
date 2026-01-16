@@ -24,6 +24,7 @@ pub fn Input(
     onkeypress: Option<EventHandler<KeyboardEvent>>,
     onkeydown: Option<EventHandler<KeyboardEvent>>,
     id: Option<String>,
+    data_testid: Option<String>,
 ) -> Element {
     let type_str = r#type.unwrap_or("text".to_string());
     let id_str = id.unwrap_or_default();
@@ -37,6 +38,7 @@ pub fn Input(
             placeholder: placeholder.unwrap_or_default(),
             value: "{value}",
             autofocus: autofocus,
+            "data-testid": data_testid,
             oninput: move |evt| oninput.call(evt.value()),
             onkeypress: move |evt| {
                 if let Some(handler) = onkeypress.as_ref() {

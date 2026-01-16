@@ -1,4 +1,3 @@
-@migration-pending
 Feature: Document Switching
 
     Background:

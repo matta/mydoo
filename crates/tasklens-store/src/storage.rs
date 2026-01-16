@@ -7,7 +7,11 @@ mod wasm_storage {
 
     impl IndexedDbStorage {
         /// Loads the persisted state from the browser's IndexedDB.
-        pub async fn load_from_db() -> Result<Option<Vec<u8>>> {
+        ///
+        /// # Arguments
+        ///
+        /// * `doc_id` - The document ID to load.
+        pub async fn load_from_db(doc_id: &str) -> Result<Option<Vec<u8>>> {
             let db = Self::build_db()
                 .await
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
@@ -20,7 +24,7 @@ mod wasm_storage {
                 .store("automerge")
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
 
-            let key = JsValue::from_str("root");
+            let key = JsValue::from_str(&format!("doc:{}:root", doc_id));
             let val_opt = store
                 .get(key)
                 .await
@@ -39,7 +43,12 @@ mod wasm_storage {
         }
 
         /// Persists the current state to the browser's IndexedDB.
-        pub async fn save_to_db(bytes: Vec<u8>) -> Result<()> {
+        ///
+        /// # Arguments
+        ///
+        /// * `doc_id` - The document ID to save under.
+        /// * `bytes` - The serialized document data.
+        pub async fn save_to_db(doc_id: &str, bytes: Vec<u8>) -> Result<()> {
             let db = Self::build_db()
                 .await
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
@@ -55,7 +64,7 @@ mod wasm_storage {
             let js_bytes =
                 serde_wasm_bindgen::to_value(&bytes).map_err(|e| anyhow::anyhow!("{:?}", e))?;
 
-            let key = JsValue::from_str("root");
+            let key = JsValue::from_str(&format!("doc:{}:root", doc_id));
             store
                 .put(&js_bytes, Some(&key))
                 .await

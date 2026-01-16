@@ -17,8 +17,15 @@ use tasklens_store::crypto;
 /// # Props
 /// * `master_key` - A read/write signal capable of updating the global master key.
 /// * `on_close` - Event handler triggered when the modal should be closed.
+/// * `doc_id` - Signal containing the current document ID.
+/// * `on_doc_change` - Event handler called when the document ID changes.
 #[component]
-pub fn SettingsModal(master_key: Signal<Option<[u8; 32]>>, on_close: EventHandler<()>) -> Element {
+pub fn SettingsModal(
+    master_key: Signal<Option<[u8; 32]>>,
+    on_close: EventHandler<()>,
+    doc_id: Signal<Option<String>>,
+    on_doc_change: EventHandler<String>,
+) -> Element {
     let mut mode = use_signal(|| AuthMode::Landing);
     let mut error_msg = use_signal(String::new);
 
@@ -63,7 +70,11 @@ pub fn SettingsModal(master_key: Signal<Option<[u8; 32]>>, on_close: EventHandle
     };
 
     rsx! {
-        div { class: "fixed inset-0 z-50 overflow-y-auto",
+        div {
+            class: "fixed inset-0 z-50 overflow-y-auto",
+            role: "dialog",
+            "aria-modal": "true",
+            "aria-label": "Settings",
 
             div { class: "flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0",
                 div {
@@ -96,7 +107,11 @@ pub fn SettingsModal(master_key: Signal<Option<[u8; 32]>>, on_close: EventHandle
                                 }
 
                                 if let Some(_) = master_key() {
-                                    SyncActiveView { on_logout: handle_logout }
+                                    SyncActiveView {
+                                        on_logout: handle_logout,
+                                        doc_id,
+                                        on_doc_change,
+                                    }
                                 } else {
                                     match mode() {
                                         AuthMode::Landing => rsx! {
@@ -143,6 +158,7 @@ pub fn SettingsModal(master_key: Signal<Option<[u8; 32]>>, on_close: EventHandle
                             variant: ButtonVariant::Secondary,
                             class: "mt-3 w-full sm:mt-0 sm:ml-3 sm:w-auto",
                             onclick: move |_| on_close.call(()),
+                            data_testid: "close-settings",
                             "Close"
                         }
                     }
@@ -153,7 +169,6 @@ pub fn SettingsModal(master_key: Signal<Option<[u8; 32]>>, on_close: EventHandle
 }
 
 /// Represents the current state of the authentication flow within the settings modal.
-#[expect(dead_code)]
 #[derive(PartialEq, Clone, Copy)]
 enum AuthMode {
     /// The initial view presenting "Create New" or "Existing Key" options.
@@ -171,8 +186,14 @@ enum AuthMode {
 ///
 /// # Props
 /// * `on_logout` - Event handler triggered when the user clicks "Disconnect Identity".
+/// * `doc_id` - Signal containing the current document ID.
+/// * `on_doc_change` - Event handler called when the document ID changes.
 #[component]
-fn SyncActiveView(on_logout: EventHandler<()>) -> Element {
+fn SyncActiveView(
+    on_logout: EventHandler<()>,
+    doc_id: Signal<Option<String>>,
+    on_doc_change: EventHandler<String>,
+) -> Element {
     rsx! {
         div { class: "space-y-4",
             Alert { variant: AlertVariant::Success, title: "Sync Active",
@@ -185,6 +206,9 @@ fn SyncActiveView(on_logout: EventHandler<()>) -> Element {
                 class: "w-full",
                 "Disconnect Identity"
             }
+
+            // Document Management Section
+            DocIdManager { current_doc_id: doc_id, on_change: on_doc_change }
         }
     }
 }

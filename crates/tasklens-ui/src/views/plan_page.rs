@@ -2,19 +2,23 @@ use crate::components::TaskInput;
 use crate::components::task_row::TaskRow;
 use crate::controllers::task_controller;
 use crate::utils::time_conversion::DEFAULT_LEAD_TIME_MS;
+use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
 use tasklens_store::store::AppStore;
 
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
+    let master_key = use_context::<Signal<Option<[u8; 32]>>>();
     let mut store = use_context::<Signal<AppStore>>();
+    let mut doc_id = use_context::<Signal<Option<String>>>();
     let sync_tx = use_context::<Coroutine<Vec<u8>>>();
 
     // Track expanded task IDs.
     let mut expanded_tasks = use_signal(std::collections::HashSet::<TaskID>::new);
     let mut input_text = use_signal(String::new);
     let mut highlighted_task_id = use_signal(|| None::<TaskID>);
+    let mut show_settings = use_signal(|| false);
 
     // FIXME: If tasks are created faster than 2s apart, multiple timers could be spawned.
     // Consider tracking the spawned task handle and cancelling it before spawning a new one.
@@ -79,8 +83,9 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
         if let Some(changes) = changes_opt {
             sync_tx.send(changes);
             let bytes = store.write().export_save();
+            let current_doc_id = doc_id().expect("doc_id should be set");
             spawn(async move {
-                let _ = AppStore::save_to_db(bytes).await;
+                let _ = AppStore::save_to_db(&current_doc_id, bytes).await;
             });
         }
     };
@@ -153,26 +158,90 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
         }
     };
 
+    let handle_doc_change = move |new_doc_id: String| {
+        tracing::info!("Document ID changed to: {}", &new_doc_id[..8]);
+
+        // Update the doc_id signal
+        doc_id.set(Some(new_doc_id.clone()));
+
+        // Reload store from new document
+        spawn(async move {
+            match AppStore::load_from_db(&new_doc_id).await {
+                Ok(Some(bytes)) => {
+                    tracing::info!("Loaded {} bytes for new document", bytes.len());
+                    let mut new_store = AppStore::new();
+                    new_store.load_from_bytes(bytes);
+                    store.set(new_store);
+                }
+                Ok(None) => {
+                    tracing::info!("No data for new document, initializing empty store");
+                    let mut new_store = AppStore::new();
+                    if let Err(e) = new_store.init() {
+                        tracing::error!("Failed to initialize new store: {:?}", e);
+                    }
+                    store.set(new_store);
+                }
+                Err(e) => {
+                    tracing::error!("Failed to load new document: {:?}", e);
+                }
+            }
+        });
+    };
+
     rsx! {
+        if show_settings() {
+            SettingsModal {
+                master_key,
+                on_close: move |_| show_settings.set(false),
+                doc_id: doc_id,
+                on_doc_change: handle_doc_change,
+            }
+        }
         div {
             class: "p-4 container mx-auto max-w-2xl",
             style: "padding-top: var(--safe-top); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
 
             div { class: "flex justify-between items-center mb-6",
                 h1 { class: "text-2xl font-bold", "Plan" }
-                if !flattened_tasks().is_empty() {
+                div { class: "flex items-center space-x-2",
+                    if !flattened_tasks().is_empty() {
+                        button {
+                            class: "p-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700",
+                            aria_label: "Add Task at Top",
+                            onclick: move |_| {
+                                editor_state
+                                    .set(
+                                        Some(EditorState::Create {
+                                            parent_id: None,
+                                        }),
+                                    )
+                            },
+                            "Add Task"
+                        }
+                    }
                     button {
-                        class: "p-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700",
-                        aria_label: "Add Task at Top",
-                        onclick: move |_| {
-                            editor_state
-                                .set(
-                                    Some(EditorState::Create {
-                                        parent_id: None,
-                                    }),
-                                )
-                        },
-                        "Add Task"
+                        class: "text-gray-500 hover:text-gray-700 p-1 rounded-md hover:bg-gray-100",
+                        onclick: move |_| show_settings.set(true),
+                        aria_label: "Settings",
+                        "data-testid": "settings-button",
+                        svg {
+                            class: "h-6 w-6",
+                            fill: "none",
+                            view_box: "0 0 24 24",
+                            stroke: "currentColor",
+                            path {
+                                stroke_linecap: "round",
+                                stroke_linejoin: "round",
+                                stroke_width: "2",
+                                d: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z",
+                            }
+                            path {
+                                stroke_linecap: "round",
+                                stroke_linejoin: "round",
+                                stroke_width: "2",
+                                d: "M15 12a3 3 0 11-6 0 3 3 0 016 0z",
+                            }
+                        }
                     }
                 }
             }

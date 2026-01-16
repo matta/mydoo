@@ -597,82 +597,86 @@ export class PlanPage implements PlanFixture {
   async primeWithSampleData(): Promise<void> {
     // Clear localStorage first to ensure clean state
     await this.page.goto("/");
-    await this.page.evaluate(() => localStorage.clear());
+    await this.page.evaluate(() => {
+      localStorage.clear();
+      // Set a dummy master key (32 bytes of 0 as JSON array for gloo-storage)
+      localStorage.setItem(
+        "tasklens_master_key",
+        JSON.stringify(new Array(32).fill(0)),
+      );
+    });
 
     // Now navigate to seed URL
     await this.page.goto("/plan?seed=true");
-    // Ensure the app is loaded by waiting for the Plan button
+    // Ensure the app is loaded by waiting for the Plan heading
     await expect(
-      this.page.locator("nav, footer, .navbar").getByText("Plan").last(),
+      this.page.getByRole("heading", { name: "Plan" }),
     ).toBeVisible();
   }
 
   // --- Document Management ---
 
   async getCurrentDocumentId(): Promise<string | undefined> {
-    // Open Options menu
-    await this.page.getByRole("button", { name: "Options" }).click();
-
-    // Click Connection
-    await this.page.getByRole("menuitem", { name: "Connection" }).click();
+    // Open Settings modal
+    await this.page.getByTestId("settings-button").click();
 
     // Find the modal
-    const modal = this.page.getByRole("dialog", { name: "Connection Info" });
+    const modal = this.page.getByRole("dialog", { name: "Settings" });
     await expect(modal).toBeVisible();
 
-    // Get the ID from the Code block using a stable test ID
-    const id = await modal.getByTestId("document-id").textContent();
+    // Get the ID from the hidden span using data-testid
+    const id = await modal.getByTestId("full-document-id").textContent();
 
     // Close the modal
-    await modal.getByRole("button", { name: "Close" }).click();
+    await modal.getByTestId("close-settings").click();
     await expect(modal).not.toBeVisible();
 
     return id?.trim() || undefined;
   }
 
   async createNewDocument(): Promise<void> {
-    // Open Options menu
-    await this.page.getByRole("button", { name: "Options" }).click();
-
-    // Click Connection
-    await this.page.getByRole("menuitem", { name: "Connection" }).click();
+    // Open Settings modal
+    await this.page.getByTestId("settings-button").click();
 
     // Find the modal
-    const modal = this.page.getByRole("dialog", { name: "Connection Info" });
+    const modal = this.page.getByRole("dialog", { name: "Settings" });
     await expect(modal).toBeVisible();
 
-    // Click "Create New Document"
-    await modal.getByTestId("reset-document-button").click();
+    // Click "New Document"
+    await modal.getByTestId("new-document-button").click();
 
-    await expect(
-      this.page
-        .locator("nav, footer")
-        .getByRole("button", { name: "Plan" })
-        .last(),
-    ).toBeVisible();
+    // Modal remains open or closes depending on implementation,
+    // but the app should reload. Let's close modal.
+    await modal.getByTestId("close-settings").click();
+    await expect(modal).not.toBeVisible();
+    await this.waitForAppReady();
   }
 
   async switchToDocument(id: string): Promise<void> {
-    // Open Options menu
-    await this.page.getByRole("button", { name: "Options" }).click();
-
-    // Click Connection
-    await this.page.getByRole("menuitem", { name: "Connection" }).click();
+    // Open Settings modal
+    await this.page.getByTestId("settings-button").click();
 
     // Find the modal
-    const modal = this.page.getByRole("dialog", { name: "Connection Info" });
+    const modal = this.page.getByRole("dialog", { name: "Settings" });
     await expect(modal).toBeVisible();
 
+    // Click "Enter ID" to reveal input
+    const toggleBtn = modal.getByTestId("toggle-enter-id-button");
+    if ((await toggleBtn.textContent()) === "Enter ID") {
+      await toggleBtn.click();
+    }
+
     // Fill the ID
-    await modal.getByTestId("connect-document-input").fill(id);
+    const input = modal.getByTestId("document-id-input");
+    await input.fill(id);
 
-    // Click "Connect"
-    await modal.getByTestId("connect-document-button").click();
+    // Click "Load Document"
+    await modal.getByTestId("load-document-button").click();
 
-    // The page should reload. Wait for the app to be ready.
-    await expect(
-      this.page.locator("nav, footer, .navbar").getByText("Plan").last(),
-    ).toBeVisible();
+    // Wait for the app to be ready.
+    await modal.getByTestId("close-settings").click();
+    await expect(modal).not.toBeVisible();
+    await this.waitForAppReady();
   }
 
   // --- Clock Control ---

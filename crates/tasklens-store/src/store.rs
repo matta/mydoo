@@ -170,24 +170,33 @@ impl AppStore {
     }
 
     /// Loads the persisted state from the browser's IndexedDB.
+    ///
+    /// # Arguments
+    ///
+    /// * `doc_id` - The document ID to load.
     #[cfg(target_arch = "wasm32")]
-    pub async fn load_from_db() -> Result<Option<Vec<u8>>> {
-        IndexedDbStorage::load_from_db().await
+    pub async fn load_from_db(doc_id: &str) -> Result<Option<Vec<u8>>> {
+        IndexedDbStorage::load_from_db(doc_id).await
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub async fn load_from_db() -> Result<Option<Vec<u8>>> {
+    pub async fn load_from_db(_doc_id: &str) -> Result<Option<Vec<u8>>> {
         Ok(None)
     }
 
     /// Persists the current state to the browser's IndexedDB.
+    ///
+    /// # Arguments
+    ///
+    /// * `doc_id` - The document ID to save under.
+    /// * `bytes` - The serialized document data.
     #[cfg(target_arch = "wasm32")]
-    pub async fn save_to_db(bytes: Vec<u8>) -> Result<()> {
-        IndexedDbStorage::save_to_db(bytes).await
+    pub async fn save_to_db(doc_id: &str, bytes: Vec<u8>) -> Result<()> {
+        IndexedDbStorage::save_to_db(doc_id, bytes).await
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub async fn save_to_db(_bytes: Vec<u8>) -> Result<()> {
+    pub async fn save_to_db(_doc_id: &str, _bytes: Vec<u8>) -> Result<()> {
         Ok(())
     }
 
