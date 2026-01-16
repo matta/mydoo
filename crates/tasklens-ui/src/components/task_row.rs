@@ -1,5 +1,7 @@
 use crate::components::checkbox::Checkbox;
+use chrono::TimeZone;
 use dioxus::prelude::*;
+use tasklens_core::domain::dates::{UrgencyStatus, get_urgency_status};
 use tasklens_core::types::{PersistedTask, TaskID, TaskStatus};
 
 #[component]
@@ -26,8 +28,20 @@ pub fn TaskRow(
     let task_id_title_tap = task.id.clone();
     let task_toggle = task.clone();
 
-    // EventHandler is Clone. Signals are Clone. TaskID is Clone.
-    // on_rename is Copy, so we can use it directly in move closures.
+    // Urgency Logic
+    let now = js_sys::Date::now();
+    let urgency = get_urgency_status(task.schedule.due_date, task.schedule.lead_time, now);
+    let urgency_classes = match urgency {
+        UrgencyStatus::Overdue => "text-red-600 flex-grow cursor-pointer font-medium",
+        UrgencyStatus::Active => "text-orange-600 flex-grow cursor-pointer",
+        _ => "text-gray-800 flex-grow cursor-pointer",
+    };
+
+    let title_class = if is_done {
+        "line-through text-gray-400 flex-grow cursor-pointer"
+    } else {
+        urgency_classes
+    };
 
     rsx! {
         div {
@@ -91,10 +105,26 @@ pub fn TaskRow(
             }
 
             span {
-                class: if is_done { "line-through text-gray-400 flex-grow cursor-pointer" } else { "text-gray-800 flex-grow cursor-pointer" },
+                class: "{title_class}",
                 "data-testid": "task-title",
                 onclick: move |_| on_title_tap.call(task_id_title_tap.clone()),
                 "{task.title}"
+            }
+
+            if let Some(due_ts) = task.schedule.due_date {
+                if !is_done {
+                   span {
+                       class: "text-xs text-gray-400 ml-2",
+                       {
+                           let secs = (due_ts / 1000.0) as i64;
+                           if let Some(dt) = chrono::Utc.timestamp_opt(secs, 0).single() {
+                               dt.format("%b %d").to_string()
+                           } else {
+                               "".to_string()
+                           }
+                       }
+                   }
+                }
             }
 
             // Actions

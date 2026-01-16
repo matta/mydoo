@@ -1,4 +1,4 @@
-use crate::types::UrgencyStatus;
+pub use crate::types::UrgencyStatus;
 use chrono::{DateTime, Datelike};
 
 /// The threshold ratio for urgency transitions.

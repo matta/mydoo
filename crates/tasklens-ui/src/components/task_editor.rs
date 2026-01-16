@@ -9,6 +9,7 @@ use tasklens_core::types::{
     PersistedTask, PlaceID, RepeatConfig, Schedule, ScheduleType, TaskID, TaskStatus,
 };
 use tasklens_store::store::{Action, AppStore, TaskUpdates};
+use tracing;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DraftTask {
@@ -427,17 +428,29 @@ pub fn TaskEditor(
                             label { class: "block text-sm font-medium", "Due Date" }
                             DatePicker {
                                 value: current_draft
-                                    // Basic timestamp to YYYY-MM-DD conversion
-                                    // Use a lightweight formatter or string manipulation if chrono isn't available/convenient
-                                    // For now, let's just use an empty string as a placeholder to unblock compilation
-                                    // TODO: Implement proper date formatting
                                     .schedule
                                     .due_date
                                     .map(|ts| {
-                                        let _secs = (ts / 1000.0) as i64;
-                                        String::new()
+                                        use chrono::TimeZone;
+                                        let secs = (ts / 1000.0) as i64;
+                                        if let Some(dt) = chrono::Utc.timestamp_opt(secs, 0).single() {
+                                            dt.format("%Y-%m-%d").to_string()
+                                        } else {
+                                            String::new()
+                                        }
                                     }),
-                                onchange: move |_v: String| {},
+                                onchange: move |v: String| {
+                                    if let Ok(date) = chrono::NaiveDate::parse_from_str(&v, "%Y-%m-%d")
+                                        && let Some(dt) = date.and_hms_opt(0, 0, 0)
+                                    {
+                                        let ts = dt.and_utc().timestamp_millis() as f64;
+                                        let mut d = draft().expect("draft should be initialized");
+                                        d.schedule.due_date = Some(ts);
+                                        draft.set(Some(d));
+                                    } else if !v.is_empty() {
+                                        tracing::warn!("Failed to parse date: {}", v);
+                                    }
+                                },
                             }
                         }
                     }

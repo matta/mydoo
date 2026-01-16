@@ -907,42 +907,42 @@ _Goal: Porting UI components to match functionality._
     - [x] **[VERIFY]**: Cycle detection: Cannot move a task to its own
           descendant (descendants hidden in Move Picker).
 
-- [ ] **Milestone 3.8: Due Dates & Urgency**.
+- [x] **Milestone 3.8: Due Dates & Urgency**.
   - **Goal**: Enable `due-dates.feature` and basic `task-creation.feature`.
   - **Key Feature**: Date picker integration, "Due Date" schedule type, and
     Urgency visualization.
   - **Implementation Details**:
     - **Step 1: Component Installation**
-      - [ ] **[CMD]**: `dx components add date-picker`.
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/mod.rs`**: Export
+      - [x] **[CMD]**: `dx components add date-picker`.
+      - [x] **[MODIFY] `crates/tasklens-ui/src/components/mod.rs`**: Export
             `date_picker`.
     - **Step 2: Task Editor Integration (Due Dates)**
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
-        - [ ] Replace placeholder `DatePicker` with real component.
-        - [ ] Implement `f64` (timestamp) <-> `String` (YYYY-MM-DD) conversion
+      - [x] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
+        - [x] Replace placeholder `DatePicker` with real component.
+        - [x] Implement `f64` (timestamp) <-> `String` (YYYY-MM-DD) conversion
               for `due_date`.
-        - [ ] Add "Lead Time" input (number + unit).
-        - [ ] Bind to `draft.schedule.due` and `draft.schedule.lead_time`.
-        - [ ] Ensure `schedule.type` defaults to `Once` (or `DueDate` if date
+        - [x] Add "Lead Time" input (number + unit).
+        - [x] Bind to `draft.schedule.due` and `draft.schedule.lead_time`.
+        - [x] Ensure `schedule.type` defaults to `Once` (or `DueDate` if date
               set).
     - **Step 3: Visual Feedback (Plan View)**
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_row.rs`**:
-        - [ ] Import `tasklens_core::domain::dates::get_urgency_status`.
-        - [ ] Check `task.schedule.due_date` and compute urgency relative to
+      - [x] **[MODIFY] `crates/tasklens-ui/src/components/task_row.rs`**:
+        - [x] Import `tasklens_core::domain::dates::get_urgency_status`.
+        - [x] Check `task.schedule.due_date` and compute urgency relative to
               `Context::now()`.
-        - [ ] Render Due Date badge/text if present.
-        - [ ] Apply "text-red-600" if Overdue `UrgencyStatus::Overdue`.
-        - [ ] Apply "text-orange-500" if `UrgencyStatus::DueSoon` or `Active`.
+        - [x] Render Due Date badge/text if present.
+        - [x] Apply "text-red-600" if Overdue `UrgencyStatus::Overdue`.
+        - [x] Apply "text-orange-500" if `UrgencyStatus::DueSoon` or `Active`.
     - **Step 4: Enable BDD Tests**
-      - [ ] **[MODIFY]
+      - [x] **[MODIFY]
             `crates/tasklens-ui/tests/e2e/features/due-dates.feature`**:
-        - [ ] Remove `@migration-pending` tag.
+        - [x] Remove `@migration-pending` tag.
   - **Verification**:
-    - [ ] **[VERIFY]**: Run
+    - [x] **[VERIFY]**: Run
           `pnpm --filter @mydoo/tasklens-ui test-e2e -g "due-dates"`.
-    - [ ] **[VERIFY]**: Manual: Create task with Due Date "Tomorrow", Lead Time
+    - [x] **[VERIFY]**: Manual: Create task with Due Date "Tomorrow", Lead Time
           "2 days". Verify "Active" status (Orange).
-    - [ ] **[VERIFY]**: Manual: Check Do View for proper color coding of
+    - [x] **[VERIFY]**: Manual: Check Do View for proper color coding of
           Urgent/Overdue tasks.
 
 - [ ] **Milestone 3.9: Routine Tasks Configuration**.
