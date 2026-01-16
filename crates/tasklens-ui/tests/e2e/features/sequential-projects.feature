@@ -1,4 +1,3 @@
-@migration-pending
 Feature: Sequential Projects
 
     Background:

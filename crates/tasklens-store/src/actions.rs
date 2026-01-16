@@ -39,4 +39,5 @@ pub struct TaskUpdates {
     pub schedule_type: Option<tasklens_core::types::ScheduleType>,
     pub lead_time: Option<Option<f64>>,
     pub repeat_config: Option<Option<tasklens_core::types::RepeatConfig>>,
+    pub is_sequential: Option<bool>,
 }

@@ -102,6 +102,9 @@ impl AppStore {
                     if let Some(repeat_config) = updates.repeat_config {
                         task.repeat_config = repeat_config;
                     }
+                    if let Some(is_seq) = updates.is_sequential {
+                        task.is_sequential = is_seq;
+                    }
                 }
             }
             Action::DeleteTask { id } => {

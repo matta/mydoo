@@ -149,6 +149,7 @@ pub fn TaskEditor(
                         schedule_type: Some(d.schedule.schedule_type),
                         lead_time: Some(d.schedule.lead_time),
                         repeat_config: Some(d.repeat_config),
+                        is_sequential: Some(d.is_sequential),
                     },
                 );
             } else if let Some(id) = crate::controllers::task_controller::create_task(
@@ -171,6 +172,7 @@ pub fn TaskEditor(
                         schedule_type: Some(d.schedule.schedule_type),
                         lead_time: Some(d.schedule.lead_time),
                         repeat_config: Some(d.repeat_config),
+                        is_sequential: Some(d.is_sequential),
                     },
                 );
             }
@@ -533,6 +535,30 @@ pub fn TaskEditor(
                                 d.notes = e.value();
                                 draft.set(Some(d));
                             },
+                        }
+                    }
+
+                    // Sequential Project (Edit mode only)
+                    if task_id.is_some() {
+                        div { class: "flex items-center gap-2 p-3 bg-gray-50 rounded-md border border-gray-200",
+                            input {
+                                r#type: "checkbox",
+                                id: "sequential-toggle",
+                                class: "w-4 h-4",
+                                checked: current_draft.is_sequential,
+                                aria_label: "Sequential Project",
+                                onchange: move |e| {
+                                    let mut d = draft().expect("draft should be initialized");
+                                    d.is_sequential = e.checked();
+                                    draft.set(Some(d));
+                                },
+                            }
+                            label {
+                                r#for: "sequential-toggle",
+                                class: "text-sm font-medium cursor-pointer",
+                                "Sequential Project"
+                            }
+                            span { class: "text-xs text-gray-500 ml-auto", "Do steps in order" }
                         }
                     }
 

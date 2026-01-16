@@ -999,7 +999,7 @@ _Goal: Porting UI components to match functionality._
   - [x] **[VERIFY]**: Manual: Check persistence (reload page) and verify
         `Frequency` and `Lead Time` are preserved.
 
-#### [ ] Milestone 3.10: Sequential Projects
+#### [x] Milestone 3.10: Sequential Projects
 
 - **Goal**: Enable `sequential-projects.feature`.
 - **Key Feature**: Sequential task execution—when a parent task has
@@ -1020,35 +1020,35 @@ _Goal: Porting UI components to match functionality._
     sets `visibility = false` for non-first pending children.
 - **Implementation Details**:
   - **Step 1: Store Update Support**
-    - [ ] **[MODIFY] `crates/tasklens-store/src/actions.rs`**:
-      - [ ] Add `is_sequential: Option<bool>` field to `TaskUpdates` struct
+    - [x] **[MODIFY] `crates/tasklens-store/src/actions.rs`**:
+      - [x] Add `is_sequential: Option<bool>` field to `TaskUpdates` struct
             (after `repeat_config`).
-    - [ ] **[MODIFY] `crates/tasklens-store/src/store.rs`**:
-      - [ ] In `Action::UpdateTask` handler (around line 102, after
+    - [x] **[MODIFY] `crates/tasklens-store/src/store.rs`**:
+      - [x] In `Action::UpdateTask` handler (around line 102, after
             `repeat_config` handling), add:
             `rust     if let Some(is_seq) = updates.is_sequential {         task.is_sequential = is_seq;     }     `
   - **Step 2: Task Editor UI**
-    - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
-      - [ ] In the `save_handler` closure (lines 141–153 and 163–175), add
+    - [x] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
+      - [x] In the `save_handler` closure (lines 141–153 and 163–175), add
             `is_sequential: Some(d.is_sequential)` to both `TaskUpdates` struct
             initializations.
-      - [ ] Add a "Sequential Project" checkbox/toggle in the form UI (after the
+      - [x] Add a "Sequential Project" checkbox/toggle in the form UI (after the
             "Notes" section, before "Footer Actions"). Use Dioxus's `checkbox`
             or a `Switch` component with:
-        - [ ] `id: "sequential-toggle"`
-        - [ ] `aria-label: "Sequential Project"`
-        - [ ] Bind `checked` to `current_draft.is_sequential`
-        - [ ] On change, update `draft.is_sequential`
-        - [ ] Display Label: "Sequential Project" with helper text "Do steps in
+        - [x] `id: "sequential-toggle"`
+        - [x] `aria-label: "Sequential Project"`
+        - [x] Bind `checked` to `current_draft.is_sequential`
+        - [x] On change, update `draft.is_sequential`
+        - [x] Display Label: "Sequential Project" with helper text "Do steps in
               order"
-      - [ ] Ensure the checkbox is only visible in Edit mode (when
+      - [x] Ensure the checkbox is only visible in Edit mode (when
             `task_id.is_some()`) since sequential only applies to containers.
   - **Step 3: Enable BDD Tests**
-    - [ ] **[MODIFY]
+    - [x] **[MODIFY]
           `crates/tasklens-ui/tests/e2e/features/sequential-projects.feature`**:
-      - [ ] Remove `@migration-pending` tag from line 1.
+      - [x] Remove `@migration-pending` tag from line 1.
 - **Verification**:
-  - [ ] **[VERIFY]**: Run
+  - [x] **[VERIFY]**: Run
         `pnpm --filter @mydoo/tasklens-ui test-e2e -g "sequential-projects"`.
   - [ ] **[VERIFY]**: Manual: Create parent "Project S". Toggle "Sequential".
         Add Child A, Child B. Verify only A is visible in Do view. Complete A.
