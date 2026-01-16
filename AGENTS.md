@@ -542,6 +542,17 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     isolate web-specific crates (`rexie`, `wasm-bindgen`) from native builds.
     This avoids compilation errors on native targets that don't satisfy
     web-specific feature requirements.
+- **Cross-Target Compilation Strategy (Hybrid Repos)**:
+  - _Context:_ Shared libraries (like `tasklens-store`) often mix core logic
+    with platform-specific storage (IndexDB/WASM).
+  - _Symptom:_ `cargo check` passes on `wasm32`, but fails on the host
+    (CI/pre-commit) because it tries to compile WASM-only dependencies.
+  - _Fix:_ Abstract platform-specific logic behind public, target-agnostic
+    helper methods. Use `#[cfg(not(target_arch = "wasm32"))]` to provide "no-op"
+    or "mock" implementations for the host target. This ensures the crate
+    interface remains stable across all targets, preventing compilation failures
+    in consumers that don't share the WASM target (like `cargo check` or
+    server-side renderers).
 
 ## Rust-JavaScript Interoperability
 
@@ -624,6 +635,26 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     asynchronously. Never let the context be `None` during initial render.
   - _Pattern:_ Prefer `use_context_provider(|| AppStore::default())` over
     `use_context_provider(|| load_from_db().await)`.
+- **Async Locking Hygiene (The "RefCell" Deadlock)**:
+  - _Symptom:_ Runtime panic `RefCell<T> already borrowed` typically occurring
+    during initialization or state hydration.
+  - _Cause:_ Holding a `Signal` or `RefCell` write lock across an `.await`
+    point. If the future pauses, the lock remains held. If the executor tries to
+    run another task that needs the store (like a rendering effect or event
+    handler), it panics.
+  - _Rule:_ **Never** hold a lock across an `.await`.
+
+    ```rust
+    // ❌ BAD: Lock held during async
+    let mut store = store.write();
+    store.load_from_db().await;
+
+    // ✅ GOOD: Split phases
+    let data = AppStore::load_from_db().await; // Async, no lock
+    let mut store = store.write();             // Sync, lock acquired briefly
+    store.load_from_bytes(data);
+    ```
+
 - **Dioxus Toast "Parking" Pattern**:
   - _Symptom:_ The Dioxus hot-reload toast (`#__dx-toast-text`) appears in the
     DOM even when not visible, causing E2E tests to potentially interact with it
