@@ -11,6 +11,8 @@ mod wasm_storage {
             let db = Self::build_db()
                 .await
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            let db = scopeguard::guard(db, |db| db.close());
+
             let transaction = db
                 .transaction(&["automerge"], rexie::TransactionMode::ReadOnly)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
@@ -41,6 +43,8 @@ mod wasm_storage {
             let db = Self::build_db()
                 .await
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            let db = scopeguard::guard(db, |db| db.close());
+
             let transaction = db
                 .transaction(&["automerge"], rexie::TransactionMode::ReadWrite)
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?;

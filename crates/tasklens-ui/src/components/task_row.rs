@@ -1,8 +1,35 @@
 use crate::components::checkbox::Checkbox;
-use chrono::TimeZone;
+use chrono::{Datelike, TimeZone};
 use dioxus::prelude::*;
 use tasklens_core::domain::dates::{UrgencyStatus, get_urgency_status};
 use tasklens_core::types::{PersistedTask, TaskID, TaskStatus};
+
+/// Formats a due date timestamp relative to the current time.
+///
+/// Returns "Yesterday", "Today", "Tomorrow", day-of-week for dates within 7 days,
+/// or a formatted date string for further dates.
+fn format_relative_due_date(due_ts: f64, now: f64) -> String {
+    let secs = (due_ts / 1000.0) as i64;
+    let now_secs = (now / 1000.0) as i64;
+
+    let (dt, now_dt) = match (
+        chrono::Utc.timestamp_opt(secs, 0).single(),
+        chrono::Utc.timestamp_opt(now_secs, 0).single(),
+    ) {
+        (Some(dt), Some(now_dt)) => (dt, now_dt),
+        _ => return String::new(),
+    };
+
+    let days_diff = (dt.date_naive() - now_dt.date_naive()).num_days();
+    match days_diff {
+        -1 => "Yesterday".to_string(),
+        0 => "Today".to_string(),
+        1 => "Tomorrow".to_string(),
+        _ if days_diff > 0 && days_diff < 7 => dt.format("%A").to_string(),
+        _ if dt.year() == now_dt.year() => dt.format("%b %d").to_string(),
+        _ => dt.format("%b %d, %Y").to_string(),
+    }
+}
 
 #[component]
 pub fn TaskRow(
@@ -17,6 +44,8 @@ pub fn TaskRow(
     on_create_subtask: EventHandler<TaskID>,
     on_title_tap: EventHandler<TaskID>,
     #[props(default = false)] is_highlighted: bool,
+    effective_due_date: Option<f64>,
+    effective_lead_time: Option<f64>,
 ) -> Element {
     let indentation = depth * 20;
     let is_done = task.status == TaskStatus::Done;
@@ -30,10 +59,10 @@ pub fn TaskRow(
 
     // Urgency Logic
     let now = js_sys::Date::now();
-    let urgency = get_urgency_status(task.schedule.due_date, task.schedule.lead_time, now);
+    let urgency = get_urgency_status(effective_due_date, effective_lead_time, now);
     let urgency_classes = match urgency {
         UrgencyStatus::Overdue => "text-red-600 flex-grow cursor-pointer font-medium",
-        UrgencyStatus::Active => "text-orange-600 flex-grow cursor-pointer",
+        UrgencyStatus::Active | UrgencyStatus::Urgent => "text-orange-600 flex-grow cursor-pointer",
         _ => "text-gray-800 flex-grow cursor-pointer",
     };
 
@@ -43,12 +72,26 @@ pub fn TaskRow(
         urgency_classes
     };
 
+    let badge_color = match urgency {
+        UrgencyStatus::Overdue => "bg-red-500",
+        UrgencyStatus::Active | UrgencyStatus::Urgent => "bg-orange-500",
+        UrgencyStatus::Upcoming => "bg-yellow-500",
+        _ => "bg-gray-300",
+    };
+
     rsx! {
         div {
             class: "flex items-center py-2 border-b border-gray-100 hover:bg-gray-50 group pr-2",
             class: if is_highlighted { "animate-flash" } else { "" },
             style: "padding-left: {indentation}px",
             "data-testid": "task-item",
+            "data-urgency": match urgency {
+                UrgencyStatus::Overdue => "Overdue",
+                UrgencyStatus::Active => "Active",
+                UrgencyStatus::Urgent => "Urgent",
+                UrgencyStatus::Upcoming => "Upcoming",
+                _ => "None",
+            },
 
             // Expand/Collapse Chevron
             div { class: "w-6 flex justify-center flex-shrink-0",
@@ -104,6 +147,21 @@ pub fn TaskRow(
                 class: "cursor-pointer mr-2 flex-shrink-0",
             }
 
+            // Urgency indicator badge
+            if urgency != UrgencyStatus::None {
+                span {
+                    "data-testid": "urgency-badge",
+                    "data-urgency": match urgency {
+                        UrgencyStatus::Overdue => "Overdue",
+                        UrgencyStatus::Active => "Active",
+                        UrgencyStatus::Urgent => "Urgent",
+                        UrgencyStatus::Upcoming => "Upcoming",
+                        _ => "None",
+                    },
+                    class: "w-2 h-2 rounded-full inline-block ml-2 mb-0.5 {badge_color}",
+                }
+            }
+
             span {
                 class: "{title_class}",
                 "data-testid": "task-title",
@@ -111,19 +169,13 @@ pub fn TaskRow(
                 "{task.title}"
             }
 
-            if let Some(due_ts) = task.schedule.due_date {
+            if let Some(due_ts) = effective_due_date {
                 if !is_done {
-                   span {
-                       class: "text-xs text-gray-400 ml-2",
-                       {
-                           let secs = (due_ts / 1000.0) as i64;
-                           if let Some(dt) = chrono::Utc.timestamp_opt(secs, 0).single() {
-                               dt.format("%b %d").to_string()
-                           } else {
-                               "".to_string()
-                           }
-                       }
-                   }
+                    span {
+                        class: "text-xs text-gray-400 ml-2",
+                        "data-testid": "due-date-text",
+                        { format_relative_due_date(due_ts, now) }
+                    }
                 }
             }
 

@@ -90,6 +90,26 @@ pub fn rename_task(mut store: Signal<AppStore>, task_id: TaskID, new_title: Stri
     }
 }
 
+/// Updates a task with the given updates.
+///
+/// If the schedule type is set to `Routinely`, a `repeat_config` must be provided.
+pub fn update_task(mut store: Signal<AppStore>, task_id: TaskID, updates: TaskUpdates) {
+    // Validation: Routinely tasks MUST have a repeat_config
+    if let (Some(tasklens_core::types::ScheduleType::Routinely), Some(None)) =
+        (&updates.schedule_type, &updates.repeat_config)
+    {
+        tracing::error!("Validation failed: Routinely schedule requires a RepeatConfig");
+        return;
+    }
+
+    if let Err(e) = store.write().dispatch(Action::UpdateTask {
+        id: task_id,
+        updates,
+    }) {
+        tracing::error!("Failed to update task: {:?}", e);
+    }
+}
+
 /// Moves a task to a new parent.
 pub fn move_task(mut store: Signal<AppStore>, task_id: TaskID, new_parent_id: Option<TaskID>) {
     if let Err(e) = store.write().dispatch(Action::MoveTask {

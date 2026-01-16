@@ -425,11 +425,14 @@ export class PlanPage implements PlanFixture {
   async setLeadTime(value: number, unit: string): Promise<void> {
     // Assumes the Task Editor modal is already open
     await this.page.locator("#lead-time-scalar-input").fill(value.toString());
-    await this.page.locator("#lead-time-unit-select").click();
-    await this.page.getByRole("option", { name: unit }).click();
+    await this.page.selectOption("#lead-time-unit-select", { label: unit });
   }
 
   async setTaskDueDate(dateString: string): Promise<void> {
+    // Ensure Schedule Type is set to "Due Date" so the field is visible
+    await this.page.selectOption("#schedule-type-select", {
+      label: "Due Date",
+    });
     await this.setDueDate(dateString);
   }
 
@@ -706,7 +709,11 @@ export class PlanPage implements PlanFixture {
       `[data-testid="urgency-badge"][data-urgency="${urgency}"]`,
     );
 
-    await expect(badge.or(breadcrumbBadge)).toBeVisible();
+    if (urgency.toLowerCase() === "none") {
+      await expect(badge.or(breadcrumbBadge)).toBeHidden();
+    } else {
+      await expect(badge.or(breadcrumbBadge)).toBeVisible();
+    }
   }
 
   async verifyNoDueDateIndicator(taskTitle: string): Promise<void> {

@@ -11,6 +11,7 @@ mod components;
 mod controllers;
 mod router;
 mod seed;
+mod utils;
 mod views;
 
 use crate::router::Route;
@@ -20,6 +21,30 @@ use tasklens_store::store::AppStore;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+
+#[cfg(target_arch = "wasm32")]
+pub async fn tasklensReset() -> Result<(), String> {
+    tracing::info!("E2E Reset Triggered: Clearing storage...");
+    let _ = tasklens_store::crypto::clear_key();
+
+    if let Some(window) = web_sys::window() {
+        // 1. Clear Local/Session Storage
+        if let Ok(Some(ls)) = window.local_storage() {
+            let _ = ls.clear();
+        }
+        if let Ok(Some(ss)) = window.session_storage() {
+            let _ = ss.clear();
+        }
+
+        // 2. Delete IndexedDB database "tasklens_db"
+        if let Err(e) = rexie::Rexie::delete("tasklens_db").await {
+            let msg = format!("Failed to delete database: {:?}", e);
+            tracing::error!("{}", msg);
+            return Err(msg);
+        }
+    }
+    Ok(())
+}
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
@@ -43,6 +68,26 @@ fn main() {
 
     init_service_worker();
 
+    #[cfg(target_arch = "wasm32")]
+    {
+        // Expose the reset function to the global window for E2E tests
+        let window = web_sys::window().expect("no global window");
+        let closure = Closure::wrap(Box::new(|| {
+            wasm_bindgen_futures::future_to_promise(async move {
+                match tasklensReset().await {
+                    Ok(_) => Ok(JsValue::UNDEFINED),
+                    Err(e) => Err(JsValue::from_str(&e)),
+                }
+            })
+        }) as Box<dyn FnMut() -> js_sys::Promise>);
+        let _ = js_sys::Reflect::set(
+            &window,
+            &JsValue::from_str("tasklensReset"),
+            closure.as_ref().unchecked_ref(),
+        );
+        closure.forget();
+    }
+
     dioxus::launch(App);
 }
 
@@ -64,29 +109,34 @@ fn App() -> Element {
 
     // Unified Store Initialization: Key Load -> Data Load -> Seeding
     use_future(move || async move {
-        // 1. Load Master Key
+        // 1. Load Master Key from Browser Storage (LocalStorage/SessionStorage)
         match crypto::load_key() {
             Ok(Some(key)) => {
-                tracing::info!("Loaded key from storage");
+                tracing::info!("Loaded Master Key from browser storage");
                 master_key.set(Some(key));
             }
-            Ok(None) => tracing::info!("No key found in storage"),
-            Err(e) => tracing::error!("Error loading key: {:?}", e),
+            Ok(None) => tracing::info!("No Master Key found in browser storage"),
+            Err(e) => tracing::error!("Error loading Master Key: {:?}", e),
         }
 
-        // 2. Load Data from DB
+        // 2. Load App Store Data from IndexedDB
         match AppStore::load_from_db().await {
             Ok(Some(bytes)) => {
-                tracing::info!("Loaded {} bytes from storage", bytes.len());
+                tracing::info!(
+                    "Loaded {} bytes of App Store data from IndexedDB",
+                    bytes.len()
+                );
                 store.write().load_from_bytes(bytes);
             }
             Ok(None) => {
-                tracing::info!("No persisted data found; initializing new store");
+                tracing::info!(
+                    "No persisted App Store data found in IndexedDB; initializing new store"
+                );
                 if let Err(e) = store.write().init() {
-                    tracing::error!("Failed to initialize store: {:?}", e);
+                    tracing::error!("Failed to initialize App Store: {:?}", e);
                 }
             }
-            Err(e) => tracing::error!("Failed to load from storage: {:?}", e),
+            Err(e) => tracing::error!("Failed to load App Store from IndexedDB: {:?}", e),
         }
 
         // 3. Apply Seed if requested
@@ -171,7 +221,10 @@ fn App() -> Element {
 
     rsx! {
         // Global Component Theme
-        document::Link { rel: "stylesheet", href: asset!("/assets/dx-components-theme.css") }
+        document::Link {
+            rel: "stylesheet",
+            href: asset!("/assets/dx-components-theme.css"),
+        }
         // The Stylesheet component inserts a style link into the head of the document
         document::Stylesheet {
             // Urls are relative to your Cargo.toml file

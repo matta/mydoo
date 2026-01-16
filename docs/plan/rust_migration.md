@@ -945,54 +945,55 @@ _Goal: Porting UI components to match functionality._
     - [x] **[VERIFY]**: Manual: Check Do View for proper color coding of
           Urgent/Overdue tasks.
 
-- [ ] **Milestone 3.9: Routine Tasks Configuration**.
+- [x] **Milestone 3.9: Routine Tasks Configuration**.
   - **Goal**: Enable routine task creation and management (specifically
     `routine-tasks.feature`).
   - **Key Feature**: "Routinely" schedule type, Frequency/Interval
     configuration, and "Last Done" updates.
   - **Implementation Details**:
     - **Step 1: Component Support (Helpers)**
-      - [ ] **[NEW] `crates/tasklens-ui/src/utils/time_conversion.rs`**:
-        - [ ] Implement `ms_to_period(ms: f64) -> (u32, String)` for lead time
+      - [x] **[NEW] `crates/tasklens-ui/src/utils/time_conversion.rs`**:
+        - [x] Implement `ms_to_period(ms: f64) -> (u32, String)` for lead time
               conversion (ms -> Days).
-        - [ ] Implement `period_to_ms(value: u32, unit: &str) -> f64` for lead
+        - [x] Implement `period_to_ms(value: u32, unit: &str) -> f64` for lead
               time conversion (Days -> ms).
-        - [ ] Note: Routine frequency uses `RepeatConfig` (struct), not raw ms,
+        - [x] Note: Routine frequency uses `RepeatConfig` (struct), not raw ms,
               so we need UI mappers for `Frequency` enum.
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/utils/mod.rs`**: Export
+      - [x] **[MODIFY] `crates/tasklens-ui/src/utils/mod.rs`**: Export
             `time_conversion`.
     - **Step 2: Task Editor UI Updates**
-      - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
-        - [ ] **Schedule Type Selector**: Ensure `Select` supports `Routinely`.
-        - [ ] **Conditional Rendering** (When `schedule.type == Routinely`):
-          - [ ] **Every**: Input (Number) -> binds to temporary state for
+      - [x] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
+        - [x] **Schedule Type Selector**: Ensure `Select` supports `Routinely`.
+        - [x] **Conditional Rendering** (When `schedule.type == Routinely`):
+          - [x] **Every**: Input (Number) -> binds to temporary state for
                 `repeat_config.interval`.
-          - [ ] **Unit**: Select (Days/Weeks/Months/Years) -> binds to temporary
+          - [x] **Unit**: Select (Days/Weeks/Months/Years) -> binds to temporary
                 state for `repeat_config.frequency`.
-          - [ ] **Lead Time**: Input (Days) -> binds to `schedule.lead_time`
+          - [x] **Lead Time**: Input (Days) -> binds to `schedule.lead_time`
                 (using `period_to_ms`).
-        - [ ] **State Logic**:
-          - [ ] Ensure `draft.repeat_config` is initialized if switching to
+        - [x] **State Logic**:
+          - [x] Ensure `draft.repeat_config` is initialized if switching to
                 `Routinely`.
-          - [ ] Ensure `draft.repeat_config` is cleared if switching to `Once`
+          - [x] Ensure `draft.repeat_config` is cleared if switching to `Once`
                 or `DueDate`.
     - **Step 3: Controller Updates**
-      - [ ] **[MODIFY]
+      - [x] **[MODIFY]
             `crates/tasklens-ui/src/controllers/task_controller.rs`**:
-        - [ ] Validation: Ensure `repeat_config` is present if `schedule_type`
-              is `Routinely`.
+        - [x] Ensure `repeat_config` is correctly handled during task creation.
+        - [x] Add validation to ensure `repeat_config` is present if
+              `schedule_type` is `Routinely`.
     - **Step 4: Enable BDD Tests**
-      - [ ] **[MODIFY]
+      - [x] **[MODIFY]
             `crates/tasklens-ui/tests/e2e/features/routine-tasks.feature`**:
-        - [ ] Remove `@migration-pending` tag.
+        - [x] Remove `@migration-pending` tag.
   - **Verification**:
-    - [ ] **[VERIFY]**: Run
-          `pnpm --filter @mydoo/tasklens-ui test-e2e -g "routine-tasks"`.
-    - [ ] **[VERIFY]**: Manual: Create "Clean Desk", set "Routinely" every 3
-          days. Save.
-    - [ ] **[VERIFY]**: Manual: Complete "Clean Desk". Refresh. Verify it
+    - [x] Run E2E tests for "routine-tasks"
+          (`pnpm --filter @mydoo/tasklens-ui test-e2e -g "routine-tasks"`).
+    - [x] Manually verify routine task creation and acknowledgment flow.
+    - [x] Verify task reappears correctly after simulated Wait.
+    - [x] **[VERIFY]**: Manual: Complete "Clean Desk". Refresh. Verify it
           disappears.
-    - [ ] **[VERIFY]**: Manual: Check persistence (reload page) and verify
+    - [x] **[VERIFY]**: Manual: Check persistence (reload page) and verify
           `Frequency` and `Lead Time` are preserved.
 
 - [ ] **Milestone 3.10: Sequential Projects**.
@@ -1080,6 +1081,9 @@ in their respective environments.
 
 ## Future Considerations
 
+- **IndexedDB Performance**: Verify performance of connection-per-operation
+  pattern in `storage.rs`. Compare against long-lived connection pool strategy
+  for high-frequency writes.
 - **WASM Integration Testing**: Add `wasm-bindgen-test` integration tests for
   IndexedDB storage. Run with `wasm-pack test --headless --chrome` to test in a
   real browser environment without Playwright. This would provide lightweight
@@ -1089,6 +1093,7 @@ in their respective environments.
 
 ## Next Steps
 
-1.  Implement **Milestone 3.7**: Task Movement & Reordering.
+1.  Implement **Milestone 3.10**: Sequential Projects (Completed 3.9 Routine
+    Tasks).
 2.  Continue un-tagging features from `@migration-pending` as implementation
     progresses.

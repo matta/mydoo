@@ -11,17 +11,7 @@ export async function dumpFailureContext(page: Page, testInfo: TestInfo) {
   try {
     const syntheticTree = await page.evaluate(() => {
       // CONFIG: Attributes we trust for unique identification
-      const RELEVANT_ATTRIBUTES = [
-        "aria-expanded",
-        "aria-label",
-        "data-cy",
-        "data-expanded",
-        "data-testid",
-        "id",
-        "name",
-        "placeholder",
-        "role",
-      ];
+      const EXTRA_RELEVANT_ATTRIBUTES = ["id", "name", "placeholder", "role"];
 
       // HELPER: Should this element appear in the Agent's view?
       function isRelevant(el: Element): boolean {
@@ -44,18 +34,23 @@ export async function dumpFailureContext(page: Page, testInfo: TestInfo) {
         // 2. Keep semantic headers
         if (/^h[1-6]$/.test(tag)) return true;
 
-        // 3. Keep elements with key testing attributes
-        if (el.hasAttribute("data-testid") || el.hasAttribute("data-cy"))
-          return true;
-
-        // 4. Keep elements with interaction hints
+        // 3. Keep elements with any data-*, aria-*, or extra relevant attributes
+        const attributes = el.getAttributeNames();
         if (
-          el.hasAttribute("data-expanded") ||
-          el.hasAttribute("aria-label") ||
-          el.hasAttribute("aria-expanded") ||
-          el.hasAttribute("onclick")
-        )
+          attributes.some(
+            (name) =>
+              name.startsWith("data-") ||
+              name.startsWith("aria-") ||
+              EXTRA_RELEVANT_ATTRIBUTES.includes(name),
+          )
+        ) {
           return true;
+        }
+
+        // 4. Keep elements with interaction hints (event handlers)
+        if (attributes.some((name) => name.startsWith("on"))) {
+          return true;
+        }
 
         // 5. Keep elements with direct text content
         const hasDirectText = Array.from(el.childNodes).some(
@@ -86,8 +81,18 @@ export async function dumpFailureContext(page: Page, testInfo: TestInfo) {
         };
 
         // A. Capture Attributes
-        for (const attr of RELEVANT_ATTRIBUTES) {
+        // 1. Explicitly trusted attributes
+        for (const attr of EXTRA_RELEVANT_ATTRIBUTES) {
           if (el.hasAttribute(attr)) node[attr] = el.getAttribute(attr) || "";
+        }
+        // 2. Dynamic data-* and aria-* attributes
+        for (const name of el.getAttributeNames()) {
+          if (
+            (name.startsWith("data-") || name.startsWith("aria-")) &&
+            !EXTRA_RELEVANT_ATTRIBUTES.includes(name)
+          ) {
+            node[name] = el.getAttribute(name) || "";
+          }
         }
 
         // B. Capture Visibility & Geometry

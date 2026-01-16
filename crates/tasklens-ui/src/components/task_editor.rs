@@ -3,10 +3,11 @@ use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use crate::components::input::Input;
 use crate::components::loading::Loading;
 use crate::components::{DatePicker, Select};
+use crate::utils::time_conversion;
 use dioxus::prelude::*;
 use tasklens_core::domain::constants::DEFAULT_LEAD_TIME_MILLIS;
 use tasklens_core::types::{
-    PersistedTask, PlaceID, RepeatConfig, Schedule, ScheduleType, TaskID, TaskStatus,
+    Frequency, PersistedTask, PlaceID, RepeatConfig, Schedule, ScheduleType, TaskID, TaskStatus,
 };
 use tasklens_store::store::{Action, AppStore, TaskUpdates};
 use tracing;
@@ -127,8 +128,7 @@ pub fn TaskEditor(
         false
     };
 
-    let mut save_handler = {
-        let mut store = store;
+    let save_handler = {
         let draft = draft;
         let task_id = task_id.clone();
         let initial_parent_id = initial_parent_id.clone();
@@ -138,9 +138,10 @@ pub fn TaskEditor(
             let task_id_clone = task_id.clone();
             if let Some(id) = task_id_clone {
                 // Update
-                let _ = store.write().dispatch(Action::UpdateTask {
+                crate::controllers::task_controller::update_task(
+                    store,
                     id,
-                    updates: TaskUpdates {
+                    TaskUpdates {
                         title: Some(d.title),
                         status: Some(d.status),
                         place_id: Some(d.place_id),
@@ -149,7 +150,7 @@ pub fn TaskEditor(
                         lead_time: Some(d.schedule.lead_time),
                         repeat_config: Some(d.repeat_config),
                     },
-                });
+                );
             } else if let Some(id) = crate::controllers::task_controller::create_task(
                 store,
                 initial_parent_id.clone(),
@@ -159,9 +160,10 @@ pub fn TaskEditor(
                     handler.call(id.clone());
                 }
                 // After creation, update with other draft fields
-                let _ = store.write().dispatch(Action::UpdateTask {
+                crate::controllers::task_controller::update_task(
+                    store,
                     id,
-                    updates: TaskUpdates {
+                    TaskUpdates {
                         title: Some(d.title),
                         status: Some(d.status),
                         place_id: Some(d.place_id),
@@ -170,7 +172,7 @@ pub fn TaskEditor(
                         lead_time: Some(d.schedule.lead_time),
                         repeat_config: Some(d.repeat_config),
                     },
-                });
+                );
             }
             on_close.call(());
         }
@@ -235,7 +237,7 @@ pub fn TaskEditor(
                                 draft.set(Some(d));
                             },
                             onkeydown: {
-                                let mut save_handler = save_handler.clone();
+                                let save_handler = save_handler.clone();
                                 move |e: KeyboardEvent| {
                                     if e.key() == Key::Enter {
                                         save_handler();
@@ -336,11 +338,25 @@ pub fn TaskEditor(
                             onchange: move |v: String| {
                                 let mut d = draft().expect("draft should be initialized");
                                 let new_type = match v.as_str() {
+                                    "Once" => ScheduleType::Once,
                                     "Routinely" => ScheduleType::Routinely,
                                     "DueDate" => ScheduleType::DueDate,
                                     _ => ScheduleType::Once,
                                 };
                                 d.schedule.schedule_type = new_type;
+
+                                // Initialize/Clear repeat_config based on type
+                                if matches!(new_type, ScheduleType::Routinely) {
+                                    if d.repeat_config.is_none() {
+                                        d.repeat_config = Some(RepeatConfig {
+                                            frequency: Frequency::Daily,
+                                            interval: 1.0,
+                                        });
+                                    }
+                                } else {
+                                    d.repeat_config = None;
+                                }
+
                                 draft.set(Some(d));
                             },
                             option { value: "Once", "Once" }
@@ -385,12 +401,12 @@ pub fn TaskEditor(
                                             .repeat_config
                                             .as_ref()
                                             .map(|r| match r.frequency {
-                                                tasklens_core::types::Frequency::Minutes => "Minutes",
-                                                tasklens_core::types::Frequency::Hours => "Hours",
-                                                tasklens_core::types::Frequency::Daily => "Daily",
-                                                tasklens_core::types::Frequency::Weekly
-                                                | tasklens_core::types::Frequency::Monthly
-                                                | tasklens_core::types::Frequency::Yearly => "Daily",
+                                                Frequency::Minutes => "Minutes",
+                                                Frequency::Hours => "Hours",
+                                                Frequency::Daily => "Daily",
+                                                Frequency::Weekly => "Weekly",
+                                                Frequency::Monthly => "Monthly",
+                                                Frequency::Yearly => "Yearly",
                                             })
                                             .unwrap_or("Daily"),
                                         onchange: move |e| {
@@ -398,13 +414,16 @@ pub fn TaskEditor(
                                             let mut config = d
                                                 .repeat_config
                                                 .unwrap_or(RepeatConfig {
-                                                    frequency: tasklens_core::types::Frequency::Daily,
+                                                    frequency: Frequency::Daily,
                                                     interval: 1.0,
                                                 });
                                             config.frequency = match e.value().as_str() {
-                                                "Minutes" => tasklens_core::types::Frequency::Minutes,
-                                                "Hours" => tasklens_core::types::Frequency::Hours,
-                                                _ => tasklens_core::types::Frequency::Daily,
+                                                "Minutes" => Frequency::Minutes,
+                                                "Hours" => Frequency::Hours,
+                                                "Weekly" => Frequency::Weekly,
+                                                "Monthly" => Frequency::Monthly,
+                                                "Yearly" => Frequency::Yearly,
+                                                _ => Frequency::Daily,
                                             };
                                             d.repeat_config = Some(config);
                                             draft.set(Some(d));
@@ -412,6 +431,9 @@ pub fn TaskEditor(
                                         option { value: "Minutes", "Minutes" }
                                         option { value: "Hours", "Hours" }
                                         option { value: "Daily", "Daily" }
+                                        option { value: "Weekly", "Weekly" }
+                                        option { value: "Monthly", "Monthly" }
+                                        option { value: "Yearly", "Yearly" }
                                     }
                                 }
                             }
@@ -427,6 +449,7 @@ pub fn TaskEditor(
                         div {
                             label { class: "block text-sm font-medium", "Due Date" }
                             DatePicker {
+                                data_testid: "date-input",
                                 value: current_draft
                                     .schedule
                                     .due_date
@@ -459,26 +482,41 @@ pub fn TaskEditor(
                     div {
                         label { class: "block text-sm font-medium", "Lead Time" }
                         div { class: "flex gap-2",
-                            input {
-                                r#type: "number",
-                                id: "lead-time-scalar-input",
-                                class: "w-20 border rounded p-1 text-sm",
-                                value: current_draft.schedule.lead_time.unwrap_or(28_800_000.0) / 3_600_000.0,
-                                oninput: move |e| {
-                                    if let Ok(val) = e.value().parse::<f64>() {
-                                        let mut d = draft().expect("draft should be initialized");
-                                        d.schedule.lead_time = Some(val * 3_600_000.0);
-                                        draft.set(Some(d));
+                            {
+                                let lead_time_ms = current_draft.schedule.lead_time.unwrap_or(DEFAULT_LEAD_TIME_MILLIS);
+                                let (val, unit) = time_conversion::ms_to_period(lead_time_ms);
+                                rsx! {
+                                    input {
+                                        r#type: "number",
+                                        id: "lead-time-scalar-input",
+                                        class: "w-20 border rounded p-1 text-sm",
+                                        value: "{val}",
+                                        oninput: move |e| {
+                                            if let Ok(val) = e.value().parse::<u32>() {
+                                                let mut d = draft().expect("draft should be initialized");
+                                                let current_ms = d.schedule.lead_time.unwrap_or(DEFAULT_LEAD_TIME_MILLIS);
+                                                let (_, unit) = time_conversion::ms_to_period(current_ms);
+                                                d.schedule.lead_time = Some(time_conversion::period_to_ms(val, &unit));
+                                                draft.set(Some(d));
+                                            }
+                                        },
                                     }
-                                },
-                            }
-                            select {
-                                id: "lead-time-unit-select",
-                                class: "border rounded p-1 text-sm",
-                                value: "Hours",
-                                onchange: move |_| {},
-                                option { value: "Hours", "Hours" }
-                                option { value: "Days", "Days" }
+                                    select {
+                                        id: "lead-time-unit-select",
+                                        class: "border rounded p-1 text-sm",
+                                        value: "{unit}",
+                                        onchange: move |e| {
+                                            let mut d = draft().expect("draft should be initialized");
+                                            let current_ms = d.schedule.lead_time.unwrap_or(DEFAULT_LEAD_TIME_MILLIS);
+                                            let (val, _) = time_conversion::ms_to_period(current_ms);
+                                            d.schedule.lead_time = Some(time_conversion::period_to_ms(val, &e.value()));
+                                            draft.set(Some(d));
+                                        },
+                                        option { value: "Hours", "Hours" }
+                                        option { value: "Days", "Days" }
+                                        option { value: "Weeks", "Weeks" }
+                                    }
+                                }
                             }
                         }
                     }

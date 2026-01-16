@@ -28,17 +28,34 @@ Given(
 );
 
 Given("I have a clean workspace", async ({ page, plan }) => {
-  await plan.setupClock();
   await page.goto("/");
-  await page.evaluate(() => {
-    localStorage.clear();
-    return new Promise<void>((resolve, reject) => {
-      const req = indexedDB.deleteDatabase("tasklens_db");
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
-    });
+  // Wait for the app-provided reset API to be attached
+  await page.waitForFunction(
+    () =>
+      typeof (window as unknown as { tasklensReset?: unknown })
+        .tasklensReset === "function",
+    {
+      timeout: 15000,
+    },
+  );
+  await page.evaluate(async () => {
+    interface TaskLensWindow extends Window {
+      tasklensReset?: () => Promise<void>;
+    }
+    const win = window as unknown as TaskLensWindow;
+    if (win.tasklensReset) {
+      await win.tasklensReset();
+    } else {
+      throw new Error(
+        "tasklensReset not found on window. Ensure the app is running in test mode with WASM enabled.",
+      );
+    }
   });
-  await page.reload();
+
+  // Since the API no longer reloads internally, we do it here explicitly
+  // to start from a fresh, non-checking state with no DB connection.
+  await page.goto("/");
+  await page.waitForURL("**/", { waitUntil: "networkidle" });
   await plan.setupClock();
   await plan.waitForAppReady();
 });

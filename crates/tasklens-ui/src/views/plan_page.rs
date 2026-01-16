@@ -1,6 +1,7 @@
 use crate::components::TaskInput;
 use crate::components::task_row::TaskRow;
 use crate::controllers::task_controller;
+use crate::utils::time_conversion::DEFAULT_LEAD_TIME_MS;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
 use tasklens_store::store::AppStore;
@@ -204,7 +205,7 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
                         }
                     }
                 } else {
-                    for (task , depth , has_children , is_expanded) in flattened_tasks() {
+                    for FlattenedTask { task, depth, has_children, is_expanded, effective_due_date, effective_lead_time, .. } in flattened_tasks() {
                         TaskRow {
                             key: "{task.id}",
                             task: task.clone(),
@@ -218,6 +219,8 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
                             on_create_subtask: handle_create_subtask,
                             on_title_tap,
                             is_highlighted: Some(task.id.clone()) == highlighted_task_id(),
+                            effective_due_date,
+                            effective_lead_time,
                         }
                     }
                 }
@@ -253,33 +256,80 @@ pub fn PlanPage(focus_task: Option<TaskID>) -> Element {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
+struct FlattenedTask {
+    task: PersistedTask,
+    depth: usize,
+    has_children: bool,
+    is_expanded: bool,
+    effective_due_date: Option<f64>,
+    effective_lead_time: Option<f64>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct ScheduleContext {
+    due_date: Option<f64>,
+    lead_time: Option<f64>,
+}
+
+struct FlattenContext<'a> {
+    state: &'a TunnelState,
+    expanded: &'a std::collections::HashSet<TaskID>,
+    result: &'a mut Vec<FlattenedTask>,
+}
+
 fn flatten_tasks(
     state: &TunnelState,
     expanded: &std::collections::HashSet<TaskID>,
-) -> Vec<(PersistedTask, usize, bool, bool)> {
+) -> Vec<FlattenedTask> {
     let mut result = Vec::new();
+    let mut ctx = FlattenContext {
+        state,
+        expanded,
+        result: &mut result,
+    };
     for root_id in &state.root_task_ids {
-        flatten_recursive(root_id, state, 0, &mut result, expanded);
+        flatten_recursive(root_id, 0, &mut ctx, None);
     }
     result
 }
 
 fn flatten_recursive(
     id: &TaskID,
-    state: &TunnelState,
     depth: usize,
-    result: &mut Vec<(PersistedTask, usize, bool, bool)>,
-    expanded: &std::collections::HashSet<TaskID>,
+    ctx: &mut FlattenContext,
+    parent_schedule: Option<ScheduleContext>,
 ) {
-    if let Some(task) = state.tasks.get(id) {
+    if let Some(task) = ctx.state.tasks.get(id) {
         let has_children = !task.child_task_ids.is_empty();
-        let is_expanded = expanded.contains(id);
+        let is_expanded = ctx.expanded.contains(id);
 
-        result.push((task.clone(), depth, has_children, is_expanded));
+        let effective_due_date = task
+            .schedule
+            .due_date
+            .or(parent_schedule.and_then(|s| s.due_date));
+        let effective_lead_time = task
+            .schedule
+            .lead_time
+            .or(parent_schedule.and_then(|s| s.lead_time))
+            .or(Some(DEFAULT_LEAD_TIME_MS));
+
+        ctx.result.push(FlattenedTask {
+            task: task.clone(),
+            depth,
+            has_children,
+            is_expanded,
+            effective_due_date,
+            effective_lead_time,
+        });
 
         if is_expanded {
+            let next_schedule = Some(ScheduleContext {
+                due_date: effective_due_date,
+                lead_time: effective_lead_time,
+            });
             for child_id in &task.child_task_ids {
-                flatten_recursive(child_id, state, depth + 1, result, expanded);
+                flatten_recursive(child_id, depth + 1, ctx, next_schedule);
             }
         }
     }

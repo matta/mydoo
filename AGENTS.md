@@ -389,6 +389,25 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
       (e.g., `[DEBUG] Rendering Badge`) do not appear, the issue is likely that
       the **parent is not rendering the child at all**, not that the child logic
       is broken. Check the parent's `render` method immediately.
+
+### Milestone 3.9: Sequential Projects & Due Date Inheritance
+
+- **Case-Sensitive BDD Assertions**: Playwright BDD steps often expect TitleCase
+  for enum-like string values (e.g., `Urgent` instead of `urgent`). Always check
+  `STATUS_MAP` in `all.steps.ts` when implementing data attributes for test
+  verification.
+- **Tree-Walking & Clippy**: Deep recursion or complex tree-flattening logic
+  often triggers clippy's `too_many_arguments` or `type_complexity` warnings.
+  Use a combination of a dedicated `FlattenedItem` struct and a `FlattenContext`
+  struct to group stateful references (e.g., `&mut Vec`, `&TunnelState`) and
+  reduce the signature size.
+- **WASM Init Race Conditions**: When using custom WASM-backed APIs like
+  `tasklensReset` in E2E tests, always use `page.waitForFunction` to ensure the
+  function is attached to the `window` before attempting to call it.
+- **Inheritance vs. Aggregation**: Inheriting scheduling values (due dates/lead
+  times) is best handled during the flattening/traversal process in the view
+  layer, passing "effective" values down to leaf components to keep the
+  components stateless regarding the tree structure.
 - **Migration Tagging (`@migration-pending`)**: When porting test suites, import
   all features but tag unimplemented ones with `@migration-pending` (configured
   with `grepInvert`). This validates the harness immediately while maintaining a
