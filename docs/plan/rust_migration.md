@@ -946,29 +946,54 @@ _Goal: Porting UI components to match functionality._
           Urgent/Overdue tasks.
 
 - [ ] **Milestone 3.9: Routine Tasks Configuration**.
-  - **Goal**: Enable routine task creation and management.
-  - **Key Feature**: "Routinely" schedule type, Period configuration, and "Last
-    Done" updates.
+  - **Goal**: Enable routine task creation and management (specifically
+    `routine-tasks.feature`).
+  - **Key Feature**: "Routinely" schedule type, Frequency/Interval
+    configuration, and "Last Done" updates.
   - **Implementation Details**:
-    - **Step 1: Task Editor Integration (Routines)**
+    - **Step 1: Component Support (Helpers)**
+      - [ ] **[NEW] `crates/tasklens-ui/src/utils/time_conversion.rs`**:
+        - [ ] Implement `ms_to_period(ms: f64) -> (u32, String)` for lead time
+              conversion (ms -> Days).
+        - [ ] Implement `period_to_ms(value: u32, unit: &str) -> f64` for lead
+              time conversion (Days -> ms).
+        - [ ] Note: Routine frequency uses `RepeatConfig` (struct), not raw ms,
+              so we need UI mappers for `Frequency` enum.
+      - [ ] **[MODIFY] `crates/tasklens-ui/src/utils/mod.rs`**: Export
+            `time_conversion`.
+    - **Step 2: Task Editor UI Updates**
       - [ ] **[MODIFY] `crates/tasklens-ui/src/components/task_editor.rs`**:
-        - [ ] Add `Select` for `schedule.type` options: `Once`, `Routinely`,
-              `DueDate`.
-        - [ ] **Conditional Rendering**: If `type == 'Routinely'`:
-          - [ ] Show "Every" input (number) and "Unit" select
-                (Days/Weeks/Months).
-          - [ ] Bind to `draft.schedule.period` (convert unit to ms).
-    - **Step 2: Logic & defaults**
+        - [ ] **Schedule Type Selector**: Ensure `Select` supports `Routinely`.
+        - [ ] **Conditional Rendering** (When `schedule.type == Routinely`):
+          - [ ] **Every**: Input (Number) -> binds to temporary state for
+                `repeat_config.interval`.
+          - [ ] **Unit**: Select (Days/Weeks/Months/Years) -> binds to temporary
+                state for `repeat_config.frequency`.
+          - [ ] **Lead Time**: Input (Days) -> binds to `schedule.lead_time`
+                (using `period_to_ms`).
+        - [ ] **State Logic**:
+          - [ ] Ensure `draft.repeat_config` is initialized if switching to
+                `Routinely`.
+          - [ ] Ensure `draft.repeat_config` is cleared if switching to `Once`
+                or `DueDate`.
+    - **Step 3: Controller Updates**
       - [ ] **[MODIFY]
             `crates/tasklens-ui/src/controllers/task_controller.rs`**:
-        - [ ] Ensure `create_task` handles `Routinely` defaults (e.g.
-              `last_done = None`).
-    - **Step 3: Verification**
-      - [ ] **[VERIFY]**: Create a helper/test for creating a Routine task and
-            verifying its `period` persistence.
+        - [ ] Validation: Ensure `repeat_config` is present if `schedule_type`
+              is `Routinely`.
+    - **Step 4: Enable BDD Tests**
+      - [ ] **[MODIFY]
+            `crates/tasklens-ui/tests/e2e/features/routine-tasks.feature`**:
+        - [ ] Remove `@migration-pending` tag.
   - **Verification**:
+    - [ ] **[VERIFY]**: Run
+          `pnpm --filter @mydoo/tasklens-ui test-e2e -g "routine-tasks"`.
     - [ ] **[VERIFY]**: Manual: Create "Clean Desk", set "Routinely" every 3
-          days. Save & Refresh. Verify persistence.
+          days. Save.
+    - [ ] **[VERIFY]**: Manual: Complete "Clean Desk". Refresh. Verify it
+          disappears.
+    - [ ] **[VERIFY]**: Manual: Check persistence (reload page) and verify
+          `Frequency` and `Lead Time` are preserved.
 
 - [ ] **Milestone 3.10: Sequential Projects**.
   - **Goal**: Enable `sequential-projects.feature`.
