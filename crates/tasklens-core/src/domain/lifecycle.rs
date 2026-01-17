@@ -57,6 +57,7 @@ mod tests {
             tasks,
             root_task_ids: vec![task_id.clone()],
             places: HashMap::new(),
+            metadata: None,
         };
 
         acknowledge_completed_tasks(&mut state);

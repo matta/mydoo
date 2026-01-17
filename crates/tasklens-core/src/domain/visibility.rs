@@ -191,6 +191,7 @@ mod tests {
             tasks: HashMap::new(),
             root_task_ids: vec![],
             places,
+            metadata: None,
         };
 
         let mut tasks = vec![

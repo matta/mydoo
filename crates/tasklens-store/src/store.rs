@@ -1,7 +1,5 @@
 pub use crate::actions::{Action, TaskUpdates};
-use crate::doc_id::DocumentId;
-#[cfg(target_arch = "wasm32")]
-use crate::doc_id::TaskLensUrl;
+use crate::doc_id::{DocumentId, TaskLensUrl};
 #[cfg(target_arch = "wasm32")]
 use crate::storage::{ActiveDocStorage, IndexedDbStorage};
 use anyhow::{Result, anyhow};
@@ -9,7 +7,7 @@ use automerge::AutoCommit;
 use autosurgeon::{hydrate, reconcile};
 use std::collections::HashMap;
 
-use tasklens_core::types::{TaskStatus, TunnelState};
+use tasklens_core::types::{DocMetadata, TaskStatus, TunnelState};
 
 /// A manager for Automerge documents and persistence.
 ///
@@ -41,6 +39,7 @@ impl AppStore {
                 tasks: HashMap::new(),
                 places: HashMap::new(),
                 root_task_ids: Vec::new(),
+                metadata: None,
             };
             reconcile(&mut self.doc, &initial_state)
                 .map_err(|e| anyhow!("Init reconciliation failed: {}", e))?;
@@ -65,6 +64,9 @@ impl AppStore {
             tasks: HashMap::new(),
             places: HashMap::new(),
             root_task_ids: Vec::new(),
+            metadata: Some(DocMetadata {
+                automerge_url: Some(TaskLensUrl::from(new_id.clone()).to_string()),
+            }),
         };
         reconcile(&mut new_doc, &initial_state)
             .map_err(|e| anyhow!("New doc reconciliation failed: {}", e))?;
@@ -300,6 +302,41 @@ impl AppStore {
             Ok(doc) => self.doc = doc,
             Err(e) => tracing::error!("Failed to load returned bytes into AutoCommit: {:?}", e),
         }
+    }
+
+    /// Imports a document from bytes, preserving its identity if present in metadata.
+    /// Returns the (possibly new) DocumentId.
+    pub fn import_doc(&mut self, bytes: Vec<u8>) -> Result<DocumentId> {
+        let doc = AutoCommit::load(&bytes)
+            .map_err(|e| anyhow!("Failed to load Automerge doc: {:?}", e))?;
+
+        let state: TunnelState =
+            hydrate(&doc).map_err(|e| anyhow!("Failed to hydrate doc for import: {}", e))?;
+
+        let doc_id = if let Some(meta) = &state.metadata
+            && let Some(url_str) = &meta.automerge_url
+            && let Ok(url) = url_str.parse::<TaskLensUrl>()
+        {
+            url.document_id
+        } else {
+            DocumentId::new()
+        };
+
+        self.doc = doc;
+        self.current_id = doc_id.clone();
+
+        // Ensure metadata is set/updated in the doc
+        let mut new_state = state;
+        new_state.metadata = Some(DocMetadata {
+            automerge_url: Some(TaskLensUrl::from(doc_id.clone()).to_string()),
+        });
+        reconcile(&mut self.doc, &new_state)
+            .map_err(|e| anyhow!("Failed to reconcile metadata after import: {}", e))?;
+
+        #[cfg(target_arch = "wasm32")]
+        ActiveDocStorage::save_active_url(&TaskLensUrl::from(doc_id.clone()));
+
+        Ok(doc_id)
     }
 
     /// Imports incremental changes from the server.

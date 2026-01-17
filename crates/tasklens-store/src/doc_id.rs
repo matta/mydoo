@@ -53,7 +53,7 @@ impl FromStr for DocumentId {
 
 /// A user-facing locator for a TaskLens document.
 ///
-/// Encapsulates the "tasklens:{DocumentId}" format.
+/// Encapsulates the "automerge:{DocumentId}" format.
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct TaskLensUrl {
     pub document_id: DocumentId,
@@ -61,7 +61,7 @@ pub struct TaskLensUrl {
 
 impl fmt::Display for TaskLensUrl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "tasklens:{}", self.document_id)
+        write!(f, "automerge:{}", self.document_id)
     }
 }
 
@@ -76,8 +76,8 @@ impl FromStr for TaskLensUrl {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let suffix = s
-            .strip_prefix("tasklens:")
-            .ok_or_else(|| anyhow!("Invalid TaskLens URL: missing 'tasklens:' prefix"))?;
+            .strip_prefix("automerge:")
+            .ok_or_else(|| anyhow!("Invalid TaskLens URL: missing 'automerge:' prefix"))?;
 
         let document_id = DocumentId::from_str(suffix)?;
         Ok(Self { document_id })
@@ -113,7 +113,7 @@ mod tests {
         let id = DocumentId::new();
         let url = TaskLensUrl::from(id.clone());
         let s = url.to_string();
-        assert!(s.starts_with("tasklens:"));
+        assert!(s.starts_with("automerge:"));
 
         let url2 = TaskLensUrl::from_str(&s).unwrap();
         assert_eq!(url.document_id, url2.document_id);

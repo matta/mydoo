@@ -7,6 +7,7 @@
 
 use crate::components::*;
 use dioxus::prelude::*;
+// use dioxus::events::FormEvent;
 
 /// Document ID Manager component for switching between documents.
 ///
@@ -20,6 +21,7 @@ pub fn DocIdManager(
     on_change: EventHandler<tasklens_store::doc_id::DocumentId>,
     on_create: EventHandler<()>,
 ) -> Element {
+    let mut app_store = use_context::<Signal<tasklens_store::store::AppStore>>();
     let mut show_input = use_signal(|| false);
     let mut input_value = use_signal(String::new);
     let mut error_msg = use_signal(String::new);
@@ -54,7 +56,7 @@ pub fn DocIdManager(
         } else if let Ok(id) = text.parse::<tasklens_store::doc_id::DocumentId>() {
             id
         } else {
-            error_msg.set("Invalid Document ID or tasklens: URL".to_string());
+            error_msg.set("Invalid Document ID or automerge: URL".to_string());
             return;
         };
 
@@ -92,6 +94,71 @@ pub fn DocIdManager(
                 }
             });
         }
+    };
+
+    let handle_download = move |_| {
+        let mut store = app_store.write();
+        let bytes = store.export_save();
+        let current_id = store.current_id.to_string();
+
+        // 1 MiB limit for data URL downloads (browsers have ~2MB limit, be conservative)
+        const MAX_DOWNLOAD_SIZE: usize = 1024 * 1024;
+        if bytes.len() > MAX_DOWNLOAD_SIZE {
+            error_msg.set(format!(
+                "Document too large to download ({:.1} MiB). Maximum size is 1 MiB.",
+                bytes.len() as f64 / (1024.0 * 1024.0)
+            ));
+            return;
+        }
+
+        spawn(async move {
+            use base64::Engine;
+            let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
+            let filename = format!("mydoo-{}.automerge", current_id);
+            let script = format!(
+                r#"
+                const link = document.createElement('a');
+                link.href = 'data:application/octet-stream;base64,{}';
+                link.download = '{}';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                "#,
+                b64, filename
+            );
+            if let Err(e) = document::eval(&script).await {
+                tracing::error!("Download failed: {:?}", e);
+            }
+        });
+    };
+
+    let handle_upload = move |evt: Event<FormData>| {
+        spawn(async move {
+            let files = evt.files();
+            if let Some(file) = files.as_slice().first() {
+                match file.read_bytes().await {
+                    Ok(bytes) => {
+                        let mut store = app_store.write();
+                        // Bytes from read_bytes are `bytes::Bytes`
+                        // import_doc expects Vec<u8>
+                        match store.import_doc(bytes.to_vec()) {
+                            Ok(new_id) => {
+                                tracing::info!("Imported document: {}", new_id);
+                                on_change.call(new_id);
+                            }
+                            Err(e) => {
+                                tracing::error!("Import failed: {:?}", e);
+                                error_msg.set(format!("Import failed: {}", e));
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to read file: {:?}", e);
+                        error_msg.set(format!("Failed to read file: {}", e));
+                    }
+                }
+            }
+        });
     };
 
     rsx! {
@@ -146,11 +213,11 @@ pub fn DocIdManager(
             }
 
             // Action Buttons
-            div { class: "flex space-x-2",
+            div { class: "flex flex-wrap gap-2",
                 Button {
                     variant: ButtonVariant::Primary,
                     onclick: handle_new_document,
-                    class: "flex-1",
+                    class: "flex-1 min-w-[120px]",
                     data_testid: "new-document-button",
                     "New Document"
                 }
@@ -160,12 +227,35 @@ pub fn DocIdManager(
                         show_input.set(!show_input());
                         error_msg.set(String::new());
                     },
-                    class: "flex-1",
+                    class: "flex-1 min-w-[120px]",
                     data_testid: "toggle-enter-id-button",
                     if show_input() {
                         "Cancel"
                     } else {
                         "Enter ID"
+                    }
+                }
+                Button {
+                    variant: ButtonVariant::Secondary,
+                    onclick: handle_download,
+                    disabled: current_doc_id().is_none(),
+                    class: "flex-1 min-w-[120px]",
+                    data_testid: "download-document-button",
+                    "Download"
+                }
+                div { class: "flex-1 min-w-[120px] relative",
+                    Button {
+                        variant: ButtonVariant::Secondary,
+                        class: "w-full",
+                        data_testid: "upload-document-button",
+                        "Upload"
+                    }
+                    input {
+                        r#type: "file",
+                        accept: ".automerge",
+                        class: "absolute inset-0 opacity-0 cursor-pointer",
+                        onchange: handle_upload,
+                        "data-testid": "document-upload-input",
                     }
                 }
             }

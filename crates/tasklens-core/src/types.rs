@@ -811,6 +811,13 @@ pub struct Place {
     pub included_places: Vec<PlaceID>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
+#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
+pub struct DocMetadata {
+    #[autosurgeon(rename = "automerge_url")]
+    pub automerge_url: Option<String>,
+}
+
 /// The root state of a TaskLens document.
 ///
 /// This is the top-level structure serialized to/from Automerge.
@@ -838,6 +845,8 @@ pub struct TunnelState {
         proptest(strategy = "test_strategies::arbitrary_places_map()")
     )]
     pub places: HashMap<PlaceID, Place>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<DocMetadata>,
 }
 
 impl Default for TunnelState {
@@ -848,6 +857,7 @@ impl Default for TunnelState {
             tasks: HashMap::new(),
             places: HashMap::new(),
             root_task_ids: Vec::new(),
+            metadata: None,
         }
     }
 }

@@ -355,8 +355,9 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
         next_task_id: 1.0,
         next_place_id: 1.0,
         tasks: HashMap::new(),
-        root_task_ids: Vec::new(),
         places: HashMap::new(),
+        root_task_ids: Vec::new(),
+        metadata: None,
     };
 
     let mut current_time = parse_date("2025-01-01T12:00:00Z")?;

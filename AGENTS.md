@@ -662,9 +662,10 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
   - _Root Cause:_ Dioxus "parks" the toast off-screen using `right: -1000px`
     rather than `display: none`. It remains in the DOM tree.
   - _Fix:_ When creating DOM introspection utilities (e.g., synthetic DOM
-    serializers for debugging), use geometric visibility checks
-    (`getBoundingClientRect()` vs viewport) not just `display`/`visibility`
-    styles.
+    serializers for debugging), use geometric visibility checks styles.
+  - _Warning:_ Do NOT assert `expect(locator).toBeHidden()` on this element.
+    Playwright considers off-screen elements "visible" if they have size and
+    display. Waiting for it to be hidden will cause a timeout failure.
 
 ## E2E & BDD Strategy (Playwright)
 
@@ -685,16 +686,27 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     not a Promise. Calling it without awaiting `onsuccess` means the database
     may not be deleted before the test proceeds.
   - _Fix:_ Wrap in a Promise:
-    ```typescript
-    await page.evaluate(
-      () =>
-        new Promise<void>((resolve, reject) => {
-          const req = indexedDB.deleteDatabase("tasklens_db");
-          req.onsuccess = () => resolve();
-          req.onerror = () => reject(req.error);
-        }),
-    );
-    ```
+
+- **Verifying `gloo-storage` Values (Double Encoding Trap)**:
+  - _Context:_ Rust's `gloo-storage` crate, used by `ActiveDocStorage`, uses
+    `serde_json` to serialize all values stored in `localStorage`.
+  - _Trap:_ `localStorage.getItem("key")` returns a JSON-encoded string (e.g.,
+    `"\"automerge:123\""`), not the raw string `automerge:123`. Assertions like
+    `.toMatch(/^automerge:/)` fail because of the leading quote.
+  - _Fix:_ Always `JSON.parse()` the raw value from `localStorage` before making
+    assertions.
+
+  ```typescript
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const req = indexedDB.deleteDatabase("tasklens_db");
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      }),
+  );
+  ```
+
 - **Feature File Location:** `playwright-bdd` is strict about file location. For
 - **Platform-Specific Import Guards**:
   - _Symptom:_ Unused import warnings for `std::time::{SystemTime, UNIX_EPOCH}`

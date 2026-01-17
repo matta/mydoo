@@ -72,6 +72,9 @@ export interface PlanFixture {
   getCurrentDocumentId: () => Promise<string | undefined>;
   createNewDocument: () => Promise<void>;
   switchToDocument: (id: string) => Promise<void>;
+  downloadDocument: () => Promise<string>;
+  uploadDocument: (filePath: string) => Promise<void>;
+  getDetailedDocumentUrl: () => Promise<string>;
 
   setClock: (now: Date) => Promise<void>;
   closeEditor: () => Promise<void>;
@@ -100,20 +103,18 @@ export class PlanPage implements PlanFixture {
   }
 
   async waitForAppReady(): Promise<void> {
-    // Wait for rebuild overlay to disappear
-    const toast = this.page.locator("#__dx-toast");
-    if (await toast.isVisible()) {
-      await expect(toast).toBeHidden({ timeout: 15000 });
-    }
     // Also wait for any pending reloads/hydration
     await this.page.waitForLoadState("load");
+    try {
+      await this.page.waitForLoadState("networkidle", { timeout: 2000 });
+    } catch (_e) {
+      // Ignore timeout if network never settles (e.g. constant polling)
+    }
   }
 
   // --- Core Task Operations ---
 
   async createTask(title: string): Promise<void> {
-    await this.switchToPlanView();
-
     const addFirst = this.page.getByRole("button", { name: "Add First Task" });
     const appendRow = this.page.getByTestId("append-row-button");
     const addTop = this.page.getByLabel("Add Task at Top");
@@ -766,5 +767,93 @@ export class PlanPage implements PlanFixture {
       .first();
 
     await expect(row.or(breadcrumb)).toContainText(part);
+  }
+
+  async downloadDocument(): Promise<string> {
+    // Open Settings modal
+    await this.page.getByTestId("settings-button").click();
+
+    // Find the modal
+    const modal = this.page.getByRole("dialog", { name: "Settings" });
+    await expect(modal).toBeVisible();
+
+    // Setup download listener
+    const downloadPromise = this.page.waitForEvent("download");
+
+    await modal.getByTestId("download-document-button").click();
+
+    const download = await downloadPromise;
+    // Close settings
+    await modal.getByTestId("close-settings").click();
+
+    // Get path or safe fallback
+    let path = await download.path();
+    if (!path) {
+      const fs = await import("node:fs"); // Dynamic import to avoid top-level node dep issues if any
+      // Use a consistent temp path strategy
+      // Playwright usually saves to a temp dir
+      const tempDir = (await fs.promises.stat("/tmp").catch(() => null))
+        ? "/tmp"
+        : ".";
+      const tempPath = `${tempDir}/tasklens_download_${Date.now()}.automerge`;
+      await download.saveAs(tempPath);
+      path = tempPath;
+    }
+
+    return path;
+  }
+
+  async uploadDocument(filePath: string): Promise<void> {
+    await this.waitForAppReady();
+    // Add a small delay to ensure hydration/state stability after reload
+    await this.page.waitForTimeout(500);
+
+    const modal = this.page.getByRole("dialog", { name: "Settings" });
+
+    for (let i = 0; i < 3; i++) {
+      if (await modal.isVisible()) break;
+
+      const btn = this.page.getByTestId("settings-button");
+      await btn.waitFor({ state: "visible" });
+      await btn.click();
+
+      try {
+        await expect(modal).toBeVisible({ timeout: 2000 });
+      } catch (_e) {
+        console.log(
+          `Attempt ${i + 1} to open settings modal failed, retrying...`,
+        );
+      }
+    }
+
+    // Prepare file input - Correct Key!
+    const fileInput = modal.locator(
+      'input[type="file"][data-testid="document-upload-input"]',
+    );
+    await expect(fileInput).toBeAttached(); // Input is hidden but attached
+
+    // Upload file
+    await fileInput.setInputFiles(filePath);
+
+    // Wait for import to complete
+    await this.page.waitForTimeout(1000);
+
+    // Close settings
+    await modal.getByTestId("close-settings").click();
+    await expect(modal).not.toBeVisible();
+    await this.waitForAppReady();
+  }
+
+  async getDetailedDocumentUrl(): Promise<string> {
+    return await this.page.evaluate(() => {
+      // The key defined in crates/tasklens-store/src/storage.rs is "tasklens_active_doc_id"
+      const raw = localStorage.getItem("tasklens_active_doc_id");
+      if (!raw) return "";
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return raw;
+      }
+    });
   }
 }

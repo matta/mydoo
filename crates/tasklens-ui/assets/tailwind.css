@@ -394,6 +394,9 @@
   .max-w-md {
     max-width: var(--container-md);
   }
+  .min-w-\[120px\] {
+    min-width: 120px;
+  }
   .flex-1 {
     flex: 1;
   }
