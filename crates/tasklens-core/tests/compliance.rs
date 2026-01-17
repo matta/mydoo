@@ -291,7 +291,7 @@ fn expand_scenarios(scenario: &Scenario) -> Result<Vec<Scenario>> {
     Ok(expanded)
 }
 
-fn parse_date(s: &str) -> Result<f64> {
+fn parse_date(s: &str) -> Result<i64> {
     let iso = if s.len() == 10 {
         format!("{}T00:00:00Z", s)
     } else if !s.ends_with('Z') && !s.contains('+') {
@@ -307,10 +307,10 @@ fn parse_date(s: &str) -> Result<f64> {
         })
         .map_err(|e| anyhow!("Failed to parse date: {} - {}", s, e))?;
 
-    Ok(dt.with_timezone(&Utc).timestamp_millis() as f64)
+    Ok(dt.with_timezone(&Utc).timestamp_millis())
 }
 
-fn parse_yaml_date(v: &serde_yaml_ng::Value) -> Result<Option<f64>> {
+fn parse_yaml_date(v: &serde_yaml_ng::Value) -> Result<Option<i64>> {
     match v {
         serde_yaml_ng::Value::String(s) => match parse_date(s) {
             Ok(ms) => Ok(Some(ms)),
@@ -321,10 +321,12 @@ fn parse_yaml_date(v: &serde_yaml_ng::Value) -> Result<Option<f64>> {
         },
         serde_yaml_ng::Value::Null => Ok(None),
         serde_yaml_ng::Value::Number(n) => {
-            if let Some(f) = n.as_f64() {
-                Ok(Some(f))
-            } else if let Some(i) = n.as_u64() {
-                Ok(Some(i as f64))
+            if let Some(i) = n.as_i64() {
+                Ok(Some(i))
+            } else if let Some(u) = n.as_u64() {
+                Ok(Some(u as i64))
+            } else if let Some(f) = n.as_f64() {
+                Ok(Some(f as i64))
             } else {
                 Ok(None)
             }
@@ -352,8 +354,8 @@ fn assert_f64_near(actual: f64, expected: f64, label: &str) {
 
 fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Result<()> {
     let mut state = TunnelState {
-        next_task_id: 1.0,
-        next_place_id: 1.0,
+        next_task_id: 1,
+        next_place_id: 1,
         tasks: HashMap::new(),
         places: HashMap::new(),
         root_task_ids: Vec::new(),
@@ -509,7 +511,7 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
                     if let Some(elt) = effective_lead_time {
                         assert_eq!(
                             actual.effective_lead_time,
-                            Some(elt.to_f64()),
+                            Some(elt.to_f64() as i64),
                             "Task: {}, Scenario: {}",
                             expected.id,
                             scenario.name
@@ -630,7 +632,7 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
 
 fn apply_initial_state(
     state: &mut TunnelState,
-    current_time: &mut f64,
+    current_time: &mut i64,
     init: &InitialState,
 ) -> Result<()> {
     let InitialState {
@@ -693,7 +695,7 @@ fn apply_task_input(
     state: &mut TunnelState,
     t: &TaskInput,
     parent_id: Option<TaskID>,
-    current_time: f64,
+    current_time: i64,
 ) -> Result<()> {
     // Collect children before destructuring for recursion later
     let children_input = t.children.clone();
@@ -776,7 +778,7 @@ fn apply_task_input(
         persisted.schedule.due_date = parse_yaml_date(dd)?;
     }
     if let Some(lt) = lead_time_seconds {
-        persisted.schedule.lead_time = Some(lt.to_f64() * 1000.0);
+        persisted.schedule.lead_time = Some((lt.to_f64() * 1000.0) as i64);
     }
     if let Some(ld) = last_done {
         persisted.schedule.last_done = parse_yaml_date(ld)?;
@@ -784,7 +786,7 @@ fn apply_task_input(
     if let Some(rc) = repeat_config {
         persisted.repeat_config = Some(RepeatConfig {
             frequency: rc.frequency,
-            interval: rc.interval as f64,
+            interval: rc.interval as i64,
         });
     }
 
@@ -820,7 +822,7 @@ fn apply_task_input(
 
 fn apply_mutation(
     state: &mut TunnelState,
-    current_time: &mut f64,
+    current_time: &mut i64,
     mutation: &Mutation,
 ) -> Result<()> {
     let Mutation {
@@ -830,7 +832,7 @@ fn apply_mutation(
     } = mutation;
 
     if let Some(advance) = advance_time_seconds {
-        *current_time += advance.to_f64() * 1000.0;
+        *current_time += (advance.to_f64() * 1000.0) as i64;
     }
 
     if let Some(credits_map) = update_credits {
@@ -896,7 +898,7 @@ fn apply_mutation(
                 if let Some(rc) = repeat_config {
                     task.repeat_config = Some(RepeatConfig {
                         frequency: rc.frequency,
-                        interval: rc.interval as f64,
+                        interval: rc.interval as i64,
                     });
                 }
                 if let Some(ld) = last_done {

@@ -31,8 +31,8 @@ pub fn create_new_task(id: TaskID, title: String, parent: Option<&PersistedTask>
         credit_increment,
         credits: 0.0,
         desired_credits: 1.0,
-        credits_timestamp: 0.0,
-        priority_timestamp: 0.0,
+        credits_timestamp: 0,
+        priority_timestamp: 0,
         schedule: Schedule {
             schedule_type: ScheduleType::Once,
             due_date: None,

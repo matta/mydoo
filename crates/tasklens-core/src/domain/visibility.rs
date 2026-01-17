@@ -12,7 +12,7 @@ pub fn calculate_contextual_visibility(
     doc: &TunnelState,
     tasks: &mut [EnrichedTask],
     view_filter: &ViewFilter,
-    current_time: f64,
+    current_time: i64,
 ) {
     for task in tasks {
         // 1. Resolve Effective Place
@@ -57,7 +57,7 @@ pub fn calculate_contextual_visibility(
 }
 
 /// Checks if a place is currently open based on its schedule.
-pub fn is_place_open(place: &Place, current_time: f64) -> bool {
+pub fn is_place_open(place: &Place, current_time: i64) -> bool {
     let open_hours: OpenHours = match serde_json::from_str(&place.hours) {
         Ok(h) => h,
         Err(_) => return true, // Fallback to open if invalid JSON
@@ -72,11 +72,7 @@ pub fn is_place_open(place: &Place, current_time: f64) -> bool {
                 None => return false,
             };
 
-            let dt = DateTime::from_timestamp(
-                (current_time / 1000.0) as i64,
-                ((current_time % 1000.0) * 1_000_000.0) as u32,
-            )
-            .unwrap_or(DateTime::UNIX_EPOCH);
+            let dt = DateTime::from_timestamp_millis(current_time).unwrap_or(DateTime::UNIX_EPOCH);
             let day_of_week = match dt.weekday() {
                 chrono::Weekday::Sun => "Sun",
                 chrono::Weekday::Mon => "Mon",
@@ -144,12 +140,12 @@ mod tests {
             credit_increment: None,
             credits: 0.0,
             desired_credits: 0.0,
-            credits_timestamp: 0.0,
-            priority_timestamp: 0.0,
+            credits_timestamp: 0,
+            priority_timestamp: 0,
             schedule: Schedule {
                 schedule_type: ScheduleType::Once,
                 due_date: None,
-                lead_time: Some(0.0),
+                lead_time: Some(0),
                 last_done: None,
             },
             repeat_config: None,
@@ -186,8 +182,8 @@ mod tests {
         );
 
         let doc = TunnelState {
-            next_task_id: 1.0,
-            next_place_id: 1.0,
+            next_task_id: 1,
+            next_place_id: 1,
             tasks: HashMap::new(),
             root_task_ids: vec![],
             places,
@@ -206,7 +202,7 @@ mod tests {
             &ViewFilter {
                 place_id: Some("All".to_string()),
             },
-            0.0,
+            0,
         );
         assert!(tasks[0].visibility);
         assert!(tasks[1].visibility);
@@ -218,7 +214,7 @@ mod tests {
             &ViewFilter {
                 place_id: Some("office".to_string()),
             },
-            0.0,
+            0,
         );
         assert!(tasks[0].visibility);
         assert!(tasks[1].visibility); // Anywhere matches everything
@@ -230,7 +226,7 @@ mod tests {
             &ViewFilter {
                 place_id: Some("home".to_string()),
             },
-            0.0,
+            0,
         );
         assert!(!tasks[0].visibility);
         assert!(tasks[1].visibility);
@@ -246,15 +242,15 @@ mod tests {
         };
 
         // Monday, January 12, 2026 at 10:00:00 UTC
-        let monday_10am = 1768212000000.0;
+        let monday_10am = 1768212000000;
         assert!(is_place_open(&place, monday_10am));
 
         // Monday, January 12, 2026 at 20:00:00 UTC (outside office hours)
-        let monday_8pm = 1768248000000.0;
+        let monday_8pm = 1768248000000;
         assert!(!is_place_open(&place, monday_8pm));
 
         // Tuesday, January 13, 2026 at 10:00:00 UTC (no schedule for Tuesday)
-        let tuesday_10am = 1768298400000.0;
+        let tuesday_10am = 1768298400000;
         assert!(!is_place_open(&place, tuesday_10am));
     }
 }

@@ -309,7 +309,9 @@ pub fn TaskEditor(
                         }
                         {
                             let store_read = store.read();
-                            let state = store_read.hydrate::<tasklens_core::types::TunnelState>().unwrap_or_default();
+                            let state = store_read
+                                .hydrate::<tasklens_core::types::TunnelState>()
+                                .unwrap_or_default();
                             let places = state.places.values().collect::<Vec<_>>();
 
                             rsx! {
@@ -359,7 +361,7 @@ pub fn TaskEditor(
                                     if d.repeat_config.is_none() {
                                         d.repeat_config = Some(RepeatConfig {
                                             frequency: Frequency::Daily,
-                                            interval: 1.0,
+                                            interval: 1,
                                         });
                                     }
                                 } else {
@@ -387,15 +389,15 @@ pub fn TaskEditor(
                                         r#type: "number",
                                         id: "repetition-interval-input",
                                         class: "w-20 border rounded p-1 text-sm",
-                                        value: current_draft.repeat_config.as_ref().map(|r| r.interval).unwrap_or(1.0),
+                                        value: current_draft.repeat_config.as_ref().map(|r| r.interval).unwrap_or(1),
                                         oninput: move |e| {
-                                            if let Ok(val) = e.value().parse::<f64>() {
+                                            if let Ok(val) = e.value().parse::<i64>() {
                                                 let mut d = draft().expect("draft should be initialized");
                                                 let mut config = d
                                                     .repeat_config
                                                     .unwrap_or(RepeatConfig {
                                                         frequency: tasklens_core::types::Frequency::Daily,
-                                                        interval: 1.0,
+                                                        interval: 1,
                                                     });
                                                 config.interval = val;
                                                 d.repeat_config = Some(config);
@@ -424,7 +426,7 @@ pub fn TaskEditor(
                                                 .repeat_config
                                                 .unwrap_or(RepeatConfig {
                                                     frequency: Frequency::Daily,
-                                                    interval: 1.0,
+                                                    interval: 1,
                                                 });
                                             config.frequency = match e.value().as_str() {
                                                 "Minutes" => Frequency::Minutes,
@@ -464,7 +466,7 @@ pub fn TaskEditor(
                                     .due_date
                                     .map(|ts| {
                                         use chrono::TimeZone;
-                                        let secs = (ts / 1000.0) as i64;
+                                        let secs = ts / 1000;
                                         if let Some(dt) = chrono::Utc.timestamp_opt(secs, 0).single() {
                                             dt.format("%Y-%m-%d").to_string()
                                         } else {
@@ -475,7 +477,7 @@ pub fn TaskEditor(
                                     if let Ok(date) = chrono::NaiveDate::parse_from_str(&v, "%Y-%m-%d")
                                         && let Some(dt) = date.and_hms_opt(0, 0, 0)
                                     {
-                                        let ts = dt.and_utc().timestamp_millis() as f64;
+                                        let ts = dt.and_utc().timestamp_millis();
                                         let mut d = draft().expect("draft should be initialized");
                                         d.schedule.due_date = Some(ts);
                                         draft.set(Some(d));
@@ -492,7 +494,10 @@ pub fn TaskEditor(
                         label { class: "block text-sm font-medium", "Lead Time" }
                         div { class: "flex gap-2",
                             {
-                                let lead_time_ms = current_draft.schedule.lead_time.unwrap_or(DEFAULT_LEAD_TIME_MILLIS);
+                                let lead_time_ms = current_draft
+                                    .schedule
+                                    .lead_time
+                                    .unwrap_or(DEFAULT_LEAD_TIME_MILLIS);
                                 let (val, unit) = time_conversion::ms_to_period(lead_time_ms);
                                 rsx! {
                                     input {

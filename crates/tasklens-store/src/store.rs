@@ -34,8 +34,8 @@ impl AppStore {
         let current_state: Result<TunnelState, _> = hydrate(&self.doc);
         if current_state.is_err() || current_state.as_ref().unwrap().tasks.is_empty() {
             let initial_state = TunnelState {
-                next_task_id: 1.0,
-                next_place_id: 1.0,
+                next_task_id: 1,
+                next_place_id: 1,
                 tasks: HashMap::new(),
                 places: HashMap::new(),
                 root_task_ids: Vec::new(),
@@ -59,8 +59,8 @@ impl AppStore {
         let mut new_doc = AutoCommit::new();
 
         let initial_state = TunnelState {
-            next_task_id: 1.0,
-            next_place_id: 1.0,
+            next_task_id: 1,
+            next_place_id: 1,
             tasks: HashMap::new(),
             places: HashMap::new(),
             root_task_ids: Vec::new(),
@@ -470,7 +470,7 @@ mod tests {
         store
             .dispatch(Action::CompleteTask {
                 id: id.clone(),
-                current_time: 100.0,
+                current_time: 100,
             })
             .unwrap();
 
@@ -546,7 +546,7 @@ mod tests {
         store
             .dispatch(Action::CompleteTask {
                 id: id.clone(),
-                current_time: 100.0,
+                current_time: 100,
             })
             .unwrap();
 
@@ -554,9 +554,7 @@ mod tests {
 
         // Refresh
         store
-            .dispatch(Action::RefreshLifecycle {
-                current_time: 100.0,
-            })
+            .dispatch(Action::RefreshLifecycle { current_time: 100 })
             .unwrap();
 
         assert!(store.hydrate::<TunnelState>().unwrap().tasks[&id].is_acknowledged);
@@ -582,12 +580,12 @@ mod tests {
         let task = state.tasks.get_mut(&id).unwrap();
         task.status = TaskStatus::Done;
         task.schedule.schedule_type = tasklens_core::types::ScheduleType::Routinely;
-        task.schedule.lead_time = Some(100.0);
+        task.schedule.lead_time = Some(100);
         task.repeat_config = Some(tasklens_core::types::RepeatConfig {
             frequency: tasklens_core::types::Frequency::Daily,
-            interval: 1.0,
+            interval: 1,
         });
-        task.last_completed_at = Some(1000.0);
+        task.last_completed_at = Some(1000);
         store.reconcile(&state).unwrap();
 
         // Next due: 1000 + (24*60*60*1000) = 86,401,000
@@ -595,9 +593,7 @@ mod tests {
 
         // Refresh before wake up
         store
-            .dispatch(Action::RefreshLifecycle {
-                current_time: 1000.0,
-            })
+            .dispatch(Action::RefreshLifecycle { current_time: 1000 })
             .unwrap();
         assert_eq!(
             store.hydrate::<TunnelState>().unwrap().tasks[&id].status,
@@ -607,7 +603,7 @@ mod tests {
         // Refresh after wake up
         store
             .dispatch(Action::RefreshLifecycle {
-                current_time: 86401000.0,
+                current_time: 86401000,
             })
             .unwrap();
         assert_eq!(

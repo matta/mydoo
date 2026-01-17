@@ -47,7 +47,7 @@ pub fn toggle_task_status(mut store: Signal<AppStore>, task_id: TaskID) {
         let result = match status {
             TaskStatus::Pending => store.write().dispatch(Action::CompleteTask {
                 id: task_id,
-                current_time: js_sys::Date::now(),
+                current_time: js_sys::Date::now() as i64,
             }),
             TaskStatus::Done => store.write().dispatch(Action::UpdateTask {
                 id: task_id,
@@ -178,7 +178,7 @@ pub fn outdent_task(store: Signal<AppStore>, task_id: TaskID) {
 
 /// Triggers the lifecycle refresh cycle (acknowledge completed tasks and wake up routine tasks).
 pub fn refresh_lifecycle(mut store: Signal<AppStore>) {
-    let current_time = js_sys::Date::now();
+    let current_time = js_sys::Date::now() as i64;
     if let Err(e) = store
         .write()
         .dispatch(Action::RefreshLifecycle { current_time })

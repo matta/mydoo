@@ -8,9 +8,9 @@ use tasklens_core::types::{PersistedTask, TaskID, TaskStatus};
 ///
 /// Returns "Yesterday", "Today", "Tomorrow", day-of-week for dates within 7 days,
 /// or a formatted date string for further dates.
-fn format_relative_due_date(due_ts: f64, now: f64) -> String {
-    let secs = (due_ts / 1000.0) as i64;
-    let now_secs = (now / 1000.0) as i64;
+fn format_relative_due_date(due_ts: i64, now: i64) -> String {
+    let secs = due_ts / 1000;
+    let now_secs = now / 1000;
 
     let (dt, now_dt) = match (
         chrono::Utc.timestamp_opt(secs, 0).single(),
@@ -44,8 +44,8 @@ pub fn TaskRow(
     on_create_subtask: EventHandler<TaskID>,
     on_title_tap: EventHandler<TaskID>,
     #[props(default = false)] is_highlighted: bool,
-    effective_due_date: Option<f64>,
-    effective_lead_time: Option<f64>,
+    effective_due_date: Option<i64>,
+    effective_lead_time: Option<i64>,
 ) -> Element {
     let indentation = depth * 20;
     let is_done = task.status == TaskStatus::Done;
@@ -58,7 +58,7 @@ pub fn TaskRow(
     let task_toggle = task.clone();
 
     // Urgency Logic
-    let now = js_sys::Date::now();
+    let now = js_sys::Date::now() as i64;
     let urgency = get_urgency_status(effective_due_date, effective_lead_time, now);
     let urgency_classes = match urgency {
         UrgencyStatus::Overdue => "text-red-600 flex-grow cursor-pointer font-medium",

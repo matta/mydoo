@@ -205,7 +205,7 @@ pub fn recalculate_priorities(
         task.lead_time_factor = calculate_lead_time_factor(
             task.effective_due_date,
             task.effective_lead_time
-                .unwrap_or(task.schedule.lead_time.unwrap_or(0.0)),
+                .unwrap_or(task.schedule.lead_time.unwrap_or(0)),
             current_time,
         );
 
@@ -214,7 +214,8 @@ pub fn recalculate_priorities(
         }
 
         let time_delta = current_time - task.credits_timestamp;
-        task.effective_credits = task.credits * 0.5f64.powf(time_delta / CREDITS_HALF_LIFE_MILLIS);
+        task.effective_credits =
+            task.credits * 0.5f64.powf(time_delta as f64 / CREDITS_HALF_LIFE_MILLIS);
     }
 
     calculate_feedback_factors(enriched_tasks);
@@ -240,7 +241,7 @@ fn evaluate_task_recursive(
     root_idx: Option<usize>,
     enriched_tasks: &mut [EnrichedTask],
     children_index: &ChildrenLookup,
-    current_time: f64,
+    current_time: i64,
 ) -> bool {
     let child_indices = children_index
         .get(&Some(enriched_tasks[task_idx].id.clone()))
@@ -298,7 +299,7 @@ fn process_children(
     parent_idx: usize,
     child_indices: &[usize],
     enriched_tasks: &mut [EnrichedTask],
-    current_time: f64,
+    current_time: i64,
 ) {
     if child_indices.is_empty() {
         return;
@@ -353,7 +354,7 @@ fn process_children(
         // Re-compute lead time factor after inheritance
         let lead_time = enriched_tasks[child_idx]
             .effective_lead_time
-            .unwrap_or(enriched_tasks[child_idx].schedule.lead_time.unwrap_or(0.0));
+            .unwrap_or(enriched_tasks[child_idx].schedule.lead_time.unwrap_or(0));
         enriched_tasks[child_idx].lead_time_factor = calculate_lead_time_factor(
             enriched_tasks[child_idx].effective_due_date,
             lead_time,

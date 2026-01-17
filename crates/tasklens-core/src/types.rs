@@ -11,6 +11,116 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use uuid::Uuid;
 
+pub fn hydrate_string_or_text<D: autosurgeon::ReadDoc>(
+    doc: &D,
+    obj: &automerge::ObjId,
+    prop: autosurgeon::Prop<'_>,
+) -> Result<String, autosurgeon::HydrateError> {
+    let val = match prop {
+        autosurgeon::Prop::Key(k) => doc.get(obj, k.as_ref()),
+        autosurgeon::Prop::Index(i) => doc.get(obj, i as usize),
+    }
+    .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
+
+    match val {
+        Some((automerge::Value::Object(automerge::ObjType::Text), id)) => doc
+            .text(&id)
+            .map_err(|e| autosurgeon::HydrateError::unexpected("read text", e.to_string())),
+        Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
+            automerge::ScalarValue::Str(s) => Ok(s.to_string()),
+            _ => Err(autosurgeon::HydrateError::unexpected(
+                "string",
+                format!("found {:?}", scalar),
+            )),
+        },
+        Some((v, _)) => Err(autosurgeon::HydrateError::unexpected(
+            "string or text",
+            format!("found {:?}", v),
+        )),
+        None => Err(autosurgeon::HydrateError::unexpected(
+            "string or text",
+            "missing value".to_string(),
+        )),
+    }
+}
+
+/// Hydrates an Option<TaskID> from an Automerge document.
+/// Returns Ok(None) if the property is missing, Ok(Some(TaskID)) if present.
+pub fn hydrate_optional_task_id<D: autosurgeon::ReadDoc>(
+    doc: &D,
+    obj: &automerge::ObjId,
+    prop: autosurgeon::Prop<'_>,
+) -> Result<Option<TaskID>, autosurgeon::HydrateError> {
+    match hydrate_string_or_text(doc, obj, prop) {
+        Ok(s) => Ok(Some(TaskID::from(s))),
+        Err(_) => Ok(None), // Missing or invalid = None
+    }
+}
+
+/// Hydrates an Option<PlaceID> from an Automerge document.
+pub fn hydrate_optional_place_id<D: autosurgeon::ReadDoc>(
+    doc: &D,
+    obj: &automerge::ObjId,
+    prop: autosurgeon::Prop<'_>,
+) -> Result<Option<PlaceID>, autosurgeon::HydrateError> {
+    match hydrate_string_or_text(doc, obj, prop) {
+        Ok(s) => Ok(Some(PlaceID::from(s))),
+        Err(_) => Ok(None),
+    }
+}
+
+/// Hydrates an Option<f64> that may be stored as Int or F64.
+pub fn hydrate_optional_f64<D: autosurgeon::ReadDoc>(
+    doc: &D,
+    obj: &automerge::ObjId,
+    prop: autosurgeon::Prop<'_>,
+) -> Result<Option<f64>, autosurgeon::HydrateError> {
+    let key = match prop {
+        autosurgeon::Prop::Key(k) => k,
+        autosurgeon::Prop::Index(_) => return Ok(None),
+    };
+
+    let val = doc
+        .get(obj, key.as_ref())
+        .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
+
+    match val {
+        Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
+            automerge::ScalarValue::F64(f) => Ok(Some(*f)),
+            automerge::ScalarValue::Int(i) => Ok(Some(*i as f64)),
+            automerge::ScalarValue::Uint(u) => Ok(Some(*u as f64)),
+            _ => Ok(None),
+        },
+        _ => Ok(None),
+    }
+}
+
+/// Hydrates an Option<i64> that may be missing.
+pub fn hydrate_optional_i64<D: autosurgeon::ReadDoc>(
+    doc: &D,
+    obj: &automerge::ObjId,
+    prop: autosurgeon::Prop<'_>,
+) -> Result<Option<i64>, autosurgeon::HydrateError> {
+    let key = match prop {
+        autosurgeon::Prop::Key(k) => k,
+        autosurgeon::Prop::Index(_) => return Ok(None),
+    };
+
+    let val = doc
+        .get(obj, key.as_ref())
+        .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
+
+    match val {
+        Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
+            automerge::ScalarValue::Int(i) => Ok(Some(*i)),
+            automerge::ScalarValue::Uint(u) => Ok(Some(*u as i64)),
+            automerge::ScalarValue::F64(f) => Ok(Some(*f as i64)),
+            _ => Ok(None),
+        },
+        _ => Ok(None),
+    }
+}
+
 /// Unique identifier for a task.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
@@ -23,7 +133,7 @@ impl Hydrate for TaskID {
         obj: &automerge::ObjId,
         prop: autosurgeon::Prop<'_>,
     ) -> Result<Self, autosurgeon::HydrateError> {
-        String::hydrate(doc, obj, prop).map(Self)
+        hydrate_string_or_text(doc, obj, prop).map(Self)
     }
 }
 
@@ -93,7 +203,7 @@ impl Hydrate for PlaceID {
         obj: &automerge::ObjId,
         prop: autosurgeon::Prop<'_>,
     ) -> Result<Self, autosurgeon::HydrateError> {
-        String::hydrate(doc, obj, prop).map(Self)
+        hydrate_string_or_text(doc, obj, prop).map(Self)
     }
 }
 
@@ -170,7 +280,7 @@ impl Hydrate for TaskStatus {
         obj: &automerge::ObjId,
         prop: autosurgeon::Prop<'_>,
     ) -> Result<Self, autosurgeon::HydrateError> {
-        let s = String::hydrate(doc, obj, prop)?;
+        let s = hydrate_string_or_text(doc, obj, prop)?;
         match s.as_str() {
             "Pending" => Ok(Self::Pending),
             "Done" => Ok(Self::Done),
@@ -210,7 +320,7 @@ impl Hydrate for UrgencyStatus {
         obj: &automerge::ObjId,
         prop: autosurgeon::Prop<'_>,
     ) -> Result<Self, autosurgeon::HydrateError> {
-        let s = String::hydrate(doc, obj, prop)?;
+        let s = hydrate_string_or_text(doc, obj, prop)?;
         match s.as_str() {
             "Overdue" => Ok(Self::Overdue),
             "Urgent" => Ok(Self::Urgent),
@@ -259,7 +369,7 @@ impl Hydrate for ScheduleType {
         obj: &automerge::ObjId,
         prop: autosurgeon::Prop<'_>,
     ) -> Result<Self, autosurgeon::HydrateError> {
-        let s = String::hydrate(doc, obj, prop)?;
+        let s = hydrate_string_or_text(doc, obj, prop)?;
         match s.as_str() {
             "Once" => Ok(Self::Once),
             "Routinely" => Ok(Self::Routinely),
@@ -287,7 +397,7 @@ impl Reconcile for ScheduleType {
 }
 
 /// Scheduling configuration for a task.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Reconcile)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
 pub struct Schedule {
@@ -298,15 +408,80 @@ pub struct Schedule {
     /// Optional due date as Unix timestamp in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(rename = "dueDate")]
-    pub due_date: Option<f64>,
+    pub due_date: Option<i64>,
     /// Lead time in milliseconds before due date to start showing urgency.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(rename = "leadTime")]
-    pub lead_time: Option<f64>,
+    pub lead_time: Option<i64>,
     /// Timestamp of last completion (for Routinely tasks).
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(rename = "lastDone")]
-    pub last_done: Option<f64>,
+    pub last_done: Option<i64>,
+}
+
+impl Hydrate for Schedule {
+    fn hydrate<D: autosurgeon::ReadDoc>(
+        doc: &D,
+        obj: &automerge::ObjId,
+        prop: autosurgeon::Prop<'_>,
+    ) -> Result<Self, autosurgeon::HydrateError> {
+        let sched_obj = match prop {
+            autosurgeon::Prop::Key(ref k) => doc
+                .get(obj, k.as_ref())
+                .map_err(|e| autosurgeon::HydrateError::unexpected("Object", e.to_string()))?
+                .and_then(|(v, o)| {
+                    if matches!(v, automerge::Value::Object(automerge::ObjType::Map)) {
+                        Some(o)
+                    } else {
+                        None
+                    }
+                })
+                .ok_or_else(|| {
+                    autosurgeon::HydrateError::unexpected(
+                        "Object",
+                        "Missing or not a map".to_string(),
+                    )
+                })?,
+            _ => {
+                return Err(autosurgeon::HydrateError::unexpected(
+                    "map",
+                    "index prop not supported".to_string(),
+                ));
+            }
+        };
+
+        Ok(Self {
+            schedule_type: {
+                let res = Hydrate::hydrate(
+                    doc,
+                    &sched_obj,
+                    autosurgeon::Prop::Key(Cow::Borrowed("type")),
+                );
+                res?
+            },
+            due_date: Hydrate::hydrate(
+                doc,
+                &sched_obj,
+                autosurgeon::Prop::Key(Cow::Borrowed("dueDate")),
+            )
+            .ok()
+            .flatten(),
+            lead_time: Hydrate::hydrate(
+                doc,
+                &sched_obj,
+                autosurgeon::Prop::Key(Cow::Borrowed("leadTime")),
+            )
+            .ok()
+            .flatten(),
+            last_done: Hydrate::hydrate(
+                doc,
+                &sched_obj,
+                autosurgeon::Prop::Key(Cow::Borrowed("lastDone")),
+            )
+            .ok()
+            .flatten(),
+        })
+    }
 }
 
 /// Frequency unit for recurring tasks.
@@ -328,7 +503,7 @@ impl Hydrate for Frequency {
         obj: &automerge::ObjId,
         prop: autosurgeon::Prop<'_>,
     ) -> Result<Self, autosurgeon::HydrateError> {
-        let s = String::hydrate(doc, obj, prop)?;
+        let s = hydrate_string_or_text(doc, obj, prop)?;
         match s.to_lowercase().as_str() {
             "minutes" => Ok(Self::Minutes),
             "hours" => Ok(Self::Hours),
@@ -366,24 +541,38 @@ pub struct RepeatConfig {
     /// The unit of frequency (daily, weekly, etc.).
     pub frequency: Frequency,
     /// The interval multiplier (e.g., 2 for "every 2 weeks").
-    pub interval: f64,
+    pub interval: i64,
+}
+
+/// Hydrates an Option<RepeatConfig> treating missing values as None.
+pub fn hydrate_optional_repeat_config<D: autosurgeon::ReadDoc>(
+    doc: &D,
+    obj: &automerge::ObjId,
+    prop: autosurgeon::Prop<'_>,
+) -> Result<Option<RepeatConfig>, autosurgeon::HydrateError> {
+    match RepeatConfig::hydrate(doc, obj, prop) {
+        Ok(config) => Ok(Some(config)),
+        Err(_) => Ok(None),
+    }
 }
 
 /// A task as persisted in the Automerge document.
 ///
 /// Uses `extra_fields` with `#[serde(flatten)]` to preserve any
 /// unknown fields during roundtrip serialization.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Reconcile)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
 pub struct PersistedTask {
     pub status: TaskStatus,
     pub id: TaskID,
+    #[autosurgeon(hydrate = "hydrate_string_or_text")]
     pub title: String,
     #[serde(default)]
+    #[autosurgeon(hydrate = "hydrate_string_or_text")]
     pub notes: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "parentId")]
+    #[autosurgeon(rename = "parentId", hydrate = "hydrate_optional_task_id")]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub parent_id: Option<TaskID>,
     #[autosurgeon(rename = "childTaskIds")]
@@ -393,23 +582,25 @@ pub struct PersistedTask {
     )]
     pub child_task_ids: Vec<TaskID>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "placeId")]
+    #[autosurgeon(rename = "placeId", hydrate = "hydrate_optional_place_id")]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub place_id: Option<PlaceID>,
+    #[autosurgeon(hydrate = "hydrate_f64")]
     pub importance: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "creditIncrement")]
+    #[autosurgeon(rename = "creditIncrement", hydrate = "hydrate_optional_f64")]
     pub credit_increment: Option<f64>,
+    #[autosurgeon(hydrate = "hydrate_f64")]
     pub credits: f64,
-    #[autosurgeon(rename = "desiredCredits")]
+    #[autosurgeon(rename = "desiredCredits", hydrate = "hydrate_f64")]
     pub desired_credits: f64,
     #[autosurgeon(rename = "creditsTimestamp")]
-    pub credits_timestamp: f64,
+    pub credits_timestamp: i64,
     #[autosurgeon(rename = "priorityTimestamp")]
-    pub priority_timestamp: f64,
+    pub priority_timestamp: i64,
     pub schedule: Schedule,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "repeatConfig")]
+    #[autosurgeon(rename = "repeatConfig", hydrate = "hydrate_optional_repeat_config")]
     pub repeat_config: Option<RepeatConfig>,
     #[autosurgeon(rename = "isSequential")]
     pub is_sequential: bool,
@@ -417,148 +608,47 @@ pub struct PersistedTask {
     #[autosurgeon(rename = "isAcknowledged")]
     pub is_acknowledged: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "lastCompletedAt")]
-    pub last_completed_at: Option<f64>,
+    #[autosurgeon(rename = "lastCompletedAt", hydrate = "hydrate_optional_i64")]
+    pub last_completed_at: Option<i64>,
 }
 
-impl Hydrate for PersistedTask {
-    fn hydrate<D: autosurgeon::ReadDoc>(
-        doc: &D,
-        obj: &automerge::ObjId,
-        prop: autosurgeon::Prop<'_>,
-    ) -> Result<Self, autosurgeon::HydrateError> {
-        let task_obj = match prop {
-            autosurgeon::Prop::Key(ref k) => doc
-                .get(obj, k.as_ref())
-                .map_err(|e| autosurgeon::HydrateError::unexpected("Object", e.to_string()))?
-                .and_then(|(v, o)| {
-                    if matches!(v, automerge::Value::Object(automerge::ObjType::Map)) {
-                        Some(o)
-                    } else {
-                        None
-                    }
-                })
-                .ok_or_else(|| {
-                    autosurgeon::HydrateError::unexpected(
-                        "Object",
-                        "Missing or not a map".to_string(),
-                    )
-                })?,
-            autosurgeon::Prop::Index(i) => doc
-                .get(obj, i as usize)
-                .map_err(|e| autosurgeon::HydrateError::unexpected("Object", e.to_string()))?
-                .and_then(|(v, o)| {
-                    if matches!(v, automerge::Value::Object(automerge::ObjType::Map)) {
-                        Some(o)
-                    } else {
-                        None
-                    }
-                })
-                .ok_or_else(|| {
-                    autosurgeon::HydrateError::unexpected(
-                        "Object",
-                        "Missing or not a map".to_string(),
-                    )
-                })?,
-        };
+pub fn hydrate_f64<D: autosurgeon::ReadDoc>(
+    doc: &D,
+    obj: &automerge::ObjId,
+    prop: autosurgeon::Prop<'_>,
+) -> Result<f64, autosurgeon::HydrateError> {
+    let key = match prop {
+        autosurgeon::Prop::Key(k) => k,
+        autosurgeon::Prop::Index(_) => {
+            return Err(autosurgeon::HydrateError::unexpected(
+                "f64 prop",
+                "index prop not supported".to_string(),
+            ));
+        }
+    };
 
-        Ok(Self {
-            status: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("status")),
-            )?,
-            id: Hydrate::hydrate(doc, &task_obj, autosurgeon::Prop::Key(Cow::Borrowed("id")))?,
-            title: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("title")),
-            )?,
-            notes: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("notes")),
-            )
-            .unwrap_or_default(),
-            parent_id: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("parentId")),
-            )
-            .ok(),
-            child_task_ids: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("childTaskIds")),
-            )
-            .unwrap_or_default(),
-            place_id: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("placeId")),
-            )
-            .ok(),
-            importance: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("importance")),
-            )?,
-            credit_increment: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("creditIncrement")),
-            )
-            .ok(),
-            credits: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("credits")),
-            )?,
-            desired_credits: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("desiredCredits")),
-            )?,
-            credits_timestamp: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("creditsTimestamp")),
-            )?,
-            priority_timestamp: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("priorityTimestamp")),
-            )?,
-            schedule: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("schedule")),
-            )?,
-            repeat_config: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("repeatConfig")),
-            )
-            .ok(),
-            is_sequential: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("isSequential")),
-            )
-            .unwrap_or(false),
-            is_acknowledged: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("isAcknowledged")),
-            )
-            .unwrap_or(false),
-            last_completed_at: Hydrate::hydrate(
-                doc,
-                &task_obj,
-                autosurgeon::Prop::Key(Cow::Borrowed("lastCompletedAt")),
-            )
-            .ok(),
-        })
+    let val = doc
+        .get(obj, key.as_ref())
+        .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
+
+    match val {
+        Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
+            automerge::ScalarValue::F64(f) => Ok(*f),
+            automerge::ScalarValue::Int(i) => Ok(*i as f64),
+            automerge::ScalarValue::Uint(u) => Ok(*u as f64),
+            _ => Err(autosurgeon::HydrateError::unexpected(
+                "number",
+                format!("found {:?}", scalar),
+            )),
+        },
+        Some((v, _)) => Err(autosurgeon::HydrateError::unexpected(
+            "number",
+            format!("found {:?}", v),
+        )),
+        None => Err(autosurgeon::HydrateError::unexpected(
+            "number",
+            "missing value".to_string(),
+        )),
     }
 }
 
@@ -577,13 +667,13 @@ pub struct EnrichedTask {
     pub credit_increment: Option<f64>,
     pub credits: f64,
     pub desired_credits: f64,
-    pub credits_timestamp: f64,
-    pub priority_timestamp: f64,
+    pub credits_timestamp: i64,
+    pub priority_timestamp: i64,
     pub schedule: Schedule,
     pub repeat_config: Option<RepeatConfig>,
     pub is_sequential: bool,
     pub is_acknowledged: bool,
-    pub last_completed_at: Option<f64>,
+    pub last_completed_at: Option<i64>,
 
     // Ephemeral scratchpad values
     pub effective_credits: f64,
@@ -598,8 +688,8 @@ pub struct EnrichedTask {
     pub is_ready: bool,
 
     // Effective Schedule State (Inheritance)
-    pub effective_due_date: Option<f64>,
-    pub effective_lead_time: Option<f64>,
+    pub effective_due_date: Option<i64>,
+    pub effective_lead_time: Option<i64>,
     pub effective_schedule_source: Option<ScheduleSource>,
 }
 
@@ -659,13 +749,13 @@ pub struct ComputedTask {
     pub credits: f64,
     pub effective_credits: f64,
     pub desired_credits: f64,
-    pub credits_timestamp: f64,
-    pub priority_timestamp: f64,
+    pub credits_timestamp: i64,
+    pub priority_timestamp: i64,
     pub schedule: Schedule,
     pub repeat_config: Option<RepeatConfig>,
     pub is_sequential: bool,
     pub is_acknowledged: bool,
-    pub last_completed_at: Option<f64>,
+    pub last_completed_at: Option<i64>,
     // TODO: Remove - logic detail hidden from view layer
     pub score: f64,
     // TODO: Remove - logic detail hidden from view layer
@@ -679,8 +769,8 @@ pub struct ComputedTask {
     pub is_container: bool,
     pub is_pending: bool,
     pub is_ready: bool,
-    pub effective_due_date: Option<f64>,
-    pub effective_lead_time: Option<f64>,
+    pub effective_due_date: Option<i64>,
+    pub effective_lead_time: Option<i64>,
     pub effective_schedule_source: Option<ScheduleSource>,
     // TODO: Remove - computed in UI component in TS
     pub urgency_status: UrgencyStatus,
@@ -691,7 +781,7 @@ pub struct ComputedTask {
 #[serde(rename_all = "camelCase")]
 pub struct Context {
     pub current_place_id: Option<PlaceID>,
-    pub current_time: f64,
+    pub current_time: i64,
 }
 
 /// Options to control which tasks are included in the prioritized output.
@@ -800,8 +890,10 @@ pub struct OpenHours {
 #[serde(rename_all = "camelCase")]
 pub struct Place {
     pub id: PlaceID,
+    #[autosurgeon(hydrate = "hydrate_string_or_text")]
     pub name: String,
     /// Stringified JSON of OpenHours
+    #[autosurgeon(hydrate = "hydrate_string_or_text")]
     pub hours: String,
     #[cfg_attr(
         any(test, feature = "test-utils"),
@@ -811,11 +903,65 @@ pub struct Place {
     pub included_places: Vec<PlaceID>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Reconcile)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 pub struct DocMetadata {
     #[autosurgeon(rename = "automerge_url")]
     pub automerge_url: Option<String>,
+}
+
+impl Hydrate for DocMetadata {
+    fn hydrate<D: autosurgeon::ReadDoc>(
+        doc: &D,
+        obj: &automerge::ObjId,
+        prop: autosurgeon::Prop<'_>,
+    ) -> Result<Self, autosurgeon::HydrateError> {
+        let meta_obj = match prop {
+            autosurgeon::Prop::Key(ref k) => doc
+                .get(obj, k.as_ref())
+                .map_err(|e| autosurgeon::HydrateError::unexpected("Object", e.to_string()))?
+                .and_then(|(v, o)| {
+                    if matches!(v, automerge::Value::Object(automerge::ObjType::Map)) {
+                        Some(o)
+                    } else {
+                        None
+                    }
+                })
+                .ok_or_else(|| {
+                    autosurgeon::HydrateError::unexpected(
+                        "Object",
+                        "Missing or not a map".to_string(),
+                    )
+                })?,
+            _ => {
+                return Err(autosurgeon::HydrateError::unexpected(
+                    "map",
+                    "index prop not supported".to_string(),
+                ));
+            }
+        };
+
+        Ok(Self {
+            automerge_url: hydrate_string_or_text(
+                doc,
+                &meta_obj,
+                autosurgeon::Prop::Key(Cow::Borrowed("automerge_url")),
+            )
+            .ok(),
+        })
+    }
+}
+
+/// Hydrates an Option<DocMetadata> treating missing values as None.
+pub fn hydrate_optional_metadata<D: autosurgeon::ReadDoc>(
+    doc: &D,
+    obj: &automerge::ObjId,
+    prop: autosurgeon::Prop<'_>,
+) -> Result<Option<DocMetadata>, autosurgeon::HydrateError> {
+    match DocMetadata::hydrate(doc, obj, prop) {
+        Ok(meta) => Ok(Some(meta)),
+        Err(_) => Ok(None),
+    }
 }
 
 /// The root state of a TaskLens document.
@@ -826,9 +972,9 @@ pub struct DocMetadata {
 #[serde(rename_all = "camelCase")]
 pub struct TunnelState {
     #[autosurgeon(rename = "nextTaskId")]
-    pub next_task_id: f64,
+    pub next_task_id: i64,
     #[autosurgeon(rename = "nextPlaceId")]
-    pub next_place_id: f64,
+    pub next_place_id: i64,
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "test_strategies::arbitrary_tasks_map()")
@@ -845,15 +991,15 @@ pub struct TunnelState {
         proptest(strategy = "test_strategies::arbitrary_places_map()")
     )]
     pub places: HashMap<PlaceID, Place>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[autosurgeon(hydrate = "hydrate_optional_metadata")]
     pub metadata: Option<DocMetadata>,
 }
 
 impl Default for TunnelState {
     fn default() -> Self {
         Self {
-            next_task_id: 1.0,
-            next_place_id: 1.0,
+            next_task_id: 1,
+            next_place_id: 1,
             tasks: HashMap::new(),
             places: HashMap::new(),
             root_task_ids: Vec::new(),
@@ -879,12 +1025,12 @@ mod tests {
             credit_increment: None,
             credits: 0.0,
             desired_credits: 1.0,
-            credits_timestamp: 12345678.0,
-            priority_timestamp: 12345678.0,
+            credits_timestamp: 12345678,
+            priority_timestamp: 12345678,
             schedule: Schedule {
                 schedule_type: ScheduleType::Once,
                 due_date: None,
-                lead_time: Some(0.0),
+                lead_time: Some(0),
                 last_done: None,
             },
             repeat_config: None,

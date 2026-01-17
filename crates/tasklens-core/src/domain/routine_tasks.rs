@@ -6,7 +6,7 @@ use crate::utils::time::get_interval_ms;
 ///
 /// This function checks all "Done" + "Routinely" tasks to see if their wake-up window has arrived.
 /// If so, it resets them to "Pending" and updates their due date to the next interval.
-pub fn wake_up_routine_tasks(state: &mut TunnelState, current_time: f64) {
+pub fn wake_up_routine_tasks(state: &mut TunnelState, current_time: i64) {
     for task in state.tasks.values_mut() {
         if task.status == TaskStatus::Done && task.schedule.schedule_type == ScheduleType::Routinely
         {
@@ -15,7 +15,7 @@ pub fn wake_up_routine_tasks(state: &mut TunnelState, current_time: f64) {
                 None => continue, // Safety check: Routinely tasks must have a repeat config
             };
 
-            let last_completed_at = task.last_completed_at.unwrap_or(0.0);
+            let last_completed_at = task.last_completed_at.unwrap_or(0);
 
             // Calculate the next theoretical due date based on completion time + interval
             let interval_ms = get_interval_ms(repeat_config.frequency, repeat_config.interval);
@@ -64,27 +64,27 @@ mod tests {
                 credit_increment: None,
                 credits: 0.0,
                 desired_credits: 0.0,
-                credits_timestamp: 0.0,
-                priority_timestamp: 0.0,
+                credits_timestamp: 0,
+                priority_timestamp: 0,
                 schedule: Schedule {
                     schedule_type: ScheduleType::Routinely,
                     due_date: None,
-                    lead_time: Some(1000.0),
+                    lead_time: Some(1000),
                     last_done: None,
                 },
                 repeat_config: Some(RepeatConfig {
                     frequency: Frequency::Daily,
-                    interval: 1.0,
+                    interval: 1,
                 }),
                 is_sequential: false,
                 is_acknowledged: true,
-                last_completed_at: Some(100000.0),
+                last_completed_at: Some(100000),
             },
         );
 
         let mut state = TunnelState {
-            next_task_id: 1.0,
-            next_place_id: 1.0,
+            next_task_id: 1,
+            next_place_id: 1,
             tasks,
             root_task_ids: vec![task_id.clone()],
             places: HashMap::new(),
@@ -95,11 +95,11 @@ mod tests {
         // Next due: 100000 + (24*60*60*1000) = 86,400,000 + 100,000 = 86,500,000
         // Wake up time: 86,500,000 - 1,000 = 86,499,000
         // 100500 < 86499000, so it shouldn't wake up.
-        wake_up_routine_tasks(&mut state, 100500.0);
+        wake_up_routine_tasks(&mut state, 100500);
         assert_eq!(state.tasks[&task_id].status, TaskStatus::Done);
 
         // Current time: 86500000 (Exactly at due date)
-        wake_up_routine_tasks(&mut state, 86500000.0);
+        wake_up_routine_tasks(&mut state, 86500000);
         assert_eq!(state.tasks[&task_id].status, TaskStatus::Pending);
         assert!(!state.tasks[&task_id].is_acknowledged);
     }

@@ -345,14 +345,14 @@ struct FlattenedTask {
     depth: usize,
     has_children: bool,
     is_expanded: bool,
-    effective_due_date: Option<f64>,
-    effective_lead_time: Option<f64>,
+    effective_due_date: Option<i64>,
+    effective_lead_time: Option<i64>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 struct ScheduleContext {
-    due_date: Option<f64>,
-    lead_time: Option<f64>,
+    due_date: Option<i64>,
+    lead_time: Option<i64>,
 }
 
 struct FlattenContext<'a> {

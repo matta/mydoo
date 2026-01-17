@@ -86,7 +86,7 @@ pub fn TaskPage() -> Element {
         let result = match new_status {
             TaskStatus::Done => store.write().dispatch(Action::CompleteTask {
                 id: task.id,
-                current_time: js_sys::Date::now(),
+                current_time: js_sys::Date::now() as i64,
             }),
             TaskStatus::Pending => store.write().dispatch(Action::UpdateTask {
                 id: task.id,
@@ -155,7 +155,7 @@ pub fn TaskPage() -> Element {
         if show_settings() {
             SettingsModal {
                 on_close: move |_| show_settings.set(false),
-                doc_id: doc_id,
+                doc_id,
                 on_doc_change: handle_doc_change,
                 on_create_doc: handle_create_doc,
             }
