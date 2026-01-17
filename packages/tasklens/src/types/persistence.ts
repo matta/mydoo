@@ -155,6 +155,11 @@ export interface TunnelState {
   tasks: Record<TaskID, PersistedTask>;
   rootTaskIds: TaskID[];
   places: Record<PlaceID, Place>;
+  metadata?:
+    | {
+        automerge_url?: string | undefined;
+      }
+    | undefined;
 }
 
 export type CreateTaskOptions =

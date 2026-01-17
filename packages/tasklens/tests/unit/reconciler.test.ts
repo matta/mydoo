@@ -1,4 +1,4 @@
-import type { DocHandle } from "@automerge/automerge-repo";
+import type { AutomergeUrl, DocHandle } from "@automerge/automerge-repo";
 import { describe, expect, it, vi } from "vitest";
 import { runReconciler } from "../../src/domain/reconciler";
 import { strictMock } from "../../src/test/test-utils";
@@ -36,6 +36,7 @@ function createTestState(
     tasks: typedTasks,
     places: {},
     rootTaskIds: Object.keys(typedTasks) as TaskID[],
+    metadata: { automerge_url: "automerge:123" }, // Default to migrated state
   };
 }
 
@@ -43,6 +44,7 @@ function createTestState(
 function createMockDocHandle(state: TunnelState): DocHandle<TunnelState> {
   return strictMock<DocHandle<TunnelState>>("DocHandle", {
     doc: () => state,
+    url: "automerge:123" as AutomergeUrl, // Mock URL
     change: (callback: (doc: TunnelState) => void) => {
       callback(state);
     },
@@ -108,6 +110,18 @@ describe("runReconciler", () => {
     expect(task?.lastCompletedAt).toBeDefined();
     // Should be close to now
     expect(task?.lastCompletedAt).toBeGreaterThan(Date.now() - 1000);
+  });
+
+  it("should backfill metadata.automerge_url if missing", () => {
+    const state = createTestState({});
+    // Explicitly remove metadata to simulate legacy doc
+    state.metadata = undefined;
+
+    const handle = createMockDocHandle(state);
+    const result = runReconciler(handle);
+
+    expect(result).toBe(true);
+    expect(state.metadata).toEqual({ automerge_url: "automerge:123" });
   });
 
   it("should be idempotent (not change anything if already migrated)", () => {

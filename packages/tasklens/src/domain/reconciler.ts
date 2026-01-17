@@ -27,30 +27,34 @@ export function runReconciler(handle: DocHandle<TunnelState>): boolean {
     (t) => LegacyRecurringTaskSchema.safeParse(t).success,
   );
 
-  // If we have any legacy tasks, we will mutate the document. This is a subtle
-  // invariant.
-  const willMutate = legacyTasks.length > 0;
+  // 2. Schema Migration: Backfill metadata.automerge_url
+  const needsMetadata = !doc.metadata?.automerge_url;
+
+  // If we have any legacy tasks or missing metadata, we will mutate the document.
+  const willMutate = legacyTasks.length > 0 || needsMetadata;
 
   if (willMutate) {
     handle.change((d) => {
+      // 1. Fix Legacy Tasks
       for (const legacyTask of legacyTasks) {
         // Look up the mutable task by ID to avoid race conditions with Object.values(d.tasks)
         const task = d.tasks[legacyTask.id as TaskID];
         if (!task) continue;
 
-        // Validation gives us type safety at runtime
-        // We re-validate briefly to ensure the mutable task is indeed the one we want
-        // or just use the existence check since we filtered by ID from a recent snapshot.
-        // For safety, let's just cast since we know the ID existed in the snapshot match.
-
         // Mutate the Automerge object.
         task.schedule.type = "Routinely";
 
         // Backfill lastCompletedAt
-        // We can use the legacyTask snapshot data for logic checks
-        // Zod parsing guarantees these properties exist
         if (legacyTask.status === "Done" && !legacyTask.lastCompletedAt) {
           task.lastCompletedAt = Date.now();
+        }
+      }
+
+      // 2. Fix Metadata
+      if (needsMetadata) {
+        if (!d.metadata) d.metadata = {};
+        if (!d.metadata.automerge_url) {
+          d.metadata.automerge_url = handle.url;
         }
       }
     });

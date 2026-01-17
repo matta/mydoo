@@ -143,10 +143,11 @@ When("I find {string} in Plan", async ({ plan }, title) => {
 });
 
 Then("I should be in Plan view", async ({ page }) => {
-  // Verify Plan view is active by checking for a unique element (Collapse All button)
-  // Checking tab attribute proved brittle or timing-dependent.
+  // Verify Plan view is active by checking for a unique element
   await expect(
-    page.getByRole("button", { name: "Collapse All" }),
+    page
+      .getByTestId("append-row-button")
+      .or(page.getByRole("button", { name: "Add First Task" })),
   ).toBeVisible();
 });
 
