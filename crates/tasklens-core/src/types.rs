@@ -991,6 +991,7 @@ pub struct TunnelState {
         proptest(strategy = "test_strategies::arbitrary_places_map()")
     )]
     pub places: HashMap<PlaceID, Place>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(hydrate = "hydrate_optional_metadata")]
     pub metadata: Option<DocMetadata>,
 }
@@ -1049,11 +1050,11 @@ mod tests {
             "importance": 1.0,
             "credits": 0.0,
             "desiredCredits": 1.0,
-            "creditsTimestamp": 12345678.0,
-            "priorityTimestamp": 12345678.0,
+            "creditsTimestamp": 12345678,
+            "priorityTimestamp": 12345678,
             "schedule": {
                 "type": "Once",
-                "leadTime": 0.0
+                "leadTime": 0
             },
             "isSequential": false,
             "isAcknowledged": false

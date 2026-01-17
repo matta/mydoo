@@ -1,4 +1,3 @@
-use serde_json::json;
 use tasklens_core::TunnelState;
 
 fn values_are_equivalent(a: &serde_json::Value, b: &serde_json::Value) -> bool {
@@ -46,29 +45,64 @@ fn test_backup_roundtrip() {
     let serialized_value = serde_json::to_value(&state).unwrap();
 
     if !values_are_equivalent(&serialized_value, &original_value) {
-        // Print a small part of the diff to help debug
-        if let (Some(orig_tasks), Some(ser_tasks)) =
-            (original_value.get("tasks"), serialized_value.get("tasks"))
+        let mut err_msg = String::from("Information loss during roundtrip!\n");
+
+        if let (Some(orig_obj), Some(ser_obj)) =
+            (original_value.as_object(), serialized_value.as_object())
         {
-            if !values_are_equivalent(orig_tasks, ser_tasks) {
-                eprintln!("Diff in tasks!");
-                if let (Some(orig_obj), Some(ser_obj)) =
-                    (orig_tasks.as_object(), ser_tasks.as_object())
-                {
-                    for (k, v) in orig_obj {
-                        let sv = ser_obj.get(k).unwrap_or(&json!(null));
-                        if !values_are_equivalent(v, sv) {
-                            eprintln!("Task {} differs!", k);
-                            eprintln!("Original: {}", serde_json::to_string_pretty(v).unwrap());
-                            eprintln!("Serialized: {}", serde_json::to_string_pretty(sv).unwrap());
-                            break;
+            let orig_keys: std::collections::HashSet<_> = orig_obj.keys().collect();
+            let ser_keys: std::collections::HashSet<_> = ser_obj.keys().collect();
+
+            let missing: Vec<_> = orig_keys.difference(&ser_keys).collect();
+            let extra: Vec<_> = ser_keys.difference(&orig_keys).collect();
+
+            if !missing.is_empty() {
+                err_msg.push_str(&format!("Missing keys in serialized: {:?}\n", missing));
+            }
+            if !extra.is_empty() {
+                err_msg.push_str(&format!("Extra keys in serialized: {:?}\n", extra));
+            }
+
+            for (k, v) in orig_obj {
+                let sv = ser_obj.get(k).unwrap_or(&serde_json::json!(null));
+                if !values_are_equivalent(v, sv) {
+                    err_msg.push_str(&format!("Key '{}' differs!\n", k));
+
+                    if k == "tasks" {
+                        if let (Some(orig_tasks_obj), Some(ser_tasks_obj)) =
+                            (v.as_object(), sv.as_object())
+                        {
+                            for (tk, tv) in orig_tasks_obj {
+                                let tsv = ser_tasks_obj.get(tk).unwrap_or(&serde_json::json!(null));
+                                if !values_are_equivalent(tv, tsv) {
+                                    err_msg.push_str(&format!("  Task {} differs!\n", tk));
+                                    err_msg.push_str(&format!(
+                                        "  Original: {}\n",
+                                        serde_json::to_string_pretty(tv).unwrap()
+                                    ));
+                                    err_msg.push_str(&format!(
+                                        "  Serialized: {}\n",
+                                        serde_json::to_string_pretty(tsv).unwrap()
+                                    ));
+                                    break;
+                                }
+                            }
                         }
+                    } else {
+                        err_msg.push_str(&format!(
+                            "Original: {}\n",
+                            serde_json::to_string_pretty(v).unwrap()
+                        ));
+                        err_msg.push_str(&format!(
+                            "Serialized: {}\n",
+                            serde_json::to_string_pretty(sv).unwrap()
+                        ));
                     }
                 }
             }
         } else {
-            eprintln!("Top level diff!");
+            err_msg.push_str("Top level is not an object!\n");
         }
-        panic!("Information loss during roundtrip!");
+        panic!("{}", err_msg);
     }
 }

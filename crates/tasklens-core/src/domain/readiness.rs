@@ -91,7 +91,7 @@ mod tests {
         );
 
         // No due date
-        assert_eq!(calculate_lead_time_factor(Some(100), 10, 50), 1.0);
+        assert_eq!(calculate_lead_time_factor(None, 10, 50), 1.0);
     }
 
     #[test]
