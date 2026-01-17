@@ -34,6 +34,14 @@ export class Steps {
     createTaskInDoView: async (title: string) => {
       await this.plan.createTaskInDoView(title);
     },
+
+    uploadsDocument: async (filePath: string) => {
+      await this.plan.uploadDocument(filePath);
+    },
+
+    expandsTask: async (title: string) => {
+      await this.plan.toggleExpand(title, true);
+    },
   };
 
   public Then = {
