@@ -29,12 +29,14 @@ export default defineConfig({
     trace: "on-first-retry",
     timezoneId: "Asia/Tokyo",
     locale: "en-US",
+    screenshot:
+      (process.env.SCREENSHOT as "off" | "on" | "only-on-failure") || "off",
   },
   webServer: {
     command:
       "pnpm dlx serve ../../target/dx/tasklens-ui/release/web/public -p 5180 -s",
     url: "http://localhost:5180",
-    reuseExistingServer: false,
+    reuseExistingServer: !isCI,
   },
   projects: [
     {
@@ -50,10 +52,16 @@ export default defineConfig({
       grepInvert: /@migration-pending/,
     },
     {
-      name: "e2e",
+      name: "e2e-desktop",
       testDir: "tests/e2e",
       testIgnore: ["features/**", "steps/**", ".features-gen/**"],
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "e2e-mobile",
+      testDir: "tests/e2e",
+      testIgnore: ["features/**", "steps/**", ".features-gen/**"],
+      use: { ...devices["Pixel 7"] },
     },
   ],
 });

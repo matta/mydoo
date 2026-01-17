@@ -1,5 +1,6 @@
 {
   "name": "@mydoo/tasklens-ui",
+  "type": "module",
   "private": true,
   "devDependencies": {
     "@mydoo/tasklens": "workspace:*",

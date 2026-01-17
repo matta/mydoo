@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import { test as bddTest } from "playwright-bdd";
 import { type PlanFixture, PlanPage } from "./pages/plan-page";
+import { Steps } from "./steps/steps-library";
 import { dumpFailureContext } from "./utils/debug-utils";
 
 export { expect };
@@ -15,6 +16,7 @@ type DocumentContextFixture = {
 type MyFixtures = {
   plan: PlanFixture;
   debugFailure: null;
+  I: Steps;
 } & DocumentContextFixture;
 
 export const test = bddTest.extend<MyFixtures>({
@@ -37,6 +39,11 @@ export const test = bddTest.extend<MyFixtures>({
       }
     });
     await use(planPage);
+  },
+  I: async ({ plan, page }, use) => {
+    // plan fixture is typed as interface but at runtime it's PlanPage instance
+    // We cast to PlanPage because Steps expects the concrete class or compatible interface
+    await use(new Steps(plan as PlanPage, page));
   },
   documentContext: async (
     // biome-ignore lint/correctness/noEmptyPattern: playwright-bdd requires destructuring pattern
