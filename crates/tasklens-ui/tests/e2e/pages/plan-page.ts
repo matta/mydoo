@@ -85,6 +85,13 @@ export interface PlanFixture {
   verifyDueDateText: (taskTitle: string, text: string) => Promise<void>;
   verifyDueDateTextContains: (taskTitle: string, part: string) => Promise<void>;
   waitForAppReady: () => Promise<void>;
+
+  // Sync Settings
+  openSyncSettings: () => Promise<void>;
+  closeSyncSettings: () => Promise<void>;
+  setSyncServerUrl: (url: string) => Promise<void>;
+  saveSyncSettings: () => Promise<void>;
+  verifySyncServerUrl: (url: string) => Promise<void>;
 }
 
 /**
@@ -808,7 +815,40 @@ export class PlanPage implements PlanFixture {
       .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
       .first();
 
-    await expect(row.or(breadcrumb)).toContainText(part);
+    const rowText = row.getByText(part, { exact: false });
+    const breadcrumbText = breadcrumb.getByText(part, { exact: false });
+
+    await expect(rowText.or(breadcrumbText)).toBeVisible();
+  }
+
+  // --- Sync Settings ---
+
+  async openSyncSettings(): Promise<void> {
+    const indicator = this.page.getByTestId("sync-status-button");
+    await indicator.click();
+    await expect(this.page.getByText("Sync Settings")).toBeVisible();
+  }
+
+  async closeSyncSettings(): Promise<void> {
+    const indicator = this.page.getByTestId("sync-status-button");
+    await indicator.click();
+    await expect(this.page.getByText("Sync Settings")).toBeHidden();
+  }
+
+  async setSyncServerUrl(url: string): Promise<void> {
+    const input = this.page.getByTestId("sync-server-url-input");
+    await input.fill(url);
+  }
+
+  async saveSyncSettings(): Promise<void> {
+    await this.page.getByRole("button", { name: "Save & Reconnect" }).click();
+    // Saving reloads the page
+    await this.waitForAppReady();
+  }
+
+  async verifySyncServerUrl(url: string): Promise<void> {
+    const input = this.page.getByTestId("sync-server-url-input");
+    await expect(input).toHaveValue(url);
   }
 
   async downloadDocument(): Promise<string> {

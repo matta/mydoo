@@ -22,22 +22,36 @@ pub fn SyncIndicator() -> Element {
     };
 
     rsx! {
-        div { class: "relative inline-block",
+        div {
+            class: "relative inline-block",
+            "data-testid": "sync-indicator",
             button {
                 class: "flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors",
-                onclick: move |_| show_settings.set(!show_settings()),
+                "data-testid": "sync-status-button",
+                onclick: move |_| {
+                    let new_state = !show_settings();
+                    if new_state {
+                        let stored = LocalStorage::get::<String>(SYNC_SERVER_URL_KEY)
+                            .unwrap_or_else(|_| "ws://localhost:3000/sync".to_string());
+                        url_input.set(stored);
+                    }
+                    show_settings.set(new_state);
+                },
                 span { class: "h-2 w-2 rounded-full {color}" }
                 span { class: "text-gray-600", "{text}" }
             }
 
             if show_settings() {
-                div { class: "absolute bottom-full right-0 mb-2 w-64 p-4 bg-white rounded-lg shadow-xl border border-gray-200 z-50",
+                div {
+                    class: "absolute top-full left-0 mt-2 w-64 p-4 bg-white rounded-lg shadow-xl border border-gray-200 z-50",
+                    "data-testid": "sync-settings-popover",
                     h3 { class: "text-sm font-semibold text-gray-800 mb-3", "Sync Settings" }
                     div { class: "space-y-3",
                         div {
                             label { class: "block text-xs text-gray-500 mb-1", "Server URL" }
                             input {
                                 class: "w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none",
+                                "data-testid": "sync-server-url-input",
                                 value: "{url_input}",
                                 oninput: move |e| url_input.set(e.value()),
                             }

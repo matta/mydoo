@@ -42,11 +42,31 @@ export class Steps {
     expandsTask: async (title: string) => {
       await this.plan.toggleExpand(title, true);
     },
+
+    opensSyncSettings: async () => {
+      await this.plan.openSyncSettings();
+    },
+
+    closesSyncSettings: async () => {
+      await this.plan.closeSyncSettings();
+    },
+
+    changesSyncServerUrl: async (url: string) => {
+      await this.plan.setSyncServerUrl(url);
+    },
+
+    savesSyncSettings: async () => {
+      await this.plan.saveSyncSettings();
+    },
   };
 
   public Then = {
     taskIsVisible: async (title: string) => {
       await this.plan.verifyTaskVisible(title);
+    },
+
+    syncServerUrlShouldBe: async (url: string) => {
+      await this.plan.verifySyncServerUrl(url);
     },
   };
 }
