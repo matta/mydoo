@@ -21,6 +21,10 @@ export class SyncServerHelper {
     this.rootDir = path.resolve(__dirname, "../../../../../");
   }
 
+  getPort(): number {
+    return this.port;
+  }
+
   async build(): Promise<void> {
     console.log(`[SyncServer] Building binary at ${this.rootDir}...`);
     try {

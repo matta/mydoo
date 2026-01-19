@@ -3,6 +3,7 @@ import { test as bddTest } from "playwright-bdd";
 import { type PlanFixture, PlanPage } from "./pages/plan-page";
 import { Steps } from "./steps/steps-library";
 import { dumpFailureContext } from "./utils/debug-utils";
+import { SyncServerHelper } from "./utils/sync-server";
 
 export { expect };
 
@@ -19,7 +20,11 @@ type MyFixtures = {
   I: Steps;
 } & DocumentContextFixture;
 
-export const test = bddTest.extend<MyFixtures>({
+type MyWorkerFixtures = {
+  syncServer: SyncServerHelper;
+};
+
+export const test = bddTest.extend<MyFixtures, MyWorkerFixtures>({
   plan: async (
     { page }: { page: Page },
     use: (r: PlanPage) => Promise<void>,
@@ -64,5 +69,21 @@ export const test = bddTest.extend<MyFixtures>({
       }
     },
     { auto: true },
+  ],
+  syncServer: [
+    async (
+      // biome-ignore lint/correctness/noEmptyPattern: playwright fixture requirement
+      {},
+      use,
+      workerInfo,
+    ) => {
+      const port = 3010 + workerInfo.workerIndex;
+      const server = new SyncServerHelper(port);
+      await server.build();
+      await server.start();
+      await use(server);
+      await server.stop();
+    },
+    { scope: "worker" },
   ],
 });
