@@ -565,6 +565,7 @@ pub fn hydrate_optional_repeat_config<D: autosurgeon::ReadDoc>(
 #[serde(rename_all = "camelCase")]
 pub struct PersistedTask {
     pub status: TaskStatus,
+    #[key]
     pub id: TaskID,
     #[autosurgeon(hydrate = "hydrate_string_or_text")]
     pub title: String,
@@ -889,6 +890,7 @@ pub struct OpenHours {
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
 pub struct Place {
+    #[key]
     pub id: PlaceID,
     #[autosurgeon(hydrate = "hydrate_string_or_text")]
     pub name: String,
