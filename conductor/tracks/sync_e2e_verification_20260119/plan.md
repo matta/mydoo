@@ -1,6 +1,6 @@
 # Implementation Plan: E2E Sync Framework & Verification
 
-## Phase 1: Sync Server Test Harness
+## Phase 1: Sync Server Test Harness [checkpoint: 29c9d1d]
 Implement the utility to manage the lifecycle of the `tasklens-sync-server` during E2E tests.
 
 - [x] Task: Create `SyncServerHelper` utility ccdd01e
@@ -9,12 +9,12 @@ Implement the utility to manage the lifecycle of the `tasklens-sync-server` duri
     - [x] Implement `stop_server()` to ensure clean termination.
 - [x] Task: Integrate Sync Server with Playwright e5766eb
     - [x] Add global `beforeAll` / `afterAll` hooks to manage the server process across the test suite.
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Sync Server Test Harness' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Sync Server Test Harness' (Protocol in workflow.md)
 
-## Phase 2: Multi-Context Infrastructure
+## Phase 2: Multi-Context Infrastructure [~]
 Extend the Playwright environment to support multiple isolated users (Alice and Bob).
 
-- [ ] Task: Define Multi-User Fixtures
+- [~] Task: Define Multi-User Fixtures
     - [ ] Create a fixture that provides two independent browser contexts.
     - [ ] Implement helper methods to switch focus/actions between Alice and Bob.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Multi-Context Infrastructure' (Protocol in workflow.md)
