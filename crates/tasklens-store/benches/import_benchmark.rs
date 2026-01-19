@@ -1,7 +1,7 @@
 //! Run with:
 //! cargo bench -p tasklens-store --bench import_benchmark
 
-use criterion::{Criterion, SamplingMode, criterion_group, criterion_main};
+use criterion::{Criterion, criterion_group, criterion_main};
 use std::fs;
 use std::hint::black_box;
 use std::path::PathBuf;
@@ -15,8 +15,6 @@ fn benchmark_import_doc(c: &mut Criterion) {
     let bytes = fs::read(&path).expect("Failed to read golden.automerge");
 
     let mut group = c.benchmark_group("import_group");
-    group.sample_size(10);
-    group.sampling_mode(SamplingMode::Flat);
 
     group.bench_function("import_doc", |b| {
         b.iter(|| {

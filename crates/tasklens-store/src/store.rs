@@ -326,11 +326,10 @@ impl AppStore {
         self.current_id = doc_id.clone();
 
         // Ensure metadata is set/updated in the doc
-        let mut new_state = state;
-        new_state.metadata = Some(DocMetadata {
+        let metadata = DocMetadata {
             automerge_url: Some(TaskLensUrl::from(doc_id.clone()).to_string()),
-        });
-        reconcile(&mut self.doc, &new_state)
+        };
+        autosurgeon::reconcile_prop(&mut self.doc, automerge::ROOT, "metadata", &metadata)
             .map_err(|e| anyhow!("Failed to reconcile metadata after import: {}", e))?;
 
         #[cfg(target_arch = "wasm32")]
