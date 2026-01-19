@@ -2,19 +2,40 @@ import * as net from "node:net";
 import { expect, test } from "@playwright/test";
 import { SyncServerHelper } from "./sync-server";
 
-test.describe("SyncServerHelper", () => {
-  // Use a random port between 4000-5000 to avoid conflicts during parallel execution
-  const port = Math.floor(Math.random() * 1000) + 4000;
-  const server = new SyncServerHelper(port);
+const getFreePort = async (): Promise<number> => {
+  return new Promise((resolve, reject) => {
+    const srv = net.createServer();
+    srv.listen(0, () => {
+      const port = (srv.address() as net.AddressInfo).port;
+      srv.close((err) => {
+        if (err) reject(err);
+        else resolve(port);
+      });
+    });
+    srv.on("error", reject);
+  });
+};
 
-  test.beforeAll(async () => {
-    console.log("Building server...");
-    await server.build();
-    console.log("Server built.");
+test.describe("SyncServerHelper", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let server: SyncServerHelper;
+
+  test.beforeEach(async () => {
+    const port = await getFreePort();
+    server = new SyncServerHelper(port);
   });
 
   test.afterEach(async () => {
-    await server.stop();
+    if (server) await server.stop();
+  });
+
+  test.beforeAll(async () => {
+    // Pre-build the binary once
+    const tempServer = new SyncServerHelper(0);
+    console.log("Building server...");
+    await tempServer.build();
+    console.log("Server built.");
   });
 
   test("should start and accept TCP connections", async () => {
@@ -22,25 +43,28 @@ test.describe("SyncServerHelper", () => {
 
     // Verify connection
     await expect
-      .poll(async () => {
-        return new Promise<boolean>((resolve) => {
-          const socket = new net.Socket();
-          socket.setTimeout(1000);
-          socket.on("connect", () => {
-            socket.destroy();
-            resolve(true);
+      .poll(
+        async () => {
+          return new Promise<boolean>((resolve) => {
+            const socket = new net.Socket();
+            socket.setTimeout(1000);
+            socket.on("connect", () => {
+              socket.destroy();
+              resolve(true);
+            });
+            socket.on("error", () => {
+              socket.destroy();
+              resolve(false);
+            });
+            socket.on("timeout", () => {
+              socket.destroy();
+              resolve(false);
+            });
+            socket.connect(server.getPort(), "127.0.0.1");
           });
-          socket.on("error", () => {
-            socket.destroy();
-            resolve(false);
-          });
-          socket.on("timeout", () => {
-            socket.destroy();
-            resolve(false);
-          });
-          socket.connect(port, "127.0.0.1");
-        });
-      })
+        },
+        { timeout: 10000 },
+      )
       .toBeTruthy();
   });
 });
