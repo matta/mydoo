@@ -527,6 +527,171 @@ mod tests {
     }
 
     #[test]
+    fn test_dispatch_create_with_parent() {
+        let mut store = AppStore::new();
+        store.init().unwrap();
+
+        let parent_id = TaskID::new();
+        let parent_id_str = parent_id.to_string();
+        let child1_id = TaskID::new();
+        let child1_id_str = child1_id.to_string();
+        let child2_id = TaskID::new();
+        let child2_id_str = child2_id.to_string();
+
+        store
+            .dispatch(Action::CreateTask {
+                id: parent_id.clone(),
+                parent_id: None,
+                title: "Parent".to_string(),
+            })
+            .unwrap();
+
+        store
+            .dispatch(Action::CreateTask {
+                id: child1_id.clone(),
+                parent_id: Some(parent_id.clone()),
+                title: "Child 1".to_string(),
+            })
+            .unwrap();
+
+        store
+            .dispatch(Action::CreateTask {
+                id: child2_id.clone(),
+                parent_id: Some(parent_id.clone()),
+                title: "Child 2".to_string(),
+            })
+            .unwrap();
+
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => {
+                    map! {
+                        parent_id_str.as_str() => {
+                            map! {
+                                "id" => { parent_id_str.as_str() },
+                                "title" => { "Parent" },
+                                "childTaskIds" => {
+                                    list![
+                                        { child1_id_str.as_str() },
+                                        { child2_id_str.as_str() }
+                                    ]
+                                },
+                                "status" => { "Pending" },
+                                "notes" => { "" },
+                                "parentId" => { automerge::ScalarValue::Null },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => { automerge::ScalarValue::Null },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { false },
+                                "lastCompletedAt" => { automerge::ScalarValue::Null },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 28800000 },
+                                        "type" => { "Once" }
+                                    }
+                                }
+                            }
+                        },
+                        child1_id_str.as_str() => {
+                            map! {
+                                "id" => { child1_id_str.as_str() },
+                                "title" => { "Child 1" },
+                                "childTaskIds" => { list![] },
+                                "status" => { "Pending" },
+                                "notes" => { "" },
+                                "parentId" => { parent_id_str.as_str() },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => { automerge::ScalarValue::Null },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { false },
+                                "lastCompletedAt" => { automerge::ScalarValue::Null },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 28800000 },
+                                        "type" => { "Once" }
+                                    }
+                                }
+                            }
+                        },
+                        child2_id_str.as_str() => {
+                            map! {
+                                "id" => { child2_id_str.as_str() },
+                                "title" => { "Child 2" },
+                                "childTaskIds" => { list![] },
+                                "status" => { "Pending" },
+                                "notes" => { "" },
+                                "parentId" => { parent_id_str.as_str() },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => { automerge::ScalarValue::Null },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { false },
+                                "lastCompletedAt" => { automerge::ScalarValue::Null },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 28800000 },
+                                        "type" => { "Once" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "rootTaskIds" => {
+                    list![
+                        { parent_id_str.as_str() }
+                    ]
+                },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null },
+                "places" => { map!{} }
+            }
+        );
+
+        let state: TunnelState = store.hydrate().unwrap();
+
+        let parent = state.tasks.get(&parent_id).unwrap();
+        assert_eq!(parent.child_task_ids.len(), 2);
+        assert_eq!(parent.child_task_ids[0], child1_id);
+        assert_eq!(parent.child_task_ids[1], child2_id);
+
+        let child1 = state.tasks.get(&child1_id).unwrap();
+        assert_eq!(child1.parent_id, Some(parent_id.clone()));
+
+        let child2 = state.tasks.get(&child2_id).unwrap();
+        assert_eq!(child2.parent_id, Some(parent_id.clone()));
+
+        assert!(state.root_task_ids.contains(&parent_id));
+        assert!(!state.root_task_ids.contains(&child1_id));
+        assert!(!state.root_task_ids.contains(&child2_id));
+    }
+
+    #[test]
     fn test_dispatch_update() {
         let mut store = AppStore::new();
         store.init().unwrap();
