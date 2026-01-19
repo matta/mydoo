@@ -8,7 +8,9 @@ use automerge::{AutoCommit, ReadDoc};
 use autosurgeon::{hydrate, reconcile};
 use std::collections::HashMap;
 
-use tasklens_core::types::{DocMetadata, PersistedTask, TaskID, TaskStatus, TunnelState};
+use tasklens_core::types::{
+    DocMetadata, PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_optional_task_id,
+};
 
 /// A manager for Automerge documents and persistence.
 ///
@@ -299,19 +301,54 @@ impl AppStore {
     // TODO: Optimize this to use surgical updates (reconcile_prop) similar to handle_create_task.
     // Currently uses full state hydration which is less efficient.
     fn handle_delete_task(&mut self, id: TaskID) -> Result<()> {
-        let mut state: TunnelState = self.hydrate()?;
-        if let Some(task) = state.tasks.remove(&id) {
-            if let Some(pid) = task.parent_id {
-                if let Some(parent) = state.tasks.get_mut(&pid) {
-                    parent.child_task_ids.retain(|cid| cid != &id);
-                }
-            } else {
-                state.root_task_ids.retain(|rid| rid != &id);
-            }
+        let tasks_obj_id = ensure_path(&mut self.doc, &automerge::ROOT, vec!["tasks"])?;
+
+        // 1. Get task object ID.
+        let task_obj_id = match self.doc.get(&tasks_obj_id, id.as_str())? {
+            Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
+            _ => return Err(anyhow!("Task not found: {}", id)),
+        };
+
+        // 2. Hydrate parent_id to know where to remove it from.
+        let parent_id: Option<TaskID> = hydrate_optional_task_id(
+            &self.doc,
+            &task_obj_id,
+            autosurgeon::Prop::Key("parentId".into()),
+        )
+        .map_err(|e| anyhow!("Failed to hydrate parentId: {}", e))?;
+
+        // 3. Remove from parent's children or rootTaskIds.
+        if let Some(pid) = parent_id {
+            // Get parent object ID.
+            let parent_obj_id = ensure_path(&mut self.doc, &tasks_obj_id, vec![pid.as_str()])?;
+
+            // Hydrate current children list.
+            let mut child_ids: Vec<TaskID> =
+                autosurgeon::hydrate_prop(&self.doc, &parent_obj_id, "childTaskIds")
+                    .unwrap_or_default();
+
+            child_ids.retain(|cid| cid != &id);
+
+            // Reconcile updated children list.
+            autosurgeon::reconcile_prop(&mut self.doc, &parent_obj_id, "childTaskIds", &child_ids)
+                .map_err(|e| anyhow!("Failed to reconcile parent's childTaskIds: {}", e))?;
+        } else {
+            // Update root task list.
+            let mut root_ids: Vec<TaskID> =
+                autosurgeon::hydrate_prop(&self.doc, &automerge::ROOT, "rootTaskIds")
+                    .unwrap_or_default();
+
+            root_ids.retain(|rid| rid != &id);
+
+            autosurgeon::reconcile_prop(&mut self.doc, &automerge::ROOT, "rootTaskIds", &root_ids)
+                .map_err(|e| anyhow!("Failed to reconcile rootTaskIds: {}", e))?;
         }
-        // TODO: use reconcile_prop()
-        reconcile(&mut self.doc, &state)
-            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+
+        // 4. Delete the task object itself from the tasks map.
+        self.doc
+            .delete(&tasks_obj_id, id.as_str())
+            .map_err(|e| anyhow!("Failed to delete task object: {}", e))?;
+
         Ok(())
     }
 
@@ -1034,6 +1071,97 @@ mod tests {
         let state: TunnelState = store.hydrate().unwrap();
         assert!(state.tasks.is_empty());
         assert!(state.root_task_ids.is_empty());
+    }
+
+    #[test]
+    fn test_dispatch_delete_with_parent() {
+        let mut store = AppStore::new();
+        store.init().unwrap();
+
+        let parent_id = TaskID::new();
+        let child_id = TaskID::new();
+
+        store
+            .dispatch(Action::CreateTask {
+                id: parent_id.clone(),
+                parent_id: None,
+                title: "Parent".to_string(),
+            })
+            .unwrap();
+
+        store
+            .dispatch(Action::CreateTask {
+                id: child_id.clone(),
+                parent_id: Some(parent_id.clone()),
+                title: "Child".to_string(),
+            })
+            .unwrap();
+
+        // Verify setup
+        {
+            let state: TunnelState = store.hydrate().unwrap();
+            let parent = state.tasks.get(&parent_id).unwrap();
+            assert!(parent.child_task_ids.contains(&child_id));
+        }
+
+        // Delete child
+        store
+            .dispatch(Action::DeleteTask {
+                id: child_id.clone(),
+            })
+            .unwrap();
+
+        // Verify child is gone from tasks and parent's children
+        let state: TunnelState = store.hydrate().unwrap();
+        assert!(!state.tasks.contains_key(&child_id));
+        let parent = state.tasks.get(&parent_id).unwrap();
+        assert!(!parent.child_task_ids.contains(&child_id));
+
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => {
+                    map! {
+                        parent_id.as_str() => {
+                            map! {
+                                "id" => { parent_id.as_str() },
+                                "title" => { "Parent" },
+                                "childTaskIds" => { list![] },
+                                "status" => { "Pending" },
+                                "notes" => { "" },
+                                "parentId" => { automerge::ScalarValue::Null },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => { automerge::ScalarValue::Null },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { false },
+                                "lastCompletedAt" => { automerge::ScalarValue::Null },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 28800000 },
+                                        "type" => { "Once" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "rootTaskIds" => {
+                    list![ { parent_id.as_str() } ]
+                },
+                "places" => { map!{} },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null }
+            }
+        );
     }
 
     #[test]
