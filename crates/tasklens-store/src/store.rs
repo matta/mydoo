@@ -230,39 +230,69 @@ impl AppStore {
         Ok(())
     }
 
-    // TODO: Optimize this to use surgical updates (reconcile_prop) similar to handle_create_task.
-    // Currently uses full state hydration which is less efficient.
     fn handle_update_task(&mut self, id: TaskID, updates: TaskUpdates) -> Result<()> {
-        let mut state: TunnelState = self.hydrate()?;
-        if let Some(task) = state.tasks.get_mut(&id) {
-            if let Some(title) = updates.title {
-                task.title = title;
-            }
-            if let Some(status) = updates.status {
-                task.status = status;
-            }
-            if let Some(place_id) = updates.place_id {
-                task.place_id = place_id;
-            }
-            if let Some(due_date) = updates.due_date {
-                task.schedule.due_date = due_date;
+        let tasks_obj_id = ensure_path(&mut self.doc, &automerge::ROOT, vec!["tasks"])?;
+
+        let task_obj_id = ensure_path(&mut self.doc, &tasks_obj_id, vec![id.as_str()])
+            .map_err(|_| anyhow!("Task not found: {}", id))?;
+
+        if let Some(title) = updates.title {
+            autosurgeon::reconcile_prop(&mut self.doc, &task_obj_id, "title", title)
+                .map_err(|e| anyhow!("Failed to update title: {}", e))?;
+        }
+        if let Some(status) = updates.status {
+            autosurgeon::reconcile_prop(&mut self.doc, &task_obj_id, "status", status)
+                .map_err(|e| anyhow!("Failed to update status: {}", e))?;
+        }
+        if let Some(place_id_update) = updates.place_id {
+            autosurgeon::reconcile_prop(&mut self.doc, &task_obj_id, "placeId", place_id_update)
+                .map_err(|e| anyhow!("Failed to update placeId: {}", e))?;
+        }
+
+        if updates.due_date.is_some()
+            || updates.schedule_type.is_some()
+            || updates.lead_time.is_some()
+        {
+            let schedule_obj_id = ensure_path(&mut self.doc, &task_obj_id, vec!["schedule"])?;
+
+            if let Some(due_date_update) = updates.due_date {
+                autosurgeon::reconcile_prop(
+                    &mut self.doc,
+                    &schedule_obj_id,
+                    "dueDate",
+                    due_date_update,
+                )
+                .map_err(|e| anyhow!("Failed to update dueDate: {}", e))?;
             }
             if let Some(schedule_type) = updates.schedule_type {
-                task.schedule.schedule_type = schedule_type;
+                autosurgeon::reconcile_prop(&mut self.doc, &schedule_obj_id, "type", schedule_type)
+                    .map_err(|e| anyhow!("Failed to update schedule type: {}", e))?;
             }
-            if let Some(lead_time) = updates.lead_time {
-                task.schedule.lead_time = lead_time;
-            }
-            if let Some(repeat_config) = updates.repeat_config {
-                task.repeat_config = repeat_config;
-            }
-            if let Some(is_seq) = updates.is_sequential {
-                task.is_sequential = is_seq;
+            if let Some(lead_time_update) = updates.lead_time {
+                autosurgeon::reconcile_prop(
+                    &mut self.doc,
+                    &schedule_obj_id,
+                    "leadTime",
+                    lead_time_update,
+                )
+                .map_err(|e| anyhow!("Failed to update leadTime: {}", e))?;
             }
         }
-        // TODO: use reconcile_prop()
-        reconcile(&mut self.doc, &state)
-            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+
+        if let Some(repeat_config_update) = updates.repeat_config {
+            autosurgeon::reconcile_prop(
+                &mut self.doc,
+                &task_obj_id,
+                "repeatConfig",
+                repeat_config_update,
+            )
+            .map_err(|e| anyhow!("Failed to update repeatConfig: {}", e))?;
+        }
+        if let Some(is_seq) = updates.is_sequential {
+            autosurgeon::reconcile_prop(&mut self.doc, &task_obj_id, "isSequential", is_seq)
+                .map_err(|e| anyhow!("Failed to update isSequential: {}", e))?;
+        }
+
         Ok(())
     }
 
@@ -832,6 +862,59 @@ mod tests {
         assert_eq!(state.root_task_ids.len(), 2);
         assert_eq!(state.root_task_ids[0], root1_id);
         assert_eq!(state.root_task_ids[1], root2_id);
+    }
+
+    #[test]
+    fn test_dispatch_update_all_fields() {
+        let mut store = AppStore::new();
+        store.init().unwrap();
+
+        let task_id = TaskID::new();
+
+        store
+            .dispatch(Action::CreateTask {
+                id: task_id.clone(),
+                parent_id: None,
+                title: "Original".to_string(),
+            })
+            .unwrap();
+
+        let place_id = tasklens_core::types::PlaceID::new();
+        let repeat_config = tasklens_core::types::RepeatConfig {
+            frequency: tasklens_core::types::Frequency::Daily,
+            interval: 2,
+        };
+
+        store
+            .dispatch(Action::UpdateTask {
+                id: task_id.clone(),
+                updates: crate::actions::TaskUpdates {
+                    title: Some("Updated Title".to_string()),
+                    status: Some(TaskStatus::Done),
+                    place_id: Some(Some(place_id.clone())),
+                    due_date: Some(Some(1234567890)),
+                    schedule_type: Some(tasklens_core::types::ScheduleType::Routinely),
+                    lead_time: Some(Some(3600)),
+                    repeat_config: Some(Some(repeat_config.clone())),
+                    is_sequential: Some(true),
+                },
+            })
+            .unwrap();
+
+        let state: TunnelState = store.hydrate().unwrap();
+        let task = state.tasks.get(&task_id).unwrap();
+
+        assert_eq!(task.title, "Updated Title");
+        assert_eq!(task.status, TaskStatus::Done);
+        assert_eq!(task.place_id, Some(place_id));
+        assert_eq!(task.schedule.due_date, Some(1234567890));
+        assert_eq!(
+            task.schedule.schedule_type,
+            tasklens_core::types::ScheduleType::Routinely
+        );
+        assert_eq!(task.schedule.lead_time, Some(3600));
+        assert_eq!(task.repeat_config, Some(repeat_config));
+        assert!(task.is_sequential);
     }
 
     #[test]
