@@ -7,7 +7,7 @@ use automerge::AutoCommit;
 use autosurgeon::{hydrate, reconcile};
 use std::collections::HashMap;
 
-use tasklens_core::types::{DocMetadata, TaskStatus, TunnelState};
+use tasklens_core::types::{DocMetadata, TaskID, TaskStatus, TunnelState};
 
 /// A manager for Automerge documents and persistence.
 ///
@@ -132,106 +132,164 @@ impl AppStore {
         reconcile(&mut self.doc, data)
     }
 
+    /// Dispatches an action to modify the application state.
+    ///
+    /// This method is the primary entry point for state mutations. It implements a
+    /// functional core pattern using Autosurgeon's hydration and reconciliation capabilities:
+    ///
+    /// 1. **Hydrate**: The current Automerge document state is hydrated into a native Rust
+    ///    `TunnelState` struct.
+    /// 2. **Mutate**: The `Action` is applied to the `TunnelState`, modifying tasks,
+    ///    relationships, or other domain models in memory.
+    /// 3. **Reconcile**: The modified `TunnelState` is reconciled back into the Automerge
+    ///    document. This efficiently calculates the diffs and applies them as Automerge
+    ///    operations, ensuring history and conflict resolution are preserved.
+    ///
+    /// # Arguments
+    ///
+    /// * `action` - The `Action` to perform, encapsulating the intent of the mutation
+    ///   (e.g., creating a task, updating a field, moving a task).
+    ///
+    /// # Returns
+    ///
+    /// Returns `Ok(())` if the action was successfully applied and reconciled, or an `Error`
+    /// if hydration or reconciliation failed.
     pub fn dispatch(&mut self, action: Action) -> Result<()> {
-        let mut state: TunnelState = self.hydrate()?;
-
         match action {
             Action::CreateTask {
                 id,
                 parent_id,
                 title,
-            } => {
-                let parent = parent_id.as_ref().and_then(|pid| state.tasks.get(pid));
-                let task = tasklens_core::create_new_task(id.clone(), title, parent);
-                state.tasks.insert(id.clone(), task);
-                if let Some(pid) = parent_id
-                    && let Some(parent) = state.tasks.get_mut(&pid)
-                {
-                    parent.child_task_ids.push(id);
-                } else {
-                    state.root_task_ids.push(id);
-                }
-            }
-            Action::UpdateTask { id, updates } => {
-                if let Some(task) = state.tasks.get_mut(&id) {
-                    if let Some(title) = updates.title {
-                        task.title = title;
-                    }
-                    if let Some(status) = updates.status {
-                        task.status = status;
-                    }
-                    if let Some(place_id) = updates.place_id {
-                        task.place_id = place_id;
-                    }
-                    if let Some(due_date) = updates.due_date {
-                        task.schedule.due_date = due_date;
-                    }
-                    if let Some(schedule_type) = updates.schedule_type {
-                        task.schedule.schedule_type = schedule_type;
-                    }
-                    if let Some(lead_time) = updates.lead_time {
-                        task.schedule.lead_time = lead_time;
-                    }
-                    if let Some(repeat_config) = updates.repeat_config {
-                        task.repeat_config = repeat_config;
-                    }
-                    if let Some(is_seq) = updates.is_sequential {
-                        task.is_sequential = is_seq;
-                    }
-                }
-            }
-            Action::DeleteTask { id } => {
-                if let Some(task) = state.tasks.remove(&id) {
-                    if let Some(pid) = task.parent_id {
-                        if let Some(parent) = state.tasks.get_mut(&pid) {
-                            parent.child_task_ids.retain(|cid| cid != &id);
-                        }
-                    } else {
-                        state.root_task_ids.retain(|rid| rid != &id);
-                    }
-                }
-            }
+            } => self.handle_create_task(id, parent_id, title),
+            Action::UpdateTask { id, updates } => self.handle_update_task(id, updates),
+            Action::DeleteTask { id } => self.handle_delete_task(id),
             Action::CompleteTask { id, current_time } => {
-                if let Some(task) = state.tasks.get_mut(&id) {
-                    task.status = TaskStatus::Done;
-                    task.last_completed_at = Some(current_time);
-                }
+                self.handle_complete_task(id, current_time)
             }
-            Action::MoveTask { id, new_parent_id } => {
-                let old_parent_id = state.tasks.get(&id).and_then(|t| t.parent_id.clone());
-
-                // Remove from old parent or root
-                if let Some(opid) = old_parent_id {
-                    if let Some(parent) = state.tasks.get_mut(&opid) {
-                        parent.child_task_ids.retain(|cid| cid != &id);
-                    }
-                } else {
-                    state.root_task_ids.retain(|rid| rid != &id);
-                }
-
-                // Add to new parent or root
-                if let Some(npid) = new_parent_id.clone() {
-                    if let Some(parent) = state.tasks.get_mut(&npid) {
-                        parent.child_task_ids.push(id.clone());
-                    }
-                } else {
-                    state.root_task_ids.push(id.clone());
-                }
-
-                // Update task's parent_id
-                if let Some(task) = state.tasks.get_mut(&id) {
-                    task.parent_id = new_parent_id;
-                }
-            }
+            Action::MoveTask { id, new_parent_id } => self.handle_move_task(id, new_parent_id),
             Action::RefreshLifecycle { current_time } => {
-                tasklens_core::domain::lifecycle::acknowledge_completed_tasks(&mut state);
-                tasklens_core::domain::routine_tasks::wake_up_routine_tasks(
-                    &mut state,
-                    current_time,
-                );
+                self.handle_refresh_lifecycle(current_time)
             }
         }
+    }
 
+    fn handle_create_task(
+        &mut self,
+        id: TaskID,
+        parent_id: Option<TaskID>,
+        title: String,
+    ) -> Result<()> {
+        let mut state: TunnelState = self.hydrate()?;
+        let parent = parent_id.as_ref().and_then(|pid| state.tasks.get(pid));
+        let task = tasklens_core::create_new_task(id.clone(), title, parent);
+        state.tasks.insert(id.clone(), task);
+        if let Some(pid) = parent_id
+            && let Some(parent) = state.tasks.get_mut(&pid)
+        {
+            parent.child_task_ids.push(id);
+        } else {
+            state.root_task_ids.push(id);
+        }
+        reconcile(&mut self.doc, &state)
+            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+        Ok(())
+    }
+
+    fn handle_update_task(&mut self, id: TaskID, updates: TaskUpdates) -> Result<()> {
+        let mut state: TunnelState = self.hydrate()?;
+        if let Some(task) = state.tasks.get_mut(&id) {
+            if let Some(title) = updates.title {
+                task.title = title;
+            }
+            if let Some(status) = updates.status {
+                task.status = status;
+            }
+            if let Some(place_id) = updates.place_id {
+                task.place_id = place_id;
+            }
+            if let Some(due_date) = updates.due_date {
+                task.schedule.due_date = due_date;
+            }
+            if let Some(schedule_type) = updates.schedule_type {
+                task.schedule.schedule_type = schedule_type;
+            }
+            if let Some(lead_time) = updates.lead_time {
+                task.schedule.lead_time = lead_time;
+            }
+            if let Some(repeat_config) = updates.repeat_config {
+                task.repeat_config = repeat_config;
+            }
+            if let Some(is_seq) = updates.is_sequential {
+                task.is_sequential = is_seq;
+            }
+        }
+        reconcile(&mut self.doc, &state)
+            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+        Ok(())
+    }
+
+    fn handle_delete_task(&mut self, id: TaskID) -> Result<()> {
+        let mut state: TunnelState = self.hydrate()?;
+        if let Some(task) = state.tasks.remove(&id) {
+            if let Some(pid) = task.parent_id {
+                if let Some(parent) = state.tasks.get_mut(&pid) {
+                    parent.child_task_ids.retain(|cid| cid != &id);
+                }
+            } else {
+                state.root_task_ids.retain(|rid| rid != &id);
+            }
+        }
+        reconcile(&mut self.doc, &state)
+            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+        Ok(())
+    }
+
+    fn handle_complete_task(&mut self, id: TaskID, current_time: i64) -> Result<()> {
+        let mut state: TunnelState = self.hydrate()?;
+        if let Some(task) = state.tasks.get_mut(&id) {
+            task.status = TaskStatus::Done;
+            task.last_completed_at = Some(current_time);
+        }
+        reconcile(&mut self.doc, &state)
+            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+        Ok(())
+    }
+
+    fn handle_move_task(&mut self, id: TaskID, new_parent_id: Option<TaskID>) -> Result<()> {
+        let mut state: TunnelState = self.hydrate()?;
+        let old_parent_id = state.tasks.get(&id).and_then(|t| t.parent_id.clone());
+
+        // Remove from old parent or root
+        if let Some(opid) = old_parent_id {
+            if let Some(parent) = state.tasks.get_mut(&opid) {
+                parent.child_task_ids.retain(|cid| cid != &id);
+            }
+        } else {
+            state.root_task_ids.retain(|rid| rid != &id);
+        }
+
+        // Add to new parent or root
+        if let Some(npid) = new_parent_id.clone() {
+            if let Some(parent) = state.tasks.get_mut(&npid) {
+                parent.child_task_ids.push(id.clone());
+            }
+        } else {
+            state.root_task_ids.push(id.clone());
+        }
+
+        // Update task's parent_id
+        if let Some(task) = state.tasks.get_mut(&id) {
+            task.parent_id = new_parent_id;
+        }
+        reconcile(&mut self.doc, &state)
+            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+        Ok(())
+    }
+
+    fn handle_refresh_lifecycle(&mut self, current_time: i64) -> Result<()> {
+        let mut state: TunnelState = self.hydrate()?;
+        tasklens_core::domain::lifecycle::acknowledge_completed_tasks(&mut state);
+        tasklens_core::domain::routine_tasks::wake_up_routine_tasks(&mut state, current_time);
         reconcile(&mut self.doc, &state)
             .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
         Ok(())
