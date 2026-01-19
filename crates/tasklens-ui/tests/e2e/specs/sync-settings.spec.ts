@@ -18,10 +18,7 @@ test.describe("Sync Settings", () => {
     await I.Then.syncServerUrlShouldBe(customUrl);
   });
 
-  test("Sync settings modal can be closed without saving", async ({
-    I,
-    page,
-  }) => {
+  test("Sync settings modal can be closed without saving", async ({ I }) => {
     const customUrl = "ws://some-other-server/sync";
 
     await I.When.opensSyncSettings();
