@@ -9,8 +9,3 @@ detailed plan in its respective folder.
 
 _Link:
 [./conductor/tracks/prettier-isolation-20260108/](./conductor/tracks/prettier-isolation-20260108/)_
-
----
-
-## [x] Track: E2E Sync Framework & Verification
-_Link: [./conductor/tracks/sync_e2e_verification_20260119/](./conductor/tracks/sync_e2e_verification_20260119/)_
