@@ -40,3 +40,8 @@ gloo-timers = { version = "0.3", features = ["futures"] }
 
 [dev-dependencies]
 pollster = "0.4.0"
+criterion = "0.8.1"
+
+[[bench]]
+name = "import_benchmark"
+harness = false
