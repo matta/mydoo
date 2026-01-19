@@ -3,11 +3,12 @@ use crate::doc_id::{DocumentId, TaskLensUrl};
 #[cfg(target_arch = "wasm32")]
 use crate::storage::{ActiveDocStorage, IndexedDbStorage};
 use anyhow::{Result, anyhow};
+use automerge::transaction::Transactable;
 use automerge::{AutoCommit, ReadDoc};
 use autosurgeon::{hydrate, reconcile};
 use std::collections::HashMap;
 
-use tasklens_core::types::{DocMetadata, TaskID, TaskStatus, TunnelState};
+use tasklens_core::types::{DocMetadata, PersistedTask, TaskID, TaskStatus, TunnelState};
 
 /// A manager for Automerge documents and persistence.
 ///
@@ -179,61 +180,46 @@ impl AppStore {
         parent_id: Option<TaskID>,
         title: String,
     ) -> Result<()> {
-        let tasks_obj_id = self
-            .doc
-            .get(automerge::ROOT, "tasks")
-            .map_err(|e| anyhow!("Failed to get tasks map: {}", e))?
-            .and_then(|(val, obj_id)| match val {
-                automerge::Value::Object(_) => Some(obj_id),
-                _ => None,
-            })
-            .ok_or_else(|| anyhow!("Tasks map not found"))?;
+        // 1. Get Tasks Map.
+        let tasks_obj_id = ensure_path(&mut self.doc, &automerge::ROOT, vec!["tasks"])?;
 
-        // 1. Resolve parent if it exists (hydrate just the parent)
+        // 2. Resolve parent task.
         let parent = if let Some(pid) = &parent_id {
-            let parent_task: Option<tasklens_core::types::PersistedTask> =
+            let p: Option<PersistedTask> =
                 autosurgeon::hydrate_prop(&self.doc, &tasks_obj_id, pid.as_str())
                     .map_err(|e| anyhow!("Failed to hydrate parent task: {}", e))?;
-            parent_task
+            p
         } else {
             None
         };
 
-        // 2. Create the new task struct
+        // 3. Create the new task struct.
         let task = tasklens_core::create_new_task(id.clone(), title, parent.as_ref());
 
-        // 3. Reconcile the new task into "tasks" map
+        // 4. Reconcile the new task.
         autosurgeon::reconcile_prop(&mut self.doc, &tasks_obj_id, id.as_str(), &task)
             .map_err(|e| anyhow!("Failed to reconcile new task: {}", e))?;
 
-        // 4. Update parent's child_task_ids or root_task_ids
+        // 5. Update parent's child list or root list.
         if let Some(pid) = parent_id {
-            // Get parent object ID
-            let parent_obj_id = self
-                .doc
-                .get(&tasks_obj_id, pid.as_str())
-                .map_err(|e| anyhow!("Failed to get parent object: {}", e))?
-                .and_then(|(val, obj_id)| match val {
-                    automerge::Value::Object(_) => Some(obj_id),
-                    _ => None,
-                })
-                .ok_or_else(|| anyhow!("Parent task object not found"))?;
+            // Get parent object ID.
+            let parent_obj_id = ensure_path(&mut self.doc, &tasks_obj_id, vec![pid.as_str()])?;
 
-            // Hydrate current children list
+            // Hydrate current children list.
             let mut child_ids: Vec<TaskID> =
                 autosurgeon::hydrate_prop(&self.doc, &parent_obj_id, "childTaskIds")
-                    .map_err(|e| anyhow!("Failed to hydrate child ids: {}", e))?;
+                    .unwrap_or_default();
 
             child_ids.push(id);
 
-            // Reconcile updated children list
+            // Reconcile updated children list.
             autosurgeon::reconcile_prop(&mut self.doc, &parent_obj_id, "childTaskIds", &child_ids)
                 .map_err(|e| anyhow!("Failed to reconcile child ids: {}", e))?;
         } else {
-            // Update root_task_ids
+            // Update root task list.
             let mut root_ids: Vec<TaskID> =
                 autosurgeon::hydrate_prop(&self.doc, automerge::ROOT, "rootTaskIds")
-                    .map_err(|e| anyhow!("Failed to hydrate root task ids: {}", e))?;
+                    .unwrap_or_default();
 
             root_ids.push(id);
 
@@ -244,6 +230,8 @@ impl AppStore {
         Ok(())
     }
 
+    // TODO: Optimize this to use surgical updates (reconcile_prop) similar to handle_create_task.
+    // Currently uses full state hydration which is less efficient.
     fn handle_update_task(&mut self, id: TaskID, updates: TaskUpdates) -> Result<()> {
         let mut state: TunnelState = self.hydrate()?;
         if let Some(task) = state.tasks.get_mut(&id) {
@@ -278,6 +266,8 @@ impl AppStore {
         Ok(())
     }
 
+    // TODO: Optimize this to use surgical updates (reconcile_prop) similar to handle_create_task.
+    // Currently uses full state hydration which is less efficient.
     fn handle_delete_task(&mut self, id: TaskID) -> Result<()> {
         let mut state: TunnelState = self.hydrate()?;
         if let Some(task) = state.tasks.remove(&id) {
@@ -295,6 +285,8 @@ impl AppStore {
         Ok(())
     }
 
+    // TODO: Optimize this to use surgical updates (reconcile_prop) similar to handle_create_task.
+    // Currently uses full state hydration which is less efficient.
     fn handle_complete_task(&mut self, id: TaskID, current_time: i64) -> Result<()> {
         let mut state: TunnelState = self.hydrate()?;
         if let Some(task) = state.tasks.get_mut(&id) {
@@ -307,6 +299,8 @@ impl AppStore {
         Ok(())
     }
 
+    // TODO: Optimize this to use surgical updates (reconcile_prop) similar to handle_create_task.
+    // Currently uses full state hydration which is less efficient.
     fn handle_move_task(&mut self, id: TaskID, new_parent_id: Option<TaskID>) -> Result<()> {
         let mut state: TunnelState = self.hydrate()?;
         let old_parent_id = state.tasks.get(&id).and_then(|t| t.parent_id.clone());
@@ -339,6 +333,9 @@ impl AppStore {
         Ok(())
     }
 
+    // TODO: Optimize this to use surgical updates (reconcile_prop) similar to
+    // handle_create_task. Currently uses full state hydration which is less
+    // efficient. Note: this may be difficult or infaesible!
     fn handle_refresh_lifecycle(&mut self, current_time: i64) -> Result<()> {
         let mut state: TunnelState = self.hydrate()?;
         tasklens_core::domain::lifecycle::acknowledge_completed_tasks(&mut state);
@@ -474,12 +471,80 @@ impl Default for AppStore {
     }
 }
 
+/// Helper to ensure a path of map objects exists in the document.
+///
+/// Returns the `ObjId` of the final object in the path.
+/// Creates intermediate maps if they are missing.
+fn ensure_path(
+    doc: &mut automerge::AutoCommit,
+    root: &automerge::ObjId,
+    path: Vec<&str>,
+) -> Result<automerge::ObjId> {
+    let mut current = root.clone();
+    for key in path {
+        let val = doc.get(&current, key)?;
+        current = match val {
+            Some((automerge::Value::Object(_), id)) => id,
+            None => doc.put_object(&current, key, automerge::ObjType::Map)?,
+            _ => return Err(anyhow!("Path key '{}' is not an object", key)),
+        };
+    }
+    Ok(current)
+}
+
 #[cfg(test)]
 mod tests {
     use automerge_test::{assert_doc, list, map};
     use tasklens_core::TaskID;
 
     use super::*;
+
+    #[test]
+    fn test_ensure_path() {
+        let mut doc = AutoCommit::new();
+
+        // 1. Ensure path on clean doc
+        let id1 = ensure_path(&mut doc, &automerge::ROOT, vec!["a", "b", "c"]).unwrap();
+
+        // Verify structure
+        assert_doc!(
+            &doc,
+            map! {
+                "a" => {
+                    map! {
+                        "b" => {
+                            map! {
+                                "c" => { map!{} }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        // 2. Ensure existing path returns same ID
+        let id2 = ensure_path(&mut doc, &automerge::ROOT, vec!["a", "b", "c"]).unwrap();
+        assert_eq!(id1, id2);
+
+        // 3. Ensure path with some existing parts
+        let id3 = ensure_path(&mut doc, &automerge::ROOT, vec!["a", "b", "d"]).unwrap();
+        assert_doc!(
+            &doc,
+            map! {
+                "a" => {
+                    map! {
+                        "b" => {
+                            map! {
+                                "c" => { map!{} },
+                                "d" => { map!{} }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+        assert_ne!(id1, id3);
+    }
 
     #[test]
     fn test_store_init() {

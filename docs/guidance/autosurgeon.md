@@ -238,3 +238,37 @@ fn get_user_preferences_via_path(
 | **Surgical Update** | `reconcile_prop(doc, obj, prop, &val)` | Syncs struct to `doc.get(obj, prop)`.             |
 | **Partial Update**  | `reconcile_prop` + Subset Struct       | Define a struct with _only_ the fields to update. |
 | **Read Value**      | `hydrate_prop(doc, obj, prop)`         | Reads specific value into struct.                 |
+| **Deep Read**       | `hydrate_path(doc, obj, path)`         | Reads value at specific path.                     |
+| **Deep Write**      | _Custom Helper_                        | See below.                                        |
+
+### `ensure_path` (Custom Helper)
+
+Instead of a monolithic `reconcile_path`, it is often better to use a helper
+that ensures a path of objects exists and returns the final `ObjId`. You can
+then use this `ObjId` for multiple operations (hydration or reconciliation).
+
+```rust
+fn ensure_path(
+    doc: &mut automerge::AutoCommit, // or generic D: Transactable
+    root: &automerge::ObjId,
+    path: Vec<&str>,
+) -> Result<automerge::ObjId, anyhow::Error> {
+    let mut current = root.clone();
+    for key in path {
+        let val = doc.get(&current, key).map_err(|e| anyhow::anyhow!(e))?;
+        current = match val {
+            Some((automerge::Value::Object(_), id)) => id,
+            None => doc.put_object(&current, key, automerge::ObjType::Map).map_err(|e| anyhow::anyhow!(e))?,
+            _ => return Err(anyhow::anyhow!("Path key '{}' is not an object", key)),
+        };
+    }
+    Ok(current)
+}
+```
+
+**Usage:**
+
+```rust
+let tasks_map = ensure_path(&mut doc, &automerge::ROOT, vec!["tasks"])?;
+reconcile_prop(&mut doc, tasks_map, "task_123", &my_task)?;
+```
