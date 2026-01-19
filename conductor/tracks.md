@@ -12,5 +12,5 @@ _Link:
 
 ---
 
-## [~] Track: E2E Sync Framework & Verification
+## [x] Track: E2E Sync Framework & Verification
 _Link: [./conductor/tracks/sync_e2e_verification_20260119/](./conductor/tracks/sync_e2e_verification_20260119/)_
