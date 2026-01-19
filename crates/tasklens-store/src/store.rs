@@ -125,11 +125,11 @@ impl AppStore {
     }
 
     /// Reconciles a Rust struct with the Automerge document.
-    pub fn reconcile<T: autosurgeon::Reconcile>(
+    pub fn expensive_reconcile<T: autosurgeon::Reconcile>(
         &mut self,
         data: &T,
     ) -> Result<(), autosurgeon::ReconcileError> {
-        autosurgeon::reconcile(&mut self.doc, data)
+        reconcile(&mut self.doc, data)
     }
 
     pub fn dispatch(&mut self, action: Action) -> Result<()> {
@@ -585,7 +585,7 @@ mod tests {
             interval: 1,
         });
         task.last_completed_at = Some(1000);
-        store.reconcile(&state).unwrap();
+        store.expensive_reconcile(&state).unwrap();
 
         // Next due: 1000 + (24*60*60*1000) = 86,401,000
         // Wake up time: 86,401,000 - 100 = 86,400,900
