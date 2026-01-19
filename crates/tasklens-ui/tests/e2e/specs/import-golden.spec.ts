@@ -1,4 +1,4 @@
-import * as path from "path";
+import * as path from "node:path";
 import { test } from "../fixtures";
 
 test.describe("Binary Doc Import", () => {
