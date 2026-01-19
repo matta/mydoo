@@ -3,7 +3,7 @@ use crate::doc_id::{DocumentId, TaskLensUrl};
 #[cfg(target_arch = "wasm32")]
 use crate::storage::{ActiveDocStorage, IndexedDbStorage};
 use anyhow::{Result, anyhow};
-use automerge::AutoCommit;
+use automerge::{AutoCommit, ReadDoc};
 use autosurgeon::{hydrate, reconcile};
 use std::collections::HashMap;
 
@@ -179,20 +179,68 @@ impl AppStore {
         parent_id: Option<TaskID>,
         title: String,
     ) -> Result<()> {
-        let mut state: TunnelState = self.hydrate()?;
-        let parent = parent_id.as_ref().and_then(|pid| state.tasks.get(pid));
-        let task = tasklens_core::create_new_task(id.clone(), title, parent);
-        state.tasks.insert(id.clone(), task);
-        if let Some(pid) = parent_id
-            && let Some(parent) = state.tasks.get_mut(&pid)
-        {
-            parent.child_task_ids.push(id);
+        let tasks_obj_id = self
+            .doc
+            .get(automerge::ROOT, "tasks")
+            .map_err(|e| anyhow!("Failed to get tasks map: {}", e))?
+            .and_then(|(val, obj_id)| match val {
+                automerge::Value::Object(_) => Some(obj_id),
+                _ => None,
+            })
+            .ok_or_else(|| anyhow!("Tasks map not found"))?;
+
+        // 1. Resolve parent if it exists (hydrate just the parent)
+        let parent = if let Some(pid) = &parent_id {
+            let parent_task: Option<tasklens_core::types::PersistedTask> =
+                autosurgeon::hydrate_prop(&self.doc, &tasks_obj_id, pid.as_str())
+                    .map_err(|e| anyhow!("Failed to hydrate parent task: {}", e))?;
+            parent_task
         } else {
-            state.root_task_ids.push(id);
+            None
+        };
+
+        // 2. Create the new task struct
+        let task = tasklens_core::create_new_task(id.clone(), title, parent.as_ref());
+
+        // 3. Reconcile the new task into "tasks" map
+        autosurgeon::reconcile_prop(&mut self.doc, &tasks_obj_id, id.as_str(), &task)
+            .map_err(|e| anyhow!("Failed to reconcile new task: {}", e))?;
+
+        // 4. Update parent's child_task_ids or root_task_ids
+        if let Some(pid) = parent_id {
+            // Get parent object ID
+            let parent_obj_id = self
+                .doc
+                .get(&tasks_obj_id, pid.as_str())
+                .map_err(|e| anyhow!("Failed to get parent object: {}", e))?
+                .and_then(|(val, obj_id)| match val {
+                    automerge::Value::Object(_) => Some(obj_id),
+                    _ => None,
+                })
+                .ok_or_else(|| anyhow!("Parent task object not found"))?;
+
+            // Hydrate current children list
+            let mut child_ids: Vec<TaskID> =
+                autosurgeon::hydrate_prop(&self.doc, &parent_obj_id, "childTaskIds")
+                    .map_err(|e| anyhow!("Failed to hydrate child ids: {}", e))?;
+
+            child_ids.push(id);
+
+            // Reconcile updated children list
+            autosurgeon::reconcile_prop(&mut self.doc, &parent_obj_id, "childTaskIds", &child_ids)
+                .map_err(|e| anyhow!("Failed to reconcile child ids: {}", e))?;
+        } else {
+            // Update root_task_ids
+            let mut root_ids: Vec<TaskID> =
+                autosurgeon::hydrate_prop(&self.doc, automerge::ROOT, "rootTaskIds")
+                    .map_err(|e| anyhow!("Failed to hydrate root task ids: {}", e))?;
+
+            root_ids.push(id);
+
+            autosurgeon::reconcile_prop(&mut self.doc, automerge::ROOT, "rootTaskIds", &root_ids)
+                .map_err(|e| anyhow!("Failed to reconcile root task ids: {}", e))?;
         }
-        // TODO: use reconcile_prop()
-        reconcile(&mut self.doc, &state)
-            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+
         Ok(())
     }
 
@@ -689,6 +737,36 @@ mod tests {
         assert!(state.root_task_ids.contains(&parent_id));
         assert!(!state.root_task_ids.contains(&child1_id));
         assert!(!state.root_task_ids.contains(&child2_id));
+    }
+
+    #[test]
+    fn test_dispatch_create_multiple_roots() {
+        let mut store = AppStore::new();
+        store.init().unwrap();
+
+        let root1_id = TaskID::new();
+        let root2_id = TaskID::new();
+
+        store
+            .dispatch(Action::CreateTask {
+                id: root1_id.clone(),
+                parent_id: None,
+                title: "Root 1".to_string(),
+            })
+            .unwrap();
+
+        store
+            .dispatch(Action::CreateTask {
+                id: root2_id.clone(),
+                parent_id: None,
+                title: "Root 2".to_string(),
+            })
+            .unwrap();
+
+        let state: TunnelState = store.hydrate().unwrap();
+        assert_eq!(state.root_task_ids.len(), 2);
+        assert_eq!(state.root_task_ids[0], root1_id);
+        assert_eq!(state.root_task_ids[1], root2_id);
     }
 
     #[test]

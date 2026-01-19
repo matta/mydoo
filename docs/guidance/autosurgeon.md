@@ -62,7 +62,7 @@ And you want to update just the **preferences** for `user_123`.
 
 ```rust
 use autosurgeon::{Reconcile, Hydrate, reconcile_prop};
-use automerge::transaction::Transactable;
+use automerge::ReadDoc;
 use automerge::ObjType;
 
 #[derive(Debug, Clone, Reconcile, Hydrate, PartialEq)]
@@ -176,7 +176,7 @@ the specific property.
 
 ```rust
 use autosurgeon::{hydrate_prop, Hydrate};
-use automerge::transaction::Transactable;
+use automerge::ReadDoc;
 
 fn get_user_preferences_via_traversal(
     doc: &automerge::AutoCommit,
