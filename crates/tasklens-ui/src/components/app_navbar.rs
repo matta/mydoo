@@ -27,6 +27,9 @@ pub fn AppNavBar() -> Element {
                     "Balance"
                 }
             }
+            div { class: "flex items-center pr-4",
+                crate::components::SyncIndicator {}
+            }
         }
         Outlet::<Route> {}
     }

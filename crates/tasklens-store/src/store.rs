@@ -20,14 +20,21 @@ pub struct AppStore {
     pub current_id: DocumentId,
     /// The underlying Automerge document backend.
     pub doc: AutoCommit,
+    /// Cached heads for immutable access (since AutoCommit::get_heads is mutable).
+    pub heads: Vec<automerge::ChangeHash>,
 }
 
 impl AppStore {
     /// Creates a new AppStore with a fresh document.
     pub fn new() -> Self {
         let current_id = DocumentId::new();
-        let doc = AutoCommit::new();
-        Self { current_id, doc }
+        let mut doc = AutoCommit::new();
+        let heads = doc.get_heads();
+        Self {
+            current_id,
+            doc,
+            heads,
+        }
     }
 
     /// Initialize the current document with default state if empty.
@@ -44,6 +51,7 @@ impl AppStore {
             };
             reconcile(&mut self.doc, &initial_state)
                 .map_err(|e| anyhow!("Init reconciliation failed: {}", e))?;
+            self.heads = self.doc.get_heads();
         }
         Ok(())
     }
@@ -51,7 +59,9 @@ impl AppStore {
     /// Resets the document to an empty state.
     pub fn reset(&mut self) -> Result<()> {
         self.doc = AutoCommit::new();
-        self.init()
+        let res = self.init();
+        self.heads = self.doc.get_heads();
+        res
     }
 
     /// Creates a new document and switches to it.
@@ -74,6 +84,7 @@ impl AppStore {
 
         self.current_id = new_id.clone();
         self.doc = new_doc;
+        self.heads = self.doc.get_heads();
 
         #[cfg(target_arch = "wasm32")]
         ActiveDocStorage::save_active_url(&TaskLensUrl::from(new_id.clone()));
@@ -89,6 +100,7 @@ impl AppStore {
                 Ok(doc) => {
                     self.current_id = id.clone();
                     self.doc = doc;
+                    self.heads = self.doc.get_heads();
                     ActiveDocStorage::save_active_url(&TaskLensUrl::from(id));
                     Ok(())
                 }
@@ -156,7 +168,7 @@ impl AppStore {
     /// Returns `Ok(())` if the action was successfully applied and reconciled, or an `Error`
     /// if hydration or reconciliation failed.
     pub fn dispatch(&mut self, action: Action) -> Result<()> {
-        match action {
+        let result = match action {
             Action::CreateTask {
                 id,
                 parent_id,
@@ -171,7 +183,10 @@ impl AppStore {
             Action::RefreshLifecycle { current_time } => {
                 self.handle_refresh_lifecycle(current_time)
             }
-        }
+        };
+
+        self.heads = self.doc.get_heads();
+        result
     }
 
     fn handle_create_task(
@@ -448,10 +463,10 @@ impl AppStore {
     }
 
     /// Imports incremental changes from the server.
-    pub fn import_changes(&mut self, changes: Vec<u8>) {
-        if let Err(e) = self.doc.load_incremental(&changes) {
-            tracing::error!("Failed to load incremental changes: {:?}", e);
-        }
+    pub fn import_changes(&mut self, changes: Vec<u8>) -> Result<()> {
+        self.doc.load_incremental(&changes)?;
+        self.heads = self.doc.get_heads();
+        Ok(())
     }
 
     /// Gets the changes made since the last sync/save.

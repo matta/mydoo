@@ -13,7 +13,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     // let master_key = use_context::<Signal<Option<[u8; 32]>>>(); // Removed
     let mut store = use_context::<Signal<AppStore>>();
     let mut doc_id = use_context::<Signal<Option<DocumentId>>>();
-    let sync_tx = use_context::<Coroutine<Vec<u8>>>();
+    // let sync_tx = use_context::<Coroutine<Vec<u8>>>(); // Removed
 
     // ... rest of use_signals ...
 
@@ -71,19 +71,9 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         }
     });
 
-    // Helper to trigger sync and save
-    let mut trigger_sync = move || {
-        let changes_opt = store.write().get_recent_changes();
-
-        // 1. Persist (clone to avoid lifetime issue with WriteLock in static spawn)
-        let mut s_clone = store.read().clone();
-        spawn(async move {
-            let _ = s_clone.save_to_db().await;
-        });
-
-        if let Some(changes) = changes_opt {
-            sync_tx.send(changes);
-        }
+    // Helper to trigger save (sync handled by hook polling)
+    let trigger_sync = move || {
+        // Explicit persist removed. Handled by use_persistence hook.
     };
 
     let flattened_tasks = use_memo(move || {
@@ -195,6 +185,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
             match s.create_new() {
                 Ok(new_id) => {
                     tracing::info!("Created new doc successfully: {}", new_id);
+                    // Explicit save removed. Handled by use_persistence hook.
                     doc_id.set(Some(new_id));
                 }
                 Err(e) => tracing::error!("Failed to create doc: {:?}", e),
@@ -206,7 +197,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         if show_settings() {
             SettingsModal {
                 on_close: move |_| show_settings.set(false),
-                doc_id: doc_id,
+                doc_id,
                 on_doc_change: handle_doc_change,
                 on_create_doc: handle_create_doc,
             }
@@ -288,7 +279,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                         }
                     }
                 } else {
-                    for FlattenedTask { task, depth, has_children, is_expanded, effective_due_date, effective_lead_time, .. } in flattened_tasks() {
+                    for FlattenedTask { task , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
                         TaskRow {
                             key: "{task.id}",
                             task: task.clone(),

@@ -7,11 +7,13 @@ pub mod back_button;
 pub mod button;
 pub mod checkbox;
 pub mod input;
+pub mod sync_indicator;
 
 pub use alert::{Alert, AlertVariant};
 pub use button::{Button, ButtonVariant};
 pub use checkbox::Checkbox;
 pub use input::Input;
+pub use sync_indicator::SyncIndicator;
 pub use task_input::TaskInput;
 pub mod app_navbar;
 pub mod calendar;

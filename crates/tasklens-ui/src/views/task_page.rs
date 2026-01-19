@@ -35,29 +35,8 @@ pub fn TaskPage() -> Element {
         })
     });
 
-    let mut save_and_sync = move || {
-        let changes_opt = store.write().get_recent_changes();
-
-        // 1. Persist
-        let mut s_clone = store.read().clone();
-        spawn(async move {
-            if let Err(e) = s_clone.save_to_db().await {
-                tracing::error!("Failed to save: {:?}", e);
-            }
-        });
-
-        // 2. Sync (using global sync task via store action or just rely on store state?)
-        // The previous sync_task was a Coroutine. Moving to App means we need a way to signal it?
-        // Actually, if we lift sync_task, we need to pass the coroutine handle down or expose it via context.
-        // OR, better: the store logic itself could handle it? No, store is pure.
-        // The sync loop needs to know when local changes happen.
-        // In the original code, `sync_tx.send(change)` was called.
-        // We can expose `Coroutine<Vec<u8>>` via context.
-
-        if let Some(change) = changes_opt {
-            let sync_tx = use_context::<Coroutine<Vec<u8>>>();
-            sync_tx.send(change);
-        }
+    let save_and_sync = move || {
+        // Explicit persist removed. Handled by use_persistence hook.
     };
 
     let mut add_task = move || {
@@ -144,6 +123,12 @@ pub fn TaskPage() -> Element {
             match s.create_new() {
                 Ok(new_id) => {
                     tracing::info!("Created new doc successfully: {}", new_id);
+                    // Explicit save due to missing global effect
+                    if let Err(e) = s.save_to_db().await {
+                        tracing::error!("Failed to save new doc: {:?}", e);
+                    } else {
+                        AppStore::save_active_doc_id(&new_id);
+                    }
                     doc_id.set(Some(new_id));
                 }
                 Err(e) => tracing::error!("Failed to create doc: {:?}", e),

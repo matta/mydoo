@@ -21,7 +21,7 @@ pub fn DocIdManager(
     on_change: EventHandler<tasklens_store::doc_id::DocumentId>,
     on_create: EventHandler<()>,
 ) -> Element {
-    let mut app_store = use_context::<Signal<tasklens_store::store::AppStore>>();
+    let mut store = use_context::<Signal<tasklens_store::store::AppStore>>();
     let mut show_input = use_signal(|| false);
     let mut input_value = use_signal(String::new);
     let mut error_msg = use_signal(String::new);
@@ -97,7 +97,7 @@ pub fn DocIdManager(
     };
 
     let handle_download = move |_| {
-        let mut store = app_store.write();
+        let mut store = store.write();
         let bytes = store.export_save();
         let current_id = store.current_id.to_string();
 
@@ -138,12 +138,13 @@ pub fn DocIdManager(
             if let Some(file) = files.as_slice().first() {
                 match file.read_bytes().await {
                     Ok(bytes) => {
-                        let mut store = app_store.write();
+                        let mut store = store.write();
                         // Bytes from read_bytes are `bytes::Bytes`
                         // import_doc expects Vec<u8>
                         match store.import_doc(bytes.to_vec()) {
                             Ok(new_id) => {
                                 tracing::info!("Imported document: {}", new_id);
+                                // Explicit save removed. Handled by use_persistence hook.
                                 on_change.call(new_id);
                             }
                             Err(e) => {

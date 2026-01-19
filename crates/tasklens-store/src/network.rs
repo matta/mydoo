@@ -31,23 +31,8 @@ mod implementation {
             }
         }
 
-        pub async fn connect(&mut self) -> Result<()> {
-            let loc = web_sys::window().unwrap().location();
-            let host = loc.host().unwrap();
-            let protocol = if loc.protocol().unwrap() == "https:" {
-                "wss"
-            } else {
-                "ws"
-            };
-
-            let url = if host.contains("8080") {
-                // Phase 4: Point to the Mac Mini sync server for local development
-                "ws://mac-mini.lan:8080/sync".to_string()
-            } else {
-                format!("{}://{}/sync", protocol, host)
-            };
-
-            let ws = WebSocket::open(&url).map_err(|e| anyhow!("WS Error: {:?}", e))?;
+        pub async fn connect(&mut self, url: &str) -> Result<()> {
+            let ws = WebSocket::open(url).map_err(|e| anyhow!("WS Error: {:?}", e))?;
             self.ws = Some(ws);
 
             // 1. Send Hello
@@ -147,6 +132,7 @@ mod implementation {
         rx_local: UnboundedReceiver<Vec<u8>>,
         tx_remote: UnboundedSender<Vec<u8>>,
         master_key: impl Fn() -> Option<[u8; 32]>,
+        url_provider: impl Fn() -> Option<String>,
         mut get_full_state: impl FnMut() -> Vec<u8> + 'static,
     ) {
         let mut failure_count = 0;
@@ -178,7 +164,15 @@ mod implementation {
 
             let key = current_key.unwrap();
 
-            // 2. Backoff if needed
+            // 2. Check/Wait for URL
+            let desired_url = url_provider();
+            if desired_url.is_none() {
+                TimeoutFuture::new(500).await;
+                continue;
+            }
+            let url = desired_url.unwrap();
+
+            // 3. Backoff if needed
             if failure_count > 0 {
                 let exp_delay = BASE_DELAY_MS.saturating_mul(2u64.pow(failure_count.min(6)));
                 let delay = exp_delay.min(MAX_DELAY_MS);
@@ -195,16 +189,16 @@ mod implementation {
                 TimeoutFuture::new(total_delay as u32).await;
             }
 
-            // Check key again after sleep in case it changed
-            if master_key() != Some(key) {
+            // Check key/url again after sleep in case it changed
+            if master_key() != Some(key) || url_provider() != Some(url.clone()) {
                 continue;
             }
 
-            // 3. Connect
+            // 4. Connect
             let mut svc = SyncService::new(key);
-            tracing::info!("Attempting to connect...");
+            tracing::info!("Attempting to connect to {}...", url);
 
-            match svc.connect().await {
+            match svc.connect(&url).await {
                 Err(e) => {
                     tracing::error!("Connect failed: {:?}", e);
                     failure_count += 1;
@@ -248,7 +242,7 @@ mod implementation {
             let check_key_fut = Box::pin(async {
                 loop {
                     TimeoutFuture::new(500).await;
-                    if master_key() != Some(key) {
+                    if master_key() != Some(key) || url_provider() != Some(url.clone()) {
                         return;
                     }
                 }
@@ -304,7 +298,7 @@ mod stub {
                 master_key,
             }
         }
-        pub async fn connect(&mut self) -> Result<()> {
+        pub async fn connect(&mut self, _url: &str) -> Result<()> {
             Ok(())
         }
         pub async fn send(&mut self, _msg: ClientMessage) -> Result<()> {
@@ -326,6 +320,7 @@ mod stub {
         _rx_local: UnboundedReceiver<Vec<u8>>,
         _tx_remote: UnboundedSender<Vec<u8>>,
         _master_key: impl Fn() -> Option<[u8; 32]>,
+        _url_provider: impl Fn() -> Option<String>,
         mut _get_full_state: impl FnMut() -> Vec<u8> + 'static,
     ) {
         futures::future::pending::<()>().await;

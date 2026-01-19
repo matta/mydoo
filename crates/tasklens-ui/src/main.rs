@@ -9,6 +9,7 @@ use tasklens_store::doc_id::DocumentId;
 
 mod components;
 mod controllers;
+mod hooks;
 mod router;
 mod seed;
 mod utils;
@@ -88,6 +89,10 @@ fn main() {
 
     dioxus::launch(App);
 }
+#[derive(Clone, Copy)]
+pub struct MemoryHeads(pub Signal<String>);
+#[derive(Clone, Copy)]
+pub struct PersistedHeads(pub Signal<String>);
 
 fn App() -> Element {
     // Session state
@@ -101,22 +106,22 @@ fn App() -> Element {
     // Store State
     let mut store = use_signal(AppStore::new);
 
-    // Sync Task: Bridge between local store and remote protocol
-    let sync_tx = use_coroutine(|mut rx: UnboundedReceiver<Vec<u8>>| async move {
-        while let Some(change) = rx.next().await {
-            // Placeholder for sync logic
-            tracing::info!("Syncing change: {} bytes", change.len());
-        }
-    });
+    // Give doc_id access to persistence
+    let memory_heads = use_signal(String::new);
+    let persisted_heads = use_signal(String::new);
 
-    // Provide context
+    // Provide context early to avoid panics in hooks
     use_context_provider(|| doc_id);
     use_context_provider(|| service_worker_active);
     use_context_provider(|| store);
-    use_context_provider(|| sync_tx);
+    use_context_provider(|| MemoryHeads(memory_heads));
+    use_context_provider(|| PersistedHeads(persisted_heads));
 
-    // 2. Data Loading Effect: REMOVED.
-    // We now handle loading explicitly in initialization and switch actions.
+    // Sync Client Hook
+    let sync_status = hooks::use_sync::use_sync_client(store);
+    hooks::use_persistence::use_persistence(store);
+
+    use_context_provider(|| sync_status);
 
     // Unified Reactive Initialization
     use_future(move || async move {
@@ -236,24 +241,9 @@ fn App() -> Element {
         is_checking.set(false);
     });
 
-    // Persistence Effect: Save to DB on every store change
-    use_effect(move || {
-        // Subscribe to store changes by reading the signal
-        let s = store.read();
-
-        // Do not save if we are still loading (to avoid overwriting DB with empty state)
-        if is_checking() {
-            return;
-        }
-
-        let mut s_clone = s.clone();
-
-        spawn(async move {
-            if let Err(e) = s_clone.save_to_db().await {
-                tracing::error!("Failed to save to DB: {:?}", e);
-            }
-        });
-    });
+    // Persistence Note:
+    // We rely on explicit saves in action handlers (TaskPage, PlanPage, etc.) rather than a global
+    // effect to avoid infinite loops with the sync client's observer polling.
 
     if is_checking() {
         return rsx! {
@@ -273,7 +263,12 @@ fn App() -> Element {
             href: asset!("/assets/tailwind.css"),
         }
 
-        Router::<Route> {}
+        div {
+            class: "min-h-screen",
+            "data-memory-heads": "{memory_heads}",
+            "data-persisted-heads": "{persisted_heads}",
+            Router::<Route> {}
+        }
     }
 }
 
@@ -283,7 +278,9 @@ async fn handle_remote_changes(
     mut store: Signal<AppStore>,
 ) {
     while let Some(change) = rx_remote.next().await {
-        store.write().import_changes(change);
+        if let Err(e) = store.write().import_changes(change) {
+            tracing::error!("Failed to import remote changes in main loop: {:?}", e);
+        }
     }
 }
 

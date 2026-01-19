@@ -112,6 +112,40 @@ export class PlanPage implements PlanFixture {
     }
   }
 
+  private async getMemoryHeads(): Promise<string> {
+    const el = this.page.locator("[data-memory-heads]");
+    await expect(el).toBeAttached({ timeout: 5000 });
+    return (await el.getAttribute("data-memory-heads")) || "";
+  }
+
+  private async waitForPersistence(action: () => Promise<void>): Promise<void> {
+    // 1. Capture initial state
+    const initialHeads = await this.getMemoryHeads();
+
+    // 2. Perform action
+    await action();
+
+    // 3. Wait for Memory Heads to change (sanity check that action worked)
+    // This confirms the Store processed the action.
+    // We expect heads to change because actions imply mutation.
+    await expect(async () => {
+      const currentHeads = await this.getMemoryHeads();
+      expect(currentHeads).not.toBe(initialHeads);
+    }).toPass({ timeout: 5000 });
+
+    // 4. Wait for Consistency: Persisted Heads == Memory Heads
+    // This confirms that what represents the current state is safely on disk.
+    await expect(async () => {
+      const memoryHeads = await this.getMemoryHeads();
+      const persistedEl = this.page.locator("[data-persisted-heads]");
+      const persistedHeads = await persistedEl.getAttribute(
+        "data-persisted-heads",
+      );
+
+      expect(persistedHeads).toBe(memoryHeads);
+    }).toPass({ timeout: 15000 });
+  }
+
   // --- Core Task Operations ---
 
   async createTask(title: string): Promise<void> {
@@ -131,7 +165,9 @@ export class PlanPage implements PlanFixture {
         .getByPlaceholder("Add a new task...");
       await expect(input).toBeVisible();
       await input.fill(title);
-      await this.page.keyboard.press("Enter");
+      await this.waitForPersistence(async () => {
+        await this.page.keyboard.press("Enter");
+      });
 
       await this.waitForAppReady();
       // Wait for creation
@@ -146,7 +182,9 @@ export class PlanPage implements PlanFixture {
     // Now that we added id="task-title-input" and matching label for, getByLabel should work perfectly
     // Focus might be stolen by Dialog focus trap
     await this.page.getByLabel("Title").fill(title);
-    await this.page.keyboard.press("Enter");
+    await this.waitForPersistence(async () => {
+      await this.page.keyboard.press("Enter");
+    });
 
     // Wait for modal to close to ensure creation process is done
     await expect(modal).toBeHidden();
@@ -337,7 +375,9 @@ export class PlanPage implements PlanFixture {
     const modal = this.page.getByRole("dialog", { name: "Edit Task" });
     // Focus might be stolen by Dialog focus trap
     await modal.getByRole("textbox", { name: "Title" }).fill(newTitle);
-    await modal.getByRole("button", { name: "Save Changes" }).click();
+    await this.waitForPersistence(async () => {
+      await modal.getByRole("button", { name: "Save Changes" }).click();
+    });
     await expect(modal).not.toBeVisible();
   }
 
@@ -644,7 +684,9 @@ export class PlanPage implements PlanFixture {
     await expect(modal).toBeVisible();
 
     // Click "New Document"
-    await modal.getByTestId("new-document-button").click();
+    await this.waitForPersistence(async () => {
+      await modal.getByTestId("new-document-button").click();
+    });
 
     // Modal remains open or closes depending on implementation,
     // but the app should reload. Let's close modal.
@@ -833,10 +875,9 @@ export class PlanPage implements PlanFixture {
     await expect(fileInput).toBeAttached(); // Input is hidden but attached
 
     // Upload file
-    await fileInput.setInputFiles(filePath);
-
-    // Wait for import to complete
-    await this.page.waitForTimeout(1000);
+    await this.waitForPersistence(async () => {
+      await fileInput.setInputFiles(filePath);
+    });
 
     // Close settings
     await modal.getByTestId("close-settings").click();

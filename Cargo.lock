@@ -5486,6 +5486,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "argon2",
+ "automerge",
  "base64",
  "bip39",
  "chacha20poly1305",
@@ -5496,6 +5497,7 @@ dependencies = [
  "dioxus-primitives",
  "futures",
  "getrandom 0.2.17",
+ "gloo-net",
  "gloo-storage",
  "gloo-timers",
  "hex",

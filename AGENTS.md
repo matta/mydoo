@@ -655,7 +655,33 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     store.load_from_bytes(data);
     ```
 
-- **Dioxus Toast "Parking" Pattern**:
+#### **Automerge `AutoCommit` Mutability & Signal Render Loops**
+
+- **The Problem**: `AutoCommit::get_heads(&mut self)` requires a mutable
+  reference because it internally closes any open transaction. In Dioxus,
+  calling `store.write()` to call this method notifies all subscribers of a
+  change—even if no data was actually modified.
+- **Hard-won realization**: Using `get_heads()` within a `use_memo` or
+  `use_effect` that depends on `store` creates an **infinite render loop** if
+  not handled carefully (though specifically it's the `store.write()` that
+  triggers it).
+- **The Fix**: Use `store.read()` where possible. If heads are needed for
+  equality checks, realize that `AutoCommit` may not provide an immutable
+  `get_heads`. In such cases, ensure the signal write only happens if the value
+  _actually_ changed, or move the observation to a non-reactive side effect
+  where possible.
+
+#### **Synchronous Store Observation for E2E Fidelity**
+
+- **The Requirement**: E2E tests need immediate DOM feedback (e.g., via
+  `data-memory-heads`) to avoid "polling flakiness."
+- **The Solution**: Use a dedicated `use_memo` hook that derives synchronous
+  "meta-state" for E2E tests. To avoid re-render loops, be careful with
+  `store.write()`. If a mutable call is absolutely necessary, consider if the
+  information can be tracked via a secondary signal that is only updated when
+  meaningful changes occur.
+
+* **Dioxus Toast "Parking" Pattern**:
   - _Symptom:_ The Dioxus hot-reload toast (`#__dx-toast-text`) appears in the
     DOM even when not visible, causing E2E tests to potentially interact with it
     or wait for it incorrectly.
