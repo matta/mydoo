@@ -364,6 +364,7 @@ impl Default for AppStore {
 
 #[cfg(test)]
 mod tests {
+    use automerge_test::{assert_doc, list, map};
     use tasklens_core::TaskID;
 
     use super::*;
@@ -372,6 +373,19 @@ mod tests {
     fn test_store_init() {
         let mut store = AppStore::new();
         store.init().unwrap();
+
+        // Verify empty state structure
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => { map!{} },
+                "places" => { map!{} },
+                "rootTaskIds" => { list![] },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null }
+            }
+        );
 
         let state: TunnelState = store.hydrate().unwrap();
         assert!(state.tasks.is_empty());
@@ -382,13 +396,64 @@ mod tests {
         let mut store = AppStore::new();
         store.init().unwrap();
 
+        let task_id = TaskID::new();
+        let task_id_str = task_id.to_string();
+
         store
             .dispatch(Action::CreateTask {
-                id: TaskID::new(),
+                id: task_id.clone(),
                 parent_id: None,
                 title: "Test Task".to_string(),
             })
             .unwrap();
+
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => {
+                    map! {
+                        task_id_str.as_str() => {
+                            map! {
+                                "id" => { task_id_str.as_str() },
+                                "title" => { "Test Task" },
+                                "childTaskIds" => { list![] },
+                                "status" => { "Pending" },
+                                "notes" => { "" },
+                                "parentId" => { automerge::ScalarValue::Null },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => { automerge::ScalarValue::Null },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { false },
+                                "lastCompletedAt" => { automerge::ScalarValue::Null },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 28800000 },
+                                        "type" => { "Once" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "rootTaskIds" => {
+                    list![
+                        { task_id_str.as_str() }
+                    ]
+                },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null },
+                "places" => { map!{} }
+            }
+        );
 
         let state: TunnelState = store.hydrate().unwrap();
         assert_eq!(state.tasks.len(), 1);
@@ -402,19 +467,20 @@ mod tests {
         let mut store = AppStore::new();
         store.init().unwrap();
 
+        let task_id = TaskID::new();
+        let task_id_str = task_id.to_string();
+
         store
             .dispatch(Action::CreateTask {
-                id: TaskID::new(),
+                id: task_id.clone(),
                 parent_id: None,
                 title: "Original".to_string(),
             })
             .unwrap();
 
-        let id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
-
         store
             .dispatch(Action::UpdateTask {
-                id: id.clone(),
+                id: task_id.clone(),
                 updates: crate::actions::TaskUpdates {
                     title: Some("Updated".to_string()),
                     status: Some(TaskStatus::Done),
@@ -423,8 +489,56 @@ mod tests {
             })
             .unwrap();
 
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => {
+                    map! {
+                        task_id_str.as_str() => {
+                            map! {
+                                "id" => { task_id_str.as_str() },
+                                "title" => { "Updated" },
+                                "status" => { "Done" },
+                                "childTaskIds" => { list![] },
+                                "notes" => { "" },
+                                "parentId" => { automerge::ScalarValue::Null },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => { automerge::ScalarValue::Null },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { false },
+                                "lastCompletedAt" => { automerge::ScalarValue::Null },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 28800000 },
+                                        "type" => { "Once" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "rootTaskIds" => {
+                    list![
+                        { task_id_str.as_str() }
+                    ]
+                },
+                "places" => { map!{} },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null }
+            }
+        );
+
         let state: TunnelState = store.hydrate().unwrap();
-        let task = state.tasks.get(&id).unwrap();
+        let task = state.tasks.get(&task_id).unwrap();
         assert_eq!(task.title, "Updated");
         assert_eq!(task.status, TaskStatus::Done);
     }
@@ -434,18 +548,33 @@ mod tests {
         let mut store = AppStore::new();
         store.init().unwrap();
 
+        let task_id = TaskID::new();
+
         store
             .dispatch(Action::CreateTask {
-                id: TaskID::new(),
+                id: task_id.clone(),
                 parent_id: None,
                 title: "To Delete".to_string(),
             })
             .unwrap();
 
-        let id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
         store
-            .dispatch(Action::DeleteTask { id: id.clone() })
+            .dispatch(Action::DeleteTask {
+                id: task_id.clone(),
+            })
             .unwrap();
+
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => { map!{} },
+                "rootTaskIds" => { list![] },
+                "places" => { map!{} },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null }
+            }
+        );
 
         let state: TunnelState = store.hydrate().unwrap();
         assert!(state.tasks.is_empty());
@@ -457,24 +586,74 @@ mod tests {
         let mut store = AppStore::new();
         store.init().unwrap();
 
+        let task_id = TaskID::new();
+        let task_id_str = task_id.to_string();
+
         store
             .dispatch(Action::CreateTask {
-                id: TaskID::new(),
+                id: task_id.clone(),
                 parent_id: None,
                 title: "To Complete".to_string(),
             })
             .unwrap();
 
-        let id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
         store
             .dispatch(Action::CompleteTask {
-                id: id.clone(),
+                id: task_id.clone(),
                 current_time: 100,
             })
             .unwrap();
 
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => {
+                    map! {
+                        task_id_str.as_str() => {
+                            map! {
+                                "id" => { task_id_str.as_str() },
+                                "title" => { "To Complete" },
+                                "status" => { "Done" },
+                                "childTaskIds" => { list![] },
+                                "notes" => { "" },
+                                "parentId" => { automerge::ScalarValue::Null },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => { automerge::ScalarValue::Null },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { false },
+                                "lastCompletedAt" => { 100 },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 28800000 },
+                                        "type" => { "Once" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "rootTaskIds" => {
+                    list![
+                        { task_id_str.as_str() }
+                    ]
+                },
+                "places" => { map!{} },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null }
+            }
+        );
+
         let state: TunnelState = store.hydrate().unwrap();
-        assert_eq!(state.tasks.get(&id).unwrap().status, TaskStatus::Done);
+        assert_eq!(state.tasks.get(&task_id).unwrap().status, TaskStatus::Done);
     }
 
     #[test]
@@ -482,32 +661,28 @@ mod tests {
         let mut store = AppStore::new();
         store.init().unwrap();
 
+        let parent_id = TaskID::new();
+        let parent_id_str = parent_id.to_string();
+        let child_id = TaskID::new();
+        let child_id_str = child_id.to_string();
+
         // Create Parent
         store
             .dispatch(Action::CreateTask {
-                id: TaskID::new(),
+                id: parent_id.clone(),
                 parent_id: None,
                 title: "Parent".to_string(),
             })
             .unwrap();
-        let parent_id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
 
         // Create Child as root task initially
         store
             .dispatch(Action::CreateTask {
-                id: TaskID::new(),
+                id: child_id.clone(),
                 parent_id: None,
                 title: "Child".to_string(),
             })
             .unwrap();
-        let child_id = store
-            .hydrate::<TunnelState>()
-            .unwrap()
-            .root_task_ids
-            .iter()
-            .find(|&id| id != &parent_id)
-            .unwrap()
-            .clone();
 
         // Move Child under Parent
         store
@@ -516,6 +691,87 @@ mod tests {
                 new_parent_id: Some(parent_id.clone()),
             })
             .unwrap();
+
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => {
+                    map! {
+                        parent_id_str.as_str() => {
+                            map! {
+                                "id" => { parent_id_str.as_str() },
+                                "title" => { "Parent" },
+                                "status" => { "Pending" },
+                                "childTaskIds" => {
+                                    list![
+                                        { child_id_str.as_str() }
+                                    ]
+                                },
+                                "notes" => { "" },
+                                "parentId" => { automerge::ScalarValue::Null },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => { automerge::ScalarValue::Null },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { false },
+                                "lastCompletedAt" => { automerge::ScalarValue::Null },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 28800000 },
+                                        "type" => { "Once" }
+                                    }
+                                }
+                            }
+                        },
+                        child_id_str.as_str() => {
+                            map! {
+                                "id" => { child_id_str.as_str() },
+                                "title" => { "Child" },
+                                "status" => { "Pending" },
+                                "childTaskIds" => { list![] },
+                                "notes" => { "" },
+                                "parentId" => { parent_id_str.as_str() },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => { automerge::ScalarValue::Null },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { false },
+                                "lastCompletedAt" => { automerge::ScalarValue::Null },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 28800000 },
+                                        "type" => { "Once" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "rootTaskIds" => {
+                    list![
+                        { parent_id_str.as_str() }
+                    ]
+                },
+                "places" => { map!{} },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null }
+            }
+        );
 
         let state: TunnelState = store.hydrate().unwrap();
         assert_eq!(state.root_task_ids.len(), 1);
@@ -533,30 +789,128 @@ mod tests {
         let mut store = AppStore::new();
         store.init().unwrap();
 
+        let task_id = TaskID::new();
+        let task_id_str = task_id.to_string();
+
         // Create a Done task
         store
             .dispatch(Action::CreateTask {
-                id: TaskID::new(),
+                id: task_id.clone(),
                 parent_id: None,
                 title: "To Acknowledge".to_string(),
             })
             .unwrap();
-        let id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
+
         store
             .dispatch(Action::CompleteTask {
-                id: id.clone(),
+                id: task_id.clone(),
                 current_time: 100,
             })
             .unwrap();
 
-        assert!(!store.hydrate::<TunnelState>().unwrap().tasks[&id].is_acknowledged);
+        // Verify not acknowledged yet
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => {
+                    map! {
+                        task_id_str.as_str() => {
+                            map! {
+                                "id" => { task_id_str.as_str() },
+                                "title" => { "To Acknowledge" },
+                                "status" => { "Done" },
+                                "childTaskIds" => { list![] },
+                                "notes" => { "" },
+                                "parentId" => { automerge::ScalarValue::Null },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => { automerge::ScalarValue::Null },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { false },
+                                "lastCompletedAt" => { 100 },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 28800000 },
+                                        "type" => { "Once" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "rootTaskIds" => {
+                    list![
+                        { task_id_str.as_str() }
+                    ]
+                },
+                "places" => { map!{} },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null }
+            }
+        );
 
         // Refresh
         store
             .dispatch(Action::RefreshLifecycle { current_time: 100 })
             .unwrap();
 
-        assert!(store.hydrate::<TunnelState>().unwrap().tasks[&id].is_acknowledged);
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => {
+                    map! {
+                        task_id_str.as_str() => {
+                            map! {
+                                "id" => { task_id_str.as_str() },
+                                "title" => { "To Acknowledge" },
+                                "status" => { "Done" },
+                                "childTaskIds" => { list![] },
+                                "notes" => { "" },
+                                "parentId" => { automerge::ScalarValue::Null },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => { automerge::ScalarValue::Null },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { true },
+                                "lastCompletedAt" => { 100 },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 28800000 },
+                                        "type" => { "Once" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "rootTaskIds" => {
+                    list![
+                        { task_id_str.as_str() }
+                    ]
+                },
+                "places" => { map!{} },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null }
+            }
+        );
+
+        assert!(store.hydrate::<TunnelState>().unwrap().tasks[&task_id].is_acknowledged);
     }
 
     #[test]
@@ -564,38 +918,91 @@ mod tests {
         let mut store = AppStore::new();
         store.init().unwrap();
 
-        // Create a Routinely task and complete it
+        let task_id = TaskID::new();
+        let task_id_str = task_id.to_string();
+
+        // Create a Routinely task
         store
             .dispatch(Action::CreateTask {
-                id: TaskID::new(),
+                id: task_id.clone(),
                 parent_id: None,
                 title: "Routine".to_string(),
             })
             .unwrap();
-        let id = store.hydrate::<TunnelState>().unwrap().root_task_ids[0].clone();
 
-        // Manually update it to be Routinely with short interval
-        let mut state = store.hydrate::<TunnelState>().unwrap();
-        let task = state.tasks.get_mut(&id).unwrap();
-        task.status = TaskStatus::Done;
-        task.schedule.schedule_type = tasklens_core::types::ScheduleType::Routinely;
-        task.schedule.lead_time = Some(100);
-        task.repeat_config = Some(tasklens_core::types::RepeatConfig {
-            frequency: tasklens_core::types::Frequency::Daily,
-            interval: 1,
-        });
-        task.last_completed_at = Some(1000);
-        store.expensive_reconcile(&state).unwrap();
-
-        // Next due: 1000 + (24*60*60*1000) = 86,401,000
-        // Wake up time: 86,401,000 - 100 = 86,400,900
+        {
+            let mut state: TunnelState = store.hydrate().unwrap();
+            let task = state.tasks.get_mut(&task_id).unwrap();
+            task.status = TaskStatus::Done;
+            task.schedule.schedule_type = tasklens_core::types::ScheduleType::Routinely;
+            task.schedule.lead_time = Some(100);
+            task.repeat_config = Some(tasklens_core::types::RepeatConfig {
+                frequency: tasklens_core::types::Frequency::Daily,
+                interval: 1,
+            });
+            task.last_completed_at = Some(1000);
+            store.expensive_reconcile(&state).unwrap();
+        }
 
         // Refresh before wake up
         store
             .dispatch(Action::RefreshLifecycle { current_time: 1000 })
             .unwrap();
+
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => {
+                    map! {
+                        task_id_str.as_str() => {
+                            map! {
+                                "id" => { task_id_str.as_str() },
+                                "title" => { "Routine" },
+                                "status" => { "Done" },
+                                "childTaskIds" => { list![] },
+                                "notes" => { "" },
+                                "parentId" => { automerge::ScalarValue::Null },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => {
+                                    map! {
+                                        "frequency" => { "Daily" },
+                                        "interval" => { 1 }
+                                    }
+                                },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { true },
+                                "lastCompletedAt" => { 1000 },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { automerge::ScalarValue::Null },
+                                        "leadTime" => { 100 },
+                                        "type" => { "Routinely" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "rootTaskIds" => {
+                    list![
+                        { task_id_str.as_str() }
+                    ]
+                },
+                "places" => { map!{} },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null }
+            }
+        );
         assert_eq!(
-            store.hydrate::<TunnelState>().unwrap().tasks[&id].status,
+            store.hydrate::<TunnelState>().unwrap().tasks[&task_id].status,
             TaskStatus::Done
         );
 
@@ -605,8 +1012,61 @@ mod tests {
                 current_time: 86401000,
             })
             .unwrap();
+
+        assert_doc!(
+            &store.doc,
+            map! {
+                "tasks" => {
+                    map! {
+                        task_id_str.as_str() => {
+                            map! {
+                                "id" => { task_id_str.as_str() },
+                                "title" => { "Routine" },
+                                "status" => { "Pending" },
+                                "childTaskIds" => { list![] },
+                                "notes" => { "" },
+                                "parentId" => { automerge::ScalarValue::Null },
+                                "placeId" => { automerge::ScalarValue::Null },
+                                "importance" => { 1.0 },
+                                "creditIncrement" => { 0.5 },
+                                "credits" => { 0.0 },
+                                "desiredCredits" => { 1.0 },
+                                "creditsTimestamp" => { 0 },
+                                "priorityTimestamp" => { 0 },
+                                "repeatConfig" => {
+                                    map! {
+                                        "frequency" => { "Daily" },
+                                        "interval" => { 1 }
+                                    }
+                                },
+                                "isSequential" => { false },
+                                "isAcknowledged" => { false },
+                                "lastCompletedAt" => { 1000 },
+                                "schedule" => {
+                                    map! {
+                                        "dueDate" => { automerge::ScalarValue::Null },
+                                        "lastDone" => { 1000 },
+                                        "leadTime" => { 100 },
+                                        "type" => { "Routinely" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "rootTaskIds" => {
+                    list![
+                        { task_id_str.as_str() }
+                    ]
+                },
+                "places" => { map!{} },
+                "nextTaskId" => { 1 },
+                "nextPlaceId" => { 1 },
+                "metadata" => { automerge::ScalarValue::Null }
+            }
+        );
         assert_eq!(
-            store.hydrate::<TunnelState>().unwrap().tasks[&id].status,
+            store.hydrate::<TunnelState>().unwrap().tasks[&task_id].status,
             TaskStatus::Pending
         );
     }

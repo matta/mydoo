@@ -76,6 +76,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
+name = "approx"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cab112f0a86d568ea0e627cc1d6be74a1e9cd55214684db5561995f6dad897c6"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "argh"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -285,6 +294,19 @@ dependencies = [
  "tinyvec",
  "tracing",
  "unicode-segmentation",
+]
+
+[[package]]
+name = "automerge-test"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "50eca3c1ecd8744d1899e07f297ab6242e4ce24814a3751e9f7162fe45803283"
+dependencies = [
+ "automerge",
+ "decorum",
+ "serde",
+ "serde_json",
+ "smol_str",
 ]
 
 [[package]]
@@ -1123,6 +1145,20 @@ name = "data-encoding"
 version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7a1e2f27636f116493b8b860f5546edb47c8d8f8ea73e1d2a20be88e28d1fea"
+
+[[package]]
+name = "decorum"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7fcc6bb0c903f3f815b48365bb9182092866f54a132d8ebe906f0b66952936e3"
+dependencies = [
+ "approx",
+ "num-traits",
+ "rustversion",
+ "serde",
+ "serde_derive",
+ "thiserror 2.0.17",
+]
 
 [[package]]
 name = "deranged"
@@ -5386,6 +5422,7 @@ dependencies = [
  "anyhow",
  "argon2",
  "automerge",
+ "automerge-test",
  "autosurgeon",
  "bip39",
  "bs58",
