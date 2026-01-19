@@ -3,28 +3,20 @@ use futures::StreamExt;
 use futures::channel::mpsc;
 use gloo_storage::{LocalStorage, Storage};
 use tasklens_store::crypto;
+pub use tasklens_store::network::SyncStatus;
 use tasklens_store::network::run_sync_loop;
 use tasklens_store::store::AppStore;
-
-#[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq)]
-pub enum SyncStatus {
-    Disconnected,
-    Connecting,
-    Connected,
-    Syncing,
-    Error(String),
-}
 
 pub const SYNC_SERVER_URL_KEY: &str = "tasklens_sync_server_url";
 
 pub fn use_sync_client(mut store: Signal<AppStore>) -> Signal<SyncStatus> {
-    let status = use_signal(|| SyncStatus::Disconnected);
+    let mut status = use_signal(|| SyncStatus::Disconnected);
     let mut tx_local_signal = use_signal(|| None::<mpsc::UnboundedSender<Vec<u8>>>);
 
     use_future(move || async move {
         let (tx_local, rx_local) = mpsc::unbounded::<Vec<u8>>();
         let (tx_remote, mut rx_remote) = mpsc::unbounded::<Vec<u8>>();
+        let (tx_status, mut rx_status) = mpsc::unbounded::<SyncStatus>();
         tx_local_signal.set(Some(tx_local));
 
         // Background loop for network sync
@@ -32,6 +24,7 @@ pub fn use_sync_client(mut store: Signal<AppStore>) -> Signal<SyncStatus> {
             run_sync_loop(
                 rx_local,
                 tx_remote,
+                tx_status,
                 || crypto::load_key().ok().flatten(),
                 || LocalStorage::get::<String>(SYNC_SERVER_URL_KEY).ok(),
                 move || {
@@ -55,6 +48,13 @@ pub fn use_sync_client(mut store: Signal<AppStore>) -> Signal<SyncStatus> {
                 if let Err(e) = store.write().import_changes(changes) {
                     tracing::error!("Failed to import remote changes in sync hook: {:?}", e);
                 }
+            }
+        });
+
+        // Status -> Signal
+        spawn(async move {
+            while let Some(new_status) = rx_status.next().await {
+                status.set(new_status);
             }
         });
     });

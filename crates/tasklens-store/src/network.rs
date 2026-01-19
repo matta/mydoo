@@ -9,6 +9,15 @@ mod implementation {
     use rand::Rng;
     use tasklens_sync_protocol::{ClientMessage, ServerMessage};
 
+    #[derive(Debug, Clone, PartialEq)]
+    pub enum SyncStatus {
+        Disconnected,
+        Connecting,
+        Connected,
+        Syncing,
+        Error(String),
+    }
+
     pub struct SyncService {
         pub ws: Option<WebSocket>,
         pub sync_id: String,
@@ -131,6 +140,7 @@ mod implementation {
     pub async fn run_sync_loop(
         rx_local: UnboundedReceiver<Vec<u8>>,
         tx_remote: UnboundedSender<Vec<u8>>,
+        status_tx: UnboundedSender<SyncStatus>,
         master_key: impl Fn() -> Option<[u8; 32]>,
         url_provider: impl Fn() -> Option<String>,
         mut get_full_state: impl FnMut() -> Vec<u8> + 'static,
@@ -154,6 +164,7 @@ mod implementation {
                     tracing::info!("Key set. Starting Sync Loop.");
                 } else {
                     tracing::info!("Key cleared. Stopping Sync Loop.");
+                    let _ = status_tx.unbounded_send(SyncStatus::Disconnected);
                 }
             }
 
@@ -167,6 +178,7 @@ mod implementation {
             // 2. Check/Wait for URL
             let desired_url = url_provider();
             if desired_url.is_none() {
+                let _ = status_tx.unbounded_send(SyncStatus::Disconnected);
                 TimeoutFuture::new(500).await;
                 continue;
             }
@@ -186,6 +198,8 @@ mod implementation {
                     failure_count,
                     total_delay
                 );
+                let _ = status_tx
+                    .unbounded_send(SyncStatus::Error(format!("Retrying in {}ms", total_delay)));
                 TimeoutFuture::new(total_delay as u32).await;
             }
 
@@ -197,15 +211,18 @@ mod implementation {
             // 4. Connect
             let mut svc = SyncService::new(key);
             tracing::info!("Attempting to connect to {}...", url);
+            let _ = status_tx.unbounded_send(SyncStatus::Connecting);
 
             match svc.connect(&url).await {
                 Err(e) => {
                     tracing::error!("Connect failed: {:?}", e);
+                    let _ = status_tx.unbounded_send(SyncStatus::Error(format!("{:?}", e)));
                     failure_count += 1;
                     continue;
                 }
                 Ok(_) => {
                     tracing::info!("Connected to Sync Server.");
+                    let _ = status_tx.unbounded_send(SyncStatus::Connected);
                 }
             }
 
@@ -319,6 +336,7 @@ mod stub {
     pub async fn run_sync_loop(
         _rx_local: UnboundedReceiver<Vec<u8>>,
         _tx_remote: UnboundedSender<Vec<u8>>,
+        _status_tx: UnboundedSender<SyncStatus>,
         _master_key: impl Fn() -> Option<[u8; 32]>,
         _url_provider: impl Fn() -> Option<String>,
         mut _get_full_state: impl FnMut() -> Vec<u8> + 'static,
