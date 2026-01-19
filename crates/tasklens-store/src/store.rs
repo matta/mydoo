@@ -352,17 +352,25 @@ impl AppStore {
         Ok(())
     }
 
-    // TODO: Optimize this to use surgical updates (reconcile_prop) similar to handle_create_task.
-    // Currently uses full state hydration which is less efficient.
     fn handle_complete_task(&mut self, id: TaskID, current_time: i64) -> Result<()> {
-        let mut state: TunnelState = self.hydrate()?;
-        if let Some(task) = state.tasks.get_mut(&id) {
-            task.status = TaskStatus::Done;
-            task.last_completed_at = Some(current_time);
-        }
-        // TODO: use reconcile_prop()
-        reconcile(&mut self.doc, &state)
-            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+        let tasks_obj_id = ensure_path(&mut self.doc, &automerge::ROOT, vec!["tasks"])?;
+
+        let task_obj_id = match self.doc.get(&tasks_obj_id, id.as_str())? {
+            Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
+            _ => return Err(anyhow!("Task not found: {}", id)),
+        };
+
+        autosurgeon::reconcile_prop(&mut self.doc, &task_obj_id, "status", TaskStatus::Done)
+            .map_err(|e| anyhow!("Failed to update status: {}", e))?;
+
+        autosurgeon::reconcile_prop(
+            &mut self.doc,
+            &task_obj_id,
+            "lastCompletedAt",
+            Some(current_time),
+        )
+        .map_err(|e| anyhow!("Failed to update lastCompletedAt: {}", e))?;
+
         Ok(())
     }
 
