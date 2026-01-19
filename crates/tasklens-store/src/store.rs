@@ -190,6 +190,7 @@ impl AppStore {
         } else {
             state.root_task_ids.push(id);
         }
+        // TODO: use reconcile_prop()
         reconcile(&mut self.doc, &state)
             .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
         Ok(())
@@ -223,6 +224,7 @@ impl AppStore {
                 task.is_sequential = is_seq;
             }
         }
+        // TODO: use reconcile_prop()
         reconcile(&mut self.doc, &state)
             .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
         Ok(())
@@ -239,6 +241,7 @@ impl AppStore {
                 state.root_task_ids.retain(|rid| rid != &id);
             }
         }
+        // TODO: use reconcile_prop()
         reconcile(&mut self.doc, &state)
             .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
         Ok(())
@@ -250,6 +253,7 @@ impl AppStore {
             task.status = TaskStatus::Done;
             task.last_completed_at = Some(current_time);
         }
+        // TODO: use reconcile_prop()
         reconcile(&mut self.doc, &state)
             .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
         Ok(())
@@ -281,6 +285,7 @@ impl AppStore {
         if let Some(task) = state.tasks.get_mut(&id) {
             task.parent_id = new_parent_id;
         }
+        // TODO: use reconcile_prop()
         reconcile(&mut self.doc, &state)
             .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
         Ok(())
@@ -290,6 +295,7 @@ impl AppStore {
         let mut state: TunnelState = self.hydrate()?;
         tasklens_core::domain::lifecycle::acknowledge_completed_tasks(&mut state);
         tasklens_core::domain::routine_tasks::wake_up_routine_tasks(&mut state, current_time);
+        // TODO: use reconcile_prop()
         reconcile(&mut self.doc, &state)
             .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
         Ok(())
