@@ -92,6 +92,9 @@ export interface PlanFixture {
   setSyncServerUrl: (url: string) => Promise<void>;
   saveSyncSettings: () => Promise<void>;
   verifySyncServerUrl: (url: string) => Promise<void>;
+
+  goto: (path?: string) => Promise<void>;
+  evaluate: <T>(fn: () => T) => Promise<T>;
 }
 
 /**
@@ -936,5 +939,13 @@ export class PlanPage implements PlanFixture {
         return raw;
       }
     });
+  }
+
+  async goto(path = "/"): Promise<void> {
+    await this.page.goto(path);
+  }
+
+  async evaluate<T>(fn: () => T): Promise<T> {
+    return await this.page.evaluate(fn);
   }
 }

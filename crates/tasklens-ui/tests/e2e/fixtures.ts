@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { type Browser, expect, type Page } from "@playwright/test";
 import { test as bddTest } from "playwright-bdd";
 import { type PlanFixture, PlanPage } from "./pages/plan-page";
 import { Steps } from "./steps/steps-library";
@@ -6,6 +6,11 @@ import { dumpFailureContext } from "./utils/debug-utils";
 import { SyncServerHelper } from "./utils/sync-server";
 
 export { expect };
+
+type UserContext = {
+  page: Page;
+  plan: PlanPage;
+};
 
 type DocumentContextFixture = {
   documentContext: {
@@ -18,10 +23,28 @@ type MyFixtures = {
   plan: PlanFixture;
   debugFailure: null;
   I: Steps;
+  alice: UserContext;
+  bob: UserContext;
 } & DocumentContextFixture;
 
 type MyWorkerFixtures = {
   syncServer: SyncServerHelper;
+};
+
+const createUserFixture = async (
+  browser: Browser,
+  name: string,
+): Promise<UserContext> => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const plan = new PlanPage(page);
+
+  page.on("console", (msg) => {
+    const type = msg.type();
+    console.log(`[${name}] PAGE ${type}: ${msg.text()}`);
+  });
+
+  return { page, plan };
 };
 
 export const test = bddTest.extend<MyFixtures, MyWorkerFixtures>({
@@ -44,6 +67,16 @@ export const test = bddTest.extend<MyFixtures, MyWorkerFixtures>({
       }
     });
     await use(planPage);
+  },
+  alice: async ({ browser }, use) => {
+    const user = await createUserFixture(browser, "Alice");
+    await use(user);
+    await user.page.context().close();
+  },
+  bob: async ({ browser }, use) => {
+    const user = await createUserFixture(browser, "Bob");
+    await use(user);
+    await user.page.context().close();
   },
   I: async ({ plan, page }, use) => {
     // plan fixture is typed as interface but at runtime it's PlanPage instance
