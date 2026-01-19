@@ -3,7 +3,8 @@ import { expect, test } from "@playwright/test";
 import { SyncServerHelper } from "./sync-server";
 
 test.describe("SyncServerHelper", () => {
-  const port = 3005;
+  // Use a random port between 4000-5000 to avoid conflicts during parallel execution
+  const port = Math.floor(Math.random() * 1000) + 4000;
   const server = new SyncServerHelper(port);
 
   test.beforeAll(async () => {
