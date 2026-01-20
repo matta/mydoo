@@ -29,7 +29,7 @@ catalogs:
     "@types/react": ^19.2.7
     "@types/react-dom": ^19.2.3
     "@vitejs/plugin-react": ^5.1.1
-    "@vitest/browser": ^4.0.16
+    "@vitest/browser": ^4.0.17
     "@vitest/browser-playwright": ^4.0.16
     "@vitest/coverage-v8": ^4.0.17
     ajv: ^8.17.1
