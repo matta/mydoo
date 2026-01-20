@@ -1,36 +1,90 @@
-/**
- * @mydoo/tasklens - Task management data model and operations.
- *
- * This package provides the core data structures and operations for managing
- * a hierarchical task list stored in an Automerge document.
- *
- * Main exports:
- * - **TunnelStore**: Class for managing task state in unit tests.
- * - **TunnelOps**: Pure functions for mutating task state.
- * - **useTunnel**: React hook for accessing task state in UI components.
- * - **Types**: TypeScript interfaces for Task, TunnelState, TunnelNode, etc.
- *
- * @example
- * ```typescript
- * // In a React component
- * import { useTunnel } from "@mydoo/tasklens";
- *
- * function MyComponent() {
- *   const { tasks, ops } = useTunnel(docUrl);
- *   return <button onClick={() => ops.add({ title: "New task" })}>Add</button>;
- * }
- * ```
- *
- * @example
- * ```typescript
- * // In a unit test
- * import { TunnelStore } from "@mydoo/tasklens";
- *
- * const store = new TunnelStore();
- * store.createTask({ title: "Test task" });
- * ```
- */
-export { TunnelStore } from "./store";
-export * from "./types";
-export * as TunnelOps from "./ops";
-export * from "./react";
+import {
+  acknowledgeAllDoneTasks,
+  createTask,
+  deleteTask,
+  moveTask,
+  updateTask,
+} from "./redux/thunks";
+
+// --- Domain: Balance ---
+export { calculateBalanceData, STARVING_THRESHOLD } from "./domain/balance";
+export {
+  type BalanceItemSimple,
+  type CreditUpdate,
+  distributeCredits,
+} from "./domain/balance-distribution";
+
+// --- Domain: Constants ---
+export {
+  CREDITS_HALF_LIFE_MILLIS,
+  DEFAULT_TASK_IMPORTANCE,
+  DEFAULT_TASK_LEAD_TIME_HOURS,
+  DEFAULT_TASK_LEAD_TIME_MS,
+} from "./domain/constants";
+export { getUrgencyStatus, UrgencyStatus } from "./domain/dates";
+// --- Domain: Initialization ---
+export {
+  createTaskLensDoc,
+  initializeTunnelState,
+  isDocInitialized,
+} from "./domain/initialization";
+export { getPrioritizedTasks } from "./domain/priority";
+export {
+  getDescendantCountFromEntities,
+  toComputedTask,
+} from "./domain/projections";
+export { wakeUpRoutineTasks } from "./domain/routine-tasks";
+export { buildTunnelTree } from "./domain/tree";
+export * as TunnelOps from "./persistence/ops";
+export { TunnelStateSchema } from "./persistence/schemas";
+export { TunnelStore } from "./persistence/store";
+export {
+  createTaskLensMiddleware,
+  type TaskLensMiddlewareResult,
+  type ThunkExtra,
+} from "./redux/middleware";
+export const TaskActions = {
+  createTask,
+  updateTask,
+  deleteTask,
+  moveTask,
+  acknowledgeAllDoneTasks,
+};
+export {
+  createTaskLensStore,
+  getTaskLensReduxConfig,
+  type TaskLensDispatch,
+  type TaskLensReduxConfig,
+  type TaskLensState,
+  taskLensStore,
+} from "./store/index";
+export {
+  selectBalanceData,
+  selectLastProxyDoc,
+  selectRootTaskIds,
+  selectStoreReady,
+  selectTaskById,
+  selectTaskEntities,
+  selectTodoList,
+  selectTodoListIds,
+} from "./store/selectors";
+export { default as tasksReducer, syncDoc } from "./store/slices/tasks-slice";
+export {
+  type BalanceItemData,
+  type ComputedTask,
+  type CreateTaskOptions,
+  DEFAULT_CREDIT_INCREMENT,
+  type PlaceID,
+  type RepeatConfig,
+  type RepeatConfigFields,
+  type Schedule,
+  type ScheduleFields,
+  type TaskCreateInput,
+  type TaskCreateProps,
+  type TaskFields,
+  type TaskID,
+  TaskStatus,
+  type TaskUpdateInput,
+  type TunnelNode,
+  type ViewFilter,
+} from "./types/ui";

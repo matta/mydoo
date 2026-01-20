@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { TunnelStore } from "../../src/store";
+import { describe, expect, it } from "vitest";
+
+import { TunnelStore } from "../../src/persistence/store";
 
 describe("TunnelStore Persistence", () => {
   it("should save and load state correctly", () => {

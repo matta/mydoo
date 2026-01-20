@@ -1,5 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { TunnelStore } from "../../src/store";
+import { describe, expect, it } from "vitest";
+
+import { getPrioritizedTasks } from "../../src/domain/priority";
+import { TunnelStore } from "../../src/persistence/store";
 
 describe("Quickstart Integration", () => {
   it("should run the quickstart scenario", () => {
@@ -18,23 +20,21 @@ describe("Quickstart Integration", () => {
       creditIncrement: 1.0,
     });
 
-    // 3. Update Priorities
-    store.recalculateScores({ placeId: "All" });
-
-    // 4. Get Todo List
-    const todos = store.getTodoList({ currentTime: Date.now() });
+    // 3. Get Todo List (Calculates scores on demand)
+    const todos = getPrioritizedTasks(store.doc, {});
 
     // Email should be visible and sorted
     expect(todos.length).toBeGreaterThan(0);
     const firstTodo = todos[0];
     if (!firstTodo) throw new Error("Expected at least one todo");
     expect(firstTodo.id).toBe(task.id);
-    expect(firstTodo.priority ?? 0).toBeGreaterThan(0);
+    // Explicit cast to access hidden/optional priority for integration verification
+    // biome-ignore lint/suspicious/noExplicitAny: integration test verifying hidden field
+    expect((firstTodo as any).priority ?? 0).toBeGreaterThan(0);
 
     // Verify Work (Root) is hidden (Container Visibility Pass 7)
-    // Work has a visible child (Email), so Work should be hidden.
-    const workTask = store.getTask(rootGoal.id);
-    expect(workTask?.visibility).toBe(false);
-    expect(workTask?.priority).toBe(0.0);
+    // Work has a visible child (Email), so Work should be hidden from the todo list.
+    const workInTodos = todos.find((t) => t.id === rootGoal.id);
+    expect(workInTodos).toBeUndefined();
   });
 });

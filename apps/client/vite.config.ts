@@ -1,16 +1,85 @@
-import { defineConfig } from "vite";
+import { execSync } from "node:child_process";
+import path from "node:path";
 import react from "@vitejs/plugin-react";
-import { VitePWA } from "vite-plugin-pwa";
-import wasm from "vite-plugin-wasm";
-import topLevelAwait from "vite-plugin-top-level-await";
-import path from "path";
-
 import type { PluginOption } from "vite";
+import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
+import topLevelAwait from "vite-plugin-top-level-await";
+import wasm from "vite-plugin-wasm";
+
+const getBuildInfo = () => {
+  // 1. Cloudflare Pages (Environment Variable)
+  const cfSha = process.env.CF_PAGES_COMMIT_SHA;
+  if (cfSha) {
+    return {
+      hash: cfSha.substring(0, 7),
+      date: new Date().toISOString(), // Use build time as proxy
+      clean: true, // Assume CI builds are clean
+    };
+  }
+
+  // 2. Local Git (Plumbing Commands)
+  try {
+    const hash = execSync("git rev-parse --short HEAD", {
+      stdio: ["ignore", "pipe", "ignore"],
+      encoding: "utf-8",
+    }).trim();
+
+    // Returns "<timestamp> <hash>"
+    const timestampOutput = execSync("git rev-list -1 --timestamp HEAD", {
+      stdio: ["ignore", "pipe", "ignore"],
+      encoding: "utf-8",
+    }).trim();
+
+    const parts = timestampOutput.split(" ");
+    const timestampStr = parts[0];
+    if (!timestampStr) {
+      throw new Error("Unexpected git output: no timestamp found");
+    }
+    const timestamp = parseInt(timestampStr, 10);
+    const date = new Date(timestamp * 1000).toISOString();
+
+    // Returns exit code 1 if dirty, 0 if clean.
+    // We use try/catch because execSync throws on non-zero exit code.
+    let clean = true;
+    try {
+      execSync("git diff-index --quiet HEAD --", {
+        stdio: ["ignore", "ignore", "ignore"],
+      });
+    } catch {
+      clean = false;
+    }
+
+    return { hash, date, clean };
+  } catch (error) {
+    console.error("Failed to get build info from git:", error);
+    return {
+      hash: "unknown",
+      date: new Date().toISOString(),
+      clean: false,
+    };
+  }
+};
+
+const buildInfo = getBuildInfo();
 
 export default defineConfig({
+  define: {
+    __BUILD_INFO__: JSON.stringify(buildInfo),
+  },
   resolve: {
+    dedupe: [
+      "@automerge/automerge-repo-react-hooks",
+      "react",
+      "react-dom",
+      "react-redux",
+    ],
     alias: {
       "@mydoo/tasklens": path.resolve(__dirname, "../../packages/tasklens/src"),
+      "@automerge/automerge-repo-react-hooks": path.resolve(
+        __dirname,
+        "node_modules/@automerge/automerge-repo-react-hooks",
+      ),
     },
   },
   plugins: [
@@ -64,7 +133,7 @@ export default defineConfig({
         // or hard-refresh to see changes. The "normal" Vite HMR for your React
         // components still works fine, but the SW itself is a separate entity
         // that lives outside the HMR cycle.
-        enabled: false,
+        enabled: process.env.VITE_PWA_DEV === "true",
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4MB

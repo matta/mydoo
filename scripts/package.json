@@ -1,0 +1,27 @@
+{
+  "name": "@mydoo/scripts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "glob": "catalog:",
+    "js-yaml": "catalog:",
+    "minimatch": "catalog:",
+    "minimist": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "catalog:",
+    "@types/minimist": "catalog:",
+    "vitest": "catalog:"
+  },
+  "scripts": {
+    "check-eslint": "eslint .",
+    "check-format": "prettier --check .",
+    "check-types": "tsc --noEmit",
+    "check-turbo-inputs": "tsx check-turbo-inputs.ts",
+    "fix-eslint": "eslint . --fix",
+    "fix-format": "prettier --write .",
+    "test": "vitest run"
+  }
+}

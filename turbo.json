@@ -1,20 +1,460 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "package.json",
+    "pnpm-workspace.yaml",
+    "tsconfig.base.json",
+    "biome.json",
+    "eslint.config.js"
+  ],
+  "globalPassThroughEnv": [],
   "tasks": {
+    "//#check-format-root": {
+      "outputLogs": "new-only",
+      "inputs": ["*"],
+      "outputs": [],
+      "cache": true
+    },
+    "//#fix-format-root": {
+      "outputLogs": "new-only"
+    },
+    "//#check-biome-root": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "**",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
+    },
+    "//#fix-biome-root": {
+      "outputLogs": "new-only"
+    },
+    "//#check-syncpack-root": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "package.json",
+        "**/package.json",
+        "pnpm-workspace.yaml",
+        ".syncpackrc",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
+    },
+    "//#check-catalog-root": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "package.json",
+        "**/package.json",
+        "pnpm-workspace.yaml",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
+    },
+    "//#fix-syncpack-root": {
+      "outputLogs": "new-only"
+    },
+    "check-agent": {
+      "outputLogs": "new-only",
+      "dependsOn": ["check-human", "test", "test-e2e"]
+    },
+    "check-human": {
+      "outputLogs": "new-only",
+      "dependsOn": [
+        "//#check-catalog-root",
+        "//#check-deps-root",
+        "//#check-syncpack-root",
+        "check-style",
+        "check-types"
+      ]
+    },
+    "//#check-deps-root": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "package.json",
+        "**/package.json",
+        "pnpm-lock.yaml",
+        "knip.json",
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.js",
+        "**/*.mjs",
+        "**/*.cjs",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "//#check-filenames-root": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "**/*.md",
+        "**/*.sh",
+        "**/*.yaml",
+        "**/*.yml",
+        "**/*.toml",
+        "**/*.config.js",
+        "**/*.config.ts",
+        ".ls-lint.yml",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
+    },
+    "//#check-eslint-root": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "*",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
+    },
+    "check-eslint": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "src/**/*",
+        "tests/**/*",
+        "specs/**/*",
+        "*.config.js",
+        "*.config.ts",
+        "eslint.config.js",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
+    },
+    "check-format": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "**/*.md",
+        "**/*.json",
+        "**/*.yaml",
+        "**/*.yml",
+        "src/**/*",
+        "tests/**/*",
+        "specs/**/*",
+        "*.ts",
+        "*.tsx",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
+    },
+    "check-style": {
+      "outputLogs": "new-only",
+      "dependsOn": [
+        "check-eslint",
+        "//#check-eslint-root",
+        "check-format",
+        "//#check-biome-root",
+        "//#check-filenames-root",
+        "//#check-format-root",
+        "//#check-turbo-root"
+      ],
+      "outputs": []
+    },
+    "generate": {
+      "outputLogs": "new-only"
+    },
+    "check-types": {
+      "outputLogs": "new-only",
+      "dependsOn": ["^build", "generate"],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "tests/**/*.ts",
+        "tests/**/*.tsx",
+        "specs/**/*.ts",
+        "*.ts",
+        "*.tsx",
+        "*.config.ts",
+        "tsconfig.json",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
+    },
+    "check": {
+      "outputLogs": "new-only",
+      "dependsOn": [
+        "check-style",
+        "check-types",
+        "//#check-deps-root",
+        "//#check-syncpack-root",
+        "//#check-catalog-root"
+      ],
+      "outputs": []
+    },
+    "//#fix-eslint-root": {
+      "outputLogs": "new-only"
+    },
+    "fix-eslint": {
+      "outputLogs": "new-only"
+    },
+    "fix-format": {
+      "outputLogs": "new-only"
+    },
+    "fix-style": {
+      "dependsOn": [
+        "fix-eslint",
+        "//#fix-eslint-root",
+        "fix-format",
+        "//#fix-biome-root",
+        "//#fix-format-root"
+      ]
+    },
+    "fix": {
+      "dependsOn": ["fix-style", "//#fix-syncpack-root"]
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "outputLogs": "new-only",
+      "dependsOn": ["check-style", "^build"],
+      "env": ["VITE_PWA_DEV", "CF_PAGES_COMMIT_SHA"],
+      "inputs": [
+        "src/**/*",
+        "public/**/*",
+        "package.json",
+        "tsconfig.json",
+        "vite.config.ts",
+        "index.html",
+        "specs/**/*.d.ts",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "test": {
-      "dependsOn": ["build"],
-      "outputs": ["coverage/**"],
-      "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts", "test/**/*.tsx"]
+      "outputLogs": "new-only",
+      "dependsOn": ["check-style", "build", "check-types", "generate"],
+      "env": ["FEATURE_FILTER"],
+      "inputs": [
+        "src/**/*",
+        "tests/**/*",
+        "test/**/*",
+        "specs/**/*",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
+      "outputs": []
     },
-    "lint": {},
-    "format": {},
+    "test-e2e": {
+      "outputLogs": "new-only",
+      "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "env": ["CI"]
+    },
+    "test-e2e-desktop": {
+      "outputLogs": "new-only",
+      "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "env": ["CI"]
+    },
+    "test-e2e-mobile": {
+      "outputLogs": "new-only",
+      "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "env": ["CI"]
+    },
+    "@mydoo/tasklens-ui#test-e2e": {
+      "outputLogs": "new-only",
+      "dependsOn": [
+        "@mydoo/client#test-e2e",
+        "check-style",
+        "build",
+        "check-types",
+        "generate",
+        "test"
+      ],
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "env": ["CI"]
+    },
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "//#check-turbo-root": {
+      "outputLogs": "new-only",
+      "inputs": [
+        "turbo.json",
+        "**/turbo.json",
+        "turbo-exclusions.json",
+        "!**/.features-gen/**",
+        "!**/.husky/_/**",
+        "!**/.moon/**",
+        "!**/.turbo/**",
+        "!**/__screenshots__/**",
+        "!**/coverage/**",
+        "!**/debug/**",
+        "!**/dev-dist/**",
+        "!**/dist/**",
+        "!**/generated/**",
+        "!**/node_modules/**",
+        "!**/playwright-report/**",
+        "!**/release/**",
+        "!**/target/**",
+        "!**/tempcontext/**",
+        "!**/test-results/**"
+      ],
+      "outputs": [],
+      "cache": true
     }
   }
 }

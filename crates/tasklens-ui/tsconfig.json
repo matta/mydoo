@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "types": ["node"]
+  },
+  "include": ["tests/e2e/**/*.ts", "playwright.config.ts"],
+  "references": [{ "path": "../../packages/tasklens" }]
+}

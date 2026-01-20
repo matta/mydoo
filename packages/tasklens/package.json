@@ -1,49 +1,50 @@
 {
   "name": "@mydoo/tasklens",
-  "version": "catalog:",
-  "private": true,
   "description": "",
-  "type": "module",
-  "types": "./src/index.ts",
-  "exports": {
-    ".": "./src/index.ts"
-  },
-  "scripts": {
-    "build": "tsc --emitDeclarationOnly",
-    "check-types": "mkdir -p .tmp_gen && json2ts ./specs/compliance/schemas/test_case.schema.json .tmp_gen/test_case.d.ts && prettier --write .tmp_gen/test_case.d.ts && diff ./specs/compliance/schemas/test_case.d.ts .tmp_gen/test_case.d.ts",
-    "fix": "eslint --fix \"{src,tests}/**/*.{ts,tsx}\"",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "generate-types": "json2ts ./specs/compliance/schemas/test_case.schema.json ./specs/compliance/schemas/test_case.d.ts && prettier --write ./specs/compliance/schemas/test_case.d.ts",
-    "lint": "eslint \"{src,tests}/**/*.{ts,tsx}\"",
-    "test": "vitest run --coverage",
-    "typecheck": "tsc --noEmit"
-  },
+  "version": "0.0.0",
+  "author": "",
   "dependencies": {
-    "@automerge/automerge-repo": "catalog:",
+    "@reduxjs/toolkit": "catalog:",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
     "@automerge/automerge-repo-react-hooks": "catalog:",
     "react": "catalog:",
-    "zod": "catalog:"
+    "react-redux": "catalog:"
   },
   "devDependencies": {
     "@automerge/automerge": "catalog:",
-    "@eslint/js": "catalog:",
+    "@automerge/automerge-repo": "catalog:",
     "@types/js-yaml": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "ajv": "catalog:",
     "ajv-formats": "catalog:",
-    "eslint": "catalog:",
-    "globals": "catalog:",
     "js-yaml": "catalog:",
     "json-schema-to-typescript": "catalog:",
-    "prettier": "catalog:",
     "typescript": "catalog:",
-    "typescript-eslint": "catalog:",
     "vitest": "catalog:"
   },
-  "author": "",
+  "exports": {
+    ".": "./src/index.ts",
+    "./persistence": "./src/types/persistence.ts",
+    "./test": "./src/test/index.ts"
+  },
   "keywords": [],
-  "license": "ISC"
+  "license": "ISC",
+  "private": true,
+  "scripts": {
+    "build": "tsc --emitDeclarationOnly",
+    "check-eslint": "eslint .",
+    "check-format": "prettier --check .",
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "fix-eslint": "eslint . --fix",
+    "fix-format": "prettier --write .",
+    "generate": "mkdir -p src/generated && json2ts ./specs/compliance/schemas/feature.schema.json ./src/generated/feature.d.ts && prettier --write ./src/generated/*.d.ts",
+    "test": "vitest run --coverage"
+  },
+  "type": "module",
+  "types": "./src/index.ts"
 }

@@ -1,0 +1,87 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/dev-dist",
+      "!**/build",
+      "!**/coverage",
+      "!**/.turbo",
+      "!**/.vercel",
+      "!**/node_modules",
+      "!**/pnpm-lock.yaml",
+      "!**/.features-gen",
+      "!**/*.d.ts",
+      "!**/.prettierignore",
+      "!**/tempcontext"
+    ]
+  },
+  "css": {
+    "parser": {
+      "cssModules": true,
+      "tailwindDirectives": true
+    }
+  },
+  "formatter": {
+    "enabled": false,
+    "indentStyle": "space",
+    "lineWidth": 80
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {}
+        }
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noDoubleEquals": "error"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "error",
+          "options": { "maxAllowedComplexity": 40 }
+        },
+        "noForEach": "error"
+      },
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error",
+        "useExhaustiveDependencies": "error"
+      },
+      "style": {
+        "noNonNullAssertion": "error",
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": { "filenameCases": ["kebab-case"] }
+        },
+        "useImportType": "error",
+        "useConst": "error",
+        "useTemplate": "error",
+        "useConsistentArrayType": "error"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["crates/tasklens-ui/assets/tailwind.css"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
+    }
+  ]
+}

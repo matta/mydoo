@@ -1,0 +1,49 @@
+feature: "Scenario 7.4: Weight Propagation"
+description: >
+  Verifies that a Parent's Global Importance is distributed among its children
+  based on their relative Importance, implementing the 'Weight' or 'Pie Slicing'
+  logic.
+background:
+  current_time: "2025-01-01T00:00:00Z"
+  tasks:
+    - id: ProjectOne
+      importance: 1
+      children:
+        - id: TaskOne
+          importance: 1
+    - id: ProjectTwo
+      importance: 1
+      children:
+        - id: TaskTwo
+          importance: 1
+    - id: ProjectThree
+      importance: 1
+      children:
+        - id: SubTaskA
+          importance: 0.2
+        - id: SubTaskB
+          importance: 0.2
+        - id: SubTaskC
+          importance: 0.2
+        - id: SubTaskD
+          importance: 0.2
+        - id: SubTaskE
+          importance: 0.2
+scenarios:
+  - name: Legacy Scenario
+    steps:
+      - legacy_description: "Step 1: Check Propagation"
+        then:
+          expected_order:
+            - TaskOne
+            - TaskTwo
+            - SubTaskA
+            - SubTaskB
+            - SubTaskC
+            - SubTaskD
+            - SubTaskE
+          expected_props:
+            - id: TaskOne
+              normalized_importance: 1
+            - id: SubTaskA
+              normalized_importance: 0.2

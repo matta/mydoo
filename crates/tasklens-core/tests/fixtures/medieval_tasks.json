@@ -1,0 +1,1498 @@
+{
+  "nextPlaceId": 1,
+  "nextTaskId": 1,
+  "places": {},
+  "rootTaskIds": [
+    "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+    "3fdf6bdf-85ed-40de-951d-122ca90ef541",
+    "b11758c7-8ff1-4029-a2f0-63b9c11a720c",
+    "a7257a9d-a2be-4b98-a623-c461ff5bfc4f",
+    "f447dd65-a953-4bbb-a81a-9cdb75cb023e",
+    "a220cdee-d79c-49ca-8006-d2a1f5041d50"
+  ],
+  "tasks": {
+    "0347ad62-be6b-4a22-b63e-5e31009de4b4": {
+      "childTaskIds": [
+        "0b87cc9e-f3be-4b8a-abd5-7bef1b53c7d5"
+      ],
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "creditsTimestamp": 1767292091615,
+      "desiredCredits": 1,
+      "id": "0347ad62-be6b-4a22-b63e-5e31009de4b4",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767292091615,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Scrub the collective turnip"
+    },
+    "0b77ce5b-317b-4164-a634-a3992c269136": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "creditsTimestamp": 1768230847418,
+      "desiredCredits": 1,
+      "id": "0b77ce5b-317b-4164-a634-a3992c269136",
+      "importance": 1,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1768230847418,
+      "schedule": {
+        "dueDate": 1768204800000,
+        "leadTime": 28800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Pay the local lord his 90% tax",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e"
+    },
+    "0b87cc9e-f3be-4b8a-abd5-7bef1b53c7d5": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "creditsTimestamp": 1767292108604,
+      "desiredCredits": 1,
+      "id": "0b87cc9e-f3be-4b8a-abd5-7bef1b53c7d5",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "0347ad62-be6b-4a22-b63e-5e31009de4b4",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767292108604,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Attend the witch trial (bring own torch)"
+    },
+    "0be013f0-9037-499b-a844-de040953a7f6": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767561398185,
+      "desiredCredits": 1,
+      "id": "0be013f0-9037-499b-a844-de040953a7f6",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767561398187,
+      "notes": "",
+      "parentId": "a220cdee-d79c-49ca-8006-d2a1f5041d50",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767557361091,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Debate the number of angels on a needle head"
+    },
+    "0f945949-0014-4589-99c9-348f1b091b70": {
+      "childTaskIds": [
+        "55ebccab-302c-481e-b001-a594df9c921d"
+      ],
+      "creditIncrement": 0.18,
+      "credits": 0.5,
+      "creditsTimestamp": 1767819881897,
+      "desiredCredits": 1,
+      "id": "0f945949-0014-4589-99c9-348f1b091b70",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "f447dd65-a953-4bbb-a81a-9cdb75cb023e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767379898537,
+      "schedule": {
+        "dueDate": 1767686400000,
+        "leadTime": 7200000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Fend off a light Viking raid"
+    },
+    "12ddf442-1adf-4123-a47b-ca0df12ad803": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767573564700,
+      "desiredCredits": 1,
+      "id": "12ddf442-1adf-4123-a47b-ca0df12ad803",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767573564701,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767481152956,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Sharpen the pitchfork for the peasant revolt"
+    },
+    "143e0258-f884-4e83-ac9a-1b69a9ed6e71": {
+      "childTaskIds": [],
+      "creditIncrement": 0.25,
+      "credits": 0.25,
+      "creditsTimestamp": 1767212045650,
+      "desiredCredits": 1,
+      "id": "143e0258-f884-4e83-ac9a-1b69a9ed6e71",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "Requires a sturdy bowl and low expectations.",
+      "parentId": "b11758c7-8ff1-4029-a2f0-63b9c11a720c",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767207011514,
+      "schedule": {
+        "leadTime": 86400000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Collect 300 more bushels of rye for the Lord's barn"
+    },
+    "1fdd31b4-2970-47b1-98ad-0d41854fc6f6": {
+      "childTaskIds": [],
+      "creditIncrement": 0.3,
+      "credits": 1.3147808268480408,
+      "creditsTimestamp": 1767933985689,
+      "desiredCredits": 1,
+      "id": "1fdd31b4-2970-47b1-98ad-0d41854fc6f6",
+      "importance": 0.74,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "lastCompletedAt": 1767933985691,
+      "notes": "",
+      "parentId": "3fdf6bdf-85ed-40de-951d-122ca90ef541",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767380212704,
+      "repeatConfig": {
+        "frequency": "daily",
+        "interval": 1
+      },
+      "schedule": {
+        "dueDate": 1768020385691,
+        "leadTime": 43200000,
+        "type": "Routinely"
+      },
+      "status": "Pending",
+      "title": "Wait for the plague to pass"
+    },
+    "2298a950-b1c7-4a29-a31e-cf031375f3e6": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767767810379,
+      "desiredCredits": 1,
+      "id": "2298a950-b1c7-4a29-a31e-cf031375f3e6",
+      "importance": 1,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767767810381,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767550383669,
+      "schedule": {
+        "dueDate": 1767571200000,
+        "leadTime": 86400000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Mend the communal mud wall"
+    },
+    "280c99f4-7ff2-4cf8-a370-972e0572a334": {
+      "childTaskIds": [],
+      "creditIncrement": 1,
+      "credits": 1,
+      "creditsTimestamp": 1767657504084,
+      "desiredCredits": 1,
+      "id": "280c99f4-7ff2-4cf8-a370-972e0572a334",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767657504086,
+      "notes": "",
+      "parentId": "a220cdee-d79c-49ca-8006-d2a1f5041d50",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767657502418,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Bargain with the local hermit for a 'miracle' cure"
+    },
+    "2ae2939b-cb23-4a36-b69c-f9a6645e33b0": {
+      "childTaskIds": [],
+      "creditIncrement": 0.74,
+      "credits": 0.74,
+      "creditsTimestamp": 1767593316936,
+      "desiredCredits": 1,
+      "id": "2ae2939b-cb23-4a36-b69c-f9a6645e33b0",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767593316937,
+      "notes": "",
+      "parentId": "a220cdee-d79c-49ca-8006-d2a1f5041d50",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767593303490,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Try to survive until thirty"
+    },
+    "2f4aa721-b677-4af3-a68f-f983e35f63fe": {
+      "childTaskIds": [],
+      "creditIncrement": 0.75,
+      "credits": 0.75,
+      "creditsTimestamp": 1767573556359,
+      "desiredCredits": 1,
+      "id": "2f4aa721-b677-4af3-a68f-f983e35f63fe",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767573556361,
+      "notes": "",
+      "parentId": "a220cdee-d79c-49ca-8006-d2a1f5041d50",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767379551164,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Churn the goat's milk until the butter is gray"
+    },
+    "348fa997-9174-4ed2-892e-3bddf21ca258": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767573548055,
+      "desiredCredits": 1,
+      "id": "348fa997-9174-4ed2-892e-3bddf21ca258",
+      "importance": 1,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767573548057,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767555111936,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Spin enough wool to clothe a small army"
+    },
+    "3672b054-6035-4b9c-b9f8-8e9f8fc8da69": {
+      "childTaskIds": [],
+      "creditIncrement": 0.05,
+      "credits": 0.3357239990233925,
+      "creditsTimestamp": 1768263953374,
+      "desiredCredits": 1,
+      "id": "3672b054-6035-4b9c-b9f8-8e9f8fc8da69",
+      "importance": 0.8,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1768263953375,
+      "notes": "",
+      "parentId": "f447dd65-a953-4bbb-a81a-9cdb75cb023e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767223032701,
+      "repeatConfig": {
+        "frequency": "daily",
+        "interval": 1
+      },
+      "schedule": {
+        "leadTime": 28800000,
+        "type": "Routinely",
+        "lastDone": 1768179027949
+      },
+      "status": "Done",
+      "title": "Walk to the next village to see if they're still there"
+    },
+    "3a800184-6820-46a0-bed2-008021de78ba": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767297527922,
+      "desiredCredits": 1,
+      "id": "3a800184-6820-46a0-bed2-008021de78ba",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "3fb52335-114c-4c09-858c-9d95023ca419",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767294608781,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Plough the north field with the one-eyed ox"
+    },
+    "3bc89bdc-7749-43e8-816c-15e4be4f5fba": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "creditsTimestamp": 1768153404164,
+      "desiredCredits": 1,
+      "id": "3bc89bdc-7749-43e8-816c-15e4be4f5fba",
+      "importance": 1,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1768153404164,
+      "schedule": {
+        "leadTime": 28800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Scrub the soot off the fireplace stones"
+    },
+    "3ce19b97-81aa-4990-92d3-bc6a9dc122a2": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767296016873,
+      "desiredCredits": 1,
+      "id": "3ce19b97-81aa-4990-92d3-bc6a9dc122a2",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "3fb52335-114c-4c09-858c-9d95023ca419",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767294591152,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Chase the neighbors' chickens out of the vegetable patch"
+    },
+    "3fb52335-114c-4c09-858c-9d95023ca419": {
+      "childTaskIds": [
+        "3ce19b97-81aa-4990-92d3-bc6a9dc122a2",
+        "3a800184-6820-46a0-bed2-008021de78ba",
+        "c3d4f7ad-100d-46c9-8988-756d5fc6e796",
+        "c5dc1fef-adce-4f73-9de6-e6518fe8ea1f",
+        "b3275ddb-740d-41a3-9ba0-430a9534633e"
+      ],
+      "creditIncrement": 0.5,
+      "credits": 0.9991348603149326,
+      "creditsTimestamp": 1767297527922,
+      "desiredCredits": 1,
+      "id": "3fb52335-114c-4c09-858c-9d95023ca419",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767294567717,
+      "schedule": {
+        "dueDate": 1768176000000,
+        "leadTime": 172800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Sew the holes in the communal tapestry"
+    },
+    "3fdf6bdf-85ed-40de-951d-122ca90ef541": {
+      "childTaskIds": [
+        "c85c7880-e4e3-42d4-8b7c-0a55251bdb3e",
+        "41d094a0-1a3a-457b-9495-e24a25d5f85f",
+        "ca536145-cba5-4ada-b155-eb963a2ef196",
+        "a3a8a83d-3e48-4afa-884e-5608f4e43a00",
+        "b99f9cba-2b53-49d0-b700-401c175035d7",
+        "1fdd31b4-2970-47b1-98ad-0d41854fc6f6"
+      ],
+      "creditIncrement": 0.5,
+      "credits": 2.973391740725145,
+      "creditsTimestamp": 1767933985689,
+      "desiredCredits": 1.032877369036691,
+      "id": "3fdf6bdf-85ed-40de-951d-122ca90ef541",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767205669499,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Practice 'looking busy' during the Lord's inspection"
+    },
+    "40574274-8aa1-4acd-9a66-e4487eba2fc8": {
+      "childTaskIds": [],
+      "creditIncrement": 0.05,
+      "credits": 0.35032028788097325,
+      "creditsTimestamp": 1768263846643,
+      "desiredCredits": 1,
+      "id": "40574274-8aa1-4acd-9a66-e4487eba2fc8",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1768263846645,
+      "notes": "",
+      "parentId": "f447dd65-a953-4bbb-a81a-9cdb75cb023e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767222990999,
+      "repeatConfig": {
+        "frequency": "daily",
+        "interval": 1
+      },
+      "schedule": {
+        "leadTime": 28800000,
+        "type": "Routinely",
+        "lastDone": 1768179030117
+      },
+      "status": "Done",
+      "title": "Trade a slightly-used goat for a very-used mule"
+    },
+    "41d094a0-1a3a-457b-9495-e24a25d5f85f": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767246963395,
+      "desiredCredits": 1,
+      "id": "41d094a0-1a3a-457b-9495-e24a25d5f85f",
+      "importance": 1,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "3fdf6bdf-85ed-40de-951d-122ca90ef541",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767238760428,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Check if the well water tastes like iron again"
+    },
+    "44f30193-4ca9-4ff5-9471-5a2b26cf72a8": {
+      "childTaskIds": [],
+      "creditIncrement": 0.04,
+      "credits": 0.2752224533924525,
+      "creditsTimestamp": 1768263838500,
+      "desiredCredits": 1,
+      "id": "44f30193-4ca9-4ff5-9471-5a2b26cf72a8",
+      "importance": 0.8,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1768263838508,
+      "notes": "",
+      "parentId": "f447dd65-a953-4bbb-a81a-9cdb75cb023e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767223008714,
+      "repeatConfig": {
+        "frequency": "daily",
+        "interval": 1
+      },
+      "schedule": {
+        "leadTime": 28800000,
+        "type": "Routinely",
+        "lastDone": 1768179027054
+      },
+      "status": "Done",
+      "title": "Tell the same three stories at the local inn"
+    },
+    "4c208353-452d-435d-8e06-309addcaa592": {
+      "childTaskIds": [],
+      "creditIncrement": 0.58,
+      "credits": 0.58,
+      "creditsTimestamp": 1767423023655,
+      "desiredCredits": 1,
+      "id": "4c208353-452d-435d-8e06-309addcaa592",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "a220cdee-d79c-49ca-8006-d2a1f5041d50",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767423005007,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Wait for the wandering minstrel to finish his forty-verse ballad"
+    },
+    "54bdeefa-7e4e-4036-bc18-4d604481a35d": {
+      "childTaskIds": [
+        "9105610a-5374-4673-8a26-8b908fc9812c",
+        "b5e39756-6869-40f6-9b63-1290f5f4d19f"
+      ],
+      "creditIncrement": 0.5,
+      "credits": 0.1,
+      "creditsTimestamp": 1767539686856,
+      "desiredCredits": 1,
+      "id": "54bdeefa-7e4e-4036-bc18-4d604481a35d",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "f447dd65-a953-4bbb-a81a-9cdb75cb023e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767304248029,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Try to remember which child is which"
+    },
+    "55199115-bf75-4c78-b328-839a2c14ac96": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767423027054,
+      "desiredCredits": 1,
+      "id": "55199115-bf75-4c78-b328-839a2c14ac96",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "a220cdee-d79c-49ca-8006-d2a1f5041d50",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767379625709,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Convince the local priest that the black cat is just a cat"
+    },
+    "55da0ade-19b8-4adb-b82d-0fdd26ea625e": {
+      "childTaskIds": [
+        "0b77ce5b-317b-4164-a634-a3992c269136",
+        "348fa997-9174-4ed2-892e-3bddf21ca258",
+        "2298a950-b1c7-4a29-a31e-cf031375f3e6",
+        "82e2c2f0-86a3-4db1-a687-ec75fa2591ad",
+        "7043f013-1c84-4073-ab46-98b90fdb7b1a",
+        "9e67749e-41e4-42c8-a3df-cdc2bd195ea4",
+        "a0cab37d-48c8-4278-a12d-a25ccd4604e1",
+        "defa3c07-f0fb-4918-9306-4393ec5743e1",
+        "5dd26ca2-686b-4b9a-9cdd-54a1c5a2f250",
+        "9a6bdbe3-740a-4d9c-965c-c931ce33fcec",
+        "0347ad62-be6b-4a22-b63e-5e31009de4b4",
+        "3fb52335-114c-4c09-858c-9d95023ca419",
+        "f695e17b-d2d2-4409-9b23-0e77fe6bf20c",
+        "a20e284f-ef11-45de-923a-76cc28e07226",
+        "58d43d70-8502-4fd3-98ac-05a1abec5e37",
+        "12ddf442-1adf-4123-a47b-ca0df12ad803",
+        "59da9d5d-51c4-4447-84ee-906831f87dc1",
+        "6ea5598f-c7cb-4fd4-a0ad-08c839995b0d",
+        "3bc89bdc-7749-43e8-816c-15e4be4f5fba"
+      ],
+      "creditIncrement": 0.5,
+      "credits": 3.605127439045279,
+      "creditsTimestamp": 1768260381517,
+      "desiredCredits": 1.0465559519521916,
+      "id": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "importance": 1,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767052017073,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Hide the 'good' grain from the tax collector"
+    },
+    "55ebccab-302c-481e-b001-a594df9c921d": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767819881897,
+      "desiredCredits": 1,
+      "id": "55ebccab-302c-481e-b001-a594df9c921d",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767819881906,
+      "notes": "",
+      "parentId": "0f945949-0014-4589-99c9-348f1b091b70",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767593440370,
+      "schedule": {
+        "dueDate": 1767686400000,
+        "leadTime": 7200000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Wrestle a mud-pig for a ha'penny"
+    },
+    "58d43d70-8502-4fd3-98ac-05a1abec5e37": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767482566813,
+      "desiredCredits": 1,
+      "id": "58d43d70-8502-4fd3-98ac-05a1abec5e37",
+      "importance": 1,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767482566818,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767477195152,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Pray the drought doesn't turn the cow inside out"
+    },
+    "59da9d5d-51c4-4447-84ee-906831f87dc1": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767511194589,
+      "desiredCredits": 1,
+      "id": "59da9d5d-51c4-4447-84ee-906831f87dc1",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767511194594,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767482611819,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Sharpen the communal scythe"
+    },
+    "5dd26ca2-686b-4b9a-9cdd-54a1c5a2f250": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767212026150,
+      "desiredCredits": 1,
+      "id": "5dd26ca2-686b-4b9a-9cdd-54a1c5a2f250",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767211711014,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Deliver a very important turnip to the neighboring hamlet"
+    },
+    "6ea5598f-c7cb-4fd4-a0ad-08c839995b0d": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "creditsTimestamp": 1768076429756,
+      "desiredCredits": 1,
+      "id": "6ea5598f-c7cb-4fd4-a0ad-08c839995b0d",
+      "importance": 1,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1768076429757,
+      "repeatConfig": {
+        "frequency": "weekly",
+        "interval": 1
+      },
+      "schedule": {
+        "dueDate": 1768076429757,
+        "leadTime": 28800000,
+        "type": "Routinely"
+      },
+      "status": "Pending",
+      "title": "Scrub the collective turnip"
+    },
+    "7043f013-1c84-4073-ab46-98b90fdb7b1a": {
+      "childTaskIds": [],
+      "creditIncrement": 0.37,
+      "credits": 1.109995887595164,
+      "creditsTimestamp": 1768077452815,
+      "desiredCredits": 1,
+      "id": "7043f013-1c84-4073-ab46-98b90fdb7b1a",
+      "importance": 1,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1768077452817,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767246952181,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Pay the local lord his 90% tax"
+    },
+    "82e2c2f0-86a3-4db1-a687-ec75fa2591ad": {
+      "childTaskIds": [
+        "e918657a-abb4-4744-87b3-e3d0c6a9bf6e",
+        "950ebbc9-c22a-41a8-b0d1-716544d7b4cc"
+      ],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1768260381517,
+      "desiredCredits": 1,
+      "id": "82e2c2f0-86a3-4db1-a687-ec75fa2591ad",
+      "importance": 1,
+      "isAcknowledged": false,
+      "isSequential": true,
+      "notes": "Lord Hrothgar is in a bad mood today.",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767549428910,
+      "schedule": {
+        "dueDate": 1768204800000,
+        "leadTime": 25200000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Attend the witch trial (bring own torch)"
+    },
+    "9081854d-3dcc-4a34-ac2d-468feb0fce8e": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767511362595,
+      "desiredCredits": 1,
+      "id": "9081854d-3dcc-4a34-ac2d-468feb0fce8e",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767511362597,
+      "notes": "",
+      "parentId": "a220cdee-d79c-49ca-8006-d2a1f5041d50",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767482659381,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Debate the number of angels on a needle head"
+    },
+    "9105610a-5374-4673-8a26-8b908fc9812c": {
+      "childTaskIds": [],
+      "creditIncrement": 0.1,
+      "credits": 0.1,
+      "creditsTimestamp": 1767539686856,
+      "desiredCredits": 1,
+      "id": "9105610a-5374-4673-8a26-8b908fc9812c",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767539686858,
+      "notes": "Do not let the goat see you do this.",
+      "parentId": "54bdeefa-7e4e-4036-bc18-4d604481a35d",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767304231879,
+      "schedule": {
+        "dueDate": 1767571200000,
+        "leadTime": 25200000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Fend off a light Viking raid"
+    },
+    "9a6bdbe3-740a-4d9c-965c-c931ce33fcec": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "creditsTimestamp": 1767292074804,
+      "desiredCredits": 1,
+      "id": "9a6bdbe3-740a-4d9c-965c-c931ce33fcec",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767292074804,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Sharpen the pitchfork for the peasant revolt"
+    },
+    "9e67749e-41e4-42c8-a3df-cdc2bd195ea4": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767071408869,
+      "desiredCredits": 1,
+      "id": "9e67749e-41e4-42c8-a3df-cdc2bd195ea4",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767052031281,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Collect 300 more bushels of rye for the Lord's barn"
+    },
+    "a0cab37d-48c8-4278-a12d-a25ccd4604e1": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767225436551,
+      "desiredCredits": 1,
+      "id": "a0cab37d-48c8-4278-a12d-a25ccd4604e1",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767052070319,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Wait for the plague to pass"
+    },
+    "a20e284f-ef11-45de-923a-76cc28e07226": {
+      "childTaskIds": [],
+      "creditIncrement": 0.3,
+      "credits": 0.3,
+      "creditsTimestamp": 1767545948197,
+      "desiredCredits": 1,
+      "id": "a20e284f-ef11-45de-923a-76cc28e07226",
+      "importance": 1,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767545948199,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767380080789,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Mend the communal mud wall"
+    },
+    "a220cdee-d79c-49ca-8006-d2a1f5041d50": {
+      "childTaskIds": [
+        "9081854d-3dcc-4a34-ac2d-468feb0fce8e",
+        "4c208353-452d-435d-8e06-309addcaa592",
+        "fec37c9e-9777-4ab8-baa5-af093ea1cf08",
+        "2f4aa721-b677-4af3-a68f-f983e35f63fe",
+        "0be013f0-9037-499b-a844-de040953a7f6",
+        "55199115-bf75-4c78-b328-839a2c14ac96",
+        "f0fc32ac-e907-4150-9bff-b1b9aabede3d",
+        "2ae2939b-cb23-4a36-b69c-f9a6645e33b0",
+        "280c99f4-7ff2-4cf8-a370-972e0572a334",
+        "c3642fe4-0ef3-41b2-8076-272ba65bbe4e"
+      ],
+      "creditIncrement": 0.5,
+      "credits": 2.9306153175364327,
+      "creditsTimestamp": 1768256760331,
+      "desiredCredits": 0.8297213770521937,
+      "id": "a220cdee-d79c-49ca-8006-d2a1f5041d50",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767302277984,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Bargain with the local hermit for a 'miracle' cure"
+    },
+    "a3a8a83d-3e48-4afa-884e-5608f4e43a00": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767206736770,
+      "desiredCredits": 1,
+      "id": "a3a8a83d-3e48-4afa-884e-5608f4e43a00",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "3fdf6bdf-85ed-40de-951d-122ca90ef541",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767205711673,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Try to survive until thirty"
+    },
+    "a7257a9d-a2be-4b98-a623-c461ff5bfc4f": {
+      "childTaskIds": [
+        "bf13b914-2535-493f-9a2a-7a20418f6b82"
+      ],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767573543468,
+      "desiredCredits": 0.89,
+      "id": "a7257a9d-a2be-4b98-a623-c461ff5bfc4f",
+      "importance": 0.05,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767072226257,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Churn the goat's milk until the butter is gray"
+    },
+    "b11758c7-8ff1-4029-a2f0-63b9c11a720c": {
+      "childTaskIds": [
+        "f5b5f0d8-fe12-49d0-aae2-486516aedaa0",
+        "143e0258-f884-4e83-ac9a-1b69a9ed6e71",
+        "b68fa7a0-c58d-448a-a406-784970912c6a"
+      ],
+      "creditIncrement": 0.5,
+      "credits": 2.9054129954613224,
+      "creditsTimestamp": 1768263955157,
+      "desiredCredits": 0.7896481311261189,
+      "id": "b11758c7-8ff1-4029-a2f0-63b9c11a720c",
+      "importance": 0.22,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767048003277,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Spin enough wool to clothe a small army"
+    },
+    "b3275ddb-740d-41a3-9ba0-430a9534633e": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "creditsTimestamp": 1767294645412,
+      "desiredCredits": 1,
+      "id": "b3275ddb-740d-41a3-9ba0-430a9534633e",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "3fb52335-114c-4c09-858c-9d95023ca419",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767294645412,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Walk to the next village to see if they're still there"
+    },
+    "b5e39756-6869-40f6-9b63-1290f5f4d19f": {
+      "childTaskIds": [],
+      "creditIncrement": 0.25,
+      "credits": 0,
+      "creditsTimestamp": 1767304212325,
+      "desiredCredits": 1,
+      "id": "b5e39756-6869-40f6-9b63-1290f5f4d19f",
+      "importance": 0.49,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "May involve minor curses or blessings.",
+      "parentId": "54bdeefa-7e4e-4036-bc18-4d604481a35d",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767304212325,
+      "schedule": {
+        "dueDate": 1768204800000,
+        "leadTime": 0,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Plough the north field with the one-eyed ox"
+    },
+    "b68fa7a0-c58d-448a-a406-784970912c6a": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 2.5256318251325074,
+      "creditsTimestamp": 1768263955157,
+      "desiredCredits": 1,
+      "id": "b68fa7a0-c58d-448a-a406-784970912c6a",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1768263955159,
+      "notes": "",
+      "parentId": "b11758c7-8ff1-4029-a2f0-63b9c11a720c",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767477033652,
+      "repeatConfig": {
+        "frequency": "daily",
+        "interval": 1
+      },
+      "schedule": {
+        "dueDate": 1768163000790,
+        "leadTime": 39600000,
+        "type": "Routinely"
+      },
+      "status": "Done",
+      "title": "Scrub the soot off the fireplace stones"
+    },
+    "b99f9cba-2b53-49d0-b700-401c175035d7": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767238302276,
+      "desiredCredits": 1,
+      "id": "b99f9cba-2b53-49d0-b700-401c175035d7",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "3fdf6bdf-85ed-40de-951d-122ca90ef541",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767238300245,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Chase the neighbors' chickens out of the vegetable patch"
+    },
+    "bf13b914-2535-493f-9a2a-7a20418f6b82": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767573543468,
+      "desiredCredits": 1,
+      "id": "bf13b914-2535-493f-9a2a-7a20418f6b82",
+      "importance": 0.51,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767573543470,
+      "notes": "",
+      "parentId": "a7257a9d-a2be-4b98-a623-c461ff5bfc4f",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767072251806,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Sew the holes in the communal tapestry"
+    },
+    "c3642fe4-0ef3-41b2-8076-272ba65bbe4e": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1768256760331,
+      "desiredCredits": 1,
+      "id": "c3642fe4-0ef3-41b2-8076-272ba65bbe4e",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "a220cdee-d79c-49ca-8006-d2a1f5041d50",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767657542584,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Practice 'looking busy' during the Lord's inspection",
+      "lastCompletedAt": 1768256760339
+    },
+    "c3d4f7ad-100d-46c9-8988-756d5fc6e796": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "creditsTimestamp": 1767294623747,
+      "desiredCredits": 1,
+      "id": "c3d4f7ad-100d-46c9-8988-756d5fc6e796",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "3fb52335-114c-4c09-858c-9d95023ca419",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767294623747,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Trade a slightly-used goat for a very-used mule"
+    },
+    "c5dc1fef-adce-4f73-9de6-e6518fe8ea1f": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "creditsTimestamp": 1767294635716,
+      "desiredCredits": 1,
+      "id": "c5dc1fef-adce-4f73-9de6-e6518fe8ea1f",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "3fb52335-114c-4c09-858c-9d95023ca419",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767294635716,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Check if the well water tastes like iron again"
+    },
+    "c85c7880-e4e3-42d4-8b7c-0a55251bdb3e": {
+      "childTaskIds": [],
+      "creditIncrement": 1,
+      "credits": 1,
+      "creditsTimestamp": 1767416271391,
+      "desiredCredits": 1,
+      "id": "c85c7880-e4e3-42d4-8b7c-0a55251bdb3e",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "3fdf6bdf-85ed-40de-951d-122ca90ef541",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767416259228,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Tell the same three stories at the local inn"
+    },
+    "ca536145-cba5-4ada-b155-eb963a2ef196": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.9974831807869595,
+      "creditsTimestamp": 1767212031100,
+      "desiredCredits": 1,
+      "id": "ca536145-cba5-4ada-b155-eb963a2ef196",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "3fdf6bdf-85ed-40de-951d-122ca90ef541",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767205701621,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Wait for the wandering minstrel to finish his forty-verse ballad"
+    },
+    "defa3c07-f0fb-4918-9306-4393ec5743e1": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767232470175,
+      "desiredCredits": 1,
+      "id": "defa3c07-f0fb-4918-9306-4393ec5743e1",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767123608943,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Try to remember which child is which"
+    },
+    "e1d72170-9a7d-4572-94d8-7c86bbb6bd97": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "creditsTimestamp": 1767549681273,
+      "desiredCredits": 1,
+      "id": "e1d72170-9a7d-4572-94d8-7c86bbb6bd97",
+      "importance": 1,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767549681273,
+      "schedule": {
+        "dueDate": 1768377600000,
+        "leadTime": 0,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Convince the local priest that the black cat is just a cat",
+      "parentId": "f447dd65-a953-4bbb-a81a-9cdb75cb023e"
+    },
+    "f0fc32ac-e907-4150-9bff-b1b9aabede3d": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767478567069,
+      "desiredCredits": 1,
+      "id": "f0fc32ac-e907-4150-9bff-b1b9aabede3d",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767478567071,
+      "notes": "",
+      "parentId": "a220cdee-d79c-49ca-8006-d2a1f5041d50",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767478546930,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Hide the 'good' grain from the tax collector"
+    },
+    "f447dd65-a953-4bbb-a81a-9cdb75cb023e": {
+      "childTaskIds": [
+        "e1d72170-9a7d-4572-94d8-7c86bbb6bd97",
+        "4a99a73a-a391-4057-836e-8518a2a23e22",
+        "f917960f-da8b-4a6b-b560-dbfe25970e3d",
+        "40574274-8aa1-4acd-9a66-e4487eba2fc8",
+        "44f30193-4ca9-4ff5-9471-5a2b26cf72a8",
+        "3672b054-6035-4b9c-b9f8-8e9f8fc8da69",
+        "54bdeefa-7e4e-4036-bc18-4d604481a35d",
+        "0f945949-0014-4589-99c9-348f1b091b70"
+      ],
+      "creditIncrement": 0.5,
+      "credits": 3.4997065720277285,
+      "creditsTimestamp": 1768263953374,
+      "desiredCredits": 1.4111971708328044,
+      "id": "f447dd65-a953-4bbb-a81a-9cdb75cb023e",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767222863527,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Wrestle a mud-pig for a ha'penny"
+    },
+    "f5b5f0d8-fe12-49d0-aae2-486516aedaa0": {
+      "childTaskIds": [],
+      "creditIncrement": 0.75,
+      "credits": 0.75,
+      "creditsTimestamp": 1767478591680,
+      "desiredCredits": 1,
+      "id": "f5b5f0d8-fe12-49d0-aae2-486516aedaa0",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1767478591682,
+      "notes": "",
+      "parentId": "b11758c7-8ff1-4029-a2f0-63b9c11a720c",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767048038435,
+      "repeatConfig": {
+        "frequency": "weekly",
+        "interval": 2
+      },
+      "schedule": {
+        "dueDate": 1767478586554,
+        "leadTime": 259200000,
+        "type": "Routinely"
+      },
+      "status": "Done",
+      "title": "Pray the drought doesn't turn the cow inside out"
+    },
+    "f695e17b-d2d2-4409-9b23-0e77fe6bf20c": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "creditsTimestamp": 1767303176276,
+      "desiredCredits": 1,
+      "id": "f695e17b-d2d2-4409-9b23-0e77fe6bf20c",
+      "importance": 0.5,
+      "isAcknowledged": false,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "55da0ade-19b8-4adb-b82d-0fdd26ea625e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767303176276,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Pending",
+      "title": "Sharpen the communal scythe"
+    },
+    "f917960f-da8b-4a6b-b560-dbfe25970e3d": {
+      "childTaskIds": [],
+      "creditIncrement": 0.4,
+      "credits": 2.4952420369374386,
+      "creditsTimestamp": 1768263839643,
+      "desiredCredits": 1,
+      "id": "f917960f-da8b-4a6b-b560-dbfe25970e3d",
+      "importance": 0.75,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "lastCompletedAt": 1768263839644,
+      "notes": "",
+      "parentId": "f447dd65-a953-4bbb-a81a-9cdb75cb023e",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767222875392,
+      "repeatConfig": {
+        "frequency": "daily",
+        "interval": 1
+      },
+      "schedule": {
+        "leadTime": 28800000,
+        "type": "Routinely",
+        "lastDone": 1768179028883
+      },
+      "status": "Done",
+      "title": "Deliver a very important turnip to the neighboring hamlet"
+    },
+    "fec37c9e-9777-4ab8-baa5-af093ea1cf08": {
+      "childTaskIds": [],
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "creditsTimestamp": 1767366462147,
+      "desiredCredits": 1,
+      "id": "fec37c9e-9777-4ab8-baa5-af093ea1cf08",
+      "importance": 0.5,
+      "isAcknowledged": true,
+      "isSequential": false,
+      "notes": "",
+      "parentId": "a220cdee-d79c-49ca-8006-d2a1f5041d50",
+      "placeId": "Anywhere",
+      "priorityTimestamp": 1767302301983,
+      "schedule": {
+        "leadTime": 604800000,
+        "type": "Once"
+      },
+      "status": "Done",
+      "title": "Scrub the collective turnip"
+    },
+    "e918657a-abb4-4744-87b3-e3d0c6a9bf6e": {
+      "id": "e918657a-abb4-4744-87b3-e3d0c6a9bf6e",
+      "title": "Pay the local lord his 90% tax",
+      "parentId": "82e2c2f0-86a3-4db1-a687-ec75fa2591ad",
+      "placeId": "Anywhere",
+      "status": "Done",
+      "importance": 1,
+      "creditIncrement": 0.5,
+      "credits": 0.5,
+      "desiredCredits": 1,
+      "creditsTimestamp": 1768260381517,
+      "priorityTimestamp": 1768260305242,
+      "schedule": {
+        "type": "Once",
+        "leadTime": 28800000
+      },
+      "isSequential": false,
+      "childTaskIds": [],
+      "isAcknowledged": true,
+      "notes": "",
+      "lastCompletedAt": 1768260381519
+    },
+    "950ebbc9-c22a-41a8-b0d1-716544d7b4cc": {
+      "id": "950ebbc9-c22a-41a8-b0d1-716544d7b4cc",
+      "title": "Attend the witch trial (bring own torch)",
+      "parentId": "82e2c2f0-86a3-4db1-a687-ec75fa2591ad",
+      "placeId": "Anywhere",
+      "status": "Pending",
+      "importance": 1,
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "desiredCredits": 1,
+      "creditsTimestamp": 1768260348550,
+      "priorityTimestamp": 1768260348550,
+      "schedule": {
+        "type": "Once",
+        "dueDate": 1768521600000,
+        "leadTime": 86400000
+      },
+      "isSequential": false,
+      "childTaskIds": [],
+      "isAcknowledged": false,
+      "notes": ""
+    },
+    "4a99a73a-a391-4057-836e-8518a2a23e22": {
+      "id": "4a99a73a-a391-4057-836e-8518a2a23e22",
+      "title": "Debate the number of angels on a needle head",
+      "placeId": "Anywhere",
+      "status": "Pending",
+      "importance": 1,
+      "creditIncrement": 0.5,
+      "credits": 0,
+      "desiredCredits": 1,
+      "creditsTimestamp": 1768263919377,
+      "priorityTimestamp": 1768263919377,
+      "schedule": {
+        "type": "Once",
+        "leadTime": 28800000,
+        "dueDate": 1768348800000
+      },
+      "isSequential": false,
+      "childTaskIds": [],
+      "isAcknowledged": false,
+      "notes": "",
+      "parentId": "f447dd65-a953-4bbb-a81a-9cdb75cb023e"
+    }
+  }
+}

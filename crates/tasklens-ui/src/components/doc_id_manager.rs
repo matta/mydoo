@@ -1,0 +1,286 @@
+//! Document ID Manager Component
+//!
+//! Provides UI for managing document identifiers, including:
+//! - Displaying the current document ID
+//! - Generating a new document (new random ID)
+//! - Entering an existing document ID to switch documents
+
+use crate::components::*;
+use dioxus::prelude::*;
+// use dioxus::events::FormEvent;
+
+/// Document ID Manager component for switching between documents.
+///
+/// # Props
+///
+/// * `current_doc_id` - Signal containing the current document ID.
+/// * `on_change` - Event handler called when the document ID changes.
+#[component]
+pub fn DocIdManager(
+    current_doc_id: Signal<Option<tasklens_store::doc_id::DocumentId>>,
+    on_change: EventHandler<tasklens_store::doc_id::DocumentId>,
+    on_create: EventHandler<()>,
+) -> Element {
+    let mut store = use_context::<Signal<tasklens_store::store::AppStore>>();
+    let mut show_input = use_signal(|| false);
+    let mut input_value = use_signal(String::new);
+    let mut error_msg = use_signal(String::new);
+    let mut show_copy_toast = use_signal(|| false);
+
+    let truncated_id = use_memo(move || {
+        current_doc_id().map(|id| {
+            let s = id.to_string();
+            if s.len() > 8 {
+                format!("{}...", &s[..8])
+            } else {
+                s
+            }
+        })
+    });
+
+    let handle_new_document = move |_| {
+        on_create.call(());
+    };
+
+    let handle_enter_id = move |_| {
+        let text = input_value().trim().to_string();
+
+        if text.is_empty() {
+            error_msg.set("Document ID cannot be empty".to_string());
+            return;
+        }
+
+        // Try to parse as TaskLensUrl first, then as plain DocumentId
+        let id = if let Ok(url) = text.parse::<tasklens_store::doc_id::TaskLensUrl>() {
+            url.document_id
+        } else if let Ok(id) = text.parse::<tasklens_store::doc_id::DocumentId>() {
+            id
+        } else {
+            error_msg.set("Invalid Document ID or automerge: URL".to_string());
+            return;
+        };
+
+        error_msg.set(String::new());
+        show_input.set(false);
+        input_value.set(String::new());
+        on_change.call(id);
+    };
+
+    let handle_copy = move |_| {
+        if let Some(id) = current_doc_id() {
+            let url = tasklens_store::doc_id::TaskLensUrl::from(id).to_string();
+            spawn(async move {
+                match document::eval(&format!(
+                    "return navigator.clipboard.writeText('{}').then(() => true)",
+                    url
+                ))
+                .await
+                {
+                    Ok(_) => {
+                        tracing::info!("Document URL copied to clipboard");
+                        show_copy_toast.set(true);
+                        if let Err(e) = document::eval(
+                            "return new Promise(r => setTimeout(() => r(true), 3000))",
+                        )
+                        .await
+                        {
+                            tracing::error!("Timer failed: {:?}", e);
+                        }
+                        show_copy_toast.set(false);
+                    }
+                    Err(e) => {
+                        tracing::error!("Clipboard copy failed: {:?}", e);
+                    }
+                }
+            });
+        }
+    };
+
+    let handle_download = move |_| {
+        let mut store = store.write();
+        let bytes = store.export_save();
+        let current_id = store.current_id.to_string();
+
+        // 1 MiB limit for data URL downloads (browsers have ~2MB limit, be conservative)
+        const MAX_DOWNLOAD_SIZE: usize = 1024 * 1024;
+        if bytes.len() > MAX_DOWNLOAD_SIZE {
+            error_msg.set(format!(
+                "Document too large to download ({:.1} MiB). Maximum size is 1 MiB.",
+                bytes.len() as f64 / (1024.0 * 1024.0)
+            ));
+            return;
+        }
+
+        spawn(async move {
+            use base64::Engine;
+            let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
+            let filename = format!("mydoo-{}.automerge", current_id);
+            let script = format!(
+                r#"
+                const link = document.createElement('a');
+                link.href = 'data:application/octet-stream;base64,{}';
+                link.download = '{}';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                "#,
+                b64, filename
+            );
+            if let Err(e) = document::eval(&script).await {
+                tracing::error!("Download failed: {:?}", e);
+            }
+        });
+    };
+
+    let handle_upload = move |evt: Event<FormData>| {
+        spawn(async move {
+            let files = evt.files();
+            if let Some(file) = files.as_slice().first() {
+                match file.read_bytes().await {
+                    Ok(bytes) => {
+                        let mut store = store.write();
+                        // Bytes from read_bytes are `bytes::Bytes`
+                        // import_doc expects Vec<u8>
+                        match store.import_doc(bytes.to_vec()) {
+                            Ok(new_id) => {
+                                tracing::info!("Imported document: {}", new_id);
+                                // Explicit save removed. Handled by use_persistence hook.
+                                on_change.call(new_id);
+                            }
+                            Err(e) => {
+                                tracing::error!("Import failed: {:?}", e);
+                                error_msg.set(format!("Import failed: {}", e));
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to read file: {:?}", e);
+                        error_msg.set(format!("Failed to read file: {}", e));
+                    }
+                }
+            }
+        });
+    };
+
+    rsx! {
+        div { class: "space-y-4 border-t border-gray-200 pt-4 mt-4",
+            h4 { class: "text-sm font-medium text-gray-700", "Document Management" }
+
+            if !error_msg().is_empty() {
+                Alert { variant: AlertVariant::Error, title: "Error", "{error_msg}" }
+            }
+
+            // Current Document Display
+            div { class: "space-y-2",
+                label { class: "block text-sm font-medium text-gray-700", "Current Document" }
+                div { class: "flex items-center space-x-2",
+                    div {
+                        class: "flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm font-mono text-gray-600",
+                        "data-testid": "document-id-display",
+                        {truncated_id().unwrap_or_else(|| "No document loaded".to_string())}
+                    }
+                    if let Some(id) = current_doc_id() {
+                        span {
+                            class: "sr-only",
+                            "data-testid": "full-document-id",
+                            "{id}"
+                        }
+                    }
+                    Button {
+                        variant: ButtonVariant::Secondary,
+                        onclick: handle_copy,
+                        disabled: current_doc_id().is_none(),
+                        "Copy Full ID"
+                    }
+                }
+
+                if show_copy_toast() {
+                    div { class: "text-sm text-green-600 flex items-center",
+                        svg {
+                            class: "h-4 w-4 mr-1",
+                            fill: "none",
+                            view_box: "0 0 24 24",
+                            stroke: "currentColor",
+                            path {
+                                stroke_linecap: "round",
+                                stroke_linejoin: "round",
+                                stroke_width: "2",
+                                d: "M5 13l4 4L19 7",
+                            }
+                        }
+                        "Copied to clipboard"
+                    }
+                }
+            }
+
+            // Action Buttons
+            div { class: "flex flex-wrap gap-2",
+                Button {
+                    variant: ButtonVariant::Primary,
+                    onclick: handle_new_document,
+                    class: "flex-1 min-w-[120px]",
+                    data_testid: "new-document-button",
+                    "New Document"
+                }
+                Button {
+                    variant: ButtonVariant::Secondary,
+                    onclick: move |_| {
+                        show_input.set(!show_input());
+                        error_msg.set(String::new());
+                    },
+                    class: "flex-1 min-w-[120px]",
+                    data_testid: "toggle-enter-id-button",
+                    if show_input() {
+                        "Cancel"
+                    } else {
+                        "Enter ID"
+                    }
+                }
+                Button {
+                    variant: ButtonVariant::Secondary,
+                    onclick: handle_download,
+                    disabled: current_doc_id().is_none(),
+                    class: "flex-1 min-w-[120px]",
+                    data_testid: "download-document-button",
+                    "Download"
+                }
+                div { class: "flex-1 min-w-[120px] relative",
+                    Button {
+                        variant: ButtonVariant::Secondary,
+                        class: "w-full",
+                        data_testid: "upload-document-button",
+                        "Upload"
+                    }
+                    input {
+                        r#type: "file",
+                        accept: ".automerge",
+                        class: "absolute inset-0 opacity-0 cursor-pointer",
+                        onchange: handle_upload,
+                        "data-testid": "document-upload-input",
+                    }
+                }
+            }
+
+            // Enter ID Input (conditional)
+            if show_input() {
+                div { class: "space-y-2",
+                    label { class: "block text-sm font-medium text-gray-700", "Enter Document ID" }
+                    Input {
+                        value: "{input_value}",
+                        oninput: move |val| input_value.set(val),
+                        placeholder: "Enter Base58 document ID...",
+                        class: "w-full font-mono text-sm",
+                        data_testid: "document-id-input",
+                    }
+                    Button {
+                        variant: ButtonVariant::Primary,
+                        onclick: handle_enter_id,
+                        class: "w-full",
+                        data_testid: "load-document-button",
+                        "Load Document"
+                    }
+                }
+            }
+        }
+    }
+}

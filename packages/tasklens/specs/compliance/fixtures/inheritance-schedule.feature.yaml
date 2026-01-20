@@ -1,0 +1,274 @@
+feature: Property Inheritance Schedule
+background:
+  current_time: "2025-01-01T00:00:00Z"
+  tasks: []
+
+scenarios:
+  # ---------------------------------------------------------------------
+  # 1. Receiver Constraints (Who can inherit?)
+  # ---------------------------------------------------------------------
+  - name: Receiver Block - Routinely Child ignores Parent Date
+    steps:
+      - given:
+          tasks:
+            - id: Parent
+              schedule_type: Once
+              due_date: "2025-01-10T00:00:00Z"
+              children:
+                - id: Child_Routinely
+                  schedule_type: Routinely
+                  repeat_config:
+                    frequency: daily
+                    interval: 1
+                  lead_time_seconds: 604800
+                  last_done: "2025-01-01T00:00:00Z"
+                  # Next due: Jan 2
+                  # If it inherited, it would be Jan 10.
+      - then:
+          expected_props:
+            - id: Child_Routinely
+              due_date: null
+              effective_due_date: "2025-01-02T00:00:00Z"
+              urgency_status: "Urgent"
+
+  - name: Receiver Block - DueDate Child ignores Parent Date
+    steps:
+      - given:
+          tasks:
+            - id: Parent
+              schedule_type: Once
+              due_date: "2025-01-10T00:00:00Z"
+              children:
+                - id: Child_DueDate
+                  schedule_type: DueDate
+                  due_date: "2025-01-05T00:00:00Z" # Own explicit date
+                  lead_time_seconds: 604800
+                  # If it inherited, it would be Jan 10.
+      - then:
+          expected_props:
+            - id: Child_DueDate
+              due_date: "2025-01-05T00:00:00Z"
+              effective_due_date: "2025-01-05T00:00:00Z"
+              urgency_status: "Active"
+
+  # ---------------------------------------------------------------------
+  # 2. Source Agnosticism (Who can we inherit from?)
+  # ---------------------------------------------------------------------
+  - name: Source - Inherit from Routinely Parent
+    steps:
+      - given:
+          tasks:
+            - id: Parent_Routinely
+              schedule_type: Routinely
+              repeat_config:
+                frequency: daily
+                interval: 1
+              lead_time_seconds: 604800
+              last_done: "2025-01-01T00:00:00Z"
+              # Next due: Jan 2
+              children:
+                - id: Child_Once
+                  schedule_type: Once
+                  # No date set
+      - then:
+          expected_props:
+            - id: Child_Once
+              due_date: null
+              effective_due_date: "2025-01-02T00:00:00Z"
+              urgency_status: "Urgent"
+
+  - name: Source - Inherit from DueDate Parent
+    steps:
+      - given:
+          tasks:
+            - id: Parent_DueDate
+              schedule_type: DueDate
+              due_date: "2025-01-10T00:00:00Z"
+              children:
+                - id: Child_Once
+                  schedule_type: Once
+                  # No date set
+      - then:
+          expected_props:
+            - id: Child_Once
+              due_date: null
+              effective_due_date: "2025-01-10T00:00:00Z"
+              urgency_status: "None"
+
+  - name: Source - Inherit from Routinely Grandparent
+    steps:
+      - given:
+          tasks:
+            - id: Grandparent
+              schedule_type: Routinely
+              repeat_config:
+                frequency: daily
+                interval: 1
+              lead_time_seconds: 604800
+              last_done: "2025-01-01T00:00:00Z"
+              # Next due: Jan 2
+              children:
+                - id: Parent
+                  schedule_type: Once
+                  # No date, inherits Jan 2
+                  children:
+                    - id: Child
+                      schedule_type: Once
+                      # No date, inherits via Parent
+      - then:
+          expected_props:
+            - id: Child
+              due_date: null
+              effective_due_date: "2025-01-02T00:00:00Z"
+              urgency_status: "Urgent"
+
+  # ---------------------------------------------------------------------
+  # 3. Type Mutation (Dynamic Behavior)
+  # ---------------------------------------------------------------------
+  - name: Mutation - Switch Once to Routinely (Stop Inheriting)
+    steps:
+      - given:
+          tasks:
+            - id: Parent
+              due_date: "2025-01-10T00:00:00Z"
+              children:
+                - id: Child
+                  schedule_type: Once
+                  lead_time_seconds: 604800
+                  # Inherits Jan 10
+      - then:
+          expected_props:
+            - id: Child
+              due_date: null
+              effective_due_date: "2025-01-10T00:00:00Z"
+              urgency_status: "None"
+      - when:
+          task_updates:
+            - id: Child
+              schedule_type: Routinely
+              repeat_config:
+                frequency: daily
+                interval: 1
+              last_done: "2025-01-01T00:00:00Z" # Due Jan 2
+      - then:
+          expected_props:
+            - id: Child
+              due_date: null
+              effective_due_date: "2025-01-02T00:00:00Z"
+              urgency_status: "Urgent"
+
+  - name: Mutation - Switch Routinely to Once (Start Inheriting)
+    steps:
+      - given:
+          tasks:
+            - id: Parent
+              due_date: "2025-01-10T00:00:00Z"
+              children:
+                - id: Child
+                  schedule_type: Routinely
+                  repeat_config:
+                    frequency: daily
+                    interval: 1
+                  lead_time_seconds: 604800
+                  last_done: "2025-01-01T00:00:00Z" # Due Jan 2
+      - then:
+          expected_props:
+            - id: Child
+              due_date: null
+              effective_due_date: "2025-01-02T00:00:00Z"
+              urgency_status: "Urgent"
+      - when:
+          task_updates:
+            - id: Child
+              schedule_type: Once
+              due_date: null # Clear explicit date
+              # Should now fall back to Parent
+      - then:
+          expected_props:
+            - id: Child
+              due_date: null
+              effective_due_date: "2025-01-10T00:00:00Z"
+              urgency_status: "None"
+
+  # ---------------------------------------------------------------------
+  # 4. Standard Base Cases (Regression)
+  # ---------------------------------------------------------------------
+  - name: Root Default
+    steps:
+      - given:
+          tasks:
+            - id: A
+              schedule_type: Once
+      - then:
+          expected_props:
+            - id: A
+              due_date: null
+              effective_due_date: null
+              urgency_status: "None"
+
+  - name: Recursive Fallback (Base Case)
+    steps:
+      - given:
+          tasks:
+            - id: A
+              due_date: "2025-01-10T00:00:00Z"
+              children:
+                - id: B
+      - then:
+          expected_props:
+            - id: B
+              due_date: null
+              effective_due_date: "2025-01-10T00:00:00Z"
+              urgency_status: "None"
+
+  - name: Explicit Override (Base Case)
+    steps:
+      - given:
+          tasks:
+            - id: A
+              due_date: "2025-01-10T00:00:00Z"
+              children:
+                - id: B
+                  due_date: "2025-02-01T00:00:00Z"
+      - then:
+          expected_props:
+            - id: B
+              due_date: "2025-02-01T00:00:00Z"
+              effective_due_date: "2025-02-01T00:00:00Z"
+              urgency_status: "None"
+
+  - name: Parent Mutation Propagates (Base Case)
+    steps:
+      - given:
+          tasks:
+            - id: A
+              due_date: "2025-01-10T00:00:00Z"
+              children:
+                - id: B
+      - when:
+          task_updates:
+            - id: A
+              due_date: "2025-01-20T00:00:00Z"
+      - then:
+          expected_props:
+            - id: B
+              due_date: null
+              effective_due_date: "2025-01-20T00:00:00Z"
+              urgency_status: "None"
+
+  - name: Inherit Far Future Date (Gray Badge Case)
+    steps:
+      - given:
+          current_time: "2024-06-01T12:00:00Z"
+          tasks:
+            - id: Parent
+              due_date: "2024-12-31T00:00:00Z" # Far future
+              children:
+                - id: Child
+                  # Inherits Dec 31
+      - then:
+          expected_props:
+            - id: Child
+              due_date: null
+              effective_due_date: "2024-12-31T00:00:00Z"
+              urgency_status: "None"

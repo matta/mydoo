@@ -1,0 +1,16 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "generate": {
+      "inputs": [
+        "specs/compliance/schemas/feature.schema.json",
+        "package.json",
+        "../../pnpm-lock.yaml"
+      ],
+      "outputs": ["src/generated/feature.d.ts"]
+    },
+    "build": {
+      "dependsOn": ["generate"]
+    }
+  }
+}

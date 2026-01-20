@@ -1,33 +1,28 @@
 {
+  "dependencyTypes": [
+    "dev",
+    "local",
+    "overrides",
+    "peer",
+    "pnpmOverrides",
+    "prod",
+    "resolutions"
+  ],
   "versionGroups": [
     {
-      "label": "Enforce Catalog Usage",
-      "dependencies": ["**"],
-      "pinVersion": "catalog:",
-      "isIgnored": false
+      "label": "Dependencies using workspace:* protocol",
+      "dependencies": [
+        "@mydoo/*",
+        "mydoo"
+      ],
+      "isIgnored": true
+    },
+    {
+      "label": "Use catalog: protocol for all dependencies",
+      "dependencies": [
+        "**"
+      ],
+      "pinVersion": "catalog:"
     }
-  ],
-  "sortAz": [
-    "contributors",
-    "dependencies",
-    "devDependencies",
-    "keywords",
-    "peerDependencies",
-    "resolutions",
-    "scripts"
-  ],
-  "sortFirst": [
-    "name",
-    "version",
-    "private",
-    "description",
-    "type",
-    "main",
-    "module",
-    "types",
-    "exports",
-    "scripts",
-    "dependencies",
-    "devDependencies"
   ]
 }

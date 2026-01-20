@@ -1,0 +1,17 @@
+# Plan: Enforce Strict Prettier Isolation
+
+## Phase 1: Root Isolation [checkpoint: 6d8c0de]
+- [x] Task: Update root `.prettierignore` to exclude all subdirectories [32f84ab]
+- [x] Task: Conductor - User Manual Verification 'Root Isolation' (Protocol in workflow.md)
+
+## Phase 2: Sub-package Opt-In [checkpoint: aa23167]
+- [x] Task: Configure Prettier for `apps/client` (add/update `.prettierignore`) [b55f4b6]
+- [x] Task: Configure Prettier for `packages/tasklens` (add/update `.prettierignore`) [86da749]
+- [x] Task: Configure Prettier for `@mydoo/docs` (add/update `.prettierignore`) [a11d2b1]
+- [x] Task: Configure Prettier for `@mydoo/scripts` (add/update `.prettierignore`) [54ac0e2]
+- [ ] Task: Conductor - User Manual Verification 'Sub-package Opt-In' (Protocol in workflow.md)
+
+## Phase 3: Final Verification
+- [x] Task: Verify that root Prettier command touches no files in subdirectories
+- [x] Task: Verify that sub-package Prettier commands still function correctly
+- [ ] Task: Conductor - User Manual Verification 'Final Verification' (Protocol in workflow.md)

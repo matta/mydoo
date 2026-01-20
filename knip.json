@@ -1,0 +1,27 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignore": ["pnpm-workspace.yaml", "tempcontext/**", "crates/**"],
+  "ignoreBinaries": [],
+  "workspaces": {
+    ".": {},
+    "scripts": {
+      "entry": [
+        "check-turbo-inputs.ts",
+        "check-dependency-health.ts",
+        "lint-filenames.ts"
+      ]
+    },
+    "packages/tasklens": {
+      "entry": ["src/index.ts", "src/test/index.ts"],
+      "project": ["src/**/*.{ts,tsx}!"]
+    },
+    "apps/client": {
+      "entry": [
+        "src/main.tsx",
+        "tests/e2e/steps/**/*.steps.ts",
+        "tests/e2e/fixtures.ts"
+      ],
+      "ignoreDependencies": ["@vitest/browser"]
+    }
+  }
+}

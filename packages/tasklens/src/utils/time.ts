@@ -1,13 +1,18 @@
-// src/utils/time.ts
-
-let now = Date.now;
+/**
+ * Internal override for the current timestamp.
+ * This global variable enables time mocking across the application without
+ * relying on potentially unstable system timer mocks (like `vi.useFakeTimers`).
+ *
+ * @internal This should only be modified via `mockCurrentTimestamp`.
+ */
+let customNow: (() => number) | null = null;
 
 /**
  * Returns the current timestamp in milliseconds.
  * Can be mocked for testing purposes.
  */
 export function getCurrentTimestamp(): number {
-  return now();
+  return customNow ? customNow() : Date.now();
 }
 
 /**
@@ -16,9 +21,9 @@ export function getCurrentTimestamp(): number {
  */
 export function mockCurrentTimestamp(timestamp: number | (() => number)): void {
   if (typeof timestamp === "number") {
-    now = () => timestamp;
+    customNow = () => timestamp;
   } else {
-    now = timestamp;
+    customNow = timestamp;
   }
 }
 
@@ -26,7 +31,7 @@ export function mockCurrentTimestamp(timestamp: number | (() => number)): void {
  * Resets the current timestamp mock.
  */
 export function resetCurrentTimestampMock(): void {
-  now = Date.now;
+  customNow = null;
 }
 
 /**
@@ -38,9 +43,39 @@ export function daysToMilliseconds(days: number): number {
 }
 
 /**
- * Converts milliseconds to days.
- * @param ms Number of milliseconds.
+ * Converts hours to milliseconds.
+ * @param hours Number of hours.
  */
-export function millisecondsToDays(ms: number): number {
-  return ms / (24 * 60 * 60 * 1000);
+export function hoursToMilliseconds(hours: number): number {
+  return hours * 60 * 60 * 1000;
+}
+
+/**
+ * Helper: Convert frequency/interval to milliseconds.
+ * Note: simplified logic for MVP (ignoring leap years/DST nuances for basic "days/weeks").
+ */
+export function getIntervalMs(
+  frequency: "minutes" | "hours" | "daily" | "weekly" | "monthly" | "yearly",
+  interval: number,
+): number {
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+  const ONE_HOUR_MS = 60 * 60 * 1000;
+  const ONE_MINUTE_MS = 60 * 1000;
+
+  switch (frequency) {
+    case "minutes":
+      return interval * ONE_MINUTE_MS;
+    case "hours":
+      return interval * ONE_HOUR_MS;
+    case "daily":
+      return interval * ONE_DAY_MS;
+    case "weekly":
+      return interval * 7 * ONE_DAY_MS;
+    case "monthly":
+      // Approximation: 30 days
+      return interval * 30 * ONE_DAY_MS;
+    case "yearly":
+      // Approximation: 365 days
+      return interval * 365 * ONE_DAY_MS;
+  }
 }

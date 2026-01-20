@@ -1,0 +1,26 @@
+feature: Zero Feedback Deviation Cap
+description: >-
+  Verify that when actual credits are 0, the feedback multiplier is capped at
+  Max Deviation Multiplier (1000.0) ^ K.
+background:
+  current_time: "2023-01-01T12:00:00+00:00"
+  timezone_offset: 0
+  tasks:
+    - id: ZeroRoot
+      title: Zero Credits Root
+      desired_credits: 100
+      credits: 0
+      children:
+        - id: Child
+          title: Worker
+          importance: 1
+scenarios:
+  - name: Legacy Scenario
+    steps:
+      - legacy_description: Verify Feedback Cap
+        then:
+          expected_order:
+            - Child
+          expected_props:
+            - id: Child
+              score: 1000000

@@ -1,0 +1,1 @@
+../../docs/guidance/exhaustive-destructuring.md

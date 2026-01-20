@@ -1,32 +1,50 @@
 {
-  // TypeScript configuration for the client app.
-  //
-  // This uses a dual resolution strategy:
-  // 1. `paths` - Maps @mydoo/tasklens to source files for Vite bundling (enables HMR)
-  // 2. `references` - Points to tasklens for TypeScript project references (enables IDE type checking)
-  //
-  // IMPORTANT: For IDE types to work, tasklens must be built first (`pnpm --filter @mydoo/tasklens build`)
-  // This generates .d.ts files that the project reference system uses.
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "outDir": "./dist",
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Mixed Environment Support (Node + DOM) */
+    "types": [
+      "node",
+      "vite/client",
+      "vitest/globals",
+      "vite-plugin-pwa/info",
+      "vite-plugin-pwa/client"
+    ],
+
+    /* Monorepo Paths */
     "paths": {
       "@/*": ["./src/*"],
-      // Direct source import for Vite HMR support
-      "@mydoo/tasklens": ["../../packages/tasklens/src/index.ts"],
-      "@mydoo/tasklens/*": ["../../packages/tasklens/src/*"]
-    },
-    "composite": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "jsx": "react-jsx",
-    "outDir": "./dist",
-    "emitDeclarationOnly": true
+      "@mydoo/tasklens": ["../../packages/tasklens/src/index.ts"]
+    }
   },
-  "include": ["src"],
-  // Project reference for IDE type resolution (uses tasklens's emitted .d.ts files)
+  "include": [
+    "src",
+    "tests",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ],
+  "exclude": ["node_modules", "dist"],
   "references": [{ "path": "../../packages/tasklens" }]
 }

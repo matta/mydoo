@@ -1,0 +1,110 @@
+feature: Property Inheritance PlaceID
+background:
+  current_time: "2025-01-01T00:00:00Z"
+  places:
+    - id: Home
+      hours: { mode: always_open }
+      included_places: []
+    - id: Work
+      hours: { mode: always_open }
+      included_places: []
+
+scenarios:
+  # ---------------------------------------------------------------------
+  # 1. Defaults & Explicit Assignment
+  # ---------------------------------------------------------------------
+  - name: Root Default
+    steps:
+      - given:
+          tasks:
+            - id: A
+              place_id: null
+      - then:
+          expected_props:
+            - id: A
+              place_id: Anywhere
+
+  - name: Explicit Assignment
+    steps:
+      - given:
+          tasks:
+            - id: A
+              place_id: Home
+      - then:
+          expected_props:
+            - id: A
+              place_id: Home
+
+  # ---------------------------------------------------------------------
+  # 2. Copy-on-Create (Creation Time)
+  # ---------------------------------------------------------------------
+  - name: Creation Inheritance
+    steps:
+      - given:
+          tasks:
+            - id: A
+              place_id: Home
+              children:
+                - id: B
+                  place_id: null # Should inherit Home at creation
+      - then:
+          expected_props:
+            - id: B
+              place_id: Home
+
+  - name: Grandparent Inheritance
+    steps:
+      - given:
+          tasks:
+            - id: A
+              place_id: Home
+              children:
+                - id: B
+                  place_id: null # Inherits Home
+                  children:
+                    - id: C
+                      place_id: null # Inherits Home from B (which inherited from A)
+      - then:
+          expected_props:
+            - id: C
+              place_id: Home
+
+  # ---------------------------------------------------------------------
+  # 3. Independence (Runtime Behavior)
+  # ---------------------------------------------------------------------
+  - name: Parent Change Independence
+    steps:
+      - given:
+          tasks:
+            - id: A
+              place_id: Home
+              children:
+                - id: B
+                  place_id: null # B inherits Home at creation
+      - when:
+          task_updates:
+            - id: A
+              place_id: Work # Moving parent to Work
+      - then:
+          expected_props:
+            - id: A
+              place_id: Work
+            - id: B
+              place_id: Home # B stays at Home (No runtime fallback)
+
+  # ---------------------------------------------------------------------
+  # 4. Overrides
+  # ---------------------------------------------------------------------
+  - name: Explicit Override
+    steps:
+      - given:
+          tasks:
+            - id: A
+              place_id: Home
+              children:
+                - id: B
+                  place_id: Work # Explicitly set to Work
+      - then:
+          expected_props:
+            - id: B
+              place_id: Work
