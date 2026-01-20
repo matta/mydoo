@@ -7,8 +7,8 @@ settings:
 catalogs:
   default:
     '@automerge/automerge':
-      specifier: ^3.2.1
-      version: 3.2.1
+      specifier: ^3.2.2
+      version: 3.2.2
     '@automerge/automerge-repo':
       specifier: ^2.5.1
       version: 2.5.1
@@ -223,7 +223,7 @@ importers:
     dependencies:
       '@automerge/automerge':
         specifier: 'catalog:'
-        version: 3.2.1
+        version: 3.2.2
       '@automerge/automerge-repo':
         specifier: 'catalog:'
         version: 2.5.1
@@ -368,7 +368,7 @@ importers:
     devDependencies:
       '@automerge/automerge':
         specifier: 'catalog:'
-        version: 3.2.1
+        version: 3.2.2
       '@automerge/automerge-repo':
         specifier: 'catalog:'
         version: 2.5.1
@@ -458,8 +458,8 @@ packages:
   '@automerge/automerge-repo@2.5.1':
     resolution: {integrity: sha512-w242TXb2TaGHFux7dDtJIUVJMqSSq1iYvNia8FVYgVTUDvbm8chaGMe1kVdKMEINFiB/BNYPtsoJIPjJhQArLg==}
 
-  '@automerge/automerge@3.2.1':
-    resolution: {integrity: sha512-xsEZlZe8lWyVCbD7Z7roH4X6ZKlRxMmmumb0M5CuxJWptUEfYsf+1z9lFEJh4aDBbWTLAgxsXd+TBi6jKTj0+g==}
+  '@automerge/automerge@3.2.2':
+    resolution: {integrity: sha512-A6E2MDnX+IWmFV2GydrkJEf4ClO2hucROJkGmX3bWYoZfgvmCz3QFqew126/uXQAJxWq8WMFf34PuKa7c/cJfg==}
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -4512,7 +4512,7 @@ snapshots:
 
   '@automerge/automerge-repo-react-hooks@2.5.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
-      '@automerge/automerge': 3.2.1
+      '@automerge/automerge': 3.2.2
       '@automerge/automerge-repo': 2.5.1
       eventemitter3: 5.0.1
       react: 19.2.3
@@ -4529,7 +4529,7 @@ snapshots:
 
   '@automerge/automerge-repo@2.5.1':
     dependencies:
-      '@automerge/automerge': 3.2.1
+      '@automerge/automerge': 3.2.2
       bs58check: 3.0.1
       cbor-x: 1.6.0
       debug: 4.4.3
@@ -4540,7 +4540,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@automerge/automerge@3.2.1': {}
+  '@automerge/automerge@3.2.2': {}
 
   '@babel/code-frame@7.27.1':
     dependencies:
