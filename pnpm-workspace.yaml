@@ -17,7 +17,7 @@ catalogs:
     "@commitlint/types": ^20.3.1
     "@mantine/core": 8.3.10
     "@mantine/hooks": 8.3.10
-    "@mantine/notifications": ^8.3.10
+    "@mantine/notifications": ^8.3.12
     "@playwright/test": ^1.57.0
     "@reduxjs/toolkit": ^2.11.2
     "@tabler/icons-react": ^3.36.0
