@@ -1,6 +1,6 @@
 use futures::{SinkExt, StreamExt};
 use std::time::Duration;
-use tasklens_sync_protocol::{ClientMessage, EncryptedBlob, ServerMessage};
+use tasklens_sync_protocol::{ClientMessage, ServerMessage};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{
     MaybeTlsStream, WebSocketStream, connect_async, tungstenite::protocol::Message,
@@ -11,7 +11,7 @@ use tokio_tungstenite::{
 /// Connects to the WebSocket server and performs a handshake.
 async fn connect_client(
     port: u16,
-    sync_id: &str,
+    discovery_key: &str,
     client_id: &str,
     last_seq: i64,
 ) -> WebSocketStream<MaybeTlsStream<TcpStream>> {
@@ -35,7 +35,7 @@ async fn connect_client(
     // Send Hello
     let hello = ClientMessage::Hello {
         client_id: client_id.to_string(),
-        sync_id: sync_id.to_string(),
+        discovery_key: discovery_key.to_string(),
         last_sequence: last_seq,
     };
     let json = serde_json::to_string(&hello).unwrap();
@@ -75,24 +75,21 @@ async fn test_sync_flow() {
         .spawn()
         .expect("Failed to spawn server");
 
-    let sync_id = "test_room_1";
+    let discovery_key = "test_key_1";
     let client_a_id = "client_a";
     let client_b_id = "client_b";
 
     // 2. Client A connects
-    let mut ws_a = connect_client(port, sync_id, client_a_id, 0).await;
+    let mut ws_a = connect_client(port, discovery_key, client_a_id, 0).await;
 
     // 3. Client B connects
-    let mut ws_b = connect_client(port, sync_id, client_b_id, 0).await;
+    let mut ws_b = connect_client(port, discovery_key, client_b_id, 0).await;
 
     // 4. Client A pushes a change
-    let blob = EncryptedBlob {
-        nonce: [0u8; 24],
-        ciphertext: vec![1, 2, 3, 4],
-    };
+    let payload = vec![1, 2, 3, 4];
     let push_msg = ClientMessage::SubmitChange {
-        sync_id: sync_id.to_string(),
-        payload: blob.clone(),
+        discovery_key: discovery_key.to_string(),
+        payload: payload.clone(),
     };
     ws_a.send(Message::Text(
         serde_json::to_string(&push_msg).unwrap().into(),
@@ -113,16 +110,16 @@ async fn test_sync_flow() {
     match server_msg {
         ServerMessage::ChangeOccurred {
             source_client_id,
-            payload,
+            payload: recv_payload,
             ..
         } => {
             assert_eq!(source_client_id, client_a_id);
-            assert_eq!(payload.ciphertext, vec![1, 2, 3, 4]);
+            assert_eq!(recv_payload, payload);
         }
     }
 
     // 6. Persistence Check: Client C connects later
-    let mut ws_c = connect_client(port, sync_id, "client_c", 0).await;
+    let mut ws_c = connect_client(port, discovery_key, "client_c", 0).await;
     let msg = ws_c
         .next()
         .await
@@ -131,8 +128,11 @@ async fn test_sync_flow() {
     match msg {
         Message::Text(text) => {
             let server_msg: ServerMessage = serde_json::from_str(&text).unwrap();
-            let ServerMessage::ChangeOccurred { payload, .. } = server_msg;
-            assert_eq!(payload.ciphertext, vec![1, 2, 3, 4]);
+            let ServerMessage::ChangeOccurred {
+                payload: recv_payload,
+                ..
+            } = server_msg;
+            assert_eq!(recv_payload, payload);
         }
         _ => panic!("Expected text message"),
     }
@@ -142,7 +142,7 @@ async fn test_sync_flow() {
 }
 
 #[tokio::test]
-async fn test_room_isolation() {
+async fn test_discovery_key_isolation() {
     let port = get_free_port();
     let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
     let db_path = temp_dir.path().join("test_updates_iso.db");
@@ -164,23 +164,20 @@ async fn test_room_isolation() {
         .spawn()
         .expect("Failed to spawn server");
 
-    let room_1 = "room_1";
-    let room_2 = "room_2";
+    let key_1 = "key_1";
+    let key_2 = "key_2";
 
-    // Client A in Room 1
-    let mut ws_a = connect_client(port, room_1, "client_a", 0).await;
+    // Client A in Key 1
+    let mut ws_a = connect_client(port, key_1, "client_a", 0).await;
 
-    // Client B in Room 2
-    let mut ws_b = connect_client(port, room_2, "client_b", 0).await;
+    // Client B in Key 2
+    let mut ws_b = connect_client(port, key_2, "client_b", 0).await;
 
-    // Client A pushes change to Room 1
-    let blob = EncryptedBlob {
-        nonce: [0u8; 24],
-        ciphertext: vec![10, 20, 30],
-    };
+    // Client A pushes change to Key 1
+    let payload = vec![10, 20, 30];
     let push_msg = ClientMessage::SubmitChange {
-        sync_id: room_1.to_string(),
-        payload: blob,
+        discovery_key: key_1.to_string(),
+        payload,
     };
     ws_a.send(Message::Text(
         serde_json::to_string(&push_msg).unwrap().into(),

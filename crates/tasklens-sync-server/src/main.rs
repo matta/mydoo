@@ -87,24 +87,24 @@ async fn handle_socket(socket: WebSocket, state: AppState) {
     // 1. Handshake Phase
     // The client MUST send Hello as the first message.
     let mut client_id = String::new();
-    let mut sync_id = String::new();
+    let mut discovery_key = String::new();
 
     while let Some(Ok(msg)) = receiver.next().await {
         if let axum::extract::ws::Message::Text(text) = msg
             && let Ok(ClientMessage::Hello {
                 client_id: cid,
-                sync_id: sid,
+                discovery_key: dkey,
                 last_sequence,
             }) = serde_json::from_str(&text)
         {
             tracing::debug!("Received Hello: {:?}", text);
             client_id = cid;
-            sync_id = sid;
+            discovery_key = dkey;
 
-            tracing::info!(%client_id, %sync_id, "Client connected. Replaying from seq {}", last_sequence);
+            tracing::info!(%client_id, %discovery_key, "Client connected. Replaying from seq {}", last_sequence);
 
             // Replay missed messages from DB
-            match db::get_changes_since(&state.db, &sync_id, last_sequence) {
+            match db::get_changes_since(&state.db, &discovery_key, last_sequence) {
                 Ok(changes) => {
                     for change in changes {
                         let json = serde_json::to_string(&change).unwrap();
@@ -147,20 +147,20 @@ async fn handle_socket(socket: WebSocket, state: AppState) {
             Some(Ok(msg)) = receiver.next() => {
                 tracing::debug!("Received message from {}: {:?}", client_id, msg);
                 if let axum::extract::ws::Message::Text(text) = msg
-                    && let Ok(ClientMessage::SubmitChange { sync_id: target_sid, payload }) = serde_json::from_str(&text) {
+                    && let Ok(ClientMessage::SubmitChange { discovery_key: target_dkey, payload }) = serde_json::from_str(&text) {
                         // Validate target room (optional but good practice)
-                        if target_sid != sync_id {
-                             tracing::warn!(%client_id, "Client tried to push to wrong sync_id");
+                        if target_dkey != discovery_key {
+                             tracing::warn!(%client_id, "Client tried to push to wrong discovery_key");
                              continue;
                         }
 
                         // Persist to DB
-                        match db::append_update(&state.db, &sync_id, &client_id, &payload) {
+                        match db::append_update(&state.db, &discovery_key, &client_id, &payload) {
                             Ok(new_seq) => {
                                 // Broadcast to others
                                 let notification = ServerMessage::ChangeOccurred {
                                     sequence_id: new_seq,
-                                    sync_id: sync_id.clone(),
+                                    discovery_key: discovery_key.clone(),
                                     source_client_id: client_id.clone(),
                                     payload
                                 };
@@ -177,9 +177,9 @@ async fn handle_socket(socket: WebSocket, state: AppState) {
             // B. Receive from Broadcast (Pull)
             Ok(msg) = rx.recv() => {
                 match msg {
-                     ServerMessage::ChangeOccurred { sync_id: ref msg_sid, ref source_client_id, .. } => {
+                     ServerMessage::ChangeOccurred { discovery_key: ref msg_dkey, ref source_client_id, .. } => {
                         // Filter 1: Must be for this room
-                        if msg_sid != &sync_id {
+                        if msg_dkey != &discovery_key {
                             continue;
                         }
                         // Filter 2: Don't echo back to sender
