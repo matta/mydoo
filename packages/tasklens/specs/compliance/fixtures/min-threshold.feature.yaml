@@ -1,6 +1,5 @@
 feature: Minimum Priority Threshold
-description:
-  Verify that tasks with priority <= 0.001 are filtered out of the sorted list.
+description: Verify that tasks with priority <= 0.001 are filtered out of the sorted list.
 background:
   current_time: "2023-01-01T12:00:00+00:00"
   timezone_offset: 0

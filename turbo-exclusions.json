@@ -13,6 +13,6 @@
   "!**/playwright-report/**",
   "!**/release/**",
   "!**/target/**",
-  "!**/tempcontext/**",
+  "!**/reference_repos/**",
   "!**/test-results/**"
 ]
