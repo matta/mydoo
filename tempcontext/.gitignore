@@ -1,2 +1,6 @@
 # Ignore reference implementations that should not be tracked
+automerge
+automerge-repo
+autosurgeon
+samod
 todo_mvp
