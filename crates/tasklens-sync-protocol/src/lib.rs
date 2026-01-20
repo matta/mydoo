@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "client")]
+pub mod client;
+
 /// A container for encrypted data.
 /// NOTE: This struct is no longer used directly in the protocol (which uses generic Vec<u8>),
 /// but is kept here for reference or client-side usage if needed.

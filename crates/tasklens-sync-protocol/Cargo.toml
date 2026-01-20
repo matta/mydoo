@@ -3,8 +3,19 @@ name = "tasklens-sync-protocol"
 version = "0.1.0"
 edition = { workspace = true }
 
+[features]
+client = ["dep:gloo-net", "dep:futures", "dep:wasm-bindgen-futures", "dep:console_error_panic_hook"]
+
+
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
+serde_json.workspace = true
+
+# Client-side WASM dependencies (optional)
+gloo-net = { version = "0.6.0", features = ["websocket"], optional = true }
+futures = { version = "0.3", optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
 
 [dev-dependencies]
 serde_json.workspace = true

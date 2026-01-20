@@ -5456,8 +5456,12 @@ dependencies = [
 name = "tasklens-sync-protocol"
 version = "0.1.0"
 dependencies = [
+ "console_error_panic_hook",
+ "futures",
+ "gloo-net",
  "serde",
  "serde_json",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]

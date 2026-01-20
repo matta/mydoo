@@ -15,24 +15,37 @@ can collaborate on the same document in real-time.
 
 ## Proposed Changes
 
-### 1. Sync Client Integration (UI)
+### 1. Sync Client Integration (Architectural Refactor)
 
-We need a WebSocket client in the UI that:
+We will implement a **Pure Client + Bridge** architecture (Option B) to decouple
+the Sync Protocol from the Application Logic.
 
-- Connects to the configured Sync Server.
-- Performs the handshake (`Hello` message with `sync_id` i.e. DocId).
-- Listens for remote changes and applies them via `store.import_changes()`.
-- Observes local store changes and pushes them via `SubmitChange`.
+#### A. `SyncProtocolClient` (Pure Transport)
 
-#### Technical Approach
+- A dumb, reusable WebSocket client moved to `crates/tasklens-sync-protocol`
+  (under a `client` feature).
+- **Responsibilities**:
+  - Connects to a `ws_url`.
+  - Joins a channel via `discovery_key` (String).
+  - Sends/Receives opaque `payload` (Vec<u8>).
+- **Ignorance**: Has NO knowledge of encryption, `DocId`, or Automerge.
 
-- Create a new hook `use_sync_client` in
-  `crates/tasklens-ui/src/hooks/use_sync.rs` (or similar).
-- This hook will:
-  - Read the Sync Server URL from a Signal/Context.
-  - Manage the WebSocket connection.
-  - Buffer changes if offline.
-  - Expose `sync_state` (Connected, Disconnected, Syncing).
+#### B. `DocSyncBridge` (Application Logic)
+
+- An adapter layer that bridges the `AppStore` and `SyncProtocolClient`.
+- **Responsibilities**:
+  - Derives `discovery_key` from `DocId` (SHA256).
+  - Derives `encryption_key` from `DocId` (Argon2/KeyExpansion).
+  - **Encryption Loop**:
+    - Outbound: `Store Change` -> Encrypt -> `EncryptedBlob` -> Serialize ->
+      `Client.send`.
+    - Inbound: `Client.recv` -> Deserialize -> `EncryptedBlob` -> Decrypt ->
+      `Store.import`.
+
+#### C. `use_sync_client` (Hook)
+
+- Orchestrates the creation of the Bridge using the current `DocId` and
+  Settings.
 
 ### 2. User Settings for Sync
 
@@ -103,3 +116,43 @@ sessions ("Alice" and "Bob"). Each context has its own:
 - Open two browser tabs to `http://localhost:5180`.
 - Connect both to `ws://localhost:3000/sync`.
 - Observe changes propagating.
+
+## Implementation Checklist
+
+### Phase 1: Sync Settings (Completed)
+
+- [x] Create `SyncSettings` component.
+- [x] Implement persistent storage for sync server URL.
+- [x] Verify settings persistence with E2E test (`sync-settings.spec.ts`).
+
+### Phase 2: Single-User Sync Connection (Refactor In-Progress)
+
+- [x] Implement `use_sync_client` hook (Initial Version).
+- [x] **Protocol Crate Update**:
+  - [x] Add `client` feature to `tasklens-sync-protocol`.
+  - [x] Implement `SyncProtocolClient` in `tasklens-sync-protocol`.
+- [x] **Refactor `network.rs`**: Create `DocSyncBridge` using the new
+      `SyncProtocolClient`.
+- [x] **Update Hook**: Bind `use_sync_client` to the new `DocSyncBridge`
+      (verified compatible).
+- [x] **Verify Refactor**: Ensure "Alice" connection test still passes.
+- [ ] **Fix Flaky Status Indicator**: The 'Connected' status check in
+      `sync.spec.ts` is commented out due to flakiness. Investigate signal
+      propagation delay or UI update issues.
+
+### Phase 3: Multi-User Sync (Ready to Implement)
+
+- [ ] **Implement "Bob" Test Context**:
+  - Update `sync.spec.ts` to spawn a second browser context.
+  - Ensure both Alice and Bob contexts are initialized with the same Document
+    Secret (Master Key) so they derive the same `discovery_key`.
+  - Verify they have distinct `client_id`s (handled automatically by
+    `SyncService`).
+- [ ] **Verify Bidirectional Sync**:
+  - Alice creates a task -> Bob sees it.
+  - Bob completes a task -> Alice sees it.
+
+### Phase 4: CI/CD
+
+- [ ] Ensure `tasklens-sync-server` is built and available in the CI environment
+      for Playwright tests.

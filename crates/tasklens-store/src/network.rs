@@ -11,132 +11,61 @@ pub enum SyncStatus {
 mod implementation {
     use crate::crypto;
     use anyhow::{Context, Result, anyhow};
+    use futures::StreamExt;
     use futures::channel::mpsc::{UnboundedReceiver, UnboundedSender};
-    use futures::{SinkExt, StreamExt};
-    use gloo_net::websocket::{Message, futures::WebSocket};
     use gloo_timers::future::TimeoutFuture;
     use rand::Rng;
-    use tasklens_sync_protocol::{ClientMessage, ServerMessage};
+    use tasklens_sync_protocol::client::SyncProtocolClient;
 
     use super::SyncStatus;
 
-    pub struct SyncService {
-        pub ws: Option<WebSocket>,
-        pub sync_id: String,
-        pub client_id: String,
-        pub master_key: [u8; 32],
+    /// The Bridge between the Application (Store) and the Protocol (SyncProtocolClient).
+    ///
+    /// Responsibilities:
+    /// 1. Identity Translation: DocId <-> DiscoveryKey
+    /// 2. Encryption: Plaintext <-> EncryptedBlob
+    pub struct DocSyncBridge {
+        pub client: SyncProtocolClient,
+        pub discovery_key: String,
+        pub encryption_key: [u8; 32],
     }
 
-    impl SyncService {
-        pub fn new(master_key: [u8; 32]) -> Self {
-            let sync_id = crypto::derive_sync_id(&master_key);
-            // We need a stable client_id. Usually this is per-session to avoid echo issues.
-            // Let's generate one random UUID for this session.
-            let client_id = uuid::Uuid::new_v4().to_string();
+    impl DocSyncBridge {
+        pub async fn connect(
+            url: &str,
+            doc_id: [u8; 32],
+            client_id: String,
+        ) -> Result<(
+            Self,
+            UnboundedReceiver<tasklens_sync_protocol::ServerMessage>,
+        )> {
+            // 1. Derive Keys
+            // In our model, DocId IS the MasterKey.
+            let encryption_key = doc_id;
+            let discovery_key = crypto::derive_sync_id(&doc_id);
 
-            Self {
-                ws: None,
-                sync_id,
-                client_id,
-                master_key,
-            }
-        }
-
-        pub async fn connect(&mut self, url: &str) -> Result<()> {
-            let ws = WebSocket::open(url).map_err(|e| anyhow!("WS Error: {:?}", e))?;
-            self.ws = Some(ws);
-
-            // 1. Send Hello
-            // We can pass `last_sequence: 0` for now, assuming full replay or we can track it later.
-            let hello = ClientMessage::Hello {
-                client_id: self.client_id.clone(),
-                discovery_key: self.sync_id.clone(),
-                last_sequence: 0,
-            };
-
-            self.send(hello).await.context("Failed to send Hello")?;
-
-            Ok(())
-        }
-
-        pub async fn send(&mut self, msg: ClientMessage) -> Result<()> {
-            if let Some(ws) = &mut self.ws {
-                let json = serde_json::to_string(&msg)?;
-                ws.send(Message::Text(json))
+            // 2. Connect via Pure Client
+            let (client, rx) =
+                SyncProtocolClient::connect(url, client_id, discovery_key.clone(), 0)
                     .await
-                    .map_err(|e| anyhow!("WS Send Error: {:?}", e))?;
-            }
-            Ok(())
+                    .map_err(|e| anyhow!("Protocol Error: {}", e))?;
+
+            Ok((
+                Self {
+                    client,
+                    discovery_key,
+                    encryption_key,
+                },
+                rx,
+            ))
         }
 
-        pub async fn start_loop<S>(
-            &mut self,
-            rx_local_changes: &mut S,
-            mut tx_remote_changes: futures::channel::mpsc::UnboundedSender<Vec<u8>>,
-        ) where
-            S: futures::stream::Stream<Item = Vec<u8>> + futures::stream::FusedStream + Unpin,
-        {
-            let mut ws = if let Some(ws) = self.ws.take() {
-                ws.fuse()
-            } else {
-                return;
-            };
-
-            loop {
-                futures::select! {
-                   local_change = rx_local_changes.next() => {
-                       if let Some(data) = local_change {
-                            match crypto::encrypt_change(&data, &self.master_key) {
-                                Ok(blob) => {
-                                    let msg = ClientMessage::SubmitChange {
-                                        discovery_key: self.sync_id.clone(),
-                                        payload: serde_json::to_vec(&blob).expect("Failed to serialize EncryptedBlob"),
-                                    };
-                                    let json_res = serde_json::to_string(&msg);
-                                    if let Ok(json) = json_res
-                                        && let Err(e) = ws.send(Message::Text(json)).await
-                                    {
-                                        tracing::error!("WS Send Error: {:?}", e);
-                                        break;
-                                    }
-                                }
-                                Err(e) => tracing::error!("Encryption failed: {:?}", e),
-                            }
-                       } else {
-                           break;
-                       }
-                   }
-
-                   msg = ws.next() => {
-                       match msg {
-                           Some(Ok(Message::Text(text))) => {
-                                                           if let Ok(ServerMessage::ChangeOccurred { payload, .. }) = serde_json::from_str::<ServerMessage>(&text) {
-                                                                let blob: tasklens_sync_protocol::EncryptedBlob = serde_json::from_slice(&payload).expect("Failed to deserialize EncryptedBlob");
-                                                                match crypto::decrypt_change(&blob, &self.master_key) {
-                                                                   Ok(plaintext) => {
-                                                                       if let Err(e) = tx_remote_changes.send(plaintext).await {
-                                                                            tracing::error!("Failed to forward change: {:?}", e);
-                                                                            break;
-                                                                       }
-                                                                   }
-                                                                   Err(e) => tracing::error!("Decryption failed: {:?}", e),
-                                                               }
-                                                           }                       }
-                           Some(Ok(Message::Bytes(_))) => tracing::warn!("Unexpected binary msg"),
-                           Some(Err(e)) => {
-                               tracing::error!("WS Error: {:?}", e);
-                               break;
-                           }
-                           None => {
-                               tracing::info!("WS Closed");
-                               break;
-                           }
-                       }
-                   }
-                }
-            }
-            // Restore WS (though it might be closed/errored)
-            self.ws = Some(ws.into_inner());
+        /// Encrypts and sends a local change to the server.
+        pub fn send_change(&self, plaintext: &[u8]) -> Result<()> {
+            let blob = crypto::encrypt_change(plaintext, &self.encryption_key)?;
+            let payload = serde_json::to_vec(&blob).expect("Failed to serialize EncryptedBlob");
+            self.client.send(self.discovery_key.clone(), payload);
+            Ok(())
         }
     }
 
@@ -145,7 +74,7 @@ mod implementation {
         rx_local: UnboundedReceiver<Vec<u8>>,
         tx_remote: UnboundedSender<Vec<u8>>,
         status_tx: UnboundedSender<SyncStatus>,
-        master_key: impl Fn() -> Option<[u8; 32]>,
+        credentials_provider: impl Fn() -> Option<[u8; 32]>, // Returns DocId
         url_provider: impl Fn() -> Option<String>,
         mut get_full_state: impl FnMut() -> Vec<u8> + 'static,
     ) {
@@ -154,30 +83,33 @@ mod implementation {
         const MAX_DELAY_MS: u64 = 30_000;
         const MIN_STABLE_CONN_TIME_MS: f64 = 5_000.0;
 
-        let mut current_key: Option<[u8; 32]> = None;
+        // Session ID is stable for the lifetime of this loop (tab)
+        let client_id = uuid::Uuid::new_v4().to_string();
+
+        let mut current_doc_id: Option<[u8; 32]> = None;
         // Fuse the receiver so we can iterate it in the loop
         let mut rx_local = rx_local.fuse();
 
         loop {
-            // 1. Check/Wait for Key
-            let desired_key = master_key();
-            if current_key != desired_key {
-                current_key = desired_key;
+            // 1. Check/Wait for DocId
+            let desired_doc_id = credentials_provider();
+            if current_doc_id != desired_doc_id {
+                current_doc_id = desired_doc_id;
                 failure_count = 0; // Reset backoff on key change
-                if current_key.is_some() {
-                    tracing::info!("Key set. Starting Sync Loop.");
+                if current_doc_id.is_some() {
+                    tracing::info!("DocID set. Starting Sync Loop.");
                 } else {
-                    tracing::info!("Key cleared. Stopping Sync Loop.");
+                    tracing::info!("DocID cleared. Stopping Sync Loop.");
                     let _ = status_tx.unbounded_send(SyncStatus::Disconnected);
                 }
             }
 
-            if current_key.is_none() {
+            if current_doc_id.is_none() {
                 TimeoutFuture::new(200).await;
                 continue;
             }
 
-            let key = current_key.unwrap();
+            let doc_id = current_doc_id.unwrap();
 
             // 2. Check/Wait for URL
             let desired_url = url_provider();
@@ -207,92 +139,123 @@ mod implementation {
                 TimeoutFuture::new(total_delay as u32).await;
             }
 
-            // Check key/url again after sleep in case it changed
-            if master_key() != Some(key) || url_provider() != Some(url.clone()) {
+            // Check keys again after sleep
+            if credentials_provider() != Some(doc_id) || url_provider() != Some(url.clone()) {
                 continue;
             }
 
-            // 4. Connect
-            let mut svc = SyncService::new(key);
+            // 4. Connect Bridge
             tracing::info!("Attempting to connect to {}...", url);
             let _ = status_tx.unbounded_send(SyncStatus::Connecting);
 
-            match svc.connect(&url).await {
-                Err(e) => {
-                    tracing::error!("Connect failed: {:?}", e);
-                    let _ = status_tx.unbounded_send(SyncStatus::Error(format!("{:?}", e)));
-                    failure_count += 1;
-                    continue;
-                }
-                Ok(_) => {
-                    tracing::info!("Connected to Sync Server.");
-                    let _ = status_tx.unbounded_send(SyncStatus::Connected);
-                }
-            }
+            let (bridge, mut rx_server) =
+                match DocSyncBridge::connect(&url, doc_id, client_id.clone()).await {
+                    Ok(res) => res,
+                    Err(e) => {
+                        tracing::error!("Connect failed: {:?}", e);
+                        let _ = status_tx.unbounded_send(SyncStatus::Error(format!("{:?}", e)));
+                        failure_count += 1;
+                        continue;
+                    }
+                };
 
-            // 4. Initial Sync State
+            tracing::info!("Connected to Sync Server.");
+            let _ = status_tx.unbounded_send(SyncStatus::Connected);
+
+            // 5. Initial State Push
             let full_save = get_full_state();
-            let encrypted_payload = match crypto::encrypt_change(&full_save, &key) {
-                Ok(payload) => payload,
-                Err(e) => {
-                    tracing::error!("Failed to encrypt initial state: {:?}", e);
-                    failure_count += 1;
-                    continue;
-                }
-            };
-            if let Err(e) = svc
-                .send(ClientMessage::SubmitChange {
-                    discovery_key: svc.sync_id.clone(),
-                    payload: serde_json::to_vec(&encrypted_payload)
-                        .expect("Failed to serialize EncryptedBlob"),
-                })
-                .await
-            {
-                tracing::error!("Failed to push initial state: {:?}", e);
-                // If we can't send hello/initial state, count as failure
+            if let Err(e) = bridge.send_change(&full_save) {
+                tracing::error!("Failed to encrypt/send initial state: {:?}", e);
                 failure_count += 1;
                 continue;
             }
 
-            // 5. Run Loop
-            // We use web_sys::window().performance() to time the session stability
+            // 6. Run Loop
             let perf = web_sys::window().unwrap().performance().unwrap();
             let start_time = perf.now();
 
-            let loop_fut = Box::pin(svc.start_loop(&mut rx_local, tx_remote.clone()));
+            let bridge_ref = &bridge;
 
-            let check_key_fut = Box::pin(async {
+            // A. Server -> Store (Decrypt)
+            let inbound_fut = async {
+                while let Some(msg) = rx_server.next().await {
+                    if let tasklens_sync_protocol::ServerMessage::ChangeOccurred {
+                        payload, ..
+                    } = msg
+                    {
+                        // Deserialize EncryptedBlob
+                        if let Ok(blob) = serde_json::from_slice::<
+                            tasklens_sync_protocol::EncryptedBlob,
+                        >(&payload)
+                        {
+                            // Decrypt
+                            if let Ok(plaintext) =
+                                crypto::decrypt_change(&blob, &bridge_ref.encryption_key)
+                            {
+                                if let Err(e) = tx_remote.unbounded_send(plaintext) {
+                                    tracing::error!("Failed to forward change to store: {:?}", e);
+                                    break;
+                                }
+                            } else {
+                                tracing::error!("Decryption failed for incoming message");
+                            }
+                        }
+                    }
+                }
+                "Inbound Stream Ended"
+            };
+
+            // B. Store -> Server (Encrypt)
+            let outbound_fut = async {
+                while let Some(local_change) = rx_local.next().await {
+                    if let Err(e) = bridge_ref.send_change(&local_change) {
+                        tracing::error!("Failed to send local change: {:?}", e);
+                        break;
+                    }
+                }
+                "Outbound Stream Ended"
+            };
+
+            // C. Watchdog
+            let check_creds_fut = async {
                 loop {
                     TimeoutFuture::new(500).await;
-                    if master_key() != Some(key) || url_provider() != Some(url.clone()) {
-                        return;
+                    if credentials_provider() != Some(doc_id) || url_provider() != Some(url.clone())
+                    {
+                        break;
                     }
                 }
-            });
+                "Credentials Changed"
+            };
 
             use futures::future::{Either, select};
-            match select(loop_fut, check_key_fut).await {
-                Either::Left((_, _)) => {
-                    // Service finished (disconnected)
-                    let duration = perf.now() - start_time;
-                    if duration < MIN_STABLE_CONN_TIME_MS {
-                        tracing::warn!(
-                            "Sync loop ended quickly ({:.0}ms). Flapping detected.",
-                            duration
-                        );
-                        failure_count += 1;
-                    } else {
-                        tracing::warn!("Sync loop ended after {:.0}ms. Reconnecting...", duration);
-                        failure_count = 0;
-                        // Optional small delay after a long session to prevent tight loops on persistent server crashes
-                        TimeoutFuture::new(1000).await;
-                    }
-                }
-                Either::Right((_, _)) => {
-                    // Key changed!
-                    tracing::info!("Master key changed. Disconnecting...");
+            // Run until any future exits
+            let loop_res = select(
+                Box::pin(inbound_fut),
+                select(Box::pin(outbound_fut), Box::pin(check_creds_fut)),
+            )
+            .await;
+
+            // Determine why we exited
+            let reason = match loop_res {
+                Either::Left((r, _)) => r,
+                Either::Right((Either::Left((r, _)), _)) => r,
+                Either::Right((Either::Right((r, _)), _)) => r,
+            };
+
+            if reason == "Credentials Changed" {
+                tracing::info!("Credentials changed. Restarting loop.");
+                failure_count = 0;
+            } else {
+                // Disconnected
+                let duration = perf.now() - start_time;
+                if duration < MIN_STABLE_CONN_TIME_MS {
+                    tracing::warn!("Sync loop ended quickly ({:.0}ms). Flapping.", duration);
+                    failure_count += 1;
+                } else {
+                    tracing::warn!("Sync loop ended after {:.0}ms. Reconnecting...", duration);
                     failure_count = 0;
-                    // Loop will catch key change at top
+                    TimeoutFuture::new(1000).await;
                 }
             }
         }
@@ -301,51 +264,16 @@ mod implementation {
 
 #[cfg(not(target_arch = "wasm32"))]
 mod stub {
+    use super::SyncStatus;
     use anyhow::Result;
     use futures::channel::mpsc::{UnboundedReceiver, UnboundedSender};
-    // use crate::crypto; // Unused in stub
-    use tasklens_sync_protocol::ClientMessage;
-
-    use super::SyncStatus;
-
-    pub struct SyncService {
-        pub sync_id: String,
-        pub client_id: String,
-        pub master_key: [u8; 32],
-    }
-
-    impl SyncService {
-        pub fn new(master_key: [u8; 32]) -> Self {
-            Self {
-                sync_id: "stub".to_string(),
-                client_id: "stub".to_string(),
-                master_key,
-            }
-        }
-        pub async fn connect(&mut self, _url: &str) -> Result<()> {
-            Ok(())
-        }
-        pub async fn send(&mut self, _msg: ClientMessage) -> Result<()> {
-            Ok(())
-        }
-
-        pub async fn start_loop<S>(
-            &mut self,
-            _rx_local_changes: &mut S,
-            _tx_remote_changes: UnboundedSender<Vec<u8>>,
-        ) where
-            S: futures::stream::Stream<Item = Vec<u8>> + futures::stream::FusedStream + Unpin,
-        {
-            futures::future::pending::<()>().await;
-        }
-    }
 
     #[allow(clippy::too_many_arguments)]
     pub async fn run_sync_loop(
         _rx_local: UnboundedReceiver<Vec<u8>>,
         _tx_remote: UnboundedSender<Vec<u8>>,
         _status_tx: UnboundedSender<SyncStatus>,
-        _master_key: impl Fn() -> Option<[u8; 32]>,
+        _credentials_provider: impl Fn() -> Option<[u8; 32]>,
         _url_provider: impl Fn() -> Option<String>,
         mut _get_full_state: impl FnMut() -> Vec<u8> + 'static,
     ) {
