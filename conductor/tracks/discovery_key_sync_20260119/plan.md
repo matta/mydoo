@@ -11,19 +11,19 @@
 - [x] Task: Conductor - User Manual Verification 'Protocol Refactoring' (Protocol in workflow.md)
 
 ## Phase 2: Server Implementation (`tasklens-sync-server`)
-- [ ] Task: Update Database Layer (`db.rs`)
-    - [ ] Rename `sync_id` column to `discovery_key` in `init_pool`.
-    - [ ] Update `append_update` to take `discovery_key` and `Vec<u8>`.
-    - [ ] Update `get_changes_since` to filter by `discovery_key`.
-- [ ] Task: Update Request Handling (`main.rs`)
-    - [ ] Update `ws_handler` to parse `discovery_key` from `Hello`.
-    - [ ] Update connection loop to route based on `discovery_key`.
-    - [ ] Ensure `payload` is passed through as opaque bytes.
+- [x] Task: Update Database Layer (`db.rs`) [8d1903b]
+    - [x] Rename `sync_id` column to `discovery_key` in `init_pool`.
+    - [x] Update `append_update` to take `discovery_key` and `Vec<u8>`.
+    - [x] Update `get_changes_since` to filter by `discovery_key`.
+- [x] Task: Update Request Handling (`main.rs`) [8d1903b]
+    - [x] Update `ws_handler` to parse `discovery_key` from `Hello`.
+    - [x] Update connection loop to route based on `discovery_key`.
+    - [x] Ensure `payload` is passed through as opaque bytes.
 - [ ] Task: Conductor - User Manual Verification 'Server Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Verification
-- [ ] Task: Update Integration Tests (`tests/integration_test.rs`)
-    - [ ] Refactor `test_sync_flow` to use `discovery_key`.
-    - [ ] Refactor `test_room_isolation` (rename variables to match new terminology).
-    - [ ] Verify `payload` integrity with arbitrary bytes.
+- [x] Task: Update Integration Tests (`tests/integration_test.rs`) [8d1903b]
+    - [x] Refactor `test_sync_flow` to use `discovery_key`.
+    - [x] Refactor `test_room_isolation` (rename variables to match new terminology).
+    - [x] Verify `payload` integrity with arbitrary bytes.
 - [ ] Task: Conductor - User Manual Verification 'Verification' (Protocol in workflow.md)
