@@ -1,3 +1,12 @@
+#[derive(Debug, Clone, PartialEq)]
+pub enum SyncStatus {
+    Disconnected,
+    Connecting,
+    Connected,
+    Syncing,
+    Error(String),
+}
+
 #[cfg(target_arch = "wasm32")]
 mod implementation {
     use crate::crypto;
@@ -9,14 +18,7 @@ mod implementation {
     use rand::Rng;
     use tasklens_sync_protocol::{ClientMessage, ServerMessage};
 
-    #[derive(Debug, Clone, PartialEq)]
-    pub enum SyncStatus {
-        Disconnected,
-        Connecting,
-        Connected,
-        Syncing,
-        Error(String),
-    }
+    use super::SyncStatus;
 
     pub struct SyncService {
         pub ws: Option<WebSocket>,
@@ -48,7 +50,7 @@ mod implementation {
             // We can pass `last_sequence: 0` for now, assuming full replay or we can track it later.
             let hello = ClientMessage::Hello {
                 client_id: self.client_id.clone(),
-                sync_id: self.sync_id.clone(),
+                discovery_key: self.sync_id.clone(),
                 last_sequence: 0,
             };
 
@@ -87,8 +89,8 @@ mod implementation {
                             match crypto::encrypt_change(&data, &self.master_key) {
                                 Ok(blob) => {
                                     let msg = ClientMessage::SubmitChange {
-                                        sync_id: self.sync_id.clone(),
-                                        payload: blob,
+                                        discovery_key: self.sync_id.clone(),
+                                        payload: serde_json::to_vec(&blob).expect("Failed to serialize EncryptedBlob"),
                                     };
                                     let json_res = serde_json::to_string(&msg);
                                     if let Ok(json) = json_res
@@ -109,7 +111,8 @@ mod implementation {
                        match msg {
                            Some(Ok(Message::Text(text))) => {
                                                            if let Ok(ServerMessage::ChangeOccurred { payload, .. }) = serde_json::from_str::<ServerMessage>(&text) {
-                                                               match crypto::decrypt_change(&payload, &self.master_key) {
+                                                                let blob: tasklens_sync_protocol::EncryptedBlob = serde_json::from_slice(&payload).expect("Failed to deserialize EncryptedBlob");
+                                                                match crypto::decrypt_change(&blob, &self.master_key) {
                                                                    Ok(plaintext) => {
                                                                        if let Err(e) = tx_remote_changes.send(plaintext).await {
                                                                             tracing::error!("Failed to forward change: {:?}", e);
@@ -137,6 +140,7 @@ mod implementation {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn run_sync_loop(
         rx_local: UnboundedReceiver<Vec<u8>>,
         tx_remote: UnboundedSender<Vec<u8>>,
@@ -238,8 +242,9 @@ mod implementation {
             };
             if let Err(e) = svc
                 .send(ClientMessage::SubmitChange {
-                    sync_id: svc.sync_id.clone(),
-                    payload: encrypted_payload,
+                    discovery_key: svc.sync_id.clone(),
+                    payload: serde_json::to_vec(&encrypted_payload)
+                        .expect("Failed to serialize EncryptedBlob"),
                 })
                 .await
             {
@@ -301,6 +306,8 @@ mod stub {
     // use crate::crypto; // Unused in stub
     use tasklens_sync_protocol::ClientMessage;
 
+    use super::SyncStatus;
+
     pub struct SyncService {
         pub sync_id: String,
         pub client_id: String,
@@ -333,6 +340,7 @@ mod stub {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn run_sync_loop(
         _rx_local: UnboundedReceiver<Vec<u8>>,
         _tx_remote: UnboundedSender<Vec<u8>>,
