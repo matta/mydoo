@@ -8,7 +8,8 @@
     "@types/js-yaml": "catalog:",
     "@types/node": "catalog:",
     "js-yaml": "catalog:",
-    "playwright-bdd": "catalog:"
+    "playwright-bdd": "catalog:",
+    "wait-port": "^1.1.0"
   },
   "scripts": {
     "check-format": "prettier --check .",

@@ -43,3 +43,7 @@ console_error_panic_hook = "0.1.7"
 [profile.dev]
 debug = true
 split-debuginfo = "off"
+
+[patch.crates-io]
+samod = { path = "reference_repos/samod/samod" }
+samod-core = { path = "reference_repos/samod/samod-core" }

@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "author": "",
   "devDependencies": {
+    "@automerge/automerge-repo": "catalog:",
+    "@automerge/automerge-repo-network-websocket": "catalog:",
+    "@automerge/automerge-repo-storage-nodefs": "^2.5.1",
     "@biomejs/biome": "catalog:",
     "@commitlint/cli": "catalog:",
     "@commitlint/types": "catalog:",
@@ -16,7 +19,8 @@
     "tsx": "catalog:",
     "turbo": "catalog:",
     "typescript": "catalog:",
-    "typescript-eslint": "catalog:"
+    "typescript-eslint": "catalog:",
+    "ws": "^8.19.0"
   },
   "engines": {
     "node": ">=24"

@@ -645,20 +645,26 @@ export class PlanPage implements PlanFixture {
     }
   }
 
-  async primeWithSampleData(): Promise<void> {
+  async clearAndReload(): Promise<void> {
     // Clear localStorage first to ensure clean state
     await this.page.goto("/");
     await this.page.evaluate(() => {
       localStorage.clear();
-      // Set a dummy master key (32 bytes of 0 as JSON array for gloo-storage)
-      localStorage.setItem(
-        "tasklens_master_key",
-        JSON.stringify(new Array(32).fill(0)),
-      );
     });
 
-    // Now navigate to seed URL
+    // Reload the app
+    await this.page.goto("/plan");
+    await this.waitForAppReady();
+    // Ensure the app is loaded by waiting for the Plan heading
+    await expect(
+      this.page.getByRole("heading", { name: "Plan" }),
+    ).toBeVisible();
+  }
+
+  async primeWithSampleData(): Promise<void> {
+    // Navigate to seed URL which triggers internal seeding logic
     await this.page.goto("/plan?seed=true");
+    await this.waitForAppReady();
     // Ensure the app is loaded by waiting for the Plan heading
     await expect(
       this.page.getByRole("heading", { name: "Plan" }),

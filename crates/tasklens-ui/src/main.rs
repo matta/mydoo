@@ -4,7 +4,6 @@
 include!(concat!(env!("OUT_DIR"), "/build_version.rs"));
 
 use dioxus::prelude::*;
-use futures::StreamExt;
 use tasklens_store::doc_id::DocumentId;
 
 mod components;
@@ -19,12 +18,19 @@ use crate::router::Route;
 use tasklens_store::store::AppStore;
 
 #[cfg(target_arch = "wasm32")]
+use samod::RepoBuilder;
+#[cfg(target_arch = "wasm32")]
+use tasklens_store::samod_runtime::WasmRuntime;
+#[cfg(target_arch = "wasm32")]
+use tasklens_store::samod_storage::SamodStorage;
+use tasklens_store::storage::ActiveDocStorage;
+
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
 pub async fn tasklensReset() -> Result<(), String> {
     tracing::info!("E2E Reset Triggered: Clearing storage...");
-    let _ = tasklens_store::crypto::clear_key();
 
     if let Some(window) = web_sys::window() {
         // 1. Clear Local/Session Storage
@@ -35,8 +41,8 @@ pub async fn tasklensReset() -> Result<(), String> {
             let _ = ss.clear();
         }
 
-        // 2. Delete IndexedDB database "tasklens_db"
-        if let Err(e) = rexie::Rexie::delete("tasklens_db").await {
+        // 2. Delete IndexedDB database "tasklens_samod"
+        if let Err(e) = rexie::Rexie::delete("tasklens_samod").await {
             let msg = format!("Failed to delete database: {:?}", e);
             tracing::error!("{}", msg);
             return Err(msg);
@@ -104,7 +110,7 @@ fn App() -> Element {
     let mut service_worker_active = use_signal(|| false);
 
     // Store State
-    let mut store = use_signal(AppStore::new);
+    let store = use_signal(AppStore::new);
 
     // Give doc_id access to persistence
     let memory_heads = use_signal(String::new);
@@ -125,76 +131,63 @@ fn App() -> Element {
 
     // Unified Reactive Initialization
     use_future(move || async move {
+        // --- Samod Repo Initialization ---
+        tracing::info!("Initialization: Starting Samod Repo");
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            let runtime = WasmRuntime;
+            // Use a specific DB name for Samod to avoid conflict with legacy data
+            let storage = SamodStorage::new("tasklens_samod", "documents");
+            let repo = RepoBuilder::new(runtime)
+                .with_storage(storage)
+                // TODO: Set announce policy if needed
+                .load_local()
+                .await;
+
+            store.write().repo = Some(repo);
+            tracing::info!("Samod Repo initialized");
+        }
+
         // --- Document Discovery ---
         tracing::info!("Initialization: Document Discovery");
 
-        // Determine Initial Document ID
-        // Determine Initial Document ID
-        let (initial_id, must_create) = {
-            if let Some(id) = AppStore::load_active_doc_id() {
-                tracing::info!("Found active document ID: {}", id);
-                (id, false)
-            } else {
-                let new_id = DocumentId::new();
-                tracing::info!("No active doc. Generated new ID: {}", new_id);
-                (new_id, true)
-            }
-        };
+        // Determine Initial Document ID from URL/LocalStorage
+        let initial_url_opt = ActiveDocStorage::load_active_url();
 
-        // Perform Initial Load
         is_checking.set(true);
 
-        let load_result = if must_create {
-            Err(anyhow::anyhow!("Must create"))
-        } else {
-            // Load bytes first without holding lock
-            match AppStore::load_from_db(&initial_id).await {
-                Ok(Some(bytes)) => {
-                    let mut s = store.write();
-                    s.current_id = initial_id.clone();
-                    s.load_from_bytes(bytes);
-                    AppStore::save_active_doc_id(&initial_id);
-                    Ok(())
-                }
-                Ok(None) => Err(anyhow::anyhow!("Doc not found")),
-                Err(e) => Err(e),
-            }
-        };
+        if let Some(url) = initial_url_opt {
+            let id = url.document_id();
+            tracing::info!("Found active document ID: {}", id);
+            // Attempt to switch to it
+            // Use write_unchecked to avoid blocking concurrent reads during await
+            let switch_res = store.write_unchecked().switch_doc(id.clone()).await;
 
-        match load_result {
-            Ok(_) => {
-                tracing::info!("Initial load successful for: {}", initial_id);
-                doc_id.set(Some(initial_id));
-            }
-            Err(_) => {
-                tracing::info!("Initial load failed/new. Creating fresh doc.");
-                let create_result = {
-                    let mut s = store.write();
-                    s.create_new()
-                };
-
-                match create_result {
-                    Ok(new_id) => {
-                        tracing::info!("Created new doc: {}", new_id);
-
-                        // Async Save without holding lock
-                        let save_data = {
-                            let mut s = store.write();
-                            (s.current_id.clone(), s.export_save())
-                        };
-
-                        spawn(async move {
-                            if let Err(e) =
-                                AppStore::save_doc_data_async(&save_data.0, save_data.1).await
-                            {
-                                tracing::error!("Failed to persist new doc: {:?}", e);
-                            }
-                        });
-
+            if let Err(e) = switch_res {
+                tracing::error!("Failed to switch doc: {:?}. Creating new.", e);
+                // Fallback to create new
+                let create_res = store.write_unchecked().create_new().await;
+                if create_res.is_ok() {
+                    if let Some(new_id) = store.read().current_id.clone() {
                         doc_id.set(Some(new_id));
                     }
-                    Err(e) => tracing::error!("CRITICAL: Failed to create new doc: {:?}", e),
+                } else if let Err(e) = create_res {
+                    tracing::error!("CRITICAL: Failed to create new doc: {:?}", e);
                 }
+            } else {
+                doc_id.set(Some(id));
+            }
+        } else {
+            // No active doc, create new
+            tracing::info!("No active doc. Creating new.");
+            let create_res = store.write_unchecked().create_new().await;
+            if create_res.is_ok() {
+                if let Some(new_id) = store.read().current_id.clone() {
+                    doc_id.set(Some(new_id));
+                }
+            } else if let Err(e) = create_res {
+                tracing::error!("CRITICAL: Failed to create new doc: {:?}", e);
             }
         }
 
@@ -204,46 +197,33 @@ fn App() -> Element {
             thread_local! {
                 static INITIAL_LOAD_SEED_CHECKED: std::cell::Cell<bool> = std::cell::Cell::new(false);
             }
-            let window = web_sys::window().unwrap();
-            let search = window.location().search().unwrap_or_default();
-            let trigger = search.contains("seed=true") && !INITIAL_LOAD_SEED_CHECKED.get();
-            INITIAL_LOAD_SEED_CHECKED.set(true);
+            if let Some(window) = web_sys::window() {
+                let search = window.location().search().unwrap_or_default();
+                let trigger = search.contains("seed=true") && !INITIAL_LOAD_SEED_CHECKED.get();
+                INITIAL_LOAD_SEED_CHECKED.set(true);
 
-            if trigger {
-                tracing::info!("Applying seed data...");
-                {
-                    let mut s = store.write();
-                    crate::seed::prime_store_with_sample_data(&mut s);
-                } // ensure lock dropped
-
-                // Force save seeded data
-                let save_data = {
-                    let mut s = store.write();
-                    (s.current_id.clone(), s.export_save())
-                };
-                spawn(async move {
-                    if let Err(e) = AppStore::save_doc_data_async(&save_data.0, save_data.1).await {
-                        tracing::error!("Failed to persist seeded doc: {:?}", e);
+                if trigger {
+                    tracing::info!("Applying seed data...");
+                    {
+                        let mut s = store.write();
+                        crate::seed::prime_store_with_sample_data(&mut s);
                     }
-                });
+                    // Samod auto-saves, no need to forcing save.
 
-                // Clean up URL
-                if let Ok(history) = window.history() {
-                    let _ = history.replace_state_with_url(
-                        &wasm_bindgen::JsValue::NULL,
-                        "",
-                        Some("/plan"),
-                    );
+                    // Clean up URL
+                    if let Ok(history) = window.history() {
+                        let _ = history.replace_state_with_url(
+                            &wasm_bindgen::JsValue::NULL,
+                            "",
+                            Some("/plan"),
+                        );
+                    }
                 }
             }
         }
 
         is_checking.set(false);
     });
-
-    // Persistence Note:
-    // We rely on explicit saves in action handlers (TaskPage, PlanPage, etc.) rather than a global
-    // effect to avoid infinite loops with the sync client's observer polling.
 
     if is_checking() {
         return rsx! {
@@ -268,18 +248,6 @@ fn App() -> Element {
             "data-memory-heads": "{memory_heads}",
             "data-persisted-heads": "{persisted_heads}",
             Router::<Route> {}
-        }
-    }
-}
-
-#[expect(dead_code)]
-async fn handle_remote_changes(
-    mut rx_remote: futures::channel::mpsc::UnboundedReceiver<Vec<u8>>,
-    mut store: Signal<AppStore>,
-) {
-    while let Some(change) = rx_remote.next().await {
-        if let Err(e) = store.write().import_changes(change) {
-            tracing::error!("Failed to import remote changes in main loop: {:?}", e);
         }
     }
 }

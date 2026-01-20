@@ -95,23 +95,12 @@ pub fn TaskPage() -> Element {
     let handle_doc_change = move |new_doc_id: tasklens_store::doc_id::DocumentId| {
         tracing::info!("Attempting to switch to Document ID: {}", new_doc_id);
         spawn(async move {
-            // 1. Load without lock
-            match AppStore::load_from_db(&new_doc_id).await {
-                Ok(Some(bytes)) => {
-                    // 2. Update with lock
-                    {
-                        let mut s = store.write();
-                        s.current_id = new_doc_id.clone();
-                        s.load_from_bytes(bytes);
-                    }
-                    // 3. Side effects
-                    AppStore::save_active_doc_id(&new_doc_id);
-
-                    tracing::info!("Switch successful");
-                    doc_id.set(Some(new_doc_id));
-                }
-                Ok(None) => tracing::error!("Doc not found: {}", new_doc_id),
-                Err(e) => tracing::error!("Switch failed: {:?}", e),
+            let mut s = store.write();
+            if let Err(e) = s.switch_doc(new_doc_id.clone()).await {
+                tracing::error!("Switch failed: {:?}", e);
+            } else {
+                doc_id.set(Some(new_doc_id));
+                tracing::info!("Switch successful");
             }
         });
     };
@@ -120,15 +109,9 @@ pub fn TaskPage() -> Element {
         tracing::info!("Creating new document");
         spawn(async move {
             let mut s = store.write();
-            match s.create_new() {
+            match s.create_new().await {
                 Ok(new_id) => {
                     tracing::info!("Created new doc successfully: {}", new_id);
-                    // Explicit save due to missing global effect
-                    if let Err(e) = s.save_to_db().await {
-                        tracing::error!("Failed to save new doc: {:?}", e);
-                    } else {
-                        AppStore::save_active_doc_id(&new_id);
-                    }
                     doc_id.set(Some(new_id));
                 }
                 Err(e) => tracing::error!("Failed to create doc: {:?}", e),

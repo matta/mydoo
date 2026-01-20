@@ -97,9 +97,13 @@ pub fn DocIdManager(
     };
 
     let handle_download = move |_| {
-        let mut store = store.write();
-        let bytes = store.export_save();
-        let current_id = store.current_id.to_string();
+        let bytes = store.read().export_save();
+        let current_id = store
+            .read()
+            .current_id
+            .as_ref()
+            .map(|id| id.to_string())
+            .unwrap_or_default();
 
         // 1 MiB limit for data URL downloads (browsers have ~2MB limit, be conservative)
         const MAX_DOWNLOAD_SIZE: usize = 1024 * 1024;
@@ -141,7 +145,7 @@ pub fn DocIdManager(
                         let mut store = store.write();
                         // Bytes from read_bytes are `bytes::Bytes`
                         // import_doc expects Vec<u8>
-                        match store.import_doc(bytes.to_vec()) {
+                        match store.import_doc(bytes.to_vec()).await {
                             Ok(new_id) => {
                                 tracing::info!("Imported document: {}", new_id);
                                 // Explicit save removed. Handled by use_persistence hook.

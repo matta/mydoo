@@ -84,9 +84,30 @@ impl FromStr for TaskLensUrl {
     }
 }
 
+impl TaskLensUrl {
+    /// Returns the document ID.
+    pub fn document_id(&self) -> DocumentId {
+        self.document_id.clone()
+    }
+}
+
 impl From<DocumentId> for TaskLensUrl {
     fn from(document_id: DocumentId) -> Self {
         Self { document_id }
+    }
+}
+
+// Interop with Samod
+impl From<samod::DocumentId> for DocumentId {
+    fn from(id: samod::DocumentId) -> Self {
+        Self(Uuid::from_slice(id.as_bytes()).expect("Samod DocumentId should be valid UUID"))
+    }
+}
+
+impl From<DocumentId> for samod::DocumentId {
+    fn from(id: DocumentId) -> Self {
+        // samod::DocumentId::try_from(Vec<u8>)
+        Self::try_from(id.0.as_bytes().to_vec()).expect("DocumentId should be valid UUID")
     }
 }
 

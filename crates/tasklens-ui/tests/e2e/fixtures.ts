@@ -112,7 +112,6 @@ export const test = bddTest.extend<MyFixtures, MyWorkerFixtures>({
     ) => {
       const port = 3010 + workerInfo.workerIndex;
       const server = new SyncServerHelper(port);
-      await server.build();
       await server.start();
       await use(server);
       await server.stop();
