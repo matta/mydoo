@@ -64,15 +64,23 @@ pub fn use_sync_client(mut store: Signal<AppStore>) -> Signal<SyncStatus> {
     // This avoids potential infinite loops where writing to the store (after saving incremental changes)
     // triggers the effect again.
     use_future(move || async move {
+        let mut last_synced_heads: Vec<automerge::ChangeHash> = Vec::new();
+
         loop {
             // Check every 500ms
             gloo_timers::future::TimeoutFuture::new(500).await;
 
             if let Some(tx) = tx_local_signal() {
                 let mut s = store.write();
-                if let Some(changes) = s.get_recent_changes() {
+                // Use get_changes_since to avoid conflict with persistence which clears the
+                // internal incremental buffer via save().
+                if let Some(changes) = s.get_changes_since(&last_synced_heads) {
                     tracing::info!("Pushing local changes to sync: {} bytes", changes.len());
                     let _ = tx.unbounded_send(changes);
+
+                    // Update our tracker to the current heads of the doc so we only
+                    // send subsequent changes next time.
+                    last_synced_heads = s.heads.clone();
                 }
             }
         }

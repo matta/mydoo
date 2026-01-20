@@ -544,9 +544,16 @@ impl AppStore {
         Ok(())
     }
 
-    /// Gets the changes made since the last sync/save.
-    pub fn get_recent_changes(&mut self) -> Option<Vec<u8>> {
-        let changes = self.doc.save_incremental();
+    /// Gets incremental changes since the provided heads.
+    ///
+    /// This method uses `Automerge::save_after` which is stateless regarding the document's
+    /// internal incremental buffer. This is safer than `get_recent_changes` when multiple
+    /// consumers (persistence, sync) are accessing the document independently.
+    ///
+    /// # Arguments
+    /// * `heads` - The set of change hashes that the client has already seen/synced.
+    pub fn get_changes_since(&mut self, heads: &[automerge::ChangeHash]) -> Option<Vec<u8>> {
+        let changes = self.doc.save_after(heads);
         if changes.is_empty() {
             None
         } else {
