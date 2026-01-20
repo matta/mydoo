@@ -1,11 +1,11 @@
 # Implementation Plan - Discovery-Key Sync
 
 ## Phase 1: Protocol Refactoring (`tasklens-sync-protocol`)
-- [x] Task: Update `ClientMessage` Enums
+- [x] Task: Update `ClientMessage` Enums 769cc28
     - [x] Rename `sync_id` to `discovery_key` in `Hello`.
     - [x] Rename `sync_id` to `discovery_key` in `SubmitChange`.
     - [x] Change `SubmitChange.payload` to `Vec<u8>`.
-- [x] Task: Update `ServerMessage` Enums
+- [x] Task: Update `ServerMessage` Enums 769cc28
     - [x] Rename `sync_id` to `discovery_key` in `ChangeOccurred`.
     - [x] Change `ChangeOccurred.payload` to `Vec<u8>`.
 - [ ] Task: Conductor - User Manual Verification 'Protocol Refactoring' (Protocol in workflow.md)
