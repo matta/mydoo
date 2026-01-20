@@ -2,7 +2,6 @@ use crate::{ClientMessage, ServerMessage};
 use futures::channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use futures::prelude::*;
 use gloo_net::websocket::{Message, futures::WebSocket};
-use serde::{Deserialize, Serialize};
 
 /// A pure client for the TaskLens Sync Protocol.
 ///

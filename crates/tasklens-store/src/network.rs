@@ -265,7 +265,6 @@ mod implementation {
 #[cfg(not(target_arch = "wasm32"))]
 mod stub {
     use super::SyncStatus;
-    use anyhow::Result;
     use futures::channel::mpsc::{UnboundedReceiver, UnboundedSender};
 
     #[allow(clippy::too_many_arguments)]
