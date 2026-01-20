@@ -23,3 +23,10 @@ updates:
     cooldown:
       default-days: 7 # Wait 7 days after any release before opening a PR
       # semver-major-days omitted: GitHub Actions don't follow semver strictly
+  - package-ecosystem: 'cargo'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    cooldown:
+      default-days: 7 # Wait 7 days after any release before opening a PR
+      semver-major-days: 14 # Wait longer for major breaking changes
