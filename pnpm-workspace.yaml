@@ -7,7 +7,7 @@ packages:
 
 catalogs:
   default:
-    "@automerge/automerge": ^3.2.1
+    "@automerge/automerge": ^3.2.2
     "@automerge/automerge-repo": ^2.5.1
     "@automerge/automerge-repo-network-websocket": ^2.5.1
     "@automerge/automerge-repo-react-hooks": ^2.5.1
@@ -16,7 +16,7 @@ catalogs:
     "@commitlint/cli": ^20.3.0
     "@commitlint/types": ^20.3.1
     "@mantine/core": 8.3.10
-    "@mantine/hooks": 8.3.10
+    "@mantine/hooks": 8.3.12
     "@mantine/notifications": ^8.3.12
     "@playwright/test": ^1.57.0
     "@reduxjs/toolkit": ^2.11.2
@@ -31,7 +31,7 @@ catalogs:
     "@vitejs/plugin-react": ^5.1.1
     "@vitest/browser": ^4.0.16
     "@vitest/browser-playwright": ^4.0.16
-    "@vitest/coverage-v8": ^4.0.16
+    "@vitest/coverage-v8": ^4.0.17
     ajv: ^8.17.1
     ajv-formats: ^3.0.1
     eslint: ^9.39.2
@@ -40,7 +40,7 @@ catalogs:
     husky: ^9.1.7
     js-yaml: 4.1.1
     json-schema-to-typescript: ^15.0.4
-    knip: ^5.80.0
+    knip: ^5.80.2
     minimatch: ^10.1.1
     minimist: ^1.2.8
     playwright-bdd: ^8.4.2
