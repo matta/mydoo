@@ -20,7 +20,7 @@
       "!**/.features-gen",
       "!**/*.d.ts",
       "!**/.prettierignore",
-      "!**/tempcontext"
+      "!**/reference_repos"
     ]
   },
   "css": {
