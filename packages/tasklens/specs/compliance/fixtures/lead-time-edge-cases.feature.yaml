@@ -10,36 +10,43 @@ background:
       title: 2.1x Lead Time
       importance: 1
       desired_credits: 0
+      lead_time_seconds: 604800
       due_date: "2025-01-15T02:24:00Z"
     - id: Edge
       title: 2.0x Lead Time
       importance: 1
       desired_credits: 0
+      lead_time_seconds: 604800
       due_date: "2025-01-15T00:00:00Z"
     - id: Halfway
       title: 1.5x Lead Time
       importance: 1
       desired_credits: 0
+      lead_time_seconds: 604800
       due_date: "2025-01-11T12:00:00Z"
     - id: Standard
       title: 1.0x Lead Time
       importance: 1
       desired_credits: 0
+      lead_time_seconds: 604800
       due_date: "2025-01-08T00:00:00Z"
     - id: Critical
       title: 0.5x Lead Time
       importance: 1
       desired_credits: 0
+      lead_time_seconds: 604800
       due_date: "2025-01-04T12:00:00Z"
     - id: Immediate
       title: 0.01x Lead Time
       importance: 1
       desired_credits: 0
+      lead_time_seconds: 604800
       due_date: "2025-01-01T01:40:48Z"
     - id: Overdue
       title: Overdue Task
       importance: 1
       desired_credits: 0
+      lead_time_seconds: 604800
       due_date: "2024-12-31T00:00:00Z"
     - id: Quick
       title: Short Lead Time (1d) at 1.5x

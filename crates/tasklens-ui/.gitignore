@@ -1,0 +1,4 @@
+# Generated build artifacts
+public/version.js
+.features-gen/
+updates.db

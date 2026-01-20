@@ -1,0 +1,69 @@
+feature: Sorting Importance Tiebreaker
+description: |
+  Validates that when two tasks have equal computed priority, the sort falls
+  back to raw importance (higher importance first) before using outline index.
+
+scenarios:
+  - name: Equal priority tasks are sorted by importance
+    description: |
+      Two root tasks with different importance values but equal computed priority
+      should be sorted by importance (descending), not outline order.
+
+      WHY DUE DATES ARE NECESSARY:
+      The priority formula is: priority = importance × lead_time_factor.
+      Tasks without due dates get lead_time_factor=1.0, so priority=importance.
+      This means equal priorities would require equal importance values, making
+      it impossible to test the importance tiebreaker. By using due dates to
+      tune lead_time_factor, we can achieve equal priorities (0.3) with different
+      importance values (0.6 vs 0.3), which exercises the tiebreaker logic.
+
+      SETUP:
+      - Task "low-importance": importance=0.3, overdue => factor=1.0 => priority=0.3
+      - Task "high-importance": importance=0.6, factor=0.5 => priority=0.3
+
+      Expected: high-importance comes first (importance 0.6 > 0.3)
+    steps:
+      - given:
+          # Set current time to a specific point
+          current_time: "2025-01-15T12:00:00Z"
+          tasks:
+            # Low importance task appears FIRST in outline order
+            # but should sort SECOND due to tiebreaker
+            - id: low-importance
+              title: Low Importance Task
+              desired_credits: 0 # Disables Balance algorithm to isolate this test
+              lead_time_seconds: 604800
+              importance: 0.3
+              # Due date in the past => overdue => lead_time_factor = 1.0
+              # priority = 0.3 * 1.0 = 0.3
+              due_date: "2025-01-14T12:00:00Z"
+
+            # High importance task appears SECOND in outline order
+            # but should sort FIRST due to tiebreaker
+            - id: high-importance
+              title: High Importance Task
+              desired_credits: 0 # Disables Balance algorithm to isolate this test
+              lead_time_seconds: 604800
+              importance: 0.6
+              # For factor=0.5 with leadTime=7 days:
+              # timeRemaining = 1.5 * leadTime = 10.5 days
+              # Due date = current_time + 10.5 days = 2025-01-26T00:00:00Z
+              # factor = (2*7 - 10.5) / 7 = (14 - 10.5) / 7 = 0.5
+              # priority = 0.6 * 0.5 = 0.3
+              due_date: "2025-01-26T00:00:00Z"
+        then:
+          # Verify PRECONDITION: Both tasks have equal priority (score)
+          # This ensures the importance tiebreaker is actually being exercised
+          expected_props:
+            - id: low-importance
+              score: 0.3
+              importance: 0.3
+            - id: high-importance
+              score: 0.3
+              importance: 0.6
+          # When priorities are equal, higher importance tasks should appear first.
+          # "low-importance" appears first in outline order but has lower importance,
+          # so "high-importance" must be sorted ahead of it.
+          expected_order:
+            - high-importance
+            - low-importance

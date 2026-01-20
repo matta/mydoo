@@ -10,6 +10,7 @@
   "references": [
     { "path": "./apps/client" },
     { "path": "./packages/tasklens" },
-    { "path": "./scripts" }
+    { "path": "./scripts" },
+    { "path": "./crates/tasklens-ui" }
   ]
 }

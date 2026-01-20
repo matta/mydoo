@@ -1,0 +1,45 @@
+[package]
+name = "tasklens-core"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+autosurgeon.workspace = true
+automerge.workspace = true
+getrandom.workspace = true
+proptest = { version = "1.9.0", optional = true }
+proptest-derive = { version = "0.7.0", optional = true }
+
+[features]
+test-utils = ["dep:proptest", "dep:proptest-derive"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys.workspace = true
+wasm-bindgen.workspace = true
+
+[dev-dependencies]
+serde_yaml_ng = "0.10"
+glob = "0.3"
+path-clean = "1.0"
+proptest = "1.9.0"
+proptest-derive = "0.7.0"
+assert-json-diff = "2.0"
+# Why does tasklens-core depend on itself here?
+#
+# tests/prop_serialization.rs needs TunnelState to have the `Arbitrary` trait
+# (for property testing). That trait is only derived when `test-utils` is on.
+#
+# Cargo compiles files in tests/*.rs differently than #[test] functions in
+# src/. They're built as external programs that import this library from the
+# outside—so they don't automatically get features. We explicitly request
+# test-utils here so the tests see the Arbitrary derives.
+#
+# This only affects `cargo test`. Dev-dependencies are ignored for release builds
+# and when other crates depend on this library.
+tasklens-core = { path = ".", features = ["test-utils"] }

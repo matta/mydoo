@@ -27,6 +27,11 @@ maintainability, and type safety across the codebase.
 5.  **Exhaustiveness:** When handling unions (especially in `switch`
     statements), ensure all cases are handled. Use a `assertUnreachable` utility
     if necessary to guarantee exhaustiveness.
+6.  **The Protocol of Strictness:** If you cannot express a type correctly
+    without using `any` or `as` casting, **STOP**. A complex type puzzle you
+    cannot solve is a signal to pause and ask the user for guidance, not a
+    license to bypass the type system. Lowering the quality bar to achieve
+    autonomy is **unacceptable**.
 
 ### Prefer `undefined` over `null`
 
@@ -161,6 +166,27 @@ cryptic runtime errors.
 For test mocks specifically, see
 [Type-Safe Mocking Strategies](type-safe-mocking.md) for approved alternatives
 including interface segregation and the `strictMock` utility.
+
+---
+
+## Rust & Dioxus Conventions
+
+### Prefer Top-Level Imports
+
+Place all `use` statements at the top of the file. Avoid nesting `use`
+statements inside function bodies or `rsx!` blocks.
+
+**Rationale**: Nested imports make dependencies harder to track and lead to
+redundant imports in large component files.
+
+### Avoid Silent Failures in Event Handlers
+
+Never use silent failures (e.g., `if let Ok(...) { ... }` without an `else`) in
+UI event handlers. Use `tracing::warn!` to log parsing or logic errors.
+
+**Rationale**: Debugging WASM in the browser is difficult. Without explicit
+logging, it is impossible to distinguish between a intentional "no-op" and an
+unexpected failure.
 
 ---
 

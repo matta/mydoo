@@ -37,6 +37,35 @@ jobs:
           restore-keys: |
             turbo-${{ runner.os }}-
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Rust
+        uses: swatinem/rust-cache@v2
+
+      - name: Install cargo-binstall
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-binstall
+
+      - name: Install dioxus-cli
+        run: |
+          DIOXUS_VERSION=$(cargo tree -p dioxus --depth 0 --prefix none | cut -d v -f 2)
+          echo "Installing dioxus-cli version $DIOXUS_VERSION"
+          cargo binstall dioxus-cli --version $DIOXUS_VERSION --locked -y --force
+          echo "Checking dx binary:"
+          ls -l ~/.cargo/bin/dx || echo "dx not found in ~/.cargo/bin"
+          echo "PATH is $PATH"
+          which dx || echo "dx not found in PATH"
+
+      - name: Check Rust
+        run: cargo check --workspace --all-targets
+
+      - name: Test Rust
+        run: cargo test --workspace
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 

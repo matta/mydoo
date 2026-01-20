@@ -8,6 +8,7 @@ background:
   tasks:
     - id: Group
       title: Sequential Group
+      desired_credits: 0 # Disables Balance algorithm to isolate this test
       status: Pending
       is_sequential: true
       children:

@@ -1,0 +1,46 @@
+[package]
+name = "tasklens-ui"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+tasklens-core = { workspace = true }
+tasklens-store = { workspace = true }
+dioxus = { workspace = true, features = ["web", "router"] }
+dioxus-logger = { workspace = true }
+tracing = { workspace = true }
+wasm-bindgen = { workspace = true }
+wasm-bindgen-futures = { workspace = true }
+js-sys = { workspace = true }
+web-sys = { workspace = true, features = ["Window", "ServiceWorkerContainer", "ServiceWorker", "Navigator", "Location", "Storage", "IdbFactory"] }
+getrandom = { version = "0.2", features = ["js"] }
+futures = { workspace = true }
+anyhow = { workspace = true }
+console_error_panic_hook = { workspace = true }
+rexie = "0.6.2"
+base64 = "0.22"
+gloo-net = "0.6"
+
+# Dependencies ported from todo_mvp for Auth/Crypto UI
+gloo-storage = "0.3"
+bip39 = { version = "2.0", features = ["rand"] }
+argon2 = { version = "0.5", features = ["std"] }
+chacha20poly1305 = "0.10"
+rand = { version = "0.8", features = ["std_rng"] }
+hex = "0.4"
+sha2 = "0.10.9"
+gloo-timers = { version = "0.3", features = ["futures"] }
+chrono = { version = "0.4", features = ["serde", "wasmbind"] }
+dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version = "0.0.1", default-features = false, features = ["router"] }
+automerge.workspace = true
+
+[features]
+default = ["web"]
+web = ["dioxus/web"]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile"]
+pwa = []
+
+[build-dependencies]
+chrono = { version = "0.4", features = ["now"] }

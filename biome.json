@@ -23,6 +23,12 @@
       "!**/tempcontext"
     ]
   },
+  "css": {
+    "parser": {
+      "cssModules": true,
+      "tailwindDirectives": true
+    }
+  },
   "formatter": {
     "enabled": false,
     "indentStyle": "space",
@@ -70,5 +76,12 @@
         "useConsistentArrayType": "error"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["crates/tasklens-ui/assets/tailwind.css"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
+    }
+  ]
 }
