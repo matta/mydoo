@@ -35,7 +35,7 @@ const createUserFixture = async (
   browser: Browser,
   name: string,
 ): Promise<UserContext> => {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ serviceWorkers: "block" });
   const page = await context.newPage();
   const plan = new PlanPage(page);
 

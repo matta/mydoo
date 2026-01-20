@@ -542,14 +542,14 @@ export class PlanPage implements PlanFixture {
     ).toBeHidden();
   }
 
-  async verifyTaskCompleted(title: string): Promise<void> {
+  async verifyTaskCompleted(title: string, timeout = 5000): Promise<void> {
     const taskRow = this.page
       .locator(`[data-testid="task-item"]`, { hasText: title })
       .first();
     const titleText = taskRow.getByText(title).first();
 
-    await expect(taskRow).toBeVisible();
-    await expect(titleText).toHaveCSS("text-decoration-line", "line-through");
+    await expect(taskRow).toBeVisible({ timeout });
+    await expect(titleText).toHaveCSS("text-decoration-line", "line-through", { timeout });
   }
 
   async verifyFocusedByLabel(label: string): Promise<void> {

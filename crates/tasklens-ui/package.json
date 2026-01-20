@@ -16,6 +16,6 @@
     "fix-format": "prettier --write .",
     "generate": "rm -rf tests/e2e/.features-gen && bddgen",
     "build": "dx build --platform web",
-    "test-e2e": "pnpm run generate && rm -rf ../../target/dx/tasklens-ui/release/web/public && dx build --package tasklens-ui --platform web --release && playwright test"
+    "test-e2e": "pnpm run generate && rm -rf ../../target/dx/tasklens-ui/debug/web/public && dx build --package tasklens-ui --platform web && playwright test"
   }
 }

@@ -13,9 +13,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     // let master_key = use_context::<Signal<Option<[u8; 32]>>>(); // Removed
     let mut store = use_context::<Signal<AppStore>>();
     let mut doc_id = use_context::<Signal<Option<DocumentId>>>();
-    // let sync_tx = use_context::<Coroutine<Vec<u8>>>(); // Removed
-
-    // ... rest of use_signals ...
+    let memory_heads = use_context::<crate::MemoryHeads>();
 
     // Track expanded task IDs.
     let mut expanded_tasks: Signal<std::collections::HashSet<TaskID>> =
@@ -77,6 +75,9 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     };
 
     let flattened_tasks = use_memo(move || {
+        // Subscribe to heads updates to trigger re-render on sync/persistence changes
+        let _ = memory_heads.0.read();
+        
         let store = store.read();
         let state = store
             .hydrate::<TunnelState>()

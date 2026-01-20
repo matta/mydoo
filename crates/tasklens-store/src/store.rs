@@ -67,43 +67,61 @@ impl AppStore {
         }
     }
 
+    /// Creates a new document using the provided repo.
+    pub async fn create_new_detached(repo: samod::Repo) -> Result<(samod::DocHandle, DocumentId)> {
+        // Create new document
+        let handle = repo.create(automerge::Automerge::new());
+        let handle = handle
+            .await
+            .map_err(|e| anyhow!("Failed to create doc: {:?}", e))?;
+        let id = DocumentId::from(handle.document_id().clone());
+
+        // Initialize with default state
+        handle.with_document(|doc| {
+            let mut tx = doc.transaction();
+
+            let initial_state = TunnelState {
+                next_task_id: 1,
+                next_place_id: 1,
+                tasks: HashMap::new(),
+                places: HashMap::new(),
+                root_task_ids: Vec::new(),
+                metadata: Some(DocMetadata {
+                    automerge_url: Some(TaskLensUrl::from(id.clone()).to_string()),
+                }),
+            };
+
+            if let Err(e) = reconcile(&mut tx, &initial_state) {
+                tracing::error!("Failed to reconcile initial state: {}", e);
+            }
+            tx.commit();
+        });
+
+        Ok((handle, id))
+    }
+
+    /// Finds a document using the provided repo.
+    pub async fn find_doc_detached(repo: samod::Repo, id: DocumentId) -> Result<Option<samod::DocHandle>> {
+        let handle = repo.find(id.into());
+        let handle = handle
+            .await
+            .map_err(|e| anyhow!("Failed to find doc: {:?}", e))?;
+        Ok(handle)
+    }
+
+    /// Updates the store to track the provided document.
+    pub fn set_active_doc(&mut self, handle: samod::DocHandle, id: DocumentId) {
+        self.handle = Some(handle);
+        self.current_id = Some(id.clone());
+        #[cfg(target_arch = "wasm32")]
+        ActiveDocStorage::save_active_url(&TaskLensUrl::from(id));
+    }
+
     /// Creates a new document and switches to it.
     pub async fn create_new(&mut self) -> Result<DocumentId> {
         if let Some(repo) = &self.repo {
-            // Create new document
-            let handle = repo.create(automerge::Automerge::new());
-            let handle = handle
-                .await
-                .map_err(|e| anyhow!("Failed to create doc: {:?}", e))?;
-            let id = DocumentId::from(handle.document_id().clone());
-
-            // Initialize with default state
-            handle.with_document(|doc| {
-                let mut tx = doc.transaction();
-
-                let initial_state = TunnelState {
-                    next_task_id: 1,
-                    next_place_id: 1,
-                    tasks: HashMap::new(),
-                    places: HashMap::new(),
-                    root_task_ids: Vec::new(),
-                    metadata: Some(DocMetadata {
-                        automerge_url: Some(TaskLensUrl::from(id.clone()).to_string()),
-                    }),
-                };
-
-                if let Err(e) = reconcile(&mut tx, &initial_state) {
-                    tracing::error!("Failed to reconcile initial state: {}", e);
-                }
-                tx.commit();
-            });
-
-            self.handle = Some(handle);
-            self.current_id = Some(id.clone());
-
-            #[cfg(target_arch = "wasm32")]
-            ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
-
+            let (handle, id) = Self::create_new_detached(repo.clone()).await?;
+            self.set_active_doc(handle, id.clone());
             Ok(id)
         } else {
             Err(anyhow!("Repo not initialized"))
@@ -113,20 +131,12 @@ impl AppStore {
     /// Switches to an existing document by ID.
     pub async fn switch_doc(&mut self, id: DocumentId) -> Result<()> {
         if let Some(repo) = &self.repo {
-            let handle = repo.find(id.clone().into());
-            let handle = handle
-                .await
-                .map_err(|e| anyhow!("Failed to find doc: {:?}", e))?;
-
-            if let Some(h) = handle {
-                self.handle = Some(h);
-                self.current_id = Some(id.clone());
-                #[cfg(target_arch = "wasm32")]
-                ActiveDocStorage::save_active_url(&TaskLensUrl::from(id));
-                Ok(())
-            } else {
-                Err(anyhow!("Document not found in repo"))
-            }
+             if let Some(handle) = Self::find_doc_detached(repo.clone(), id.clone()).await? {
+                 self.set_active_doc(handle, id);
+                 Ok(())
+             } else {
+                 Err(anyhow!("Document not found in repo"))
+             }
         } else {
             Err(anyhow!("Repo not initialized"))
         }

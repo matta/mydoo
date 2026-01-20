@@ -7,7 +7,7 @@ import { WebSocketServer } from "ws"
 
 const args = process.argv.slice(2)
 const portIdx = args.indexOf("--port")
-const port = portIdx !== -1 ? parseInt(args[portIdx + 1]) : 3030
+const port = portIdx !== -1 ? parseInt(args[portIdx + 1], 10) : 3030
 const dbPathIdx = args.indexOf("--database-path")
 const dbPath = dbPathIdx !== -1 ? args[dbPathIdx + 1] : "automerge-sync-server-data"
 
@@ -15,7 +15,7 @@ if (!fs.existsSync(dbPath)) {
   fs.mkdirSync(dbPath, { recursive: true })
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer((_req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('Sync server is running\n');
 });
@@ -27,7 +27,7 @@ const config = {
   peerId: `sync-server-${port}`,
   sharePolicy: async () => true, // Share everything for tests
 }
-const serverRepo = new Repo(config)
+const _serverRepo = new Repo(config)
 
 server.on("upgrade", (request, socket, head) => {
   wss.handleUpgrade(request, socket, head, (socket) => {

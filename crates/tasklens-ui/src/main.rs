@@ -110,7 +110,7 @@ fn App() -> Element {
     let mut service_worker_active = use_signal(|| false);
 
     // Store State
-    let store = use_signal(AppStore::new);
+    let mut store = use_signal(AppStore::new);
 
     // Give doc_id access to persistence
     let memory_heads = use_signal(String::new);
@@ -125,7 +125,7 @@ fn App() -> Element {
 
     // Sync Client Hook
     let sync_status = hooks::use_sync::use_sync_client(store);
-    hooks::use_persistence::use_persistence(store);
+    hooks::use_persistence::use_persistence(store, memory_heads, persisted_heads);
 
     use_context_provider(|| sync_status);
 
@@ -157,37 +157,51 @@ fn App() -> Element {
 
         is_checking.set(true);
 
+        let repo = store.read().repo.clone().expect("Repo initialized");
+
         if let Some(url) = initial_url_opt {
             let id = url.document_id();
             tracing::info!("Found active document ID: {}", id);
-            // Attempt to switch to it
-            // Use write_unchecked to avoid blocking concurrent reads during await
-            let switch_res = store.write_unchecked().switch_doc(id.clone()).await;
+            
+            // Attempt to find existing document without holding store lock
+            let find_res = AppStore::find_doc_detached(repo.clone(), id.clone()).await;
 
-            if let Err(e) = switch_res {
-                tracing::error!("Failed to switch doc: {:?}. Creating new.", e);
-                // Fallback to create new
-                let create_res = store.write_unchecked().create_new().await;
-                if create_res.is_ok() {
-                    if let Some(new_id) = store.read().current_id.clone() {
-                        doc_id.set(Some(new_id));
-                    }
-                } else if let Err(e) = create_res {
-                    tracing::error!("CRITICAL: Failed to create new doc: {:?}", e);
+            match find_res {
+                Ok(Some(handle)) => {
+                    store.write().set_active_doc(handle, id.clone());
+                    doc_id.set(Some(id));
                 }
-            } else {
-                doc_id.set(Some(id));
+                Ok(None) => {
+                    tracing::error!("Doc {} not found. Creating new.", id);
+                    // Fallback to create new
+                    match AppStore::create_new_detached(repo.clone()).await {
+                        Ok((handle, new_id)) => {
+                            store.write().set_active_doc(handle, new_id.clone());
+                             doc_id.set(Some(new_id));
+                        }
+                        Err(e) => tracing::error!("CRITICAL: Failed to create new doc: {:?}", e),
+                    }
+                }
+                Err(e) => {
+                    tracing::error!("Error finding doc: {:?}. Creating new.", e);
+                    match AppStore::create_new_detached(repo.clone()).await {
+                        Ok((handle, new_id)) => {
+                            store.write().set_active_doc(handle, new_id.clone());
+                             doc_id.set(Some(new_id));
+                        }
+                        Err(e) => tracing::error!("CRITICAL: Failed to create new doc: {:?}", e),
+                    }
+                }
             }
         } else {
             // No active doc, create new
             tracing::info!("No active doc. Creating new.");
-            let create_res = store.write_unchecked().create_new().await;
-            if create_res.is_ok() {
-                if let Some(new_id) = store.read().current_id.clone() {
-                    doc_id.set(Some(new_id));
+            match AppStore::create_new_detached(repo.clone()).await {
+                Ok((handle, new_id)) => {
+                    store.write().set_active_doc(handle, new_id.clone());
+                     doc_id.set(Some(new_id));
                 }
-            } else if let Err(e) = create_res {
-                tracing::error!("CRITICAL: Failed to create new doc: {:?}", e);
+                Err(e) => tracing::error!("CRITICAL: Failed to create new doc: {:?}", e),
             }
         }
 
@@ -245,8 +259,8 @@ fn App() -> Element {
 
         div {
             class: "min-h-screen",
-            "data-memory-heads": "{memory_heads}",
-            "data-persisted-heads": "{persisted_heads}",
+            "data-memory-heads": "{memory_heads()}",
+            "data-persisted-heads": "{persisted_heads()}",
             Router::<Route> {}
         }
     }

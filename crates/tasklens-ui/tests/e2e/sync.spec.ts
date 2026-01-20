@@ -49,6 +49,7 @@ test.describe("End-to-End Synchronization", () => {
     // 4. Two-way Sync: Bob -> Alice
     await test.step("Bob completes the task, Alice sees it", async () => {
       await bob.plan.completeTask("Sync Task");
+      await bob.plan.verifyTaskCompleted("Sync Task"); // Verify local update first
       await alice.plan.verifyTaskCompleted("Sync Task");
     });
   });
