@@ -1,8 +1,0 @@
-{
-  "track_id": "sync_e2e_verification_20260119",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-01-19T10:00:00Z",
-  "updated_at": "2026-01-19T10:00:00Z",
-  "description": "Implement and verify cross-browser synchronization for TaskLens using the tasklens-sync-server."
-}
