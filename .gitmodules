@@ -7,9 +7,6 @@
 [submodule "reference_repos/autosurgeon"]
 	path = reference_repos/autosurgeon
 	url = https://github.com/automerge/autosurgeon.git
-[submodule "reference_repos/todo_mvp"]
-	path = reference_repos/todo_mvp
-	url = https://github.com/matta/todo_mvp.git
 [submodule "reference_repos/samod"]
 	path = reference_repos/samod
 	url = https://github.com/alexjg/samod.git
