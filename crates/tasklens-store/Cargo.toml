@@ -22,7 +22,7 @@ futures = "0.3"
 hex = "0.4"
 # Pinned to 0.8 for compatibility with argon2 (requires rand_core 0.6)
 rand = "0.9"
-getrandom = { version = "0.2", features = ["js"] }
+getrandom = { version = "0.3", features = ["js"] }
 
 # Crypto dependencies
 bs58 = { version = "0.5.1", features = ["check"] }
