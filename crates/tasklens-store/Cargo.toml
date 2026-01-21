@@ -6,7 +6,6 @@ edition.workspace = true
 
 [dependencies]
 tasklens-core = { path = "../tasklens-core" }
-tasklens-sync-protocol = { path = "../tasklens-sync-protocol", features = ["client"] }
 anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true

@@ -3,8 +3,6 @@ resolver = "2"
 members = [
   "crates/tasklens-core",
   "crates/tasklens-store",
-  "crates/tasklens-sync-protocol",
-  "crates/tasklens-sync-server",
   "crates/tasklens-ui",
 ]
 
