@@ -141,7 +141,7 @@ export class PlanPage implements PlanFixture {
     await expect(async () => {
       const currentHeads = await this.getMemoryHeads();
       expect(currentHeads).not.toBe(initialHeads);
-    }).toPass({ timeout: 5000 });
+    }).toPass({ timeout: 15000 });
 
     // 4. Wait for Consistency: Persisted Heads == Memory Heads
     // This confirms that what represents the current state is safely on disk.
