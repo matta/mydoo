@@ -10,14 +10,14 @@
     - [x] Assert load success
 - [x] Task: Conductor - User Manual Verification 'Test Scaffold & Data Loading' (Protocol in workflow.md)
 
-## Phase 2: Hydration & Reconciliation Logic
+## Phase 2: Hydration & Reconciliation Logic [checkpoint: 0a0d8e6]
 - [x] Task: Implement Hydration [b766027]
     - [x] Use `autosurgeon::hydrate` to load `TunnelState` from Source Doc
     - [x] Verify hydration success (basic check, e.g., task count > 0)
 - [x] Task: Implement Reconciliation [144f296]
     - [x] Fork Source Doc to create Target Doc (`doc.fork()` or `clone`)
     - [x] Run `autosurgeon::reconcile` on Target Doc with hydrated state
-- [~] Task: Conductor - User Manual Verification 'Hydration & Reconciliation Logic' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Hydration & Reconciliation Logic' (Protocol in workflow.md)
 
 ## Phase 3: Recursive Diff Implementation
 - [ ] Task: Implement Diff Logic
