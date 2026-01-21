@@ -38,7 +38,7 @@ js-sys = "0.3"
 web-sys = "0.3"
 getrandom = { version = "0.3.4", features = ["wasm_js"] }
 console_error_panic_hook = "0.1.7"
-
+samod = { git = "https://github.com/matta/samod", branch = "wasm" }
 
 [profile.dev]
 debug = true

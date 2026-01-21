@@ -1,88 +1,132 @@
 use dioxus::prelude::*;
-use futures::StreamExt;
-use futures::channel::mpsc;
+use futures::{Sink, SinkExt, Stream, StreamExt};
 use gloo_storage::{LocalStorage, Storage};
-use tasklens_store::crypto;
-pub use tasklens_store::network::SyncStatus;
-use tasklens_store::network::run_sync_loop;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 use tasklens_store::store::AppStore;
+pub use tasklens_store::sync::SyncStatus;
 
 pub const SYNC_SERVER_URL_KEY: &str = "tasklens_sync_server_url";
 
-pub fn use_sync_client(mut store: Signal<AppStore>) -> Signal<SyncStatus> {
+pub fn use_sync_client(store: Signal<AppStore>) -> Signal<SyncStatus> {
     let mut status = use_signal(|| SyncStatus::Disconnected);
-    let mut tx_local_signal = use_signal(|| None::<mpsc::UnboundedSender<Vec<u8>>>);
+
+    // Wrapper to satisfy Send bound on WASM (safe because single-threaded browser)
+    struct UnsafeSend<T>(T);
+    unsafe impl<T> Send for UnsafeSend<T> {}
+    unsafe impl<T> Sync for UnsafeSend<T> {}
+    impl<T> Unpin for UnsafeSend<T> {}
+
+    impl<T: Stream + Unpin> Stream for UnsafeSend<T> {
+        type Item = T::Item;
+        fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+            Pin::new(&mut self.0).poll_next(cx)
+        }
+    }
+
+    impl<T: Sink<Item> + Unpin, Item> Sink<Item> for UnsafeSend<T> {
+        type Error = T::Error;
+        fn poll_ready(
+            mut self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
+        ) -> Poll<Result<(), Self::Error>> {
+            Pin::new(&mut self.0).poll_ready(cx)
+        }
+        fn start_send(mut self: Pin<&mut Self>, item: Item) -> Result<(), Self::Error> {
+            Pin::new(&mut self.0).start_send(item)
+        }
+        fn poll_flush(
+            mut self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
+        ) -> Poll<Result<(), Self::Error>> {
+            Pin::new(&mut self.0).poll_flush(cx)
+        }
+        fn poll_close(
+            mut self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
+        ) -> Poll<Result<(), Self::Error>> {
+            Pin::new(&mut self.0).poll_close(cx)
+        }
+    }
+
+    #[derive(Debug)]
+    struct SyncError(String);
+    impl std::fmt::Display for SyncError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}", self.0)
+        }
+    }
+    impl std::error::Error for SyncError {}
 
     use_future(move || async move {
-        let (tx_local, rx_local) = mpsc::unbounded::<Vec<u8>>();
-        let (tx_remote, mut rx_remote) = mpsc::unbounded::<Vec<u8>>();
-        let (tx_status, mut rx_status) = mpsc::unbounded::<SyncStatus>();
-        tx_local_signal.set(Some(tx_local));
-
-        // Background loop for network sync
-        spawn(async move {
-            run_sync_loop(
-                rx_local,
-                tx_remote,
-                tx_status,
-                || crypto::load_key().ok().flatten(),
-                || LocalStorage::get::<String>(SYNC_SERVER_URL_KEY).ok(),
-                move || {
-                    // Initial state push - currently not strictly required as server
-                    // handles catch-up, but good to have.
-                    // Vec::new()
-                    // To get full state, we'd need access to the store here,
-                    // which is tricky across threads without a lock.
-                    // For now, we rely on incremental changes.
-                    Vec::new()
-                },
-            )
-            .await;
-        });
-
-        // Remote -> Store
-        spawn(async move {
-            let mut store = store;
-            while let Some(changes) = rx_remote.next().await {
-                tracing::info!("Received remote changes: {} bytes", changes.len());
-                if let Err(e) = store.write().import_changes(changes) {
-                    tracing::error!("Failed to import remote changes in sync hook: {:?}", e);
-                }
-            }
-        });
-
-        // Status -> Signal
-        spawn(async move {
-            while let Some(new_status) = rx_status.next().await {
-                status.set(new_status);
-            }
-        });
-    });
-
-    // Store -> Local (Observer)
-    // We use a polling strategy to detect local changes.
-    // This avoids potential infinite loops where writing to the store (after saving incremental changes)
-    // triggers the effect again.
-    use_future(move || async move {
-        let mut last_synced_heads: Vec<automerge::ChangeHash> = Vec::new();
-
+        // Wait for store to have a repo
         loop {
-            // Check every 500ms
-            gloo_timers::future::TimeoutFuture::new(500).await;
+            let repo_opt = store.read().repo.clone();
+            if let Some(repo) = repo_opt {
+                // Check for Sync URL
+                if let Ok(url) = LocalStorage::get::<String>(SYNC_SERVER_URL_KEY)
+                    && !url.is_empty()
+                {
+                    tracing::info!("Starting sync with {}", url);
+                    status.set(SyncStatus::Connecting);
 
-            if let Some(tx) = tx_local_signal() {
-                let mut s = store.write();
-                // Use get_changes_since to avoid conflict with persistence which clears the
-                // internal incremental buffer via save().
-                if let Some(changes) = s.get_changes_since(&last_synced_heads) {
-                    tracing::info!("Pushing local changes to sync: {} bytes", changes.len());
-                    let _ = tx.unbounded_send(changes);
+                    match gloo_net::websocket::futures::WebSocket::open(&url) {
+                        Ok(ws) => {
+                            let (write, read) = ws.split();
 
-                    // Update our tracker to the current heads of the doc so we only
-                    // send subsequent changes next time.
-                    last_synced_heads = s.heads.clone();
+                            // Map gloo_net messages to Vec<u8> for repo.connect
+                            let stream = read.filter_map(|res| async move {
+                                match res {
+                                    Ok(gloo_net::websocket::Message::Bytes(b)) => {
+                                        tracing::info!("Sync RX: {} bytes", b.len());
+                                        Some(Ok(b))
+                                    }
+                                    Ok(gloo_net::websocket::Message::Text(_)) => {
+                                        tracing::warn!(
+                                            "Received unexpected text message on sync websocket"
+                                        );
+                                        None
+                                    }
+                                    Err(e) => Some(Err(SyncError(e.to_string()))),
+                                }
+                            });
+
+                            let sink = write
+                                .with(|b: Vec<u8>| async move {
+                                    tracing::info!("Sync TX: {} bytes", b.len());
+                                    Ok::<_, gloo_net::websocket::WebSocketError>(
+                                        gloo_net::websocket::Message::Bytes(b),
+                                    )
+                                })
+                                .sink_map_err(|e| SyncError(e.to_string()));
+
+                            // Wrap in UnsafeSend to satisfy samod's Send bound
+                            let stream = UnsafeSend(Box::pin(stream));
+                            let sink = UnsafeSend(Box::pin(sink));
+
+                            match repo.connect(stream, sink, samod::ConnDirection::Outgoing) {
+                                Ok(conn) => {
+                                    status.set(SyncStatus::Connected);
+                                    // Wait for connection to finish (disconnect)
+                                    let reason = conn.finished().await;
+                                    tracing::warn!("Sync connection finished: {:?}", reason);
+                                    status.set(SyncStatus::Disconnected);
+                                }
+                                Err(e) => {
+                                    tracing::error!("Failed to connect: {:?}", e);
+                                    status.set(SyncStatus::Error(format!("{:?}", e)));
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            tracing::error!("Failed to open websocket: {:?}", e);
+                            status.set(SyncStatus::Error(format!("{:?}", e)));
+                        }
+                    }
                 }
+                break;
             }
+            gloo_timers::future::TimeoutFuture::new(100).await;
         }
     });
 

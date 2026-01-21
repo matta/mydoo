@@ -5,9 +5,9 @@ test.describe("End-to-End Synchronization", () => {
     const syncUrl = `ws://localhost:${syncServer.getPort()}/sync`;
 
     // 1. Setup Alice
+    let aliceDocId: string;
     await test.step("Setup Alice", async () => {
-      await alice.plan.primeWithSampleData();
-      await alice.plan.waitForAppReady();
+      await alice.plan.clearAndReload();
       await alice.plan.openSyncSettings();
       await alice.plan.setSyncServerUrl(syncUrl);
       await alice.plan.saveSyncSettings();
@@ -15,12 +15,17 @@ test.describe("End-to-End Synchronization", () => {
         "Connected",
         { timeout: 15000 },
       );
+
+      await alice.plan.createTask("Sync Task");
+      const id = await alice.plan.getCurrentDocumentId();
+      expect(id).toBeDefined();
+      if (!id) throw new Error("Alice Doc ID is undefined");
+      aliceDocId = id;
     });
 
-    // 2. Setup Bob (Same Master Key -> Same DocID)
+    // 2. Setup Bob (Join Alice's Document)
     await test.step("Setup Bob", async () => {
-      await bob.plan.primeWithSampleData();
-      await bob.plan.waitForAppReady();
+      await bob.plan.clearAndReload();
       await bob.plan.openSyncSettings();
       await bob.plan.setSyncServerUrl(syncUrl);
       await bob.plan.saveSyncSettings();
@@ -28,13 +33,12 @@ test.describe("End-to-End Synchronization", () => {
         "Connected",
         { timeout: 15000 },
       );
+
+      await bob.plan.switchToDocument(aliceDocId);
     });
 
     // 3. One-way Sync: Alice -> Bob
-    await test.step("Alice creates a task, Bob sees it", async () => {
-      await alice.plan.createTask("Sync Task");
-      // Verify local
-      await alice.plan.verifyTaskVisible("Sync Task");
+    await test.step("Bob sees Alice's task", async () => {
       // Verify remote
       // Wait for sync propagation (allow more time for network + 500ms poll)
       await expect(
@@ -45,6 +49,7 @@ test.describe("End-to-End Synchronization", () => {
     // 4. Two-way Sync: Bob -> Alice
     await test.step("Bob completes the task, Alice sees it", async () => {
       await bob.plan.completeTask("Sync Task");
+      await bob.plan.verifyTaskCompleted("Sync Task"); // Verify local update first
       await alice.plan.verifyTaskCompleted("Sync Task");
     });
   });

@@ -1,6 +1,32 @@
 import { writeFile } from "node:fs/promises";
-import type { Page, TestInfo } from "@playwright/test";
+import type { ConsoleMessage, Page, TestInfo } from "@playwright/test";
 import yaml from "js-yaml";
+
+/**
+ * Formats a console message to remove noisy CSS styling directives from WASM logs.
+ * Example input: "%cINFO%c src/main.rs:10%c Log message color: red..."
+ * Example output: "INFO src/main.rs:10 Log message"
+ */
+export async function formatConsoleMessage(
+  msg: ConsoleMessage,
+): Promise<string> {
+  const text = msg.text();
+  if (text.includes("%c")) {
+    try {
+      const args = await Promise.all(msg.args().map((arg) => arg.jsonValue()));
+      if (args.length > 0 && typeof args[0] === "string") {
+        // tracing-wasm usually puts the entire format string in the first arg
+        // and styles in subsequent args.
+        // We just want the text from the first arg, stripped of %c.
+        return args[0].replace(/%c/g, "");
+      }
+    } catch (_e) {
+      // Fallback if we can't get args (e.g. handle disposed)
+      return text;
+    }
+  }
+  return text;
+}
 
 /**
  * Captures a synthetic DOM snapshot on test failure and writes it to disk.

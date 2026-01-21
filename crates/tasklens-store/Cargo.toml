@@ -14,6 +14,8 @@ automerge.workspace = true
 autosurgeon.workspace = true
 uuid.workspace = true
 tracing.workspace = true
+samod = { workspace = true }
+
 futures = "0.3"
 hex = "0.4"
 # Pinned to 0.8 for compatibility with argon2 (requires rand_core 0.6)
@@ -38,11 +40,13 @@ serde-wasm-bindgen = "0.6"
 gloo-net = { version = "0.6", features = ["websocket"] }
 gloo-storage = "0.3"
 gloo-timers = { version = "0.3", features = ["futures"] }
+send_wrapper = { version = "0.6", features = ["futures"] }
 
 [dev-dependencies]
 pollster = "0.4.0"
-criterion = "0.8.1"
+criterion = { version = "0.8.1", features = ["async_tokio"] }
 automerge-test = "0.6.0"
+tokio = { version = "1", features = ["full"] }
 
 [[bench]]
 name = "import_benchmark"
