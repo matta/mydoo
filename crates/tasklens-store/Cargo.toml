@@ -14,7 +14,7 @@ automerge.workspace = true
 autosurgeon.workspace = true
 uuid.workspace = true
 tracing.workspace = true
-samod = "0.7.1"
+samod = { workspace = true }
 
 futures = "0.3"
 hex = "0.4"
