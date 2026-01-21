@@ -4,18 +4,18 @@
   "packageRules": [
     {
       "matchUpdateTypes": ["patch"],
-      "stabilityDays": 7
+      "minimumReleaseAge": "7 days"
     },
     {
       "matchUpdateTypes": ["minor"],
-      "stabilityDays": 14
+      "minimumReleaseAge": "14 days"
     },
     {
       "matchUpdateTypes": ["major"],
-      "stabilityDays": 28
+      "minimumReleaseAge": "28 days"
     }
   ],
   "vulnerabilityAlerts": {
-    "stabilityDays": 3
+    "minimumReleaseAge": "3 days"
   }
 }
