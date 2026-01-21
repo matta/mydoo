@@ -9,7 +9,7 @@ fn test_golden_reconciliation() {
     println!("Loading golden file from: {:?}", d);
 
     let bytes = std::fs::read(&d).expect("failed to read golden file");
-    let doc = automerge::AutoCommit::load(&bytes).expect("Failed to load automerge doc");
+    let mut doc = automerge::AutoCommit::load(&bytes).expect("Failed to load automerge doc");
 
     println!(
         "Successfully loaded automerge doc with actor: {:?}",
@@ -21,5 +21,14 @@ fn test_golden_reconciliation() {
     assert!(
         !state.tasks.is_empty(),
         "Hydrated state should not be empty"
+    );
+
+    // Phase 2: Reconciliation
+    let mut target_doc = doc.fork();
+    autosurgeon::reconcile(&mut target_doc, &state).expect("Failed to reconcile state");
+
+    println!(
+        "Reconciliation complete. Target doc actor: {:?}",
+        target_doc.get_actor()
     );
 }
