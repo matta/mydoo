@@ -1,3 +1,4 @@
+use automerge::{ObjId, ReadDoc, Value};
 use std::path::PathBuf;
 use tasklens_core::types::TunnelState;
 
@@ -31,4 +32,97 @@ fn test_golden_reconciliation() {
         "Reconciliation complete. Target doc actor: {:?}",
         target_doc.get_actor()
     );
+
+    // Phase 3: Recursive Diff
+    assert_docs_equal(
+        &doc,
+        &target_doc,
+        automerge::ROOT,
+        automerge::ROOT,
+        "".to_string(),
+    );
+}
+
+fn assert_docs_equal<T: ReadDoc>(doc_a: &T, doc_b: &T, obj_a: ObjId, obj_b: ObjId, path: String) {
+    let obj_type_a = doc_a.object_type(&obj_a).expect("Object should exist in A");
+    let obj_type_b = doc_b.object_type(&obj_b).expect("Object should exist in B");
+
+    if obj_type_a != obj_type_b {
+        panic!(
+            "Difference at {}: Object type mismatch. Source: {:?}, Target: {:?}",
+            path, obj_type_a, obj_type_b
+        );
+    }
+
+    match obj_type_a {
+        automerge::ObjType::Map | automerge::ObjType::Table => {
+            let keys_a: std::collections::BTreeSet<_> = doc_a.keys(&obj_a).collect();
+            let keys_b: std::collections::BTreeSet<_> = doc_b.keys(&obj_b).collect();
+
+            let all_keys: std::collections::BTreeSet<_> = keys_a.union(&keys_b).cloned().collect();
+
+            for key in all_keys {
+                let current_path = if path.is_empty() {
+                    key.clone()
+                } else {
+                    format!("{}.{}", path, key)
+                };
+                let val_a = doc_a.get(&obj_a, &key).expect("Get should work");
+                let val_b = doc_b.get(&obj_b, &key).expect("Get should work");
+
+                match (val_a, val_b) {
+                    (Some((Value::Object(_), id_a)), Some((Value::Object(_), id_b))) => {
+                        assert_docs_equal(doc_a, doc_b, id_a, id_b, current_path);
+                    }
+                    (Some((Value::Scalar(s_a), _)), Some((Value::Scalar(s_b), _))) => {
+                        if s_a != s_b {
+                            panic!(
+                                "Difference at {}: Scalar value mismatch. Source: {:?}, Target: {:?}",
+                                current_path, s_a, s_b
+                            );
+                        }
+                    }
+                    (None, Some(_)) => panic!("Difference at {}: Missing in Source", current_path),
+                    (Some(_), None) => panic!("Difference at {}: Missing in Target", current_path),
+                    (a, b) => panic!(
+                        "Difference at {}: Type mismatch. Source: {:?}, Target: {:?}",
+                        current_path, a, b
+                    ),
+                }
+            }
+        }
+        automerge::ObjType::List | automerge::ObjType::Text => {
+            let len_a = doc_a.length(&obj_a);
+            let len_b = doc_b.length(&obj_b);
+            if len_a != len_b {
+                panic!(
+                    "Difference at {}: List length mismatch. Source: {}, Target: {}",
+                    path, len_a, len_b
+                );
+            }
+            for i in 0..len_a {
+                let current_path = format!("{}[{}]", path, i);
+                let val_a = doc_a.get(&obj_a, i as usize).expect("Get should work");
+                let val_b = doc_b.get(&obj_b, i as usize).expect("Get should work");
+
+                match (val_a, val_b) {
+                    (Some((Value::Object(_), id_a)), Some((Value::Object(_), id_b))) => {
+                        assert_docs_equal(doc_a, doc_b, id_a, id_b, current_path);
+                    }
+                    (Some((Value::Scalar(s_a), _)), Some((Value::Scalar(s_b), _))) => {
+                        if s_a != s_b {
+                            panic!(
+                                "Difference at {}: Scalar value mismatch. Source: {:?}, Target: {:?}",
+                                current_path, s_a, s_b
+                            );
+                        }
+                    }
+                    (a, b) => panic!(
+                        "Difference at {}: Type mismatch. Source: {:?}, Target: {:?}",
+                        current_path, a, b
+                    ),
+                }
+            }
+        }
+    }
 }
