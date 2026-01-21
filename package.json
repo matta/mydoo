@@ -6,7 +6,7 @@
   "devDependencies": {
     "@automerge/automerge-repo": "catalog:",
     "@automerge/automerge-repo-network-websocket": "catalog:",
-    "@automerge/automerge-repo-storage-nodefs": "^2.5.1",
+    "@automerge/automerge-repo-storage-nodefs": "catalog:",
     "@biomejs/biome": "catalog:",
     "@commitlint/cli": "catalog:",
     "@commitlint/types": "catalog:",
@@ -20,7 +20,7 @@
     "turbo": "catalog:",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:",
-    "ws": "^8.19.0"
+    "ws": "catalog:"
   },
   "engines": {
     "node": ">=24"

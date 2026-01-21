@@ -7,7 +7,6 @@ use crate::components::*;
 use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskStatus, TunnelState};
-use tasklens_store::actions::{Action, TaskUpdates};
 use tasklens_store::store::AppStore;
 
 /// The main application page component.
@@ -54,33 +53,8 @@ pub fn TaskPage() -> Element {
     };
 
     let toggle_task = move |task: PersistedTask| {
-        let new_status = match task.status {
-            TaskStatus::Done => TaskStatus::Pending,
-            TaskStatus::Pending => TaskStatus::Done,
-        };
-
-        // Use UpdateTask for Pending and CompleteTask for Done (canonical way, or just UpdateTask for both)
-        // Store has a specific CompleteTask action, let's use it if status is Done.
-        // For un-completing, we use UpdateTask.
-        let result = match new_status {
-            TaskStatus::Done => store.write().dispatch(Action::CompleteTask {
-                id: task.id,
-                current_time: js_sys::Date::now() as i64,
-            }),
-            TaskStatus::Pending => store.write().dispatch(Action::UpdateTask {
-                id: task.id,
-                updates: TaskUpdates {
-                    status: Some(TaskStatus::Pending),
-                    ..Default::default()
-                },
-            }),
-        };
-
-        if let Err(e) = result {
-            tracing::error!("Failed to toggle task: {:?}", e);
-        } else {
-            save_and_sync();
-        }
+        crate::controllers::task_controller::toggle_task_status(store, task.id);
+        save_and_sync();
     };
 
     // Prepare tasks for display (convert HashMap to Vec and Sort)

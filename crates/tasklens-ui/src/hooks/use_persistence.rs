@@ -8,16 +8,16 @@ pub fn use_persistence(
 ) {
     // Removed use_context calls as we now accept signals directly to avoid context resolution issues
     // in the root component.
-    
+
     // Spawn a task that polls document heads and updates the signals
     use_future(move || async move {
         tracing::info!("use_persistence: hook initialized");
         loop {
             // Poll every 100ms
             gloo_timers::future::TimeoutFuture::new(100).await;
-            
+
             let handle_opt = store.read().handle.clone();
-            
+
             if let Some(handle) = handle_opt {
                 // Get the current heads from the document
                 let heads = handle.with_document(|doc| {
@@ -25,10 +25,14 @@ pub fn use_persistence(
                     if heads_vec.is_empty() {
                         String::new()
                     } else {
-                        heads_vec.iter().map(|h| format!("{:?}", h)).collect::<Vec<_>>().join(",")
+                        heads_vec
+                            .iter()
+                            .map(|h| format!("{:?}", h))
+                            .collect::<Vec<_>>()
+                            .join(",")
                     }
                 });
-                
+
                 let current_mem = memory_heads.read().clone();
                 // tracing::info!("Persistence tick. Heads: {} vs Memory: {}", heads, current_mem);
 
@@ -39,9 +43,8 @@ pub fn use_persistence(
                     persisted_heads.set(heads);
                 }
             } else {
-                 tracing::info!("Persistence tick: No Handle");
+                tracing::info!("Persistence tick: No Handle");
             }
         }
     });
 }
-

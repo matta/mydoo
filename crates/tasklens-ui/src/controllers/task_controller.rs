@@ -42,22 +42,31 @@ pub fn toggle_task_status(mut store: Signal<AppStore>, id: TaskID) {
     };
 
     if let Some(status) = current_status {
-        let new_status = match status {
-            TaskStatus::Pending => TaskStatus::Done,
-            TaskStatus::Done => TaskStatus::Pending,
-        };
+        match status {
+            TaskStatus::Pending => {
+                let current_time = chrono::Utc::now().timestamp_millis();
+                let action = Action::CompleteTask {
+                    id: id.clone(),
+                    current_time,
+                };
+                if let Err(e) = store.write().dispatch(action) {
+                    tracing::error!("Failed to complete task: {}", e);
+                }
+            }
+            TaskStatus::Done => {
+                let action = Action::UpdateTask {
+                    id: id.clone(),
+                    updates: TaskUpdates {
+                        status: Some(TaskStatus::Pending),
+                        ..Default::default()
+                    },
+                };
 
-        let action = Action::UpdateTask {
-            id: id.clone(),
-            updates: TaskUpdates {
-                status: Some(new_status),
-                ..Default::default()
-            },
+                if let Err(e) = store.write().dispatch(action) {
+                    tracing::error!("Failed to toggle task status: {}", e);
+                }
+            }
         };
-
-        if let Err(e) = store.write().dispatch(action) {
-            tracing::error!("Failed to toggle task status: {}", e);
-        }
     }
 }
 
@@ -117,30 +126,34 @@ pub fn indent_task(store: Signal<AppStore>, id: TaskID) {
                 return;
             }
         };
-        
+
         // Find task's parent ID
         let task = match state.tasks.get(&id) {
             Some(t) => t,
             None => return,
         };
         let parent_id = task.parent_id.clone();
-        
+
         // Get siblings list
         let siblings = if let Some(pid) = &parent_id {
-            state.tasks.get(pid).map(|t| &t.child_task_ids).unwrap_or(&state.root_task_ids)
+            state
+                .tasks
+                .get(pid)
+                .map(|t| &t.child_task_ids)
+                .unwrap_or(&state.root_task_ids)
         } else {
             &state.root_task_ids
         };
 
         // Find index of self
         let index = siblings.iter().position(|x| *x == id);
-        
+
         match index {
             Some(i) if i > 0 => {
                 // Previous sibling exists
-                Some(siblings[i-1].clone())
+                Some(siblings[i - 1].clone())
             }
-            _ => None
+            _ => None,
         }
     };
 

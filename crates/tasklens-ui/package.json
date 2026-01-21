@@ -9,7 +9,7 @@
     "@types/node": "catalog:",
     "js-yaml": "catalog:",
     "playwright-bdd": "catalog:",
-    "wait-port": "^1.1.0"
+    "wait-port": "catalog:"
   },
   "scripts": {
     "check-format": "prettier --check .",

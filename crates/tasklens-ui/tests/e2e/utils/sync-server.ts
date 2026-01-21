@@ -29,19 +29,28 @@ export class SyncServerHelper {
     fs.mkdirSync(this.dbPath, { recursive: true });
 
     // utils -> e2e -> tests -> tasklens-ui -> crates -> mydoo/package.json
-    // We need to point to mydoo/scripts/sync-server.mjs
-    const scriptPath = path.resolve(__dirname, "../../../../../scripts/sync-server.mjs");
-    console.log(`Starting sync server: node ${scriptPath} --port ${this.port} --database-path ${this.dbPath}`);
+    // We need to point to mydoo/scripts/sync-server.js
+    const scriptPath = path.resolve(
+      __dirname,
+      "../../../../../scripts/sync-server.js",
+    );
+    console.log(
+      `Starting sync server: node ${scriptPath} --port ${this.port} --database-path ${this.dbPath}`,
+    );
 
-    this.serverProcess = spawn("node", [
-      scriptPath,
-      "--port",
-      this.port.toString(),
-      "--database-path",
-      this.dbPath,
-    ], {
-      stdio: "inherit",
-    });
+    this.serverProcess = spawn(
+      "node",
+      [
+        scriptPath,
+        "--port",
+        this.port.toString(),
+        "--database-path",
+        this.dbPath,
+      ],
+      {
+        stdio: "inherit",
+      },
+    );
 
     try {
       await waitPort({
@@ -72,4 +81,3 @@ export class SyncServerHelper {
     }
   }
 }
-

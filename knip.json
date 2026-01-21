@@ -8,7 +8,8 @@
       "entry": [
         "check-turbo-inputs.ts",
         "check-dependency-health.ts",
-        "lint-filenames.ts"
+        "lint-filenames.ts",
+        "sync-server.js"
       ]
     },
     "packages/tasklens": {

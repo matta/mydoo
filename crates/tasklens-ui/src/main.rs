@@ -131,6 +131,15 @@ fn App() -> Element {
 
     // Unified Reactive Initialization
     use_future(move || async move {
+        #[cfg(target_arch = "wasm32")]
+        if let Some(window) = web_sys::window() {
+            let search = window.location().search().unwrap_or_default();
+            if search.contains("skip_db_init=true") {
+                tracing::info!("Skipping App initialization due to skip_db_init flag");
+                return;
+            }
+        }
+
         // --- Samod Repo Initialization ---
         tracing::info!("Initialization: Starting Samod Repo");
 
@@ -162,7 +171,7 @@ fn App() -> Element {
         if let Some(url) = initial_url_opt {
             let id = url.document_id();
             tracing::info!("Found active document ID: {}", id);
-            
+
             // Attempt to find existing document without holding store lock
             let find_res = AppStore::find_doc_detached(repo.clone(), id.clone()).await;
 
@@ -177,7 +186,7 @@ fn App() -> Element {
                     match AppStore::create_new_detached(repo.clone()).await {
                         Ok((handle, new_id)) => {
                             store.write().set_active_doc(handle, new_id.clone());
-                             doc_id.set(Some(new_id));
+                            doc_id.set(Some(new_id));
                         }
                         Err(e) => tracing::error!("CRITICAL: Failed to create new doc: {:?}", e),
                     }
@@ -187,7 +196,7 @@ fn App() -> Element {
                     match AppStore::create_new_detached(repo.clone()).await {
                         Ok((handle, new_id)) => {
                             store.write().set_active_doc(handle, new_id.clone());
-                             doc_id.set(Some(new_id));
+                            doc_id.set(Some(new_id));
                         }
                         Err(e) => tracing::error!("CRITICAL: Failed to create new doc: {:?}", e),
                     }
@@ -199,7 +208,7 @@ fn App() -> Element {
             match AppStore::create_new_detached(repo.clone()).await {
                 Ok((handle, new_id)) => {
                     store.write().set_active_doc(handle, new_id.clone());
-                     doc_id.set(Some(new_id));
+                    doc_id.set(Some(new_id));
                 }
                 Err(e) => tracing::error!("CRITICAL: Failed to create new doc: {:?}", e),
             }

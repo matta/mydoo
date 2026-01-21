@@ -101,7 +101,10 @@ impl AppStore {
     }
 
     /// Finds a document using the provided repo.
-    pub async fn find_doc_detached(repo: samod::Repo, id: DocumentId) -> Result<Option<samod::DocHandle>> {
+    pub async fn find_doc_detached(
+        repo: samod::Repo,
+        id: DocumentId,
+    ) -> Result<Option<samod::DocHandle>> {
         let handle = repo.find(id.into());
         let handle = handle
             .await
@@ -131,12 +134,12 @@ impl AppStore {
     /// Switches to an existing document by ID.
     pub async fn switch_doc(&mut self, id: DocumentId) -> Result<()> {
         if let Some(repo) = &self.repo {
-             if let Some(handle) = Self::find_doc_detached(repo.clone(), id.clone()).await? {
-                 self.set_active_doc(handle, id);
-                 Ok(())
-             } else {
-                 Err(anyhow!("Document not found in repo"))
-             }
+            if let Some(handle) = Self::find_doc_detached(repo.clone(), id.clone()).await? {
+                self.set_active_doc(handle, id);
+                Ok(())
+            } else {
+                Err(anyhow!("Document not found in repo"))
+            }
         } else {
             Err(anyhow!("Repo not initialized"))
         }
@@ -163,21 +166,65 @@ impl AppStore {
     }
 
     /// Imports a document from a byte array.
-    pub async fn import_doc(&mut self, bytes: Vec<u8>) -> Result<DocumentId> {
-        if let Some(repo) = &self.repo {
-            let doc = automerge::Automerge::load(&bytes)?;
-            let handle = repo
-                .create(doc)
-                .await
-                .map_err(|e| anyhow!("Failed to create (import) doc: {:?}", e))?;
-            let id = DocumentId::from(handle.document_id().clone());
+    /// This is detached from the store instance to avoid holding locks during async operations.
+    pub async fn import_doc_detached(
+        repo: samod::Repo,
+        bytes: Vec<u8>,
+    ) -> Result<(samod::DocHandle, DocumentId)> {
+        let doc = automerge::Automerge::load(&bytes)?;
 
-            self.handle = Some(handle);
-            self.current_id = Some(id.clone());
+        // Try to extract existing ID from metadata to preserve identity
+        let target_id = autosurgeon::hydrate::<_, TunnelState>(&doc)
+            .ok()
+            .and_then(|state| state.metadata)
+            .and_then(|meta| meta.automerge_url)
+            .and_then(|url_str| url_str.parse::<TaskLensUrl>().ok())
+            .map(|url| url.document_id);
+
+        if let Some(id) = target_id {
+            tracing::info!("Importing document with existing ID: {}", id);
 
             #[cfg(target_arch = "wasm32")]
-            ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
+            {
+                use crate::samod_storage::SamodStorage;
+                use samod::storage::LocalStorage;
 
+                // Manually inject into storage to bypass Repo::create generating a new ID
+                let storage = SamodStorage::new("tasklens_samod", "documents");
+                // Samod keys are typically the string representation of the ID
+                if let Ok(key) = samod::storage::StorageKey::from_parts(vec![id.to_string()]) {
+                    storage.put(key, bytes.clone()).await;
+
+                    // Now find it via Repo (which should look in storage)
+                    if let Ok(Some(handle)) =
+                        Self::find_doc_detached(repo.clone(), id.clone()).await
+                    {
+                        return Ok((handle, id));
+                    }
+                }
+            }
+        }
+
+        let handle = repo
+            .create(doc)
+            .await
+            .map_err(|e| anyhow!("Failed to create (import) doc: {:?}", e))?;
+        let id = DocumentId::from(handle.document_id().clone());
+
+        #[cfg(target_arch = "wasm32")]
+        ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
+
+        Ok((handle, id))
+    }
+
+    /// Imports a document from a byte array and sets it as active.
+    /// WARNING: This consumes self mutably and is async. Caller must NOT hold a lock if
+    /// self is behind a RefCell/Signal when awaiting this.
+    /// DEPRECATED: Use import_doc_detached instead.
+    pub async fn import_doc(&mut self, bytes: Vec<u8>) -> Result<DocumentId> {
+        if let Some(repo) = &self.repo {
+            let (handle, id) = Self::import_doc_detached(repo.clone(), bytes).await?;
+            self.set_active_doc(handle, id.clone());
             Ok(id)
         } else {
             Err(anyhow!("Repo not initialized"))

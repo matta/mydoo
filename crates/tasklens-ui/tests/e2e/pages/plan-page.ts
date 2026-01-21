@@ -549,7 +549,9 @@ export class PlanPage implements PlanFixture {
     const titleText = taskRow.getByText(title).first();
 
     await expect(taskRow).toBeVisible({ timeout });
-    await expect(titleText).toHaveCSS("text-decoration-line", "line-through", { timeout });
+    await expect(titleText).toHaveCSS("text-decoration-line", "line-through", {
+      timeout,
+    });
   }
 
   async verifyFocusedByLabel(label: string): Promise<void> {

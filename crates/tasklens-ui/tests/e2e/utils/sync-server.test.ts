@@ -30,14 +30,6 @@ test.describe("SyncServerHelper", () => {
     if (server) await server.stop();
   });
 
-  test.beforeAll(async () => {
-    // Pre-build the binary once
-    const tempServer = new SyncServerHelper(0);
-    console.log("Building server...");
-    await tempServer.build();
-    console.log("Server built.");
-  });
-
   test("should start and accept TCP connections", async () => {
     await server.start();
 
