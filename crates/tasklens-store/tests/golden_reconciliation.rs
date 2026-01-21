@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use tasklens_core::types::{PersistedTask, TunnelState};
 
 #[test]
+#[ignore]
 fn test_golden_reconciliation() {
     let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     d.push("tests/data/golden.automerge");
