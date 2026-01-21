@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 #[derive(PartialEq, Clone, Props)]
-pub struct SelectProps {
+pub(crate) struct SelectProps {
     #[props(optional)]
     pub id: Option<String>,
     pub value: String,

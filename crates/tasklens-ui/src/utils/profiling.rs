@@ -6,7 +6,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 static RECONCILE_DEPTH: AtomicUsize = AtomicUsize::new(0);
 
 #[allow(dead_code)]
-pub struct ProfilingGuard {
+pub(crate) struct ProfilingGuard {
     pub depth: usize,
     pub ind: String,
     pub start_ms: f64,
@@ -19,7 +19,7 @@ impl Drop for ProfilingGuard {
 }
 
 #[allow(dead_code)]
-pub fn depth_enter() -> ProfilingGuard {
+pub(crate) fn depth_enter() -> ProfilingGuard {
     let depth = RECONCILE_DEPTH.fetch_add(1, Ordering::SeqCst);
     ProfilingGuard {
         depth,
@@ -29,7 +29,7 @@ pub fn depth_enter() -> ProfilingGuard {
 }
 
 #[allow(dead_code)]
-pub fn now_ms() -> f64 {
+pub(crate) fn now_ms() -> f64 {
     #[cfg(target_arch = "wasm32")]
     {
         web_sys::window()

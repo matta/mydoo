@@ -1,7 +1,11 @@
 [package]
 name = "tasklens-sync-protocol"
-version = "0.1.0"
-edition = { workspace = true }
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[lints]
+workspace = true
 
 [features]
 client = ["dep:gloo-net", "dep:futures", "dep:wasm-bindgen-futures", "dep:console_error_panic_hook"]

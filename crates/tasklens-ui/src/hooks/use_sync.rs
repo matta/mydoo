@@ -3,13 +3,13 @@ use futures::StreamExt;
 use futures::channel::mpsc;
 use gloo_storage::{LocalStorage, Storage};
 use tasklens_store::crypto;
-pub use tasklens_store::network::SyncStatus;
+pub(crate) use tasklens_store::network::SyncStatus;
 use tasklens_store::network::run_sync_loop;
 use tasklens_store::store::AppStore;
 
-pub const SYNC_SERVER_URL_KEY: &str = "tasklens_sync_server_url";
+pub(crate) const SYNC_SERVER_URL_KEY: &str = "tasklens_sync_server_url";
 
-pub fn use_sync_client(mut store: Signal<AppStore>) -> Signal<SyncStatus> {
+pub(crate) fn use_sync_client(mut store: Signal<AppStore>) -> Signal<SyncStatus> {
     let mut status = use_signal(|| SyncStatus::Disconnected);
     let mut tx_local_signal = use_signal(|| None::<mpsc::UnboundedSender<Vec<u8>>>);
 

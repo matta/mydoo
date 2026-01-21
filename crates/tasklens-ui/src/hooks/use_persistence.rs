@@ -4,7 +4,7 @@ use tasklens_store::store::AppStore;
 
 use crate::{MemoryHeads, PersistedHeads};
 
-pub fn use_persistence(mut store: Signal<AppStore>) {
+pub(crate) fn use_persistence(mut store: Signal<AppStore>) {
     let mh_context = try_use_context::<MemoryHeads>();
     let ph_context = try_use_context::<PersistedHeads>();
 
