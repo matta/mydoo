@@ -19,7 +19,7 @@
     - [x] Run `autosurgeon::reconcile` on Target Doc with hydrated state
 - [x] Task: Conductor - User Manual Verification 'Hydration & Reconciliation Logic' (Protocol in workflow.md)
 
-## Phase 3: Recursive Diff Implementation
+## Phase 3: Recursive Diff Implementation [checkpoint: 8469018]
 - [x] Task: Implement Diff Logic [f2a091d]
     - [x] Implement a recursive comparison function `assert_docs_equal(doc_a, doc_b)`
     - [x] Walk the document tree (maps, lists, values)
@@ -27,4 +27,4 @@
 - [x] Task: Connect to Test [f2a091d]
     - [x] Call comparison function in main test body
     - [x] Fail test with panic/assert if differences found
-- [~] Task: Conductor - User Manual Verification 'Recursive Diff Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Recursive Diff Implementation' (Protocol in workflow.md)
