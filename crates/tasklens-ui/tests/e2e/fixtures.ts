@@ -2,7 +2,7 @@ import { type Browser, expect, type Page } from "@playwright/test";
 import { test as bddTest } from "playwright-bdd";
 import { type PlanFixture, PlanPage } from "./pages/plan-page";
 import { Steps } from "./steps/steps-library";
-import { dumpFailureContext } from "./utils/debug-utils";
+import { dumpFailureContext, formatConsoleMessage } from "./utils/debug-utils";
 import { SyncServerHelper } from "./utils/sync-server";
 
 export { expect };
@@ -39,9 +39,10 @@ const createUserFixture = async (
   const page = await context.newPage();
   const plan = new PlanPage(page);
 
-  page.on("console", (msg) => {
+  page.on("console", async (msg) => {
     const type = msg.type();
-    console.log(`[${name}] PAGE ${type}: ${msg.text()}`);
+    const text = await formatConsoleMessage(msg);
+    console.log(`[${name}] PAGE ${type}: ${text}`);
   });
 
   return { page, plan };
@@ -53,9 +54,10 @@ export const test = bddTest.extend<MyFixtures, MyWorkerFixtures>({
     use: (r: PlanPage) => Promise<void>,
   ) => {
     const planPage = new PlanPage(page);
-    page.on("console", (msg) => {
+    page.on("console", async (msg) => {
       const type = msg.type();
-      const text = `PAGE ${type}: ${msg.text()}`;
+      const cleanText = await formatConsoleMessage(msg);
+      const text = `PAGE ${type}: ${cleanText}`;
       if (type === "error") {
         console.error(text);
       } else if (type === "warning") {
