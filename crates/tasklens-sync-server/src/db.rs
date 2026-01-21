@@ -1,9 +1,9 @@
 use std::sync::{Arc, Mutex};
 use tasklens_sync_protocol::ServerMessage;
 
-pub type DbPool = Arc<Mutex<rusqlite::Connection>>;
+pub(crate) type DbPool = Arc<Mutex<rusqlite::Connection>>;
 
-pub fn init_pool(path: &str) -> std::result::Result<DbPool, Box<dyn std::error::Error>> {
+pub(crate) fn init_pool(path: &str) -> std::result::Result<DbPool, Box<dyn std::error::Error>> {
     let conn = rusqlite::Connection::open(path)?;
 
     // Create the updates table if it doesn't exist.
@@ -28,7 +28,7 @@ pub fn init_pool(path: &str) -> std::result::Result<DbPool, Box<dyn std::error::
 }
 
 /// Appends a raw payload blob to the log.
-pub fn append_update(
+pub(crate) fn append_update(
     pool: &DbPool,
     discovery_key: &str,
     client_id: &str,
@@ -46,7 +46,7 @@ pub fn append_update(
 }
 
 /// Retrieves changes since a given sequence ID for a specific discovery key.
-pub fn get_changes_since(
+pub(crate) fn get_changes_since(
     pool: &DbPool,
     discovery_key: &str,
     last_sequence: i64,

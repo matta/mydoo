@@ -8,10 +8,14 @@ members = [
   "crates/tasklens-ui",
 ]
 
+[workspace.lints.rust]
+unreachable_pub = "warn"
+
 [workspace.lints.clippy]
-cognitive_complexity = "warn"
-too_many_arguments = "warn"
-type_complexity = "warn"
+# cognitive_complexity = "warn"
+redundant_pub_crate = "warn"
+# too_many_arguments = "warn"
+# type_complexity = "warn"
 
 [workspace.package]
 version = "0.1.0"

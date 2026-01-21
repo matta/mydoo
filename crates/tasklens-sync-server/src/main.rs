@@ -10,7 +10,7 @@ use futures::{SinkExt, StreamExt};
 use tasklens_sync_protocol::{ClientMessage, ServerMessage};
 use tokio::sync::broadcast;
 
-mod db;
+pub mod db;
 
 /// Command line arguments for the sync server.
 #[derive(FromArgs)]
