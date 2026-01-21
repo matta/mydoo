@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "ignore": ["pnpm-workspace.yaml", "tempcontext/**", "crates/**"],
+  "ignore": ["pnpm-workspace.yaml", "reference_repos/**", "crates/**"],
   "ignoreBinaries": [],
   "workspaces": {
     ".": {},
