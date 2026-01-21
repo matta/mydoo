@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use tasklens_core::types::TunnelState;
 
 #[test]
 fn test_golden_reconciliation() {
@@ -13,5 +14,12 @@ fn test_golden_reconciliation() {
     println!(
         "Successfully loaded automerge doc with actor: {:?}",
         doc.get_actor()
+    );
+
+    let state: TunnelState = autosurgeon::hydrate(&doc).expect("Failed to hydrate TunnelState");
+    println!("Hydrated state with {} tasks", state.tasks.len());
+    assert!(
+        !state.tasks.is_empty(),
+        "Hydrated state should not be empty"
     );
 }
