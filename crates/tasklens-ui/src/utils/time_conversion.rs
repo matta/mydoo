@@ -1,21 +1,21 @@
 //! Utility functions for time and period conversion in the UI.
 
 /// Milliseconds in one minute.
-pub const MINUTE_MS: i64 = 60 * 1000;
+pub(crate) const MINUTE_MS: i64 = 60 * 1000;
 /// Milliseconds in one hour.
-pub const HOUR_MS: i64 = 60 * MINUTE_MS;
+pub(crate) const HOUR_MS: i64 = 60 * MINUTE_MS;
 /// Milliseconds in one day.
-pub const DAY_MS: i64 = 24 * HOUR_MS;
+pub(crate) const DAY_MS: i64 = 24 * HOUR_MS;
 /// Milliseconds in one week.
-pub const WEEK_MS: i64 = 7 * DAY_MS;
+pub(crate) const WEEK_MS: i64 = 7 * DAY_MS;
 
 /// Default lead time (7 days) in milliseconds.
-pub const DEFAULT_LEAD_TIME_MS: i64 = WEEK_MS;
+pub(crate) const DEFAULT_LEAD_TIME_MS: i64 = WEEK_MS;
 
 /// Converts milliseconds to a human-readable period (e.g., number of days).
 ///
 /// Returns (value, unit). Automatically chooses best unit (Days, Hours, or Minutes).
-pub fn ms_to_period(ms: i64) -> (u32, String) {
+pub(crate) fn ms_to_period(ms: i64) -> (u32, String) {
     if ms >= DAY_MS && ms % DAY_MS == 0 {
         ((ms / DAY_MS) as u32, "Days".to_string())
     } else if ms >= HOUR_MS && ms % HOUR_MS == 0 {
@@ -29,7 +29,7 @@ pub fn ms_to_period(ms: i64) -> (u32, String) {
 ///
 /// Supports "Minutes", "Hours", "Days", "Weeks", "Months", "Years" (and lowercase/plural variations).
 /// Unrecognized units default to days with a warning.
-pub fn period_to_ms(value: u32, unit: &str) -> i64 {
+pub(crate) fn period_to_ms(value: u32, unit: &str) -> i64 {
     match unit.to_lowercase().as_str() {
         "minutes" | "minute" | "mins" | "min" => value as i64 * MINUTE_MS,
         "hours" | "hour" | "hrs" | "hr" => value as i64 * HOUR_MS,

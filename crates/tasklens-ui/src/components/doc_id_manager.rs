@@ -97,9 +97,13 @@ pub fn DocIdManager(
     };
 
     let handle_download = move |_| {
-        let mut store = store.write();
-        let bytes = store.export_save();
-        let current_id = store.current_id.to_string();
+        let bytes = store.read().export_save();
+        let current_id = store
+            .read()
+            .current_id
+            .as_ref()
+            .map(|id| id.to_string())
+            .unwrap_or_default();
 
         // 1 MiB limit for data URL downloads (browsers have ~2MB limit, be conservative)
         const MAX_DOWNLOAD_SIZE: usize = 1024 * 1024;
@@ -138,19 +142,29 @@ pub fn DocIdManager(
             if let Some(file) = files.as_slice().first() {
                 match file.read_bytes().await {
                     Ok(bytes) => {
-                        let mut store = store.write();
-                        // Bytes from read_bytes are `bytes::Bytes`
-                        // import_doc expects Vec<u8>
-                        match store.import_doc(bytes.to_vec()) {
-                            Ok(new_id) => {
-                                tracing::info!("Imported document: {}", new_id);
-                                // Explicit save removed. Handled by use_persistence hook.
-                                on_change.call(new_id);
+                        // Get repo without holding lock
+                        let repo = store.read().repo.clone();
+
+                        if let Some(repo) = repo {
+                            match tasklens_store::store::AppStore::import_doc_detached(
+                                repo,
+                                bytes.to_vec(),
+                            )
+                            .await
+                            {
+                                Ok((handle, new_id)) => {
+                                    tracing::info!("Imported document: {}", new_id);
+                                    // Acquire lock only to update state
+                                    store.write().set_active_doc(handle, new_id.clone());
+                                    on_change.call(new_id);
+                                }
+                                Err(e) => {
+                                    tracing::error!("Import failed: {:?}", e);
+                                    error_msg.set(format!("Import failed: {}", e));
+                                }
                             }
-                            Err(e) => {
-                                tracing::error!("Import failed: {:?}", e);
-                                error_msg.set(format!("Import failed: {}", e));
-                            }
+                        } else {
+                            error_msg.set("Repo not initialized".to_string());
                         }
                     }
                     Err(e) => {

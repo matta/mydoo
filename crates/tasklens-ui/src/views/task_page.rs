@@ -7,7 +7,6 @@ use crate::components::*;
 use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskStatus, TunnelState};
-use tasklens_store::actions::{Action, TaskUpdates};
 use tasklens_store::store::AppStore;
 
 /// The main application page component.
@@ -54,33 +53,8 @@ pub fn TaskPage() -> Element {
     };
 
     let toggle_task = move |task: PersistedTask| {
-        let new_status = match task.status {
-            TaskStatus::Done => TaskStatus::Pending,
-            TaskStatus::Pending => TaskStatus::Done,
-        };
-
-        // Use UpdateTask for Pending and CompleteTask for Done (canonical way, or just UpdateTask for both)
-        // Store has a specific CompleteTask action, let's use it if status is Done.
-        // For un-completing, we use UpdateTask.
-        let result = match new_status {
-            TaskStatus::Done => store.write().dispatch(Action::CompleteTask {
-                id: task.id,
-                current_time: js_sys::Date::now() as i64,
-            }),
-            TaskStatus::Pending => store.write().dispatch(Action::UpdateTask {
-                id: task.id,
-                updates: TaskUpdates {
-                    status: Some(TaskStatus::Pending),
-                    ..Default::default()
-                },
-            }),
-        };
-
-        if let Err(e) = result {
-            tracing::error!("Failed to toggle task: {:?}", e);
-        } else {
-            save_and_sync();
-        }
+        crate::controllers::task_controller::toggle_task_status(store, task.id);
+        save_and_sync();
     };
 
     // Prepare tasks for display (convert HashMap to Vec and Sort)
@@ -95,23 +69,12 @@ pub fn TaskPage() -> Element {
     let handle_doc_change = move |new_doc_id: tasklens_store::doc_id::DocumentId| {
         tracing::info!("Attempting to switch to Document ID: {}", new_doc_id);
         spawn(async move {
-            // 1. Load without lock
-            match AppStore::load_from_db(&new_doc_id).await {
-                Ok(Some(bytes)) => {
-                    // 2. Update with lock
-                    {
-                        let mut s = store.write();
-                        s.current_id = new_doc_id.clone();
-                        s.load_from_bytes(bytes);
-                    }
-                    // 3. Side effects
-                    AppStore::save_active_doc_id(&new_doc_id);
-
-                    tracing::info!("Switch successful");
-                    doc_id.set(Some(new_doc_id));
-                }
-                Ok(None) => tracing::error!("Doc not found: {}", new_doc_id),
-                Err(e) => tracing::error!("Switch failed: {:?}", e),
+            let mut s = store.write();
+            if let Err(e) = s.switch_doc(new_doc_id.clone()).await {
+                tracing::error!("Switch failed: {:?}", e);
+            } else {
+                doc_id.set(Some(new_doc_id));
+                tracing::info!("Switch successful");
             }
         });
     };
@@ -120,15 +83,9 @@ pub fn TaskPage() -> Element {
         tracing::info!("Creating new document");
         spawn(async move {
             let mut s = store.write();
-            match s.create_new() {
+            match s.create_new().await {
                 Ok(new_id) => {
                     tracing::info!("Created new doc successfully: {}", new_id);
-                    // Explicit save due to missing global effect
-                    if let Err(e) = s.save_to_db().await {
-                        tracing::error!("Failed to save new doc: {:?}", e);
-                    } else {
-                        AppStore::save_active_doc_id(&new_id);
-                    }
                     doc_id.set(Some(new_id));
                 }
                 Err(e) => tracing::error!("Failed to create doc: {:?}", e),

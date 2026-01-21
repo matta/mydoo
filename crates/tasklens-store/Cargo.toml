@@ -3,10 +3,11 @@ name = "tasklens-store"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
+[lints]
+workspace = true
 
 [dependencies]
 tasklens-core = { path = "../tasklens-core" }
-tasklens-sync-protocol = { path = "../tasklens-sync-protocol", features = ["client"] }
 anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -14,6 +15,9 @@ automerge.workspace = true
 autosurgeon.workspace = true
 uuid.workspace = true
 tracing.workspace = true
+samod = { workspace = true }
+scopeguard = { workspace = true }
+
 futures = "0.3"
 hex = "0.4"
 # Pinned to 0.8 for compatibility with argon2 (requires rand_core 0.6)
@@ -21,11 +25,6 @@ rand = "0.8"
 getrandom = { version = "0.3", features = ["js"] }
 
 # Crypto dependencies
-chacha20poly1305 = "0.10"
-argon2 = "0.5"
-bip39 = "2.0"
-sha2 = "0.10"
-scopeguard = "1.2.0"
 bs58 = { version = "0.5.1", features = ["check"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -38,11 +37,13 @@ serde-wasm-bindgen = "0.6"
 gloo-net = { version = "0.6", features = ["websocket"] }
 gloo-storage = "0.3"
 gloo-timers = { version = "0.3", features = ["futures"] }
+send_wrapper = { version = "0.6", features = ["futures"] }
 
 [dev-dependencies]
 pollster = "0.4.0"
-criterion = "0.8.1"
+criterion = { version = "0.8.1", features = ["async_tokio"] }
 automerge-test = "0.6.0"
+tokio = { version = "1", features = ["full"] }
 
 [[bench]]
 name = "import_benchmark"

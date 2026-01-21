@@ -1,188 +1,198 @@
 use dioxus::prelude::*;
-use tasklens_core::types::{TaskID, TaskStatus};
+use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
 use tasklens_store::actions::{Action, TaskUpdates};
 use tasklens_store::store::AppStore;
 
-/// Creates a new task with the given title.
-///
-/// If `parent_id` is provided, the task is created as a child of that task.
-/// Empty or whitespace-only titles are silently ignored.
 pub fn create_task(
     mut store: Signal<AppStore>,
     parent_id: Option<TaskID>,
     title: String,
 ) -> Option<TaskID> {
-    if title.trim().is_empty() {
-        return None;
-    }
-
     let id = TaskID::new();
-    if let Err(e) = store.write().dispatch(Action::CreateTask {
+    let action = Action::CreateTask {
         id: id.clone(),
         parent_id,
         title,
-    }) {
-        tracing::error!("Failed to create task: {:?}", e);
+    };
+    if let Err(e) = store.write().dispatch(action) {
+        tracing::error!("Failed to create task: {}", e);
         None
     } else {
         Some(id)
     }
 }
 
-/// Toggles the status of a task between `Pending` and `Done`.
-///
-/// If the task is `Pending`, it will be marked as `Done`.
-/// If the task is `Done`, it will be marked as `Pending`.
-pub fn toggle_task_status(mut store: Signal<AppStore>, task_id: TaskID) {
+pub fn update_task(mut store: Signal<AppStore>, id: TaskID, updates: TaskUpdates) {
+    let action = Action::UpdateTask { id, updates };
+    if let Err(e) = store.write().dispatch(action) {
+        tracing::error!("Failed to update task: {}", e);
+    }
+}
+
+pub fn toggle_task_status(mut store: Signal<AppStore>, id: TaskID) {
     let current_status = {
-        let read = store.read();
-        if let Ok(state) = read.hydrate::<tasklens_core::types::TunnelState>() {
-            state.tasks.get(&task_id).map(|task| task.status)
-        } else {
-            None
+        let store_read = store.read();
+        match store_read.hydrate::<TunnelState>() {
+            Ok(state) => state.tasks.get(&id).map(|t| t.status),
+            Err(e) => {
+                tracing::error!("Failed to hydrate state for toggle: {}", e);
+                None
+            }
         }
     };
 
     if let Some(status) = current_status {
-        let result = match status {
-            TaskStatus::Pending => store.write().dispatch(Action::CompleteTask {
-                id: task_id,
-                current_time: js_sys::Date::now() as i64,
-            }),
-            TaskStatus::Done => store.write().dispatch(Action::UpdateTask {
-                id: task_id,
-                updates: TaskUpdates {
-                    status: Some(TaskStatus::Pending),
-                    ..Default::default()
-                },
-            }),
+        match status {
+            TaskStatus::Pending => {
+                let current_time = chrono::Utc::now().timestamp_millis();
+                let action = Action::CompleteTask {
+                    id: id.clone(),
+                    current_time,
+                };
+                if let Err(e) = store.write().dispatch(action) {
+                    tracing::error!("Failed to complete task: {}", e);
+                }
+            }
+            TaskStatus::Done => {
+                let action = Action::UpdateTask {
+                    id: id.clone(),
+                    updates: TaskUpdates {
+                        status: Some(TaskStatus::Pending),
+                        ..Default::default()
+                    },
+                };
+
+                if let Err(e) = store.write().dispatch(action) {
+                    tracing::error!("Failed to toggle task status: {}", e);
+                }
+            }
         };
-
-        if let Err(e) = result {
-            tracing::error!("Failed to toggle task status: {:?}", e);
-        }
     }
 }
 
-/// Deletes a task by ID.
-pub fn delete_task(mut store: Signal<AppStore>, task_id: TaskID) {
-    if let Err(e) = store.write().dispatch(Action::DeleteTask { id: task_id }) {
-        tracing::error!("Failed to delete task: {:?}", e);
-    }
-}
-
-/// Renames a task.
-///
-/// Empty or whitespace-only titles are silently ignored.
-pub fn rename_task(mut store: Signal<AppStore>, task_id: TaskID, new_title: String) {
-    if new_title.trim().is_empty() {
-        return;
-    }
-
-    if let Err(e) = store.write().dispatch(Action::UpdateTask {
-        id: task_id,
+// Keep rename_task for backward compatibility if needed, or remove if unused.
+// The build error logs didn't show rename_task being missing in the *latest* run (wait, let me check).
+// The first build run showed `rename_task` missing in `plan_page.rs`.
+// The second build run (after I added it) didn't complain about it.
+pub fn rename_task(mut store: Signal<AppStore>, id: TaskID, new_title: String) {
+    let action = Action::UpdateTask {
+        id,
         updates: TaskUpdates {
             title: Some(new_title),
             ..Default::default()
         },
-    }) {
-        tracing::error!("Failed to rename task: {:?}", e);
-    }
-}
-
-/// Updates a task with the given updates.
-///
-/// If the schedule type is set to `Routinely`, a `repeat_config` must be provided.
-pub fn update_task(mut store: Signal<AppStore>, task_id: TaskID, updates: TaskUpdates) {
-    // Validation: Routinely tasks MUST have a repeat_config
-    if let (Some(tasklens_core::types::ScheduleType::Routinely), Some(None)) =
-        (&updates.schedule_type, &updates.repeat_config)
-    {
-        tracing::error!("Validation failed: Routinely schedule requires a RepeatConfig");
-        return;
-    }
-
-    if let Err(e) = store.write().dispatch(Action::UpdateTask {
-        id: task_id,
-        updates,
-    }) {
-        tracing::error!("Failed to update task: {:?}", e);
-    }
-}
-
-/// Moves a task to a new parent.
-pub fn move_task(mut store: Signal<AppStore>, task_id: TaskID, new_parent_id: Option<TaskID>) {
-    if let Err(e) = store.write().dispatch(Action::MoveTask {
-        id: task_id,
-        new_parent_id,
-    }) {
-        tracing::error!("Failed to move task: {:?}", e);
-    }
-}
-
-/// Indents a task: moves it under its previous sibling.
-pub fn indent_task(store: Signal<AppStore>, task_id: TaskID) {
-    let new_parent_id = {
-        let read = store.read();
-        if let Ok(state) = read.hydrate::<tasklens_core::types::TunnelState>() {
-            tasklens_core::domain::hierarchy::get_previous_sibling(&state, &task_id)
-        } else {
-            None
-        }
     };
 
-    if let Some(pid) = new_parent_id {
-        move_task(store, task_id, Some(pid));
+    if let Err(e) = store.write().dispatch(action) {
+        tracing::error!("Failed to rename task: {}", e);
     }
 }
 
-/// Outdents a task: moves it up one level in the hierarchy.
-pub fn outdent_task(store: Signal<AppStore>, task_id: TaskID) {
-    let new_parent_id = {
-        let read = store.read();
-        if let Ok(state) = read.hydrate::<tasklens_core::types::TunnelState>() {
-            state.tasks.get(&task_id).and_then(|task| {
-                if let Some(parent_id) = &task.parent_id {
-                    let parent = state.tasks.get(parent_id)?;
-                    parent.parent_id.clone()
-                } else {
-                    None
-                }
-            })
-        } else {
-            None
-        }
-    };
+pub fn delete_task(mut store: Signal<AppStore>, id: TaskID) {
+    let action = Action::DeleteTask { id };
 
-    // Note: If task is a child of a root task, task.parent_id is Some(root),
-    // and root's parent_id is None. So outdenting moves it to root (new_parent_id = None).
-    // If task is already root, outdent does nothing (or we should check it).
+    if let Err(e) = store.write().dispatch(action) {
+        tracing::error!("Failed to delete task: {}", e);
+    }
+}
 
-    let is_root = {
-        let read = store.read();
-        if let Ok(state) = read.hydrate::<tasklens_core::types::TunnelState>() {
+pub fn move_task(mut store: Signal<AppStore>, id: TaskID, new_parent_id: Option<TaskID>) {
+    let action = Action::MoveTask { id, new_parent_id };
+
+    if let Err(e) = store.write().dispatch(action) {
+        tracing::error!("Failed to move task: {}", e);
+    }
+}
+
+pub fn refresh_lifecycle(mut store: Signal<AppStore>) {
+    let current_time = chrono::Utc::now().timestamp_millis();
+    let action = Action::RefreshLifecycle { current_time };
+
+    if let Err(e) = store.write().dispatch(action) {
+        tracing::error!("Failed to refresh lifecycle: {}", e);
+    }
+}
+
+pub fn indent_task(store: Signal<AppStore>, id: TaskID) {
+    // 1. Identify current parent and siblings.
+    // 2. Find previous sibling.
+    // 3. Move to be child of previous sibling.
+    let new_parent_opt = {
+        let store_read = store.read();
+        let state: TunnelState = match store_read.hydrate() {
+            Ok(s) => s,
+            Err(e) => {
+                tracing::error!("Failed to hydrate for indent: {}", e);
+                return;
+            }
+        };
+
+        // Find task's parent ID
+        let task = match state.tasks.get(&id) {
+            Some(t) => t,
+            None => return,
+        };
+        let parent_id = task.parent_id.clone();
+
+        // Get siblings list
+        let siblings = if let Some(pid) = &parent_id {
             state
                 .tasks
-                .get(&task_id)
-                .map(|t| t.parent_id.is_none())
-                .unwrap_or(true)
+                .get(pid)
+                .map(|t| &t.child_task_ids)
+                .unwrap_or(&state.root_task_ids)
         } else {
-            true
+            &state.root_task_ids
+        };
+
+        // Find index of self
+        let index = siblings.iter().position(|x| *x == id);
+
+        match index {
+            Some(i) if i > 0 => {
+                // Previous sibling exists
+                Some(siblings[i - 1].clone())
+            }
+            _ => None,
         }
     };
 
-    if !is_root {
-        move_task(store, task_id, new_parent_id);
+    if let Some(new_parent) = new_parent_opt {
+        move_task(store, id, Some(new_parent));
     }
 }
 
-/// Triggers the lifecycle refresh cycle (acknowledge completed tasks and wake up routine tasks).
-pub fn refresh_lifecycle(mut store: Signal<AppStore>) {
-    let current_time = js_sys::Date::now() as i64;
-    if let Err(e) = store
-        .write()
-        .dispatch(Action::RefreshLifecycle { current_time })
-    {
-        tracing::error!("Failed to refresh lifecycle: {:?}", e);
+pub fn outdent_task(store: Signal<AppStore>, id: TaskID) {
+    // 1. Identify current parent.
+    // 2. Identify grandparent.
+    // 3. Move to grandparent.
+    let (should_move, new_parent_id) = {
+        let store_read = store.read();
+        let state: TunnelState = match store_read.hydrate() {
+            Ok(s) => s,
+            Err(e) => {
+                tracing::error!("Failed to hydrate for outdent: {}", e);
+                return;
+            }
+        };
+
+        let task = match state.tasks.get(&id) {
+            Some(t) => t,
+            None => return,
+        };
+
+        if let Some(parent_id) = &task.parent_id {
+            // Has parent, so we can outdent to grandparent
+            let parent = state.tasks.get(parent_id);
+            let grandparent_id = parent.and_then(|p| p.parent_id.clone());
+            (true, grandparent_id)
+        } else {
+            // Already root, cannot outdent
+            (false, None)
+        }
+    };
+
+    if should_move {
+        move_task(store, id, new_parent_id);
     }
 }

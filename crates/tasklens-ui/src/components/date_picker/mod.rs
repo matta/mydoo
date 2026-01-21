@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 #[derive(PartialEq, Clone, Props)]
-pub struct DatePickerProps {
+pub(crate) struct DatePickerProps {
     #[props(optional)]
     pub id: Option<String>,
     #[props(optional)]

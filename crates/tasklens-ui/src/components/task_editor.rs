@@ -13,7 +13,7 @@ use tasklens_store::store::{Action, AppStore, TaskUpdates};
 use tracing;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct DraftTask {
+pub(crate) struct DraftTask {
     pub title: String,
     pub notes: String,
     pub importance: f64,

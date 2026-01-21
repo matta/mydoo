@@ -3,6 +3,8 @@ name = "tasklens-ui"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
+[lints]
+workspace = true
 
 [dependencies]
 tasklens-core = { workspace = true }
@@ -34,6 +36,7 @@ gloo-timers = { version = "0.3", features = ["futures"] }
 chrono = { version = "0.4", features = ["serde", "wasmbind"] }
 dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version = "0.0.1", default-features = false, features = ["router"] }
 automerge.workspace = true
+samod = { workspace = true }
 
 [features]
 default = ["web"]

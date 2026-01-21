@@ -17,7 +17,6 @@ pub fn SyncIndicator() -> Element {
         SyncStatus::Disconnected => ("bg-gray-400", "Disconnected"),
         SyncStatus::Connecting => ("bg-yellow-400", "Connecting"),
         SyncStatus::Connected => ("bg-green-500", "Connected"),
-        SyncStatus::Syncing => ("bg-blue-500", "Syncing"),
         SyncStatus::Error(_e) => ("bg-red-500", "Error"),
     };
 

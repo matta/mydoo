@@ -4,13 +4,37 @@ use crate::doc_id::{DocumentId, TaskLensUrl};
 use crate::storage::{ActiveDocStorage, IndexedDbStorage};
 use anyhow::{Result, anyhow};
 use automerge::transaction::Transactable;
-use automerge::{AutoCommit, ReadDoc};
-use autosurgeon::{hydrate, reconcile};
+use autosurgeon::{Doc, reconcile};
 use std::collections::HashMap;
 
 use tasklens_core::types::{
     DocMetadata, PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_optional_task_id,
 };
+
+fn am_get<'a, T: Transactable>(
+    doc: &'a T,
+    obj: &automerge::ObjId,
+    prop: impl Into<automerge::Prop>,
+) -> Result<Option<(automerge::Value<'a>, automerge::ObjId)>, automerge::AutomergeError> {
+    doc.get(obj, prop)
+}
+
+fn am_delete<T: Transactable>(
+    doc: &mut T,
+    obj: &automerge::ObjId,
+    prop: impl Into<automerge::Prop>,
+) -> Result<(), automerge::AutomergeError> {
+    doc.delete(obj, prop)
+}
+
+fn am_put_object<T: Transactable>(
+    doc: &mut T,
+    obj: &automerge::ObjId,
+    prop: impl Into<automerge::Prop>,
+    value: automerge::ObjType,
+) -> Result<automerge::ObjId, automerge::AutomergeError> {
+    doc.put_object(obj, prop, value)
+}
 
 /// A manager for Automerge documents and persistence.
 ///
@@ -19,132 +43,233 @@ use tasklens_core::types::{
 #[derive(Clone, Debug)]
 pub struct AppStore {
     /// The ID of the currently loaded document.
-    pub current_id: DocumentId,
-    /// The underlying Automerge document backend.
-    pub doc: AutoCommit,
-    /// Cached heads for immutable access (since AutoCommit::get_heads is mutable).
-    pub heads: Vec<automerge::ChangeHash>,
+    pub current_id: Option<DocumentId>,
+    pub handle: Option<samod::DocHandle>,
+    pub repo: Option<samod::Repo>,
 }
 
 impl AppStore {
     /// Creates a new AppStore with a fresh document.
     pub fn new() -> Self {
-        let current_id = DocumentId::new();
-        let mut doc = AutoCommit::new();
-        let heads = doc.get_heads();
         Self {
-            current_id,
-            doc,
-            heads,
+            current_id: None,
+            handle: None,
+            repo: None,
         }
     }
 
-    /// Initialize the current document with default state if empty.
-    pub fn init(&mut self) -> Result<()> {
-        let current_state: Result<TunnelState, _> = hydrate(&self.doc);
-        if current_state.is_err() || current_state.as_ref().unwrap().tasks.is_empty() {
+    /// initialize with a specific repo (useful for tests)
+    pub fn with_repo(repo: samod::Repo) -> Self {
+        Self {
+            current_id: None,
+            handle: None,
+            repo: Some(repo),
+        }
+    }
+
+    /// Creates a new document using the provided repo.
+    pub async fn create_new_detached(repo: samod::Repo) -> Result<(samod::DocHandle, DocumentId)> {
+        // Create new document
+        let handle = repo.create(automerge::Automerge::new());
+        let handle = handle
+            .await
+            .map_err(|e| anyhow!("Failed to create doc: {:?}", e))?;
+        let id = DocumentId::from(handle.document_id().clone());
+
+        // Initialize with default state
+        handle.with_document(|doc| {
+            let mut tx = doc.transaction();
+
             let initial_state = TunnelState {
                 next_task_id: 1,
                 next_place_id: 1,
                 tasks: HashMap::new(),
                 places: HashMap::new(),
                 root_task_ids: Vec::new(),
-                metadata: None,
+                metadata: Some(DocMetadata {
+                    automerge_url: Some(TaskLensUrl::from(id.clone()).to_string()),
+                }),
             };
-            reconcile(&mut self.doc, &initial_state)
-                .map_err(|e| anyhow!("Init reconciliation failed: {}", e))?;
-            self.heads = self.doc.get_heads();
-        }
-        Ok(())
+
+            if let Err(e) = reconcile(&mut tx, &initial_state) {
+                tracing::error!("Failed to reconcile initial state: {}", e);
+            }
+            tx.commit();
+        });
+
+        Ok((handle, id))
     }
 
-    /// Resets the document to an empty state.
-    pub fn reset(&mut self) -> Result<()> {
-        self.doc = AutoCommit::new();
-        let res = self.init();
-        self.heads = self.doc.get_heads();
-        res
+    /// Finds a document using the provided repo.
+    pub async fn find_doc_detached(
+        repo: samod::Repo,
+        id: DocumentId,
+    ) -> Result<Option<samod::DocHandle>> {
+        let handle = repo.find(id.into());
+        let handle = handle
+            .await
+            .map_err(|e| anyhow!("Failed to find doc: {:?}", e))?;
+        Ok(handle)
+    }
+
+    /// Updates the store to track the provided document.
+    pub fn set_active_doc(&mut self, handle: samod::DocHandle, id: DocumentId) {
+        self.handle = Some(handle);
+        self.current_id = Some(id.clone());
+        #[cfg(target_arch = "wasm32")]
+        ActiveDocStorage::save_active_url(&TaskLensUrl::from(id));
     }
 
     /// Creates a new document and switches to it.
-    pub fn create_new(&mut self) -> Result<DocumentId> {
-        let new_id = DocumentId::new();
-        let mut new_doc = AutoCommit::new();
-
-        let initial_state = TunnelState {
-            next_task_id: 1,
-            next_place_id: 1,
-            tasks: HashMap::new(),
-            places: HashMap::new(),
-            root_task_ids: Vec::new(),
-            metadata: Some(DocMetadata {
-                automerge_url: Some(TaskLensUrl::from(new_id.clone()).to_string()),
-            }),
-        };
-        reconcile(&mut new_doc, &initial_state)
-            .map_err(|e| anyhow!("New doc reconciliation failed: {}", e))?;
-
-        self.current_id = new_id.clone();
-        self.doc = new_doc;
-        self.heads = self.doc.get_heads();
-
-        #[cfg(target_arch = "wasm32")]
-        ActiveDocStorage::save_active_url(&TaskLensUrl::from(new_id.clone()));
-
-        Ok(new_id)
+    pub async fn create_new(&mut self) -> Result<DocumentId> {
+        if let Some(repo) = &self.repo {
+            let (handle, id) = Self::create_new_detached(repo.clone()).await?;
+            self.set_active_doc(handle, id.clone());
+            Ok(id)
+        } else {
+            Err(anyhow!("Repo not initialized"))
+        }
     }
 
     /// Switches to an existing document by ID.
-    #[cfg(target_arch = "wasm32")]
     pub async fn switch_doc(&mut self, id: DocumentId) -> Result<()> {
-        if let Some(bytes) = IndexedDbStorage::load_from_db(&id).await? {
-            match AutoCommit::load(&bytes) {
-                Ok(doc) => {
-                    self.current_id = id.clone();
-                    self.doc = doc;
-                    self.heads = self.doc.get_heads();
-                    ActiveDocStorage::save_active_url(&TaskLensUrl::from(id));
-                    Ok(())
-                }
-                Err(e) => Err(anyhow!("Failed to load doc bytes: {:?}", e)),
+        if let Some(repo) = &self.repo {
+            if let Some(handle) = Self::find_doc_detached(repo.clone(), id.clone()).await? {
+                self.set_active_doc(handle, id);
+                Ok(())
+            } else {
+                Err(anyhow!("Document not found in repo"))
             }
         } else {
-            Err(anyhow!("Document not found: {}", id))
+            Err(anyhow!("Repo not initialized"))
         }
     }
 
     /// Deletes a document.
-    #[cfg(target_arch = "wasm32")]
     pub async fn delete_doc(&mut self, id: DocumentId) -> Result<()> {
+        #[cfg(target_arch = "wasm32")]
         IndexedDbStorage::delete_doc(&id).await?;
-        if self.current_id == id {
+
+        if self.current_id == Some(id) {
             // If we deleted the current doc, create a new one
-            self.create_new()?;
+            // This might fail if no repo, but delete_doc implies we had some state
+            if self.repo.is_some() {
+                self.create_new().await?;
+            }
         }
         Ok(())
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    pub async fn switch_doc(&mut self, _id: DocumentId) -> Result<()> {
-        Ok(())
+    #[cfg(target_arch = "wasm32")]
+    pub fn save_active_doc_id(id: &DocumentId) {
+        crate::storage::ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    pub async fn delete_doc(&mut self, _id: DocumentId) -> Result<()> {
-        Ok(())
+    /// Imports a document from a byte array.
+    /// This is detached from the store instance to avoid holding locks during async operations.
+    pub async fn import_doc_detached(
+        repo: samod::Repo,
+        bytes: Vec<u8>,
+    ) -> Result<(samod::DocHandle, DocumentId)> {
+        let doc = automerge::Automerge::load(&bytes)?;
+
+        // Try to extract existing ID from metadata to preserve identity
+        let target_id = autosurgeon::hydrate::<_, TunnelState>(&doc)
+            .ok()
+            .and_then(|state| state.metadata)
+            .and_then(|meta| meta.automerge_url)
+            .and_then(|url_str| url_str.parse::<TaskLensUrl>().ok())
+            .map(|url| url.document_id);
+
+        if let Some(id) = target_id {
+            tracing::info!("Importing document with existing ID: {}", id);
+
+            #[cfg(target_arch = "wasm32")]
+            {
+                use crate::samod_storage::SamodStorage;
+                use samod::storage::LocalStorage;
+
+                // Manually inject into storage to bypass Repo::create generating a new ID
+                let storage = SamodStorage::new("tasklens_samod", "documents");
+                // Samod keys are typically the string representation of the ID
+                if let Ok(key) = samod::storage::StorageKey::from_parts(vec![id.to_string()]) {
+                    storage.put(key, bytes.clone()).await;
+
+                    // Now find it via Repo (which should look in storage)
+                    if let Ok(Some(handle)) =
+                        Self::find_doc_detached(repo.clone(), id.clone()).await
+                    {
+                        return Ok((handle, id));
+                    }
+                }
+            }
+        }
+
+        let handle = repo
+            .create(doc)
+            .await
+            .map_err(|e| anyhow!("Failed to create (import) doc: {:?}", e))?;
+        let id = DocumentId::from(handle.document_id().clone());
+
+        #[cfg(target_arch = "wasm32")]
+        ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
+
+        Ok((handle, id))
     }
 
-    /// Hydrates a Rust struct from the Automerge document.
-    pub fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T> {
-        autosurgeon::hydrate(&self.doc).map_err(|e| anyhow!("Hydration failed: {}", e))
+    /// Imports a document from a byte array and sets it as active.
+    /// WARNING: This consumes self mutably and is async. Caller must NOT hold a lock if
+    /// self is behind a RefCell/Signal when awaiting this.
+    /// DEPRECATED: Use import_doc_detached instead.
+    pub async fn import_doc(&mut self, bytes: Vec<u8>) -> Result<DocumentId> {
+        if let Some(repo) = &self.repo {
+            let (handle, id) = Self::import_doc_detached(repo.clone(), bytes).await?;
+            self.set_active_doc(handle, id.clone());
+            Ok(id)
+        } else {
+            Err(anyhow!("Repo not initialized"))
+        }
+    }
+    /// Exports the current document to a byte array.
+    pub fn export_save(&self) -> Vec<u8> {
+        if let Some(handle) = &self.handle {
+            handle.with_document(|doc| doc.save())
+        } else {
+            Vec::new()
+        }
     }
 
-    /// Reconciles a Rust struct with the Automerge document.
+    /// Reconciles a Rust struct with the current document.
     pub fn expensive_reconcile<T: autosurgeon::Reconcile>(
         &mut self,
         data: &T,
     ) -> Result<(), autosurgeon::ReconcileError> {
-        reconcile(&mut self.doc, data)
+        if let Some(handle) = &mut self.handle {
+            handle.with_document(|doc| {
+                let mut tx = doc.transaction();
+                reconcile(&mut tx, data)?;
+                tx.commit();
+                Ok(())
+            })
+        } else {
+            // autosurgeon::ReconcileError's exact variants depend on version.
+            // Often it has a catch-all or Automerge wrapper.
+            // Let's use a simpler approach that is likely to work or fail with a clearer error.
+            Err(autosurgeon::ReconcileError::Automerge(
+                automerge::AutomergeError::InvalidObjId("root".to_string()),
+            ))
+        }
+    }
+
+    /// Hydrates a Rust struct from the current document.
+    pub fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T> {
+        if let Some(handle) = &self.handle {
+            handle.with_document(|doc| {
+                autosurgeon::hydrate(doc).map_err(|e| anyhow!("Hydration failed: {}", e))
+            })
+        } else {
+            Err(anyhow!("No handle available"))
+        }
     }
 
     /// Dispatches an action to modify the application state.
@@ -152,12 +277,8 @@ impl AppStore {
     /// This method is the primary entry point for state mutations. It implements a
     /// functional core pattern using Autosurgeon's hydration and reconciliation capabilities:
     ///
-    /// 1. **Hydrate**: The current Automerge document state is hydrated into a native Rust
-    ///    `TunnelState` struct.
-    /// 2. **Mutate**: The `Action` is applied to the `TunnelState`, modifying tasks,
-    ///    relationships, or other domain models in memory.
-    /// 3. **Reconcile**: The modified `TunnelState` is reconciled back into the Automerge
-    ///    document. This efficiently calculates the diffs and applies them as Automerge
+    /// 1. **Mutate**: The `Action` is applied to the `TunnelState` via specialized handlers.
+    /// 2. **Reconcile**: Handlers use surgical reconciliation for efficiency.
     ///    operations, ensuring history and conflict resolution are preserved.
     ///
     /// # Arguments
@@ -170,40 +291,52 @@ impl AppStore {
     /// Returns `Ok(())` if the action was successfully applied and reconciled, or an `Error`
     /// if hydration or reconciliation failed.
     pub fn dispatch(&mut self, action: Action) -> Result<()> {
-        let result = match action {
-            Action::CreateTask {
-                id,
-                parent_id,
-                title,
-            } => self.handle_create_task(id, parent_id, title),
-            Action::UpdateTask { id, updates } => self.handle_update_task(id, updates),
-            Action::DeleteTask { id } => self.handle_delete_task(id),
-            Action::CompleteTask { id, current_time } => {
-                self.handle_complete_task(id, current_time)
-            }
-            Action::MoveTask { id, new_parent_id } => self.handle_move_task(id, new_parent_id),
-            Action::RefreshLifecycle { current_time } => {
-                self.handle_refresh_lifecycle(current_time)
-            }
-        };
+        let handle = self.handle.as_mut().ok_or_else(|| anyhow!("No handle"))?;
+        Self::dispatch_with_handle(handle, action)
+    }
 
-        self.heads = self.doc.get_heads();
-        result
+    /// Static handler for dispatch that works with a handle directly.
+    pub fn dispatch_with_handle(handle: &mut samod::DocHandle, action: Action) -> Result<()> {
+        handle.with_document(|doc| {
+            let mut tx = doc.transaction();
+            let res = match action {
+                Action::CreateTask {
+                    id,
+                    parent_id,
+                    title,
+                } => Self::handle_create_task(&mut tx, id, parent_id, title),
+                Action::UpdateTask { id, updates } => {
+                    Self::handle_update_task(&mut tx, id, updates)
+                }
+                Action::DeleteTask { id } => Self::handle_delete_task(&mut tx, id),
+                Action::CompleteTask { id, current_time } => {
+                    Self::handle_complete_task(&mut tx, id, current_time)
+                }
+                Action::MoveTask { id, new_parent_id } => {
+                    Self::handle_move_task(&mut tx, id, new_parent_id)
+                }
+                Action::RefreshLifecycle { current_time } => {
+                    Self::handle_refresh_lifecycle(&mut tx, current_time)
+                }
+            };
+            tx.commit();
+            res
+        })
     }
 
     fn handle_create_task(
-        &mut self,
+        doc: &mut (impl Transactable + Doc),
         id: TaskID,
         parent_id: Option<TaskID>,
         title: String,
     ) -> Result<()> {
         // 1. Get Tasks Map.
-        let tasks_obj_id = ensure_path(&mut self.doc, &automerge::ROOT, vec!["tasks"])?;
+        let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
 
         // 2. Resolve parent task.
         let parent = if let Some(pid) = &parent_id {
             let p: Option<PersistedTask> =
-                autosurgeon::hydrate_prop(&self.doc, &tasks_obj_id, pid.as_str())
+                autosurgeon::hydrate_prop(doc, &tasks_obj_id, pid.as_str())
                     .map_err(|e| anyhow!("Failed to hydrate parent task: {}", e))?;
             p
         } else {
@@ -214,55 +347,57 @@ impl AppStore {
         let task = tasklens_core::create_new_task(id.clone(), title, parent.as_ref());
 
         // 4. Reconcile the new task.
-        autosurgeon::reconcile_prop(&mut self.doc, &tasks_obj_id, id.as_str(), &task)
+        autosurgeon::reconcile_prop(doc, &tasks_obj_id, id.as_str(), &task)
             .map_err(|e| anyhow!("Failed to reconcile new task: {}", e))?;
 
         // 5. Update parent's child list or root list.
         if let Some(pid) = parent_id {
             // Get parent object ID.
-            let parent_obj_id = ensure_path(&mut self.doc, &tasks_obj_id, vec![pid.as_str()])?;
+            let parent_obj_id = ensure_path(doc, &tasks_obj_id, vec![pid.as_str()])?;
 
             // Hydrate current children list.
             let mut child_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(&self.doc, &parent_obj_id, "childTaskIds")
-                    .unwrap_or_default();
+                autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds").unwrap_or_default();
 
             child_ids.push(id);
 
             // Reconcile updated children list.
-            autosurgeon::reconcile_prop(&mut self.doc, &parent_obj_id, "childTaskIds", &child_ids)
+            autosurgeon::reconcile_prop(doc, &parent_obj_id, "childTaskIds", &child_ids)
                 .map_err(|e| anyhow!("Failed to reconcile child ids: {}", e))?;
         } else {
             // Update root task list.
             let mut root_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(&self.doc, automerge::ROOT, "rootTaskIds")
-                    .unwrap_or_default();
+                autosurgeon::hydrate_prop(doc, automerge::ROOT, "rootTaskIds").unwrap_or_default();
 
             root_ids.push(id);
 
-            autosurgeon::reconcile_prop(&mut self.doc, automerge::ROOT, "rootTaskIds", &root_ids)
+            autosurgeon::reconcile_prop(doc, automerge::ROOT, "rootTaskIds", &root_ids)
                 .map_err(|e| anyhow!("Failed to reconcile root task ids: {}", e))?;
         }
 
         Ok(())
     }
 
-    fn handle_update_task(&mut self, id: TaskID, updates: TaskUpdates) -> Result<()> {
-        let tasks_obj_id = ensure_path(&mut self.doc, &automerge::ROOT, vec!["tasks"])?;
+    fn handle_update_task(
+        doc: &mut (impl Transactable + Doc),
+        id: TaskID,
+        updates: TaskUpdates,
+    ) -> Result<()> {
+        let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
 
-        let task_obj_id = ensure_path(&mut self.doc, &tasks_obj_id, vec![id.as_str()])
+        let task_obj_id = ensure_path(doc, &tasks_obj_id, vec![id.as_str()])
             .map_err(|_| anyhow!("Task not found: {}", id))?;
 
         if let Some(title) = updates.title {
-            autosurgeon::reconcile_prop(&mut self.doc, &task_obj_id, "title", title)
+            autosurgeon::reconcile_prop(doc, &task_obj_id, "title", title)
                 .map_err(|e| anyhow!("Failed to update title: {}", e))?;
         }
         if let Some(status) = updates.status {
-            autosurgeon::reconcile_prop(&mut self.doc, &task_obj_id, "status", status)
+            autosurgeon::reconcile_prop(doc, &task_obj_id, "status", status)
                 .map_err(|e| anyhow!("Failed to update status: {}", e))?;
         }
         if let Some(place_id_update) = updates.place_id {
-            autosurgeon::reconcile_prop(&mut self.doc, &task_obj_id, "placeId", place_id_update)
+            autosurgeon::reconcile_prop(doc, &task_obj_id, "placeId", place_id_update)
                 .map_err(|e| anyhow!("Failed to update placeId: {}", e))?;
         }
 
@@ -270,43 +405,28 @@ impl AppStore {
             || updates.schedule_type.is_some()
             || updates.lead_time.is_some()
         {
-            let schedule_obj_id = ensure_path(&mut self.doc, &task_obj_id, vec!["schedule"])?;
+            let schedule_obj_id = ensure_path(doc, &task_obj_id, vec!["schedule"])?;
 
             if let Some(due_date_update) = updates.due_date {
-                autosurgeon::reconcile_prop(
-                    &mut self.doc,
-                    &schedule_obj_id,
-                    "dueDate",
-                    due_date_update,
-                )
-                .map_err(|e| anyhow!("Failed to update dueDate: {}", e))?;
+                autosurgeon::reconcile_prop(doc, &schedule_obj_id, "dueDate", due_date_update)
+                    .map_err(|e| anyhow!("Failed to update dueDate: {}", e))?;
             }
             if let Some(schedule_type) = updates.schedule_type {
-                autosurgeon::reconcile_prop(&mut self.doc, &schedule_obj_id, "type", schedule_type)
+                autosurgeon::reconcile_prop(doc, &schedule_obj_id, "type", schedule_type)
                     .map_err(|e| anyhow!("Failed to update schedule type: {}", e))?;
             }
             if let Some(lead_time_update) = updates.lead_time {
-                autosurgeon::reconcile_prop(
-                    &mut self.doc,
-                    &schedule_obj_id,
-                    "leadTime",
-                    lead_time_update,
-                )
-                .map_err(|e| anyhow!("Failed to update leadTime: {}", e))?;
+                autosurgeon::reconcile_prop(doc, &schedule_obj_id, "leadTime", lead_time_update)
+                    .map_err(|e| anyhow!("Failed to update leadTime: {}", e))?;
             }
         }
 
         if let Some(repeat_config_update) = updates.repeat_config {
-            autosurgeon::reconcile_prop(
-                &mut self.doc,
-                &task_obj_id,
-                "repeatConfig",
-                repeat_config_update,
-            )
-            .map_err(|e| anyhow!("Failed to update repeatConfig: {}", e))?;
+            autosurgeon::reconcile_prop(doc, &task_obj_id, "repeatConfig", repeat_config_update)
+                .map_err(|e| anyhow!("Failed to update repeatConfig: {}", e))?;
         }
         if let Some(is_seq) = updates.is_sequential {
-            autosurgeon::reconcile_prop(&mut self.doc, &task_obj_id, "isSequential", is_seq)
+            autosurgeon::reconcile_prop(doc, &task_obj_id, "isSequential", is_seq)
                 .map_err(|e| anyhow!("Failed to update isSequential: {}", e))?;
         }
 
@@ -315,84 +435,81 @@ impl AppStore {
 
     // TODO: Optimize this to use surgical updates (reconcile_prop) similar to handle_create_task.
     // Currently uses full state hydration which is less efficient.
-    fn handle_delete_task(&mut self, id: TaskID) -> Result<()> {
-        let tasks_obj_id = ensure_path(&mut self.doc, &automerge::ROOT, vec!["tasks"])?;
+    fn handle_delete_task(doc: &mut (impl Transactable + Doc), id: TaskID) -> Result<()> {
+        let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
 
         // 1. Get task object ID.
-        let task_obj_id = match self.doc.get(&tasks_obj_id, id.as_str())? {
+        let task_obj_id = match am_get(doc, &tasks_obj_id, id.as_str())? {
             Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
             _ => return Err(anyhow!("Task not found: {}", id)),
         };
 
         // 2. Hydrate parent_id to know where to remove it from.
-        let parent_id: Option<TaskID> = hydrate_optional_task_id(
-            &self.doc,
-            &task_obj_id,
-            autosurgeon::Prop::Key("parentId".into()),
-        )
-        .map_err(|e| anyhow!("Failed to hydrate parentId: {}", e))?;
+        let parent_id: Option<TaskID> =
+            hydrate_optional_task_id(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))
+                .map_err(|e| anyhow!("Failed to hydrate parentId: {}", e))?;
 
         // 3. Remove from parent's children or rootTaskIds.
         if let Some(pid) = parent_id {
             // Get parent object ID.
-            let parent_obj_id = ensure_path(&mut self.doc, &tasks_obj_id, vec![pid.as_str()])?;
+            let parent_obj_id = ensure_path(doc, &tasks_obj_id, vec![pid.as_str()])?;
 
             // Hydrate current children list.
             let mut child_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(&self.doc, &parent_obj_id, "childTaskIds")
-                    .unwrap_or_default();
+                autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds").unwrap_or_default();
 
             child_ids.retain(|cid| cid != &id);
 
             // Reconcile updated children list.
-            autosurgeon::reconcile_prop(&mut self.doc, &parent_obj_id, "childTaskIds", &child_ids)
+            autosurgeon::reconcile_prop(doc, &parent_obj_id, "childTaskIds", &child_ids)
                 .map_err(|e| anyhow!("Failed to reconcile parent's childTaskIds: {}", e))?;
         } else {
             // Update root task list.
             let mut root_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(&self.doc, &automerge::ROOT, "rootTaskIds")
-                    .unwrap_or_default();
+                autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds").unwrap_or_default();
 
             root_ids.retain(|rid| rid != &id);
 
-            autosurgeon::reconcile_prop(&mut self.doc, &automerge::ROOT, "rootTaskIds", &root_ids)
+            autosurgeon::reconcile_prop(doc, &automerge::ROOT, "rootTaskIds", &root_ids)
                 .map_err(|e| anyhow!("Failed to reconcile rootTaskIds: {}", e))?;
         }
 
         // 4. Delete the task object itself from the tasks map.
-        self.doc
-            .delete(&tasks_obj_id, id.as_str())
+        am_delete(doc, &tasks_obj_id, id.as_str())
             .map_err(|e| anyhow!("Failed to delete task object: {}", e))?;
 
         Ok(())
     }
 
-    fn handle_complete_task(&mut self, id: TaskID, current_time: i64) -> Result<()> {
-        let tasks_obj_id = ensure_path(&mut self.doc, &automerge::ROOT, vec!["tasks"])?;
+    fn handle_complete_task(
+        doc: &mut (impl Transactable + Doc),
+        id: TaskID,
+        current_time: i64,
+    ) -> Result<()> {
+        let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
 
-        let task_obj_id = match self.doc.get(&tasks_obj_id, id.as_str())? {
+        let task_obj_id = match am_get(doc, &tasks_obj_id, id.as_str())? {
             Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
             _ => return Err(anyhow!("Task not found: {}", id)),
         };
 
-        autosurgeon::reconcile_prop(&mut self.doc, &task_obj_id, "status", TaskStatus::Done)
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "status", TaskStatus::Done)
             .map_err(|e| anyhow!("Failed to update status: {}", e))?;
 
-        autosurgeon::reconcile_prop(
-            &mut self.doc,
-            &task_obj_id,
-            "lastCompletedAt",
-            Some(current_time),
-        )
-        .map_err(|e| anyhow!("Failed to update lastCompletedAt: {}", e))?;
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "lastCompletedAt", Some(current_time))
+            .map_err(|e| anyhow!("Failed to update lastCompletedAt: {}", e))?;
 
         Ok(())
     }
 
     // TODO: Optimize this to use surgical updates (reconcile_prop) similar to handle_create_task.
     // Currently uses full state hydration which is less efficient.
-    fn handle_move_task(&mut self, id: TaskID, new_parent_id: Option<TaskID>) -> Result<()> {
-        let mut state: TunnelState = self.hydrate()?;
+    fn handle_move_task(
+        doc: &mut (impl Transactable + Doc),
+        id: TaskID,
+        new_parent_id: Option<TaskID>,
+    ) -> Result<()> {
+        let mut state: TunnelState = autosurgeon::hydrate(doc)?;
         let old_parent_id = state.tasks.get(&id).and_then(|t| t.parent_id.clone());
 
         // Remove from old parent or root
@@ -418,148 +535,26 @@ impl AppStore {
             task.parent_id = new_parent_id;
         }
         // TODO: use reconcile_prop()
-        reconcile(&mut self.doc, &state)
-            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+        reconcile(doc, &state).map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
         Ok(())
     }
 
     // TODO: Optimize this to use surgical updates (reconcile_prop) similar to
     // handle_create_task. Currently uses full state hydration which is less
     // efficient. Note: this may be difficult or infaesible!
-    fn handle_refresh_lifecycle(&mut self, current_time: i64) -> Result<()> {
-        let mut state: TunnelState = self.hydrate()?;
+    fn handle_refresh_lifecycle(
+        doc: &mut (impl Transactable + Doc),
+        current_time: i64,
+    ) -> Result<()> {
+        let mut state: TunnelState = autosurgeon::hydrate(doc)?;
         tasklens_core::domain::lifecycle::acknowledge_completed_tasks(&mut state);
         tasklens_core::domain::routine_tasks::wake_up_routine_tasks(&mut state, current_time);
         // TODO: use reconcile_prop()
-        reconcile(&mut self.doc, &state)
-            .map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+        reconcile(doc, &state).map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
         Ok(())
     }
 
-    /// Exports the current Automerge document state as a binary blob.
-    pub fn export_save(&mut self) -> Vec<u8> {
-        self.doc.save()
-    }
-
-    /// Loads the persisted state from the browser's IndexedDB for a given ID.
-    #[cfg(target_arch = "wasm32")]
-    pub async fn load_from_db(doc_id: &DocumentId) -> Result<Option<Vec<u8>>> {
-        IndexedDbStorage::load_from_db(doc_id).await
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub async fn load_from_db(_doc_id: &DocumentId) -> Result<Option<Vec<u8>>> {
-        Ok(None)
-    }
-
-    /// Persists the current state to the browser's IndexedDB.
-    #[cfg(target_arch = "wasm32")]
-    pub async fn save_to_db(&mut self) -> Result<()> {
-        let bytes = self.doc.save();
-        IndexedDbStorage::save_to_db(&self.current_id, bytes).await
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub async fn save_to_db(&mut self) -> Result<()> {
-        Ok(())
-    }
-
-    /// Static helper to load the active document ID preference.
-    #[cfg(target_arch = "wasm32")]
-    pub fn load_active_doc_id() -> Option<DocumentId> {
-        ActiveDocStorage::load_active_url().map(|url| url.document_id)
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn load_active_doc_id() -> Option<DocumentId> {
-        None
-    }
-
-    /// Static helper to save the active document ID preference.
-    #[cfg(target_arch = "wasm32")]
-    pub fn save_active_doc_id(id: &DocumentId) {
-        ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn save_active_doc_id(_id: &DocumentId) {}
-
-    /// Static helper to persist raw document data.
-    #[cfg(target_arch = "wasm32")]
-    pub async fn save_doc_data_async(id: &DocumentId, data: Vec<u8>) -> Result<()> {
-        IndexedDbStorage::save_to_db(id, data).await
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub async fn save_doc_data_async(_id: &DocumentId, _data: Vec<u8>) -> Result<()> {
-        Ok(())
-    }
-
-    /// Replaces the current backend with one loaded from the provided bytes.
-    pub fn load_from_bytes(&mut self, bytes: Vec<u8>) {
-        match AutoCommit::load(&bytes) {
-            Ok(doc) => self.doc = doc,
-            Err(e) => tracing::error!("Failed to load returned bytes into AutoCommit: {:?}", e),
-        }
-    }
-
-    /// Imports a document from bytes, preserving its identity if present in metadata.
-    /// Returns the (possibly new) DocumentId.
-    pub fn import_doc(&mut self, bytes: Vec<u8>) -> Result<DocumentId> {
-        let doc = AutoCommit::load(&bytes)
-            .map_err(|e| anyhow!("Failed to load Automerge doc: {:?}", e))?;
-
-        let state: TunnelState =
-            hydrate(&doc).map_err(|e| anyhow!("Failed to hydrate doc for import: {}", e))?;
-
-        let doc_id = if let Some(meta) = &state.metadata
-            && let Some(url_str) = &meta.automerge_url
-            && let Ok(url) = url_str.parse::<TaskLensUrl>()
-        {
-            url.document_id
-        } else {
-            DocumentId::new()
-        };
-
-        self.doc = doc;
-        self.current_id = doc_id.clone();
-
-        // Ensure metadata is set/updated in the doc
-        let metadata = DocMetadata {
-            automerge_url: Some(TaskLensUrl::from(doc_id.clone()).to_string()),
-        };
-        autosurgeon::reconcile_prop(&mut self.doc, automerge::ROOT, "metadata", &metadata)
-            .map_err(|e| anyhow!("Failed to reconcile metadata after import: {}", e))?;
-
-        #[cfg(target_arch = "wasm32")]
-        ActiveDocStorage::save_active_url(&TaskLensUrl::from(doc_id.clone()));
-
-        Ok(doc_id)
-    }
-
-    /// Imports incremental changes from the server.
-    pub fn import_changes(&mut self, changes: Vec<u8>) -> Result<()> {
-        self.doc.load_incremental(&changes)?;
-        self.heads = self.doc.get_heads();
-        Ok(())
-    }
-
-    /// Gets incremental changes since the provided heads.
-    ///
-    /// This method uses `Automerge::save_after` which is stateless regarding the document's
-    /// internal incremental buffer. This is safer than `get_recent_changes` when multiple
-    /// consumers (persistence, sync) are accessing the document independently.
-    ///
-    /// # Arguments
-    /// * `heads` - The set of change hashes that the client has already seen/synced.
-    pub fn get_changes_since(&mut self, heads: &[automerge::ChangeHash]) -> Option<Vec<u8>> {
-        let changes = self.doc.save_after(heads);
-        if changes.is_empty() {
-            None
-        } else {
-            Some(changes)
-        }
-    }
+    // Legacy methods removed
 }
 
 impl Default for AppStore {
@@ -572,17 +567,17 @@ impl Default for AppStore {
 ///
 /// Returns the `ObjId` of the final object in the path.
 /// Creates intermediate maps if they are missing.
-fn ensure_path(
-    doc: &mut automerge::AutoCommit,
+fn ensure_path<T: Transactable + Doc>(
+    doc: &mut T,
     root: &automerge::ObjId,
     path: Vec<&str>,
 ) -> Result<automerge::ObjId> {
     let mut current = root.clone();
     for key in path {
-        let val = doc.get(&current, key)?;
+        let val = am_get(doc, &current, key)?;
         current = match val {
             Some((automerge::Value::Object(_), id)) => id,
-            None => doc.put_object(&current, key, automerge::ObjType::Map)?,
+            None => am_put_object(doc, &current, key, automerge::ObjType::Map)?,
             _ => return Err(anyhow!("Path key '{}' is not an object", key)),
         };
     }
@@ -591,10 +586,71 @@ fn ensure_path(
 
 #[cfg(test)]
 mod tests {
+    use automerge::AutoCommit;
     use automerge_test::{assert_doc, list, map};
     use tasklens_core::TaskID;
 
     use super::*;
+
+    /// A shim to support legacy tests with the new static handlers.
+    struct AppStore {
+        doc: AutoCommit,
+    }
+
+    impl AppStore {
+        fn new() -> Self {
+            Self {
+                doc: AutoCommit::new(),
+            }
+        }
+
+        fn init(&mut self) -> Result<()> {
+            let initial_state = TunnelState {
+                next_task_id: 1,
+                next_place_id: 1,
+                tasks: HashMap::new(),
+                places: HashMap::new(),
+                root_task_ids: Vec::new(),
+                metadata: None,
+            };
+            reconcile(&mut self.doc, &initial_state).map_err(|e| anyhow!("Init failed: {}", e))
+        }
+
+        fn dispatch(&mut self, action: Action) -> Result<()> {
+            Self::dispatch_static(&mut self.doc, action)
+        }
+
+        fn dispatch_static(doc: &mut AutoCommit, action: Action) -> Result<()> {
+            match action {
+                Action::CreateTask {
+                    id,
+                    parent_id,
+                    title,
+                } => super::AppStore::handle_create_task(doc, id, parent_id, title),
+                Action::UpdateTask { id, updates } => {
+                    super::AppStore::handle_update_task(doc, id, updates)
+                }
+                Action::DeleteTask { id } => super::AppStore::handle_delete_task(doc, id),
+                Action::CompleteTask { id, current_time } => {
+                    super::AppStore::handle_complete_task(doc, id, current_time)
+                }
+                Action::MoveTask { id, new_parent_id } => {
+                    super::AppStore::handle_move_task(doc, id, new_parent_id)
+                }
+                Action::RefreshLifecycle { current_time } => {
+                    super::AppStore::handle_refresh_lifecycle(doc, current_time)
+                }
+            }
+        }
+
+        fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T> {
+            autosurgeon::hydrate(&self.doc).map_err(|e| anyhow!("Hydration failed: {}", e))
+        }
+
+        fn expensive_reconcile(&mut self, state: &TunnelState) -> Result<()> {
+            reconcile(&mut self.doc, state).map_err(|e| anyhow!("Reconciliation failed: {}", e))
+        }
+    }
 
     #[test]
     fn test_ensure_path() {
@@ -1682,5 +1738,139 @@ mod tests {
             store.hydrate::<TunnelState>().unwrap().tasks[&task_id].status,
             TaskStatus::Pending
         );
+    }
+}
+
+#[cfg(test)]
+mod tests_async {
+    use super::*;
+    use samod::runtime::LocalRuntimeHandle;
+    use std::future::Future;
+    use std::pin::Pin;
+
+    #[derive(Clone, Debug)]
+    struct TestRuntime;
+
+    impl LocalRuntimeHandle for TestRuntime {
+        fn spawn(&self, future: Pin<Box<dyn Future<Output = ()> + 'static>>) {
+            tokio::task::spawn_local(future);
+        }
+    }
+
+    async fn create_test_store() -> AppStore {
+        // Use load_local() as create() seems unavailable or trait-gated
+        let repo = samod::RepoBuilder::new(TestRuntime).load_local().await;
+        // Use with_repo for testing
+        let mut store = AppStore::with_repo(repo);
+        // Create new doc to ensure store is ready
+        store.create_new().await.unwrap();
+        store
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_create_task() {
+        let local = tokio::task::LocalSet::new();
+        local
+            .run_until(async move {
+                let mut store = create_test_store().await;
+                let task_id = TaskID::new();
+
+                store
+                    .dispatch(Action::CreateTask {
+                        id: task_id.clone(),
+                        parent_id: None,
+                        title: "Dispatch Test".to_string(),
+                    })
+                    .unwrap();
+
+                let state: TunnelState = store.hydrate().unwrap();
+                assert_eq!(state.tasks[&task_id].title, "Dispatch Test");
+            })
+            .await;
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_update_task() {
+        let local = tokio::task::LocalSet::new();
+        local
+            .run_until(async move {
+                let mut store = create_test_store().await;
+                let task_id = TaskID::new();
+                store
+                    .dispatch(Action::CreateTask {
+                        id: task_id.clone(),
+                        parent_id: None,
+                        title: "Update Test".to_string(),
+                    })
+                    .unwrap();
+
+                store
+                    .dispatch(Action::UpdateTask {
+                        id: task_id.clone(),
+                        updates: TaskUpdates {
+                            title: Some("Updated Title".to_string()),
+                            status: Some(TaskStatus::Done),
+                            ..Default::default()
+                        },
+                    })
+                    .unwrap();
+
+                let state: TunnelState = store.hydrate().unwrap();
+                assert_eq!(state.tasks[&task_id].title, "Updated Title");
+                assert_eq!(state.tasks[&task_id].status, TaskStatus::Done);
+            })
+            .await;
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_move_task() {
+        let local = tokio::task::LocalSet::new();
+        local
+            .run_until(async move {
+                let mut store = create_test_store().await;
+                let parent1 = TaskID::new();
+                let parent2 = TaskID::new();
+                let child = TaskID::new();
+
+                store
+                    .dispatch(Action::CreateTask {
+                        id: parent1.clone(),
+                        parent_id: None,
+                        title: "P1".into(),
+                    })
+                    .unwrap();
+                store
+                    .dispatch(Action::CreateTask {
+                        id: parent2.clone(),
+                        parent_id: None,
+                        title: "P2".into(),
+                    })
+                    .unwrap();
+                store
+                    .dispatch(Action::CreateTask {
+                        id: child.clone(),
+                        parent_id: Some(parent1.clone()),
+                        title: "Child".into(),
+                    })
+                    .unwrap();
+
+                // Verify initial state
+                let state: TunnelState = store.hydrate().unwrap();
+                assert!(state.tasks[&parent1].child_task_ids.contains(&child));
+
+                // Move
+                store
+                    .dispatch(Action::MoveTask {
+                        id: child.clone(),
+                        new_parent_id: Some(parent2.clone()),
+                    })
+                    .unwrap();
+
+                let state: TunnelState = store.hydrate().unwrap();
+                assert!(!state.tasks[&parent1].child_task_ids.contains(&child));
+                assert!(state.tasks[&parent2].child_task_ids.contains(&child));
+                assert_eq!(state.tasks[&child].parent_id, Some(parent2));
+            })
+            .await;
     }
 }

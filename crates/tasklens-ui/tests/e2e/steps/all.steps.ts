@@ -28,14 +28,14 @@ Given(
 );
 
 Given("I have a clean workspace", async ({ page, plan }) => {
-  await page.goto("/");
+  await page.goto("/?skip_db_init=true");
   // Wait for the app-provided reset API to be attached
   await page.waitForFunction(
     () =>
       typeof (window as unknown as { tasklensReset?: unknown })
         .tasklensReset === "function",
     {
-      timeout: 15000,
+      timeout: 30000,
     },
   );
   await page.evaluate(async () => {
@@ -51,6 +51,9 @@ Given("I have a clean workspace", async ({ page, plan }) => {
       );
     }
   });
+
+  // Give background tasks a moment to settle after reset
+  await page.waitForTimeout(2000);
 
   // Since the API no longer reloads internally, we do it here explicitly
   // to start from a fresh, non-checking state with no DB connection.

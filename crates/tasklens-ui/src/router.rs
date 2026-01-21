@@ -6,7 +6,7 @@ use dioxus::prelude::*;
 use tasklens_core::types::TaskID;
 
 #[derive(Clone, Routable, Debug, PartialEq)]
-pub enum Route {
+pub(crate) enum Route {
     #[layout(AppNavBar)]
     #[route("/")]
     #[redirect("/", || Route::PlanPage { focus_task: None, seed: None })]
