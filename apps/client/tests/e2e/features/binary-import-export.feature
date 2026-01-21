@@ -8,7 +8,7 @@ Feature: Binary Import/Export
   Scenario: Export and Import Binary Document
     When I export the document as binary
     And the user creates a new document
-    Then the document ID changes
+    Then the document ID should be different
     When I import the binary document
     And I switch to Plan view
     Then I should see "My Important Task" visible

@@ -19,10 +19,10 @@ const testDirMobile = defineBddConfig({
 const isCI = !!process.env.CI;
 
 export default defineConfig({
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
-  ...(isCI && { workers: 4 }),
+  workers: 1,
   reporter: [["html", { open: "never" }]],
   use: {
     baseURL: "http://localhost:5179",
