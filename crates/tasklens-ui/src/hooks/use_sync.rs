@@ -6,7 +6,7 @@ use std::task::{Context, Poll};
 use tasklens_store::store::AppStore;
 pub use tasklens_store::sync::SyncStatus;
 
-pub const SYNC_SERVER_URL_KEY: &str = "tasklens_sync_server_url";
+pub(crate) const SYNC_SERVER_URL_KEY: &str = "tasklens_sync_server_url";
 
 pub fn use_sync_client(store: Signal<AppStore>) -> Signal<SyncStatus> {
     let mut status = use_signal(|| SyncStatus::Disconnected);
