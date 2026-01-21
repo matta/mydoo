@@ -20,11 +20,11 @@
 - [x] Task: Conductor - User Manual Verification 'Hydration & Reconciliation Logic' (Protocol in workflow.md)
 
 ## Phase 3: Recursive Diff Implementation
-- [ ] Task: Implement Diff Logic
-    - [ ] Implement a recursive comparison function `assert_docs_equal(doc_a, doc_b)`
-    - [ ] Walk the document tree (maps, lists, values)
-    - [ ] Collect differences into a structured log/error message
-- [ ] Task: Connect to Test
-    - [ ] Call comparison function in main test body
-    - [ ] Fail test with panic/assert if differences found
-- [ ] Task: Conductor - User Manual Verification 'Recursive Diff Implementation' (Protocol in workflow.md)
+- [x] Task: Implement Diff Logic [f2a091d]
+    - [x] Implement a recursive comparison function `assert_docs_equal(doc_a, doc_b)`
+    - [x] Walk the document tree (maps, lists, values)
+    - [x] Collect differences into a structured log/error message
+- [x] Task: Connect to Test [f2a091d]
+    - [x] Call comparison function in main test body
+    - [x] Fail test with panic/assert if differences found
+- [~] Task: Conductor - User Manual Verification 'Recursive Diff Implementation' (Protocol in workflow.md)
