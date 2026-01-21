@@ -1,0 +1,15 @@
+[submodule "reference_repos/automerge"]
+	path = reference_repos/automerge
+	url = https://github.com/automerge/automerge.git
+[submodule "reference_repos/automerge-repo"]
+	path = reference_repos/automerge-repo
+	url = https://github.com/automerge/automerge-repo.git
+[submodule "reference_repos/autosurgeon"]
+	path = reference_repos/autosurgeon
+	url = https://github.com/automerge/autosurgeon.git
+[submodule "reference_repos/todo_mvp"]
+	path = reference_repos/todo_mvp
+	url = https://github.com/matta/todo_mvp.git
+[submodule "reference_repos/samod"]
+	path = reference_repos/samod
+	url = https://github.com/alexjg/samod.git

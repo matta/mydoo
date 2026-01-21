@@ -23,7 +23,7 @@
         "!**/playwright-report/**",
         "!**/release/**",
         "!**/target/**",
-        "!**/tempcontext/**",
+        "!**/reference_repos/**",
         "!**/test-results/**"
       ],
       "outputs": ["tests/e2e/.features-gen/**"]

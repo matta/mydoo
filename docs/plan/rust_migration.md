@@ -1063,7 +1063,7 @@ _Goal: Porting UI components to match functionality._
   ID is a cryptographically random string that:
   - Identifies the local Automerge document in IndexedDB
   - When combined with the master key, determines the sync channel
-- **Reference**: `tempcontext/todo_mvp` contains similar patterns for sync_id
+- **Reference**: `reference_repos/todo_mvp` contains similar patterns for sync_id
   generation and persistence.
 - **Implementation Details**:
   - **Step 1: Store-Level Document ID Support**
