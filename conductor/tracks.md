@@ -5,22 +5,12 @@ detailed plan in its respective folder.
 
 ---
 
-
-
 ## [~] Track: Enforce Strict Prettier Isolation
 
-
-
-_Link:
-
-[./conductor/tracks/prettier-isolation-20260108/](./conductor/tracks/prettier-isolation-20260108/)_
-
-
+_Link: [./tracks/prettier-isolation-20260108/](./tracks/prettier-isolation-20260108/)_
 
 ---
 
+## [~] Track: Golden File Reconciliation Test
 
-
-- [~] **Track: modify the tasklens sync protocol to be based entirely on the discovery_key identity (derived from doc_secret)**
-
-*Link: [./tracks/discovery_key_sync_20260119/](./tracks/discovery_key_sync_20260119/)*
+_Link: [./tracks/golden_reconciliation_20260121/](./tracks/golden_reconciliation_20260121/)_
