@@ -102,7 +102,23 @@ export function AppShellContainer({ docUrl }: AppShellContainerProps) {
 
       if (importedHandle) {
         localStorage.setItem("mydoo:doc_id", importedHandle.url);
-        window.location.reload();
+
+        // Wait for the handle to be ready in the repo's memory
+        if (importedHandle.whenReady) {
+          await importedHandle.whenReady();
+        }
+
+        notifications.show({
+          title: "Import Successful",
+          message: "The document has been restored. Reloading...",
+          color: "green",
+        });
+
+        // Give the storage adapter enough time to persist the imported binary
+        // before we reload the page and try to find() it again.
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       }
     } catch (e) {
       console.error("Import failed", e);

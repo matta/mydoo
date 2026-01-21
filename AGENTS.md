@@ -695,6 +695,17 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
 
 ## E2E & BDD Strategy (Playwright)
 
+- **IndexedDB Storage Collision in Parallel Workers**:
+  - _Symptom_: Flaky failures (e.g., "Empty View" or missing data) that occur when running the full suite but pass in isolation.
+  - _Root Cause_: Playwright's `fullyParallel: true` mode runs multiple workers sharing the same browser origin. If the app uses `IndexedDB` for persistence, workers will collide on the same database, leading to write race conditions and inconsistent state during reloads.
+  - _Fix_: For applications using stateful persistence (like Automerge Repo + IndexedDB), force `workers: 1` or disable `fullyParallel` in `playwright.config.ts`.
+- **BDD Step State Isolation via Fixtures**:
+  - _Rule_: Never use module-level variables in `.steps.ts` files to share state between Gherkin steps (e.g., `let downloadedPath;`).
+  - _Why_: Although workers run in isolation, `playwright-bdd` may reuse the same worker/module for multiple test scenarios. Module-level variables will leak state between unrelated tests, causing cross-contamination.
+  - _Solution_: Define and use custom **fixtures** (e.g., `binaryContext`) in `fixtures.ts`. Playwright guarantees fixture isolation per test.
+- **Persistence Race Conditions on Import/Reload**:
+  - _Trap_: Calling `window.location.reload()` immediately after `repo.import()` (Automerge) often results in a race. The page reloads and calls `repo.find()` before the asynchronous storage adapter (IndexedDB) has finished writing the imported binary to disk.
+  - _Fix_: In the UI logic, `await handle.whenReady()` and add a deliberate delay (e.g., `setTimeout(..., 1000)`) before reloading to allow the persistence layer to settle.
 - **Dioxus Child Task Visibility Requires Parent Expansion**:
   - _Symptom:_ Child tasks created via "Add Child" are not found by Playwright
     locators even though the action succeeded.
