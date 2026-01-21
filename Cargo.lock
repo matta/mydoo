@@ -5364,13 +5364,10 @@ name = "tasklens-store"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "argon2",
  "automerge",
  "automerge-test",
  "autosurgeon",
- "bip39",
  "bs58",
- "chacha20poly1305",
  "criterion",
  "futures",
  "getrandom 0.2.17",
@@ -5388,7 +5385,6 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
- "sha2 0.10.9",
  "tasklens-core",
  "tokio",
  "tracing",

@@ -35,6 +35,7 @@ wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
 web-sys = "0.3"
 getrandom = { version = "0.3.4", features = ["wasm_js"] }
+scopeguard = "1.2.0"
 console_error_panic_hook = "0.1.7"
 samod = { git = "https://github.com/matta/samod", branch = "wasm" }
 
