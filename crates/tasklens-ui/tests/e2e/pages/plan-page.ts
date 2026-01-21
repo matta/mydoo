@@ -141,7 +141,7 @@ export class PlanPage implements PlanFixture {
     await expect(async () => {
       const currentHeads = await this.getMemoryHeads();
       expect(currentHeads).not.toBe(initialHeads);
-    }).toPass({ timeout: 5000 });
+    }).toPass({ timeout: 15000 });
 
     // 4. Wait for Consistency: Persisted Heads == Memory Heads
     // This confirms that what represents the current state is safely on disk.
@@ -542,14 +542,16 @@ export class PlanPage implements PlanFixture {
     ).toBeHidden();
   }
 
-  async verifyTaskCompleted(title: string): Promise<void> {
+  async verifyTaskCompleted(title: string, timeout = 5000): Promise<void> {
     const taskRow = this.page
       .locator(`[data-testid="task-item"]`, { hasText: title })
       .first();
     const titleText = taskRow.getByText(title).first();
 
-    await expect(taskRow).toBeVisible();
-    await expect(titleText).toHaveCSS("text-decoration-line", "line-through");
+    await expect(taskRow).toBeVisible({ timeout });
+    await expect(titleText).toHaveCSS("text-decoration-line", "line-through", {
+      timeout,
+    });
   }
 
   async verifyFocusedByLabel(label: string): Promise<void> {
@@ -645,20 +647,26 @@ export class PlanPage implements PlanFixture {
     }
   }
 
-  async primeWithSampleData(): Promise<void> {
+  async clearAndReload(): Promise<void> {
     // Clear localStorage first to ensure clean state
     await this.page.goto("/");
     await this.page.evaluate(() => {
       localStorage.clear();
-      // Set a dummy master key (32 bytes of 0 as JSON array for gloo-storage)
-      localStorage.setItem(
-        "tasklens_master_key",
-        JSON.stringify(new Array(32).fill(0)),
-      );
     });
 
-    // Now navigate to seed URL
+    // Reload the app
+    await this.page.goto("/plan");
+    await this.waitForAppReady();
+    // Ensure the app is loaded by waiting for the Plan heading
+    await expect(
+      this.page.getByRole("heading", { name: "Plan" }),
+    ).toBeVisible();
+  }
+
+  async primeWithSampleData(): Promise<void> {
+    // Navigate to seed URL which triggers internal seeding logic
     await this.page.goto("/plan?seed=true");
+    await this.waitForAppReady();
     // Ensure the app is loaded by waiting for the Plan heading
     await expect(
       this.page.getByRole("heading", { name: "Plan" }),

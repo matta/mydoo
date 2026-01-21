@@ -129,3 +129,36 @@ mod wasm_storage {
 
 #[cfg(target_arch = "wasm32")]
 pub use wasm_storage::{ActiveDocStorage, IndexedDbStorage};
+
+#[cfg(not(target_arch = "wasm32"))]
+pub struct IndexedDbStorage;
+
+#[cfg(not(target_arch = "wasm32"))]
+impl IndexedDbStorage {
+    pub async fn load_from_db(
+        _doc_id: &crate::doc_id::DocumentId,
+    ) -> anyhow::Result<Option<Vec<u8>>> {
+        Ok(None)
+    }
+    pub async fn save_to_db(
+        _doc_id: &crate::doc_id::DocumentId,
+        _bytes: Vec<u8>,
+    ) -> anyhow::Result<()> {
+        Ok(())
+    }
+    pub async fn delete_doc(_doc_id: &crate::doc_id::DocumentId) -> anyhow::Result<()> {
+        Ok(())
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub struct ActiveDocStorage;
+
+#[cfg(not(target_arch = "wasm32"))]
+impl ActiveDocStorage {
+    pub fn load_active_url() -> Option<crate::doc_id::TaskLensUrl> {
+        None
+    }
+    pub fn save_active_url(_url: &crate::doc_id::TaskLensUrl) {}
+    pub fn clear_active_url() {}
+}
