@@ -3,6 +3,8 @@ name = "tasklens-ui"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
+[lints]
+workspace = true
 
 [dependencies]
 tasklens-core = { workspace = true }

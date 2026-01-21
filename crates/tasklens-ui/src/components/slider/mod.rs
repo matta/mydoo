@@ -1,3 +1,3 @@
 mod component;
 #[expect(unused_imports)]
-pub use component::*;
+pub(crate) use component::*;

@@ -6,13 +6,13 @@ include!(concat!(env!("OUT_DIR"), "/build_version.rs"));
 use dioxus::prelude::*;
 use tasklens_store::doc_id::DocumentId;
 
-mod components;
-mod controllers;
-mod hooks;
-mod router;
-mod seed;
-mod utils;
-mod views;
+pub mod components;
+pub mod controllers;
+pub mod hooks;
+pub mod router;
+pub mod seed;
+pub mod utils;
+pub mod views;
 
 use crate::router::Route;
 use tasklens_store::store::AppStore;
