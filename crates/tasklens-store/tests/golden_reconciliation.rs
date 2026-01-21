@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use tasklens_core::types::{PersistedTask, TunnelState};
 
 #[test]
-#[ignore]
+#[ignore] // FIXME: This test fails due to schema mismatches between golden file and current implementation.
 fn test_golden_reconciliation() {
     let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     d.push("tests/data/golden.automerge");
