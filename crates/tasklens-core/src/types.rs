@@ -172,6 +172,17 @@ pub fn reconcile_string_as_text<R: autosurgeon::Reconciler>(
     Ok(())
 }
 
+/// Reconciles an Optional<String> as an optional Automerge Text object.
+pub fn reconcile_option_string_as_text<R: autosurgeon::Reconciler>(
+    val: &Option<String>,
+    mut reconciler: R,
+) -> Result<(), R::Error> {
+    match val {
+        Some(s) => reconcile_string_as_text(s, reconciler),
+        None => reconciler.none(),
+    }
+}
+
 /// Unique identifier for a task.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
@@ -618,7 +629,10 @@ pub struct PersistedTask {
     pub status: TaskStatus,
     #[key]
     pub id: TaskID,
-    #[autosurgeon(hydrate = "hydrate_string_or_text")]
+    #[autosurgeon(
+        hydrate = "hydrate_string_or_text",
+        reconcile = "reconcile_string_as_text"
+    )]
     pub title: String,
     #[serde(default)]
     #[autosurgeon(
@@ -974,7 +988,10 @@ pub struct Place {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Reconcile)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 pub struct DocMetadata {
-    #[autosurgeon(rename = "automerge_url")]
+    #[autosurgeon(
+        rename = "automerge_url",
+        reconcile = "reconcile_option_string_as_text"
+    )]
     pub automerge_url: Option<String>,
 }
 
