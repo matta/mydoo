@@ -26,11 +26,6 @@ rand = "0.9"
 bs58 = { version = "0.5.1", features = ["check"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-# Required to enable Web Crypto APIs for getrandom (v0.2 and v0.3).
-# We isolate these here so that the web-specific shims and wasm-bindgen
-# dependencies are only pulled in for the WASM target.
-getrandom-v3.workspace = true
-getrandom-v2.workspace = true
 rexie = "0.6.2"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
