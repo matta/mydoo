@@ -45,12 +45,12 @@ fn test_golden_reconciliation() {
             // Assert equality for JUST this task
             let (_, id_a) = doc
                 .get(&tasks_obj_id, first_task_key.as_str())
-                .expect("Source task missing")
-                .expect("Source task missing");
+                .expect("Expected (Golden) task missing")
+                .expect("Expected (Golden) task missing");
             let (_, id_b) = target_doc
                 .get(&tasks_obj_id, first_task_key.as_str())
-                .expect("Target task missing")
-                .expect("Target task missing");
+                .expect("Actual (Reconciled) task missing")
+                .expect("Actual (Reconciled) task missing");
 
             assert_docs_equal(
                 &doc,
@@ -99,7 +99,7 @@ fn assert_docs_equal<T: ReadDoc>(doc_a: &T, doc_b: &T, obj_a: ObjId, obj_b: ObjI
 
     if obj_type_a != obj_type_b {
         panic!(
-            "Difference at {}: Object type mismatch. Source: {:?}, Target: {:?}",
+            "Difference at {}: Object type mismatch. Expected (Golden): {:?}, Actual (Reconciled): {:?}",
             path, obj_type_a, obj_type_b
         );
     }
@@ -127,15 +127,21 @@ fn assert_docs_equal<T: ReadDoc>(doc_a: &T, doc_b: &T, obj_a: ObjId, obj_b: ObjI
                     (Some((Value::Scalar(s_a), _)), Some((Value::Scalar(s_b), _))) => {
                         if s_a != s_b {
                             panic!(
-                                "Difference at {}: Scalar value mismatch. Source: {:?}, Target: {:?}",
+                                "Difference at {}: Scalar value mismatch. Expected (Golden): {:?}, Actual (Reconciled): {:?}",
                                 current_path, s_a, s_b
                             );
                         }
                     }
-                    (None, Some(_)) => panic!("Difference at {}: Missing in Source", current_path),
-                    (Some(_), None) => panic!("Difference at {}: Missing in Target", current_path),
+                    (None, Some(_)) => panic!(
+                        "Difference at {}: Missing in Expected (Golden)",
+                        current_path
+                    ),
+                    (Some(_), None) => panic!(
+                        "Difference at {}: Missing in Actual (Reconciled)",
+                        current_path
+                    ),
                     (a, b) => panic!(
-                        "Difference at {}: Type mismatch. Source: {:?}, Target: {:?}",
+                        "Difference at {}: Type mismatch. Expected (Golden): {:?}, Actual (Reconciled): {:?}",
                         current_path, a, b
                     ),
                 }
@@ -146,7 +152,7 @@ fn assert_docs_equal<T: ReadDoc>(doc_a: &T, doc_b: &T, obj_a: ObjId, obj_b: ObjI
             let len_b = doc_b.length(&obj_b);
             if len_a != len_b {
                 panic!(
-                    "Difference at {}: List length mismatch. Source: {}, Target: {}",
+                    "Difference at {}: List length mismatch. Expected (Golden): {}, Actual (Reconciled): {}",
                     path, len_a, len_b
                 );
             }
@@ -162,13 +168,13 @@ fn assert_docs_equal<T: ReadDoc>(doc_a: &T, doc_b: &T, obj_a: ObjId, obj_b: ObjI
                     (Some((Value::Scalar(s_a), _)), Some((Value::Scalar(s_b), _))) => {
                         if s_a != s_b {
                             panic!(
-                                "Difference at {}: Scalar value mismatch. Source: {:?}, Target: {:?}",
+                                "Difference at {}: Scalar value mismatch. Expected (Golden): {:?}, Actual (Reconciled): {:?}",
                                 current_path, s_a, s_b
                             );
                         }
                     }
                     (a, b) => panic!(
-                        "Difference at {}: Type mismatch. Source: {:?}, Target: {:?}",
+                        "Difference at {}: Type mismatch. Expected (Golden): {:?}, Actual (Reconciled): {:?}",
                         current_path, a, b
                     ),
                 }
