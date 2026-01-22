@@ -121,6 +121,30 @@ pub fn hydrate_optional_i64<D: autosurgeon::ReadDoc>(
     }
 }
 
+/// Reconciles an f64 as an Int if it has no fractional part and fits in a JS safe integer,
+/// otherwise reconciles as an F64.
+pub fn reconcile_f64<R: autosurgeon::Reconciler>(val: &f64, reconciler: R) -> Result<(), R::Error> {
+    const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
+    const MIN_SAFE_INTEGER: f64 = -9_007_199_254_740_991.0;
+
+    if val.fract() == 0.0 && *val <= MAX_SAFE_INTEGER && *val >= MIN_SAFE_INTEGER {
+        (*val as i64).reconcile(reconciler)
+    } else {
+        val.reconcile(reconciler)
+    }
+}
+
+/// Reconciles an Option<f64> using the same logic as reconcile_f64.
+pub fn reconcile_optional_f64<R: autosurgeon::Reconciler>(
+    val: &Option<f64>,
+    mut reconciler: R,
+) -> Result<(), R::Error> {
+    match val {
+        Some(v) => reconcile_f64(v, reconciler),
+        None => reconciler.none(),
+    }
+}
+
 /// Unique identifier for a task.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
@@ -593,9 +617,13 @@ pub struct PersistedTask {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(rename = "creditIncrement", hydrate = "hydrate_optional_f64")]
     pub credit_increment: Option<f64>,
-    #[autosurgeon(hydrate = "hydrate_f64")]
+    #[autosurgeon(hydrate = "hydrate_f64", reconcile = "reconcile_f64")]
     pub credits: f64,
-    #[autosurgeon(rename = "desiredCredits", hydrate = "hydrate_f64")]
+    #[autosurgeon(
+        rename = "desiredCredits",
+        hydrate = "hydrate_f64",
+        reconcile = "reconcile_f64"
+    )]
     pub desired_credits: f64,
     #[autosurgeon(rename = "creditsTimestamp")]
     pub credits_timestamp: i64,
@@ -737,7 +765,7 @@ impl Reconcile for ScheduleSource {
 }
 
 /// A task as projected for the View Layer.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ComputedTask {
     pub id: TaskID,

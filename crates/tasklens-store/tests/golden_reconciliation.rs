@@ -2,6 +2,16 @@ use automerge::{ObjId, ReadDoc, Value};
 use std::path::PathBuf;
 use tasklens_core::types::{PersistedTask, TunnelState};
 
+/// Test for golden document reconciliation.
+///
+/// GOAL: Assert exact value and Automerge type equality between the golden file
+/// and the reconciled output.
+///
+/// STRICTURES:
+/// - NO semantic leniency (e.g. Int(1) != F64(1.0)).
+/// - Type equality is mandatory to ensure interoperability and schema stability.
+/// - Any "drift" between implementation and golden file must be resolved by either
+///   fixing the implementation or explicitly updating the golden file.
 #[test]
 #[ignore] // FIXME: This test fails due to schema mismatches between golden file and current implementation.
 fn test_golden_reconciliation() {
@@ -93,6 +103,10 @@ fn test_golden_reconciliation() {
     );
 }
 
+/// Recursively asserts that two documents are identical in both value and Automerge type.
+///
+/// This function performs a strict comparison. Differences in scalar types (e.g., Int vs F64)
+/// or object types (e.g., Map vs Table) will cause a panic.
 fn assert_docs_equal<T: ReadDoc>(doc_a: &T, doc_b: &T, obj_a: ObjId, obj_b: ObjId, path: String) {
     let obj_type_a = doc_a.object_type(&obj_a).expect("Object should exist in A");
     let obj_type_b = doc_b.object_type(&obj_b).expect("Object should exist in B");
