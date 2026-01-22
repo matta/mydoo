@@ -6,6 +6,20 @@ use automerge_test::{assert_doc, list, map};
 use tasklens_core::{TaskID, TaskStatus, TunnelState};
 
 use crate::store::{Action, ensure_path};
+use automerge_test::RealizedObject;
+use std::collections::BTreeSet;
+
+fn am_text(s: &str) -> RealizedObject {
+    let seq = s
+        .chars()
+        .map(|c| {
+            let mut set = BTreeSet::new();
+            set.insert(RealizedObject::from(c.to_string().as_str()));
+            set
+        })
+        .collect();
+    RealizedObject::Sequence(seq)
+}
 
 /// A shim to support legacy tests with the new static handlers.
 struct AppStore {
@@ -161,29 +175,24 @@ fn test_dispatch_create() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
-                            "title" => { "Test Task" },
+                            "id" => { am_text(&task_id_str) },
+                            "title" => { am_text("Test Task") },
                             "childTaskIds" => { list![] },
-                            "status" => { "Pending" },
-                            "notes" => { "" },
-                            "parentId" => { automerge::ScalarValue::Null },
+                            "status" => { am_text("Pending") },
+                            "notes" => { am_text("") },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -192,7 +201,7 @@ fn test_dispatch_create() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "nextTaskId" => { 1 },
@@ -252,92 +261,82 @@ fn test_dispatch_create_with_parent() {
                 map! {
                     parent_id_str.as_str() => {
                         map! {
-                            "id" => { parent_id_str.as_str() },
-                            "title" => { "Parent" },
+                            "id" => { am_text(&parent_id_str) },
+                            "title" => { am_text("Parent") },
                             "childTaskIds" => {
                                 list![
-                                    { child1_id_str.as_str() },
-                                    { child2_id_str.as_str() }
+                                    { am_text(&child1_id_str) },
+                                    { am_text(&child2_id_str) }
                                 ]
                             },
-                            "status" => { "Pending" },
-                            "notes" => { "" },
-                            "parentId" => { automerge::ScalarValue::Null },
+                            "status" => { am_text("Pending") },
+                            "notes" => { am_text("") },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
                     },
                     child1_id_str.as_str() => {
                         map! {
-                            "id" => { child1_id_str.as_str() },
-                            "title" => { "Child 1" },
+                            "id" => { am_text(&child1_id_str) },
+                            "title" => { am_text("Child 1") },
                             "childTaskIds" => { list![] },
-                            "status" => { "Pending" },
-                            "notes" => { "" },
-                            "parentId" => { parent_id_str.as_str() },
+                            "status" => { am_text("Pending") },
+                            "notes" => { am_text("") },
+                            "parentId" => { am_text(&parent_id_str) },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
                     },
                     child2_id_str.as_str() => {
                         map! {
-                            "id" => { child2_id_str.as_str() },
-                            "title" => { "Child 2" },
+                            "id" => { am_text(&child2_id_str) },
+                            "title" => { am_text("Child 2") },
                             "childTaskIds" => { list![] },
-                            "status" => { "Pending" },
-                            "notes" => { "" },
-                            "parentId" => { parent_id_str.as_str() },
+                            "status" => { am_text("Pending") },
+                            "notes" => { am_text("") },
+                            "parentId" => { am_text(&parent_id_str) },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -346,7 +345,7 @@ fn test_dispatch_create_with_parent() {
             },
             "rootTaskIds" => {
                 list![
-                    { parent_id_str.as_str() }
+                    { am_text(&parent_id_str) }
                 ]
             },
             "nextTaskId" => { 1 },
@@ -491,29 +490,25 @@ fn test_dispatch_update() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
+                            "id" => { am_text(&task_id_str) },
                             "title" => { "Updated" },
-                            "status" => { "Done" },
+                            "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
-                            "notes" => { "" },
-                            "parentId" => { automerge::ScalarValue::Null },
+                            "notes" => { am_text("") },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -522,7 +517,7 @@ fn test_dispatch_update() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -627,29 +622,25 @@ fn test_dispatch_delete_with_parent() {
                 map! {
                     parent_id.as_str() => {
                         map! {
-                            "id" => { parent_id.as_str() },
-                            "title" => { "Parent" },
+                            "id" => { am_text(parent_id.as_str()) },
+                            "title" => { am_text("Parent") },
                             "childTaskIds" => { list![] },
-                            "status" => { "Pending" },
-                            "notes" => { "" },
-                            "parentId" => { automerge::ScalarValue::Null },
+                            "status" => { am_text("Pending") },
+                            "notes" => { am_text("") },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -657,7 +648,7 @@ fn test_dispatch_delete_with_parent() {
                 }
             },
             "rootTaskIds" => {
-                list![ { parent_id.as_str() } ]
+                list![ { am_text(parent_id.as_str()) } ]
             },
             "places" => { map!{} },
             "nextTaskId" => { 1 },
@@ -697,29 +688,27 @@ fn test_dispatch_complete() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
-                            "title" => { "To Complete" },
-                            "status" => { "Done" },
+                            "id" => { am_text(&task_id_str) },
+                            "title" => { am_text("To Complete") },
+                            "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
-                            "notes" => { "" },
-                            "parentId" => { automerge::ScalarValue::Null },
+                            "notes" => { am_text("") },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "lastCompletedAt" => { 100 },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -728,7 +717,7 @@ fn test_dispatch_complete() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -785,62 +774,57 @@ fn test_dispatch_move() {
                 map! {
                     parent_id_str.as_str() => {
                         map! {
-                            "id" => { parent_id_str.as_str() },
-                            "title" => { "Parent" },
-                            "status" => { "Pending" },
+                            "id" => { am_text(&parent_id_str) },
+                            "title" => { am_text("Parent") },
+                            "status" => { am_text("Pending") },
                             "childTaskIds" => {
                                 list![
-                                    { child_id_str.as_str() }
+                                    { am_text(&child_id_str) }
                                 ]
                             },
-                            "notes" => { "" },
-                            "parentId" => { automerge::ScalarValue::Null },
+                            "notes" => { am_text("") },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
                     },
                     child_id_str.as_str() => {
                         map! {
-                            "id" => { child_id_str.as_str() },
-                            "title" => { "Child" },
-                            "status" => { "Pending" },
+                            "id" => { am_text(&child_id_str) },
+                            "title" => { am_text("Child") },
+                            "status" => { am_text("Pending") },
                             "childTaskIds" => { list![] },
-                            "notes" => { "" },
-                            "parentId" => { parent_id_str.as_str() },
+                            "notes" => { am_text("") },
+                            "parentId" => { am_text(&parent_id_str) },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -849,7 +833,7 @@ fn test_dispatch_move() {
             },
             "rootTaskIds" => {
                 list![
-                    { parent_id_str.as_str() }
+                    { am_text(&parent_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -902,29 +886,27 @@ fn test_dispatch_refresh_lifecycle() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
-                            "title" => { "To Acknowledge" },
-                            "status" => { "Done" },
+                            "id" => { am_text(&task_id_str) },
+                            "title" => { am_text("To Acknowledge") },
+                            "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
-                            "notes" => { "" },
-                            "parentId" => { automerge::ScalarValue::Null },
+                            "notes" => { am_text("") },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "lastCompletedAt" => { 100 },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -933,7 +915,7 @@ fn test_dispatch_refresh_lifecycle() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -955,29 +937,27 @@ fn test_dispatch_refresh_lifecycle() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
-                            "title" => { "To Acknowledge" },
-                            "status" => { "Done" },
+                            "id" => { am_text(&task_id_str) },
+                            "title" => { am_text("To Acknowledge") },
+                            "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
-                            "notes" => { "" },
-                            "parentId" => { automerge::ScalarValue::Null },
+                            "notes" => { am_text("") },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { true },
                             "lastCompletedAt" => { 100 },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -986,7 +966,7 @@ fn test_dispatch_refresh_lifecycle() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -1042,22 +1022,21 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
-                            "title" => { "Routine" },
-                            "status" => { "Done" },
+                            "id" => { am_text(&task_id_str) },
+                            "title" => { am_text("Routine") },
+                            "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
-                            "notes" => { "" },
-                            "parentId" => { automerge::ScalarValue::Null },
+                            "notes" => { am_text("") },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
                             "repeatConfig" => {
                                 map! {
-                                    "frequency" => { "Daily" },
+                                    "frequency" => { am_text("daily") },
                                     "interval" => { 1 }
                                 }
                             },
@@ -1066,10 +1045,10 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                             "lastCompletedAt" => { 1000 },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 100 },
-                                    "type" => { "Routinely" }
+                                    "type" => { am_text("Routinely") }
                                 }
                             }
                         }
@@ -1078,7 +1057,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -1106,22 +1085,21 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
-                            "title" => { "Routine" },
-                            "status" => { "Pending" },
+                            "id" => { am_text(&task_id_str) },
+                            "title" => { am_text("Routine") },
+                            "status" => { am_text("Pending") },
                             "childTaskIds" => { list![] },
-                            "notes" => { "" },
-                            "parentId" => { automerge::ScalarValue::Null },
+                            "notes" => { am_text("") },
                             "placeId" => { automerge::ScalarValue::Null },
-                            "importance" => { 1.0 },
+                            "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
-                            "credits" => { 0.0 },
-                            "desiredCredits" => { 1.0 },
+                            "credits" => { 0 },
+                            "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
                             "repeatConfig" => {
                                 map! {
-                                    "frequency" => { "Daily" },
+                                    "frequency" => { am_text("daily") },
                                     "interval" => { 1 }
                                 }
                             },
@@ -1130,10 +1108,10 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                             "lastCompletedAt" => { 1000 },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
+
                                     "lastDone" => { 1000 },
                                     "leadTime" => { 100 },
-                                    "type" => { "Routinely" }
+                                    "type" => { am_text("Routinely") }
                                 }
                             }
                         }
@@ -1142,7 +1120,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },

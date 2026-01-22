@@ -121,6 +121,68 @@ pub fn hydrate_optional_i64<D: autosurgeon::ReadDoc>(
     }
 }
 
+/// Reconciles an Option<T> using MaybeMissing semantics (None deletes the field).
+pub fn reconcile_optional_as_maybe_missing<T, R>(
+    val: &Option<T>,
+    reconciler: R,
+) -> Result<(), R::Error>
+where
+    T: autosurgeon::Reconcile,
+    R: autosurgeon::Reconciler,
+{
+    use autosurgeon::MaybeMissing;
+    let maybe_missing = match val {
+        Some(v) => MaybeMissing::Present(v),
+        None => MaybeMissing::Missing,
+    };
+    maybe_missing.reconcile(reconciler)
+}
+
+/// Reconciles an f64 as an Int if it has no fractional part and fits in a JS safe integer,
+/// otherwise reconciles as an F64.
+pub fn reconcile_f64<R: autosurgeon::Reconciler>(val: &f64, reconciler: R) -> Result<(), R::Error> {
+    const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
+    const MIN_SAFE_INTEGER: f64 = -9_007_199_254_740_991.0;
+
+    if val.fract() == 0.0 && *val <= MAX_SAFE_INTEGER && *val >= MIN_SAFE_INTEGER {
+        (*val as i64).reconcile(reconciler)
+    } else {
+        val.reconcile(reconciler)
+    }
+}
+
+/// Reconciles an Option<f64> using the same logic as reconcile_f64.
+pub fn reconcile_optional_f64<R: autosurgeon::Reconciler>(
+    val: &Option<f64>,
+    mut reconciler: R,
+) -> Result<(), R::Error> {
+    match val {
+        Some(v) => reconcile_f64(v, reconciler),
+        None => reconciler.none(),
+    }
+}
+
+/// Reconciles a String as an Automerge Text object.
+pub fn reconcile_string_as_text<R: autosurgeon::Reconciler>(
+    val: &str,
+    mut reconciler: R,
+) -> Result<(), R::Error> {
+    use autosurgeon::reconcile::TextReconciler;
+    reconciler.text()?.update(val)?;
+    Ok(())
+}
+
+/// Reconciles an Optional<String> as an optional Automerge Text object.
+pub fn reconcile_option_string_as_text<R: autosurgeon::Reconciler>(
+    val: &Option<String>,
+    mut reconciler: R,
+) -> Result<(), R::Error> {
+    match val {
+        Some(s) => reconcile_string_as_text(s, reconciler),
+        None => reconciler.none(),
+    }
+}
+
 /// Unique identifier for a task.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
@@ -140,7 +202,7 @@ impl Hydrate for TaskID {
 impl Reconcile for TaskID {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        self.0.reconcile(reconciler)
+        reconcile_string_as_text(&self.0, reconciler)
     }
 }
 
@@ -210,7 +272,7 @@ impl Hydrate for PlaceID {
 impl Reconcile for PlaceID {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        self.0.reconcile(reconciler)
+        reconcile_string_as_text(&self.0, reconciler)
     }
 }
 
@@ -295,11 +357,11 @@ impl Hydrate for TaskStatus {
 impl Reconcile for TaskStatus {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        match self {
+        let text = match self {
             Self::Pending => "Pending",
             Self::Done => "Done",
-        }
-        .reconcile(reconciler)
+        };
+        reconcile_string_as_text(text, reconciler)
     }
 }
 
@@ -386,13 +448,13 @@ impl Hydrate for ScheduleType {
 impl Reconcile for ScheduleType {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        match self {
+        let text = match self {
             Self::Once => "Once",
             Self::Routinely => "Routinely",
             Self::DueDate => "DueDate",
             Self::Calendar => "Calendar",
-        }
-        .reconcile(reconciler)
+        };
+        reconcile_string_as_text(text, reconciler)
     }
 }
 
@@ -407,7 +469,7 @@ pub struct Schedule {
     pub schedule_type: ScheduleType,
     /// Optional due date as Unix timestamp in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "dueDate")]
+    #[autosurgeon(rename = "dueDate", reconcile = "reconcile_optional_as_maybe_missing")]
     pub due_date: Option<i64>,
     /// Lead time in milliseconds before due date to start showing urgency.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -415,7 +477,7 @@ pub struct Schedule {
     pub lead_time: Option<i64>,
     /// Timestamp of last completion (for Routinely tasks).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "lastDone")]
+    #[autosurgeon(rename = "lastDone", reconcile = "reconcile_optional_as_maybe_missing")]
     pub last_done: Option<i64>,
 }
 
@@ -522,15 +584,15 @@ impl Hydrate for Frequency {
 impl Reconcile for Frequency {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        match self {
-            Self::Minutes => "Minutes",
-            Self::Hours => "Hours",
-            Self::Daily => "Daily",
-            Self::Weekly => "Weekly",
-            Self::Monthly => "Monthly",
-            Self::Yearly => "Yearly",
-        }
-        .reconcile(reconciler)
+        let s = match self {
+            Self::Minutes => "minutes",
+            Self::Hours => "hours",
+            Self::Daily => "daily",
+            Self::Weekly => "weekly",
+            Self::Monthly => "monthly",
+            Self::Yearly => "yearly",
+        };
+        reconcile_string_as_text(s, reconciler)
     }
 }
 
@@ -567,13 +629,23 @@ pub struct PersistedTask {
     pub status: TaskStatus,
     #[key]
     pub id: TaskID,
-    #[autosurgeon(hydrate = "hydrate_string_or_text")]
+    #[autosurgeon(
+        hydrate = "hydrate_string_or_text",
+        reconcile = "reconcile_string_as_text"
+    )]
     pub title: String,
     #[serde(default)]
-    #[autosurgeon(hydrate = "hydrate_string_or_text")]
+    #[autosurgeon(
+        hydrate = "hydrate_string_or_text",
+        reconcile = "reconcile_string_as_text"
+    )]
     pub notes: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "parentId", hydrate = "hydrate_optional_task_id")]
+    #[autosurgeon(
+        rename = "parentId",
+        hydrate = "hydrate_optional_task_id",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub parent_id: Option<TaskID>,
     #[autosurgeon(rename = "childTaskIds")]
@@ -586,14 +658,22 @@ pub struct PersistedTask {
     #[autosurgeon(rename = "placeId", hydrate = "hydrate_optional_place_id")]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub place_id: Option<PlaceID>,
-    #[autosurgeon(hydrate = "hydrate_f64")]
+    #[autosurgeon(hydrate = "hydrate_f64", reconcile = "reconcile_f64")]
     pub importance: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "creditIncrement", hydrate = "hydrate_optional_f64")]
+    #[autosurgeon(
+        rename = "creditIncrement",
+        hydrate = "hydrate_optional_f64",
+        reconcile = "reconcile_optional_f64"
+    )]
     pub credit_increment: Option<f64>,
-    #[autosurgeon(hydrate = "hydrate_f64")]
+    #[autosurgeon(hydrate = "hydrate_f64", reconcile = "reconcile_f64")]
     pub credits: f64,
-    #[autosurgeon(rename = "desiredCredits", hydrate = "hydrate_f64")]
+    #[autosurgeon(
+        rename = "desiredCredits",
+        hydrate = "hydrate_f64",
+        reconcile = "reconcile_f64"
+    )]
     pub desired_credits: f64,
     #[autosurgeon(rename = "creditsTimestamp")]
     pub credits_timestamp: i64,
@@ -601,7 +681,11 @@ pub struct PersistedTask {
     pub priority_timestamp: i64,
     pub schedule: Schedule,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "repeatConfig", hydrate = "hydrate_optional_repeat_config")]
+    #[autosurgeon(
+        rename = "repeatConfig",
+        hydrate = "hydrate_optional_repeat_config",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub repeat_config: Option<RepeatConfig>,
     #[autosurgeon(rename = "isSequential")]
     pub is_sequential: bool,
@@ -609,7 +693,11 @@ pub struct PersistedTask {
     #[autosurgeon(rename = "isAcknowledged")]
     pub is_acknowledged: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "lastCompletedAt", hydrate = "hydrate_optional_i64")]
+    #[autosurgeon(
+        rename = "lastCompletedAt",
+        hydrate = "hydrate_optional_i64",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub last_completed_at: Option<i64>,
 }
 
@@ -654,7 +742,7 @@ pub fn hydrate_f64<D: autosurgeon::ReadDoc>(
 }
 
 /// Internal Mutable Object for Algorithm Processing.
-#[derive(Debug, Clone, PartialEq, Hydrate, Reconcile)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EnrichedTask {
     // Flattened PersistedTask fields
     pub id: TaskID,
@@ -735,7 +823,7 @@ impl Reconcile for ScheduleSource {
 }
 
 /// A task as projected for the View Layer.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ComputedTask {
     pub id: TaskID,
@@ -908,7 +996,10 @@ pub struct Place {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Reconcile)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 pub struct DocMetadata {
-    #[autosurgeon(rename = "automerge_url")]
+    #[autosurgeon(
+        rename = "automerge_url",
+        reconcile = "reconcile_option_string_as_text"
+    )]
     pub automerge_url: Option<String>,
 }
 
@@ -1014,6 +1105,7 @@ impl Default for TunnelState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_persisted_task_serialization() {
         let task = PersistedTask {
@@ -1067,7 +1159,7 @@ mod tests {
 
     #[test]
     fn test_tunnel_state_serialization_old() {
-        // ... (truncated or kept as is)
+        // (existing content)
     }
 }
 

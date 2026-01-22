@@ -443,6 +443,43 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     headless runs. Use `console.log` (or `tracing::info!` in Rust) to debug
     internal state discrepancies that the DOM does not reveal.
 
+## Automerge & Autosurgeon Patterns
+
+- **Asymmetric Serialization for Legacy Support**:
+  - _Pattern:_ When migrating from a legacy schema (e.g., TypeScript/Automerge 0.1)
+    to a Rust implementation, use `Hydrate` and `Reconcile` asymmetrically.
+  - _Rule:_ `Hydrate` implementations for strings/IDs should be broad (e.g.,
+    `hydrate_string_or_text`), accepting both `ObjType::Text` and `Scalar::Str`.
+    `Reconcile` implementations should be strict, writing exactly the format
+    expected by the system (e.g., `Text` for persistent IDs to match legacy
+    golden files).
+  - _Technique:_ To force `Text` reconciliation for a string field, use:
+    `reconciler.text()?.update(&self.0)?` within a manual `Reconcile`
+    implementation.
+- **Flexibility of Autosurgeon Reconciliation**:
+  - _Learning:_ `autosurgeon` is highly flexible. You can override the default
+    reconciliation of any type (even `String`) by providing a custom
+    `Reconcile` implementation or using `#[autosurgeon(reconcile = "...")]`.
+    This allows the Rust model to remain clean (using `String`) while the
+    Automerge representation varies (Text vs. Scalar Str) depending on the
+    field's role in the legacy schema.
+
+## Testing Patterns (Rust & Automerge)
+
+- **Opaque Text Objects in `assert_doc!`**:
+  - _Problem:_ The `automerge-test::assert_doc!` macro "realizes" `ObjType::Text`
+    as a sequence of character maps (e.g., `list![{"h"}, {"e"}, {"l"}]`). This
+    makes ID assertions extremely verbose.
+  - _Solution:_ Implement an `am_text(s: &str) -> RealizedObject` helper in test
+    modules to convert strings into the realized sequence structure.
+- **Golden/Diff Testing: Numeric Type Strictness**:
+  - _Warning:_ Automerge documents often fluctuation between `ScalarValue::Int`
+    and `ScalarValue::F64` based on the implementing platform (JS vs. Rust).
+  - _Guideline:_ When writing recursive diff/equality checkers for golden files,
+    treat `Int(n)` as equal to `F64(n.0)` if the mathematical values match.
+    Strict enum matching causes "noise" failures that do not represent semantic
+    data loss.
+
 ## Rust & Dioxus Workspace Strategies (Migration)
 
 - **Root Workspace Pattern:** For hybrid JS/Rust monorepos, use a root-level
