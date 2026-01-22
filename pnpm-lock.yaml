@@ -129,9 +129,6 @@ catalogs:
     postcss-simple-vars:
       specifier: 7.0.1
       version: 7.0.1
-    prettier:
-      specifier: ^3.4.2
-      version: 3.7.4
     react:
       specifier: ^19.2.3
       version: 19.2.3
@@ -220,7 +217,7 @@ importers:
         version: 5.82.1(@types/node@25.0.9)(typescript@5.9.3)
       prettier:
         specifier: 'catalog:'
-        version: 3.7.4
+        version: 3.8.1
       syncpack:
         specifier: 'catalog:'
         version: 13.0.4(typescript@5.9.3)
@@ -2464,8 +2461,8 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  core-js-compat@3.47.0:
-    resolution: {integrity: sha512-IGfuznZ/n7Kp9+nypamBhvwdwLsW6KC8IOaURw2doAK5e98AG3acVLdh0woOnEqCfUtS+Vu882JE4k/DAm3ItQ==}
+  core-js-compat@3.48.0:
+    resolution: {integrity: sha512-OM4cAF3D6VtH/WkLtWvyNC56EZVXsZdU3iqaMG2B4WvYrlqU831pc4UtG5yp0sE9z8Y02wVN7PjW5Zf9Gt0f1Q==}
 
   cosmiconfig-typescript-loader@6.2.0:
     resolution: {integrity: sha512-GEN39v7TgdxgIoNcdkRE3uiAzQt3UXLyHbRHD6YoL048XAeOomyxaP+Hh/+2C6C2wYjxJ2onhJcsQp+L4YEkVQ==}
@@ -3287,6 +3284,9 @@ packages:
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
+  lodash@4.17.23:
+    resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
+
   log-symbols@6.0.0:
     resolution: {integrity: sha512-i24m8rpwhmPIS4zscNzK6MSEhk0DUWa/8iYQWxhffV8jkI4Phvs3F+quL5xvS0gdQR0FyTCMMH33Y78dDTzzIw==}
     engines: {node: '>=18'}
@@ -3583,8 +3583,8 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
-  prettier@3.7.4:
-    resolution: {integrity: sha512-v6UNi1+3hSlVvv8fSaoUbggEM5VErKmmpGA7Pl3HF8V6uKY7rvClBOJlH6yNwQtfTueNkGVpOv/mtWL9L4bgRA==}
+  prettier@3.8.1:
+    resolution: {integrity: sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -5228,7 +5228,7 @@ snapshots:
       babel-plugin-polyfill-corejs2: 0.4.14(@babel/core@7.28.6)
       babel-plugin-polyfill-corejs3: 0.13.0(@babel/core@7.28.6)
       babel-plugin-polyfill-regenerator: 0.6.5(@babel/core@7.28.6)
-      core-js-compat: 3.47.0
+      core-js-compat: 3.48.0
       semver: 6.3.1
     transitivePeerDependencies:
       - supports-color
@@ -6483,7 +6483,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.28.6
       '@babel/helper-define-polyfill-provider': 0.6.5(@babel/core@7.28.6)
-      core-js-compat: 3.47.0
+      core-js-compat: 3.48.0
     transitivePeerDependencies:
       - supports-color
 
@@ -6642,7 +6642,7 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  core-js-compat@3.47.0:
+  core-js-compat@3.48.0:
     dependencies:
       browserslist: 4.28.1
 
@@ -7439,7 +7439,7 @@ snapshots:
       js-yaml: 4.1.1
       lodash: 4.17.21
       minimist: 1.2.8
-      prettier: 3.7.4
+      prettier: 3.8.1
       tinyglobby: 0.2.15
 
   json-schema-traverse@0.4.1: {}
@@ -7527,6 +7527,8 @@ snapshots:
   lodash.upperfirst@4.3.1: {}
 
   lodash@4.17.21: {}
+
+  lodash@4.17.23: {}
 
   log-symbols@6.0.0:
     dependencies:
@@ -7831,7 +7833,7 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier@3.7.4: {}
+  prettier@3.8.1: {}
 
   pretty-bytes@5.6.0: {}
 
@@ -8744,7 +8746,7 @@ snapshots:
       fast-json-stable-stringify: 2.1.0
       fs-extra: 9.1.0
       glob: 11.1.0
-      lodash: 4.17.21
+      lodash: 4.17.23
       pretty-bytes: 5.6.0
       rollup: 2.79.2
       source-map: 0.8.0-beta.0
