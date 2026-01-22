@@ -42,7 +42,7 @@ web-sys = "0.3"
 getrandom-v3 = { package = "getrandom", version = "0.3.4", features = ["wasm_js"] }
 # getrandom 0.2 is required by legacy/transitive dependencies (e.g. rand 0.8, uuid 1.x)
 # that need the "js" feature enabled for WASM support.
-getrandom-v2 = { package = "getrandom", version = "0.2.17", features = ["js"] }
+getrandom-v2 = { package = "getrandom", version = "0.3.0", features = ["js"] }
 scopeguard = "1.2.0"
 console_error_panic_hook = "0.1.7"
 samod = { git = "https://github.com/matta/samod", branch = "wasm" }
