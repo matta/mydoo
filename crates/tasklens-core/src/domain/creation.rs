@@ -36,7 +36,7 @@ pub fn create_new_task(id: TaskID, title: String, parent: Option<&PersistedTask>
         schedule: Schedule {
             schedule_type: ScheduleType::Once,
             due_date: None,
-            lead_time: Some(DEFAULT_LEAD_TIME_MILLIS),
+            lead_time: DEFAULT_LEAD_TIME_MILLIS,
             last_done: None,
         },
         repeat_config: None,
@@ -59,7 +59,7 @@ mod tests {
         assert_eq!(task.parent_id, None);
         assert_eq!(task.place_id, None);
         assert_eq!(task.credit_increment, Some(DEFAULT_CREDIT_INCREMENT));
-        assert_eq!(task.schedule.lead_time, Some(DEFAULT_LEAD_TIME_MILLIS));
+        assert_eq!(task.schedule.lead_time, DEFAULT_LEAD_TIME_MILLIS);
     }
 
     #[test]
@@ -76,6 +76,6 @@ mod tests {
         assert_eq!(child.parent_id, Some(parent.id));
 
         // Default overrides
-        assert_eq!(child.schedule.lead_time, Some(DEFAULT_LEAD_TIME_MILLIS));
+        assert_eq!(child.schedule.lead_time, DEFAULT_LEAD_TIME_MILLIS);
     }
 }

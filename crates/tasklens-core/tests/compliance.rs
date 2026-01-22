@@ -778,7 +778,7 @@ fn apply_task_input(
         persisted.schedule.due_date = parse_yaml_date(dd)?;
     }
     if let Some(lt) = lead_time_seconds {
-        persisted.schedule.lead_time = Some((lt.to_f64() * 1000.0) as i64);
+        persisted.schedule.lead_time = (lt.to_f64() * 1000.0) as i64;
     }
     if let Some(ld) = last_done {
         persisted.schedule.last_done = parse_yaml_date(ld)?;

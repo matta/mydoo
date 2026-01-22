@@ -9,9 +9,6 @@ pub(crate) const DAY_MS: i64 = 24 * HOUR_MS;
 /// Milliseconds in one week.
 pub(crate) const WEEK_MS: i64 = 7 * DAY_MS;
 
-/// Default lead time (7 days) in milliseconds.
-pub(crate) const DEFAULT_LEAD_TIME_MS: i64 = WEEK_MS;
-
 /// Converts milliseconds to a human-readable period (e.g., number of days).
 ///
 /// Returns (value, unit). Automatically chooses best unit (Days, Hours, or Minutes).

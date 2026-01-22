@@ -43,7 +43,8 @@
     "fix-eslint": "eslint . --fix",
     "fix-format": "prettier --write .",
     "generate": "mkdir -p src/generated && json2ts ./specs/compliance/schemas/feature.schema.json ./src/generated/feature.d.ts && prettier --write ./src/generated/*.d.ts",
-    "test": "vitest run --coverage"
+    "test": "vitest run --coverage",
+    "validate-compliance": "tsx src/bin/validate-compliance.ts"
   },
   "type": "module",
   "types": "./src/index.ts"

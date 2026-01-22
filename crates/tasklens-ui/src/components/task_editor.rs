@@ -92,7 +92,7 @@ pub fn TaskEditor(
                 schedule: Schedule {
                     schedule_type: ScheduleType::Once,
                     due_date: None,
-                    lead_time: Some(DEFAULT_LEAD_TIME_MILLIS),
+                    lead_time: DEFAULT_LEAD_TIME_MILLIS,
                     last_done: None,
                 },
                 repeat_config: None,
@@ -494,11 +494,9 @@ pub fn TaskEditor(
                         label { class: "block text-sm font-medium", "Lead Time" }
                         div { class: "flex gap-2",
                             {
-                                let lead_time_ms = current_draft
-                                    .schedule
-                                    .lead_time
-                                    .unwrap_or(DEFAULT_LEAD_TIME_MILLIS);
+                                let lead_time_ms = current_draft.schedule.lead_time;
                                 let (val, unit) = time_conversion::ms_to_period(lead_time_ms);
+                                let unit_clone = unit.clone();
                                 rsx! {
                                     input {
                                         r#type: "number",
@@ -508,9 +506,7 @@ pub fn TaskEditor(
                                         oninput: move |e| {
                                             if let Ok(val) = e.value().parse::<u32>() {
                                                 let mut d = draft().expect("draft should be initialized");
-                                                let current_ms = d.schedule.lead_time.unwrap_or(DEFAULT_LEAD_TIME_MILLIS);
-                                                let (_, unit) = time_conversion::ms_to_period(current_ms);
-                                                d.schedule.lead_time = Some(time_conversion::period_to_ms(val, &unit));
+                                                d.schedule.lead_time = time_conversion::period_to_ms(val, &unit_clone);
                                                 draft.set(Some(d));
                                             }
                                         },
@@ -521,9 +517,8 @@ pub fn TaskEditor(
                                         value: "{unit}",
                                         onchange: move |e| {
                                             let mut d = draft().expect("draft should be initialized");
-                                            let current_ms = d.schedule.lead_time.unwrap_or(DEFAULT_LEAD_TIME_MILLIS);
-                                            let (val, _) = time_conversion::ms_to_period(current_ms);
-                                            d.schedule.lead_time = Some(time_conversion::period_to_ms(val, &e.value()));
+                                            let (val, _) = time_conversion::ms_to_period(d.schedule.lead_time);
+                                            d.schedule.lead_time = time_conversion::period_to_ms(val, &e.value());
                                             draft.set(Some(d));
                                         },
                                         option { value: "Hours", "Hours" }

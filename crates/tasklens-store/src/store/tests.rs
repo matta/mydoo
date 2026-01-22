@@ -143,8 +143,7 @@ fn test_store_init() {
             "places" => { map!{} },
             "rootTaskIds" => { list![] },
             "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null }
+            "nextPlaceId" => { 1 }
         }
     );
 
@@ -180,7 +179,6 @@ fn test_dispatch_create() {
                             "childTaskIds" => { list![] },
                             "status" => { am_text("Pending") },
                             "notes" => { am_text("") },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -206,7 +204,6 @@ fn test_dispatch_create() {
             },
             "nextTaskId" => { 1 },
             "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null },
             "places" => { map!{} }
         }
     );
@@ -271,7 +268,6 @@ fn test_dispatch_create_with_parent() {
                             },
                             "status" => { am_text("Pending") },
                             "notes" => { am_text("") },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -297,7 +293,6 @@ fn test_dispatch_create_with_parent() {
                             "status" => { am_text("Pending") },
                             "notes" => { am_text("") },
                             "parentId" => { am_text(&parent_id_str) },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -323,7 +318,6 @@ fn test_dispatch_create_with_parent() {
                             "status" => { am_text("Pending") },
                             "notes" => { am_text("") },
                             "parentId" => { am_text(&parent_id_str) },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -350,7 +344,6 @@ fn test_dispatch_create_with_parent() {
             },
             "nextTaskId" => { 1 },
             "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null },
             "places" => { map!{} }
         }
     );
@@ -433,7 +426,7 @@ fn test_dispatch_update_all_fields() {
                 place_id: Some(Some(place_id.clone())),
                 due_date: Some(Some(1234567890)),
                 schedule_type: Some(tasklens_core::types::ScheduleType::Routinely),
-                lead_time: Some(Some(3600)),
+                lead_time: Some(3600),
                 repeat_config: Some(Some(repeat_config.clone())),
                 is_sequential: Some(true),
             },
@@ -451,7 +444,7 @@ fn test_dispatch_update_all_fields() {
         task.schedule.schedule_type,
         tasklens_core::types::ScheduleType::Routinely
     );
-    assert_eq!(task.schedule.lead_time, Some(3600));
+    assert_eq!(task.schedule.lead_time, 3600);
     assert_eq!(task.repeat_config, Some(repeat_config));
     assert!(task.is_sequential);
 }
@@ -495,7 +488,6 @@ fn test_dispatch_update() {
                             "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -523,7 +515,6 @@ fn test_dispatch_update() {
             "places" => { map!{} },
             "nextTaskId" => { 1 },
             "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null }
         }
     );
 
@@ -562,7 +553,6 @@ fn test_dispatch_delete() {
             "places" => { map!{} },
             "nextTaskId" => { 1 },
             "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null }
         }
     );
 
@@ -627,7 +617,6 @@ fn test_dispatch_delete_with_parent() {
                             "childTaskIds" => { list![] },
                             "status" => { am_text("Pending") },
                             "notes" => { am_text("") },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -653,7 +642,6 @@ fn test_dispatch_delete_with_parent() {
             "places" => { map!{} },
             "nextTaskId" => { 1 },
             "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null }
         }
     );
 }
@@ -693,7 +681,6 @@ fn test_dispatch_complete() {
                             "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -723,7 +710,6 @@ fn test_dispatch_complete() {
             "places" => { map!{} },
             "nextTaskId" => { 1 },
             "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null }
         }
     );
 
@@ -783,7 +769,6 @@ fn test_dispatch_move() {
                                 ]
                             },
                             "notes" => { am_text("") },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -810,7 +795,6 @@ fn test_dispatch_move() {
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "parentId" => { am_text(&parent_id_str) },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -839,7 +823,6 @@ fn test_dispatch_move() {
             "places" => { map!{} },
             "nextTaskId" => { 1 },
             "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null }
         }
     );
 
@@ -891,7 +874,6 @@ fn test_dispatch_refresh_lifecycle() {
                             "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -921,7 +903,6 @@ fn test_dispatch_refresh_lifecycle() {
             "places" => { map!{} },
             "nextTaskId" => { 1 },
             "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null }
         }
     );
 
@@ -942,7 +923,6 @@ fn test_dispatch_refresh_lifecycle() {
                             "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -972,7 +952,6 @@ fn test_dispatch_refresh_lifecycle() {
             "places" => { map!{} },
             "nextTaskId" => { 1 },
             "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null }
         }
     );
 
@@ -1001,7 +980,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
         let task = state.tasks.get_mut(&task_id).unwrap();
         task.status = TaskStatus::Done;
         task.schedule.schedule_type = tasklens_core::types::ScheduleType::Routinely;
-        task.schedule.lead_time = Some(100);
+        task.schedule.lead_time = 100;
         task.repeat_config = Some(tasklens_core::types::RepeatConfig {
             frequency: tasklens_core::types::Frequency::Daily,
             interval: 1,
@@ -1027,7 +1006,6 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                             "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -1063,7 +1041,6 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
             "places" => { map!{} },
             "nextTaskId" => { 1 },
             "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null }
         }
     );
     assert_eq!(
@@ -1090,7 +1067,6 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                             "status" => { am_text("Pending") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
-                            "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -1126,7 +1102,6 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
             "places" => { map!{} },
             "nextTaskId" => { 1 },
             "nextPlaceId" => { 1 },
-            "metadata" => { automerge::ScalarValue::Null }
         }
     );
     assert_eq!(
