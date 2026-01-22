@@ -24,6 +24,7 @@ test-utils = ["dep:proptest", "dep:proptest-derive"]
 js-sys.workspace = true
 wasm-bindgen.workspace = true
 getrandom-v3.workspace = true
+getrandom-v2.workspace = true
 
 [dev-dependencies]
 serde_yaml_ng = "0.10"
