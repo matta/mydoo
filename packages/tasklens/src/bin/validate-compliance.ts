@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { next as Automerge } from "@automerge/automerge";
