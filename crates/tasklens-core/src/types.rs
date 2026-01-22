@@ -162,6 +162,16 @@ pub fn reconcile_optional_f64<R: autosurgeon::Reconciler>(
     }
 }
 
+/// Reconciles a String as an Automerge Text object.
+pub fn reconcile_string_as_text<R: autosurgeon::Reconciler>(
+    val: &String,
+    mut reconciler: R,
+) -> Result<(), R::Error> {
+    use autosurgeon::reconcile::TextReconciler;
+    reconciler.text()?.update(val)?;
+    Ok(())
+}
+
 /// Unique identifier for a task.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
@@ -180,10 +190,8 @@ impl Hydrate for TaskID {
 
 impl Reconcile for TaskID {
     type Key<'a> = autosurgeon::reconcile::NoKey;
-    fn reconcile<R: autosurgeon::Reconciler>(&self, mut reconciler: R) -> Result<(), R::Error> {
-        use autosurgeon::reconcile::TextReconciler;
-        reconciler.text()?.update(&self.0)?;
-        Ok(())
+    fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
+        reconcile_string_as_text(&self.0, reconciler)
     }
 }
 
@@ -253,7 +261,7 @@ impl Hydrate for PlaceID {
 impl Reconcile for PlaceID {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        self.0.reconcile(reconciler)
+        reconcile_string_as_text(&self.0, reconciler)
     }
 }
 
@@ -613,7 +621,7 @@ pub struct PersistedTask {
     #[autosurgeon(hydrate = "hydrate_string_or_text")]
     pub title: String,
     #[serde(default)]
-    #[autosurgeon(hydrate = "hydrate_string_or_text")]
+    #[autosurgeon(hydrate = "hydrate_string_or_text", reconcile = "reconcile_string_as_text")]
     pub notes: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(rename = "parentId", hydrate = "hydrate_optional_task_id")]
