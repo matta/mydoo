@@ -178,7 +178,7 @@ fn test_dispatch_create() {
                             "id" => { am_text(&task_id_str) },
                             "title" => { "Test Task" },
                             "childTaskIds" => { list![] },
-                            "status" => { "Pending" },
+                            "status" => { am_text("Pending") },
                             "notes" => { am_text("") },
                             "parentId" => { automerge::ScalarValue::Null },
                             "placeId" => { automerge::ScalarValue::Null },
@@ -270,7 +270,7 @@ fn test_dispatch_create_with_parent() {
                                     { am_text(&child2_id_str) }
                                 ]
                             },
-                            "status" => { "Pending" },
+                            "status" => { am_text("Pending") },
                             "notes" => { am_text("") },
                             "parentId" => { automerge::ScalarValue::Null },
                             "placeId" => { automerge::ScalarValue::Null },
@@ -296,7 +296,7 @@ fn test_dispatch_create_with_parent() {
                             "id" => { am_text(&child1_id_str) },
                             "title" => { "Child 1" },
                             "childTaskIds" => { list![] },
-                            "status" => { "Pending" },
+                            "status" => { am_text("Pending") },
                             "notes" => { am_text("") },
                             "parentId" => { am_text(&parent_id_str) },
                             "placeId" => { automerge::ScalarValue::Null },
@@ -322,7 +322,7 @@ fn test_dispatch_create_with_parent() {
                             "id" => { am_text(&child2_id_str) },
                             "title" => { "Child 2" },
                             "childTaskIds" => { list![] },
-                            "status" => { "Pending" },
+                            "status" => { am_text("Pending") },
                             "notes" => { am_text("") },
                             "parentId" => { am_text(&parent_id_str) },
                             "placeId" => { automerge::ScalarValue::Null },
@@ -494,7 +494,7 @@ fn test_dispatch_update() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { "Updated" },
-                            "status" => { "Done" },
+                            "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "parentId" => { automerge::ScalarValue::Null },
@@ -628,7 +628,7 @@ fn test_dispatch_delete_with_parent() {
                             "id" => { am_text(parent_id.as_str()) },
                             "title" => { "Parent" },
                             "childTaskIds" => { list![] },
-                            "status" => { "Pending" },
+                            "status" => { am_text("Pending") },
                             "notes" => { am_text("") },
                             "parentId" => { automerge::ScalarValue::Null },
                             "placeId" => { automerge::ScalarValue::Null },
@@ -694,7 +694,7 @@ fn test_dispatch_complete() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { "To Complete" },
-                            "status" => { "Done" },
+                            "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "parentId" => { automerge::ScalarValue::Null },
@@ -781,7 +781,7 @@ fn test_dispatch_move() {
                         map! {
                             "id" => { am_text(&parent_id_str) },
                             "title" => { "Parent" },
-                            "status" => { "Pending" },
+                            "status" => { am_text("Pending") },
                             "childTaskIds" => {
                                 list![
                                     { am_text(&child_id_str) }
@@ -812,7 +812,7 @@ fn test_dispatch_move() {
                         map! {
                             "id" => { am_text(&child_id_str) },
                             "title" => { "Child" },
-                            "status" => { "Pending" },
+                            "status" => { am_text("Pending") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "parentId" => { am_text(&parent_id_str) },
@@ -894,7 +894,7 @@ fn test_dispatch_refresh_lifecycle() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { "To Acknowledge" },
-                            "status" => { "Done" },
+                            "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "parentId" => { automerge::ScalarValue::Null },
@@ -946,7 +946,7 @@ fn test_dispatch_refresh_lifecycle() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { "To Acknowledge" },
-                            "status" => { "Done" },
+                            "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "parentId" => { automerge::ScalarValue::Null },
@@ -1032,7 +1032,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { "Routine" },
-                            "status" => { "Done" },
+                            "status" => { am_text("Done") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "parentId" => { automerge::ScalarValue::Null },
@@ -1096,7 +1096,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { "Routine" },
-                            "status" => { "Pending" },
+                            "status" => { am_text("Pending") },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "parentId" => { automerge::ScalarValue::Null },

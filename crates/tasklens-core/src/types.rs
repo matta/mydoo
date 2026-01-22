@@ -346,11 +346,11 @@ impl Hydrate for TaskStatus {
 impl Reconcile for TaskStatus {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        match self {
+        let text = match self {
             Self::Pending => "Pending",
             Self::Done => "Done",
-        }
-        .reconcile(reconciler)
+        };
+        reconcile_string_as_text(text, reconciler)
     }
 }
 
