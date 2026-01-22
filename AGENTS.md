@@ -67,13 +67,6 @@
 - **Verification Protocol:** The Agent must NEVER report a shell command as
   successful based on log output alone. The Agent MUST verify that the process
   `Exit Code` is `0` (via `command_status`) before claiming success.
-- **Secret Verification:** The Agent must set the `AGENT_GIT_COMMIT_SECRET`
-  environment variable to the correct value ("I follow directions.") when
-  running `git commit`. Do not export it into the environent; simply do:
-
-  ```sh
-  AGENT_GIT_COMMIT_SECRET="..." git commit [args]
-  ```
 
 ## Coding Guidelines
 
