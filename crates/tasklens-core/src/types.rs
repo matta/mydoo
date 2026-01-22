@@ -139,8 +139,10 @@ impl Hydrate for TaskID {
 
 impl Reconcile for TaskID {
     type Key<'a> = autosurgeon::reconcile::NoKey;
-    fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        self.0.reconcile(reconciler)
+    fn reconcile<R: autosurgeon::Reconciler>(&self, mut reconciler: R) -> Result<(), R::Error> {
+        use autosurgeon::reconcile::TextReconciler;
+        reconciler.text()?.update(&self.0)?;
+        Ok(())
     }
 }
 
@@ -1014,6 +1016,7 @@ impl Default for TunnelState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_persisted_task_serialization() {
         let task = PersistedTask {
@@ -1067,7 +1070,7 @@ mod tests {
 
     #[test]
     fn test_tunnel_state_serialization_old() {
-        // ... (truncated or kept as is)
+        // (existing content)
     }
 }
 

@@ -6,6 +6,20 @@ use automerge_test::{assert_doc, list, map};
 use tasklens_core::{TaskID, TaskStatus, TunnelState};
 
 use crate::store::{Action, ensure_path};
+use automerge_test::RealizedObject;
+use std::collections::BTreeSet;
+
+fn am_text(s: &str) -> RealizedObject {
+    let seq = s
+        .chars()
+        .map(|c| {
+            let mut set = BTreeSet::new();
+            set.insert(RealizedObject::from(c.to_string().as_str()));
+            set
+        })
+        .collect();
+    RealizedObject::Sequence(seq)
+}
 
 /// A shim to support legacy tests with the new static handlers.
 struct AppStore {
@@ -161,7 +175,7 @@ fn test_dispatch_create() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
+                            "id" => { am_text(&task_id_str) },
                             "title" => { "Test Task" },
                             "childTaskIds" => { list![] },
                             "status" => { "Pending" },
@@ -192,7 +206,7 @@ fn test_dispatch_create() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "nextTaskId" => { 1 },
@@ -252,12 +266,12 @@ fn test_dispatch_create_with_parent() {
                 map! {
                     parent_id_str.as_str() => {
                         map! {
-                            "id" => { parent_id_str.as_str() },
+                            "id" => { am_text(&parent_id_str) },
                             "title" => { "Parent" },
                             "childTaskIds" => {
                                 list![
-                                    { child1_id_str.as_str() },
-                                    { child2_id_str.as_str() }
+                                    { am_text(&child1_id_str) },
+                                    { am_text(&child2_id_str) }
                                 ]
                             },
                             "status" => { "Pending" },
@@ -286,12 +300,12 @@ fn test_dispatch_create_with_parent() {
                     },
                     child1_id_str.as_str() => {
                         map! {
-                            "id" => { child1_id_str.as_str() },
+                            "id" => { am_text(&child1_id_str) },
                             "title" => { "Child 1" },
                             "childTaskIds" => { list![] },
                             "status" => { "Pending" },
                             "notes" => { "" },
-                            "parentId" => { parent_id_str.as_str() },
+                            "parentId" => { am_text(&parent_id_str) },
                             "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1.0 },
                             "creditIncrement" => { 0.5 },
@@ -315,12 +329,12 @@ fn test_dispatch_create_with_parent() {
                     },
                     child2_id_str.as_str() => {
                         map! {
-                            "id" => { child2_id_str.as_str() },
+                            "id" => { am_text(&child2_id_str) },
                             "title" => { "Child 2" },
                             "childTaskIds" => { list![] },
                             "status" => { "Pending" },
                             "notes" => { "" },
-                            "parentId" => { parent_id_str.as_str() },
+                            "parentId" => { am_text(&parent_id_str) },
                             "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1.0 },
                             "creditIncrement" => { 0.5 },
@@ -346,7 +360,7 @@ fn test_dispatch_create_with_parent() {
             },
             "rootTaskIds" => {
                 list![
-                    { parent_id_str.as_str() }
+                    { am_text(&parent_id_str) }
                 ]
             },
             "nextTaskId" => { 1 },
@@ -491,7 +505,7 @@ fn test_dispatch_update() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
+                            "id" => { am_text(&task_id_str) },
                             "title" => { "Updated" },
                             "status" => { "Done" },
                             "childTaskIds" => { list![] },
@@ -522,7 +536,7 @@ fn test_dispatch_update() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -627,7 +641,7 @@ fn test_dispatch_delete_with_parent() {
                 map! {
                     parent_id.as_str() => {
                         map! {
-                            "id" => { parent_id.as_str() },
+                            "id" => { am_text(parent_id.as_str()) },
                             "title" => { "Parent" },
                             "childTaskIds" => { list![] },
                             "status" => { "Pending" },
@@ -657,7 +671,7 @@ fn test_dispatch_delete_with_parent() {
                 }
             },
             "rootTaskIds" => {
-                list![ { parent_id.as_str() } ]
+                list![ { am_text(parent_id.as_str()) } ]
             },
             "places" => { map!{} },
             "nextTaskId" => { 1 },
@@ -697,7 +711,7 @@ fn test_dispatch_complete() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
+                            "id" => { am_text(&task_id_str) },
                             "title" => { "To Complete" },
                             "status" => { "Done" },
                             "childTaskIds" => { list![] },
@@ -728,7 +742,7 @@ fn test_dispatch_complete() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -785,12 +799,12 @@ fn test_dispatch_move() {
                 map! {
                     parent_id_str.as_str() => {
                         map! {
-                            "id" => { parent_id_str.as_str() },
+                            "id" => { am_text(&parent_id_str) },
                             "title" => { "Parent" },
                             "status" => { "Pending" },
                             "childTaskIds" => {
                                 list![
-                                    { child_id_str.as_str() }
+                                    { am_text(&child_id_str) }
                                 ]
                             },
                             "notes" => { "" },
@@ -818,12 +832,12 @@ fn test_dispatch_move() {
                     },
                     child_id_str.as_str() => {
                         map! {
-                            "id" => { child_id_str.as_str() },
+                            "id" => { am_text(&child_id_str) },
                             "title" => { "Child" },
                             "status" => { "Pending" },
                             "childTaskIds" => { list![] },
                             "notes" => { "" },
-                            "parentId" => { parent_id_str.as_str() },
+                            "parentId" => { am_text(&parent_id_str) },
                             "placeId" => { automerge::ScalarValue::Null },
                             "importance" => { 1.0 },
                             "creditIncrement" => { 0.5 },
@@ -849,7 +863,7 @@ fn test_dispatch_move() {
             },
             "rootTaskIds" => {
                 list![
-                    { parent_id_str.as_str() }
+                    { am_text(&parent_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -902,7 +916,7 @@ fn test_dispatch_refresh_lifecycle() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
+                            "id" => { am_text(&task_id_str) },
                             "title" => { "To Acknowledge" },
                             "status" => { "Done" },
                             "childTaskIds" => { list![] },
@@ -933,7 +947,7 @@ fn test_dispatch_refresh_lifecycle() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -955,7 +969,7 @@ fn test_dispatch_refresh_lifecycle() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
+                            "id" => { am_text(&task_id_str) },
                             "title" => { "To Acknowledge" },
                             "status" => { "Done" },
                             "childTaskIds" => { list![] },
@@ -986,7 +1000,7 @@ fn test_dispatch_refresh_lifecycle() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -1042,7 +1056,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
+                            "id" => { am_text(&task_id_str) },
                             "title" => { "Routine" },
                             "status" => { "Done" },
                             "childTaskIds" => { list![] },
@@ -1078,7 +1092,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },
@@ -1106,7 +1120,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { task_id_str.as_str() },
+                            "id" => { am_text(&task_id_str) },
                             "title" => { "Routine" },
                             "status" => { "Pending" },
                             "childTaskIds" => { list![] },
@@ -1142,7 +1156,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
             },
             "rootTaskIds" => {
                 list![
-                    { task_id_str.as_str() }
+                    { am_text(&task_id_str) }
                 ]
             },
             "places" => { map!{} },

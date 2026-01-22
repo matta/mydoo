@@ -152,8 +152,8 @@ fn assert_docs_equal<T: ReadDoc>(doc_a: &T, doc_b: &T, obj_a: ObjId, obj_b: ObjI
             }
             for i in 0..len_a {
                 let current_path = format!("{}[{}]", path, i);
-                let val_a = doc_a.get(&obj_a, i as usize).expect("Get should work");
-                let val_b = doc_b.get(&obj_b, i as usize).expect("Get should work");
+                let val_a = doc_a.get(&obj_a, i).expect("Get should work");
+                let val_b = doc_b.get(&obj_b, i).expect("Get should work");
 
                 match (val_a, val_b) {
                     (Some((Value::Object(_), id_a)), Some((Value::Object(_), id_b))) => {
