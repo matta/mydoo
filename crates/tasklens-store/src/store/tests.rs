@@ -188,15 +188,12 @@ fn test_dispatch_create() {
                             "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -283,15 +280,13 @@ fn test_dispatch_create_with_parent() {
                             "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -311,15 +306,13 @@ fn test_dispatch_create_with_parent() {
                             "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -339,15 +332,13 @@ fn test_dispatch_create_with_parent() {
                             "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -514,15 +505,13 @@ fn test_dispatch_update() {
                             "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -649,15 +638,13 @@ fn test_dispatch_delete_with_parent() {
                             "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -718,16 +705,15 @@ fn test_dispatch_complete() {
                             "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "lastCompletedAt" => { 100 },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -810,15 +796,14 @@ fn test_dispatch_move() {
                             "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -838,15 +823,14 @@ fn test_dispatch_move() {
                             "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -921,16 +905,15 @@ fn test_dispatch_refresh_lifecycle() {
                             "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
                             "lastCompletedAt" => { 100 },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -974,16 +957,15 @@ fn test_dispatch_refresh_lifecycle() {
                             "desiredCredits" => { 1 },
                             "creditsTimestamp" => { 0 },
                             "priorityTimestamp" => { 0 },
-                            "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { true },
                             "lastCompletedAt" => { 100 },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 28800000 },
-                                    "type" => { "Once" }
+                                    "type" => { am_text("Once") }
                                 }
                             }
                         }
@@ -1072,10 +1054,10 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                             "lastCompletedAt" => { 1000 },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
-                                    "lastDone" => { automerge::ScalarValue::Null },
+
+
                                     "leadTime" => { 100 },
-                                    "type" => { "Routinely" }
+                                    "type" => { am_text("Routinely") }
                                 }
                             }
                         }
@@ -1136,10 +1118,10 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                             "lastCompletedAt" => { 1000 },
                             "schedule" => {
                                 map! {
-                                    "dueDate" => { automerge::ScalarValue::Null },
+
                                     "lastDone" => { 1000 },
                                     "leadTime" => { 100 },
-                                    "type" => { "Routinely" }
+                                    "type" => { am_text("Routinely") }
                                 }
                             }
                         }

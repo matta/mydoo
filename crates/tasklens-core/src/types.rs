@@ -164,7 +164,7 @@ pub fn reconcile_optional_f64<R: autosurgeon::Reconciler>(
 
 /// Reconciles a String as an Automerge Text object.
 pub fn reconcile_string_as_text<R: autosurgeon::Reconciler>(
-    val: &String,
+    val: &str,
     mut reconciler: R,
 ) -> Result<(), R::Error> {
     use autosurgeon::reconcile::TextReconciler;
@@ -437,13 +437,13 @@ impl Hydrate for ScheduleType {
 impl Reconcile for ScheduleType {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        match self {
+        let text = match self {
             Self::Once => "Once",
             Self::Routinely => "Routinely",
             Self::DueDate => "DueDate",
             Self::Calendar => "Calendar",
-        }
-        .reconcile(reconciler)
+        };
+        reconcile_string_as_text(text, reconciler)
     }
 }
 
@@ -458,7 +458,7 @@ pub struct Schedule {
     pub schedule_type: ScheduleType,
     /// Optional due date as Unix timestamp in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "dueDate")]
+    #[autosurgeon(rename = "dueDate", reconcile = "reconcile_optional_as_maybe_missing")]
     pub due_date: Option<i64>,
     /// Lead time in milliseconds before due date to start showing urgency.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -466,7 +466,7 @@ pub struct Schedule {
     pub lead_time: Option<i64>,
     /// Timestamp of last completion (for Routinely tasks).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "lastDone")]
+    #[autosurgeon(rename = "lastDone", reconcile = "reconcile_optional_as_maybe_missing")]
     pub last_done: Option<i64>,
 }
 
@@ -621,7 +621,10 @@ pub struct PersistedTask {
     #[autosurgeon(hydrate = "hydrate_string_or_text")]
     pub title: String,
     #[serde(default)]
-    #[autosurgeon(hydrate = "hydrate_string_or_text", reconcile = "reconcile_string_as_text")]
+    #[autosurgeon(
+        hydrate = "hydrate_string_or_text",
+        reconcile = "reconcile_string_as_text"
+    )]
     pub notes: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(rename = "parentId", hydrate = "hydrate_optional_task_id")]
@@ -656,7 +659,11 @@ pub struct PersistedTask {
     pub priority_timestamp: i64,
     pub schedule: Schedule,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "repeatConfig", hydrate = "hydrate_optional_repeat_config")]
+    #[autosurgeon(
+        rename = "repeatConfig",
+        hydrate = "hydrate_optional_repeat_config",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub repeat_config: Option<RepeatConfig>,
     #[autosurgeon(rename = "isSequential")]
     pub is_sequential: bool,
