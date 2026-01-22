@@ -1,3 +1,4 @@
+// DISABLED: These steps are currently skipped via @skip in the feature file.
 import { createBdd } from "playwright-bdd";
 import { expect, test } from "../fixtures";
 

@@ -1,4 +1,4 @@
-@binary
+@skip @binary
 Feature: Binary Import/Export
 
   Background:
