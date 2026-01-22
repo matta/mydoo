@@ -14,7 +14,6 @@ chrono.workspace = true
 uuid.workspace = true
 autosurgeon.workspace = true
 automerge.workspace = true
-getrandom.workspace = true
 proptest = { version = "1.9.0", optional = true }
 proptest-derive = { version = "0.7.0", optional = true }
 
