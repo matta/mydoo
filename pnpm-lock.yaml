@@ -66,6 +66,9 @@ catalogs:
     '@types/node':
       specifier: 25.0.9
       version: 25.0.9
+    '@types/react':
+      specifier: ^19.2.7
+      version: 19.2.9
     '@types/react-dom':
       specifier: ^19.2.3
       version: 19.2.3
@@ -126,6 +129,9 @@ catalogs:
     postcss-simple-vars:
       specifier: 7.0.1
       version: 7.0.1
+    prettier:
+      specifier: ^3.4.2
+      version: 3.8.1
     react:
       specifier: ^19.2.3
       version: 19.2.3
@@ -141,9 +147,15 @@ catalogs:
     tsx:
       specifier: ^4.21.0
       version: 4.21.0
+    turbo:
+      specifier: ^2.7.4
+      version: 2.7.5
     typescript:
       specifier: 5.9.3
       version: 5.9.3
+    typescript-eslint:
+      specifier: ^8.51.0
+      version: 8.53.1
     vite:
       specifier: ^7.3.1
       version: 7.3.1
@@ -408,6 +420,9 @@ importers:
       json-schema-to-typescript:
         specifier: 'catalog:'
         version: 15.0.4
+      tsx:
+        specifier: 'catalog:'
+        version: 4.21.0
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
