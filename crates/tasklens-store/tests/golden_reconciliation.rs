@@ -13,7 +13,6 @@ use tasklens_core::types::{PersistedTask, TunnelState};
 /// - Any "drift" between implementation and golden file must be resolved by either
 ///   fixing the implementation or explicitly updating the golden file.
 #[test]
-#[ignore] // FIXME: This test fails due to schema mismatches between golden file and current implementation.
 fn test_golden_reconciliation() {
     let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     d.push("tests/data/golden.automerge");

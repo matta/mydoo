@@ -584,15 +584,15 @@ impl Hydrate for Frequency {
 impl Reconcile for Frequency {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        match self {
-            Self::Minutes => "Minutes",
-            Self::Hours => "Hours",
-            Self::Daily => "Daily",
-            Self::Weekly => "Weekly",
-            Self::Monthly => "Monthly",
-            Self::Yearly => "Yearly",
-        }
-        .reconcile(reconciler)
+        let s = match self {
+            Self::Minutes => "minutes",
+            Self::Hours => "hours",
+            Self::Daily => "daily",
+            Self::Weekly => "weekly",
+            Self::Monthly => "monthly",
+            Self::Yearly => "yearly",
+        };
+        reconcile_string_as_text(s, reconciler)
     }
 }
 
@@ -641,7 +641,11 @@ pub struct PersistedTask {
     )]
     pub notes: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "parentId", hydrate = "hydrate_optional_task_id")]
+    #[autosurgeon(
+        rename = "parentId",
+        hydrate = "hydrate_optional_task_id",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub parent_id: Option<TaskID>,
     #[autosurgeon(rename = "childTaskIds")]
@@ -654,10 +658,14 @@ pub struct PersistedTask {
     #[autosurgeon(rename = "placeId", hydrate = "hydrate_optional_place_id")]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub place_id: Option<PlaceID>,
-    #[autosurgeon(hydrate = "hydrate_f64")]
+    #[autosurgeon(hydrate = "hydrate_f64", reconcile = "reconcile_f64")]
     pub importance: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "creditIncrement", hydrate = "hydrate_optional_f64")]
+    #[autosurgeon(
+        rename = "creditIncrement",
+        hydrate = "hydrate_optional_f64",
+        reconcile = "reconcile_optional_f64"
+    )]
     pub credit_increment: Option<f64>,
     #[autosurgeon(hydrate = "hydrate_f64", reconcile = "reconcile_f64")]
     pub credits: f64,
