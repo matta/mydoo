@@ -191,7 +191,6 @@ fn test_dispatch_create() {
                             "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
                                     "dueDate" => { automerge::ScalarValue::Null },
@@ -287,7 +286,6 @@ fn test_dispatch_create_with_parent() {
                             "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
                                     "dueDate" => { automerge::ScalarValue::Null },
@@ -316,7 +314,6 @@ fn test_dispatch_create_with_parent() {
                             "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
                                     "dueDate" => { automerge::ScalarValue::Null },
@@ -345,7 +342,6 @@ fn test_dispatch_create_with_parent() {
                             "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
                                     "dueDate" => { automerge::ScalarValue::Null },
@@ -521,7 +517,6 @@ fn test_dispatch_update() {
                             "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
                                     "dueDate" => { automerge::ScalarValue::Null },
@@ -657,7 +652,6 @@ fn test_dispatch_delete_with_parent() {
                             "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
                                     "dueDate" => { automerge::ScalarValue::Null },
@@ -819,7 +813,6 @@ fn test_dispatch_move() {
                             "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
                                     "dueDate" => { automerge::ScalarValue::Null },
@@ -848,7 +841,6 @@ fn test_dispatch_move() {
                             "repeatConfig" => { automerge::ScalarValue::Null },
                             "isSequential" => { false },
                             "isAcknowledged" => { false },
-                            "lastCompletedAt" => { automerge::ScalarValue::Null },
                             "schedule" => {
                                 map! {
                                     "dueDate" => { automerge::ScalarValue::Null },

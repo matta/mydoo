@@ -121,6 +121,23 @@ pub fn hydrate_optional_i64<D: autosurgeon::ReadDoc>(
     }
 }
 
+/// Reconciles an Option<T> using MaybeMissing semantics (None deletes the field).
+pub fn reconcile_optional_as_maybe_missing<T, R>(
+    val: &Option<T>,
+    reconciler: R,
+) -> Result<(), R::Error>
+where
+    T: autosurgeon::Reconcile,
+    R: autosurgeon::Reconciler,
+{
+    use autosurgeon::MaybeMissing;
+    let maybe_missing = match val {
+        Some(v) => MaybeMissing::Present(v),
+        None => MaybeMissing::Missing,
+    };
+    maybe_missing.reconcile(reconciler)
+}
+
 /// Reconciles an f64 as an Int if it has no fractional part and fits in a JS safe integer,
 /// otherwise reconciles as an F64.
 pub fn reconcile_f64<R: autosurgeon::Reconciler>(val: &f64, reconciler: R) -> Result<(), R::Error> {
@@ -639,7 +656,11 @@ pub struct PersistedTask {
     #[autosurgeon(rename = "isAcknowledged")]
     pub is_acknowledged: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "lastCompletedAt", hydrate = "hydrate_optional_i64")]
+    #[autosurgeon(
+        rename = "lastCompletedAt",
+        hydrate = "hydrate_optional_i64",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub last_completed_at: Option<i64>,
 }
 
@@ -684,7 +705,7 @@ pub fn hydrate_f64<D: autosurgeon::ReadDoc>(
 }
 
 /// Internal Mutable Object for Algorithm Processing.
-#[derive(Debug, Clone, PartialEq, Hydrate, Reconcile)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EnrichedTask {
     // Flattened PersistedTask fields
     pub id: TaskID,
