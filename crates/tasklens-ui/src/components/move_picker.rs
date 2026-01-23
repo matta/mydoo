@@ -2,7 +2,6 @@ use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use dioxus::prelude::*;
 use std::collections::HashSet;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
-use tasklens_store::store::AppStore;
 
 #[component]
 pub fn MovePicker(
@@ -10,9 +9,7 @@ pub fn MovePicker(
     on_select: EventHandler<Option<TaskID>>,
     on_close: EventHandler<()>,
 ) -> Element {
-    let store = use_context::<Signal<AppStore>>();
-
-    let state = use_memo(move || store.read().hydrate::<TunnelState>().unwrap_or_default());
+    let state = crate::hooks::use_tunnel_state::use_tunnel_state();
 
     let task_id_clone = task_id.clone();
     let task_title = use_memo(move || {

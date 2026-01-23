@@ -6,7 +6,7 @@
 use crate::components::*;
 use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
-use tasklens_core::types::{PersistedTask, TaskStatus, TunnelState};
+use tasklens_core::types::{PersistedTask, TaskStatus};
 use tasklens_store::store::AppStore;
 
 /// The main application page component.
@@ -27,17 +27,7 @@ pub fn TaskPage() -> Element {
     let mut show_settings = use_signal(|| false);
 
     // Hydrate state from the store
-    let state = use_memo({
-        let mut load_error = load_error;
-        move || match store.read().hydrate::<TunnelState>() {
-            Ok(s) => s,
-            Err(e) => {
-                tracing::error!("Failed to hydrate state for Task page: {}", e);
-                load_error.set(Some(e.to_string()));
-                TunnelState::default()
-            }
-        }
-    });
+    let state = crate::hooks::use_tunnel_state::use_tunnel_state();
 
     let save_and_sync = move || {
         // Explicit persist removed. Handled by use_persistence hook.

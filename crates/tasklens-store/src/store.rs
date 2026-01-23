@@ -4,7 +4,7 @@ use crate::doc_id::{DocumentId, TaskLensUrl};
 use crate::storage::{ActiveDocStorage, IndexedDbStorage};
 use anyhow::{Result, anyhow};
 use automerge::transaction::Transactable;
-use autosurgeon::{Doc, reconcile};
+use autosurgeon::{Doc, MaybeMissing, reconcile};
 use std::collections::HashMap;
 
 use tasklens_core::types::{
@@ -296,7 +296,13 @@ impl AppStore {
 
             // Hydrate current children list.
             let mut child_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds").unwrap_or_default();
+                match autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds") {
+                    Ok(ids) => match ids {
+                        MaybeMissing::Missing => Vec::new(),
+                        MaybeMissing::Present(ids) => ids,
+                    },
+                    Err(e) => return Err(anyhow!("Failed to hydrate child ids: {}", e)),
+                };
 
             child_ids.push(id);
 
@@ -306,7 +312,13 @@ impl AppStore {
         } else {
             // Update root task list.
             let mut root_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(doc, automerge::ROOT, "rootTaskIds").unwrap_or_default();
+                match autosurgeon::hydrate_prop(doc, automerge::ROOT, "rootTaskIds") {
+                    Ok(ids) => match ids {
+                        MaybeMissing::Missing => Vec::new(),
+                        MaybeMissing::Present(ids) => ids,
+                    },
+                    Err(e) => return Err(anyhow!("Failed to hydrate root task ids: {}", e)),
+                };
 
             root_ids.push(id);
 
@@ -395,7 +407,15 @@ impl AppStore {
 
             // Hydrate current children list.
             let mut child_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds").unwrap_or_default();
+                match autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds") {
+                    Ok(ids) => match ids {
+                        MaybeMissing::Missing => Vec::new(),
+                        MaybeMissing::Present(ids) => ids,
+                    },
+                    Err(e) => {
+                        return Err(anyhow!("Failed to hydrate parent's childTaskIds: {}", e));
+                    }
+                };
 
             child_ids.retain(|cid| cid != &id);
 
@@ -405,7 +425,13 @@ impl AppStore {
         } else {
             // Update root task list.
             let mut root_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds").unwrap_or_default();
+                match autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds") {
+                    Ok(ids) => match ids {
+                        MaybeMissing::Missing => Vec::new(),
+                        MaybeMissing::Present(ids) => ids,
+                    },
+                    Err(e) => return Err(anyhow!("Failed to hydrate rootTaskIds: {}", e)),
+                };
 
             root_ids.retain(|rid| rid != &id);
 

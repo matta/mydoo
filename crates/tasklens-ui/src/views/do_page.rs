@@ -20,17 +20,11 @@ pub fn DoPage() -> Element {
     }
     let mut editor_state = use_signal(|| None::<EditorState>);
 
+    let state = crate::hooks::use_tunnel_state::use_tunnel_state();
+
     let prioritized_tasks = use_memo({
-        let mut load_error = load_error;
         move || {
-            let state = match store.read().hydrate::<tasklens_core::types::TunnelState>() {
-                Ok(s) => s,
-                Err(e) => {
-                    tracing::error!("Failed to hydrate state for Work page: {}", e);
-                    load_error.set(Some(e.to_string()));
-                    return Vec::new();
-                }
-            };
+            let state = state.read();
             let view_filter = ViewFilter {
                 place_id: Some("All".to_string()),
             };

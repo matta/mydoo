@@ -53,27 +53,20 @@ pub fn TaskEditor(
     let load_error = use_context::<Signal<Option<String>>>();
     let mut draft = use_signal(|| None::<DraftTask>);
     let mut initialized = use_signal(|| false);
+    let state = crate::hooks::use_tunnel_state::use_tunnel_state();
 
     // Initialize draft
     if !initialized() {
         if let Some(ref id) = task_id {
-            let store_read = store.read();
-            let task_ref = store_read
-                .hydrate::<tasklens_core::types::TunnelState>()
-                .ok()
-                .and_then(|s| s.tasks.get(id).cloned());
+            let task_ref = state().tasks.get(id).cloned();
             if let Some(task) = task_ref {
                 draft.set(Some(DraftTask::from(task)));
             }
         } else {
             // Create Mode - Apply Defaults
             let parent_id = initial_parent_id.as_ref();
-            let store_read = store.read();
             let (place_id, credit_increment) = if let Some(p_id) = parent_id {
-                let parent = store_read
-                    .hydrate::<tasklens_core::types::TunnelState>()
-                    .ok()
-                    .and_then(|s| s.tasks.get(p_id).cloned());
+                let parent = state().tasks.get(p_id).cloned();
                 if let Some(p) = parent {
                     (p.place_id, p.credit_increment)
                 } else {
@@ -113,11 +106,8 @@ pub fn TaskEditor(
 
     let mut show_move_picker = use_signal(|| false);
 
-    let can_outdent = if let (Some(id), Ok(state)) = (
-        task_id.as_ref(),
-        store.read().hydrate::<tasklens_core::types::TunnelState>(),
-    ) {
-        state
+    let can_outdent = if let Some(id) = task_id.as_ref() {
+        state()
             .tasks
             .get(id)
             .map(|t| t.parent_id.is_some())
@@ -126,11 +116,8 @@ pub fn TaskEditor(
         false
     };
 
-    let can_indent = if let (Some(id), Ok(state)) = (
-        task_id.as_ref(),
-        store.read().hydrate::<tasklens_core::types::TunnelState>(),
-    ) {
-        tasklens_core::domain::hierarchy::get_previous_sibling(&state, id).is_some()
+    let can_indent = if let Some(id) = task_id.as_ref() {
+        tasklens_core::domain::hierarchy::get_previous_sibling(&state(), id).is_some()
     } else {
         false
     };
@@ -316,11 +303,8 @@ pub fn TaskEditor(
                             "Place"
                         }
                         {
-                            let store_read = store.read();
-                            let state = store_read
-                                .hydrate::<tasklens_core::types::TunnelState>()
-                                .unwrap_or_default();
-                            let places = state.places.values().collect::<Vec<_>>();
+                            let state_val = state();
+                            let places = state_val.places.values().collect::<Vec<_>>();
 
                             rsx! {
                                 Select {

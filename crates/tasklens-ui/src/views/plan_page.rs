@@ -12,7 +12,6 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     let mut store = use_context::<Signal<AppStore>>();
     let load_error = use_context::<Signal<Option<String>>>();
     let mut doc_id = use_context::<Signal<Option<DocumentId>>>();
-    let memory_heads = use_context::<crate::MemoryHeads>();
 
     // Track expanded task IDs.
     let mut expanded_tasks: Signal<std::collections::HashSet<TaskID>> =
@@ -39,11 +38,13 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     }
     let mut editor_state = use_signal(|| None::<EditorState>);
 
+    let state = crate::hooks::use_tunnel_state::use_tunnel_state();
+
     // Handle focus_task (Find in Plan)
     use_effect({
         move || {
             if let Some(target_id) = focus_task.clone() {
-                let state = store.read().hydrate::<TunnelState>().unwrap_or_default();
+                let state = state.read();
                 let mut current_id = target_id.clone();
                 let mut to_expand = Vec::new();
 
@@ -76,22 +77,9 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     };
 
     let flattened_tasks = use_memo({
-        let mut load_error = load_error;
         move || {
-            // Subscribe to heads updates to trigger re-render on sync/persistence changes
-            let _ = memory_heads.0.read();
-
-            let state = match store.read().hydrate::<TunnelState>() {
-                Ok(s) => s,
-                Err(e) => {
-                    tracing::error!("Failed to hydrate state for Plan page: {}", e);
-                    load_error.set(Some(e.to_string()));
-                    return Vec::new();
-                }
-            };
-
             let expanded = expanded_tasks.read();
-            flatten_tasks(&state, &expanded)
+            flatten_tasks(&state.read(), &expanded)
         }
     });
 
