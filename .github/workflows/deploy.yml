@@ -1,0 +1,47 @@
+name: Deploy Dioxus App
+
+on:
+  push:
+    branches: ["deploy"]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Rust
+        uses: swatinem/rust-cache@v2
+
+      - name: Install cargo-binstall
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-binstall
+
+      - name: Install dioxus-cli
+        run: |
+          # Get the version of dioxus we're using to ensure CLI compatibility
+          DIOXUS_VERSION=$(cargo tree -p dioxus --depth 0 --prefix none | cut -d v -f 2)
+          cargo binstall dioxus-cli --version $DIOXUS_VERSION --locked -y
+
+      - name: Build
+        working-directory: crates/tasklens-ui
+        run: |
+          # Build specifically for the web platform in release mode
+          dx build --release --platform web
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/dx/tasklens-ui/release/web/public
+          publish_branch: public
