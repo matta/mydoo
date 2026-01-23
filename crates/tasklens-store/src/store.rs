@@ -3,6 +3,7 @@ use crate::doc_id::{DocumentId, TaskLensUrl};
 #[cfg(target_arch = "wasm32")]
 use crate::storage::{ActiveDocStorage, IndexedDbStorage};
 use anyhow::{Result, anyhow};
+use automerge::ReadDoc;
 use automerge::transaction::Transactable;
 use autosurgeon::{Doc, MaybeMissing, reconcile};
 use std::collections::HashMap;
@@ -209,6 +210,61 @@ impl AppStore {
         } else {
             Err(anyhow!("No handle available"))
         }
+    }
+
+    /// A "total hack" repair utility that fixes tasks with "DoDonee" status,
+    /// changing them to "Done". This should be called if hydration fails
+    /// because of an "unexpected DoDonee" error.
+    pub fn repair_dodonee(&mut self) -> Result<()> {
+        let handle = self.handle.as_mut().ok_or_else(|| anyhow!("No handle"))?;
+        handle.with_document(|doc| {
+            let mut tx = doc.transaction();
+
+            // 1. Get tasks map
+            let tasks_obj_id = match am_get(&tx, &automerge::ROOT, "tasks")? {
+                Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
+                _ => return Ok(()),
+            };
+
+            // 2. Iterate keys and find those needing repair
+            let mut tasks_to_repair = Vec::new();
+            {
+                let keys = tx.keys(&tasks_obj_id);
+                for task_id in keys {
+                    let task_obj_id = match am_get(&tx, &tasks_obj_id, task_id.as_str())? {
+                        Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
+                        _ => continue,
+                    };
+
+                    // Check status
+                    let status_val = am_get(&tx, &task_obj_id, "status")?;
+                    let is_dodonee = match status_val {
+                        Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
+                            automerge::ScalarValue::Str(s) => s.as_str() == "DoDonee",
+                            _ => false,
+                        },
+                        Some((automerge::Value::Object(automerge::ObjType::Text), id)) => {
+                            tx.text(id)? == "DoDonee"
+                        }
+                        _ => false,
+                    };
+
+                    if is_dodonee {
+                        tasks_to_repair.push(task_obj_id);
+                    }
+                }
+            }
+
+            // 3. Repair them
+            for task_obj_id in tasks_to_repair {
+                tracing::info!("Repairing task {:?}: DoDonee -> Done", task_obj_id);
+                // Set it to Done.
+                autosurgeon::reconcile_prop(&mut tx, task_obj_id, "status", TaskStatus::Done)
+                    .map_err(|e| anyhow!("Repair reconciliation failed: {}", e))?;
+            }
+            tx.commit();
+            Ok(())
+        })
     }
 
     /// Dispatches an action to modify the application state.
