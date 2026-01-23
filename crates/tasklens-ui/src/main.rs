@@ -173,7 +173,7 @@ fn App() -> Element {
             tracing::info!("Found active document ID: {}", id);
 
             // Attempt to find existing document without holding store lock
-            let find_res = AppStore::find_doc_detached(repo.clone(), id.clone()).await;
+            let find_res = AppStore::find_doc(repo.clone(), id.clone()).await;
 
             match find_res {
                 Ok(Some(handle)) => {
@@ -183,7 +183,7 @@ fn App() -> Element {
                 Ok(None) => {
                     tracing::error!("Doc {} not found. Creating new.", id);
                     // Fallback to create new
-                    match AppStore::create_new_detached(repo.clone()).await {
+                    match AppStore::create_new(repo.clone()).await {
                         Ok((handle, new_id)) => {
                             store.write().set_active_doc(handle, new_id.clone());
                             doc_id.set(Some(new_id));
@@ -193,7 +193,7 @@ fn App() -> Element {
                 }
                 Err(e) => {
                     tracing::error!("Error finding doc: {:?}. Creating new.", e);
-                    match AppStore::create_new_detached(repo.clone()).await {
+                    match AppStore::create_new(repo.clone()).await {
                         Ok((handle, new_id)) => {
                             store.write().set_active_doc(handle, new_id.clone());
                             doc_id.set(Some(new_id));
@@ -205,7 +205,7 @@ fn App() -> Element {
         } else {
             // No active doc, create new
             tracing::info!("No active doc. Creating new.");
-            match AppStore::create_new_detached(repo.clone()).await {
+            match AppStore::create_new(repo.clone()).await {
                 Ok((handle, new_id)) => {
                     store.write().set_active_doc(handle, new_id.clone());
                     doc_id.set(Some(new_id));

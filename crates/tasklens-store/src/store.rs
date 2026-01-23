@@ -68,7 +68,7 @@ impl AppStore {
     }
 
     /// Creates a new document using the provided repo.
-    pub async fn create_new_detached(repo: samod::Repo) -> Result<(samod::DocHandle, DocumentId)> {
+    pub async fn create_new(repo: samod::Repo) -> Result<(samod::DocHandle, DocumentId)> {
         // Create new document
         let handle = repo.create(automerge::Automerge::new());
         let handle = handle
@@ -101,10 +101,7 @@ impl AppStore {
     }
 
     /// Finds a document using the provided repo.
-    pub async fn find_doc_detached(
-        repo: samod::Repo,
-        id: DocumentId,
-    ) -> Result<Option<samod::DocHandle>> {
+    pub async fn find_doc(repo: samod::Repo, id: DocumentId) -> Result<Option<samod::DocHandle>> {
         let handle = repo.find(id.into());
         let handle = handle
             .await
@@ -120,46 +117,6 @@ impl AppStore {
         ActiveDocStorage::save_active_url(&TaskLensUrl::from(id));
     }
 
-    /// Creates a new document and switches to it.
-    pub async fn create_new(&mut self) -> Result<DocumentId> {
-        if let Some(repo) = &self.repo {
-            let (handle, id) = Self::create_new_detached(repo.clone()).await?;
-            self.set_active_doc(handle, id.clone());
-            Ok(id)
-        } else {
-            Err(anyhow!("Repo not initialized"))
-        }
-    }
-
-    /// Switches to an existing document by ID.
-    pub async fn switch_doc(&mut self, id: DocumentId) -> Result<()> {
-        if let Some(repo) = &self.repo {
-            if let Some(handle) = Self::find_doc_detached(repo.clone(), id.clone()).await? {
-                self.set_active_doc(handle, id);
-                Ok(())
-            } else {
-                Err(anyhow!("Document not found in repo"))
-            }
-        } else {
-            Err(anyhow!("Repo not initialized"))
-        }
-    }
-
-    /// Deletes a document.
-    pub async fn delete_doc(&mut self, id: DocumentId) -> Result<()> {
-        #[cfg(target_arch = "wasm32")]
-        IndexedDbStorage::delete_doc(&id).await?;
-
-        if self.current_id == Some(id) {
-            // If we deleted the current doc, create a new one
-            // This might fail if no repo, but delete_doc implies we had some state
-            if self.repo.is_some() {
-                self.create_new().await?;
-            }
-        }
-        Ok(())
-    }
-
     #[cfg(target_arch = "wasm32")]
     pub fn save_active_doc_id(id: &DocumentId) {
         crate::storage::ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
@@ -167,7 +124,7 @@ impl AppStore {
 
     /// Imports a document from a byte array.
     /// This is detached from the store instance to avoid holding locks during async operations.
-    pub async fn import_doc_detached(
+    pub async fn import_doc(
         repo: samod::Repo,
         bytes: Vec<u8>,
     ) -> Result<(samod::DocHandle, DocumentId)> {
@@ -196,9 +153,7 @@ impl AppStore {
                     storage.put(key, bytes.clone()).await;
 
                     // Now find it via Repo (which should look in storage)
-                    if let Ok(Some(handle)) =
-                        Self::find_doc_detached(repo.clone(), id.clone()).await
-                    {
+                    if let Ok(Some(handle)) = Self::find_doc(repo.clone(), id.clone()).await {
                         return Ok((handle, id));
                     }
                 }
@@ -217,19 +172,6 @@ impl AppStore {
         Ok((handle, id))
     }
 
-    /// Imports a document from a byte array and sets it as active.
-    /// WARNING: This consumes self mutably and is async. Caller must NOT hold a lock if
-    /// self is behind a RefCell/Signal when awaiting this.
-    /// DEPRECATED: Use import_doc_detached instead.
-    pub async fn import_doc(&mut self, bytes: Vec<u8>) -> Result<DocumentId> {
-        if let Some(repo) = &self.repo {
-            let (handle, id) = Self::import_doc_detached(repo.clone(), bytes).await?;
-            self.set_active_doc(handle, id.clone());
-            Ok(id)
-        } else {
-            Err(anyhow!("Repo not initialized"))
-        }
-    }
     /// Exports the current document to a byte array.
     pub fn export_save(&self) -> Vec<u8> {
         if let Some(handle) = &self.handle {

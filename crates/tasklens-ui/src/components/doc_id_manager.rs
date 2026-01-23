@@ -146,11 +146,8 @@ pub fn DocIdManager(
                         let repo = store.read().repo.clone();
 
                         if let Some(repo) = repo {
-                            match tasklens_store::store::AppStore::import_doc_detached(
-                                repo,
-                                bytes.to_vec(),
-                            )
-                            .await
+                            match tasklens_store::store::AppStore::import_doc(repo, bytes.to_vec())
+                                .await
                             {
                                 Ok((handle, new_id)) => {
                                     tracing::info!("Imported document: {}", new_id);

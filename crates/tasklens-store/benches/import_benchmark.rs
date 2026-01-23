@@ -41,8 +41,11 @@ fn benchmark_import_doc(c: &mut Criterion) {
                     .run_until(async move {
                         // Create Repo INSIDE LocalSet so background tasks are correctly polled
                         let repo = samod::RepoBuilder::new(BenchRuntime).load_local().await;
-                        let mut store = AppStore::with_repo(repo);
-                        store.import_doc(std::hint::black_box(bytes)).await.unwrap();
+                        let mut store = AppStore::with_repo(repo.clone());
+                        let (handle, id) = AppStore::import_doc(repo, std::hint::black_box(bytes))
+                            .await
+                            .unwrap();
+                        store.set_active_doc(handle, id);
                     })
                     .await;
             }
