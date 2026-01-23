@@ -90,7 +90,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                 return;
             }
 
-            if let Some(id) = task_controller::create_task(store, Some(load_error), None, text) {
+            if let Some(id) = task_controller::create_task(store, load_error, None, text) {
                 highlighted_task_id.set(Some(id));
             }
             trigger_sync();
@@ -116,7 +116,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     let handle_create_subtask = move |parent_id: TaskID| {
         if let Some(id) = task_controller::create_task(
             store,
-            Some(load_error),
+            load_error,
             Some(parent_id.clone()),
             "New Task".to_string(),
         ) {

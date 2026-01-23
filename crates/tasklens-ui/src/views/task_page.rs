@@ -42,7 +42,7 @@ pub fn TaskPage() -> Element {
 
             if crate::controllers::task_controller::create_task(
                 store,
-                Some(load_error),
+                load_error,
                 None,
                 text.clone(),
             )

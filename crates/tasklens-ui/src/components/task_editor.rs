@@ -134,7 +134,7 @@ pub fn TaskEditor(
                 // Update
                 crate::controllers::task_controller::update_task(
                     store,
-                    Some(load_error),
+                    load_error,
                     id,
                     TaskUpdates {
                         title: Some(d.title),
@@ -149,7 +149,7 @@ pub fn TaskEditor(
                 );
             } else if let Some(id) = crate::controllers::task_controller::create_task(
                 store,
-                Some(load_error),
+                load_error,
                 initial_parent_id.clone(),
                 d.title.clone(),
             ) {
@@ -159,7 +159,7 @@ pub fn TaskEditor(
                 // After creation, update with other draft fields
                 crate::controllers::task_controller::update_task(
                     store,
-                    Some(load_error),
+                    load_error,
                     id,
                     TaskUpdates {
                         title: Some(d.title),

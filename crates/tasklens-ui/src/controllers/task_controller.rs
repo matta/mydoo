@@ -5,7 +5,7 @@ use tasklens_store::store::AppStore;
 
 pub fn create_task(
     mut store: Signal<AppStore>,
-    load_error: Option<Signal<Option<String>>>,
+    mut load_error: Signal<Option<String>>,
     parent_id: Option<TaskID>,
     title: String,
 ) -> Option<TaskID> {
@@ -17,9 +17,7 @@ pub fn create_task(
     };
     if let Err(e) = store.write().dispatch(action) {
         tracing::error!("Failed to create task: {}", e);
-        if let Some(mut le) = load_error {
-            le.set(Some(e.to_string()));
-        }
+        load_error.set(Some(e.to_string()));
         None
     } else {
         Some(id)
@@ -28,16 +26,14 @@ pub fn create_task(
 
 pub fn update_task(
     mut store: Signal<AppStore>,
-    load_error: Option<Signal<Option<String>>>,
+    mut load_error: Signal<Option<String>>,
     id: TaskID,
     updates: TaskUpdates,
 ) {
     let action = Action::UpdateTask { id, updates };
     if let Err(e) = store.write().dispatch(action) {
         tracing::error!("Failed to update task: {}", e);
-        if let Some(mut le) = load_error {
-            le.set(Some(e.to_string()));
-        }
+        load_error.set(Some(e.to_string()));
     }
 }
 

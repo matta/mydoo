@@ -54,7 +54,7 @@ pub fn DoPage() -> Element {
                 return;
             }
 
-            task_controller::create_task(store, Some(load_error), None, text);
+            task_controller::create_task(store, load_error, None, text);
             input_text.set(String::new());
         }
     };
