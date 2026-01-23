@@ -31,7 +31,12 @@ jobs:
         run: |
           # Get the version of dioxus we're using to ensure CLI compatibility
           DIOXUS_VERSION=$(cargo tree -p dioxus --depth 0 --prefix none | cut -d v -f 2)
-          cargo binstall dioxus-cli --version $DIOXUS_VERSION --locked -y
+          echo "Installing dioxus-cli version $DIOXUS_VERSION"
+          cargo binstall dioxus-cli --version $DIOXUS_VERSION --locked -y --force
+          echo "Checking dx binary:"
+          ls -l ~/.cargo/bin/dx || echo "dx not found in ~/.cargo/bin"
+          echo "PATH is $PATH"
+          which dx || echo "dx not found in PATH"
 
       - name: Build
         run: |
