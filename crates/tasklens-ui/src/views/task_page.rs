@@ -66,29 +66,56 @@ pub fn TaskPage() -> Element {
         t
     };
 
+    // FIXME: This logic is duplicated in plan_page.rs and should be consolidated.
     let handle_doc_change = move |new_doc_id: tasklens_store::doc_id::DocumentId| {
         tracing::info!("Attempting to switch to Document ID: {}", new_doc_id);
         spawn(async move {
-            let mut s = store.write();
-            if let Err(e) = s.switch_doc(new_doc_id.clone()).await {
-                tracing::error!("Switch failed: {:?}", e);
+            // 1. Get repo without holding lock
+            let repo = store.read().repo.clone();
+
+            if let Some(repo) = repo {
+                // 2. Perform async lookup detached from store instance
+                match AppStore::find_doc(repo, new_doc_id.clone()).await {
+                    Ok(Some(handle)) => {
+                        // 3. Acquire lock ONLY for the sync update
+                        store.write().set_active_doc(handle, new_doc_id.clone());
+                        doc_id.set(Some(new_doc_id));
+                        tracing::info!("Switch successful");
+                    }
+                    Ok(None) => {
+                        tracing::error!("Document not found: {}", new_doc_id);
+                    }
+                    Err(e) => {
+                        tracing::error!("Switch failed: {:?}", e);
+                    }
+                }
             } else {
-                doc_id.set(Some(new_doc_id));
-                tracing::info!("Switch successful");
+                tracing::error!("Repo not initialized");
             }
         });
     };
 
+    // FIXME: This logic is duplicated in plan_page.rs and should be consolidated.
     let handle_create_doc = move |_| {
         tracing::info!("Creating new document");
         spawn(async move {
-            let mut s = store.write();
-            match s.create_new().await {
-                Ok(new_id) => {
-                    tracing::info!("Created new doc successfully: {}", new_id);
-                    doc_id.set(Some(new_id));
+            // 1. Get repo without holding lock
+            let repo = store.read().repo.clone();
+
+            if let Some(repo) = repo {
+                // 2. Perform async creation detached from store instance
+                match AppStore::create_new(repo).await {
+                    Ok((handle, new_id)) => {
+                        tracing::info!("Created new doc successfully: {}", new_id);
+
+                        // 3. Acquire lock ONLY for the sync update
+                        store.write().set_active_doc(handle, new_id.clone());
+                        doc_id.set(Some(new_id));
+                    }
+                    Err(e) => tracing::error!("Failed to create doc: {:?}", e),
                 }
-                Err(e) => tracing::error!("Failed to create doc: {:?}", e),
+            } else {
+                tracing::error!("Repo not initialized");
             }
         });
     };
