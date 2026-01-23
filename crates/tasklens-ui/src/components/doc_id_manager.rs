@@ -178,7 +178,7 @@ pub fn DocIdManager(
 
     rsx! {
         div { class: "space-y-4 border-t border-gray-200 pt-4 mt-4",
-            h4 { class: "text-sm font-medium text-gray-700", "Document Management" }
+            h4 { class: "text-base font-medium text-gray-700", "Document Management" }
 
             if !error_msg().is_empty() {
                 Alert { variant: AlertVariant::Error, title: "Error", "{error_msg}" }
@@ -186,10 +186,10 @@ pub fn DocIdManager(
 
             // Current Document Display
             div { class: "space-y-2",
-                label { class: "block text-sm font-medium text-gray-700", "Current Document" }
+                label { class: "block text-base font-medium text-gray-700", "Current Document" }
                 div { class: "flex items-center space-x-2",
                     div {
-                        class: "flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm font-mono text-gray-600",
+                        class: "flex-1 px-3 py-3 bg-gray-50 border border-gray-200 rounded text-base font-mono text-gray-600",
                         "data-testid": "document-id-display",
                         {truncated_id().unwrap_or_else(|| "No document loaded".to_string())}
                     }
@@ -209,7 +209,7 @@ pub fn DocIdManager(
                 }
 
                 if show_copy_toast() {
-                    div { class: "text-sm text-green-600 flex items-center",
+                    div { class: "text-base text-green-600 flex items-center",
                         svg {
                             class: "h-4 w-4 mr-1",
                             fill: "none",
@@ -278,12 +278,12 @@ pub fn DocIdManager(
             // Enter ID Input (conditional)
             if show_input() {
                 div { class: "space-y-2",
-                    label { class: "block text-sm font-medium text-gray-700", "Enter Document ID" }
+                    label { class: "block text-base font-medium text-gray-700", "Enter Document ID" }
                     Input {
                         value: "{input_value}",
                         oninput: move |val| input_value.set(val),
                         placeholder: "Enter Base58 document ID...",
-                        class: "w-full font-mono text-sm",
+                        class: "w-full font-mono text-base",
                         data_testid: "document-id-input",
                     }
                     Button {

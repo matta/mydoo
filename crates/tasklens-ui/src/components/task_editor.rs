@@ -232,7 +232,7 @@ pub fn TaskEditor(
                     // Title
                     div {
                         label {
-                            class: "block text-sm font-medium",
+                            class: "block text-base font-medium",
                             r#for: "task-title-input",
                             "Title"
                         }
@@ -258,7 +258,7 @@ pub fn TaskEditor(
 
                     // Importance
                     div {
-                        label { class: "block text-sm font-medium",
+                        label { class: "block text-base font-medium",
                             "Importance: {current_draft.importance:.2}"
                         }
                         input {
@@ -280,7 +280,7 @@ pub fn TaskEditor(
 
                     // Effort / Credit Increment
                     div {
-                        label { class: "block text-sm font-medium",
+                        label { class: "block text-base font-medium",
                             "Effort ({current_draft.credit_increment.unwrap_or(0.5):.2})"
                         }
                         input {
@@ -303,7 +303,7 @@ pub fn TaskEditor(
                     // Place
                     div {
                         label {
-                            class: "block text-sm font-medium",
+                            class: "block text-base font-medium",
                             r#for: "place-select",
                             "Place"
                         }
@@ -335,7 +335,7 @@ pub fn TaskEditor(
                     // Schedule Type
                     div {
                         label {
-                            class: "block text-sm font-medium",
+                            class: "block text-base font-medium",
                             r#for: "schedule-type-select",
                             "Schedule Type"
                         }
@@ -380,7 +380,7 @@ pub fn TaskEditor(
                         div { class: "p-3 bg-blue-50 rounded-md border border-blue-100 space-y-3",
                             div {
                                 label {
-                                    class: "block text-sm font-medium text-blue-800",
+                                    class: "block text-base font-medium text-blue-800",
                                     r#for: "repetition-frequency-select",
                                     "Repeat Every"
                                 }
@@ -388,7 +388,7 @@ pub fn TaskEditor(
                                     input {
                                         r#type: "number",
                                         id: "repetition-interval-input",
-                                        class: "w-20 border rounded p-1 text-sm",
+                                        class: "w-20 border rounded p-2 text-base",
                                         value: current_draft.repeat_config.as_ref().map(|r| r.interval).unwrap_or(1),
                                         oninput: move |e| {
                                             if let Ok(val) = e.value().parse::<i64>() {
@@ -407,7 +407,7 @@ pub fn TaskEditor(
                                     }
                                     select {
                                         id: "repetition-frequency-select",
-                                        class: "flex-grow border rounded p-1 text-sm",
+                                        class: "flex-grow border rounded p-2 text-base",
                                         value: current_draft
                                             .repeat_config
                                             .as_ref()
@@ -458,7 +458,7 @@ pub fn TaskEditor(
                     )
                     {
                         div {
-                            label { class: "block text-sm font-medium", "Due Date" }
+                            label { class: "block text-base font-medium", "Due Date" }
                             DatePicker {
                                 data_testid: "date-input",
                                 value: current_draft
@@ -491,7 +491,7 @@ pub fn TaskEditor(
 
                     // Lead Time
                     div {
-                        label { class: "block text-sm font-medium", "Lead Time" }
+                        label { class: "block text-base font-medium", "Lead Time" }
                         div { class: "flex gap-2",
                             {
                                 let lead_time_ms = current_draft.schedule.lead_time;
@@ -501,7 +501,7 @@ pub fn TaskEditor(
                                     input {
                                         r#type: "number",
                                         id: "lead-time-scalar-input",
-                                        class: "w-20 border rounded p-1 text-sm",
+                                        class: "w-20 border rounded p-2 text-base",
                                         value: "{val}",
                                         oninput: move |e| {
                                             if let Ok(val) = e.value().parse::<u32>() {
@@ -513,7 +513,7 @@ pub fn TaskEditor(
                                     }
                                     select {
                                         id: "lead-time-unit-select",
-                                        class: "border rounded p-1 text-sm",
+                                        class: "border rounded p-2 text-base",
                                         value: "{unit}",
                                         onchange: move |e| {
                                             let mut d = draft().expect("draft should be initialized");
@@ -532,9 +532,9 @@ pub fn TaskEditor(
 
                     // Notes
                     div {
-                        label { class: "block text-sm font-medium", "Notes" }
+                        label { class: "block text-base font-medium", "Notes" }
                         textarea {
-                            class: "w-full border rounded p-2 text-sm",
+                            class: "w-full border rounded p-3 text-base",
                             rows: 4,
                             value: current_draft.notes.clone(),
                             oninput: move |e| {
@@ -562,7 +562,7 @@ pub fn TaskEditor(
                             }
                             label {
                                 r#for: "sequential-toggle",
-                                class: "text-sm font-medium cursor-pointer",
+                                class: "text-base font-medium cursor-pointer",
                                 "Sequential Project"
                             }
                             span { class: "text-xs text-gray-500 ml-auto", "Do steps in order" }

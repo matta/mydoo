@@ -200,7 +200,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                 div { class: "flex items-center space-x-2",
                     if !flattened_tasks().is_empty() {
                         button {
-                            class: "p-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700",
+                            class: "p-2 bg-blue-600 text-white rounded-md text-base hover:bg-blue-700",
                             aria_label: "Add Task at Top",
                             onclick: move |_| {
                                 editor_state

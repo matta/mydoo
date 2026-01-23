@@ -115,7 +115,7 @@ pub fn TaskPage() -> Element {
 
             TaskList { tasks, on_toggle: toggle_task }
 
-            div { class: "mt-8 text-center text-sm text-gray-500", "Build: {crate::BUILD_VERSION}" }
+            div { class: "mt-8 text-center text-base text-gray-500", "Build: {crate::BUILD_VERSION}" }
         }
     }
 }
@@ -187,7 +187,7 @@ fn TaskItem(task: PersistedTask, on_toggle: EventHandler<PersistedTask>) -> Elem
     let task_check = task.clone();
     rsx! {
         li {
-            class: "flex items-center gap-2 p-2 border rounded cursor-pointer hover:bg-gray-50",
+            class: "flex items-center gap-2 p-3 border rounded cursor-pointer hover:bg-gray-50",
             onclick: move |_| on_toggle.call(task_toggle.clone()),
             Checkbox {
                 checked: is_done,

@@ -57,7 +57,7 @@ pub fn DoPage() -> Element {
             div { class: "flex justify-between items-center mb-6",
                 h1 { class: "text-2xl font-bold text-gray-900", "Work" }
                 button {
-                    class: "px-3 py-1 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center shadow-sm",
+                    class: "px-3 py-1 bg-white border border-gray-200 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 flex items-center shadow-sm",
                     onclick: move |_| task_controller::refresh_lifecycle(store),
                     "Refresh"
                 }
@@ -72,7 +72,7 @@ pub fn DoPage() -> Element {
             if prioritized_tasks().is_empty() {
                 div { class: "text-center py-12 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200",
                     p { "No tasks ready for now." }
-                    p { class: "text-sm mt-2", "Check your Plan or wait for scheduled tasks." }
+                    p { class: "text-base mt-2", "Check your Plan or wait for scheduled tasks." }
                 }
             } else {
                 div { class: "space-y-1",

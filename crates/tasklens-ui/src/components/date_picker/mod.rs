@@ -18,7 +18,7 @@ pub fn DatePicker(props: DatePickerProps) -> Element {
             r#type: "date",
             id: props.id,
             "data-testid": props.data_testid,
-            class: "border rounded p-2 text-sm bg-white dark:bg-gray-800 dark:border-gray-700 w-full",
+            class: "border rounded p-2 text-base bg-white dark:bg-gray-800 dark:border-gray-700 w-full",
             value: props.value.unwrap_or_default(),
             onchange: move |evt| props.onchange.call(evt.value()),
         }
