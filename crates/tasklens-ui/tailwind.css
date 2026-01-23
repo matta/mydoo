@@ -63,6 +63,7 @@
   body {
     overscroll-behavior-y: none;
     min-height: 100vh;
+    font-size: 16px;
   }
 
   @supports (min-height: 100dvh) {

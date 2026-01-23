@@ -40,7 +40,7 @@ pub fn Button(
     let type_str = r#type.unwrap_or("button".to_string());
     let extra_classes = class.unwrap_or_default();
 
-    let base_classes = "inline-flex items-center justify-center rounded-md border text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+    let base_classes = "inline-flex items-center justify-center rounded-md border text-base font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
     let variant_classes = match variant {
         ButtonVariant::Primary => {
@@ -57,7 +57,7 @@ pub fn Button(
         }
     };
 
-    let padding_classes = "px-4 py-2";
+    let padding_classes = "px-4 py-3";
 
     rsx! {
         button {

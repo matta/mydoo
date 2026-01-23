@@ -81,7 +81,7 @@ pub fn TaskRow(
 
     rsx! {
         div {
-            class: "flex items-center py-2 border-b border-gray-100 hover:bg-gray-50 group pr-2",
+            class: "flex items-center py-3 border-b border-gray-100 hover:bg-gray-50 group pr-2",
             class: if is_highlighted { "animate-flash" } else { "" },
             style: "padding-left: {indentation}px",
             "data-testid": "task-item",
@@ -97,7 +97,7 @@ pub fn TaskRow(
             div { class: "w-6 flex justify-center flex-shrink-0",
                 if has_children {
                     div {
-                        class: "cursor-pointer p-1 rounded hover:bg-gray-200 text-gray-500",
+                        class: "cursor-pointer p-2 rounded hover:bg-gray-200 text-gray-500",
                         onclick: move |evt| {
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
@@ -172,7 +172,7 @@ pub fn TaskRow(
             if let Some(due_ts) = effective_due_date {
                 if !is_done {
                     span {
-                        class: "text-xs text-gray-400 ml-2",
+                        class: "text-base text-gray-400 ml-2",
                         "data-testid": "due-date-text",
                         { format_relative_due_date(due_ts, now) }
                     }
@@ -182,7 +182,7 @@ pub fn TaskRow(
             // Actions
             div { class: "flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2",
                 button {
-                    class: "p-1 hover:bg-gray-200 rounded text-gray-500",
+                    class: "p-2 hover:bg-gray-200 rounded text-gray-500",
                     title: "Add Subtask",
                     onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
                     svg {
@@ -200,7 +200,7 @@ pub fn TaskRow(
                     }
                 }
                 button {
-                    class: "p-1 hover:bg-red-100 rounded text-red-500",
+                    class: "p-2 hover:bg-red-100 rounded text-red-500",
                     title: "Delete",
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
                     svg {
