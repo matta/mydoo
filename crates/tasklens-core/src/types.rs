@@ -138,6 +138,30 @@ where
     maybe_missing.reconcile(reconciler)
 }
 
+/// Reconciles an Option<f64> as MaybeMissing while preserving safe integer conversion.
+pub fn reconcile_optional_f64_as_maybe_missing<R: autosurgeon::Reconciler>(
+    val: &Option<f64>,
+    reconciler: R,
+) -> Result<(), R::Error> {
+    use autosurgeon::MaybeMissing;
+    match val {
+        Some(v) => {
+            struct JSF64(f64);
+            impl autosurgeon::Reconcile for JSF64 {
+                type Key<'a> = autosurgeon::reconcile::NoKey;
+                fn reconcile<R2: autosurgeon::Reconciler>(
+                    &self,
+                    reconciler: R2,
+                ) -> Result<(), R2::Error> {
+                    reconcile_f64(&self.0, reconciler)
+                }
+            }
+            MaybeMissing::Present(JSF64(*v)).reconcile(reconciler)
+        }
+        None => MaybeMissing::<f64>::Missing.reconcile(reconciler),
+    }
+}
+
 /// Reconciles an f64 as an Int if it has no fractional part and fits in a JS safe integer,
 /// otherwise reconciles as an F64.
 pub fn reconcile_f64<R: autosurgeon::Reconciler>(val: &f64, reconciler: R) -> Result<(), R::Error> {
@@ -180,6 +204,17 @@ pub fn reconcile_option_string_as_text<R: autosurgeon::Reconciler>(
     match val {
         Some(s) => reconcile_string_as_text(s, reconciler),
         None => reconciler.none(),
+    }
+}
+
+/// Reconciles an Optional<String> as an "maybe missing" Automerge Text object.
+pub fn reconcile_option_string_as_text_as_maybe_missing<R: autosurgeon::Reconciler>(
+    val: &Option<String>,
+    reconciler: R,
+) -> Result<(), R::Error> {
+    match val {
+        Some(s) => reconcile_string_as_text(s, reconciler),
+        None => autosurgeon::MaybeMissing::<String>::Missing.reconcile(reconciler),
     }
 }
 
@@ -470,14 +505,25 @@ pub struct Schedule {
     /// Optional due date as Unix timestamp in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(rename = "dueDate", reconcile = "reconcile_optional_as_maybe_missing")]
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::js_safe_option_i64()")
+    )]
     pub due_date: Option<i64>,
     /// Lead time in milliseconds before due date to start showing urgency.
-    #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(rename = "leadTime")]
-    pub lead_time: Option<i64>,
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::js_safe_i64()")
+    )]
+    pub lead_time: i64,
     /// Timestamp of last completion (for Routinely tasks).
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(rename = "lastDone", reconcile = "reconcile_optional_as_maybe_missing")]
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::js_safe_option_i64()")
+    )]
     pub last_done: Option<i64>,
 }
 
@@ -533,8 +579,7 @@ impl Hydrate for Schedule {
                 &sched_obj,
                 autosurgeon::Prop::Key(Cow::Borrowed("leadTime")),
             )
-            .ok()
-            .flatten(),
+            .unwrap_or(crate::domain::constants::DEFAULT_LEAD_TIME_MILLIS),
             last_done: Hydrate::hydrate(
                 doc,
                 &sched_obj,
@@ -603,6 +648,10 @@ pub struct RepeatConfig {
     /// The unit of frequency (daily, weekly, etc.).
     pub frequency: Frequency,
     /// The interval multiplier (e.g., 2 for "every 2 weeks").
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "1i64..=1000i64")
+    )]
     pub interval: i64,
 }
 
@@ -655,29 +704,54 @@ pub struct PersistedTask {
     )]
     pub child_task_ids: Vec<TaskID>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "placeId", hydrate = "hydrate_optional_place_id")]
+    #[autosurgeon(
+        rename = "placeId",
+        hydrate = "hydrate_optional_place_id",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub place_id: Option<PlaceID>,
     #[autosurgeon(hydrate = "hydrate_f64", reconcile = "reconcile_f64")]
+    #[cfg_attr(any(test, feature = "test-utils"), proptest(strategy = "0.0..=1.0"))]
     pub importance: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "creditIncrement",
         hydrate = "hydrate_optional_f64",
-        reconcile = "reconcile_optional_f64"
+        reconcile = "reconcile_optional_f64_as_maybe_missing"
+    )]
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::js_safe_option_f64_pos()")
     )]
     pub credit_increment: Option<f64>,
     #[autosurgeon(hydrate = "hydrate_f64", reconcile = "reconcile_f64")]
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "0.0..=1000000.0")
+    )]
     pub credits: f64,
     #[autosurgeon(
         rename = "desiredCredits",
         hydrate = "hydrate_f64",
         reconcile = "reconcile_f64"
     )]
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "0.0..=1000000.0")
+    )]
     pub desired_credits: f64,
     #[autosurgeon(rename = "creditsTimestamp")]
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::js_safe_u64()")
+    )]
     pub credits_timestamp: i64,
     #[autosurgeon(rename = "priorityTimestamp")]
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::js_safe_u64()")
+    )]
     pub priority_timestamp: i64,
     pub schedule: Schedule,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -697,6 +771,10 @@ pub struct PersistedTask {
         rename = "lastCompletedAt",
         hydrate = "hydrate_optional_i64",
         reconcile = "reconcile_optional_as_maybe_missing"
+    )]
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::js_safe_option_i64()")
     )]
     pub last_completed_at: Option<i64>,
 }
@@ -980,10 +1058,16 @@ pub struct OpenHours {
 pub struct Place {
     #[key]
     pub id: PlaceID,
-    #[autosurgeon(hydrate = "hydrate_string_or_text")]
+    #[autosurgeon(
+        hydrate = "hydrate_string_or_text",
+        reconcile = "reconcile_string_as_text"
+    )]
     pub name: String,
     /// Stringified JSON of OpenHours
-    #[autosurgeon(hydrate = "hydrate_string_or_text")]
+    #[autosurgeon(
+        hydrate = "hydrate_string_or_text",
+        reconcile = "reconcile_string_as_text"
+    )]
     pub hours: String,
     #[cfg_attr(
         any(test, feature = "test-utils"),
@@ -998,7 +1082,7 @@ pub struct Place {
 pub struct DocMetadata {
     #[autosurgeon(
         rename = "automerge_url",
-        reconcile = "reconcile_option_string_as_text"
+        reconcile = "reconcile_option_string_as_text_as_maybe_missing"
     )]
     pub automerge_url: Option<String>,
 }
@@ -1065,8 +1149,16 @@ pub fn hydrate_optional_metadata<D: autosurgeon::ReadDoc>(
 #[serde(rename_all = "camelCase")]
 pub struct TunnelState {
     #[autosurgeon(rename = "nextTaskId")]
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::js_safe_i64()")
+    )]
     pub next_task_id: i64,
     #[autosurgeon(rename = "nextPlaceId")]
+    #[cfg_attr(
+        any(test, feature = "test-utils"),
+        proptest(strategy = "test_strategies::js_safe_i64()")
+    )]
     pub next_place_id: i64,
     #[cfg_attr(
         any(test, feature = "test-utils"),
@@ -1085,7 +1177,10 @@ pub struct TunnelState {
     )]
     pub places: HashMap<PlaceID, Place>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(hydrate = "hydrate_optional_metadata")]
+    #[autosurgeon(
+        hydrate = "hydrate_optional_metadata",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub metadata: Option<DocMetadata>,
 }
 
@@ -1125,7 +1220,7 @@ mod tests {
             schedule: Schedule {
                 schedule_type: ScheduleType::Once,
                 due_date: None,
-                lead_time: Some(0),
+                lead_time: 0,
                 last_done: None,
             },
             repeat_config: None,
@@ -1187,5 +1282,28 @@ pub mod test_strategies {
 
     pub fn arbitrary_places_map() -> impl Strategy<Value = HashMap<PlaceID, Place>> {
         proptest::collection::hash_map(any::<PlaceID>(), any::<Place>(), 0..3)
+    }
+
+    pub const MIN_SAFE_INTEGER: i64 = -9_007_199_254_740_991;
+    pub const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;
+
+    pub fn js_safe_i64() -> impl Strategy<Value = i64> {
+        MIN_SAFE_INTEGER..=MAX_SAFE_INTEGER
+    }
+
+    pub fn js_safe_option_i64() -> impl Strategy<Value = Option<i64>> {
+        proptest::option::of(js_safe_i64())
+    }
+
+    pub fn js_safe_u64() -> impl Strategy<Value = i64> {
+        0..=MAX_SAFE_INTEGER
+    }
+
+    pub fn js_safe_i64_some() -> impl Strategy<Value = Option<i64>> {
+        proptest::option::weighted(0.9, js_safe_i64())
+    }
+
+    pub fn js_safe_option_f64_pos() -> impl Strategy<Value = Option<f64>> {
+        proptest::option::of(0.0..1000000.0)
     }
 }

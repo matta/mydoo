@@ -145,7 +145,7 @@ mod tests {
             schedule: Schedule {
                 schedule_type: ScheduleType::Once,
                 due_date: None,
-                lead_time: Some(0),
+                lead_time: 0,
                 last_done: None,
             },
             repeat_config: None,

@@ -42,6 +42,10 @@ pollster = "0.4.0"
 criterion = { version = "0.8.1", features = ["async_tokio"] }
 automerge-test = "0.6.0"
 tokio = { version = "1", features = ["full"] }
+proptest = "1.6"
+proptest-derive = "0.5"
+tempfile = "3.10"
+tasklens-core = { path = "../tasklens-core", features = ["test-utils"] }
 
 [[bench]]
 name = "import_benchmark"

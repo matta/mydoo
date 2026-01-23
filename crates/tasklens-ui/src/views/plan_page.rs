@@ -1,7 +1,6 @@
 use crate::components::TaskInput;
 use crate::components::task_row::TaskRow;
 use crate::controllers::task_controller;
-use crate::utils::time_conversion::DEFAULT_LEAD_TIME_MS;
 use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
@@ -372,11 +371,7 @@ fn flatten_recursive(
             .schedule
             .due_date
             .or(parent_schedule.and_then(|s| s.due_date));
-        let effective_lead_time = task
-            .schedule
-            .lead_time
-            .or(parent_schedule.and_then(|s| s.lead_time))
-            .or(Some(DEFAULT_LEAD_TIME_MS));
+        let effective_lead_time = Some(task.schedule.lead_time);
 
         ctx.result.push(FlattenedTask {
             task: task.clone(),

@@ -37,7 +37,7 @@ pub struct TaskUpdates {
     /// Optional update: `Some(None)` clears the due date, `Some(Some(ts))` sets it, `None` keeps current.
     pub due_date: Option<Option<i64>>,
     pub schedule_type: Option<tasklens_core::types::ScheduleType>,
-    pub lead_time: Option<Option<i64>>,
+    pub lead_time: Option<i64>,
     pub repeat_config: Option<Option<tasklens_core::types::RepeatConfig>>,
     pub is_sequential: Option<bool>,
 }

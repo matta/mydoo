@@ -1,6 +1,4 @@
-use crate::domain::constants::{
-    CREDITS_HALF_LIFE_MILLIS, DEFAULT_CREDIT_INCREMENT, DEFAULT_LEAD_TIME_MILLIS, MIN_PRIORITY,
-};
+use crate::domain::constants::{CREDITS_HALF_LIFE_MILLIS, DEFAULT_CREDIT_INCREMENT, MIN_PRIORITY};
 use crate::domain::feedback::calculate_feedback_factors;
 use crate::domain::readiness::calculate_lead_time_factor;
 use crate::domain::visibility::calculate_contextual_visibility;
@@ -130,10 +128,7 @@ fn hydrate_task(persisted: &PersistedTask) -> EnrichedTask {
         }
     };
 
-    let effective_lead_time = persisted
-        .schedule
-        .lead_time
-        .or(Some(DEFAULT_LEAD_TIME_MILLIS));
+    let effective_lead_time = Some(persisted.schedule.lead_time);
 
     EnrichedTask {
         id: persisted.id.clone(),
@@ -204,8 +199,7 @@ pub fn recalculate_priorities(
     for task in enriched_tasks.iter_mut() {
         task.lead_time_factor = calculate_lead_time_factor(
             task.effective_due_date,
-            task.effective_lead_time
-                .unwrap_or(task.schedule.lead_time.unwrap_or(0)),
+            task.effective_lead_time.unwrap_or(task.schedule.lead_time),
             current_time,
         );
 
@@ -354,7 +348,7 @@ fn process_children(
         // Re-compute lead time factor after inheritance
         let lead_time = enriched_tasks[child_idx]
             .effective_lead_time
-            .unwrap_or(enriched_tasks[child_idx].schedule.lead_time.unwrap_or(0));
+            .unwrap_or(enriched_tasks[child_idx].schedule.lead_time);
         enriched_tasks[child_idx].lead_time_factor = calculate_lead_time_factor(
             enriched_tasks[child_idx].effective_due_date,
             lead_time,
