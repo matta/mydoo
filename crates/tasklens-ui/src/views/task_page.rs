@@ -21,40 +21,56 @@ pub fn TaskPage() -> Element {
     let mut doc_id = use_context::<Signal<Option<tasklens_store::doc_id::DocumentId>>>();
     let service_worker_active = use_context::<Signal<bool>>(); // Assuming bool not ReadSignal for context simplicity, or ReadSignal
     let mut store = use_context::<Signal<AppStore>>();
+    let load_error = use_context::<Signal<Option<String>>>();
 
     let mut input_text = use_signal(String::new);
     let mut show_settings = use_signal(|| false);
 
     // Hydrate state from the store
-    let state = use_memo(move || {
-        store.read().hydrate::<TunnelState>().unwrap_or_else(|_| {
-            // tracing::error!("Failed to hydrate state: {:?}", e);
-            // Return empty state on failure or initial load
-            TunnelState::default()
-        })
+    let state = use_memo({
+        let mut load_error = load_error;
+        move || match store.read().hydrate::<TunnelState>() {
+            Ok(s) => s,
+            Err(e) => {
+                tracing::error!("Failed to hydrate state for Task page: {}", e);
+                load_error.set(Some(e.to_string()));
+                TunnelState::default()
+            }
+        }
     });
 
     let save_and_sync = move || {
         // Explicit persist removed. Handled by use_persistence hook.
     };
 
-    let mut add_task = move || {
-        let text = input_text();
-        if text.trim().is_empty() {
-            return;
-        }
+    let mut add_task = {
+        move || {
+            let text = input_text();
+            if text.trim().is_empty() {
+                return;
+            }
 
-        if crate::controllers::task_controller::create_task(store, None, text.clone()).is_none() {
-            return;
-        }
+            if crate::controllers::task_controller::create_task(
+                store,
+                Some(load_error),
+                None,
+                text.clone(),
+            )
+            .is_none()
+            {
+                return;
+            }
 
-        save_and_sync();
-        input_text.set(String::new());
+            save_and_sync();
+            input_text.set(String::new());
+        }
     };
 
-    let toggle_task = move |task: PersistedTask| {
-        crate::controllers::task_controller::toggle_task_status(store, task.id);
-        save_and_sync();
+    let toggle_task = {
+        move |task: PersistedTask| {
+            crate::controllers::task_controller::toggle_task_status(store, load_error, task.id);
+            save_and_sync();
+        }
     };
 
     // Prepare tasks for display (convert HashMap to Vec and Sort)
@@ -138,9 +154,18 @@ pub fn TaskPage() -> Element {
                 on_settings_click: move |_| show_settings.set(true),
             }
 
-            TaskInput { value: input_text, on_add: move |_| add_task() }
-
-            TaskList { tasks, on_toggle: toggle_task }
+            if let Some(error) = load_error() {
+                LoadErrorView {
+                    error,
+                    help_text: Some(
+                        "Access the settings menu to switch documents or change sync servers."
+                            .to_string(),
+                    ),
+                }
+            } else {
+                TaskInput { value: input_text, on_add: move |_| add_task() }
+                TaskList { tasks, on_toggle: toggle_task }
+            }
 
             div { class: "mt-8 text-center text-base text-gray-500", "Build: {crate::BUILD_VERSION}" }
         }

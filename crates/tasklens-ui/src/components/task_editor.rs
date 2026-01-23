@@ -50,6 +50,7 @@ pub fn TaskEditor(
     on_task_created: Option<EventHandler<TaskID>>,
 ) -> Element {
     let store = use_context::<Signal<AppStore>>();
+    let load_error = use_context::<Signal<Option<String>>>();
     let mut draft = use_signal(|| None::<DraftTask>);
     let mut initialized = use_signal(|| false);
 
@@ -146,6 +147,7 @@ pub fn TaskEditor(
                 // Update
                 crate::controllers::task_controller::update_task(
                     store,
+                    Some(load_error),
                     id,
                     TaskUpdates {
                         title: Some(d.title),
@@ -160,6 +162,7 @@ pub fn TaskEditor(
                 );
             } else if let Some(id) = crate::controllers::task_controller::create_task(
                 store,
+                Some(load_error),
                 initial_parent_id.clone(),
                 d.title.clone(),
             ) {
@@ -169,6 +172,7 @@ pub fn TaskEditor(
                 // After creation, update with other draft fields
                 crate::controllers::task_controller::update_task(
                     store,
+                    Some(load_error),
                     id,
                     TaskUpdates {
                         title: Some(d.title),
@@ -188,12 +192,16 @@ pub fn TaskEditor(
 
     let on_delete = {
         let mut store = store;
+        let mut load_error = load_error;
         let task_id = task_id.clone();
         let on_close = on_close;
         move |_| {
             let task_id_clone = task_id.clone();
-            if let Some(id) = task_id_clone {
-                let _ = store.write().dispatch(Action::DeleteTask { id });
+            if let Some(id) = task_id_clone
+                && let Err(e) = store.write().dispatch(Action::DeleteTask { id })
+            {
+                tracing::error!("Failed to delete task: {}", e);
+                load_error.set(Some(e.to_string()));
             }
             on_close.call(());
         }
@@ -584,7 +592,11 @@ pub fn TaskEditor(
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
-                                                crate::controllers::task_controller::outdent_task(store, id.clone());
+                                                crate::controllers::task_controller::outdent_task(
+                                                    store,
+                                                    load_error,
+                                                    id.clone(),
+                                                );
                                                 on_close.call(());
                                             }
                                         },
@@ -597,7 +609,11 @@ pub fn TaskEditor(
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
-                                                crate::controllers::task_controller::indent_task(store, id.clone());
+                                                crate::controllers::task_controller::indent_task(
+                                                    store,
+                                                    load_error,
+                                                    id.clone(),
+                                                );
                                                 on_close.call(());
                                             }
                                         },
@@ -652,7 +668,12 @@ pub fn TaskEditor(
                 crate::components::MovePicker {
                     task_id: id.clone(),
                     on_select: move |new_parent_id| {
-                        crate::controllers::task_controller::move_task(store, id.clone(), new_parent_id);
+                        crate::controllers::task_controller::move_task(
+                            store,
+                            load_error,
+                            id.clone(),
+                            new_parent_id,
+                        );
                         show_move_picker.set(false);
                         on_close.call(());
                     },

@@ -194,9 +194,6 @@ impl AppStore {
                 Ok(())
             })
         } else {
-            // autosurgeon::ReconcileError's exact variants depend on version.
-            // Often it has a catch-all or Automerge wrapper.
-            // Let's use a simpler approach that is likely to work or fail with a clearer error.
             Err(autosurgeon::ReconcileError::Automerge(
                 automerge::AutomergeError::InvalidObjId("root".to_string()),
             ))
