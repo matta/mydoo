@@ -50,29 +50,23 @@ pub fn TaskEditor(
     on_task_created: Option<EventHandler<TaskID>>,
 ) -> Element {
     let store = use_context::<Signal<AppStore>>();
+    let load_error = use_context::<Signal<Option<String>>>();
     let mut draft = use_signal(|| None::<DraftTask>);
     let mut initialized = use_signal(|| false);
+    let state = crate::hooks::use_tunnel_state::use_tunnel_state();
 
     // Initialize draft
     if !initialized() {
         if let Some(ref id) = task_id {
-            let store_read = store.read();
-            let task_ref = store_read
-                .hydrate::<tasklens_core::types::TunnelState>()
-                .ok()
-                .and_then(|s| s.tasks.get(id).cloned());
+            let task_ref = state().tasks.get(id).cloned();
             if let Some(task) = task_ref {
                 draft.set(Some(DraftTask::from(task)));
             }
         } else {
             // Create Mode - Apply Defaults
             let parent_id = initial_parent_id.as_ref();
-            let store_read = store.read();
             let (place_id, credit_increment) = if let Some(p_id) = parent_id {
-                let parent = store_read
-                    .hydrate::<tasklens_core::types::TunnelState>()
-                    .ok()
-                    .and_then(|s| s.tasks.get(p_id).cloned());
+                let parent = state().tasks.get(p_id).cloned();
                 if let Some(p) = parent {
                     (p.place_id, p.credit_increment)
                 } else {
@@ -112,11 +106,8 @@ pub fn TaskEditor(
 
     let mut show_move_picker = use_signal(|| false);
 
-    let can_outdent = if let (Some(id), Ok(state)) = (
-        task_id.as_ref(),
-        store.read().hydrate::<tasklens_core::types::TunnelState>(),
-    ) {
-        state
+    let can_outdent = if let Some(id) = task_id.as_ref() {
+        state()
             .tasks
             .get(id)
             .map(|t| t.parent_id.is_some())
@@ -125,11 +116,8 @@ pub fn TaskEditor(
         false
     };
 
-    let can_indent = if let (Some(id), Ok(state)) = (
-        task_id.as_ref(),
-        store.read().hydrate::<tasklens_core::types::TunnelState>(),
-    ) {
-        tasklens_core::domain::hierarchy::get_previous_sibling(&state, id).is_some()
+    let can_indent = if let Some(id) = task_id.as_ref() {
+        tasklens_core::domain::hierarchy::get_previous_sibling(&state(), id).is_some()
     } else {
         false
     };
@@ -146,6 +134,7 @@ pub fn TaskEditor(
                 // Update
                 crate::controllers::task_controller::update_task(
                     store,
+                    load_error,
                     id,
                     TaskUpdates {
                         title: Some(d.title),
@@ -160,6 +149,7 @@ pub fn TaskEditor(
                 );
             } else if let Some(id) = crate::controllers::task_controller::create_task(
                 store,
+                load_error,
                 initial_parent_id.clone(),
                 d.title.clone(),
             ) {
@@ -169,6 +159,7 @@ pub fn TaskEditor(
                 // After creation, update with other draft fields
                 crate::controllers::task_controller::update_task(
                     store,
+                    load_error,
                     id,
                     TaskUpdates {
                         title: Some(d.title),
@@ -188,12 +179,16 @@ pub fn TaskEditor(
 
     let on_delete = {
         let mut store = store;
+        let mut load_error = load_error;
         let task_id = task_id.clone();
         let on_close = on_close;
         move |_| {
             let task_id_clone = task_id.clone();
-            if let Some(id) = task_id_clone {
-                let _ = store.write().dispatch(Action::DeleteTask { id });
+            if let Some(id) = task_id_clone
+                && let Err(e) = store.write().dispatch(Action::DeleteTask { id })
+            {
+                tracing::error!("Failed to delete task: {}", e);
+                load_error.set(Some(e.to_string()));
             }
             on_close.call(());
         }
@@ -308,11 +303,8 @@ pub fn TaskEditor(
                             "Place"
                         }
                         {
-                            let store_read = store.read();
-                            let state = store_read
-                                .hydrate::<tasklens_core::types::TunnelState>()
-                                .unwrap_or_default();
-                            let places = state.places.values().collect::<Vec<_>>();
+                            let state_val = state();
+                            let places = state_val.places.values().collect::<Vec<_>>();
 
                             rsx! {
                                 Select {
@@ -584,7 +576,11 @@ pub fn TaskEditor(
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
-                                                crate::controllers::task_controller::outdent_task(store, id.clone());
+                                                crate::controllers::task_controller::outdent_task(
+                                                    store,
+                                                    load_error,
+                                                    id.clone(),
+                                                );
                                                 on_close.call(());
                                             }
                                         },
@@ -597,7 +593,11 @@ pub fn TaskEditor(
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
-                                                crate::controllers::task_controller::indent_task(store, id.clone());
+                                                crate::controllers::task_controller::indent_task(
+                                                    store,
+                                                    load_error,
+                                                    id.clone(),
+                                                );
                                                 on_close.call(());
                                             }
                                         },
@@ -652,7 +652,12 @@ pub fn TaskEditor(
                 crate::components::MovePicker {
                     task_id: id.clone(),
                     on_select: move |new_parent_id| {
-                        crate::controllers::task_controller::move_task(store, id.clone(), new_parent_id);
+                        crate::controllers::task_controller::move_task(
+                            store,
+                            load_error,
+                            id.clone(),
+                            new_parent_id,
+                        );
                         show_move_picker.set(false);
                         on_close.call(());
                     },

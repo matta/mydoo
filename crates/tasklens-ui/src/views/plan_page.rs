@@ -1,5 +1,5 @@
-use crate::components::TaskInput;
 use crate::components::task_row::TaskRow;
+use crate::components::{LoadErrorView, TaskInput};
 use crate::controllers::task_controller;
 use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
@@ -10,8 +10,8 @@ use tasklens_store::store::AppStore;
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     let mut store = use_context::<Signal<AppStore>>();
+    let load_error = use_context::<Signal<Option<String>>>();
     let mut doc_id = use_context::<Signal<Option<DocumentId>>>();
-    let memory_heads = use_context::<crate::MemoryHeads>();
 
     // Track expanded task IDs.
     let mut expanded_tasks: Signal<std::collections::HashSet<TaskID>> =
@@ -38,32 +38,36 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     }
     let mut editor_state = use_signal(|| None::<EditorState>);
 
+    let state = crate::hooks::use_tunnel_state::use_tunnel_state();
+
     // Handle focus_task (Find in Plan)
-    use_effect(move || {
-        if let Some(target_id) = focus_task.clone() {
-            let state = store.read().hydrate::<TunnelState>().unwrap_or_default();
-            let mut current_id = target_id.clone();
-            let mut to_expand = Vec::new();
+    use_effect({
+        move || {
+            if let Some(target_id) = focus_task.clone() {
+                let state = state.read();
+                let mut current_id = target_id.clone();
+                let mut to_expand = Vec::new();
 
-            // Walk up the tree
-            while let Some(task) = state.tasks.get(&current_id) {
-                if let Some(pid) = &task.parent_id {
-                    to_expand.push(pid.clone());
-                    current_id = pid.clone();
-                } else {
-                    break;
+                // Walk up the tree
+                while let Some(task) = state.tasks.get(&current_id) {
+                    if let Some(pid) = &task.parent_id {
+                        to_expand.push(pid.clone());
+                        current_id = pid.clone();
+                    } else {
+                        break;
+                    }
                 }
-            }
 
-            if !to_expand.is_empty() {
-                let mut expanded = expanded_tasks.write();
-                for id in to_expand {
-                    expanded.insert(id);
+                if !to_expand.is_empty() {
+                    let mut expanded = expanded_tasks.write();
+                    for id in to_expand {
+                        expanded.insert(id);
+                    }
                 }
-            }
 
-            // Optionally select the task to highlight it
-            highlighted_task_id.set(Some(target_id));
+                // Optionally select the task to highlight it
+                highlighted_task_id.set(Some(target_id));
+            }
         }
     });
 
@@ -72,51 +76,50 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         // Explicit persist removed. Handled by use_persistence hook.
     };
 
-    let flattened_tasks = use_memo(move || {
-        // Subscribe to heads updates to trigger re-render on sync/persistence changes
-        let _ = memory_heads.0.read();
-
-        let store = store.read();
-        let state = store
-            .hydrate::<TunnelState>()
-            .unwrap_or_else(|_| TunnelState::default());
-
-        let expanded = expanded_tasks.read();
-        flatten_tasks(&state, &expanded)
+    let flattened_tasks = use_memo({
+        move || {
+            let expanded = expanded_tasks.read();
+            flatten_tasks(&state.read(), &expanded)
+        }
     });
 
-    let mut add_task = move || {
-        let text = input_text();
-        if text.trim().is_empty() {
-            return;
-        }
+    let mut add_task = {
+        move || {
+            let text = input_text();
+            if text.trim().is_empty() {
+                return;
+            }
 
-        if let Some(id) = task_controller::create_task(store, None, text) {
-            highlighted_task_id.set(Some(id));
+            if let Some(id) = task_controller::create_task(store, load_error, None, text) {
+                highlighted_task_id.set(Some(id));
+            }
+            trigger_sync();
+            input_text.set(String::new());
         }
-        trigger_sync();
-        input_text.set(String::new());
     };
 
     let toggle_task = move |task: PersistedTask| {
-        task_controller::toggle_task_status(store, task.id);
+        task_controller::toggle_task_status(store, load_error, task.id);
         trigger_sync();
     };
 
     let handle_rename = move |(id, new_title): (TaskID, String)| {
-        task_controller::rename_task(store, id, new_title);
+        task_controller::rename_task(store, load_error, id, new_title);
         trigger_sync();
     };
 
     let handle_delete = move |id: TaskID| {
-        task_controller::delete_task(store, id);
+        task_controller::delete_task(store, load_error, id);
         trigger_sync();
     };
 
     let handle_create_subtask = move |parent_id: TaskID| {
-        if let Some(id) =
-            task_controller::create_task(store, Some(parent_id.clone()), "New Task".to_string())
-        {
+        if let Some(id) = task_controller::create_task(
+            store,
+            load_error,
+            Some(parent_id.clone()),
+            "New Task".to_string(),
+        ) {
             highlighted_task_id.set(Some(id));
         }
 
@@ -236,7 +239,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
             div { class: "flex justify-between items-center mb-6",
                 h1 { class: "text-2xl font-bold", "Plan" }
                 div { class: "flex items-center space-x-2",
-                    if !flattened_tasks().is_empty() {
+                    if !flattened_tasks().is_empty() && load_error().is_none() {
                         button {
                             class: "p-2 bg-blue-600 text-white rounded-md text-base hover:bg-blue-700",
                             aria_label: "Add Task at Top",
@@ -278,50 +281,60 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                 }
             }
 
-            div { class: "mb-6",
-                TaskInput {
-                    data_testid: "plan-task-input",
-                    value: input_text,
-                    on_add: move |_| add_task(),
+            if let Some(error) = load_error() {
+                LoadErrorView {
+                    error,
+                    help_text: Some(
+                        "Access the settings menu to switch documents or change sync servers."
+                            .to_string(),
+                    ),
                 }
-            }
-
-            div { class: "bg-white shadow rounded-lg overflow-hidden mt-4",
-                if flattened_tasks().is_empty() {
-                    div { class: "p-8 text-center",
-                        p { class: "text-gray-500 mb-4",
-                            "No tasks found. Try adding seed data? (?seed=true)"
-                        }
-                        button {
-                            class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700",
-                            onclick: move |_| {
-                                editor_state
-                                    .set(
-                                        Some(EditorState::Create {
-                                            parent_id: None,
-                                        }),
-                                    )
-                            },
-                            "Add First Task"
-                        }
+            } else {
+                div { class: "mb-6",
+                    TaskInput {
+                        data_testid: "plan-task-input",
+                        value: input_text,
+                        on_add: move |_| add_task(),
                     }
-                } else {
-                    for FlattenedTask { task , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
-                        TaskRow {
-                            key: "{task.id}",
-                            task: task.clone(),
-                            depth,
-                            on_toggle: toggle_task,
-                            has_children,
-                            is_expanded,
-                            on_expand_toggle: toggle_expand,
-                            on_rename: handle_rename,
-                            on_delete: handle_delete,
-                            on_create_subtask: handle_create_subtask,
-                            on_title_tap,
-                            is_highlighted: Some(task.id.clone()) == highlighted_task_id(),
-                            effective_due_date,
-                            effective_lead_time,
+                }
+
+                div { class: "bg-white shadow rounded-lg overflow-hidden mt-4",
+                    if flattened_tasks().is_empty() {
+                        div { class: "p-8 text-center",
+                            p { class: "text-gray-500 mb-4",
+                                "No tasks found. Try adding seed data? (?seed=true)"
+                            }
+                            button {
+                                class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700",
+                                onclick: move |_| {
+                                    editor_state
+                                        .set(
+                                            Some(EditorState::Create {
+                                                parent_id: None,
+                                            }),
+                                        )
+                                },
+                                "Add First Task"
+                            }
+                        }
+                    } else {
+                        for FlattenedTask { task , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
+                            TaskRow {
+                                key: "{task.id}",
+                                task: task.clone(),
+                                depth,
+                                on_toggle: toggle_task,
+                                has_children,
+                                is_expanded,
+                                on_expand_toggle: toggle_expand,
+                                on_rename: handle_rename,
+                                on_delete: handle_delete,
+                                on_create_subtask: handle_create_subtask,
+                                on_title_tap,
+                                is_highlighted: Some(task.id.clone()) == highlighted_task_id(),
+                                effective_due_date,
+                                effective_lead_time,
+                            }
                         }
                     }
                 }

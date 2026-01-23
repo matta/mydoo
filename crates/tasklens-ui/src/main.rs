@@ -111,6 +111,7 @@ fn App() -> Element {
 
     // Store State
     let mut store = use_signal(AppStore::new);
+    let mut load_error = use_signal(|| None::<String>);
 
     // Give doc_id access to persistence
     let memory_heads = use_signal(String::new);
@@ -120,6 +121,7 @@ fn App() -> Element {
     use_context_provider(|| doc_id);
     use_context_provider(|| service_worker_active);
     use_context_provider(|| store);
+    use_context_provider(|| load_error);
     use_context_provider(|| MemoryHeads(memory_heads));
     use_context_provider(|| PersistedHeads(persisted_heads));
 
@@ -188,17 +190,26 @@ fn App() -> Element {
                             store.write().set_active_doc(handle, new_id.clone());
                             doc_id.set(Some(new_id));
                         }
-                        Err(e) => tracing::error!("CRITICAL: Failed to create new doc: {:?}", e),
+                        Err(e) => {
+                            let msg = format!("CRITICAL: Failed to create new doc: {:?}", e);
+                            tracing::error!("{}", msg);
+                            load_error.set(Some(msg));
+                        }
                     }
                 }
                 Err(e) => {
-                    tracing::error!("Error finding doc: {:?}. Creating new.", e);
+                    let msg = format!("Error finding doc: {:?}. Creating new.", e);
+                    tracing::error!("{}", msg);
                     match AppStore::create_new(repo.clone()).await {
                         Ok((handle, new_id)) => {
                             store.write().set_active_doc(handle, new_id.clone());
                             doc_id.set(Some(new_id));
                         }
-                        Err(e) => tracing::error!("CRITICAL: Failed to create new doc: {:?}", e),
+                        Err(e) => {
+                            let msg = format!("CRITICAL: Failed to create new doc: {:?}", e);
+                            tracing::error!("{}", msg);
+                            load_error.set(Some(msg));
+                        }
                     }
                 }
             }
@@ -210,7 +221,11 @@ fn App() -> Element {
                     store.write().set_active_doc(handle, new_id.clone());
                     doc_id.set(Some(new_id));
                 }
-                Err(e) => tracing::error!("CRITICAL: Failed to create new doc: {:?}", e),
+                Err(e) => {
+                    let msg = format!("CRITICAL: Failed to create new doc: {:?}", e);
+                    tracing::error!("{}", msg);
+                    load_error.set(Some(msg));
+                }
             }
         }
 
