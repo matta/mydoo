@@ -94,7 +94,7 @@ pub fn TaskRow(
             },
 
             // Expand/Collapse Chevron
-            div { class: "w-6 flex justify-center flex-shrink-0",
+            div { class: "w-10 flex justify-center flex-shrink-0",
                 if has_children {
                     div {
                         class: "cursor-pointer p-2 rounded hover:bg-gray-200 text-gray-500",
@@ -135,7 +135,7 @@ pub fn TaskRow(
                         }
                     }
                 } else {
-                    div { class: "w-6 h-6" } // Spacer
+                    div { class: "w-10 h-6" } // Spacer
                 }
             }
 
