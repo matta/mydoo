@@ -40,10 +40,13 @@ async fn test_load_golden_file() {
             // Setup AppStore with Repo
             let runtime = TestRuntime;
             let repo = samod::RepoBuilder::new(runtime).load_local().await;
-            let mut store = AppStore::with_repo(repo);
+            let mut store = AppStore::with_repo(repo.clone());
 
-            match store.import_doc(bytes).await {
-                Ok(_) => println!("Import successful!"),
+            match AppStore::import_doc(repo, bytes).await {
+                Ok((handle, id)) => {
+                    store.set_active_doc(handle, id);
+                    println!("Import successful!");
+                }
                 Err(e) => {
                     println!("Import failed as expected: {:?}", e);
                 }

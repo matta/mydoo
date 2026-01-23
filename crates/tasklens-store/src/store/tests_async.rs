@@ -18,9 +18,10 @@ async fn create_test_store() -> AppStore {
     // Use load_local() as create() seems unavailable or trait-gated
     let repo = samod::RepoBuilder::new(TestRuntime).load_local().await;
     // Use with_repo for testing
-    let mut store = AppStore::with_repo(repo);
-    // Create new doc to ensure store is ready
-    store.create_new().await.unwrap();
+    let mut store = AppStore::with_repo(repo.clone());
+    // Create new doc using the detached pattern
+    let (handle, id) = AppStore::create_new(repo).await.unwrap();
+    store.set_active_doc(handle, id);
     store
 }
 
