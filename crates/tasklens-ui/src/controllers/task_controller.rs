@@ -42,16 +42,15 @@ pub fn toggle_task_status(
     mut load_error: Signal<Option<String>>,
     id: TaskID,
 ) {
-    let current_status = store
-        .read()
-        .hydrate::<TunnelState>()
-        .map(|state| state.tasks.get(&id).map(|t| t.status))
-        .map_err(|e| {
+    let state = match store.read().hydrate::<TunnelState>() {
+        Ok(s) => s,
+        Err(e) => {
             tracing::error!("Failed to hydrate state for toggle: {}", e);
             load_error.set(Some(e.to_string()));
-            e
-        })
-        .unwrap_or(None);
+            return;
+        }
+    };
+    let current_status = state.tasks.get(&id).map(|t| t.status);
 
     if let Some(status) = current_status {
         match status {
