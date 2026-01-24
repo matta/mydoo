@@ -19,7 +19,7 @@
 
 use crate::adapter::{
     self,
-    tests::adapter_test_common::{any_action, check_invariants, init_doc},
+    tests::adapter_test_common::{self, any_action_for_replica, check_invariants, init_doc},
 };
 use proptest::prelude::*;
 
@@ -27,9 +27,15 @@ proptest! {
     #[test]
     #[ignore]  // FIXME: enable this test
     fn test_merge_invariants_fuzz(
-        setup in prop::collection::vec(any_action(), 1..10),
-        concurrent_a in prop::collection::vec(any_action(), 1..10),
-        concurrent_b in prop::collection::vec(any_action(), 1..10),
+        setup in prop::collection::vec(
+            any_action_for_replica("s-", adapter_test_common::SETUP_PREFIXES), 1..10
+        ),
+        concurrent_a in prop::collection::vec(
+            any_action_for_replica("a-", adapter_test_common::REPLICA_A_PREFIXS), 1..10
+        ),
+        concurrent_b in prop::collection::vec(
+            any_action_for_replica("b-", adapter_test_common::REPLICA_B_PREFIXS), 1..10
+        ),
     ) {
         let mut doc_a = init_doc().expect("Init failed");
 

@@ -6,6 +6,10 @@ use automerge::ReadDoc;
 use proptest::prelude::*;
 use tasklens_core::types::{PlaceID, RepeatConfig, ScheduleType, TaskID, TaskStatus, TunnelState};
 
+pub(super) static SETUP_PREFIXES: &[&str] = &["s-"];
+pub(super) static REPLICA_A_PREFIXS: &[&str] = &["s-", "a-"];
+pub(super) static REPLICA_B_PREFIXS: &[&str] = &["s-", "b-"];
+
 pub(super) fn init_doc() -> Result<Automerge> {
     let mut doc = Automerge::new();
     let id = crate::doc_id::DocumentId::new();
@@ -171,13 +175,27 @@ pub(super) fn check_invariants(doc: &Automerge) -> Result<(), String> {
 }
 
 pub(super) fn any_task_id() -> impl Strategy<Value = TaskID> {
+    any_task_id_for_prefix("")
+}
+
+pub(super) fn any_task_id_for_prefix(p: &'static str) -> impl Strategy<Value = TaskID> {
     prop_oneof![
-        Just(TaskID::from("task-1")),
-        Just(TaskID::from("task-2")),
-        Just(TaskID::from("task-3")),
-        Just(TaskID::from("task-4")),
-        Just(TaskID::from("task-5")),
+        Just(TaskID::from(format!("{}task-1", p))),
+        Just(TaskID::from(format!("{}task-2", p))),
+        Just(TaskID::from(format!("{}task-3", p))),
+        Just(TaskID::from(format!("{}task-4", p))),
+        Just(TaskID::from(format!("{}task-5", p))),
     ]
+}
+
+pub(super) fn any_task_id_for_prefixes(
+    prefixes: &'static [&'static str],
+) -> impl Strategy<Value = TaskID> {
+    let mut strategies = Vec::new();
+    for p in prefixes {
+        strategies.push(any_task_id_for_prefix(p).boxed());
+    }
+    proptest::strategy::Union::new(strategies)
 }
 
 pub(super) fn any_place_id() -> impl Strategy<Value = PlaceID> {
@@ -223,29 +241,50 @@ pub(super) fn any_task_updates() -> impl Strategy<Value = TaskUpdates> {
         )
 }
 
-pub(super) fn any_optional_task_id() -> impl Strategy<Value = Option<TaskID>> {
-    prop_oneof![Just(None), any_task_id().prop_map(Some),]
+pub(super) fn any_optional_task_id_for_prefixes(
+    prefixes: &'static [&'static str],
+) -> impl Strategy<Value = Option<TaskID>> {
+    prop_oneof![
+        Just(None),
+        any_task_id_for_prefixes(prefixes).prop_map(Some),
+    ]
 }
 
 pub(super) fn any_action() -> impl Strategy<Value = Action> {
+    any_action_for_replica("", &[""])
+}
+
+pub(super) fn any_action_for_replica(
+    create_prefix: &'static str,
+    target_prefixes: &'static [&'static str],
+) -> impl Strategy<Value = Action> {
     prop_oneof![
-        (any_task_id(), any_optional_task_id(), any::<String>()).prop_map(
-            |(id, parent_id, title)| {
+        (
+            any_task_id_for_prefix(create_prefix),
+            any_optional_task_id_for_prefixes(target_prefixes),
+            any::<String>()
+        )
+            .prop_map(|(id, parent_id, title)| {
                 Action::CreateTask {
                     id,
                     parent_id,
                     title,
                 }
-            }
-        ),
+            }),
         (any_place_id(), any::<String>())
             .prop_map(|(_id, _name)| { Action::RefreshLifecycle { current_time: 0 } }),
-        (any_task_id(), any_task_updates())
+        (
+            any_task_id_for_prefixes(target_prefixes),
+            any_task_updates()
+        )
             .prop_map(|(id, updates)| { Action::UpdateTask { id, updates } }),
-        any_task_id().prop_map(|id| Action::DeleteTask { id }),
-        (any_task_id(), any::<i64>())
+        any_task_id_for_prefixes(target_prefixes).prop_map(|id| Action::DeleteTask { id }),
+        (any_task_id_for_prefixes(target_prefixes), any::<i64>())
             .prop_map(|(id, current_time)| { Action::CompleteTask { id, current_time } }),
-        (any_task_id(), any_optional_task_id())
+        (
+            any_task_id_for_prefixes(target_prefixes),
+            any_optional_task_id_for_prefixes(target_prefixes)
+        )
             .prop_map(|(id, new_parent_id)| { Action::MoveTask { id, new_parent_id } }),
         any::<i64>().prop_map(|current_time| Action::RefreshLifecycle { current_time }),
     ]
