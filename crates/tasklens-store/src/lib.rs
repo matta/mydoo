@@ -1,7 +1,7 @@
 pub mod actions;
+pub mod adapter;
 pub mod debug_utils;
 pub mod doc_id;
-
 pub mod profiling;
 pub mod samod_runtime;
 pub mod samod_storage;

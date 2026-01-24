@@ -5,7 +5,8 @@ use automerge::AutoCommit;
 use automerge_test::{assert_doc, list, map};
 use tasklens_core::{TaskID, TaskStatus, TunnelState};
 
-use crate::store::{Action, ensure_path};
+use crate::adapter::ensure_path;
+use crate::store::Action;
 use automerge_test::RealizedObject;
 use std::collections::BTreeSet;
 
@@ -51,26 +52,7 @@ impl AppStore {
     }
 
     fn dispatch_static(doc: &mut AutoCommit, action: Action) -> Result<()> {
-        match action {
-            Action::CreateTask {
-                id,
-                parent_id,
-                title,
-            } => super::AppStore::handle_create_task(doc, id, parent_id, title),
-            Action::UpdateTask { id, updates } => {
-                super::AppStore::handle_update_task(doc, id, updates)
-            }
-            Action::DeleteTask { id } => super::AppStore::handle_delete_task(doc, id),
-            Action::CompleteTask { id, current_time } => {
-                super::AppStore::handle_complete_task(doc, id, current_time)
-            }
-            Action::MoveTask { id, new_parent_id } => {
-                super::AppStore::handle_move_task(doc, id, new_parent_id)
-            }
-            Action::RefreshLifecycle { current_time } => {
-                super::AppStore::handle_refresh_lifecycle(doc, current_time)
-            }
-        }
+        crate::adapter::run_action(doc, action)
     }
 
     fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T> {
