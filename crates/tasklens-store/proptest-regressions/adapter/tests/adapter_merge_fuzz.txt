@@ -4,5 +4,6 @@
 #
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
+cc 2db6268bede245fd8017354c0d091b19debef83220d699acdffc231827895db8 # shrinks to setup = [CreateTask { id: TaskID("task-4"), parent_id: None, title: "" }], concurrent_a = [CreateTask { id: TaskID("task-3"), parent_id: Some(TaskID("task-4")), title: "" }], concurrent_b = [DeleteTask { id: TaskID("task-4") }]
 cc e6041429415ab1d9875aa4d77ec0fe30a051a52c3d5a357b1f7dd229e818bae7 # shrinks to setup = [CreateTask { id: TaskID("task-5"), parent_id: None, title: "" }, MoveTask { id: TaskID("task-5"), new_parent_id: Some(TaskID("")) }], concurrent_a = [DeleteTask { id: TaskID("task-5") }], concurrent_b = [CreateTask { id: TaskID("task-1"), parent_id: None, title: "" }]
 cc 6f9466141f8948a67e8be9a8d638c9f4148ed9a0431deed629e33517e4787ed2 # shrinks to setup = [CreateTask { id: TaskID("task-2"), parent_id: None, title: "" }], concurrent_a = [CompleteTask { id: TaskID("task-2"), current_time: 0 }], concurrent_b = [CompleteTask { id: TaskID("task-2"), current_time: 0 }]

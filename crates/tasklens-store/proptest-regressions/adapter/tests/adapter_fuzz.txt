@@ -4,6 +4,7 @@
 #
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
+cc 74b8b4d4d1d957f25dd98b63731c3c40c7337131a99e6391838c62ea4ab34b42 # shrinks to actions = [CreateTask { id: TaskID("task-3"), parent_id: None, title: "" }, CreateTask { id: TaskID("task-3"), parent_id: Some(TaskID("task-3")), title: "" }]
 cc f06bfe0113ba5fabee1dcea5e79ed4abff94f33c0f529430424e90bf16b843c1 # Original repository seed
 cc 2a3b8fb68cc5460986bd53b1b58e975d00a2bfe6666fd7d8bb6359544c3ed2e3 # Stale Parent ID seed
 cc 9c6cc509daa7ca2fe7df7c21be85cb75fff060b267fdeb51636a4687c31b9cec # CreateTask same-ID seed
