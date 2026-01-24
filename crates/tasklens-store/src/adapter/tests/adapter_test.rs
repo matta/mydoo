@@ -42,7 +42,7 @@ fn test_create_task_non_existent_parent() {
 }
 
 #[test]
-fn test_create_task_upsert_duplicates() {
+fn test_create_task_fails_if_exists() {
     let mut doc = init_doc().expect("Init failed");
 
     // Create a task
@@ -56,28 +56,22 @@ fn test_create_task_upsert_duplicates() {
     )
     .unwrap();
 
-    // Create it again with same parent
-    adapter::dispatch(
+    // Create it again - should fail
+    let res = adapter::dispatch(
         &mut doc,
         Action::CreateTask {
             id: TaskID::from("task-1"),
             parent_id: None,
             title: "Task 1 Updated".into(),
         },
-    )
-    .unwrap();
-
-    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
-    let root_ids = state.root_task_ids;
-    assert_eq!(
-        root_ids.iter().filter(|id| id.as_str() == "task-1").count(),
-        1,
-        "Should not duplicate task in root list"
     );
+
+    assert!(res.is_err());
+    assert!(res.unwrap_err().to_string().contains("already exists"));
 }
 
 #[test]
-fn test_create_task_upsert_moves_task() {
+fn test_create_task_cannot_move() {
     let mut doc = init_doc().expect("Init failed");
 
     // Create Task A as root
@@ -102,26 +96,22 @@ fn test_create_task_upsert_moves_task() {
     )
     .unwrap();
 
-    // Re-create Task A as child of P
-    adapter::dispatch(
+    // Re-create Task A as child of P (move via create) - should fail because A exists
+    let res = adapter::dispatch(
         &mut doc,
         Action::CreateTask {
             id: TaskID::from("task-a"),
             parent_id: Some(TaskID::from("task-p")),
             title: "Task A moved".into(),
         },
-    )
-    .unwrap();
+    );
 
-    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
-    assert!(!state.root_task_ids.contains(&TaskID::from("task-a")));
+    assert!(res.is_err());
+    let err_msg = res.unwrap_err().to_string();
     assert!(
-        state
-            .tasks
-            .get(&TaskID::from("task-p"))
-            .unwrap()
-            .child_task_ids
-            .contains(&TaskID::from("task-a"))
+        err_msg.contains("already exists"),
+        "Expected 'already exists' error, got: {}",
+        err_msg
     );
 }
 
@@ -265,7 +255,6 @@ fn test_move_task_duplicate_prevention() {
 }
 
 #[test]
-#[ignore]
 fn test_move_cycle_bug() {
     let mut doc = init_doc().expect("Init failed");
 

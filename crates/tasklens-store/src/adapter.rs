@@ -199,15 +199,11 @@ pub(crate) fn handle_create_task(
         None
     };
 
-    // 2b. Check if task already exists. If it does, we should probably treat this as an update
-    // but for now, we'll just ensure we don't double-add to lists if we're not changing parents.
-    let existing_task: MaybeMissing<PersistedTask> =
-        autosurgeon::hydrate_prop(doc, &tasks_obj_id, id.as_str())
-            .map_err(|e| anyhow!("Failed to hydrate existing task: {}", e))?;
-    let existing_task = match existing_task {
-        MaybeMissing::Present(task) => Some(task),
-        MaybeMissing::Missing => None,
-    };
+    // 2b. Check if task already exists.
+    let exists = automerge::ReadDoc::get(doc, &tasks_obj_id, id.as_str())?.is_some();
+    if exists {
+        return Err(anyhow!("Task already exists: {}", id));
+    }
 
     // 3. Create the new task struct.
     let task = tasklens_core::create_new_task(id.clone(), title, parent.as_ref());
@@ -215,39 +211,6 @@ pub(crate) fn handle_create_task(
     // 4. Reconcile the new task map entry.
     autosurgeon::reconcile_prop(doc, &tasks_obj_id, id.as_str(), &task)
         .map_err(|e| anyhow!("Failed to reconcile new task: {}", e))?;
-
-    // 5. Update parent's child list or root list IF it's a new task or parent changed.
-    let old_parent_id = existing_task.as_ref().and_then(|t| t.parent_id.clone());
-    if existing_task.is_some() && old_parent_id == parent_id {
-        // Already in the right list, nothing more to do.
-        return Ok(());
-    }
-
-    // If it existed before, we need (or should have) removed it from the old list.
-    // For simplicity, if it's an "upsert" that changes parents, we'll just use handle_move_task logic
-    // but CreateTask is usually intended for NEW tasks.
-    // To keep this robust against the fuzzer's "Create existing" usage:
-    if existing_task.is_some() {
-        // Remove from old placement.
-        if let Some(opid) = old_parent_id {
-            let parent_obj_id = ensure_path(doc, &tasks_obj_id, vec![opid.as_str()])?;
-            let mut child_ids: Vec<TaskID> =
-                match autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds")? {
-                    MaybeMissing::Present(ids) => ids,
-                    MaybeMissing::Missing => Vec::new(),
-                };
-            child_ids.retain(|cid| cid != &id);
-            autosurgeon::reconcile_prop(doc, &parent_obj_id, "childTaskIds", &child_ids)?;
-        } else {
-            let mut root_ids: Vec<TaskID> =
-                match autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds")? {
-                    MaybeMissing::Present(ids) => ids,
-                    MaybeMissing::Missing => Vec::new(),
-                };
-            root_ids.retain(|rid| rid != &id);
-            autosurgeon::reconcile_prop(doc, &automerge::ROOT, "rootTaskIds", &root_ids)?;
-        }
-    }
 
     if let Some(pid) = parent_id {
         // Get parent object ID.
@@ -354,53 +317,62 @@ pub(crate) fn handle_delete_task(doc: &mut (impl Transactable + Doc), id: TaskID
         _ => return Err(anyhow!("Task not found: {}", id)),
     };
 
-    // 2. Hydrate parent_id to know where to remove it from.
+    // 2. Resolve parent and children.
     let parent_id: Option<TaskID> =
-        hydrate_optional_task_id(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))
-            .map_err(|e| anyhow!("Failed to hydrate parentId: {}", e))?;
+        hydrate_optional_task_id(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))?;
 
-    // 3. Remove from parent's children or rootTaskIds.
-    if let Some(pid) = parent_id {
-        // Get parent object ID.
-        let parent_obj_id = ensure_path(doc, &tasks_obj_id, vec![pid.as_str()])?;
+    let child_ids: Vec<TaskID> = match autosurgeon::hydrate_prop(doc, &task_obj_id, "childTaskIds")?
+    {
+        MaybeMissing::Present(ids) => ids,
+        MaybeMissing::Missing => Vec::new(),
+    };
 
-        // Hydrate current children list.
-        let mut child_ids: Vec<TaskID> =
-            match autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds") {
-                Ok(ids) => match ids {
-                    MaybeMissing::Missing => Vec::new(),
-                    MaybeMissing::Present(ids) => ids,
-                },
-                Err(e) => {
-                    return Err(anyhow!("Failed to hydrate parent's childTaskIds: {}", e));
-                }
-            };
-
-        child_ids.retain(|cid| cid != &id);
-
-        // Reconcile updated children list.
-        autosurgeon::reconcile_prop(doc, &parent_obj_id, "childTaskIds", &child_ids)
-            .map_err(|e| anyhow!("Failed to reconcile parent's childTaskIds: {}", e))?;
-    } else {
-        // Update root task list.
+    // 3. Promote children to roots.
+    if !child_ids.is_empty() {
         let mut root_ids: Vec<TaskID> =
-            match autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds") {
-                Ok(ids) => match ids {
-                    MaybeMissing::Missing => Vec::new(),
-                    MaybeMissing::Present(ids) => ids,
-                },
-                Err(e) => return Err(anyhow!("Failed to hydrate rootTaskIds: {}", e)),
+            match autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds")? {
+                MaybeMissing::Present(ids) => ids,
+                MaybeMissing::Missing => Vec::new(),
             };
 
-        root_ids.retain(|rid| rid != &id);
-
-        autosurgeon::reconcile_prop(doc, &automerge::ROOT, "rootTaskIds", &root_ids)
-            .map_err(|e| anyhow!("Failed to reconcile rootTaskIds: {}", e))?;
+        for cid in child_ids {
+            if let Some((automerge::Value::Object(automerge::ObjType::Map), child_task_obj_id)) =
+                am_get(doc, &tasks_obj_id, cid.as_str())?
+            {
+                am_delete(doc, &child_task_obj_id, "parentId")?;
+                if !root_ids.contains(&cid) {
+                    root_ids.push(cid);
+                }
+            }
+        }
+        autosurgeon::reconcile_prop(doc, &automerge::ROOT, "rootTaskIds", &root_ids)?;
     }
 
-    // 4. Delete the task object itself from the tasks map.
-    am_delete(doc, &tasks_obj_id, id.as_str())
-        .map_err(|e| anyhow!("Failed to delete task object: {}", e))?;
+    // 4. Remove from parent or root list.
+    if let Some(pid) = parent_id {
+        if let Some((automerge::Value::Object(automerge::ObjType::Map), parent_obj_id)) =
+            am_get(doc, &tasks_obj_id, pid.as_str())?
+        {
+            let mut p_child_ids: Vec<TaskID> =
+                match autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds")? {
+                    MaybeMissing::Present(ids) => ids,
+                    MaybeMissing::Missing => Vec::new(),
+                };
+            p_child_ids.retain(|cid| cid != &id);
+            autosurgeon::reconcile_prop(doc, &parent_obj_id, "childTaskIds", &p_child_ids)?;
+        }
+    } else {
+        let mut root_ids: Vec<TaskID> =
+            match autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds")? {
+                MaybeMissing::Present(ids) => ids,
+                MaybeMissing::Missing => Vec::new(),
+            };
+        root_ids.retain(|rid| rid != &id);
+        autosurgeon::reconcile_prop(doc, &automerge::ROOT, "rootTaskIds", &root_ids)?;
+    }
+
+    // 5. Delete the task itself.
+    am_delete(doc, &tasks_obj_id, id.as_str())?;
 
     Ok(())
 }
@@ -445,6 +417,10 @@ pub(crate) fn handle_move_task(
         if npid == &id {
             return Err(anyhow!("Cannot move task to itself: {}", id));
         }
+
+        if causes_cycle(&state.tasks, &id, npid) {
+            return Err(anyhow!("Cannot move task: cycle detected"));
+        }
     }
 
     let old_parent_id = state.tasks.get(&id).and_then(|t| t.parent_id.clone());
@@ -486,6 +462,21 @@ pub(crate) fn handle_refresh_lifecycle(
     tasklens_core::domain::routine_tasks::wake_up_routine_tasks(&mut state, current_time);
     reconcile(doc, &state).map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
     Ok(())
+}
+
+fn causes_cycle(
+    tasks: &HashMap<TaskID, PersistedTask>,
+    task_id: &TaskID,
+    new_parent_id: &TaskID,
+) -> bool {
+    let mut current = Some(new_parent_id);
+    while let Some(curr) = current {
+        if curr == task_id {
+            return true;
+        }
+        current = tasks.get(curr).and_then(|t| t.parent_id.as_ref());
+    }
+    false
 }
 
 #[cfg(test)]
