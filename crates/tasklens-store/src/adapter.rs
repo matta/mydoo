@@ -403,31 +403,22 @@ pub(crate) fn handle_move_task(
     id: TaskID,
     new_parent_id: Option<TaskID>,
 ) -> Result<()> {
-    // FIXME FIXME FIXME
-    //
-    // This function has a few issues that can lead to data corruption:
-    //
-    // It doesn't validate that the task being moved (id) actually exists.
-    //
-    // It doesn't validate that the new_parent_id, if provided, corresponds to
-    // an existing task.
-    //
-    // If an invalid new_parent_id is given, the task will be removed from its
-    // old parent (or the root list), its parent_id field will be updated to the
-    // invalid ID, but it won't be added to the new parent's child_task_ids.
-    // This orphans the task, making it unreachable and effectively lost.
-    //
-    // Additionally, this function is inefficient as it hydrates the entire
-    // TunnelState, modifies it, and then reconciles the whole state back. This
-    // was a pre-existing issue noted with a TODO in the original code, but it's
-    // worth highlighting. The more critical issue is the lack of validation
-    // leading to data loss.
-    //
-    // You should add checks to ensure both the task to be moved and the new
-    // parent task exist before performing the move operation.
-    //
-    // FIXME FIXME FIXME
     let mut state: TunnelState = autosurgeon::hydrate(doc)?;
+
+    // 1. Validation: Ensure both the task and its new parent (if any) exist.
+    if !state.tasks.contains_key(&id) {
+        return Err(anyhow!("Cannot move non-existent task: {}", id));
+    }
+    if let Some(ref npid) = new_parent_id {
+        if !state.tasks.contains_key(npid) {
+            return Err(anyhow!("Cannot move to non-existent parent: {}", npid));
+        }
+        // Prevent cycle (moving task to itself)
+        if npid == &id {
+            return Err(anyhow!("Cannot move task to itself: {}", id));
+        }
+    }
+
     let old_parent_id = state.tasks.get(&id).and_then(|t| t.parent_id.clone());
 
     // Remove from old parent or root
@@ -441,10 +432,12 @@ pub(crate) fn handle_move_task(
 
     // Add to new parent or root
     if let Some(npid) = new_parent_id.clone() {
-        if let Some(parent) = state.tasks.get_mut(&npid) {
+        if let Some(parent) = state.tasks.get_mut(&npid)
+            && !parent.child_task_ids.contains(&id)
+        {
             parent.child_task_ids.push(id.clone());
         }
-    } else {
+    } else if !state.root_task_ids.contains(&id) {
         state.root_task_ids.push(id.clone());
     }
 
