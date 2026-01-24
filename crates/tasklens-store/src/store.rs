@@ -210,3 +210,5 @@ impl Default for AppStore {
 mod tests;
 #[cfg(test)]
 mod tests_async;
+#[cfg(test)]
+mod tests_merge;
