@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc f06bfe0113ba5fabee1dcea5e79ed4abff94f33c0f529430424e90bf16b843c1 # shrinks to actions = [CreateTask { id: TaskID("task-4"), parent_id: None, title: "" }, MoveTask { id: TaskID("task-4"), new_parent_id: Some(TaskID("")) }]
