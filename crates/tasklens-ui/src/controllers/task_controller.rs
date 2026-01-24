@@ -5,6 +5,7 @@ use tasklens_store::store::AppStore;
 
 pub fn create_task(
     mut store: Signal<AppStore>,
+    mut load_error: Signal<Option<String>>,
     parent_id: Option<TaskID>,
     title: String,
 ) -> Option<TaskID> {
@@ -16,30 +17,40 @@ pub fn create_task(
     };
     if let Err(e) = store.write().dispatch(action) {
         tracing::error!("Failed to create task: {}", e);
+        load_error.set(Some(e.to_string()));
         None
     } else {
         Some(id)
     }
 }
 
-pub fn update_task(mut store: Signal<AppStore>, id: TaskID, updates: TaskUpdates) {
+pub fn update_task(
+    mut store: Signal<AppStore>,
+    mut load_error: Signal<Option<String>>,
+    id: TaskID,
+    updates: TaskUpdates,
+) {
     let action = Action::UpdateTask { id, updates };
     if let Err(e) = store.write().dispatch(action) {
         tracing::error!("Failed to update task: {}", e);
+        load_error.set(Some(e.to_string()));
     }
 }
 
-pub fn toggle_task_status(mut store: Signal<AppStore>, id: TaskID) {
-    let current_status = {
-        let store_read = store.read();
-        match store_read.hydrate::<TunnelState>() {
-            Ok(state) => state.tasks.get(&id).map(|t| t.status),
-            Err(e) => {
-                tracing::error!("Failed to hydrate state for toggle: {}", e);
-                None
-            }
+pub fn toggle_task_status(
+    mut store: Signal<AppStore>,
+    mut load_error: Signal<Option<String>>,
+    id: TaskID,
+) {
+    let state = match store.read().hydrate::<TunnelState>() {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::error!("Failed to hydrate state for toggle: {}", e);
+            load_error.set(Some(e.to_string()));
+            return;
         }
     };
+    let current_status = state.tasks.get(&id).map(|t| t.status);
 
     if let Some(status) = current_status {
         match status {
@@ -51,6 +62,7 @@ pub fn toggle_task_status(mut store: Signal<AppStore>, id: TaskID) {
                 };
                 if let Err(e) = store.write().dispatch(action) {
                     tracing::error!("Failed to complete task: {}", e);
+                    load_error.set(Some(e.to_string()));
                 }
             }
             TaskStatus::Done => {
@@ -64,6 +76,7 @@ pub fn toggle_task_status(mut store: Signal<AppStore>, id: TaskID) {
 
                 if let Err(e) = store.write().dispatch(action) {
                     tracing::error!("Failed to toggle task status: {}", e);
+                    load_error.set(Some(e.to_string()));
                 }
             }
         };
@@ -74,7 +87,12 @@ pub fn toggle_task_status(mut store: Signal<AppStore>, id: TaskID) {
 // The build error logs didn't show rename_task being missing in the *latest* run (wait, let me check).
 // The first build run showed `rename_task` missing in `plan_page.rs`.
 // The second build run (after I added it) didn't complain about it.
-pub fn rename_task(mut store: Signal<AppStore>, id: TaskID, new_title: String) {
+pub fn rename_task(
+    mut store: Signal<AppStore>,
+    mut load_error: Signal<Option<String>>,
+    id: TaskID,
+    new_title: String,
+) {
     let action = Action::UpdateTask {
         id,
         updates: TaskUpdates {
@@ -85,44 +103,57 @@ pub fn rename_task(mut store: Signal<AppStore>, id: TaskID, new_title: String) {
 
     if let Err(e) = store.write().dispatch(action) {
         tracing::error!("Failed to rename task: {}", e);
+        load_error.set(Some(e.to_string()));
     }
 }
 
-pub fn delete_task(mut store: Signal<AppStore>, id: TaskID) {
+pub fn delete_task(
+    mut store: Signal<AppStore>,
+    mut load_error: Signal<Option<String>>,
+    id: TaskID,
+) {
     let action = Action::DeleteTask { id };
 
     if let Err(e) = store.write().dispatch(action) {
         tracing::error!("Failed to delete task: {}", e);
+        load_error.set(Some(e.to_string()));
     }
 }
 
-pub fn move_task(mut store: Signal<AppStore>, id: TaskID, new_parent_id: Option<TaskID>) {
+pub fn move_task(
+    mut store: Signal<AppStore>,
+    mut load_error: Signal<Option<String>>,
+    id: TaskID,
+    new_parent_id: Option<TaskID>,
+) {
     let action = Action::MoveTask { id, new_parent_id };
 
     if let Err(e) = store.write().dispatch(action) {
         tracing::error!("Failed to move task: {}", e);
+        load_error.set(Some(e.to_string()));
     }
 }
 
-pub fn refresh_lifecycle(mut store: Signal<AppStore>) {
+pub fn refresh_lifecycle(mut store: Signal<AppStore>, mut load_error: Signal<Option<String>>) {
     let current_time = chrono::Utc::now().timestamp_millis();
     let action = Action::RefreshLifecycle { current_time };
 
     if let Err(e) = store.write().dispatch(action) {
         tracing::error!("Failed to refresh lifecycle: {}", e);
+        load_error.set(Some(e.to_string()));
     }
 }
 
-pub fn indent_task(store: Signal<AppStore>, id: TaskID) {
+pub fn indent_task(store: Signal<AppStore>, mut load_error: Signal<Option<String>>, id: TaskID) {
     // 1. Identify current parent and siblings.
     // 2. Find previous sibling.
     // 3. Move to be child of previous sibling.
     let new_parent_opt = {
-        let store_read = store.read();
-        let state: TunnelState = match store_read.hydrate() {
+        let state: TunnelState = match store.read().hydrate() {
             Ok(s) => s,
             Err(e) => {
                 tracing::error!("Failed to hydrate for indent: {}", e);
+                load_error.set(Some(e.to_string()));
                 return;
             }
         };
@@ -158,20 +189,20 @@ pub fn indent_task(store: Signal<AppStore>, id: TaskID) {
     };
 
     if let Some(new_parent) = new_parent_opt {
-        move_task(store, id, Some(new_parent));
+        move_task(store, load_error, id, Some(new_parent));
     }
 }
 
-pub fn outdent_task(store: Signal<AppStore>, id: TaskID) {
+pub fn outdent_task(store: Signal<AppStore>, mut load_error: Signal<Option<String>>, id: TaskID) {
     // 1. Identify current parent.
     // 2. Identify grandparent.
     // 3. Move to grandparent.
     let (should_move, new_parent_id) = {
-        let store_read = store.read();
-        let state: TunnelState = match store_read.hydrate() {
+        let state: TunnelState = match store.read().hydrate() {
             Ok(s) => s,
             Err(e) => {
                 tracing::error!("Failed to hydrate for outdent: {}", e);
+                load_error.set(Some(e.to_string()));
                 return;
             }
         };
@@ -193,6 +224,6 @@ pub fn outdent_task(store: Signal<AppStore>, id: TaskID) {
     };
 
     if should_move {
-        move_task(store, id, new_parent_id);
+        move_task(store, load_error, id, new_parent_id);
     }
 }

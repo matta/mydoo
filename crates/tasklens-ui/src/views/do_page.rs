@@ -1,3 +1,4 @@
+use crate::components::LoadErrorView;
 use crate::components::priority_task_row::PriorityTaskRow;
 use crate::components::task_input::TaskInput;
 use crate::controllers::task_controller;
@@ -9,6 +10,7 @@ use tasklens_store::store::AppStore;
 #[component]
 pub fn DoPage() -> Element {
     let store = use_context::<Signal<AppStore>>();
+    let load_error = use_context::<Signal<Option<String>>>();
     let mut input_text = use_signal(String::new);
 
     #[derive(Debug, Clone, PartialEq)]
@@ -18,38 +20,43 @@ pub fn DoPage() -> Element {
     }
     let mut editor_state = use_signal(|| None::<EditorState>);
 
-    let prioritized_tasks = use_memo(move || {
-        let store_read = store.read();
-        let state = store_read
-            .hydrate::<tasklens_core::types::TunnelState>()
-            .unwrap_or_default();
-        let view_filter = ViewFilter {
-            place_id: Some("All".to_string()),
-        };
-        let options = PriorityOptions {
-            include_hidden: false,
-            mode: Some(PriorityMode::DoList),
-            context: None, // Will use current time internally
-        };
-        get_prioritized_tasks(&state, &view_filter, &options)
+    let state = crate::hooks::use_tunnel_state::use_tunnel_state();
+
+    let prioritized_tasks = use_memo({
+        move || {
+            let state = state.read();
+            let view_filter = ViewFilter {
+                place_id: Some("All".to_string()),
+            };
+            let options = PriorityOptions {
+                include_hidden: false,
+                mode: Some(PriorityMode::DoList),
+                context: None, // Will use current time internally
+            };
+            get_prioritized_tasks(&state, &view_filter, &options)
+        }
     });
 
-    let on_toggle = move |id: TaskID| {
-        task_controller::toggle_task_status(store, id);
+    let on_toggle = {
+        move |id: TaskID| {
+            task_controller::toggle_task_status(store, load_error, id);
+        }
     };
 
     let on_title_tap = move |id: TaskID| {
         editor_state.set(Some(EditorState::Edit(id)));
     };
 
-    let handle_add = move |_| {
-        let text = input_text.read().clone();
-        if text.trim().is_empty() {
-            return;
-        }
+    let handle_add = {
+        move |_| {
+            let text = input_text.read().clone();
+            if text.trim().is_empty() {
+                return;
+            }
 
-        task_controller::create_task(store, None, text);
-        input_text.set(String::new());
+            task_controller::create_task(store, load_error, None, text);
+            input_text.set(String::new());
+        }
     };
 
     rsx! {
@@ -58,7 +65,7 @@ pub fn DoPage() -> Element {
                 h1 { class: "text-2xl font-bold text-gray-900", "Work" }
                 button {
                     class: "px-3 py-1 bg-white border border-gray-200 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 flex items-center shadow-sm",
-                    onclick: move |_| task_controller::refresh_lifecycle(store),
+                    onclick: move |_| task_controller::refresh_lifecycle(store, load_error),
                     "Refresh"
                 }
             }
@@ -69,7 +76,15 @@ pub fn DoPage() -> Element {
                 on_add: handle_add,
             }
 
-            if prioritized_tasks().is_empty() {
+            if let Some(error) = load_error() {
+                LoadErrorView {
+                    error,
+                    help_text: Some(
+                        "Access the settings menu from the Task or Plan page to switch documents or change sync servers."
+                            .to_string(),
+                    ),
+                }
+            } else if prioritized_tasks().is_empty() {
                 div { class: "text-center py-12 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200",
                     p { "No tasks ready for now." }
                     p { class: "text-base mt-2", "Check your Plan or wait for scheduled tasks." }
@@ -94,7 +109,12 @@ pub fn DoPage() -> Element {
                             task_id: Some(id),
                             on_close: move |_| editor_state.set(None),
                             on_add_child: move |parent_id| {
-                                editor_state.set(Some(EditorState::Create { parent_id: Some(parent_id) }));
+                                editor_state
+                                    .set(
+                                        Some(EditorState::Create {
+                                            parent_id: Some(parent_id),
+                                        }),
+                                    );
                             },
                             on_task_created: None,
                         }
@@ -105,7 +125,7 @@ pub fn DoPage() -> Element {
                             on_close: move |_| editor_state.set(None),
                             on_task_created: None,
                         }
-                    }
+                    },
                 }
             }
         }

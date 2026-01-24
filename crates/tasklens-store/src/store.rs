@@ -3,8 +3,9 @@ use crate::doc_id::{DocumentId, TaskLensUrl};
 #[cfg(target_arch = "wasm32")]
 use crate::storage::{ActiveDocStorage, IndexedDbStorage};
 use anyhow::{Result, anyhow};
+use automerge::ReadDoc;
 use automerge::transaction::Transactable;
-use autosurgeon::{Doc, reconcile};
+use autosurgeon::{Doc, MaybeMissing, reconcile};
 use std::collections::HashMap;
 
 use tasklens_core::types::{
@@ -194,9 +195,6 @@ impl AppStore {
                 Ok(())
             })
         } else {
-            // autosurgeon::ReconcileError's exact variants depend on version.
-            // Often it has a catch-all or Automerge wrapper.
-            // Let's use a simpler approach that is likely to work or fail with a clearer error.
             Err(autosurgeon::ReconcileError::Automerge(
                 automerge::AutomergeError::InvalidObjId("root".to_string()),
             ))
@@ -212,6 +210,61 @@ impl AppStore {
         } else {
             Err(anyhow!("No handle available"))
         }
+    }
+
+    /// A "total hack" repair utility that fixes tasks with "DoDonee" status,
+    /// changing them to "Done". This should be called if hydration fails
+    /// because of an "unexpected DoDonee" error.
+    pub fn repair_dodonee(&mut self) -> Result<()> {
+        let handle = self.handle.as_mut().ok_or_else(|| anyhow!("No handle"))?;
+        handle.with_document(|doc| {
+            let mut tx = doc.transaction();
+
+            // 1. Get tasks map
+            let tasks_obj_id = match am_get(&tx, &automerge::ROOT, "tasks")? {
+                Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
+                _ => return Ok(()),
+            };
+
+            // 2. Iterate keys and find those needing repair
+            let mut tasks_to_repair = Vec::new();
+            {
+                let keys = tx.keys(&tasks_obj_id);
+                for task_id in keys {
+                    let task_obj_id = match am_get(&tx, &tasks_obj_id, task_id.as_str())? {
+                        Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
+                        _ => continue,
+                    };
+
+                    // Check status
+                    let status_val = am_get(&tx, &task_obj_id, "status")?;
+                    let is_dodonee = match status_val {
+                        Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
+                            automerge::ScalarValue::Str(s) => s.as_str() == "DoDonee",
+                            _ => false,
+                        },
+                        Some((automerge::Value::Object(automerge::ObjType::Text), id)) => {
+                            tx.text(id)? == "DoDonee"
+                        }
+                        _ => false,
+                    };
+
+                    if is_dodonee {
+                        tasks_to_repair.push(task_obj_id);
+                    }
+                }
+            }
+
+            // 3. Repair them
+            for task_obj_id in tasks_to_repair {
+                tracing::info!("Repairing task {:?}: DoDonee -> Done", task_obj_id);
+                // Set it to Done.
+                autosurgeon::reconcile_prop(&mut tx, task_obj_id, "status", TaskStatus::Done)
+                    .map_err(|e| anyhow!("Repair reconciliation failed: {}", e))?;
+            }
+            tx.commit();
+            Ok(())
+        })
     }
 
     /// Dispatches an action to modify the application state.
@@ -299,7 +352,13 @@ impl AppStore {
 
             // Hydrate current children list.
             let mut child_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds").unwrap_or_default();
+                match autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds") {
+                    Ok(ids) => match ids {
+                        MaybeMissing::Missing => Vec::new(),
+                        MaybeMissing::Present(ids) => ids,
+                    },
+                    Err(e) => return Err(anyhow!("Failed to hydrate child ids: {}", e)),
+                };
 
             child_ids.push(id);
 
@@ -309,7 +368,13 @@ impl AppStore {
         } else {
             // Update root task list.
             let mut root_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(doc, automerge::ROOT, "rootTaskIds").unwrap_or_default();
+                match autosurgeon::hydrate_prop(doc, automerge::ROOT, "rootTaskIds") {
+                    Ok(ids) => match ids {
+                        MaybeMissing::Missing => Vec::new(),
+                        MaybeMissing::Present(ids) => ids,
+                    },
+                    Err(e) => return Err(anyhow!("Failed to hydrate root task ids: {}", e)),
+                };
 
             root_ids.push(id);
 
@@ -398,7 +463,15 @@ impl AppStore {
 
             // Hydrate current children list.
             let mut child_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds").unwrap_or_default();
+                match autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds") {
+                    Ok(ids) => match ids {
+                        MaybeMissing::Missing => Vec::new(),
+                        MaybeMissing::Present(ids) => ids,
+                    },
+                    Err(e) => {
+                        return Err(anyhow!("Failed to hydrate parent's childTaskIds: {}", e));
+                    }
+                };
 
             child_ids.retain(|cid| cid != &id);
 
@@ -408,7 +481,13 @@ impl AppStore {
         } else {
             // Update root task list.
             let mut root_ids: Vec<TaskID> =
-                autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds").unwrap_or_default();
+                match autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds") {
+                    Ok(ids) => match ids {
+                        MaybeMissing::Missing => Vec::new(),
+                        MaybeMissing::Present(ids) => ids,
+                    },
+                    Err(e) => return Err(anyhow!("Failed to hydrate rootTaskIds: {}", e)),
+                };
 
             root_ids.retain(|rid| rid != &id);
 
