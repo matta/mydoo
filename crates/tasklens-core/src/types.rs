@@ -1185,9 +1185,23 @@ pub struct TunnelState {
 }
 
 impl TunnelState {
-    /// Promotes any orphaned tasks (in the map but unreachable from roots) to
-    /// root tasks.
-    pub fn promote_orphans(&mut self) {
+    /// Heals structural inconsistencies in the task tree.
+    ///
+    /// This function identifies and repairs the following broken invariants:
+    ///
+    /// 1. **Broken Links**: IDs in `root_task_ids` or `child_task_ids` that point to
+    ///    tasks no longer present in the `tasks` map.
+    ///    *   *Healing*: These "phantom" IDs are pruned from the lists.
+    /// 2. **Broken Parent Links**: Tasks with a `parent_id` set to an ID that does
+    ///    not exist in the `tasks` map.
+    ///    *   *Healing*: The `parent_id` is cleared (set to `None`).
+    /// 3. **Orphaned Tasks**: Tasks that exist in the `tasks` map but are not reachable
+    ///    by traversing from the roots.
+    ///    *   *Healing*: These tasks are promoted to roots by adding them to `root_task_ids`.
+    pub fn heal_structural_inconsistencies(&mut self) {
+        // 1. Prune root_task_ids of any tasks that no longer exist (Broken Links)
+        self.root_task_ids.retain(|id| self.tasks.contains_key(id));
+
         let mut reachable = std::collections::HashSet::with_capacity(self.tasks.len());
         let mut stack: Vec<TaskID> = self.root_task_ids.clone();
 
@@ -1196,7 +1210,10 @@ impl TunnelState {
                 && let Some(task) = self.tasks.get(&id)
             {
                 for cid in &task.child_task_ids {
-                    stack.push(cid.clone());
+                    // Only add children that actually exist
+                    if self.tasks.contains_key(cid) {
+                        stack.push(cid.clone());
+                    }
                 }
             }
         }

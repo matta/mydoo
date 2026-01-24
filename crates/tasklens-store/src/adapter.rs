@@ -64,7 +64,7 @@ pub(crate) fn hydrate<T: autosurgeon::Hydrate + 'static>(
 
     // Fix orphaned tasks (Structural Leak) which can occur after concurrent merge/delete.
     if let Some(state_mut) = (&mut state as &mut dyn std::any::Any).downcast_mut::<TunnelState>() {
-        state_mut.promote_orphans();
+        state_mut.heal_structural_inconsistencies();
     }
 
     Ok(state)

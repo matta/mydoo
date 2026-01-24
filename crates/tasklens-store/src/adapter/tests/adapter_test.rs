@@ -439,3 +439,56 @@ fn test_concurrent_create_child_and_delete_parent_leak() {
         panic!("Invariant Failure!\n{}", msg);
     }
 }
+
+#[test]
+fn test_concurrent_delete_same_task_root() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // 1. Setup: Create Task 3 and Task 4
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-3"),
+            parent_id: None,
+            title: "".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-4"),
+            parent_id: None,
+            title: "".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // 2. Concurrent A: Delete Task 3
+    adapter::dispatch(
+        &mut doc_a,
+        Action::DeleteTask {
+            id: TaskID::from("task-3"),
+        },
+    )
+    .unwrap();
+
+    // 3. Concurrent B: Delete Task 3
+    adapter::dispatch(
+        &mut doc_b,
+        Action::DeleteTask {
+            id: TaskID::from("task-3"),
+        },
+    )
+    .unwrap();
+
+    // 4. Merge
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+
+    // 5. Check invariants
+    if let Err(msg) = check_invariants(&doc_a) {
+        panic!("Invariant Failure!\n{}", msg);
+    }
+}
