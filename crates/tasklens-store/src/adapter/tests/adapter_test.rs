@@ -342,3 +342,54 @@ fn test_routine_lead_time_overflow() {
     // 4. Refresh Lifecycle at time 0 - this should not panic
     adapter::dispatch(&mut doc, Action::RefreshLifecycle { current_time: 0 }).unwrap();
 }
+
+#[test]
+fn test_move_task_to_root_removes_parent_id() {
+    let mut doc = init_doc().expect("Init failed");
+
+    // 1. Create Task 1 as root
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: None,
+            title: "".into(),
+        },
+    )
+    .unwrap();
+
+    // 2. Create Task 5 as child of Task 1
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-5"),
+            parent_id: Some(TaskID::from("task-1")),
+            title: "".into(),
+        },
+    )
+    .unwrap();
+
+    // 3. Move Task 5 to root
+    adapter::dispatch(
+        &mut doc,
+        Action::MoveTask {
+            id: TaskID::from("task-5"),
+            new_parent_id: None,
+        },
+    )
+    .unwrap();
+
+    // 4. Check invariants
+    if let Err(msg) = check_invariants(&doc) {
+        panic!("Invariant Failure!\n{}", msg);
+    }
+
+    // 5. Verify parent_id is None in hydrated state
+    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
+    let task = state.tasks.get(&TaskID::from("task-5")).unwrap();
+    assert!(
+        task.parent_id.is_none(),
+        "Expected parent_id to be None, got Some({:?})",
+        task.parent_id
+    );
+}

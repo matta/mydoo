@@ -403,53 +403,104 @@ pub(crate) fn handle_move_task(
     id: TaskID,
     new_parent_id: Option<TaskID>,
 ) -> Result<()> {
-    let mut state: TunnelState = autosurgeon::hydrate(doc)?;
+    // 1. Resolve tasks map
+    let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
 
-    // 1. Validation: Ensure both the task and its new parent (if any) exist.
-    if !state.tasks.contains_key(&id) {
-        return Err(anyhow!("Cannot move non-existent task: {}", id));
-    }
-    if let Some(ref npid) = new_parent_id {
-        if !state.tasks.contains_key(npid) {
-            return Err(anyhow!("Cannot move to non-existent parent: {}", npid));
-        }
-        // Prevent cycle (moving task to itself)
-        if npid == &id {
-            return Err(anyhow!("Cannot move task to itself: {}", id));
-        }
+    // 2. Resolve task object
+    let task_obj_id = match am_get(doc, &tasks_obj_id, id.as_str())? {
+        Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
+        _ => return Err(anyhow!("Cannot move non-existent task: {}", id)),
+    };
 
-        if causes_cycle(&state.tasks, &id, npid) {
-            return Err(anyhow!("Cannot move task: cycle detected"));
-        }
+    // 3. Resolve old parent ID
+    let old_parent_id: Option<TaskID> =
+        hydrate_optional_task_id(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))?;
+
+    // 4. Shortcut if same
+    if old_parent_id == new_parent_id {
+        return Ok(());
     }
 
-    let old_parent_id = state.tasks.get(&id).and_then(|t| t.parent_id.clone());
+    // 5. Validation: cycle detection still needs a hydrated partial state (for now).
+    // We only hydrate what we need for the cycle check.
+    {
+        // Still using a full hydrate here for simplicity of cycle detection,
+        // but it doesn't affect the reconciliation below.
+        let state: TunnelState = autosurgeon::hydrate(doc)?;
+        if let Some(ref npid) = new_parent_id {
+            if !state.tasks.contains_key(npid) {
+                return Err(anyhow!("Cannot move to non-existent parent: {}", npid));
+            }
+            if npid == &id {
+                return Err(anyhow!("Cannot move task to itself: {}", id));
+            }
+            if causes_cycle(&state.tasks, &id, npid) {
+                return Err(anyhow!("Cannot move task: cycle detected"));
+            }
+        }
+    }
 
-    // Remove from old parent or root
+    // 6. Perform the updates in Automerge.
+
+    // 6a. Remove from old container (parent's child list or root list).
     if let Some(opid) = old_parent_id {
-        if let Some(parent) = state.tasks.get_mut(&opid) {
-            parent.child_task_ids.retain(|cid| cid != &id);
+        let op_obj_id = match am_get(doc, &tasks_obj_id, opid.as_str())? {
+            Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
+            _ => return Err(anyhow!("Old parent disappeared: {}", opid)),
+        };
+
+        let mut child_ids: Vec<TaskID> =
+            match autosurgeon::hydrate_prop(doc, &op_obj_id, "childTaskIds")? {
+                MaybeMissing::Present(ids) => ids,
+                MaybeMissing::Missing => Vec::new(),
+            };
+        child_ids.retain(|cid| cid != &id);
+        autosurgeon::reconcile_prop(doc, &op_obj_id, "childTaskIds", &child_ids)?;
+    } else {
+        let mut root_ids: Vec<TaskID> =
+            match autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds")? {
+                MaybeMissing::Present(ids) => ids,
+                MaybeMissing::Missing => Vec::new(),
+            };
+        root_ids.retain(|rid| rid != &id);
+        autosurgeon::reconcile_prop(doc, &automerge::ROOT, "rootTaskIds", &root_ids)?;
+    }
+
+    // 6b. Add to new container (parent's child list or root list).
+    if let Some(npid) = new_parent_id.clone() {
+        let np_obj_id = match am_get(doc, &tasks_obj_id, npid.as_str())? {
+            Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
+            _ => return Err(anyhow!("New parent disappeared: {}", npid)),
+        };
+
+        let mut child_ids: Vec<TaskID> =
+            match autosurgeon::hydrate_prop(doc, &np_obj_id, "childTaskIds")? {
+                MaybeMissing::Present(ids) => ids,
+                MaybeMissing::Missing => Vec::new(),
+            };
+        if !child_ids.contains(&id) {
+            child_ids.push(id.clone());
+            autosurgeon::reconcile_prop(doc, &np_obj_id, "childTaskIds", &child_ids)?;
         }
     } else {
-        state.root_task_ids.retain(|rid| rid != &id);
-    }
-
-    // Add to new parent or root
-    if let Some(npid) = new_parent_id.clone() {
-        if let Some(parent) = state.tasks.get_mut(&npid)
-            && !parent.child_task_ids.contains(&id)
-        {
-            parent.child_task_ids.push(id.clone());
+        let mut root_ids: Vec<TaskID> =
+            match autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds")? {
+                MaybeMissing::Present(ids) => ids,
+                MaybeMissing::Missing => Vec::new(),
+            };
+        if !root_ids.contains(&id) {
+            root_ids.push(id.clone());
+            autosurgeon::reconcile_prop(doc, &automerge::ROOT, "rootTaskIds", &root_ids)?;
         }
-    } else if !state.root_task_ids.contains(&id) {
-        state.root_task_ids.push(id.clone());
     }
 
-    // Update task's parent_id
-    if let Some(task) = state.tasks.get_mut(&id) {
-        task.parent_id = new_parent_id;
+    // 6c. Update task's parentId field.
+    if let Some(npid) = new_parent_id {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "parentId", &npid)?;
+    } else {
+        am_delete(doc, &task_obj_id, "parentId")?;
     }
-    reconcile(doc, &state).map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+
     Ok(())
 }
 
