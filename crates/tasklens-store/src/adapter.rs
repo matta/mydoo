@@ -178,6 +178,31 @@ pub(crate) fn handle_create_task(
     parent_id: Option<TaskID>,
     title: String,
 ) -> Result<()> {
+    // FIXME FIXME FIXME
+    //
+    // There's a data inconsistency issue here when a parent_id is provided but
+    // doesn't correspond to an existing task. The current logic will create an
+    // orphaned task.
+    //
+    // Specifically:
+    //
+    // 1. autosurgeon::hydrate_prop will return Ok(None), so parent will be
+    //    None.
+    // 2. tasklens_core::create_new_task will be called with parent.as_ref() as
+    //    None, so the new task is created with parent_id: None.
+    // 3. The code then enters the if let Some(pid) = parent_id block (lines
+    //    201+) and adds the new task's ID to the childTaskIds of the
+    //    non-existent parent.
+    // 4. ensure_path will create a phantom, empty task object for this invalid
+    //    parent.
+    // 5. The new task is not added to root_task_ids.
+    //
+    // This results in an orphaned task that is not a root task and has no
+    // valid parent. You should validate that the parent task exists if a
+    // parent_id is provided and return an error if it doesn't.
+    //
+    // FIXME FIXME FIXME
+
     // 1. Get Tasks Map.
     let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
 
@@ -376,6 +401,30 @@ pub(crate) fn handle_move_task(
     id: TaskID,
     new_parent_id: Option<TaskID>,
 ) -> Result<()> {
+    // FIXME FIXME FIXME
+    //
+    // This function has a few issues that can lead to data corruption:
+    //
+    // It doesn't validate that the task being moved (id) actually exists.
+    //
+    // It doesn't validate that the new_parent_id, if provided, corresponds to
+    // an existing task.
+    //
+    // If an invalid new_parent_id is given, the task will be removed from its
+    // old parent (or the root list), its parent_id field will be updated to the
+    // invalid ID, but it won't be added to the new parent's child_task_ids.
+    // This orphans the task, making it unreachable and effectively lost.
+    //
+    // Additionally, this function is inefficient as it hydrates the entire
+    // TunnelState, modifies it, and then reconciles the whole state back. This
+    // was a pre-existing issue noted with a TODO in the original code, but it's
+    // worth highlighting. The more critical issue is the lack of validation
+    // leading to data loss.
+    //
+    // You should add checks to ensure both the task to be moved and the new
+    // parent task exist before performing the move operation.
+    //
+    // FIXME FIXME FIXME
     let mut state: TunnelState = autosurgeon::hydrate(doc)?;
     let old_parent_id = state.tasks.get(&id).and_then(|t| t.parent_id.clone());
 
