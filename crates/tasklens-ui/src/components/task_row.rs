@@ -135,7 +135,7 @@ pub fn TaskRow(
                         }
                     }
                 } else {
-                    div { class: "w-10 h-6" } // Spacer
+                    div { class: "w-10" } // Spacer
                 }
             }
 
@@ -174,7 +174,7 @@ pub fn TaskRow(
                     span {
                         class: "text-base text-gray-400 ml-2",
                         "data-testid": "due-date-text",
-                        { format_relative_due_date(due_ts, now) }
+                        {format_relative_due_date(due_ts, now)}
                     }
                 }
             }
