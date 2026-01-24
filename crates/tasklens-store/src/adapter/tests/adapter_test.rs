@@ -294,3 +294,51 @@ fn test_move_cycle_bug() {
         panic!("Invariant Failure!\n{}", msg);
     }
 }
+
+#[test]
+fn test_routine_lead_time_overflow() {
+    let mut doc = init_doc().expect("Init failed");
+    use tasklens_core::types::{Frequency, RepeatConfig, ScheduleType};
+
+    // 1. Create Task
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-5"),
+            parent_id: None,
+            title: "".into(),
+        },
+    )
+    .unwrap();
+
+    // 2. Complete Task at a negative time
+    adapter::dispatch(
+        &mut doc,
+        Action::CompleteTask {
+            id: TaskID::from("task-5"),
+            current_time: -280414227423804083,
+        },
+    )
+    .unwrap();
+
+    // 3. Update to Routinely with large lead_time
+    adapter::dispatch(
+        &mut doc,
+        Action::UpdateTask {
+            id: TaskID::from("task-5"),
+            updates: TaskUpdates {
+                schedule_type: Some(ScheduleType::Routinely),
+                lead_time: Some(8942958376128571726),
+                repeat_config: Some(Some(RepeatConfig {
+                    frequency: Frequency::Minutes,
+                    interval: 1,
+                })),
+                ..Default::default()
+            },
+        },
+    )
+    .unwrap();
+
+    // 4. Refresh Lifecycle at time 0 - this should not panic
+    adapter::dispatch(&mut doc, Action::RefreshLifecycle { current_time: 0 }).unwrap();
+}

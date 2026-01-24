@@ -22,7 +22,7 @@ pub fn wake_up_routine_tasks(state: &mut TunnelState, current_time: i64) {
 
             // Lead Time defines how early the task appears before it's due
             let lead_time = task.schedule.lead_time;
-            let wake_up_time = next_due_date - lead_time;
+            let wake_up_time = next_due_date.saturating_sub(lead_time);
 
             if current_time >= wake_up_time {
                 // Wake up the task!
