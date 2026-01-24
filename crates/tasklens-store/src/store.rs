@@ -1,7 +1,7 @@
 pub use crate::actions::{Action, TaskUpdates};
 use crate::doc_id::{DocumentId, TaskLensUrl};
 #[cfg(target_arch = "wasm32")]
-use crate::storage::{ActiveDocStorage, IndexedDbStorage};
+use crate::storage::ActiveDocStorage;
 use anyhow::{Result, anyhow};
 use automerge::ReadDoc;
 use automerge::transaction::Transactable;
