@@ -47,100 +47,124 @@ pub(super) fn check_invariants(doc: &Automerge) -> Result<(), String> {
         }
     };
 
-    // 3. Check Logical Invariants (Parent/Child consistency)
-    for (id, task) in &state.tasks {
-        if let Some(pid) = &task.parent_id {
-            // If it has a parent, it must NOT be in root_task_ids
-            if state.root_task_ids.contains(id) {
-                return Err(format!(
-                    "Inconsistency path: tasks[\"{}\"] has parent \"{}\" BUT is also in root_task_ids",
-                    id, pid
-                ));
-            }
+    // 3. Structural Integrity & Cycle Detection
+    let mut seen_in_lists = std::collections::HashSet::with_capacity(state.tasks.len());
+    let mut root_set = std::collections::HashSet::with_capacity(state.root_task_ids.len());
 
-            match state.tasks.get(pid) {
-                Some(parent) => {
-                    if !parent.child_task_ids.contains(id) {
-                        return Err(format!(
-                            "Inconsistency path: tasks[\"{}\"].parentId -> \"{}\" BUT tasks[\"{}\"].childTaskIds missing \"{}\"",
-                            id, pid, pid, id
-                        ));
-                    }
-                }
-                None => {
-                    return Err(format!(
-                        "Broken Link path: tasks[\"{}\"].parentId -> \"{}\" BUT task \"{}\" does not exist in map",
-                        id, pid, pid
-                    ));
-                }
-            }
-        } else {
-            // If it has NO parent, it MUST be in root_task_ids
-            if !state.root_task_ids.contains(id) {
-                return Err(format!(
-                    "Inconsistency path: tasks[\"{}\"] has NO parent BUT is missing from root_task_ids",
-                    id
-                ));
-            }
-        }
-
-        for cid in &task.child_task_ids {
-            match state.tasks.get(cid) {
-                Some(child) => {
-                    if child.parent_id.as_ref() != Some(id) {
-                        return Err(format!(
-                            "Inconsistency path: tasks[\"{}\"].childTaskIds [contains \"{}\"] BUT tasks[\"{}\"].parentId is detected as {:?}",
-                            id, cid, cid, child.parent_id
-                        ));
-                    }
-                }
-                None => {
-                    return Err(format!(
-                        "Broken Link path: tasks[\"{}\"].childTaskIds [contains \"{}\"] BUT child \"{}\" does not exist in map",
-                        id, cid, cid
-                    ));
-                }
-            }
-        }
-    }
-
-    // 4. Check Root Task IDs existence
+    // Step A: Validate root_task_ids uniqueness and existence
     for rid in &state.root_task_ids {
         if !state.tasks.contains_key(rid) {
             return Err(format!(
-                "Broken Link path: root_task_ids contains \"{}\" BUT task does not exist in map",
+                "Broken Link: root_task_ids contains \"{}\" but task does not exist",
                 rid
+            ));
+        }
+        if !seen_in_lists.insert(rid) {
+            return Err(format!(
+                "Invalid Tree: Task \"{}\" appears more than once in roots",
+                rid
+            ));
+        }
+        root_set.insert(rid);
+
+        // Root tasks must not have a parent_id
+        if let Some(pid) = &state.tasks[rid].parent_id {
+            return Err(format!(
+                "Inconsistency: Root task \"{}\" has parent \"{}\"",
+                rid, pid
             ));
         }
     }
 
-    // 5. Detect Cycles
-    for id in state.tasks.keys() {
-        let mut slow = id;
-        let mut fast = id;
-        loop {
-            // slow = slow.parent
-            slow = match state.tasks.get(slow).and_then(|t| t.parent_id.as_ref()) {
-                Some(pid) => pid,
-                None => break,
+    // Step B: Validate child list uniqueness and parent consistency
+    for (id, task) in &state.tasks {
+        let mut child_set = std::collections::HashSet::with_capacity(task.child_task_ids.len());
+        for cid in &task.child_task_ids {
+            let child_task = match state.tasks.get(cid) {
+                Some(t) => t,
+                None => {
+                    return Err(format!(
+                        "Broken Link: Task \"{}\" child \"{}\" does not exist",
+                        id, cid
+                    ));
+                }
             };
 
-            // fast = fast.parent.parent
-            fast = match state.tasks.get(fast).and_then(|t| t.parent_id.as_ref()) {
-                Some(pid) => match state.tasks.get(pid).and_then(|t| t.parent_id.as_ref()) {
-                    Some(ppid) => ppid,
-                    None => break,
-                },
-                None => break,
-            };
-
-            if slow == fast {
+            if !child_set.insert(cid) {
                 return Err(format!(
-                    "Cycle detected! Task \"{}\" is part of a parent loop",
-                    slow
+                    "Invalid Tree: Task \"{}\" appears more than once in child list of \"{}\"",
+                    cid, id
+                ));
+            }
+            if !seen_in_lists.insert(cid) {
+                return Err(format!(
+                    "Invalid Tree: Task \"{}\" has multiple parents or is both a root and a child",
+                    cid
+                ));
+            }
+
+            // Child MUST have this task as its parent_id
+            if child_task.parent_id.as_ref() != Some(id) {
+                return Err(format!(
+                    "Inconsistency: Task \"{}\" claims \"{}\" as child, but \"{}\" parent_id is {:?}",
+                    id, cid, cid, child_task.parent_id
                 ));
             }
         }
+
+        // If a task has no parent_id, it MUST be in root_task_ids
+        if task.parent_id.is_none() && !root_set.contains(id) {
+            return Err(format!(
+                "Inconsistency: Task \"{}\" has no parent but is missing from root_task_ids",
+                id
+            ));
+        }
+    }
+
+    // Step C: Check for orphaned tasks (in map but not in any list)
+    if seen_in_lists.len() != state.tasks.len() {
+        let first_orphaned = state
+            .tasks
+            .keys()
+            .find(|id| !seen_in_lists.contains(id))
+            .unwrap();
+        return Err(format!(
+            "Structural Leak: {} tasks in map but only {} reachable via root/child hierarchy. First orphaned: {}",
+            state.tasks.len(),
+            seen_in_lists.len(),
+            first_orphaned
+        ));
+    }
+
+    // Step D: Detect "floating" cycles (disconnected components)
+    // Every node has exactly 1 parent (if not root) and we verified all nodes are in exactly one list.
+    // The only remaining failure mode is a closed loop that is not reachable from the roots.
+    let mut reachable = std::collections::HashSet::with_capacity(state.tasks.len());
+    let mut stack = state.root_task_ids.clone();
+    while let Some(id) = stack.pop() {
+        if let Some(t) = state.tasks.get(&id) {
+            for cid in &t.child_task_ids {
+                stack.push(cid.clone());
+            }
+        }
+        let id_str = id.to_string();
+        if !reachable.insert(id) {
+            // This should be technically impossible due to the uniqueness checks in Step A & B,
+            // but we check it for completeness.
+            return Err(format!("Cycle detected at \"{}\"", id_str));
+        }
+    }
+
+    if reachable.len() != state.tasks.len() {
+        let first_unreachable = state
+            .tasks
+            .keys()
+            .find(|id| !reachable.contains(*id))
+            .unwrap();
+        return Err(format!(
+            "Cycle detected! Task \"{}\" and potentially others are part of a closed loop unreachable from roots",
+            first_unreachable
+        ));
     }
 
     Ok(())
