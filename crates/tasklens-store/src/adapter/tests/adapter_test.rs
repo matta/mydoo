@@ -1,9 +1,9 @@
-use crate::actions::Action;
+use crate::actions::{Action, TaskUpdates};
 use crate::adapter::{
     self,
     tests::adapter_test_common::{check_invariants, init_doc},
 };
-use tasklens_core::types::TaskID;
+use tasklens_core::types::{TaskID, TunnelState};
 
 #[test]
 fn test_create_task_on_absent_key() {
@@ -22,6 +22,246 @@ fn test_create_task_on_absent_key() {
     );
 
     assert!(res.is_ok(), "Action failed on absent key: {:?}", res.err());
+}
+
+#[test]
+fn test_create_task_non_existent_parent() {
+    let mut doc = init_doc().expect("Init failed");
+
+    let res = adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: Some(TaskID::from("non-existent")),
+            title: "Task with bad parent".into(),
+        },
+    );
+
+    assert!(res.is_err());
+    assert!(res.unwrap_err().to_string().contains("non-existent"));
+}
+
+#[test]
+fn test_create_task_upsert_duplicates() {
+    let mut doc = init_doc().expect("Init failed");
+
+    // Create a task
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: None,
+            title: "Task 1".into(),
+        },
+    )
+    .unwrap();
+
+    // Create it again with same parent
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: None,
+            title: "Task 1 Updated".into(),
+        },
+    )
+    .unwrap();
+
+    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
+    let root_ids = state.root_task_ids;
+    assert_eq!(
+        root_ids.iter().filter(|id| id.as_str() == "task-1").count(),
+        1,
+        "Should not duplicate task in root list"
+    );
+}
+
+#[test]
+fn test_create_task_upsert_moves_task() {
+    let mut doc = init_doc().expect("Init failed");
+
+    // Create Task A as root
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-a"),
+            parent_id: None,
+            title: "Task A".into(),
+        },
+    )
+    .unwrap();
+
+    // Create Task P as root
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-p"),
+            parent_id: None,
+            title: "Task P".into(),
+        },
+    )
+    .unwrap();
+
+    // Re-create Task A as child of P
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-a"),
+            parent_id: Some(TaskID::from("task-p")),
+            title: "Task A moved".into(),
+        },
+    )
+    .unwrap();
+
+    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
+    assert!(!state.root_task_ids.contains(&TaskID::from("task-a")));
+    assert!(
+        state
+            .tasks
+            .get(&TaskID::from("task-p"))
+            .unwrap()
+            .child_task_ids
+            .contains(&TaskID::from("task-a"))
+    );
+}
+
+#[test]
+fn test_update_task_non_existent() {
+    let mut doc = init_doc().expect("Init failed");
+
+    let res = adapter::dispatch(
+        &mut doc,
+        Action::UpdateTask {
+            id: TaskID::from("non-existent"),
+            updates: TaskUpdates {
+                title: Some("New Title".into()),
+                ..Default::default()
+            },
+        },
+    );
+
+    assert!(res.is_err());
+    assert!(res.unwrap_err().to_string().contains("Task not found"));
+
+    // Verify it didn't create anything
+    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
+    assert!(!state.tasks.contains_key(&TaskID::from("non-existent")));
+}
+
+#[test]
+fn test_delete_task_non_existent() {
+    let mut doc = init_doc().expect("Init failed");
+
+    let res = adapter::dispatch(
+        &mut doc,
+        Action::DeleteTask {
+            id: TaskID::from("non-existent"),
+        },
+    );
+
+    assert!(res.is_err());
+    assert!(res.unwrap_err().to_string().contains("Task not found"));
+}
+
+#[test]
+fn test_complete_task_non_existent() {
+    let mut doc = init_doc().expect("Init failed");
+
+    let res = adapter::dispatch(
+        &mut doc,
+        Action::CompleteTask {
+            id: TaskID::from("non-existent"),
+            current_time: 12345,
+        },
+    );
+
+    assert!(res.is_err());
+    assert!(res.unwrap_err().to_string().contains("Task not found"));
+}
+
+#[test]
+fn test_move_task_validations() {
+    let mut doc = init_doc().expect("Init failed");
+
+    // Create Task A
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-a"),
+            parent_id: None,
+            title: "Task A".into(),
+        },
+    )
+    .unwrap();
+
+    // 1. Move non-existent task
+    let res = adapter::dispatch(
+        &mut doc,
+        Action::MoveTask {
+            id: TaskID::from("non-existent"),
+            new_parent_id: None,
+        },
+    );
+    assert!(res.is_err());
+    assert!(res.unwrap_err().to_string().contains("non-existent"));
+
+    // 2. Move to non-existent parent
+    let res = adapter::dispatch(
+        &mut doc,
+        Action::MoveTask {
+            id: TaskID::from("task-a"),
+            new_parent_id: Some(TaskID::from("non-existent")),
+        },
+    );
+    assert!(res.is_err());
+    assert!(res.unwrap_err().to_string().contains("non-existent"));
+
+    // 3. Move task to itself
+    let res = adapter::dispatch(
+        &mut doc,
+        Action::MoveTask {
+            id: TaskID::from("task-a"),
+            new_parent_id: Some(TaskID::from("task-a")),
+        },
+    );
+    assert!(res.is_err());
+    assert!(res.unwrap_err().to_string().contains("itself"));
+}
+
+#[test]
+fn test_move_task_duplicate_prevention() {
+    let mut doc = init_doc().expect("Init failed");
+
+    // Create Task A as root
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-a"),
+            parent_id: None,
+            title: "Task A".into(),
+        },
+    )
+    .unwrap();
+
+    // Move to root again (should be no-op regarding list content)
+    adapter::dispatch(
+        &mut doc,
+        Action::MoveTask {
+            id: TaskID::from("task-a"),
+            new_parent_id: None,
+        },
+    )
+    .unwrap();
+
+    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
+    assert_eq!(
+        state
+            .root_task_ids
+            .iter()
+            .filter(|id| id.as_str() == "task-a")
+            .count(),
+        1
+    );
 }
 
 #[test]
