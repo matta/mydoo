@@ -16,9 +16,12 @@ if ! cargo clippy --all-targets -- -D warnings; then
     exit 1
 fi
 
-echo "3. Checking WASM build..."
-if ! cargo build --target wasm32-unknown-unknown -p tasklens-store; then
-    echo "❌ WASM build failed."
+# We check each crate individually targeting wasm32-unknown-unknown to ensure
+# that getrandom is correctly configured with the "wasm_js" feature and
+# appropriate backends.
+echo "3. Checking WASM builds (validating getrandom support)..."
+if ! cargo check --target wasm32-unknown-unknown -p tasklens-core -p tasklens-store -p tasklens-ui; then
+    echo "❌ WASM check failed."
     exit 1
 fi
 
