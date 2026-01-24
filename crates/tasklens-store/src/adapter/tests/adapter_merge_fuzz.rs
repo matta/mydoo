@@ -24,8 +24,6 @@ use crate::adapter::{
 use proptest::prelude::*;
 
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(100))]
-
     #[test]
     #[ignore]  // FIXME: enable this test
     fn test_merge_invariants_fuzz(

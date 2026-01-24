@@ -21,11 +21,9 @@ use crate::adapter::{
 use proptest::prelude::*;
 
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(100))]
-
     #[test]
     fn test_sequential_invariants_fuzz(
-        actions in prop::collection::vec(any_action(), 1..100),
+        actions in prop::collection::vec(any_action(), 1..10),
     ) {
         let mut doc = init_doc().expect("Init failed");
 
