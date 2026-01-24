@@ -456,6 +456,10 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
     This allows the Rust model to remain clean (using `String`) while the
     Automerge representation varies (Text vs. Scalar Str) depending on the
     field's role in the legacy schema.
+- **`hydrate_prop::<Option<T>>` vs. `MaybeMissing<T>`**:
+  - _Trap_: In `autosurgeon`, calling `hydrate_prop::<Option<T>>(doc, obj, "key")` will FAIL with an "unexpected nothing at all, expected a ScalarValue::Null" error if the key is completely missing from the Automerge map.
+  - _Rationale_: `Option<T>` assumes the field is "present but potentially null" in the Serde sense.
+  - _Fix_: Use `hydrate_prop::<MaybeMissing<T>>` when checking for the existence of a key that might be truly absent from a map (e.g., in a "upsert" or "contains" check). Map `MaybeMissing::Missing` to `None` and `MaybeMissing::Present(v)` to `Some(v)`.
 
 ## Testing Patterns (Rust & Automerge)
 

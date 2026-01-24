@@ -6,16 +6,18 @@
 //! ### How to Run
 //!
 //! ```bash
-//! cargo test -p tasklens-store store::tests_fuzz
+//! cargo test -p tasklens-store adapter::tests::adapter_fuzz
 //! ```
 //!
 //! To run with custom case count:
 //! ```bash
-//! PROPTEST_CASES=500 cargo test -p tasklens-store store::tests_fuzz::test_sequential_invariants_fuzz
+//! PROPTEST_CASES=500 cargo test -p tasklens-store adapter::tests::adapter_fuzz::test_sequential_invariants_fuzz
 //! ```
 
-use crate::adapter;
-use crate::store::test_common::*;
+use crate::adapter::{
+    self,
+    tests::adapter_test_common::{any_action, check_invariants, init_doc},
+};
 use proptest::prelude::*;
 
 proptest! {

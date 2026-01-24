@@ -183,24 +183,31 @@ pub(crate) fn handle_create_task(
 
     // 2. Resolve parent task and validate existence.
     let parent = if let Some(pid) = &parent_id {
-        let p: Option<PersistedTask> = autosurgeon::hydrate_prop(doc, &tasks_obj_id, pid.as_str())
-            .map_err(|e| anyhow!("Failed to hydrate parent task: {}", e))?;
-        if p.is_none() {
-            return Err(anyhow!(
-                "Cannot create task with non-existent parent: {}",
-                pid
-            ));
+        let p: MaybeMissing<PersistedTask> =
+            autosurgeon::hydrate_prop(doc, &tasks_obj_id, pid.as_str())
+                .map_err(|e| anyhow!("Failed to hydrate parent task: {}", e))?;
+        match p {
+            MaybeMissing::Present(task) => Some(task),
+            MaybeMissing::Missing => {
+                return Err(anyhow!(
+                    "Cannot create task with non-existent parent: {}",
+                    pid
+                ));
+            }
         }
-        p
     } else {
         None
     };
 
     // 2b. Check if task already exists. If it does, we should probably treat this as an update
     // but for now, we'll just ensure we don't double-add to lists if we're not changing parents.
-    let existing_task: Option<PersistedTask> =
+    let existing_task: MaybeMissing<PersistedTask> =
         autosurgeon::hydrate_prop(doc, &tasks_obj_id, id.as_str())
             .map_err(|e| anyhow!("Failed to hydrate existing task: {}", e))?;
+    let existing_task = match existing_task {
+        MaybeMissing::Present(task) => Some(task),
+        MaybeMissing::Missing => None,
+    };
 
     // 3. Create the new task struct.
     let task = tasklens_core::create_new_task(id.clone(), title, parent.as_ref());
@@ -480,3 +487,6 @@ pub(crate) fn handle_refresh_lifecycle(
     reconcile(doc, &state).map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

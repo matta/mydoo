@@ -207,12 +207,6 @@ impl Default for AppStore {
 }
 
 #[cfg(test)]
-mod test_common;
-#[cfg(test)]
 mod tests;
 #[cfg(test)]
 mod tests_async;
-#[cfg(test)]
-mod tests_fuzz;
-#[cfg(test)]
-mod tests_merge;

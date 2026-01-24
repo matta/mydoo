@@ -9,16 +9,18 @@
 //!
 //! Run all merge tests in this module:
 //! ```bash
-//! cargo test -p tasklens-store store::tests_merge
+//! cargo test -p tasklens-store adapter::tests::adapter_merge_fuzz
 //! ```
 //!
 //! To run only the fuzz test with custom case count:
 //! ```bash
-//! PROPTEST_CASES=500 cargo test -p tasklens-store store::tests_merge::test_merge_invariants_fuzz
+//! PROPTEST_CASES=500 cargo test -p tasklens-store adapter::tests::adapter_merge_fuzz::test_merge_invariants_fuzz
 //! ```
 
-use crate::adapter;
-use crate::store::test_common::*;
+use crate::adapter::{
+    self,
+    tests::adapter_test_common::{any_action, check_invariants, init_doc},
+};
 use proptest::prelude::*;
 
 proptest! {
