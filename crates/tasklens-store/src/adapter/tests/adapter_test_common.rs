@@ -174,6 +174,7 @@ pub(super) fn check_invariants(doc: &Automerge) -> Result<(), String> {
     Ok(())
 }
 
+#[expect(dead_code)]
 pub(super) fn any_task_id() -> impl Strategy<Value = TaskID> {
     any_task_id_for_prefix("")
 }

@@ -492,3 +492,49 @@ fn test_concurrent_delete_same_task_root() {
         panic!("Invariant Failure!\n{}", msg);
     }
 }
+
+#[test]
+fn test_concurrent_complete_task_status_merge() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // 1. Setup: Create Task 5
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-5"),
+            parent_id: None,
+            title: "".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // 2. Concurrent A: Complete Task 5
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CompleteTask {
+            id: TaskID::from("task-5"),
+            current_time: 1000,
+        },
+    )
+    .unwrap();
+
+    // 3. Concurrent B: Complete Task 5
+    adapter::dispatch(
+        &mut doc_b,
+        Action::CompleteTask {
+            id: TaskID::from("task-5"),
+            current_time: 2000,
+        },
+    )
+    .unwrap();
+
+    // 4. Merge
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+
+    // 5. Check invariants - this should fail during hydration if "Done" + "Done" = "DoDonee"
+    if let Err(msg) = check_invariants(&doc_a) {
+        panic!("Invariant Failure!\n{}", msg);
+    }
+}

@@ -196,6 +196,14 @@ pub fn reconcile_string_as_text<R: autosurgeon::Reconciler>(
     Ok(())
 }
 
+/// Reconciles a String as an Automerge Scalar string.
+pub fn reconcile_string_as_scalar<R: autosurgeon::Reconciler>(
+    val: &str,
+    mut reconciler: R,
+) -> Result<(), R::Error> {
+    reconciler.str(val)
+}
+
 /// Reconciles an Optional<String> as an optional Automerge Text object.
 pub fn reconcile_option_string_as_text<R: autosurgeon::Reconciler>(
     val: &Option<String>,
@@ -396,7 +404,7 @@ impl Reconcile for TaskStatus {
             Self::Pending => "Pending",
             Self::Done => "Done",
         };
-        reconcile_string_as_text(text, reconciler)
+        reconcile_string_as_scalar(text, reconciler)
     }
 }
 
@@ -489,7 +497,7 @@ impl Reconcile for ScheduleType {
             Self::DueDate => "DueDate",
             Self::Calendar => "Calendar",
         };
-        reconcile_string_as_text(text, reconciler)
+        reconcile_string_as_scalar(text, reconciler)
     }
 }
 
