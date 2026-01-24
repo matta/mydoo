@@ -178,51 +178,70 @@ pub(crate) fn handle_create_task(
     parent_id: Option<TaskID>,
     title: String,
 ) -> Result<()> {
-    // FIXME FIXME FIXME
-    //
-    // There's a data inconsistency issue here when a parent_id is provided but
-    // doesn't correspond to an existing task. The current logic will create an
-    // orphaned task.
-    //
-    // Specifically:
-    //
-    // 1. autosurgeon::hydrate_prop will return Ok(None), so parent will be
-    //    None.
-    // 2. tasklens_core::create_new_task will be called with parent.as_ref() as
-    //    None, so the new task is created with parent_id: None.
-    // 3. The code then enters the if let Some(pid) = parent_id block (lines
-    //    201+) and adds the new task's ID to the childTaskIds of the
-    //    non-existent parent.
-    // 4. ensure_path will create a phantom, empty task object for this invalid
-    //    parent.
-    // 5. The new task is not added to root_task_ids.
-    //
-    // This results in an orphaned task that is not a root task and has no
-    // valid parent. You should validate that the parent task exists if a
-    // parent_id is provided and return an error if it doesn't.
-    //
-    // FIXME FIXME FIXME
-
     // 1. Get Tasks Map.
     let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
 
-    // 2. Resolve parent task.
+    // 2. Resolve parent task and validate existence.
     let parent = if let Some(pid) = &parent_id {
         let p: Option<PersistedTask> = autosurgeon::hydrate_prop(doc, &tasks_obj_id, pid.as_str())
             .map_err(|e| anyhow!("Failed to hydrate parent task: {}", e))?;
+        if p.is_none() {
+            return Err(anyhow!(
+                "Cannot create task with non-existent parent: {}",
+                pid
+            ));
+        }
         p
     } else {
         None
     };
 
+    // 2b. Check if task already exists. If it does, we should probably treat this as an update
+    // but for now, we'll just ensure we don't double-add to lists if we're not changing parents.
+    let existing_task: Option<PersistedTask> =
+        autosurgeon::hydrate_prop(doc, &tasks_obj_id, id.as_str())
+            .map_err(|e| anyhow!("Failed to hydrate existing task: {}", e))?;
+
     // 3. Create the new task struct.
     let task = tasklens_core::create_new_task(id.clone(), title, parent.as_ref());
 
-    // 4. Reconcile the new task.
+    // 4. Reconcile the new task map entry.
     autosurgeon::reconcile_prop(doc, &tasks_obj_id, id.as_str(), &task)
         .map_err(|e| anyhow!("Failed to reconcile new task: {}", e))?;
 
-    // 5. Update parent's child list or root list.
+    // 5. Update parent's child list or root list IF it's a new task or parent changed.
+    let old_parent_id = existing_task.as_ref().and_then(|t| t.parent_id.clone());
+    if existing_task.is_some() && old_parent_id == parent_id {
+        // Already in the right list, nothing more to do.
+        return Ok(());
+    }
+
+    // If it existed before, we need (or should have) removed it from the old list.
+    // For simplicity, if it's an "upsert" that changes parents, we'll just use handle_move_task logic
+    // but CreateTask is usually intended for NEW tasks.
+    // To keep this robust against the fuzzer's "Create existing" usage:
+    if existing_task.is_some() {
+        // Remove from old placement.
+        if let Some(opid) = old_parent_id {
+            let parent_obj_id = ensure_path(doc, &tasks_obj_id, vec![opid.as_str()])?;
+            let mut child_ids: Vec<TaskID> =
+                match autosurgeon::hydrate_prop(doc, &parent_obj_id, "childTaskIds")? {
+                    MaybeMissing::Present(ids) => ids,
+                    MaybeMissing::Missing => Vec::new(),
+                };
+            child_ids.retain(|cid| cid != &id);
+            autosurgeon::reconcile_prop(doc, &parent_obj_id, "childTaskIds", &child_ids)?;
+        } else {
+            let mut root_ids: Vec<TaskID> =
+                match autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds")? {
+                    MaybeMissing::Present(ids) => ids,
+                    MaybeMissing::Missing => Vec::new(),
+                };
+            root_ids.retain(|rid| rid != &id);
+            autosurgeon::reconcile_prop(doc, &automerge::ROOT, "rootTaskIds", &root_ids)?;
+        }
+    }
+
     if let Some(pid) = parent_id {
         // Get parent object ID.
         let parent_obj_id = ensure_path(doc, &tasks_obj_id, vec![pid.as_str()])?;
@@ -237,11 +256,12 @@ pub(crate) fn handle_create_task(
                 Err(e) => return Err(anyhow!("Failed to hydrate child ids: {}", e)),
             };
 
-        child_ids.push(id);
-
-        // Reconcile updated children list.
-        autosurgeon::reconcile_prop(doc, &parent_obj_id, "childTaskIds", &child_ids)
-            .map_err(|e| anyhow!("Failed to reconcile child ids: {}", e))?;
+        if !child_ids.contains(&id) {
+            child_ids.push(id);
+            // Reconcile updated children list.
+            autosurgeon::reconcile_prop(doc, &parent_obj_id, "childTaskIds", &child_ids)
+                .map_err(|e| anyhow!("Failed to reconcile child ids: {}", e))?;
+        }
     } else {
         // Update root task list.
         let mut root_ids: Vec<TaskID> =
@@ -253,10 +273,11 @@ pub(crate) fn handle_create_task(
                 Err(e) => return Err(anyhow!("Failed to hydrate root task ids: {}", e)),
             };
 
-        root_ids.push(id);
-
-        autosurgeon::reconcile_prop(doc, automerge::ROOT, "rootTaskIds", &root_ids)
-            .map_err(|e| anyhow!("Failed to reconcile root task ids: {}", e))?;
+        if !root_ids.contains(&id) {
+            root_ids.push(id);
+            autosurgeon::reconcile_prop(doc, automerge::ROOT, "rootTaskIds", &root_ids)
+                .map_err(|e| anyhow!("Failed to reconcile root task ids: {}", e))?;
+        }
     }
 
     Ok(())

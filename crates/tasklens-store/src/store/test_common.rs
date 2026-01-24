@@ -50,6 +50,14 @@ pub(super) fn check_invariants(doc: &Automerge) -> Result<(), String> {
     // 3. Check Logical Invariants (Parent/Child consistency)
     for (id, task) in &state.tasks {
         if let Some(pid) = &task.parent_id {
+            // If it has a parent, it must NOT be in root_task_ids
+            if state.root_task_ids.contains(id) {
+                return Err(format!(
+                    "Inconsistency path: tasks[\"{}\"] has parent \"{}\" BUT is also in root_task_ids",
+                    id, pid
+                ));
+            }
+
             match state.tasks.get(pid) {
                 Some(parent) => {
                     if !parent.child_task_ids.contains(id) {
@@ -65,6 +73,14 @@ pub(super) fn check_invariants(doc: &Automerge) -> Result<(), String> {
                         id, pid, pid
                     ));
                 }
+            }
+        } else {
+            // If it has NO parent, it MUST be in root_task_ids
+            if !state.root_task_ids.contains(id) {
+                return Err(format!(
+                    "Inconsistency path: tasks[\"{}\"] has NO parent BUT is missing from root_task_ids",
+                    id
+                ));
             }
         }
 
@@ -84,6 +100,45 @@ pub(super) fn check_invariants(doc: &Automerge) -> Result<(), String> {
                         id, cid, cid
                     ));
                 }
+            }
+        }
+    }
+
+    // 4. Check Root Task IDs existence
+    for rid in &state.root_task_ids {
+        if !state.tasks.contains_key(rid) {
+            return Err(format!(
+                "Broken Link path: root_task_ids contains \"{}\" BUT task does not exist in map",
+                rid
+            ));
+        }
+    }
+
+    // 5. Detect Cycles
+    for id in state.tasks.keys() {
+        let mut slow = id;
+        let mut fast = id;
+        loop {
+            // slow = slow.parent
+            slow = match state.tasks.get(slow).and_then(|t| t.parent_id.as_ref()) {
+                Some(pid) => pid,
+                None => break,
+            };
+
+            // fast = fast.parent.parent
+            fast = match state.tasks.get(fast).and_then(|t| t.parent_id.as_ref()) {
+                Some(pid) => match state.tasks.get(pid).and_then(|t| t.parent_id.as_ref()) {
+                    Some(ppid) => ppid,
+                    None => break,
+                },
+                None => break,
+            };
+
+            if slow == fast {
+                return Err(format!(
+                    "Cycle detected! Task \"{}\" is part of a parent loop",
+                    slow
+                ));
             }
         }
     }
@@ -144,9 +199,13 @@ pub(super) fn any_task_updates() -> impl Strategy<Value = TaskUpdates> {
         )
 }
 
+pub(super) fn any_optional_task_id() -> impl Strategy<Value = Option<TaskID>> {
+    prop_oneof![Just(None), any_task_id().prop_map(Some),]
+}
+
 pub(super) fn any_action() -> impl Strategy<Value = Action> {
     prop_oneof![
-        (any_task_id(), any::<Option<TaskID>>(), any::<String>()).prop_map(
+        (any_task_id(), any_optional_task_id(), any::<String>()).prop_map(
             |(id, parent_id, title)| {
                 Action::CreateTask {
                     id,
@@ -162,7 +221,7 @@ pub(super) fn any_action() -> impl Strategy<Value = Action> {
         any_task_id().prop_map(|id| Action::DeleteTask { id }),
         (any_task_id(), any::<i64>())
             .prop_map(|(id, current_time)| { Action::CompleteTask { id, current_time } }),
-        (any_task_id(), any::<Option<TaskID>>())
+        (any_task_id(), any_optional_task_id())
             .prop_map(|(id, new_parent_id)| { Action::MoveTask { id, new_parent_id } }),
         any::<i64>().prop_map(|current_time| Action::RefreshLifecycle { current_time }),
     ]

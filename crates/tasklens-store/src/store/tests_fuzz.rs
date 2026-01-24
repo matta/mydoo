@@ -23,7 +23,7 @@ proptest! {
 
     #[test]
     fn test_sequential_invariants_fuzz(
-        actions in prop::collection::vec(any_action(), 1..20),
+        actions in prop::collection::vec(any_action(), 1..100),
     ) {
         let mut doc = init_doc().expect("Init failed");
 
