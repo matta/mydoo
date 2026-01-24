@@ -393,3 +393,49 @@ fn test_move_task_to_root_removes_parent_id() {
         task.parent_id
     );
 }
+
+#[test]
+fn test_concurrent_create_child_and_delete_parent_leak() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // 1. Setup: Create Task 4 as root
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-4"),
+            parent_id: None,
+            title: "".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // 2. Concurrent A: Create Task 5 as child of Task 4
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-5"),
+            parent_id: Some(TaskID::from("task-4")),
+            title: "".into(),
+        },
+    )
+    .unwrap();
+
+    // 3. Concurrent B: Delete Task 4
+    adapter::dispatch(
+        &mut doc_b,
+        Action::DeleteTask {
+            id: TaskID::from("task-4"),
+        },
+    )
+    .unwrap();
+
+    // 4. Merge
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+
+    // 5. Check invariants - this is where it should fail
+    if let Err(msg) = check_invariants(&doc_a) {
+        panic!("Invariant Failure!\n{}", msg);
+    }
+}

@@ -1184,6 +1184,53 @@ pub struct TunnelState {
     pub metadata: Option<DocMetadata>,
 }
 
+impl TunnelState {
+    /// Promotes any orphaned tasks (in the map but unreachable from roots) to
+    /// root tasks.
+    pub fn promote_orphans(&mut self) {
+        let mut reachable = std::collections::HashSet::with_capacity(self.tasks.len());
+        let mut stack: Vec<TaskID> = self.root_task_ids.clone();
+
+        while let Some(id) = stack.pop() {
+            if reachable.insert(id.clone())
+                && let Some(task) = self.tasks.get(&id)
+            {
+                for cid in &task.child_task_ids {
+                    stack.push(cid.clone());
+                }
+            }
+        }
+
+        let mut orphans = Vec::new();
+        let mut broken_parents = Vec::new();
+
+        for (id, task) in &self.tasks {
+            if !reachable.contains(id) {
+                orphans.push(id.clone());
+            }
+            if task
+                .parent_id
+                .as_ref()
+                .is_some_and(|pid| !self.tasks.contains_key(pid))
+            {
+                broken_parents.push(id.clone());
+            }
+        }
+
+        for id in broken_parents {
+            if let Some(task) = self.tasks.get_mut(&id) {
+                task.parent_id = None;
+            }
+        }
+
+        for oid in orphans {
+            if !self.root_task_ids.contains(&oid) {
+                self.root_task_ids.push(oid);
+            }
+        }
+    }
+}
+
 impl Default for TunnelState {
     fn default() -> Self {
         Self {

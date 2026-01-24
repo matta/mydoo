@@ -139,7 +139,7 @@ impl AppStore {
     }
 
     /// Reconciles a Rust struct with the current document.
-    pub fn expensive_reconcile<T: autosurgeon::Reconcile>(
+    pub fn expensive_reconcile<T: autosurgeon::Reconcile + 'static>(
         &mut self,
         data: &T,
     ) -> Result<(), autosurgeon::ReconcileError> {
@@ -153,7 +153,7 @@ impl AppStore {
     }
 
     /// Hydrates a Rust struct from the current document.
-    pub fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T> {
+    pub fn hydrate<T: autosurgeon::Hydrate + 'static>(&self) -> Result<T> {
         if let Some(handle) = &self.handle {
             handle.with_document(|doc| adapter::hydrate(doc))
         } else {

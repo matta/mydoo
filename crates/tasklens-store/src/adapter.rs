@@ -57,8 +57,17 @@ pub(crate) fn ensure_path<T: Transactable + Doc>(
 }
 
 /// Hydrates a Rust struct from the current document or handle.
-pub(crate) fn hydrate<T: autosurgeon::Hydrate>(doc: &impl autosurgeon::ReadDoc) -> Result<T> {
-    autosurgeon::hydrate(doc).map_err(|e| anyhow!("Hydration failed: {}", e))
+pub(crate) fn hydrate<T: autosurgeon::Hydrate + 'static>(
+    doc: &impl autosurgeon::ReadDoc,
+) -> Result<T> {
+    let mut state: T = autosurgeon::hydrate(doc).map_err(|e| anyhow!("Hydration failed: {}", e))?;
+
+    // Fix orphaned tasks (Structural Leak) which can occur after concurrent merge/delete.
+    if let Some(state_mut) = (&mut state as &mut dyn std::any::Any).downcast_mut::<TunnelState>() {
+        state_mut.promote_orphans();
+    }
+
+    Ok(state)
 }
 
 pub(crate) fn init_state(
