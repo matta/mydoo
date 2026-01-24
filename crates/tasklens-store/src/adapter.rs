@@ -244,8 +244,10 @@ pub(crate) fn handle_update_task(
 ) -> Result<()> {
     let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
 
-    let task_obj_id = ensure_path(doc, &tasks_obj_id, vec![id.as_str()])
-        .map_err(|_| anyhow!("Task not found: {}", id))?;
+    let task_obj_id = match am_get(doc, &tasks_obj_id, id.as_str())? {
+        Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
+        _ => return Err(anyhow!("Task not found: {}", id)),
+    };
 
     if let Some(title) = updates.title {
         autosurgeon::reconcile_prop(doc, &task_obj_id, "title", title)
