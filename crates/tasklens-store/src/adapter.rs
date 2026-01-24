@@ -208,8 +208,12 @@ pub(crate) fn handle_create_task(
 
     // 2. Resolve parent task.
     let parent = if let Some(pid) = &parent_id {
-        let p: Option<PersistedTask> = autosurgeon::hydrate_prop(doc, &tasks_obj_id, pid.as_str())
-            .map_err(|e| anyhow!("Failed to hydrate parent task: {}", e))?;
+        let p: Option<PersistedTask> =
+            autosurgeon::hydrate_prop(doc, &tasks_obj_id, pid.as_str())
+                .map_err(|e| anyhow!("Failed to hydrate parent task: {}", e))?;
+        if p.is_none() {
+            return Err(anyhow!("Parent task with id '{}' not found", pid));
+        }
         p
     } else {
         None
