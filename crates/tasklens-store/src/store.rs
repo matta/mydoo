@@ -139,12 +139,17 @@ impl AppStore {
     }
 
     /// Reconciles a Rust struct with the current document.
-    pub fn expensive_reconcile<T: autosurgeon::Reconcile>(
+    pub fn expensive_reconcile<T: autosurgeon::Reconcile + 'static>(
         &mut self,
         data: &T,
     ) -> Result<(), autosurgeon::ReconcileError> {
         if let Some(handle) = &mut self.handle {
-            handle.with_document(|doc| adapter::expensive_reconcile(doc, data))
+            handle.with_document(|doc| {
+                adapter::expensive_reconcile(doc, data).map_err(|e| match e {
+                    adapter::AdapterError::Reconcile(re) => re,
+                    _ => autosurgeon::ReconcileError::Automerge(automerge::AutomergeError::Fail),
+                })
+            })
         } else {
             Err(autosurgeon::ReconcileError::Automerge(
                 automerge::AutomergeError::InvalidObjId("root".to_string()),
@@ -153,9 +158,9 @@ impl AppStore {
     }
 
     /// Hydrates a Rust struct from the current document.
-    pub fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T> {
+    pub fn hydrate<T: autosurgeon::Hydrate + 'static>(&self) -> Result<T> {
         if let Some(handle) = &self.handle {
-            handle.with_document(|doc| adapter::hydrate(doc))
+            handle.with_document(|doc| adapter::hydrate(doc).map_err(|e| anyhow!(e)))
         } else {
             Err(anyhow!("No handle available"))
         }
@@ -166,7 +171,9 @@ impl AppStore {
     /// because of an "unexpected DoDonee" error.
     pub fn repair_dodonee(&mut self) -> Result<()> {
         let handle = self.handle.as_mut().ok_or_else(|| anyhow!("No handle"))?;
-        handle.with_document(adapter::repair_dodonee)
+        handle
+            .with_document(adapter::repair_dodonee)
+            .map_err(|e| anyhow!(e))
     }
 
     /// Dispatches an action to modify the application state.
@@ -189,12 +196,16 @@ impl AppStore {
     /// if hydration or reconciliation failed.
     pub fn dispatch(&mut self, action: Action) -> Result<()> {
         let handle = self.handle.as_mut().ok_or_else(|| anyhow!("No handle"))?;
-        handle.with_document(|doc| adapter::dispatch(doc, action))
+        handle
+            .with_document(|doc| adapter::dispatch(doc, action))
+            .map_err(|e| anyhow!(e))
     }
 
     /// Static handler for dispatch that works with a handle directly.
     pub fn dispatch_with_handle(handle: &mut samod::DocHandle, action: Action) -> Result<()> {
-        handle.with_document(|doc| adapter::dispatch(doc, action))
+        handle
+            .with_document(|doc| adapter::dispatch(doc, action))
+            .map_err(|e| anyhow!(e))
     }
 }
 

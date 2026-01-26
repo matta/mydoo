@@ -196,6 +196,14 @@ pub fn reconcile_string_as_text<R: autosurgeon::Reconciler>(
     Ok(())
 }
 
+/// Reconciles a String as an Automerge Scalar string.
+pub fn reconcile_string_as_scalar<R: autosurgeon::Reconciler>(
+    val: &str,
+    mut reconciler: R,
+) -> Result<(), R::Error> {
+    reconciler.str(val)
+}
+
 /// Reconciles an Optional<String> as an optional Automerge Text object.
 pub fn reconcile_option_string_as_text<R: autosurgeon::Reconciler>(
     val: &Option<String>,
@@ -396,7 +404,7 @@ impl Reconcile for TaskStatus {
             Self::Pending => "Pending",
             Self::Done => "Done",
         };
-        reconcile_string_as_text(text, reconciler)
+        reconcile_string_as_scalar(text, reconciler)
     }
 }
 
@@ -489,7 +497,7 @@ impl Reconcile for ScheduleType {
             Self::DueDate => "DueDate",
             Self::Calendar => "Calendar",
         };
-        reconcile_string_as_text(text, reconciler)
+        reconcile_string_as_scalar(text, reconciler)
     }
 }
 
@@ -1182,6 +1190,70 @@ pub struct TunnelState {
         reconcile = "reconcile_optional_as_maybe_missing"
     )]
     pub metadata: Option<DocMetadata>,
+}
+
+impl TunnelState {
+    /// Heals structural inconsistencies in the task tree.
+    ///
+    /// This function identifies and repairs the following broken invariants:
+    ///
+    /// 1. **Broken Links**: IDs in `root_task_ids` or `child_task_ids` that point to
+    ///    tasks no longer present in the `tasks` map.
+    ///    *   *Healing*: These "phantom" IDs are pruned from the lists.
+    /// 2. **Broken Parent Links**: Tasks with a `parent_id` set to an ID that does
+    ///    not exist in the `tasks` map.
+    ///    *   *Healing*: The `parent_id` is cleared (set to `None`).
+    /// 3. **Orphaned Tasks**: Tasks that exist in the `tasks` map but are not reachable
+    ///    by traversing from the roots.
+    ///    *   *Healing*: These tasks are promoted to roots by adding them to `root_task_ids`.
+    pub fn heal_structural_inconsistencies(&mut self) {
+        // 1. Prune root_task_ids of any tasks that no longer exist (Broken Links)
+        self.root_task_ids.retain(|id| self.tasks.contains_key(id));
+
+        let mut reachable = std::collections::HashSet::with_capacity(self.tasks.len());
+        let mut stack: Vec<TaskID> = self.root_task_ids.clone();
+
+        while let Some(id) = stack.pop() {
+            if reachable.insert(id.clone())
+                && let Some(task) = self.tasks.get(&id)
+            {
+                for cid in &task.child_task_ids {
+                    // Only add children that actually exist
+                    if self.tasks.contains_key(cid) {
+                        stack.push(cid.clone());
+                    }
+                }
+            }
+        }
+
+        let mut orphans = Vec::new();
+        let mut broken_parents = Vec::new();
+
+        for (id, task) in &self.tasks {
+            if !reachable.contains(id) {
+                orphans.push(id.clone());
+            }
+            if task
+                .parent_id
+                .as_ref()
+                .is_some_and(|pid| !self.tasks.contains_key(pid))
+            {
+                broken_parents.push(id.clone());
+            }
+        }
+
+        for id in broken_parents {
+            if let Some(task) = self.tasks.get_mut(&id) {
+                task.parent_id = None;
+            }
+        }
+
+        for oid in orphans {
+            if !self.root_task_ids.contains(&oid) {
+                self.root_task_ids.push(oid);
+            }
+        }
+    }
 }
 
 impl Default for TunnelState {

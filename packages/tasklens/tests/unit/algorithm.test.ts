@@ -751,6 +751,11 @@ function executeStep(step: Step, store: TunnelStore, currentTestTime: number) {
     if (step.when.task_updates) {
       applyTaskUpdates(store, step.when.task_updates as TaskUpdate[]);
     }
+    if (step.when.delete_tasks) {
+      for (const id of step.when.delete_tasks) {
+        store.deleteTask(id as TaskID);
+      }
+    }
   }
 
   const viewFilter: ViewFilter = {

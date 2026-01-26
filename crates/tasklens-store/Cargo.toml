@@ -9,6 +9,7 @@ workspace = true
 [dependencies]
 tasklens-core = { path = "../tasklens-core" }
 anyhow.workspace = true
+thiserror.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 automerge.workspace = true
@@ -27,6 +28,7 @@ getrandom = { workspace = true }
 bs58 = { version = "0.5.1", features = ["check"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom.workspace = true
 rexie = "0.6.2"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"

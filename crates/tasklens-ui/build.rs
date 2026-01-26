@@ -46,10 +46,10 @@ fn main() {
     );
     atomic_write(&version_js_path, &version_js_content).expect("Failed to write public/version.js");
 
-    println!(
-        "cargo:warning=Generated public/version.js with version: {}",
-        version
-    );
+    // println!(
+    //     "cargo:warning=Generated public/version.js with version: {}",
+    //     version
+    // );
 
     // 2. Write build_version.rs for Rust (in OUT_DIR)
     let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
@@ -58,10 +58,10 @@ fn main() {
     atomic_write(&build_version_rs_path, &build_version_rs_content)
         .expect("Failed to write build_version.rs");
 
-    println!(
-        "cargo:warning=Generated build_version.rs with version: {}",
-        version
-    );
+    // println!(
+    //     "cargo:warning=Generated build_version.rs with version: {}",
+    //     version
+    // );
 
     // 3. Constraint: Only re-run if build.rs itself changes
     // This prevents infinite build loops in `dx serve`

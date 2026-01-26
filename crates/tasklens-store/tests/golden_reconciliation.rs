@@ -134,8 +134,37 @@ fn assert_docs_equal<T: ReadDoc>(doc_a: &T, doc_b: &T, obj_a: ObjId, obj_b: ObjI
                 let val_b = doc_b.get(&obj_b, &key).expect("Get should work");
 
                 match (val_a, val_b) {
-                    (Some((Value::Object(_), id_a)), Some((Value::Object(_), id_b))) => {
-                        assert_docs_equal(doc_a, doc_b, id_a, id_b, current_path);
+                    (Some((Value::Object(ot_a), id_a)), Some((Value::Object(ot_b), id_b))) => {
+                        if ot_a == ot_b {
+                            assert_docs_equal(doc_a, doc_b, id_a, id_b, current_path);
+                        } else {
+                            panic!(
+                                "Difference at {}: Object type mismatch. Expected (Golden): {:?}, Actual (Reconciled): {:?}",
+                                current_path, ot_a, ot_b
+                            );
+                        }
+                    }
+                    // Targeted relaxation for Text-to-Scalar migration on specific fields
+                    (
+                        Some((Value::Object(automerge::ObjType::Text), id_a)),
+                        Some((Value::Scalar(s_b), _)),
+                    ) if is_relaxed_path(&current_path) => {
+                        let text_a = doc_a.text(&id_a).expect("Failed to read text");
+                        let str_b = match s_b.as_ref() {
+                            automerge::ScalarValue::Str(s) => s.to_string(),
+                            _ => {
+                                panic!(
+                                    "Difference at {}: Type mismatch (Relaxed Path). Expected (Golden): Text, Actual (Reconciled): Scalar({:?})",
+                                    current_path, s_b
+                                );
+                            }
+                        };
+                        if text_a != str_b {
+                            panic!(
+                                "Difference at {}: Content mismatch (Text vs Scalar). Expected (Golden): {:?}, Actual (Reconciled): {:?}",
+                                current_path, text_a, str_b
+                            );
+                        }
                     }
                     (Some((Value::Scalar(s_a), _)), Some((Value::Scalar(s_b), _))) => {
                         if s_a != s_b {
@@ -194,4 +223,20 @@ fn assert_docs_equal<T: ReadDoc>(doc_a: &T, doc_b: &T, obj_a: ObjId, obj_b: ObjI
             }
         }
     }
+}
+
+/// Returns true if the path is allowed to have Scalar Strings in the current
+/// implementation even if the Golden file has Text.
+fn is_relaxed_path(path: &str) -> bool {
+    // Example paths:
+    // tasks.0347ad62-be6b-4a22-b63e-5e31009de4b4.status
+    // tasks.0347ad62-be6b-4a22-b63e-5e31009de4b4.schedule.type
+    let parts: Vec<&str> = path.split('.').collect();
+    if parts.len() == 3 && parts[0] == "tasks" && parts[2] == "status" {
+        return true;
+    }
+    if parts.len() == 4 && parts[0] == "tasks" && parts[2] == "schedule" && parts[3] == "type" {
+        return true;
+    }
+    false
 }

@@ -1,0 +1,12 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 74b8b4d4d1d957f25dd98b63731c3c40c7337131a99e6391838c62ea4ab34b42 # shrinks to actions = [CreateTask { id: TaskID("task-3"), parent_id: None, title: "" }, CreateTask { id: TaskID("task-3"), parent_id: Some(TaskID("task-3")), title: "" }]
+cc f06bfe0113ba5fabee1dcea5e79ed4abff94f33c0f529430424e90bf16b843c1 # Original repository seed
+cc 2a3b8fb68cc5460986bd53b1b58e975d00a2bfe6666fd7d8bb6359544c3ed2e3 # Stale Parent ID seed
+cc 9c6cc509daa7ca2fe7df7c21be85cb75fff060b267fdeb51636a4687c31b9cec # CreateTask same-ID seed
+cc 919666599f47621594099da7818e0b79004a8edba7954c8cbfe84dfcac96c7e9 # shrinks to actions = [CreateTask { id: TaskID("task-1"), parent_id: None, title: "" }, CreateTask { id: TaskID("task-5"), parent_id: Some(TaskID("task-1")), title: "" }, MoveTask { id: TaskID("task-5"), new_parent_id: None }]
+cc 5b999664217d5a46e06cd5526175c6bf5eccecc2cfa50cb3277aa717c7e8dcb6 # shrinks to actions = [CreateTask { id: TaskID("task-5"), parent_id: None, title: "" }, CompleteTask { id: TaskID("task-5"), current_time: -280414227423804083 }, UpdateTask { id: TaskID("task-5"), updates: TaskUpdates { title: None, status: None, place_id: None, due_date: None, schedule_type: Some(Routinely), lead_time: Some(8942958376128571726), repeat_config: Some(Some(RepeatConfig { frequency: Minutes, interval: 1 })), is_sequential: None } }, RefreshLifecycle { current_time: 0 }]
