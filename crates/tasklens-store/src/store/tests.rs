@@ -159,7 +159,7 @@ fn test_dispatch_create() {
                             "id" => { am_text(&task_id_str) },
                             "title" => { am_text("Test Task") },
                             "childTaskIds" => { list![] },
-                            "status" => { am_text("Pending") },
+                            "status" => { "Pending" },
                             "notes" => { am_text("") },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
@@ -172,7 +172,7 @@ fn test_dispatch_create() {
                             "schedule" => {
                                 map! {
                                     "leadTime" => { 28800000 },
-                                    "type" => { am_text("Once") }
+                                    "type" => { "Once" }
                                 }
                             }
                         }
@@ -248,7 +248,7 @@ fn test_dispatch_create_with_parent() {
                                     { am_text(&child2_id_str) }
                                 ]
                             },
-                            "status" => { am_text("Pending") },
+                            "status" => { "Pending" },
                             "notes" => { am_text("") },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
@@ -262,7 +262,7 @@ fn test_dispatch_create_with_parent() {
                                 map! {
 
                                     "leadTime" => { 28800000 },
-                                    "type" => { am_text("Once") }
+                                    "type" => { "Once" }
                                 }
                             }
                         }
@@ -272,7 +272,7 @@ fn test_dispatch_create_with_parent() {
                             "id" => { am_text(&child1_id_str) },
                             "title" => { am_text("Child 1") },
                             "childTaskIds" => { list![] },
-                            "status" => { am_text("Pending") },
+                            "status" => { "Pending" },
                             "notes" => { am_text("") },
                             "parentId" => { am_text(&parent_id_str) },
                             "importance" => { 1 },
@@ -287,7 +287,7 @@ fn test_dispatch_create_with_parent() {
                                 map! {
 
                                     "leadTime" => { 28800000 },
-                                    "type" => { am_text("Once") }
+                                    "type" => { "Once" }
                                 }
                             }
                         }
@@ -297,7 +297,7 @@ fn test_dispatch_create_with_parent() {
                             "id" => { am_text(&child2_id_str) },
                             "title" => { am_text("Child 2") },
                             "childTaskIds" => { list![] },
-                            "status" => { am_text("Pending") },
+                            "status" => { "Pending" },
                             "notes" => { am_text("") },
                             "parentId" => { am_text(&parent_id_str) },
                             "importance" => { 1 },
@@ -312,7 +312,7 @@ fn test_dispatch_create_with_parent() {
                                 map! {
 
                                     "leadTime" => { 28800000 },
-                                    "type" => { am_text("Once") }
+                                    "type" => { "Once" }
                                 }
                             }
                         }
@@ -467,7 +467,7 @@ fn test_dispatch_update() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { "Updated" },
-                            "status" => { am_text("Done") },
+                            "status" => { "Done" },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "importance" => { 1 },
@@ -482,7 +482,7 @@ fn test_dispatch_update() {
                                 map! {
 
                                     "leadTime" => { 28800000 },
-                                    "type" => { am_text("Once") }
+                                    "type" => { "Once" }
                                 }
                             }
                         }
@@ -597,7 +597,7 @@ fn test_dispatch_delete_with_parent() {
                             "id" => { am_text(parent_id.as_str()) },
                             "title" => { am_text("Parent") },
                             "childTaskIds" => { list![] },
-                            "status" => { am_text("Pending") },
+                            "status" => { "Pending" },
                             "notes" => { am_text("") },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
@@ -611,7 +611,7 @@ fn test_dispatch_delete_with_parent() {
                                 map! {
 
                                     "leadTime" => { 28800000 },
-                                    "type" => { am_text("Once") }
+                                    "type" => { "Once" }
                                 }
                             }
                         }
@@ -660,7 +660,7 @@ fn test_dispatch_complete() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { am_text("To Complete") },
-                            "status" => { am_text("Done") },
+                            "status" => { "Done" },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "importance" => { 1 },
@@ -677,7 +677,7 @@ fn test_dispatch_complete() {
 
 
                                     "leadTime" => { 28800000 },
-                                    "type" => { am_text("Once") }
+                                    "type" => { "Once" }
                                 }
                             }
                         }
@@ -744,7 +744,7 @@ fn test_dispatch_move() {
                         map! {
                             "id" => { am_text(&parent_id_str) },
                             "title" => { am_text("Parent") },
-                            "status" => { am_text("Pending") },
+                            "status" => { "Pending" },
                             "childTaskIds" => {
                                 list![
                                     { am_text(&child_id_str) }
@@ -764,7 +764,7 @@ fn test_dispatch_move() {
 
 
                                     "leadTime" => { 28800000 },
-                                    "type" => { am_text("Once") }
+                                    "type" => { "Once" }
                                 }
                             }
                         }
@@ -773,7 +773,7 @@ fn test_dispatch_move() {
                         map! {
                             "id" => { am_text(&child_id_str) },
                             "title" => { am_text("Child") },
-                            "status" => { am_text("Pending") },
+                            "status" => { "Pending" },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "parentId" => { am_text(&parent_id_str) },
@@ -790,7 +790,7 @@ fn test_dispatch_move() {
 
 
                                     "leadTime" => { 28800000 },
-                                    "type" => { am_text("Once") }
+                                    "type" => { "Once" }
                                 }
                             }
                         }
@@ -853,7 +853,7 @@ fn test_dispatch_refresh_lifecycle() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { am_text("To Acknowledge") },
-                            "status" => { am_text("Done") },
+                            "status" => { "Done" },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "importance" => { 1 },
@@ -870,7 +870,7 @@ fn test_dispatch_refresh_lifecycle() {
 
 
                                     "leadTime" => { 28800000 },
-                                    "type" => { am_text("Once") }
+                                    "type" => { "Once" }
                                 }
                             }
                         }
@@ -902,7 +902,7 @@ fn test_dispatch_refresh_lifecycle() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { am_text("To Acknowledge") },
-                            "status" => { am_text("Done") },
+                            "status" => { "Done" },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "importance" => { 1 },
@@ -919,7 +919,7 @@ fn test_dispatch_refresh_lifecycle() {
 
 
                                     "leadTime" => { 28800000 },
-                                    "type" => { am_text("Once") }
+                                    "type" => { "Once" }
                                 }
                             }
                         }
@@ -985,7 +985,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { am_text("Routine") },
-                            "status" => { am_text("Done") },
+                            "status" => { "Done" },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "importance" => { 1 },
@@ -1008,7 +1008,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
 
 
                                     "leadTime" => { 100 },
-                                    "type" => { am_text("Routinely") }
+                                    "type" => { "Routinely" }
                                 }
                             }
                         }
@@ -1046,7 +1046,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                         map! {
                             "id" => { am_text(&task_id_str) },
                             "title" => { am_text("Routine") },
-                            "status" => { am_text("Pending") },
+                            "status" => { "Pending" },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
                             "importance" => { 1 },
@@ -1069,7 +1069,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
 
                                     "lastDone" => { 1000 },
                                     "leadTime" => { 100 },
-                                    "type" => { am_text("Routinely") }
+                                    "type" => { "Routinely" }
                                 }
                             }
                         }
