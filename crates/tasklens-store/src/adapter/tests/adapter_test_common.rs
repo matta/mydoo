@@ -10,6 +10,13 @@ pub(super) static SETUP_PREFIXES: &[&str] = &["s-"];
 pub(super) static REPLICA_A_PREFIXS: &[&str] = &["s-", "a-"];
 pub(super) static REPLICA_B_PREFIXS: &[&str] = &["s-", "b-"];
 
+pub(super) enum HydrationStrategy {
+    /// Use autosurgeon::hydrate directly, failing if there are any structural inconsistencies.
+    Strict,
+    /// Use adapter::hydrate which automatically heals structural inconsistencies.
+    Heal,
+}
+
 pub(super) fn init_doc() -> Result<Automerge> {
     let mut doc = Automerge::new();
     let id = crate::doc_id::DocumentId::new();
@@ -33,7 +40,7 @@ pub(super) fn dispatch_and_validate(doc: &mut Automerge, action: Action, context
     }
 }
 
-pub(super) fn check_invariants(doc: &Automerge) -> Result<(), String> {
+pub(super) fn check_invariants(doc: &Automerge, strategy: HydrationStrategy) -> Result<(), String> {
     // 1. Manual map integrity check (detecting "phantom" objects created by ensure_path)
     if let Ok(Some((automerge::Value::Object(automerge::ObjType::Map), tasks_id))) =
         doc.get(&automerge::ROOT, "tasks")
@@ -55,15 +62,33 @@ pub(super) fn check_invariants(doc: &Automerge) -> Result<(), String> {
         }
     }
 
-    // 2. Check full hydration
-    let state: TunnelState = match adapter::hydrate(doc) {
-        Ok(s) => s,
-        Err(e) => {
-            let realized = crate::debug_utils::inspect_automerge_doc_full(doc);
-            return Err(format!(
-                "Hydration broken: {}\n\nFull Document Structure:\n{:#?}",
-                e, realized
-            ));
+    // 2. Check hydration according to strategy
+    let state: TunnelState = match strategy {
+        HydrationStrategy::Strict => {
+            // We use autosurgeon::hydrate directly here because we WANT to see inconsistencies.
+            match autosurgeon::hydrate(doc) {
+                Ok(s) => s,
+                Err(e) => {
+                    let realized = crate::debug_utils::inspect_automerge_doc_full(doc);
+                    return Err(format!(
+                        "Hydration broken (Strict): {}\n\nFull Document Structure:\n{:#?}",
+                        e, realized
+                    ));
+                }
+            }
+        }
+        HydrationStrategy::Heal => {
+            // Use the adapter's hydrate which heals structural issues.
+            match adapter::hydrate(doc) {
+                Ok(s) => s,
+                Err(e) => {
+                    let realized = crate::debug_utils::inspect_automerge_doc_full(doc);
+                    return Err(format!(
+                        "Hydration broken (Heal): {}\n\nFull Document Structure:\n{:#?}",
+                        e, realized
+                    ));
+                }
+            }
         }
     };
 
@@ -132,12 +157,33 @@ pub(super) fn check_invariants(doc: &Automerge) -> Result<(), String> {
             }
         }
 
-        // If a task has no parent_id, it MUST be in root_task_ids
-        if task.parent_id.is_none() && !root_set.contains(id) {
-            return Err(format!(
-                "Inconsistency: Task \"{}\" has no parent but is missing from root_task_ids",
-                id
-            ));
+        // Point 1 & 3 Verification: Inverse Parent Link Consistency
+        if let Some(pid) = &task.parent_id {
+            // If it has a parent_id, it MUST exist in the parent's child list
+            let parent_task = match state.tasks.get(pid) {
+                Some(pt) => pt,
+                None => {
+                    return Err(format!(
+                        "Broken Link: Task \"{}\" has parent \"{}\" but parent does not exist (Broken Parent Point 2 equivalent)",
+                        id, pid
+                    ));
+                }
+            };
+
+            if !parent_task.child_task_ids.contains(id) {
+                return Err(format!(
+                    "Inconsistency: Task \"{}\" has parent \"{}\", but \"{}\" does not have \"{}\" as child",
+                    id, pid, pid, id
+                ));
+            }
+        } else {
+            // If a task has no parent_id, it MUST be in root_task_ids (Point 1)
+            if !root_set.contains(id) {
+                return Err(format!(
+                    "Inconsistency: Task \"{}\" has no parent but is missing from root_task_ids",
+                    id
+                ));
+            }
         }
     }
 

@@ -15,7 +15,7 @@
 //! ```
 
 use crate::adapter::tests::adapter_test_common::{
-    any_action, check_invariants, dispatch_and_validate, init_doc,
+    HydrationStrategy, any_action, check_invariants, dispatch_and_validate, init_doc,
 };
 use proptest::prelude::*;
 
@@ -30,7 +30,7 @@ proptest! {
             dispatch_and_validate(&mut doc, action, "sequential fuzz");
 
             // Check invariants after EVERY step for sequential fuzzing
-            if let Err(msg) = check_invariants(&doc) {
+            if let Err(msg) = check_invariants(&doc, HydrationStrategy::Strict) {
                 panic!("Invariant Failure at step!\n{}", msg);
             }
         }

@@ -1,7 +1,7 @@
 use crate::actions::{Action, TaskUpdates};
 use crate::adapter::{
     self, AdapterError,
-    tests::adapter_test_common::{check_invariants, init_doc},
+    tests::adapter_test_common::{HydrationStrategy, check_invariants, init_doc},
 };
 use tasklens_core::types::{TaskID, TunnelState};
 
@@ -303,7 +303,7 @@ fn test_move_cycle_bug() {
     );
 
     // 4. Check invariants
-    if let Err(msg) = check_invariants(&doc) {
+    if let Err(msg) = check_invariants(&doc, HydrationStrategy::Strict) {
         panic!("Invariant Failure!\n{}", msg);
     }
 }
@@ -393,7 +393,7 @@ fn test_move_task_to_root_removes_parent_id() {
     .unwrap();
 
     // 4. Check invariants
-    if let Err(msg) = check_invariants(&doc) {
+    if let Err(msg) = check_invariants(&doc, HydrationStrategy::Strict) {
         panic!("Invariant Failure!\n{}", msg);
     }
 
@@ -447,8 +447,8 @@ fn test_concurrent_create_child_and_delete_parent_leak() {
     // 4. Merge
     doc_a.merge(&mut doc_b).expect("Merge failed");
 
-    // 5. Check invariants - this is where it should fail
-    if let Err(msg) = check_invariants(&doc_a) {
+    // 5. Check invariants - using Heal strategy because concurrent delete is a known structural hazard
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
         panic!("Invariant Failure!\n{}", msg);
     }
 }
@@ -500,8 +500,8 @@ fn test_concurrent_delete_same_task_root() {
     // 4. Merge
     doc_a.merge(&mut doc_b).expect("Merge failed");
 
-    // 5. Check invariants
-    if let Err(msg) = check_invariants(&doc_a) {
+    // 5. Check invariants - using Heal strategy because concurrent delete is a known structural hazard
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
         panic!("Invariant Failure!\n{}", msg);
     }
 }
@@ -547,7 +547,7 @@ fn test_concurrent_complete_task_status_merge() {
     doc_a.merge(&mut doc_b).expect("Merge failed");
 
     // 5. Check invariants - this should fail during hydration if "Done" + "Done" = "DoDonee"
-    if let Err(msg) = check_invariants(&doc_a) {
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Strict) {
         panic!("Invariant Failure!\n{}", msg);
     }
 }

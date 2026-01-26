@@ -18,7 +18,8 @@
 //! ```
 
 use crate::adapter::tests::adapter_test_common::{
-    self, any_action_for_replica, check_invariants, dispatch_and_validate, init_doc,
+    self, HydrationStrategy, any_action_for_replica, check_invariants, dispatch_and_validate,
+    init_doc,
 };
 use proptest::prelude::*;
 
@@ -57,7 +58,7 @@ proptest! {
         doc_a.merge(&mut doc_b).expect("Merge failed");
 
         // 5. Assert: Invariants held
-        if let Err(msg) = check_invariants(&doc_a) {
+        if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
             panic!("Invariant Failure!\n{}", msg);
         }
     }
