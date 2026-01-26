@@ -1,3 +1,7 @@
+// This test uses `tempfile` and spawns a child process (`pnpm`),
+// which are unsupported/excluded in WASM builds.
+#![cfg(not(target_arch = "wasm32"))]
+
 use automerge::AutoCommit;
 use autosurgeon::reconcile;
 use proptest::prelude::*;

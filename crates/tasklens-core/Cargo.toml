@@ -14,7 +14,6 @@ chrono.workspace = true
 uuid.workspace = true
 autosurgeon.workspace = true
 automerge.workspace = true
-proptest = { version = "1.9.0", optional = true }
 proptest-derive = { version = "0.7.0", optional = true }
 
 [features]
@@ -24,12 +23,12 @@ test-utils = ["dep:proptest", "dep:proptest-derive"]
 getrandom.workspace = true
 js-sys.workspace = true
 wasm-bindgen.workspace = true
+proptest = { version = "1.9.0", optional = true, default-features = false, features = ["std"] }
 
 [dev-dependencies]
 serde_yaml_ng = "0.10"
 glob = "0.3"
 path-clean = "1.0"
-proptest = "1.9.0"
 proptest-derive = "0.7.0"
 assert-json-diff = "2.0"
 # Why does tasklens-core depend on itself here?
@@ -45,3 +44,12 @@ assert-json-diff = "2.0"
 # This only affects `cargo test`. Dev-dependencies are ignored for release builds
 # and when other crates depend on this library.
 tasklens-core = { path = ".", features = ["test-utils"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+proptest = { version = "1.9.0", optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+proptest = "1.9.0"
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+proptest = { version = "1.9.0", default-features = false, features = ["std"] }

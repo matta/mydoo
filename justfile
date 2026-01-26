@@ -14,6 +14,10 @@ _default:
 audit: lint udeps
     @echo "✅ Audit complete! No dead code detected."
 
+# Check compilation for WASM target
+check-wasm:
+    cargo check --target wasm32-unknown-unknown --all-targets
+
 # Check for unused internal code and unreachable public API
 # Relies on your Cargo.toml [workspace.lints] settings
 lint:

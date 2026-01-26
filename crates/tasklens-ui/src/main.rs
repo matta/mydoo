@@ -233,7 +233,7 @@ fn App() -> Element {
         {
             // Handle seed query param
             thread_local! {
-                static INITIAL_LOAD_SEED_CHECKED: std::cell::Cell<bool> = std::cell::Cell::new(false);
+                static INITIAL_LOAD_SEED_CHECKED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
             }
             if let Some(window) = web_sys::window() {
                 let search = window.location().search().unwrap_or_default();

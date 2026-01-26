@@ -42,13 +42,18 @@ send_wrapper = { version = "0.6", features = ["futures"] }
 
 [dev-dependencies]
 pollster = "0.4.0"
-criterion = { version = "0.8.1", features = ["async_tokio"] }
 automerge-test = "0.6.0"
-tokio = { version = "1", features = ["full"] }
-proptest = "1.9"
 proptest-derive = "0.7"
-tempfile = "3.24"
 tasklens-core = { path = "../tasklens-core", features = ["test-utils"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+criterion = { version = "0.8.1", features = ["async_tokio"] }
+tokio = { version = "1", features = ["full"] }
+tempfile = "3.24"
+proptest = "1.9"
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+proptest = { version = "1.9", default-features = false, features = ["std"] }
 
 [[bench]]
 name = "import_benchmark"

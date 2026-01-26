@@ -76,6 +76,7 @@ impl AppStore {
 
     #[cfg(target_arch = "wasm32")]
     pub fn save_active_doc_id(id: &DocumentId) {
+        tracing::info!("Saving active doc id: {}", id);
         crate::storage::ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
     }
 
@@ -219,5 +220,8 @@ impl Default for AppStore {
 
 #[cfg(test)]
 mod tests;
+// tests_async uses tokio for its test harness and async runtime (LocalSet),
+// which is currently excluded from WASM builds.
+#[cfg(not(target_arch = "wasm32"))]
 #[cfg(test)]
 mod tests_async;
