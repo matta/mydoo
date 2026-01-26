@@ -1,4 +1,5 @@
 use crate::components::navbar::{Navbar, NavbarItem, NavbarNav};
+use crate::controllers::doc_controller;
 use crate::router::Route;
 use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
@@ -9,74 +10,15 @@ use tasklens_store::store::AppStore;
 pub fn AppNavBar() -> Element {
     let active_index = use_signal(|| 0);
     let mut show_settings = use_signal(|| false);
-    let mut store = use_context::<Signal<AppStore>>();
-    let mut doc_id = use_context::<Signal<Option<DocumentId>>>();
+    let store = use_context::<Signal<AppStore>>();
+    let doc_id = use_context::<Signal<Option<DocumentId>>>();
 
-    // FIXME: This logic is duplicated and should be consolidated.
     let handle_doc_change = move |new_doc_id: DocumentId| {
-        tracing::info!("Attempting to switch to Document ID: {}", new_doc_id);
-        spawn(async move {
-            tracing::info!("Switching to Document ID: {}", new_doc_id);
-
-            // 1. Get repo without holding lock
-            let repo = store.read().repo.clone();
-
-            if let Some(repo) = repo {
-                // 2. Perform async lookup detached from store instance
-                match AppStore::find_doc(repo, new_doc_id.clone()).await {
-                    Ok(Some(handle)) => {
-                        tracing::info!(
-                            "find_doc_detached successful for Document ID: {}",
-                            new_doc_id
-                        );
-
-                        // 3. Acquire lock ONLY for the sync update
-                        store.write().set_active_doc(handle, new_doc_id.clone());
-                        tracing::info!("set_active_doc successful for Document ID: {}", new_doc_id);
-
-                        let logged_doc_id = new_doc_id.clone();
-                        doc_id.set(Some(new_doc_id));
-                        tracing::info!(
-                            "doc_id.set() successful for Document ID: {}",
-                            logged_doc_id
-                        );
-                    }
-                    Ok(None) => {
-                        tracing::error!("Document not found: {}", new_doc_id);
-                    }
-                    Err(e) => {
-                        tracing::error!("find_doc_detached failed: {:?}", e);
-                    }
-                }
-            } else {
-                tracing::error!("Repo not initialized");
-            }
-        });
+        doc_controller::switch_document(store, doc_id, new_doc_id);
     };
 
-    // FIXME: This logic is duplicated and should be consolidated.
     let handle_create_doc = move |_| {
-        tracing::info!("Creating new document");
-        spawn(async move {
-            // 1. Get repo without holding lock
-            let repo = store.read().repo.clone();
-
-            if let Some(repo) = repo {
-                // 2. Perform async creation detached from store instance
-                match AppStore::create_new(repo).await {
-                    Ok((handle, new_id)) => {
-                        tracing::info!("Created new doc successfully: {}", new_id);
-
-                        // 3. Acquire lock ONLY for the sync update
-                        store.write().set_active_doc(handle, new_id.clone());
-                        doc_id.set(Some(new_id));
-                    }
-                    Err(e) => tracing::error!("Failed to create doc: {:?}", e),
-                }
-            } else {
-                tracing::error!("Repo not initialized");
-            }
-        });
+        doc_controller::create_new_document(store, doc_id);
     };
 
     rsx! {
