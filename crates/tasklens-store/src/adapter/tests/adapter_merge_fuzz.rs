@@ -24,7 +24,6 @@ use proptest::prelude::*;
 
 proptest! {
     #[test]
-    #[ignore]
     fn test_merge_invariants_fuzz(
         setup in prop::collection::vec(
             any_action_for_replica("s-", adapter_test_common::SETUP_PREFIXES), 1..10
