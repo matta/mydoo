@@ -76,6 +76,7 @@ impl AppStore {
 
     #[cfg(target_arch = "wasm32")]
     pub fn save_active_doc_id(id: &DocumentId) {
+        tracing::info!("Saving active doc id: {}", id);
         crate::storage::ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
     }
 
