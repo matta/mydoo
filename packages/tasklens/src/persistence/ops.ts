@@ -127,7 +127,7 @@ export function createTask(
   if (newTask.placeId === undefined) delete newTask.placeId;
   // Enforce Routine Task Default (Immediate Initialization)
   if (
-    String(newTask.schedule.type) === "Routinely" &&
+    unwrapScalar(newTask.schedule.type) === "Routinely" &&
     newTask.schedule.dueDate === undefined &&
     newTask.schedule.lastDone === undefined
   ) {
