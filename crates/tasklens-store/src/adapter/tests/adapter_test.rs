@@ -551,3 +551,63 @@ fn test_concurrent_complete_task_status_merge() {
         panic!("Invariant Failure!\n{}", msg);
     }
 }
+
+#[test]
+fn test_delete_task_cascades() {
+    let mut doc = init_doc().expect("Init failed");
+
+    // 1. Create Parent
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("parent"),
+            parent_id: None,
+            title: "Parent".into(),
+        },
+    )
+    .unwrap();
+
+    // 2. Create Child
+    adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("child"),
+            parent_id: Some(TaskID::from("parent")),
+            title: "Child".into(),
+        },
+    )
+    .unwrap();
+
+    // 3. Delete Parent
+    adapter::dispatch(
+        &mut doc,
+        Action::DeleteTask {
+            id: TaskID::from("parent"),
+        },
+    )
+    .unwrap();
+
+    // 4. Verify both are gone from the tasks map
+    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
+    assert!(
+        !state.tasks.contains_key(&TaskID::from("parent")),
+        "Parent should be deleted"
+    );
+    assert!(
+        !state.tasks.contains_key(&TaskID::from("child")),
+        "Child should be deleted (cascaded)"
+    );
+
+    // 5. Verify child is NOT in root_task_ids (common bug when promoting instead of cascading)
+    assert!(
+        !state.root_task_ids.contains(&TaskID::from("child")),
+        "Child should NOT be promoted to root"
+    );
+
+    // 6. Verify there are no tasks at all.
+    assert!(state.tasks.is_empty(), "Tasks should be empty");
+    assert!(
+        state.root_task_ids.is_empty(),
+        "Root task ids should be empty"
+    );
+}

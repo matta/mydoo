@@ -173,6 +173,12 @@
               }
             }
           }
+        },
+        "delete_tasks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

@@ -376,25 +376,16 @@ pub(crate) fn handle_delete_task(doc: &mut (impl Transactable + Doc), id: TaskID
         MaybeMissing::Missing => Vec::new(),
     };
 
-    // 3. Promote children to roots.
-    if !child_ids.is_empty() {
-        let mut root_ids: Vec<TaskID> =
-            match autosurgeon::hydrate_prop(doc, &automerge::ROOT, "rootTaskIds")? {
-                MaybeMissing::Present(ids) => ids,
-                MaybeMissing::Missing => Vec::new(),
-            };
-
-        for cid in child_ids {
-            if let Some((automerge::Value::Object(automerge::ObjType::Map), child_task_obj_id)) =
-                am_get(doc, &tasks_obj_id, cid.as_str())?
-            {
-                am_delete(doc, &child_task_obj_id, "parentId")?;
-                if !root_ids.contains(&cid) {
-                    root_ids.push(cid);
-                }
+    // 3. Delete descendants recursively.
+    for cid in child_ids {
+        // We call ourselves recursively.
+        // Note: TaskNotFound is ignored if child was already deleted (unlikely in single tx).
+        if let Err(e) = handle_delete_task(doc, cid) {
+            match e {
+                AdapterError::TaskNotFound(_) => {}
+                _ => return Err(e),
             }
         }
-        autosurgeon::reconcile_prop(doc, &automerge::ROOT, "rootTaskIds", &root_ids)?;
     }
 
     // 4. Remove from parent or root list.
@@ -420,7 +411,7 @@ pub(crate) fn handle_delete_task(doc: &mut (impl Transactable + Doc), id: TaskID
         autosurgeon::reconcile_prop(doc, &automerge::ROOT, "rootTaskIds", &root_ids)?;
     }
 
-    // 5. Delete the task itself.
+    // 5. Delete the task itself from the tasks map.
     am_delete(doc, &tasks_obj_id, id.as_str())?;
 
     Ok(())

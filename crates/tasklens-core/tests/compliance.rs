@@ -134,6 +134,7 @@ struct Mutation {
     advance_time_seconds: Option<F64OrString>,
     update_credits: Option<HashMap<String, F64OrString>>,
     task_updates: Option<Vec<TaskUpdate>>,
+    delete_tasks: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -200,6 +201,7 @@ fn test_compliance() -> Result<()> {
         "complex-mutation.feature.yaml",
         "decay.feature.yaml",
         "due_dates.feature.yaml",
+        "deletion.feature.yaml",
         "inheritance-credits.feature.yaml",
         "inheritance-importance.feature.yaml",
         "inheritance-place.feature.yaml",
@@ -829,6 +831,7 @@ fn apply_mutation(
         advance_time_seconds,
         update_credits,
         task_updates,
+        delete_tasks,
     } = mutation;
 
     if let Some(advance) = advance_time_seconds {
@@ -908,5 +911,30 @@ fn apply_mutation(
         }
     }
 
+    if let Some(to_delete) = delete_tasks {
+        for id in to_delete {
+            let task_id = TaskID::from(id.clone());
+            recursive_delete_task(state, &task_id);
+        }
+    }
+
     Ok(())
+}
+
+fn recursive_delete_task(state: &mut TunnelState, task_id: &TaskID) {
+    if let Some(task) = state.tasks.remove(task_id) {
+        // Recursively delete children
+        for child_id in task.child_task_ids {
+            recursive_delete_task(state, &child_id);
+        }
+
+        // Remove from parent or root list
+        if let Some(pid) = task.parent_id {
+            if let Some(parent) = state.tasks.get_mut(&pid) {
+                parent.child_task_ids.retain(|cid| cid != task_id);
+            }
+        } else {
+            state.root_task_ids.retain(|rid| rid != task_id);
+        }
+    }
 }
