@@ -270,7 +270,8 @@
       "outputs": []
     },
     "generate": {
-      "outputLogs": "new-only"
+      "outputLogs": "new-only",
+      "outputs": ["tests/e2e/.features-gen/**", "src/generated/**"]
     },
     "check-types": {
       "outputLogs": "new-only",

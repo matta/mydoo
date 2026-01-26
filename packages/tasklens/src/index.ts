@@ -77,6 +77,7 @@ export {
   type PlaceID,
   type RepeatConfig,
   type RepeatConfigFields,
+  type Scalar,
   type Schedule,
   type ScheduleFields,
   type TaskCreateInput,
@@ -86,5 +87,6 @@ export {
   TaskStatus,
   type TaskUpdateInput,
   type TunnelNode,
+  unwrapScalar,
   type ViewFilter,
 } from "./types/ui";

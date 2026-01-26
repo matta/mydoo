@@ -198,10 +198,7 @@ pub(crate) fn handle_create_task(
         match p {
             MaybeMissing::Present(task) => Some(task),
             MaybeMissing::Missing => {
-                return Err(anyhow!(
-                    "Cannot create task with non-existent parent: {}",
-                    pid
-                ));
+                return Err(anyhow!("Parent task with id '{}' not found", pid));
             }
         }
     } else {

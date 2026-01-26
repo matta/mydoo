@@ -10,16 +10,18 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createTask, updateTask } from "../../src/persistence/ops";
 import { TunnelStore } from "../../src/persistence/store";
+
 import type {
-  PersistedTask,
   PlaceID,
   TaskID,
+  TaskUpdateInput,
+  WritableTask,
 } from "../../src/types/persistence";
 import { TaskStatus } from "../../src/types/persistence";
 
 describe("updateTask - Exhaustive Field Coverage", () => {
   let store: TunnelStore;
-  let baseTask: PersistedTask;
+  let baseTask: WritableTask;
 
   beforeEach(() => {
     store = new TunnelStore();
@@ -46,7 +48,7 @@ describe("updateTask - Exhaustive Field Coverage", () => {
       const before = Date.now();
       updateTask(store.state, baseTask.id, { status: TaskStatus.Done });
       const task = store.state.tasks[baseTask.id];
-      expect(task?.status).toBe(TaskStatus.Done);
+      expect(String(task?.status)).toBe(TaskStatus.Done);
       expect(task?.lastCompletedAt).toBeDefined();
       expect(task?.lastCompletedAt).toBeGreaterThanOrEqual(before);
     });
@@ -56,7 +58,9 @@ describe("updateTask - Exhaustive Field Coverage", () => {
       updateTask(store.state, baseTask.id, { status: TaskStatus.Done });
       // Then back to Pending
       updateTask(store.state, baseTask.id, { status: TaskStatus.Pending });
-      expect(store.state.tasks[baseTask.id]?.status).toBe(TaskStatus.Pending);
+      expect(String(store.state.tasks[baseTask.id]?.status)).toBe(
+        TaskStatus.Pending,
+      );
     });
   });
 
@@ -160,14 +164,18 @@ describe("updateTask - Exhaustive Field Coverage", () => {
       updateTask(store.state, baseTask.id, {
         schedule: { type: "Routinely", leadTime: 1000 },
       });
-      expect(store.state.tasks[baseTask.id]?.schedule.type).toBe("Routinely");
+      expect(String(store.state.tasks[baseTask.id]?.schedule.type)).toBe(
+        "Routinely",
+      );
     });
 
     it("should update schedule.leadTime", () => {
       updateTask(store.state, baseTask.id, {
         schedule: { type: "Once", leadTime: 86400000 },
       });
-      expect(store.state.tasks[baseTask.id]?.schedule.leadTime).toBe(86400000);
+      expect(store.state.tasks[baseTask.id]?.schedule.leadTime).toEqual(
+        86400000,
+      );
     });
 
     it("should set schedule.dueDate", () => {
@@ -228,7 +236,7 @@ describe("updateTask - Exhaustive Field Coverage", () => {
       updateTask(store.state, baseTask.id, {
         schedule: { type: "Routinely", leadTime: 1000, dueDate: future },
       });
-      expect(store.state.tasks[baseTask.id]?.schedule.dueDate).toBe(future);
+      expect(store.state.tasks[baseTask.id]?.schedule.dueDate).toEqual(future);
     });
   });
 
@@ -249,12 +257,10 @@ describe("updateTask - Exhaustive Field Coverage", () => {
       });
       expect(store.state.tasks[child.id]?.parentId).toBe(baseTask.id);
 
-      // Explicitly unset parentId by passing it as undefined with 'in' semantics
-      const propsWithExplicitUndefined: Partial<PersistedTask> = {};
-      Object.defineProperty(propsWithExplicitUndefined, "parentId", {
-        value: undefined,
-        enumerable: true,
-      });
+      // Explicitly unset parentId
+      const propsWithExplicitUndefined: TaskUpdateInput = {
+        parentId: undefined,
+      };
       updateTask(store.state, child.id, propsWithExplicitUndefined);
 
       expect(store.state.tasks[child.id]?.parentId).toBeUndefined();
@@ -282,11 +288,9 @@ describe("updateTask - Exhaustive Field Coverage", () => {
       expect(store.state.tasks[baseTask.id]?.placeId).toBe(newPlaceId);
 
       // Explicitly unset placeId
-      const propsWithExplicitUndefined: Partial<PersistedTask> = {};
-      Object.defineProperty(propsWithExplicitUndefined, "placeId", {
-        value: undefined,
-        enumerable: true,
-      });
+      const propsWithExplicitUndefined: TaskUpdateInput = {
+        placeId: undefined,
+      };
       updateTask(store.state, baseTask.id, propsWithExplicitUndefined);
 
       expect(store.state.tasks[baseTask.id]?.placeId).toBeUndefined();
@@ -314,7 +318,7 @@ describe("updateTask - Exhaustive Field Coverage", () => {
       const task = store.state.tasks[baseTask.id];
       expect(task?.title).toBe("Multi Update");
       expect(task?.importance).toBe(0.8);
-      expect(task?.status).toBe(TaskStatus.Done);
+      expect(String(task?.status)).toBe(TaskStatus.Done);
       expect(task?.isSequential).toBe(true);
     });
   });
@@ -331,7 +335,7 @@ describe("updateTask - Round-Trip Serialization (Automerge)", () => {
   }
 
   let store: TunnelStore;
-  let baseTask: PersistedTask;
+  let baseTask: WritableTask;
 
   beforeEach(() => {
     store = new TunnelStore();
@@ -340,7 +344,7 @@ describe("updateTask - Round-Trip Serialization (Automerge)", () => {
       title: "Serialization Test",
       importance: 0.7,
       creditIncrement: 0.4,
-    });
+    }) as WritableTask;
   });
 
   it("should survive Automerge round-trip for all required fields", () => {
@@ -379,12 +383,14 @@ describe("updateTask - Round-Trip Serialization (Automerge)", () => {
     expect(taskAfter.desiredCredits).toBe(taskBefore.desiredCredits);
     expect(taskAfter.creditsTimestamp).toBe(taskBefore.creditsTimestamp);
     expect(taskAfter.priorityTimestamp).toBe(taskBefore.priorityTimestamp);
-    expect(taskAfter.status).toBe(taskBefore.status);
+    expect(String(taskAfter.status)).toBe(String(taskBefore.status));
     expect(taskAfter.isSequential).toBe(taskBefore.isSequential);
     expect(taskAfter.isAcknowledged).toBe(taskBefore.isAcknowledged);
-    expect(taskAfter.schedule.type).toBe(taskBefore.schedule.type);
-    expect(taskAfter.schedule.leadTime).toBe(taskBefore.schedule.leadTime);
-    expect(taskAfter.schedule.dueDate).toBe(taskBefore.schedule.dueDate);
+    expect(String(taskAfter.schedule.type)).toBe(
+      String(taskBefore.schedule.type),
+    );
+    expect(taskAfter.schedule.leadTime).toEqual(taskBefore.schedule.leadTime);
+    expect(taskAfter.schedule.dueDate).toEqual(taskBefore.schedule.dueDate);
   });
 
   it("should survive Automerge round-trip with optional fields present", () => {
@@ -516,11 +522,9 @@ describe("updateTask - Automerge Deletion Semantics", () => {
     expect("placeId" in storedTask).toBe(true);
 
     // Explicitly delete via update
-    const props: Partial<PersistedTask> = {};
-    Object.defineProperty(props, "placeId", {
-      value: undefined,
-      enumerable: true,
-    });
+    const props: TaskUpdateInput = {
+      placeId: undefined,
+    };
     updateTask(store.state, task.id, props);
 
     // Verify key is actually deleted (not just undefined)
@@ -536,11 +540,9 @@ describe("updateTask - Automerge Deletion Semantics", () => {
       placeId: "ToBeDeleted" as PlaceID,
     });
 
-    const props: Partial<PersistedTask> = {};
-    Object.defineProperty(props, "placeId", {
-      value: undefined,
-      enumerable: true,
-    });
+    const props: TaskUpdateInput = {
+      placeId: undefined,
+    };
     updateTask(store.state, task.id, props);
 
     // Other fields should be preserved

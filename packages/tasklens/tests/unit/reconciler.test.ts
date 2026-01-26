@@ -6,13 +6,14 @@ import type {
   PersistedTask,
   TaskID,
   TunnelState,
+  WritableTask,
 } from "../../src/types/persistence";
 
 // Helper to create a minimal TunnelState with the given tasks
 function createTestState(
   tasks: Record<string, Partial<PersistedTask>>,
 ): TunnelState {
-  const typedTasks: Record<TaskID, PersistedTask> = {};
+  const typedTasks: Record<TaskID, WritableTask> = {};
   for (const [id, task] of Object.entries(tasks)) {
     typedTasks[id as TaskID] = {
       id: id as TaskID,
@@ -30,7 +31,7 @@ function createTestState(
       notes: "",
       isAcknowledged: false,
       ...task,
-    } as PersistedTask;
+    } as WritableTask;
   }
   return {
     tasks: typedTasks,

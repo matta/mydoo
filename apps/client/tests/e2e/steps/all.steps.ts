@@ -16,26 +16,49 @@ Given(
   async ({ page, plan }) => {
     await plan.setupClock();
     await page.goto("/");
-    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(async () => {
+      localStorage.clear();
+      // Clear all IndexedDB databases (we use 'automerge-repo' usually)
+      const dbs = await window.indexedDB.databases();
+      for (const db of dbs) {
+        if (db.name) window.indexedDB.deleteDatabase(db.name);
+      }
+    });
     await page.reload();
     await plan.setupClock();
+    // Wait for the skeleton or main app container to be visible
+    await expect(page.locator("#root")).toBeVisible();
   },
 );
 
 Given("I have a clean workspace", async ({ page, plan }) => {
   await plan.setupClock();
   await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(async () => {
+    localStorage.clear();
+    const dbs = await window.indexedDB.databases();
+    for (const db of dbs) {
+      if (db.name) window.indexedDB.deleteDatabase(db.name);
+    }
+  });
   await page.reload();
   await plan.setupClock();
+  await expect(page.locator("#root")).toBeVisible();
 });
 
 Given("I start with a clean workspace", async ({ page, plan }) => {
   await plan.setupClock();
   await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(async () => {
+    localStorage.clear();
+    const dbs = await window.indexedDB.databases();
+    for (const db of dbs) {
+      if (db.name) window.indexedDB.deleteDatabase(db.name);
+    }
+  });
   await page.reload();
   await plan.setupClock();
+  await expect(page.locator("#root")).toBeVisible();
 });
 
 Given("I have a workspace seeded with sample data", async ({ plan }) => {
@@ -63,10 +86,12 @@ When("I switch to Do view", async ({ plan }) => {
 });
 
 When("I reload the page", async ({ page }) => {
+  await page.waitForTimeout(2000);
   await page.reload();
 });
 
 When("I refresh the page", async ({ page }) => {
+  await page.waitForTimeout(2000);
   await page.reload();
 });
 

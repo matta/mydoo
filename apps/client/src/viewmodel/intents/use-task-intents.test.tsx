@@ -1,4 +1,4 @@
-import type { TaskID } from "@mydoo/tasklens";
+import { type TaskID, unwrapScalar } from "@mydoo/tasklens";
 import { createTaskLensTestEnvironment } from "@mydoo/tasklens/test";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
@@ -49,7 +49,7 @@ describe("useTaskIntents", () => {
     if (!createdTask) throw new Error("Task missing");
 
     expect(createdTask.title).toBe("Buy Milk");
-    expect(createdTask.status).toBe("Pending");
+    expect(unwrapScalar(createdTask.status)).toBe("Pending");
   });
 
   it("should toggle task completion", async () => {
@@ -97,7 +97,7 @@ describe("useTaskIntents", () => {
       if (!docAfter) throw new Error("Doc missing in update");
       const taskAfter = docAfter.tasks[taskId];
       if (!taskAfter) throw new Error("Task missing in update");
-      expect(taskAfter.status).toBe("Done");
+      expect(unwrapScalar(taskAfter.status)).toBe("Done");
     });
 
     // 6. Toggle Back
@@ -110,7 +110,7 @@ describe("useTaskIntents", () => {
       if (!docFinal) throw new Error("Doc missing final");
       const taskFinal = docFinal.tasks[taskId];
       if (!taskFinal) throw new Error("Task missing in final");
-      expect(taskFinal.status).toBe("Pending");
+      expect(unwrapScalar(taskFinal.status)).toBe("Pending");
     });
   });
 

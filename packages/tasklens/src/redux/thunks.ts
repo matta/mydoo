@@ -11,6 +11,7 @@ import {
   type TaskCreateInput,
   TaskStatus,
   type TaskUpdateInput,
+  unwrapScalar,
 } from "../types/ui";
 import type { ThunkExtra } from "./middleware";
 
@@ -107,7 +108,10 @@ export const acknowledgeAllDoneTasks = createTaskLensThunk(
     withHandle(extra, (doc) => {
       const tasks = Object.values(doc.tasks);
       for (const task of tasks) {
-        if (task && task.status === TaskStatus.Done && !task.isAcknowledged) {
+        if (
+          unwrapScalar(task.status) === TaskStatus.Done &&
+          !task.isAcknowledged
+        ) {
           task.isAcknowledged = true;
         }
       }

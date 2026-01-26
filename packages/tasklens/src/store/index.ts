@@ -52,8 +52,8 @@ export function getTaskLensReduxConfig(
     middleware,
     thunkExtra: getThunkExtra(),
     serializableCheckOptions: {
-      ignoredActionPaths: ["payload.newDoc", "payload.proxyDoc"],
-      ignoredPaths: ["tasks.lastDoc"],
+      ignoredActionPaths: ["payload.newProxyDoc", "payload.proxyDoc"],
+      ignoredPaths: ["tasks.lastProxyDoc"],
     },
   };
 }
