@@ -52,7 +52,7 @@ impl AppStore {
     }
 
     fn dispatch_static(doc: &mut AutoCommit, action: Action) -> Result<()> {
-        crate::adapter::run_action(doc, action)
+        crate::adapter::run_action(doc, action).map_err(|e| anyhow!(e))
     }
 
     fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T> {

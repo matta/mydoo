@@ -17,15 +17,14 @@
 //! PROPTEST_CASES=500 cargo test -p tasklens-store adapter::tests::adapter_merge_fuzz::test_merge_invariants_fuzz
 //! ```
 
-use crate::adapter::{
-    self,
-    tests::adapter_test_common::{self, any_action_for_replica, check_invariants, init_doc},
+use crate::adapter::tests::adapter_test_common::{
+    self, any_action_for_replica, check_invariants, dispatch_and_validate, init_doc,
 };
 use proptest::prelude::*;
 
 proptest! {
     #[test]
-    #[ignore]  // FIXME: enable this test
+    #[ignore]
     fn test_merge_invariants_fuzz(
         setup in prop::collection::vec(
             any_action_for_replica("s-", adapter_test_common::SETUP_PREFIXES), 1..10
@@ -41,7 +40,7 @@ proptest! {
 
         // 1. Initial State
         for action in setup {
-            let _ = adapter::dispatch(&mut doc_a, action);
+            dispatch_and_validate(&mut doc_a, action, "merge fuzz setup");
         }
 
         // 2. Fork
@@ -49,10 +48,10 @@ proptest! {
 
         // 3. Mutate concurrently
         for action in concurrent_a {
-            let _ = adapter::dispatch(&mut doc_a, action);
+            dispatch_and_validate(&mut doc_a, action, "merge fuzz concurrent_a");
         }
         for action in concurrent_b {
-            let _ = adapter::dispatch(&mut doc_b, action);
+            dispatch_and_validate(&mut doc_b, action, "merge fuzz concurrent_b");
         }
 
         // 4. Merge

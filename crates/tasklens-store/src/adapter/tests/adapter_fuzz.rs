@@ -14,9 +14,8 @@
 //! PROPTEST_CASES=500 cargo test -p tasklens-store adapter::tests::adapter_fuzz::test_sequential_invariants_fuzz
 //! ```
 
-use crate::adapter::{
-    self,
-    tests::adapter_test_common::{any_action, check_invariants, init_doc},
+use crate::adapter::tests::adapter_test_common::{
+    any_action, check_invariants, dispatch_and_validate, init_doc,
 };
 use proptest::prelude::*;
 
@@ -28,7 +27,7 @@ proptest! {
         let mut doc = init_doc().expect("Init failed");
 
         for action in actions {
-            let _ = adapter::dispatch(&mut doc, action);
+            dispatch_and_validate(&mut doc, action, "sequential fuzz");
 
             // Check invariants after EVERY step for sequential fuzzing
             if let Err(msg) = check_invariants(&doc) {

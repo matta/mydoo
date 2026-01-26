@@ -1,29 +1,70 @@
 use crate::actions::{Action, TaskUpdates};
-use anyhow::{Result, anyhow};
 use automerge::ReadDoc;
 use automerge::transaction::Transactable;
 use autosurgeon::{Doc, MaybeMissing, reconcile};
 use std::collections::HashMap;
+use thiserror::Error;
 
 use crate::doc_id::TaskLensUrl;
 use tasklens_core::types::{
     DocMetadata, PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_optional_task_id,
 };
 
+#[derive(Debug, Error)]
+pub enum AdapterError {
+    #[error("Automerge error: {0}")]
+    Automerge(#[from] automerge::AutomergeError),
+
+    #[error("Reconcile error: {0}")]
+    Reconcile(#[from] autosurgeon::ReconcileError),
+
+    #[error("Hydrate error: {0}")]
+    Hydrate(#[from] autosurgeon::HydrateError),
+
+    #[error("Hydration failed: {0}")]
+    Hydration(String),
+
+    #[error("Path key '{0}' is not an object")]
+    InvalidPath(String),
+
+    #[error("Task not found: {0}")]
+    TaskNotFound(TaskID),
+
+    #[error("Parent task not found: {0}")]
+    ParentNotFound(TaskID),
+
+    #[error("Task already exists: {0}")]
+    TaskExists(TaskID),
+
+    #[error("Cycle detected moving task {0} to {1}")]
+    CycleDetected(TaskID, TaskID),
+
+    #[error("Cannot move task {0} to itself: {1}")]
+    MoveToSelf(TaskID, TaskID),
+
+    #[error("Inconsistency: {0}")]
+    Inconsistency(String),
+
+    #[error("Operation failed: {0}")]
+    Internal(String),
+}
+
+pub(crate) type Result<T> = std::result::Result<T, AdapterError>;
+
 fn am_get<'a, T: Transactable>(
     doc: &'a T,
     obj: &automerge::ObjId,
     prop: impl Into<automerge::Prop>,
-) -> Result<Option<(automerge::Value<'a>, automerge::ObjId)>, automerge::AutomergeError> {
-    doc.get(obj, prop)
+) -> Result<Option<(automerge::Value<'a>, automerge::ObjId)>> {
+    doc.get(obj, prop).map_err(AdapterError::from)
 }
 
 fn am_delete<T: Transactable>(
     doc: &mut T,
     obj: &automerge::ObjId,
     prop: impl Into<automerge::Prop>,
-) -> Result<(), automerge::AutomergeError> {
-    doc.delete(obj, prop)
+) -> Result<()> {
+    doc.delete(obj, prop).map_err(AdapterError::from)
 }
 
 fn am_put_object<T: Transactable>(
@@ -31,8 +72,8 @@ fn am_put_object<T: Transactable>(
     obj: &automerge::ObjId,
     prop: impl Into<automerge::Prop>,
     value: automerge::ObjType,
-) -> Result<automerge::ObjId, automerge::AutomergeError> {
-    doc.put_object(obj, prop, value)
+) -> Result<automerge::ObjId> {
+    doc.put_object(obj, prop, value).map_err(AdapterError::from)
 }
 
 /// Helper to ensure a path of map objects exists in the document.
@@ -50,7 +91,7 @@ pub(crate) fn ensure_path<T: Transactable + Doc>(
         current = match val {
             Some((automerge::Value::Object(_), id)) => id,
             None => am_put_object(doc, &current, key, automerge::ObjType::Map)?,
-            _ => return Err(anyhow!("Path key '{}' is not an object", key)),
+            _ => return Err(AdapterError::InvalidPath(key.to_string())),
         };
     }
     Ok(current)
@@ -60,7 +101,7 @@ pub(crate) fn ensure_path<T: Transactable + Doc>(
 pub(crate) fn hydrate<T: autosurgeon::Hydrate + 'static>(
     doc: &impl autosurgeon::ReadDoc,
 ) -> Result<T> {
-    let mut state: T = autosurgeon::hydrate(doc).map_err(|e| anyhow!("Hydration failed: {}", e))?;
+    let mut state: T = autosurgeon::hydrate(doc)?;
 
     // Fix orphaned tasks (Structural Leak) which can occur after concurrent merge/delete.
     if let Some(state_mut) = (&mut state as &mut dyn std::any::Any).downcast_mut::<TunnelState>() {
@@ -89,7 +130,10 @@ pub(crate) fn init_state(
 
     if let Err(e) = reconcile(&mut tx, &initial_state) {
         tracing::error!("Failed to reconcile initial state: {}", e);
-        return Err(anyhow!("Failed to reconcile initial state: {}", e));
+        return Err(AdapterError::Internal(format!(
+            "Failed to reconcile initial state: {}",
+            e
+        )));
     }
     tx.commit();
     Ok(())
@@ -99,7 +143,7 @@ pub(crate) fn init_state(
 pub(crate) fn expensive_reconcile<T: autosurgeon::Reconcile>(
     doc: &mut automerge::Automerge,
     data: &T,
-) -> Result<(), autosurgeon::ReconcileError> {
+) -> Result<()> {
     let mut tx = doc.transaction();
     reconcile(&mut tx, data)?;
     tx.commit();
@@ -151,7 +195,7 @@ pub(crate) fn repair_dodonee(doc: &mut automerge::Automerge) -> Result<()> {
         tracing::info!("Repairing task {:?}: DoDonee -> Done", task_obj_id);
         // Set it to Done.
         autosurgeon::reconcile_prop(&mut tx, task_obj_id, "status", TaskStatus::Done)
-            .map_err(|e| anyhow!("Repair reconciliation failed: {}", e))?;
+            .map_err(AdapterError::from)?;
     }
     tx.commit();
     Ok(())
@@ -193,12 +237,11 @@ pub(crate) fn handle_create_task(
     // 2. Resolve parent task and validate existence.
     let parent = if let Some(pid) = &parent_id {
         let p: MaybeMissing<PersistedTask> =
-            autosurgeon::hydrate_prop(doc, &tasks_obj_id, pid.as_str())
-                .map_err(|e| anyhow!("Failed to hydrate parent task: {}", e))?;
+            autosurgeon::hydrate_prop(doc, &tasks_obj_id, pid.as_str())?;
         match p {
             MaybeMissing::Present(task) => Some(task),
             MaybeMissing::Missing => {
-                return Err(anyhow!("Parent task with id '{}' not found", pid));
+                return Err(AdapterError::ParentNotFound(pid.clone()));
             }
         }
     } else {
@@ -208,7 +251,7 @@ pub(crate) fn handle_create_task(
     // 2b. Check if task already exists.
     let exists = automerge::ReadDoc::get(doc, &tasks_obj_id, id.as_str())?.is_some();
     if exists {
-        return Err(anyhow!("Task already exists: {}", id));
+        return Err(AdapterError::TaskExists(id.clone()));
     }
 
     // 3. Create the new task struct.
@@ -216,7 +259,7 @@ pub(crate) fn handle_create_task(
 
     // 4. Reconcile the new task map entry.
     autosurgeon::reconcile_prop(doc, &tasks_obj_id, id.as_str(), &task)
-        .map_err(|e| anyhow!("Failed to reconcile new task: {}", e))?;
+        .map_err(AdapterError::from)?;
 
     if let Some(pid) = parent_id {
         // Get parent object ID.
@@ -229,14 +272,14 @@ pub(crate) fn handle_create_task(
                     MaybeMissing::Missing => Vec::new(),
                     MaybeMissing::Present(ids) => ids,
                 },
-                Err(e) => return Err(anyhow!("Failed to hydrate child ids: {}", e)),
+                Err(e) => return Err(AdapterError::Hydrate(e)),
             };
 
         if !child_ids.contains(&id) {
             child_ids.push(id);
             // Reconcile updated children list.
             autosurgeon::reconcile_prop(doc, &parent_obj_id, "childTaskIds", &child_ids)
-                .map_err(|e| anyhow!("Failed to reconcile child ids: {}", e))?;
+                .map_err(AdapterError::from)?;
         }
     } else {
         // Update root task list.
@@ -246,13 +289,13 @@ pub(crate) fn handle_create_task(
                     MaybeMissing::Missing => Vec::new(),
                     MaybeMissing::Present(ids) => ids,
                 },
-                Err(e) => return Err(anyhow!("Failed to hydrate root task ids: {}", e)),
+                Err(e) => return Err(AdapterError::Hydrate(e)),
             };
 
         if !root_ids.contains(&id) {
             root_ids.push(id);
             autosurgeon::reconcile_prop(doc, automerge::ROOT, "rootTaskIds", &root_ids)
-                .map_err(|e| anyhow!("Failed to reconcile root task ids: {}", e))?;
+                .map_err(AdapterError::from)?;
         }
     }
 
@@ -268,20 +311,20 @@ pub(crate) fn handle_update_task(
 
     let task_obj_id = match am_get(doc, &tasks_obj_id, id.as_str())? {
         Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
-        _ => return Err(anyhow!("Task not found: {}", id)),
+        _ => return Err(AdapterError::TaskNotFound(id.clone())),
     };
 
     if let Some(title) = updates.title {
         autosurgeon::reconcile_prop(doc, &task_obj_id, "title", title)
-            .map_err(|e| anyhow!("Failed to update title: {}", e))?;
+            .map_err(AdapterError::from)?;
     }
     if let Some(status) = updates.status {
         autosurgeon::reconcile_prop(doc, &task_obj_id, "status", status)
-            .map_err(|e| anyhow!("Failed to update status: {}", e))?;
+            .map_err(AdapterError::from)?;
     }
     if let Some(place_id_update) = updates.place_id {
         autosurgeon::reconcile_prop(doc, &task_obj_id, "placeId", place_id_update)
-            .map_err(|e| anyhow!("Failed to update placeId: {}", e))?;
+            .map_err(AdapterError::from)?;
     }
 
     if updates.due_date.is_some() || updates.schedule_type.is_some() || updates.lead_time.is_some()
@@ -290,25 +333,25 @@ pub(crate) fn handle_update_task(
 
         if let Some(due_date_update) = updates.due_date {
             autosurgeon::reconcile_prop(doc, &schedule_obj_id, "dueDate", due_date_update)
-                .map_err(|e| anyhow!("Failed to update dueDate: {}", e))?;
+                .map_err(AdapterError::from)?;
         }
         if let Some(schedule_type) = updates.schedule_type {
             autosurgeon::reconcile_prop(doc, &schedule_obj_id, "type", schedule_type)
-                .map_err(|e| anyhow!("Failed to update schedule type: {}", e))?;
+                .map_err(AdapterError::from)?;
         }
         if let Some(lead_time_update) = updates.lead_time {
             autosurgeon::reconcile_prop(doc, &schedule_obj_id, "leadTime", lead_time_update)
-                .map_err(|e| anyhow!("Failed to update leadTime: {}", e))?;
+                .map_err(AdapterError::from)?;
         }
     }
 
     if let Some(repeat_config_update) = updates.repeat_config {
         autosurgeon::reconcile_prop(doc, &task_obj_id, "repeatConfig", repeat_config_update)
-            .map_err(|e| anyhow!("Failed to update repeatConfig: {}", e))?;
+            .map_err(AdapterError::from)?;
     }
     if let Some(is_seq) = updates.is_sequential {
         autosurgeon::reconcile_prop(doc, &task_obj_id, "isSequential", is_seq)
-            .map_err(|e| anyhow!("Failed to update isSequential: {}", e))?;
+            .map_err(AdapterError::from)?;
     }
 
     Ok(())
@@ -320,7 +363,7 @@ pub(crate) fn handle_delete_task(doc: &mut (impl Transactable + Doc), id: TaskID
     // 1. Get task object ID.
     let task_obj_id = match am_get(doc, &tasks_obj_id, id.as_str())? {
         Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
-        _ => return Err(anyhow!("Task not found: {}", id)),
+        _ => return Err(AdapterError::TaskNotFound(id.clone())),
     };
 
     // 2. Resolve parent and children.
@@ -392,14 +435,14 @@ pub(crate) fn handle_complete_task(
 
     let task_obj_id = match am_get(doc, &tasks_obj_id, id.as_str())? {
         Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
-        _ => return Err(anyhow!("Task not found: {}", id)),
+        _ => return Err(AdapterError::TaskNotFound(id.clone())),
     };
 
     autosurgeon::reconcile_prop(doc, &task_obj_id, "status", TaskStatus::Done)
-        .map_err(|e| anyhow!("Failed to update status: {}", e))?;
+        .map_err(AdapterError::from)?;
 
     autosurgeon::reconcile_prop(doc, &task_obj_id, "lastCompletedAt", Some(current_time))
-        .map_err(|e| anyhow!("Failed to update lastCompletedAt: {}", e))?;
+        .map_err(AdapterError::from)?;
 
     Ok(())
 }
@@ -415,7 +458,7 @@ pub(crate) fn handle_move_task(
     // 2. Resolve task object
     let task_obj_id = match am_get(doc, &tasks_obj_id, id.as_str())? {
         Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
-        _ => return Err(anyhow!("Cannot move non-existent task: {}", id)),
+        _ => return Err(AdapterError::TaskNotFound(id.clone())),
     };
 
     // 3. Resolve old parent ID
@@ -430,18 +473,16 @@ pub(crate) fn handle_move_task(
     // 5. Validation: cycle detection still needs a hydrated partial state (for now).
     // We only hydrate what we need for the cycle check.
     {
-        // Still using a full hydrate here for simplicity of cycle detection,
-        // but it doesn't affect the reconciliation below.
         let state: TunnelState = autosurgeon::hydrate(doc)?;
         if let Some(ref npid) = new_parent_id {
             if !state.tasks.contains_key(npid) {
-                return Err(anyhow!("Cannot move to non-existent parent: {}", npid));
+                return Err(AdapterError::ParentNotFound(npid.clone()));
             }
             if npid == &id {
-                return Err(anyhow!("Cannot move task to itself: {}", id));
+                return Err(AdapterError::MoveToSelf(id.clone(), npid.clone()));
             }
             if causes_cycle(&state.tasks, &id, npid) {
-                return Err(anyhow!("Cannot move task: cycle detected"));
+                return Err(AdapterError::CycleDetected(id.clone(), npid.clone()));
             }
         }
     }
@@ -452,7 +493,12 @@ pub(crate) fn handle_move_task(
     if let Some(opid) = old_parent_id {
         let op_obj_id = match am_get(doc, &tasks_obj_id, opid.as_str())? {
             Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
-            _ => return Err(anyhow!("Old parent disappeared: {}", opid)),
+            _ => {
+                return Err(AdapterError::Inconsistency(format!(
+                    "Old parent disappeared: {}",
+                    opid
+                )));
+            }
         };
 
         let mut child_ids: Vec<TaskID> =
@@ -476,7 +522,12 @@ pub(crate) fn handle_move_task(
     if let Some(npid) = new_parent_id.clone() {
         let np_obj_id = match am_get(doc, &tasks_obj_id, npid.as_str())? {
             Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
-            _ => return Err(anyhow!("New parent disappeared: {}", npid)),
+            _ => {
+                return Err(AdapterError::Inconsistency(format!(
+                    "New parent disappeared: {}",
+                    npid
+                )));
+            }
         };
 
         let mut child_ids: Vec<TaskID> =
@@ -517,7 +568,7 @@ pub(crate) fn handle_refresh_lifecycle(
     let mut state: TunnelState = hydrate(doc)?;
     tasklens_core::domain::lifecycle::acknowledge_completed_tasks(&mut state);
     tasklens_core::domain::routine_tasks::wake_up_routine_tasks(&mut state, current_time);
-    reconcile(doc, &state).map_err(|e| anyhow!("Dispatch reconciliation failed: {}", e))?;
+    reconcile(doc, &state).map_err(AdapterError::from)?;
     Ok(())
 }
 

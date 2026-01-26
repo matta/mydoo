@@ -1,6 +1,6 @@
 use crate::actions::{Action, TaskUpdates};
 use crate::adapter::{
-    self,
+    self, AdapterError,
     tests::adapter_test_common::{check_invariants, init_doc},
 };
 use tasklens_core::types::{TaskID, TunnelState};
@@ -37,8 +37,10 @@ fn test_create_task_non_existent_parent() {
         },
     );
 
-    assert!(res.is_err());
-    assert!(res.unwrap_err().to_string().contains("non-existent"));
+    assert!(matches!(
+        res,
+        Err(AdapterError::ParentNotFound(ref id)) if id.as_str() == "non-existent"
+    ));
 }
 
 #[test]
@@ -66,8 +68,10 @@ fn test_create_task_fails_if_exists() {
         },
     );
 
-    assert!(res.is_err());
-    assert!(res.unwrap_err().to_string().contains("already exists"));
+    assert!(matches!(
+        res,
+        Err(AdapterError::TaskExists(ref id)) if id.as_str() == "task-1"
+    ));
 }
 
 #[test]
@@ -106,13 +110,10 @@ fn test_create_task_cannot_move() {
         },
     );
 
-    assert!(res.is_err());
-    let err_msg = res.unwrap_err().to_string();
-    assert!(
-        err_msg.contains("already exists"),
-        "Expected 'already exists' error, got: {}",
-        err_msg
-    );
+    assert!(matches!(
+        res,
+        Err(AdapterError::TaskExists(ref id)) if id.as_str() == "task-a"
+    ));
 }
 
 #[test]
@@ -130,8 +131,10 @@ fn test_update_task_non_existent() {
         },
     );
 
-    assert!(res.is_err());
-    assert!(res.unwrap_err().to_string().contains("Task not found"));
+    assert!(matches!(
+        res,
+        Err(AdapterError::TaskNotFound(ref id)) if id.as_str() == "non-existent"
+    ));
 
     // Verify it didn't create anything
     let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
@@ -149,8 +152,10 @@ fn test_delete_task_non_existent() {
         },
     );
 
-    assert!(res.is_err());
-    assert!(res.unwrap_err().to_string().contains("Task not found"));
+    assert!(matches!(
+        res,
+        Err(AdapterError::TaskNotFound(ref id)) if id.as_str() == "non-existent"
+    ));
 }
 
 #[test]
@@ -165,8 +170,10 @@ fn test_complete_task_non_existent() {
         },
     );
 
-    assert!(res.is_err());
-    assert!(res.unwrap_err().to_string().contains("Task not found"));
+    assert!(matches!(
+        res,
+        Err(AdapterError::TaskNotFound(ref id)) if id.as_str() == "non-existent"
+    ));
 }
 
 #[test]
@@ -192,8 +199,10 @@ fn test_move_task_validations() {
             new_parent_id: None,
         },
     );
-    assert!(res.is_err());
-    assert!(res.unwrap_err().to_string().contains("non-existent"));
+    assert!(matches!(
+        res,
+        Err(AdapterError::TaskNotFound(ref id)) if id.as_str() == "non-existent"
+    ));
 
     // 2. Move to non-existent parent
     let res = adapter::dispatch(
@@ -203,8 +212,10 @@ fn test_move_task_validations() {
             new_parent_id: Some(TaskID::from("non-existent")),
         },
     );
-    assert!(res.is_err());
-    assert!(res.unwrap_err().to_string().contains("non-existent"));
+    assert!(matches!(
+        res,
+        Err(AdapterError::ParentNotFound(ref id)) if id.as_str() == "non-existent"
+    ));
 
     // 3. Move task to itself
     let res = adapter::dispatch(
@@ -214,8 +225,10 @@ fn test_move_task_validations() {
             new_parent_id: Some(TaskID::from("task-a")),
         },
     );
-    assert!(res.is_err());
-    assert!(res.unwrap_err().to_string().contains("itself"));
+    assert!(matches!(
+        res,
+        Err(AdapterError::MoveToSelf(ref id, ref nid)) if id.as_str() == "task-a" && nid.as_str() == "task-a"
+    ));
 }
 
 #[test]

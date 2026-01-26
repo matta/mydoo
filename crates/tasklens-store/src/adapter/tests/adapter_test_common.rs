@@ -17,6 +17,22 @@ pub(super) fn init_doc() -> Result<Automerge> {
     Ok(doc)
 }
 
+pub(super) fn dispatch_and_validate(doc: &mut Automerge, action: Action, context: &str) {
+    match adapter::dispatch(doc, action) {
+        Ok(_) => {}
+        Err(
+            adapter::AdapterError::TaskNotFound(_)
+            | adapter::AdapterError::ParentNotFound(_)
+            | adapter::AdapterError::TaskExists(_)
+            | adapter::AdapterError::CycleDetected(..)
+            | adapter::AdapterError::MoveToSelf(..),
+        ) => {
+            // Domain errors are expected in fuzz tests since we generate random actions.
+        }
+        Err(e) => panic!("Unexpected error in {}: {:?}", context, e),
+    }
+}
+
 pub(super) fn check_invariants(doc: &Automerge) -> Result<(), String> {
     // 1. Manual map integrity check (detecting "phantom" objects created by ensure_path)
     if let Ok(Some((automerge::Value::Object(automerge::ObjType::Map), tasks_id))) =
