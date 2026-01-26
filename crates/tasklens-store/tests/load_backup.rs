@@ -1,3 +1,6 @@
+// This test uses `tokio` for async runtime, which is excluded from WASM builds.
+#![cfg(not(target_arch = "wasm32"))]
+
 use automerge::ReadDoc;
 use samod::runtime::LocalRuntimeHandle;
 use std::future::Future;

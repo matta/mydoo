@@ -192,16 +192,17 @@ impl LocalStorage for SamodStorage {
                 .map_err(|e| anyhow!("{:?}", e))?;
 
             for key_val in keys {
-                if let Some(s) = key_val.as_string() {
-                    if s.starts_with(&prefix_str) {
-                        let val = store.get(key_val).await.map_err(|e| anyhow!("{:?}", e))?;
-                        if let Some(v) = val {
-                            if !v.is_undefined() && !v.is_null() {
-                                let bytes: Vec<u8> = serde_wasm_bindgen::from_value(v)
-                                    .map_err(|e| anyhow!("{:?}", e))?;
-                                results.insert(Self::string_to_key(&s), bytes);
-                            }
-                        }
+                if let Some(s) = key_val.as_string()
+                    && s.starts_with(&prefix_str)
+                {
+                    let val = store.get(key_val).await.map_err(|e| anyhow!("{:?}", e))?;
+                    if let Some(v) = val
+                        && !v.is_undefined()
+                        && !v.is_null()
+                    {
+                        let bytes: Vec<u8> =
+                            serde_wasm_bindgen::from_value(v).map_err(|e| anyhow!("{:?}", e))?;
+                        results.insert(Self::string_to_key(&s), bytes);
                     }
                 }
             }
