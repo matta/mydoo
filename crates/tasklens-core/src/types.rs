@@ -245,7 +245,7 @@ impl Hydrate for TaskID {
 impl Reconcile for TaskID {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        reconcile_string_as_text(&self.0, reconciler)
+        reconcile_string_as_scalar(&self.0, reconciler)
     }
 }
 
@@ -315,7 +315,7 @@ impl Hydrate for PlaceID {
 impl Reconcile for PlaceID {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        reconcile_string_as_text(&self.0, reconciler)
+        reconcile_string_as_scalar(&self.0, reconciler)
     }
 }
 
@@ -1199,58 +1199,86 @@ impl TunnelState {
     ///
     /// 1. **Broken Links**: IDs in `root_task_ids` or `child_task_ids` that point to
     ///    tasks no longer present in the `tasks` map.
-    ///    *   *Healing*: These "phantom" IDs are pruned from the lists.
+    ///    *Healing*: These "phantom" IDs are pruned from the lists.
     /// 2. **Broken Parent Links**: Tasks with a `parent_id` set to an ID that does
     ///    not exist in the `tasks` map.
-    ///    *   *Healing*: The `parent_id` is cleared (set to `None`).
-    /// 3. **Orphaned Tasks**: Tasks that exist in the `tasks` map but are not reachable
-    ///    by traversing from the roots.
-    ///    *   *Healing*: These tasks are promoted to roots by adding them to `root_task_ids`.
+    ///    *Healing*: The `parent_id` is cleared (set to `None`).
+    /// 3. **Multiple/Missing List Presence**: Tasks that are in multiple child/root lists
+    ///    or missing from their designated list (common after concurrent moves).
+    ///    *Healing*: The `parent_id` is treated as the source of truth. The task is
+    ///    removed from any "incorrect" lists and ensured to be present in its
+    ///    designated parent's list (or roots), preserving existing order.
     pub fn heal_structural_inconsistencies(&mut self) {
-        // 1. Prune root_task_ids of any tasks that no longer exist (Broken Links)
-        self.root_task_ids.retain(|id| self.tasks.contains_key(id));
+        // 0. Deduplicate lists (keeping first occurrence) to fix duplicate ID regression
+        // This handles cases where concurrent merges might insert the same ID multiple times.
+        let mut seen = std::collections::HashSet::new();
+        self.root_task_ids.retain(|id| seen.insert(id.clone()));
 
-        let mut reachable = std::collections::HashSet::with_capacity(self.tasks.len());
-        let mut stack: Vec<TaskID> = self.root_task_ids.clone();
-
-        while let Some(id) = stack.pop() {
-            if reachable.insert(id.clone())
-                && let Some(task) = self.tasks.get(&id)
-            {
-                for cid in &task.child_task_ids {
-                    // Only add children that actually exist
-                    if self.tasks.contains_key(cid) {
-                        stack.push(cid.clone());
-                    }
-                }
-            }
+        for task in self.tasks.values_mut() {
+            seen.clear();
+            task.child_task_ids.retain(|id| seen.insert(id.clone()));
         }
 
-        let mut orphans = Vec::new();
-        let mut broken_parents = Vec::new();
+        // 1. Prune broken links (pointing to non-existent tasks)
+        let all_task_ids: std::collections::HashSet<_> = self.tasks.keys().cloned().collect();
+        self.root_task_ids.retain(|id| all_task_ids.contains(id));
+        for task in self.tasks.values_mut() {
+            task.child_task_ids.retain(|id| all_task_ids.contains(id));
+        }
 
-        for (id, task) in &self.tasks {
-            if !reachable.contains(id) {
-                orphans.push(id.clone());
-            }
+        // 2. Prune broken parent links (pointing to non-existent tasks)
+        for task in self.tasks.values_mut() {
             if task
                 .parent_id
                 .as_ref()
-                .is_some_and(|pid| !self.tasks.contains_key(pid))
+                .is_some_and(|pid| !all_task_ids.contains(pid))
             {
-                broken_parents.push(id.clone());
-            }
-        }
-
-        for id in broken_parents {
-            if let Some(task) = self.tasks.get_mut(&id) {
                 task.parent_id = None;
             }
         }
 
-        for oid in orphans {
-            if !self.root_task_ids.contains(&oid) {
-                self.root_task_ids.push(oid);
+        // 3. Surgical Pruning: Remove tasks from "wrong" lists based on their parent_id
+        // Prune root_task_ids
+        self.root_task_ids
+            .retain(|id| self.tasks.get(id).is_some_and(|t| t.parent_id.is_none()));
+
+        // Prune child_task_ids in every task
+        // We use a temporary list of IDs to avoid borrowing issues during iteration
+        let parent_ids: Vec<TaskID> = self.tasks.keys().cloned().collect();
+        for pid in parent_ids {
+            if let Some(mut child_ids) = self
+                .tasks
+                .get_mut(&pid)
+                .map(|t| std::mem::take(&mut t.child_task_ids))
+            {
+                child_ids.retain(|cid| {
+                    self.tasks
+                        .get(cid)
+                        .is_some_and(|ct| ct.parent_id.as_ref() == Some(&pid))
+                });
+                if let Some(t) = self.tasks.get_mut(&pid) {
+                    t.child_task_ids = child_ids;
+                }
+            }
+        }
+
+        // 4. Ensure Presence: Add tasks to their designated list if missing
+        // Re-sorting for determinism when adding missing items
+        let mut sorted_ids: Vec<_> = self.tasks.keys().cloned().collect();
+        sorted_ids.sort_by_key(|id| id.to_string());
+
+        for id in sorted_ids {
+            let parent_id = self.tasks.get(&id).and_then(|t| t.parent_id.clone());
+            if let Some(pid) = parent_id {
+                if let Some(parent_task) = self
+                    .tasks
+                    .get_mut(&pid)
+                    .filter(|t| !t.child_task_ids.contains(&id))
+                {
+                    parent_task.child_task_ids.push(id);
+                }
+            } else if !self.root_task_ids.contains(&id) {
+                self.root_task_ids.push(id);
             }
         }
     }

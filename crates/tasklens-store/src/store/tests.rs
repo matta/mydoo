@@ -156,7 +156,7 @@ fn test_dispatch_create() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&task_id_str) },
+                            "id" => { task_id_str.as_str() },
                             "title" => { am_text("Test Task") },
                             "childTaskIds" => { list![] },
                             "status" => { "Pending" },
@@ -181,7 +181,7 @@ fn test_dispatch_create() {
             },
             "rootTaskIds" => {
                 list![
-                    { am_text(&task_id_str) }
+                    { task_id_str.as_str() }
                 ]
             },
             "nextTaskId" => { 1 },
@@ -240,12 +240,12 @@ fn test_dispatch_create_with_parent() {
                 map! {
                     parent_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&parent_id_str) },
+                            "id" => { parent_id_str.as_str() },
                             "title" => { am_text("Parent") },
                             "childTaskIds" => {
                                 list![
-                                    { am_text(&child1_id_str) },
-                                    { am_text(&child2_id_str) }
+                                    { child1_id_str.as_str() },
+                                    { child2_id_str.as_str() }
                                 ]
                             },
                             "status" => { "Pending" },
@@ -269,12 +269,12 @@ fn test_dispatch_create_with_parent() {
                     },
                     child1_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&child1_id_str) },
+                            "id" => { child1_id_str.as_str() },
                             "title" => { am_text("Child 1") },
                             "childTaskIds" => { list![] },
                             "status" => { "Pending" },
                             "notes" => { am_text("") },
-                            "parentId" => { am_text(&parent_id_str) },
+                            "parentId" => { parent_id_str.as_str() },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -294,12 +294,12 @@ fn test_dispatch_create_with_parent() {
                     },
                     child2_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&child2_id_str) },
+                            "id" => { child2_id_str.as_str() },
                             "title" => { am_text("Child 2") },
                             "childTaskIds" => { list![] },
                             "status" => { "Pending" },
                             "notes" => { am_text("") },
-                            "parentId" => { am_text(&parent_id_str) },
+                            "parentId" => { parent_id_str.as_str() },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -321,7 +321,7 @@ fn test_dispatch_create_with_parent() {
             },
             "rootTaskIds" => {
                 list![
-                    { am_text(&parent_id_str) }
+                    { parent_id_str.as_str() }
                 ]
             },
             "nextTaskId" => { 1 },
@@ -465,7 +465,7 @@ fn test_dispatch_update() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&task_id_str) },
+                            "id" => { task_id_str.as_str() },
                             "title" => { "Updated" },
                             "status" => { "Done" },
                             "childTaskIds" => { list![] },
@@ -491,7 +491,7 @@ fn test_dispatch_update() {
             },
             "rootTaskIds" => {
                 list![
-                    { am_text(&task_id_str) }
+                    { task_id_str.as_str() }
                 ]
             },
             "places" => { map!{} },
@@ -594,7 +594,7 @@ fn test_dispatch_delete_with_parent() {
                 map! {
                     parent_id.as_str() => {
                         map! {
-                            "id" => { am_text(parent_id.as_str()) },
+                            "id" => { parent_id.as_str() },
                             "title" => { am_text("Parent") },
                             "childTaskIds" => { list![] },
                             "status" => { "Pending" },
@@ -619,7 +619,7 @@ fn test_dispatch_delete_with_parent() {
                 }
             },
             "rootTaskIds" => {
-                list![ { am_text(parent_id.as_str()) } ]
+                list![ { parent_id.as_str() } ]
             },
             "places" => { map!{} },
             "nextTaskId" => { 1 },
@@ -658,7 +658,7 @@ fn test_dispatch_complete() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&task_id_str) },
+                            "id" => { task_id_str.as_str() },
                             "title" => { am_text("To Complete") },
                             "status" => { "Done" },
                             "childTaskIds" => { list![] },
@@ -686,7 +686,7 @@ fn test_dispatch_complete() {
             },
             "rootTaskIds" => {
                 list![
-                    { am_text(&task_id_str) }
+                    { task_id_str.as_str() }
                 ]
             },
             "places" => { map!{} },
@@ -742,12 +742,12 @@ fn test_dispatch_move() {
                 map! {
                     parent_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&parent_id_str) },
+                            "id" => { parent_id_str.as_str() },
                             "title" => { am_text("Parent") },
                             "status" => { "Pending" },
                             "childTaskIds" => {
                                 list![
-                                    { am_text(&child_id_str) }
+                                    { child_id_str.as_str() }
                                 ]
                             },
                             "notes" => { am_text("") },
@@ -771,12 +771,12 @@ fn test_dispatch_move() {
                     },
                     child_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&child_id_str) },
+                            "id" => { child_id_str.as_str() },
                             "title" => { am_text("Child") },
                             "status" => { "Pending" },
                             "childTaskIds" => { list![] },
                             "notes" => { am_text("") },
-                            "parentId" => { am_text(&parent_id_str) },
+                            "parentId" => { parent_id_str.as_str() },
                             "importance" => { 1 },
                             "creditIncrement" => { 0.5 },
                             "credits" => { 0 },
@@ -799,7 +799,7 @@ fn test_dispatch_move() {
             },
             "rootTaskIds" => {
                 list![
-                    { am_text(&parent_id_str) }
+                    { parent_id_str.as_str() }
                 ]
             },
             "places" => { map!{} },
@@ -851,7 +851,7 @@ fn test_dispatch_refresh_lifecycle() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&task_id_str) },
+                            "id" => { task_id_str.as_str() },
                             "title" => { am_text("To Acknowledge") },
                             "status" => { "Done" },
                             "childTaskIds" => { list![] },
@@ -879,7 +879,7 @@ fn test_dispatch_refresh_lifecycle() {
             },
             "rootTaskIds" => {
                 list![
-                    { am_text(&task_id_str) }
+                    { task_id_str.as_str() }
                 ]
             },
             "places" => { map!{} },
@@ -900,7 +900,7 @@ fn test_dispatch_refresh_lifecycle() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&task_id_str) },
+                            "id" => { task_id_str.as_str() },
                             "title" => { am_text("To Acknowledge") },
                             "status" => { "Done" },
                             "childTaskIds" => { list![] },
@@ -928,7 +928,7 @@ fn test_dispatch_refresh_lifecycle() {
             },
             "rootTaskIds" => {
                 list![
-                    { am_text(&task_id_str) }
+                    { task_id_str.as_str() }
                 ]
             },
             "places" => { map!{} },
@@ -983,7 +983,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&task_id_str) },
+                            "id" => { task_id_str.as_str() },
                             "title" => { am_text("Routine") },
                             "status" => { "Done" },
                             "childTaskIds" => { list![] },
@@ -1017,7 +1017,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
             },
             "rootTaskIds" => {
                 list![
-                    { am_text(&task_id_str) }
+                    { task_id_str.as_str() }
                 ]
             },
             "places" => { map!{} },
@@ -1044,7 +1044,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                 map! {
                     task_id_str.as_str() => {
                         map! {
-                            "id" => { am_text(&task_id_str) },
+                            "id" => { task_id_str.as_str() },
                             "title" => { am_text("Routine") },
                             "status" => { "Pending" },
                             "childTaskIds" => { list![] },
@@ -1078,7 +1078,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
             },
             "rootTaskIds" => {
                 list![
-                    { am_text(&task_id_str) }
+                    { task_id_str.as_str() }
                 ]
             },
             "places" => { map!{} },

@@ -18,46 +18,47 @@
 //! ```
 
 use crate::adapter::tests::adapter_test_common::{
-    self, HydrationStrategy, any_action_for_replica, check_invariants, dispatch_and_validate,
-    init_doc,
+    FuzzState, HydrationStrategy, any_abstract_action, check_invariants, dispatch_and_validate,
+    init_doc, interpret_actions,
 };
 use proptest::prelude::*;
 
 proptest! {
+    #![proptest_config(ProptestConfig::with_cases(100))]
     #[test]
     fn test_merge_invariants_fuzz(
-        setup in prop::collection::vec(
-            any_action_for_replica("s-", adapter_test_common::SETUP_PREFIXES), 1..10
-        ),
-        concurrent_a in prop::collection::vec(
-            any_action_for_replica("a-", adapter_test_common::REPLICA_A_PREFIXS), 1..10
-        ),
-        concurrent_b in prop::collection::vec(
-            any_action_for_replica("b-", adapter_test_common::REPLICA_B_PREFIXS), 1..10
-        ),
+        setup_abstracts in prop::collection::vec(any_abstract_action(0.9), 1..10),
+        concurrent_a_abstracts in prop::collection::vec(any_abstract_action(0.9), 1..10),
+        concurrent_b_abstracts in prop::collection::vec(any_abstract_action(0.9), 1..10),
     ) {
-        let mut doc_a = init_doc().expect("Init failed");
+        // 1. Setup
+        let (setup_actions, setup_state) = interpret_actions(FuzzState::default(), setup_abstracts, "s-");
 
-        // 1. Initial State
-        for action in setup {
+        let mut doc_a = init_doc().expect("Init failed");
+        for action in setup_actions {
             dispatch_and_validate(&mut doc_a, action, "merge fuzz setup");
         }
 
         // 2. Fork
         let mut doc_b = doc_a.fork();
 
-        // 3. Mutate concurrently
-        for action in concurrent_a {
+        // 3. Interpret concurrent streams using the setup state as base
+        // Note: We clone setup_state for each branch independently so they diverge from the same snapshot.
+        let (conc_a, _) = interpret_actions(setup_state.clone(), concurrent_a_abstracts, "a-");
+        let (conc_b, _) = interpret_actions(setup_state, concurrent_b_abstracts, "b-");
+
+        // 4. Mutate concurrently
+        for action in conc_a {
             dispatch_and_validate(&mut doc_a, action, "merge fuzz concurrent_a");
         }
-        for action in concurrent_b {
+        for action in conc_b {
             dispatch_and_validate(&mut doc_b, action, "merge fuzz concurrent_b");
         }
 
-        // 4. Merge
+        // 5. Merge
         doc_a.merge(&mut doc_b).expect("Merge failed");
 
-        // 5. Assert: Invariants held
+        // 6. Assert: Invariants held
         if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
             panic!("Invariant Failure!\n{}", msg);
         }
