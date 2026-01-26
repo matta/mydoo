@@ -789,3 +789,322 @@ fn test_concurrent_move_to_locally_deleted_parent_leak() {
         panic!("Invariant Failure!\n{}", msg);
     }
 }
+
+#[test]
+fn test_concurrent_move_to_root_duplicate_id() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // 1. Setup: Create Task P as root, and Task A as child of P
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-p"),
+            parent_id: None,
+            title: "Parent".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-a"),
+            parent_id: Some(TaskID::from("task-p")),
+            title: "Child A".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // 2. Concurrent A: Move Task A to root
+    adapter::dispatch(
+        &mut doc_a,
+        Action::MoveTask {
+            id: TaskID::from("task-a"),
+            new_parent_id: None,
+        },
+    )
+    .unwrap();
+
+    // 3. Concurrent B: Move Task A to root
+    adapter::dispatch(
+        &mut doc_b,
+        Action::MoveTask {
+            id: TaskID::from("task-a"),
+            new_parent_id: None,
+        },
+    )
+    .unwrap();
+
+    // 4. Merge
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+
+    // 5. Check invariants
+    // This is expected to PASS because Heal strategy deduplicates the concurrent rootTaskIds entries.
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
+        panic!("Invariant Failure!\n{}", msg);
+    }
+}
+
+#[test]
+fn test_concurrent_move_inconsistency_regression() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // 1. Setup: Create Task 1 and Task 2
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: None,
+            title: "Task 1".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-2"),
+            parent_id: None,
+            title: "Task 2".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // 2. Concurrent A: Create Task 3 and move Task 1 under it
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-3"),
+            parent_id: None,
+            title: "Task 3".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::MoveTask {
+            id: TaskID::from("task-1"),
+            new_parent_id: Some(TaskID::from("task-3")),
+        },
+    )
+    .unwrap();
+
+    // 3. Concurrent B: Move Task 1 under Task 2
+    adapter::dispatch(
+        &mut doc_b,
+        Action::MoveTask {
+            id: TaskID::from("task-1"),
+            new_parent_id: Some(TaskID::from("task-2")),
+        },
+    )
+    .unwrap();
+
+    // 4. Merge
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+
+    // 5. Assert: Invariants held
+    // We expect this to fail with Strict hydration if the fix is not present.
+    // We use Heal strategy here to verify that our healing logic handles the concurrent move inconsistency.
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
+        panic!("Invariant Failure!\n{}", msg);
+    }
+}
+
+#[test]
+fn test_id_corruption_minimal_repro() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // 1. Setup: Create Task 1 and Task 2. rootTaskIds = ["task-1", "task-2"]
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: None,
+            title: "Task 1".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-2"),
+            parent_id: None,
+            title: "Task 2".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // 2. Concurrent A: Delete Task 1. Replica A's rootTaskIds becomes ["task-2"]
+    adapter::dispatch(
+        &mut doc_a,
+        Action::DeleteTask {
+            id: TaskID::from("task-1"),
+        },
+    )
+    .unwrap();
+
+    // 3. Concurrent B: Delete Task 1. Replica B's rootTaskIds becomes ["task-2"]
+    adapter::dispatch(
+        &mut doc_b,
+        Action::DeleteTask {
+            id: TaskID::from("task-1"),
+        },
+    )
+    .unwrap();
+
+    // 4. Merge
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+
+    // 5. Assert: Invariants held
+    // This will pass now because we've fixed ID corruption (scalar)
+    // and we're using Heal strategy for structural inconsistencies.
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
+        panic!("Invariant Failure (ID corruption fix failed)!\n{}", msg);
+    }
+}
+
+#[test]
+fn test_multiple_parents_minimal_repro() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // 1. Setup: Create tasks 1, 2, 3 as roots
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: None,
+            title: "Task 1".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-2"),
+            parent_id: None,
+            title: "Task 2".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-3"),
+            parent_id: None,
+            title: "Task 3".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // 2. Concurrent A: Move task-1 to parent task-2
+    adapter::dispatch(
+        &mut doc_a,
+        Action::MoveTask {
+            id: TaskID::from("task-1"),
+            new_parent_id: Some(TaskID::from("task-2")),
+        },
+    )
+    .unwrap();
+
+    // 3. Concurrent B: Move task-1 to parent task-3
+    adapter::dispatch(
+        &mut doc_b,
+        Action::MoveTask {
+            id: TaskID::from("task-1"),
+            new_parent_id: Some(TaskID::from("task-3")),
+        },
+    )
+    .unwrap();
+
+    // 4. Merge
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+
+    // 5. Assert: Invariants held
+    // We use Heal strategy here to verify that our healing logic handles the concurrent move inconsistency.
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
+        panic!("Invariant Failure (Multiple Parents heal failed)!\n{}", msg);
+    }
+}
+
+#[test]
+fn test_multiple_parents_child_list_minimal_repro() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // 1. Setup: Create task-0, and tasks 1, 2, 3 as children of task-0
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-0"),
+            parent_id: None,
+            title: "Root".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: Some(TaskID::from("task-0")),
+            title: "Child 1".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-2"),
+            parent_id: Some(TaskID::from("task-0")),
+            title: "Child 2".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-3"),
+            parent_id: Some(TaskID::from("task-0")),
+            title: "Child 3".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // 2. Concurrent A: Move task-1 to parent task-2
+    adapter::dispatch(
+        &mut doc_a,
+        Action::MoveTask {
+            id: TaskID::from("task-1"),
+            new_parent_id: Some(TaskID::from("task-2")),
+        },
+    )
+    .unwrap();
+
+    // 3. Concurrent B: Move task-1 to parent task-3
+    adapter::dispatch(
+        &mut doc_b,
+        Action::MoveTask {
+            id: TaskID::from("task-1"),
+            new_parent_id: Some(TaskID::from("task-3")),
+        },
+    )
+    .unwrap();
+
+    // 4. Merge
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+
+    // 5. Assert: Invariants held
+    // We use Heal strategy here to verify that our healing logic handles the concurrent move inconsistency.
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
+        panic!(
+            "Invariant Failure (Child list Multiple Parents heal failed)!\n{}",
+            msg
+        );
+    }
+}

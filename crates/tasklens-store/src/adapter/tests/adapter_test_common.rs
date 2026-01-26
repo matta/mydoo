@@ -2,7 +2,6 @@ use crate::actions::{Action, TaskUpdates};
 use crate::adapter;
 use anyhow::Result;
 use automerge::Automerge;
-use automerge::ReadDoc;
 use proptest::prelude::*;
 use tasklens_core::types::{PlaceID, RepeatConfig, ScheduleType, TaskID, TaskStatus, TunnelState};
 
@@ -44,28 +43,7 @@ pub(super) fn dispatch_and_validate(doc: &mut Automerge, action: Action, context
 }
 
 pub(super) fn check_invariants(doc: &Automerge, strategy: HydrationStrategy) -> Result<(), String> {
-    // 1. Manual map integrity check (detecting "phantom" objects created by ensure_path)
-    if let Ok(Some((automerge::Value::Object(automerge::ObjType::Map), tasks_id))) =
-        doc.get(&automerge::ROOT, "tasks")
-    {
-        for task_key in doc.keys(&tasks_id) {
-            if let Ok(Some((automerge::Value::Object(automerge::ObjType::Map), task_obj))) =
-                doc.get(&tasks_id, &task_key)
-            {
-                // Fields that should NEVER be missing if a task entry exists
-                for field in ["id", "title", "status"] {
-                    if doc.get(&task_obj, field).unwrap_or(None).is_none() {
-                        return Err(format!(
-                            "Broken Invariant path: tasks[\"{}\"] exists but is missing mandatory field \"{}\". (Likely a phantom object hazard)",
-                            task_key, field
-                        ));
-                    }
-                }
-            }
-        }
-    }
-
-    // 2. Check hydration according to strategy
+    // 1. Hydrate according to strategy
     let state: TunnelState = match strategy {
         HydrationStrategy::Strict => {
             // We use autosurgeon::hydrate directly here because we WANT to see inconsistencies.

@@ -54,7 +54,3 @@ proptest = "1.9"
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 proptest = { version = "1.9", default-features = false, features = ["std"] }
-
-[[bench]]
-name = "import_benchmark"
-harness = false
