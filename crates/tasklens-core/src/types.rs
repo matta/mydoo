@@ -1207,8 +1207,12 @@ impl TunnelState {
     ///    by traversing from the roots.
     ///    *   *Healing*: These tasks are promoted to roots by adding them to `root_task_ids`.
     pub fn heal_structural_inconsistencies(&mut self) {
-        // 1. Prune root_task_ids of any tasks that no longer exist (Broken Links)
-        self.root_task_ids.retain(|id| self.tasks.contains_key(id));
+        // 1. Prune root_task_ids and child_task_ids of any tasks that no longer exist (Broken Links)
+        let task_ids: std::collections::HashSet<_> = self.tasks.keys().cloned().collect();
+        self.root_task_ids.retain(|id| task_ids.contains(id));
+        for task in self.tasks.values_mut() {
+            task.child_task_ids.retain(|id| task_ids.contains(id));
+        }
 
         let mut reachable = std::collections::HashSet::with_capacity(self.tasks.len());
         let mut stack: Vec<TaskID> = self.root_task_ids.clone();
@@ -1249,8 +1253,12 @@ impl TunnelState {
         }
 
         for oid in orphans {
-            if !self.root_task_ids.contains(&oid) {
-                self.root_task_ids.push(oid);
+            if let Some(task) = self.tasks.get_mut(&oid) {
+                // We only promote an orphan to root if it's the root of its own subtree
+                // (i.e. it has no parent or a broken parent that was just cleared).
+                if task.parent_id.is_none() && !self.root_task_ids.contains(&oid) {
+                    self.root_task_ids.push(oid);
+                }
             }
         }
     }

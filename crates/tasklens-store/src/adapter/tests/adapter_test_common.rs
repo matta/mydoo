@@ -6,8 +6,11 @@ use automerge::ReadDoc;
 use proptest::prelude::*;
 use tasklens_core::types::{PlaceID, RepeatConfig, ScheduleType, TaskID, TaskStatus, TunnelState};
 
+#[allow(dead_code)]
 pub(super) static SETUP_PREFIXES: &[&str] = &["s-"];
+#[allow(dead_code)]
 pub(super) static REPLICA_A_PREFIXS: &[&str] = &["s-", "a-"];
+#[allow(dead_code)]
 pub(super) static REPLICA_B_PREFIXS: &[&str] = &["s-", "b-"];
 
 pub(super) enum HydrationStrategy {
@@ -351,4 +354,234 @@ pub(super) fn any_action_for_replica(
             .prop_map(|(id, new_parent_id)| { Action::MoveTask { id, new_parent_id } }),
         any::<i64>().prop_map(|current_time| Action::RefreshLifecycle { current_time }),
     ]
+}
+
+// --- Stateful Fuzzing Strategy ---
+
+/// Tracks the state of the fuzz test simulation, specifically the set of
+/// "Active" TaskIDs that have been created and not yet permanently deleted.
+///
+/// This allows the fuzz generator to meaningfully target existing tasks
+/// (e.g., for Updates or Moves) rather than purely guessing random IDs.
+#[derive(Clone, Debug)]
+pub(super) struct FuzzState {
+    pub active_ids: Vec<TaskID>,
+    pub next_id_counter: usize,
+}
+
+impl Default for FuzzState {
+    fn default() -> Self {
+        Self {
+            active_ids: Vec::new(),
+            next_id_counter: 1,
+        }
+    }
+}
+
+/// Represents an abstract intention of an action, separated from the
+/// concrete TaskIDs.
+///
+/// Instead of containing specific `TaskID`s (which might be invalid or unknown),
+/// this struct uses "Selectors" (indices) which are resolved against the
+/// current `FuzzState` at runtime to pick a valid target.
+#[derive(Clone, Debug)]
+pub(super) enum AbstractAction {
+    Create {
+        title_seed: String,
+        parent_selector: Option<usize>,
+    },
+    Update {
+        target_selector: usize,
+        updates: TaskUpdates,
+    },
+    Delete {
+        target_selector: usize,
+    },
+    Complete {
+        target_selector: usize,
+        time: i64,
+    },
+    Move {
+        target_selector: usize,
+        parent_selector: Option<usize>,
+    },
+    Refresh {
+        time: i64,
+    },
+    // "Random" actions specifically targeting unknown IDs or edge cases
+    Chaos(Action),
+}
+
+/// Generates a sequence of abstract actions with a bias towards "valid" operations.
+///
+/// * `valid_ratio`: The probability (0.0 to 1.0) that a generated action will
+///   intent to target a valid, existing task (if any exist).
+///
+/// The strategy produces `AbstractAction`s which must be interpreted by
+/// `interpret_actions` to produce concrete `Action`s.
+pub(super) fn any_abstract_action(valid_ratio: f64) -> impl Strategy<Value = AbstractAction> {
+    prop::bool::weighted(valid_ratio).prop_flat_map(move |valid| {
+        if valid {
+            // Generate a "Valid-intent" action (will try to use existing IDs)
+            prop_oneof![
+                // Create
+                (any::<String>(), any::<Option<usize>>()).prop_map(|(t, p)| {
+                    AbstractAction::Create {
+                        title_seed: t,
+                        parent_selector: p,
+                    }
+                }),
+                // Update
+                (any::<usize>(), any_task_updates()).prop_map(|(t, u)| AbstractAction::Update {
+                    target_selector: t,
+                    updates: u
+                }),
+                // Delete
+                any::<usize>().prop_map(|t| AbstractAction::Delete { target_selector: t }),
+                // Complete
+                (any::<usize>(), any::<i64>()).prop_map(|(t, time)| AbstractAction::Complete {
+                    target_selector: t,
+                    time
+                }),
+                // Move
+                (any::<usize>(), any::<Option<usize>>()).prop_map(|(t, p)| AbstractAction::Move {
+                    target_selector: t,
+                    parent_selector: p
+                }),
+                // Refresh
+                any::<i64>().prop_map(|time| AbstractAction::Refresh { time }),
+            ]
+            .boxed()
+        } else {
+            // Generate a "Chaos" action (uses arbitrary strings/IDs)
+            any_action().prop_map(AbstractAction::Chaos).boxed()
+        }
+    })
+}
+
+/// Interprets a sequence of `AbstractAction`s into concrete `Action`s using
+/// a stateful context.
+///
+/// This function iterates through the abstract actions, maintaining the `FuzzState`
+/// to track which TaskIDs are currently valid. It resolves "selectors" (indices)
+/// from the abstract actions into actual `TaskID`s.
+///
+/// * `state`: The initial or current state of the simulation.
+/// * `abstract_actions`: The sequence of intents to execute.
+/// * `id_prefix`: A prefix for newly created TaskIDs to ensure uniqueness across
+///   different replicas (e.g., "a-", "b-").
+pub(super) fn interpret_actions(
+    mut state: FuzzState,
+    abstract_actions: Vec<AbstractAction>,
+    id_prefix: &'static str,
+) -> (Vec<Action>, FuzzState) {
+    let mut actions = Vec::with_capacity(abstract_actions.len());
+
+    for aa in abstract_actions {
+        match aa {
+            AbstractAction::Create {
+                title_seed,
+                parent_selector,
+            } => {
+                let id_str = format!("{}task-gen-{}", id_prefix, state.next_id_counter);
+                state.next_id_counter += 1;
+                let id = TaskID::from(id_str);
+
+                let parent_id = if state.active_ids.is_empty() {
+                    None
+                } else {
+                    parent_selector.map(|s| {
+                        let idx = s % state.active_ids.len();
+                        state.active_ids[idx].clone()
+                    })
+                };
+
+                state.active_ids.push(id.clone());
+                actions.push(Action::CreateTask {
+                    id,
+                    parent_id,
+                    title: title_seed,
+                });
+            }
+            AbstractAction::Update {
+                target_selector,
+                updates,
+            } => {
+                if state.active_ids.is_empty() {
+                    // Fallback to no-op or chaos if no tasks
+                    continue;
+                }
+                let idx = target_selector % state.active_ids.len();
+                let id = state.active_ids[idx].clone();
+                actions.push(Action::UpdateTask { id, updates });
+            }
+            AbstractAction::Delete { target_selector } => {
+                if state.active_ids.is_empty() {
+                    continue;
+                }
+                let idx = target_selector % state.active_ids.len();
+                let id = state.active_ids.swap_remove(idx); // Remove from valid set
+                actions.push(Action::DeleteTask { id });
+            }
+            AbstractAction::Complete {
+                target_selector,
+                time,
+            } => {
+                if state.active_ids.is_empty() {
+                    continue;
+                }
+                let idx = target_selector % state.active_ids.len();
+                let id = state.active_ids[idx].clone();
+                actions.push(Action::CompleteTask {
+                    id,
+                    current_time: time,
+                });
+            }
+            AbstractAction::Move {
+                target_selector,
+                parent_selector,
+            } => {
+                if state.active_ids.is_empty() {
+                    continue;
+                }
+                let t_idx = target_selector % state.active_ids.len();
+                let target_id = state.active_ids[t_idx].clone();
+
+                let new_parent_id = parent_selector.and_then(|s| {
+                    if state.active_ids.is_empty() {
+                        None
+                    } else {
+                        let p_idx = s % state.active_ids.len();
+                        Some(state.active_ids[p_idx].clone())
+                    }
+                });
+
+                // Self-move prevention
+                if let Some(ref npid) = new_parent_id
+                    && npid == &target_id
+                {
+                    continue;
+                }
+
+                actions.push(Action::MoveTask {
+                    id: target_id,
+                    new_parent_id,
+                });
+            }
+            AbstractAction::Refresh { time } => {
+                actions.push(Action::RefreshLifecycle { current_time: time });
+            }
+            AbstractAction::Chaos(mut action) => {
+                // If the chaos action creates a task, we must ensure its ID honors the
+                // prefix to avoid collision between concurrent branches (mimicking UUIDs).
+                if let Action::CreateTask { id, .. } = &mut action {
+                    let new_id = format!("{}{}", id_prefix, id.as_str());
+                    *id = TaskID::from(new_id);
+                }
+                actions.push(action);
+            }
+        }
+    }
+
+    (actions, state)
 }

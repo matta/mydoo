@@ -611,3 +611,181 @@ fn test_delete_task_cascades() {
         "Root task ids should be empty"
     );
 }
+
+#[test]
+fn test_concurrent_move_and_delete_child_link_leak() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // 1. Setup: Create Task 1 (the victim)
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: None,
+            title: "Victim".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // 2. Concurrent A: Create Task 5 and move Task 1 under it
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-5"),
+            parent_id: None,
+            title: "New Parent".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::MoveTask {
+            id: TaskID::from("task-1"),
+            new_parent_id: Some(TaskID::from("task-5")),
+        },
+    )
+    .unwrap();
+
+    // 3. Concurrent B: Delete Task 1
+    adapter::dispatch(
+        &mut doc_b,
+        Action::DeleteTask {
+            id: TaskID::from("task-1"),
+        },
+    )
+    .unwrap();
+
+    // 4. Merge
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+
+    // 5. Assert: Invariants held (using Heal strategy)
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
+        panic!("Invariant Failure!\n{}", msg);
+    }
+}
+
+#[test]
+fn test_concurrent_create_grandchild_and_delete_ancestor_leak() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // 1. Setup: Create Task 0
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-0"),
+            parent_id: None,
+            title: "Ancestor".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // 2. Concurrent A: Delete Task 0
+    adapter::dispatch(
+        &mut doc_a,
+        Action::DeleteTask {
+            id: TaskID::from("task-0"),
+        },
+    )
+    .unwrap();
+
+    // 3. Concurrent B: Create Task 1 (child of 0) and Task 2 (child of 1)
+    adapter::dispatch(
+        &mut doc_b,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: Some(TaskID::from("task-0")),
+            title: "Child".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_b,
+        Action::CreateTask {
+            id: TaskID::from("task-2"),
+            parent_id: Some(TaskID::from("task-1")),
+            title: "Grandchild".into(),
+        },
+    )
+    .unwrap();
+
+    // 4. Merge
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+
+    // 5. Check invariants with Heal
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
+        panic!("Invariant Failure!\n{}", msg);
+    }
+}
+
+#[test]
+fn test_concurrent_move_to_locally_deleted_parent_leak() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // Setup: 3 tasks
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-0"),
+            parent_id: None,
+            title: "".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: None,
+            title: "".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-2"),
+            parent_id: None,
+            title: "".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // Concurrent A: Delete task-0
+    adapter::dispatch(
+        &mut doc_a,
+        Action::DeleteTask {
+            id: TaskID::from("task-0"),
+        },
+    )
+    .unwrap();
+
+    // Concurrent B:
+    // Move task-1 to parent task-2
+    adapter::dispatch(
+        &mut doc_b,
+        Action::MoveTask {
+            id: TaskID::from("task-1"),
+            new_parent_id: Some(TaskID::from("task-2")),
+        },
+    )
+    .unwrap();
+    // Delete task-2
+    adapter::dispatch(
+        &mut doc_b,
+        Action::DeleteTask {
+            id: TaskID::from("task-2"),
+        },
+    )
+    .unwrap();
+
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
+        panic!("Invariant Failure!\n{}", msg);
+    }
+}
