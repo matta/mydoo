@@ -38,3 +38,5 @@ pub(crate) use select::Select;
 pub(crate) use task_editor::TaskEditor;
 pub mod move_picker;
 pub(crate) use move_picker::MovePicker;
+pub mod page_header;
+pub(crate) use page_header::PageHeader;

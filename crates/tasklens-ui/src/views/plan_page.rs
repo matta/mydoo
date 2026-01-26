@@ -1,24 +1,19 @@
-use crate::components::task_row::TaskRow;
-use crate::components::{LoadErrorView, TaskInput};
+use crate::components::{LoadErrorView, PageHeader, TaskInput};
 use crate::controllers::task_controller;
-use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
-use tasklens_store::doc_id::DocumentId;
 use tasklens_store::store::AppStore;
 
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
-    let mut store = use_context::<Signal<AppStore>>();
+    let store = use_context::<Signal<AppStore>>();
     let load_error = use_context::<Signal<Option<String>>>();
-    let mut doc_id = use_context::<Signal<Option<DocumentId>>>();
 
     // Track expanded task IDs.
     let mut expanded_tasks: Signal<std::collections::HashSet<TaskID>> =
         use_signal(std::collections::HashSet::<TaskID>::new);
     let mut input_text = use_signal(String::new);
     let mut highlighted_task_id = use_signal(|| None::<TaskID>);
-    let mut show_settings = use_signal(|| false);
 
     // FIXME: If tasks are created faster than 2s apart, multiple timers could be spawned.
     // Consider tracking the spawned task handle and cancelling it before spawning a new one.
@@ -156,127 +151,25 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         }
     };
 
-    // FIXME: This logic is duplicated in task_page.rs and should be consolidated.
-    let handle_doc_change = move |new_doc_id: DocumentId| {
-        tracing::info!("Attempting to switch to Document ID: {}", new_doc_id);
-        spawn(async move {
-            tracing::info!("Switching to Document ID: {}", new_doc_id);
-
-            // 1. Get repo without holding lock
-            let repo = store.read().repo.clone();
-
-            if let Some(repo) = repo {
-                // 2. Perform async lookup detached from store instance
-                match AppStore::find_doc(repo, new_doc_id.clone()).await {
-                    Ok(Some(handle)) => {
-                        tracing::info!(
-                            "find_doc_detached successful for Document ID: {}",
-                            new_doc_id
-                        );
-
-                        // 3. Acquire lock ONLY for the sync update
-                        store.write().set_active_doc(handle, new_doc_id.clone());
-                        tracing::info!("set_active_doc successful for Document ID: {}", new_doc_id);
-
-                        let logged_doc_id = new_doc_id.clone();
-                        doc_id.set(Some(new_doc_id));
-                        tracing::info!(
-                            "doc_id.set() successful for Document ID: {}",
-                            logged_doc_id
-                        );
-                    }
-                    Ok(None) => {
-                        tracing::error!("Document not found: {}", new_doc_id);
-                    }
-                    Err(e) => {
-                        tracing::error!("find_doc_detached failed: {:?}", e);
-                    }
-                }
-            } else {
-                tracing::error!("Repo not initialized");
-            }
-        });
-    };
-
-    // FIXME: This logic is duplicated in task_page.rs and should be consolidated.
-    let handle_create_doc = move |_| {
-        tracing::info!("Creating new document");
-        spawn(async move {
-            // 1. Get repo without holding lock
-            let repo = store.read().repo.clone();
-
-            if let Some(repo) = repo {
-                // 2. Perform async creation detached from store instance
-                match AppStore::create_new(repo).await {
-                    Ok((handle, new_id)) => {
-                        tracing::info!("Created new doc successfully: {}", new_id);
-
-                        // 3. Acquire lock ONLY for the sync update
-                        store.write().set_active_doc(handle, new_id.clone());
-                        doc_id.set(Some(new_id));
-                    }
-                    Err(e) => tracing::error!("Failed to create doc: {:?}", e),
-                }
-            } else {
-                tracing::error!("Repo not initialized");
-            }
-        });
-    };
-
     rsx! {
-        if show_settings() {
-            SettingsModal {
-                on_close: move |_| show_settings.set(false),
-                doc_id,
-                on_doc_change: handle_doc_change,
-                on_create_doc: handle_create_doc,
-            }
-        }
         div {
-            class: "p-4 container mx-auto max-w-2xl",
+            class: "px-4 pt-4 pb-20 container mx-auto max-w-2xl",
             style: "padding-top: var(--safe-top); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
 
-            div { class: "flex justify-between items-center mb-6",
-                h1 { class: "text-2xl font-bold", "Plan" }
-                div { class: "flex items-center space-x-2",
-                    if !flattened_tasks().is_empty() && load_error().is_none() {
-                        button {
-                            class: "p-2 bg-blue-600 text-white rounded-md text-base hover:bg-blue-700",
-                            aria_label: "Add Task at Top",
-                            onclick: move |_| {
-                                editor_state
-                                    .set(
-                                        Some(EditorState::Create {
-                                            parent_id: None,
-                                        }),
-                                    )
-                            },
-                            "Add Task"
-                        }
-                    }
+            PageHeader { title: "Plan",
+                if !flattened_tasks().is_empty() && load_error().is_none() {
                     button {
-                        class: "text-gray-500 hover:text-gray-700 p-1 rounded-md hover:bg-gray-100",
-                        onclick: move |_| show_settings.set(true),
-                        aria_label: "Settings",
-                        "data-testid": "settings-button",
-                        svg {
-                            class: "h-6 w-6",
-                            fill: "none",
-                            view_box: "0 0 24 24",
-                            stroke: "currentColor",
-                            path {
-                                stroke_linecap: "round",
-                                stroke_linejoin: "round",
-                                stroke_width: "2",
-                                d: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z",
-                            }
-                            path {
-                                stroke_linecap: "round",
-                                stroke_linejoin: "round",
-                                stroke_width: "2",
-                                d: "M15 12a3 3 0 11-6 0 3 3 0 016 0z",
-                            }
-                        }
+                        class: "p-2 bg-blue-600 text-white rounded-md text-base hover:bg-blue-700",
+                        aria_label: "Add Task at Top",
+                        onclick: move |_| {
+                            editor_state
+                                .set(
+                                    Some(EditorState::Create {
+                                        parent_id: None,
+                                    }),
+                                )
+                        },
+                        "Add Task"
                     }
                 }
             }
@@ -319,7 +212,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                         }
                     } else {
                         for FlattenedTask { task , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
-                            TaskRow {
+                            crate::components::task_row::TaskRow {
                                 key: "{task.id}",
                                 task: task.clone(),
                                 depth,
