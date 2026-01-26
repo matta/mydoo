@@ -18,7 +18,37 @@
  * "Do not manually define TypeScript interfaces that mirror Zod schemas.
  * Derive the static type directly from the runtime schema using `z.infer`."
  */
+import { ImmutableString } from "@automerge/automerge";
 import { z } from "zod";
+
+/**
+ * Helper for Automerge scalar enum fields.
+ *
+ * **Purpose:**
+ * Represents a string field in an Automerge document that might be wrapped in a
+ * conflict-handling object (`ImmutableString`) or exist as a primitive string.
+ *
+ * **Structure:**
+ * A union of the primitive string literal `T` and the Automerge `ImmutableString` wrapper.
+ * The wrapper includes a readonly `.val` property containing the actual value.
+ *
+ * **Semantic Meaning:**
+ * This type signals that the field is subject to Automerge's text CRDT merge logic
+ * rather than simple "last-write-wins" register behavior, or simply that it exists
+ * within an Automerge proxy context where primitive strings may be boxed.
+ *
+ * **Intended Use Case:**
+ * Use this in `WritableTask` (and other mutable proxy types) for fields like `status` or
+ * `schedule.type` that are "enum-like" strings stored in Automerge.
+ *
+ * **How to Use:**
+ * Never access the value directly via `typeof` checks if possible.
+ * Instead, use the `unwrapScalar()` utility from `src/types/persistence.ts` to
+ * safely extract the underlying string value regardless of its boxed state.
+ */
+export type Scalar<T extends string> =
+  | T
+  | (ImmutableString & { readonly val: T });
 
 /**
  * Helper to create a record schema that handles Automerge proxies.
@@ -51,6 +81,34 @@ function AutomergeRecord<
 }
 
 /**
+ * Helper to create an enum schema that can handle Automerge Text
+ * and ImmutableString objects by normalizing them to a primitive string.
+ */
+function LenientEnum<T extends readonly [string, ...string[]]>(values: T) {
+  const enumSchema = z.enum([...values] as [string, ...string[]]);
+
+  return z
+    .preprocess(
+      (val) => {
+        if (val instanceof ImmutableString) return val;
+        if (typeof val === "object" && val !== null && "toString" in val) {
+          return val.toString();
+        }
+        return val;
+      },
+      z.union([
+        enumSchema,
+        z
+          .instanceof(ImmutableString)
+          .refine((data) => (values as readonly string[]).includes(data.val), {
+            message: `ImmutableString.val must be one of: [${values.join(", ")}]`,
+          }),
+      ]),
+    )
+    .transform((val) => String(val) as T[number]);
+}
+
+/**
  * Schema for validating a task ID.
  *
  * Uses Zod's `.brand()` to produce a branded type that matches `TaskID`
@@ -65,14 +123,18 @@ export const TaskIDSchema = z.string().brand<"TaskID">();
  */
 export const PlaceIDSchema = z.string().brand<"PlaceID">();
 
-/**
- * Schema for validating a Schedule object.
- *
- * Scheduling information for a task.
- */
+/** Scheduling information for a task. */
+export const SCHEDULE_TYPES = [
+  "Once",
+  "Routinely",
+  "DueDate",
+  "Calendar",
+] as const;
+export type ScheduleType = (typeof SCHEDULE_TYPES)[number];
+
 const ScheduleSchema = z.looseObject({
   /** "Once" for one-time tasks, "Routinely" for repeating tasks. */
-  type: z.enum(["Once", "Routinely", "DueDate", "Calendar"]),
+  type: LenientEnum(SCHEDULE_TYPES),
   /** Unix timestamp (ms) when the task is due, or undefined if no deadline. */
   dueDate: z.number().optional(),
   /** How far in advance (in ms) the task should appear before its due date. */
@@ -87,21 +149,20 @@ const ScheduleSchema = z.looseObject({
  */
 export type Schedule = z.infer<typeof ScheduleSchema>;
 
-/**
- * Schema for validating RepeatConfig.
- *
- * Configuration for recurring tasks.
- */
+/** Configuration for recurring tasks. */
+export const FREQUENCY_TYPES = [
+  "minutes",
+  "hours",
+  "daily",
+  "weekly",
+  "monthly",
+  "yearly",
+] as const;
+export type FrequencyType = (typeof FREQUENCY_TYPES)[number];
+
 export const RepeatConfigSchema = z.looseObject({
   /** Frequency of recurrence */
-  frequency: z.enum([
-    "minutes",
-    "hours",
-    "daily",
-    "weekly",
-    "monthly",
-    "yearly",
-  ]),
+  frequency: LenientEnum(FREQUENCY_TYPES),
   /** Interval between occurrences (e.g., every 2 days) */
   interval: z.number().min(1),
 });
@@ -111,6 +172,9 @@ export const RepeatConfigSchema = z.looseObject({
  * This is the single source of truth - do not manually define a RepeatConfig interface.
  */
 export type RepeatConfig = z.infer<typeof RepeatConfigSchema>;
+
+/** Configuration for recurring tasks. */
+const STATUS_TYPES = ["Pending", "Done"] as const;
 
 /**
  * Schema for validating a Task object (Persisted Record).
@@ -136,7 +200,7 @@ export const TaskSchema = z.looseObject({
   /** Location where this task should be done, or undefined to inherit from parent. */
   placeId: PlaceIDSchema.optional(),
   /** Current state: Pending, Done, or Deleted. */
-  status: z.enum(["Pending", "Done"]),
+  status: LenientEnum(STATUS_TYPES),
   /** User-assigned priority from 0.0 (lowest) to 1.0 (highest). */
   importance: z.number().min(0).max(1),
   /** Points awarded when this task is completed. */
@@ -172,6 +236,11 @@ export const TaskSchema = z.looseObject({
  * This is the single source of truth - do not manually define a PersistedTask interface.
  *
  * Represents a unit of work in the task management system (Persisted Record).
+ *
+ * **Role in Program:**
+ * - This type represents the **Clean, Read-Only Snapshot** of a task.
+ * - It is used by the UI, Selectors, and Computations (`ComputedTask`).
+ * - It strictly adheres to the Zod schema and does NOT contain Automerge Scalars or unknown fields.
  */
 export type PersistedTask = z.infer<typeof TaskSchema>;
 

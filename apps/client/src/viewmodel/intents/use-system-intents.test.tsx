@@ -1,4 +1,4 @@
-import { type TaskID, TaskStatus } from "@mydoo/tasklens";
+import { type TaskID, TaskStatus, unwrapScalar } from "@mydoo/tasklens";
 import {
   createTaskLensTestEnvironment,
   mockCurrentTimestamp,
@@ -163,7 +163,7 @@ describe("useSystemIntents", () => {
           if (!task) throw new Error("Task missing");
 
           // Should be woken up (Pending and Unacknowledged)
-          expect(task.status).toBe(TaskStatus.Pending);
+          expect(unwrapScalar(task.status)).toBe(TaskStatus.Pending);
           expect(task.isAcknowledged).toBe(false);
         });
       } finally {

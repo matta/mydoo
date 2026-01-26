@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { completeTask, createTask } from "../../src/persistence/ops";
 import type { TaskID, TunnelState } from "../../src/types/persistence";
-import { TaskStatus } from "../../src/types/persistence";
+import { TaskStatus, unwrapScalar } from "../../src/types/persistence";
 import {
   daysToMilliseconds,
   mockCurrentTimestamp,
@@ -44,7 +44,7 @@ describe("Credit Attribution & Decay", () => {
     completeTask(state, task.id);
 
     // Assert: T should have credits added, and G should inherit them
-    expect(getTask(state, task.id).status).toBe(TaskStatus.Done);
+    expect(unwrapScalar(getTask(state, task.id).status)).toBe(TaskStatus.Done);
     expect(getTask(state, task.id).credits).toBe(0.5);
     expect(getTask(state, goal.id).credits).toBe(0.5);
   });

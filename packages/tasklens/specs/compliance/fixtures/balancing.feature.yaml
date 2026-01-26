@@ -8,22 +8,22 @@ background:
   tasks:
     - id: ProjectAlpha
       title: Parent A
-      importance: 10
+      importance: 1.0
       desired_credits: 100
       children:
         - id: AlphaTaskOne
-          importance: 10
+          importance: 1.0
         - id: AlphaTaskTwo
-          importance: 10
+          importance: 1.0
     - id: ProjectBeta
       title: Parent B
-      importance: 10
+      importance: 1.0
       desired_credits: 100
       children:
         - id: BetaTaskOne
-          importance: 10
+          importance: 1.0
         - id: BetaTaskTwo
-          importance: 10
+          importance: 1.0
 scenarios:
   - name: Legacy Scenario
     steps:

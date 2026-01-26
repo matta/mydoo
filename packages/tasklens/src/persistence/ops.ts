@@ -32,13 +32,17 @@ import { DEFAULT_CREDIT_INCREMENT } from "../types/internal";
 import {
   ANYWHERE_PLACE_ID,
   type CreateTaskOptions,
-  type PersistedTask,
   type Schedule,
   type TaskCreateInput,
   type TaskID,
   TaskStatus,
   type TaskUpdateInput,
   type TunnelState,
+  toFrequencyScalar,
+  toScheduleTypeScalar,
+  toTaskStatusScalar,
+  unwrapScalar,
+  type WritableTask,
 } from "../types/persistence";
 import { getCurrentTimestamp } from "../utils/time";
 
@@ -66,7 +70,7 @@ export function createTask(
   state: TunnelState,
   props: TaskCreateInput,
   options: CreateTaskOptions = { position: "end" },
-): PersistedTask {
+): WritableTask {
   // Use UUID for CRDT compatibility - sequential counters cause conflicts
   // when multiple replicas create tasks simultaneously.
   // Caller may provide an ID for testing purposes.
@@ -76,7 +80,7 @@ export function createTask(
     dueDate: undefined,
     leadTime: DEFAULT_TASK_LEAD_TIME_MS,
   };
-  const newTask: PersistedTask = {
+  const newTask: WritableTask = {
     id: newTaskId,
     title: props.title,
     parentId: props.parentId ?? undefined,
@@ -87,7 +91,7 @@ export function createTask(
         ? state.tasks[props.parentId]?.placeId
         : ANYWHERE_PLACE_ID) ??
       ANYWHERE_PLACE_ID,
-    status: props.status ?? TaskStatus.Pending,
+    status: toTaskStatusScalar(props.status ?? TaskStatus.Pending),
     importance: props.importance ?? DEFAULT_TASK_IMPORTANCE,
     creditIncrement:
       props.creditIncrement ??
@@ -99,13 +103,22 @@ export function createTask(
     desiredCredits: props.desiredCredits ?? 1.0,
     creditsTimestamp: props.creditsTimestamp ?? getCurrentTimestamp(),
     priorityTimestamp: props.priorityTimestamp ?? getCurrentTimestamp(),
-    schedule: props.schedule ?? defaultSchedule,
+    schedule: {
+      ...defaultSchedule,
+      ...(props.schedule ?? {}),
+      type: toScheduleTypeScalar(props.schedule?.type ?? defaultSchedule.type),
+    },
     isSequential: props.isSequential ?? false,
     childTaskIds: [],
     // Remediation: Init as unacknowledged
     isAcknowledged: false,
     notes: props.notes ?? "",
-    repeatConfig: props.repeatConfig,
+    repeatConfig: props.repeatConfig
+      ? {
+          ...props.repeatConfig,
+          frequency: toFrequencyScalar(props.repeatConfig.frequency),
+        }
+      : undefined,
   };
 
   // Automerge doesn't support 'undefined' values, so we must remove them
@@ -114,7 +127,7 @@ export function createTask(
   if (newTask.placeId === undefined) delete newTask.placeId;
   // Enforce Routine Task Default (Immediate Initialization)
   if (
-    newTask.schedule.type === "Routinely" &&
+    unwrapScalar(newTask.schedule.type) === "Routinely" &&
     newTask.schedule.dueDate === undefined &&
     newTask.schedule.lastDone === undefined
   ) {
@@ -186,7 +199,7 @@ export function updateTask(
   state: TunnelState,
   id: TaskID,
   props: TaskUpdateInput,
-): PersistedTask {
+): WritableTask {
   const task = state.tasks[id];
   if (!task) throw new Error(`Task with ID ${id} not found.`);
 
@@ -195,7 +208,8 @@ export function updateTask(
 
   // Handle status change for credit attribution before updating the task status
   const isCompleting =
-    props.status === TaskStatus.Done && task.status !== TaskStatus.Done;
+    props.status === TaskStatus.Done &&
+    unwrapScalar(task.status) !== TaskStatus.Done;
   if (isCompleting) {
     // If creditIncrement is inherited (undefined) and not resolved on the object,
     // we should use the default (0.5).
@@ -244,7 +258,7 @@ function validateNumericProps(props: TaskUpdateInput): void {
  * Assigns top-level properties from props to task.
  */
 function assignTaskProperties(
-  task: PersistedTask,
+  task: WritableTask,
   props: TaskUpdateInput,
 ): void {
   const {
@@ -275,7 +289,7 @@ function assignTaskProperties(
   Object.assign(task, rest);
 
   if (title !== undefined) task.title = title;
-  if (status !== undefined) task.status = status;
+  if (status !== undefined) task.status = toTaskStatusScalar(status);
   if (importance !== undefined) task.importance = importance;
   if (creditIncrement !== undefined) task.creditIncrement = creditIncrement;
   if (credits !== undefined) task.credits = credits;
@@ -293,17 +307,32 @@ function assignTaskProperties(
  * Handles nested or conditional properties during update.
  */
 function handleNestedProperties(
-  task: PersistedTask,
+  task: WritableTask,
   props: TaskUpdateInput,
 ): void {
   if (props.repeatConfig !== undefined) {
-    task.repeatConfig = props.repeatConfig;
+    if (!task.repeatConfig) {
+      task.repeatConfig = {
+        frequency: toFrequencyScalar(props.repeatConfig.frequency ?? "daily"),
+        interval: props.repeatConfig.interval ?? 1,
+      };
+    } else {
+      if (props.repeatConfig.frequency) {
+        task.repeatConfig.frequency = toFrequencyScalar(
+          props.repeatConfig.frequency,
+        );
+      }
+      if (props.repeatConfig.interval !== undefined) {
+        task.repeatConfig.interval = props.repeatConfig.interval;
+      }
+    }
   } else if ("repeatConfig" in props) {
-    delete task.repeatConfig;
+    Reflect.deleteProperty(task, "repeatConfig");
   }
 
   if (props.schedule) {
-    if (props.schedule.type) task.schedule.type = props.schedule.type;
+    if (props.schedule.type)
+      task.schedule.type = toScheduleTypeScalar(props.schedule.type);
     if (props.schedule.leadTime !== undefined)
       task.schedule.leadTime = props.schedule.leadTime;
 
@@ -337,7 +366,7 @@ function handleNestedProperties(
   // Enforce Routine Task Default (Immediate Initialization)
   // If we switched to Routinely (or were already) and have no eligible due date, force it to Now.
   if (
-    task.schedule.type === "Routinely" &&
+    unwrapScalar(task.schedule.type) === "Routinely" &&
     task.schedule.dueDate === undefined &&
     task.schedule.lastDone === undefined
   ) {
@@ -458,7 +487,7 @@ function attributeCredits(
   let currentId: TaskID | undefined = taskId;
 
   while (currentId) {
-    const t: PersistedTask | undefined = state.tasks[currentId];
+    const t: WritableTask | undefined = state.tasks[currentId];
     if (!t) break;
 
     // 1. Bring History to Present (Decay)
@@ -539,7 +568,7 @@ export function deleteTask(state: TunnelState, id: TaskID): number {
 export function getTask(
   state: TunnelState,
   id: TaskID,
-): PersistedTask | undefined {
+): WritableTask | undefined {
   return state.tasks[id];
 }
 
@@ -554,14 +583,12 @@ export function getTask(
 export function getChildren(
   state: TunnelState,
   parentId: TaskID | undefined,
-): PersistedTask[] {
+): WritableTask[] {
   const ids = parentId
     ? state.tasks[parentId]?.childTaskIds
     : state.rootTaskIds;
   if (!ids) return [];
-  return ids
-    .map((id) => state.tasks[id])
-    .filter((t): t is PersistedTask => !!t);
+  return ids.map((id) => state.tasks[id]).filter((t): t is WritableTask => !!t);
 }
 
 /**

@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { TunnelStore } from "../../src/persistence/store";
-import type {
-  PersistedTask,
-  PlaceID,
-  TaskID,
-  TunnelState,
+import {
+  type PlaceID,
+  type TaskID,
+  TaskStatus,
+  type TaskUpdateInput,
+  type TunnelState,
+  type WritableTask,
 } from "../../src/types/persistence";
 
 describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
@@ -14,13 +16,14 @@ describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
     const initialState: TunnelState = {
       rootTaskIds: [taskId],
       tasks: {
-        // eslint-disable-next-line no-restricted-syntax
         [taskId]: {
           id: taskId,
           title: "Legacy Title",
-          status: "Pending",
+          status: TaskStatus.Pending,
           childTaskIds: [],
           credits: 0,
+          desiredCredits: 0,
+          creditIncrement: 0,
           creditsTimestamp: 0,
           priorityTimestamp: 0,
           isSequential: false,
@@ -30,10 +33,12 @@ describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
             type: "Once",
             leadTime: 60,
           },
+          placeId: "Anywhere" as PlaceID,
+          notes: "",
           // Simulating future field
           futureUnknownFieldTask: "important meta",
-        } as unknown as PersistedTask,
-      },
+        } as WritableTask,
+      } as Record<TaskID, WritableTask>,
       places: {},
     };
 
@@ -58,13 +63,14 @@ describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
     const initialState: TunnelState = {
       rootTaskIds: [taskId],
       tasks: {
-        // eslint-disable-next-line no-restricted-syntax
         [taskId]: {
           id: taskId,
           title: "Original Title",
-          status: "Pending",
+          status: TaskStatus.Pending,
           childTaskIds: [],
           credits: 0,
+          desiredCredits: 0,
+          creditIncrement: 0,
           creditsTimestamp: 0,
           priorityTimestamp: 0,
           isSequential: false,
@@ -74,8 +80,10 @@ describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
             type: "Once",
             leadTime: 60,
           },
-        } as unknown as PersistedTask,
-      },
+          placeId: "Anywhere" as PlaceID,
+          notes: "",
+        } as WritableTask,
+      } as Record<TaskID, WritableTask>,
       places: {},
     };
 
@@ -86,7 +94,7 @@ describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
     store.updateTask(taskId, {
       title: "Updated Title",
       futureUnknownFieldFromUpdate: "propagated value",
-    } as unknown as Partial<PersistedTask>);
+    } as unknown as TaskUpdateInput);
 
     // 3. Assertion: Verify unknown field was propagated
     const task = store.getTask(taskId);
@@ -102,13 +110,14 @@ describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
     const initialState: TunnelState = {
       rootTaskIds: [taskId],
       tasks: {
-        // eslint-disable-next-line no-restricted-syntax
         [taskId]: {
           id: taskId,
           title: "Deep Field",
-          status: "Pending",
+          status: TaskStatus.Pending,
           childTaskIds: [],
           credits: 0,
+          desiredCredits: 0,
+          creditIncrement: 0,
           creditsTimestamp: 0,
           priorityTimestamp: 0,
           isSequential: false,
@@ -119,9 +128,12 @@ describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
             leadTime: 60,
             // Simulating future nested field
             futureUnknownFieldSchedule: "mars",
-          },
-        } as unknown as PersistedTask,
-      },
+            // biome-ignore lint/suspicious/noExplicitAny: simulating future schema
+          } as any,
+          placeId: "Anywhere" as PlaceID,
+          notes: "",
+        } as WritableTask,
+      } as Record<TaskID, WritableTask>,
       places: {},
     };
 
@@ -177,13 +189,14 @@ describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
     const initialState: TunnelState = {
       rootTaskIds: [taskId],
       tasks: {
-        // eslint-disable-next-line no-restricted-syntax
         [taskId]: {
           id: taskId,
           title: "Persist Me",
-          status: "Pending",
+          status: TaskStatus.Pending,
           childTaskIds: [],
           credits: 0,
+          desiredCredits: 0,
+          creditIncrement: 0,
           creditsTimestamp: 0,
           priorityTimestamp: 0,
           isSequential: false,
@@ -193,10 +206,12 @@ describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
             type: "Once",
             leadTime: 60,
           },
+          placeId: "Anywhere" as PlaceID,
+          notes: "",
 
           futureUnknownFieldTask: "saved data",
-        } as unknown as PersistedTask,
-      },
+        } as WritableTask,
+      } as Record<TaskID, WritableTask>,
       places: {},
     };
     const store = new TunnelStore(initialState);
@@ -245,13 +260,14 @@ describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
     const initialState: TunnelState = {
       rootTaskIds: [taskId],
       tasks: {
-        // eslint-disable-next-line no-restricted-syntax
         [taskId]: {
           id: taskId,
           title: "Repeating Task",
-          status: "Pending",
+          status: TaskStatus.Pending,
           childTaskIds: [],
           credits: 0,
+          desiredCredits: 0,
+          creditIncrement: 0,
           creditsTimestamp: 0,
           priorityTimestamp: 0,
           isSequential: false,
@@ -261,13 +277,15 @@ describe("Tier 1: Round-Trip Fidelity (Schema Evolution)", () => {
             type: "Routinely",
             leadTime: 60,
           },
+          placeId: "Anywhere" as PlaceID,
+          notes: "",
           repeatConfig: {
             frequency: "daily",
             interval: 1,
 
             futureUnknownFieldRepeatConfig: "daily-extra",
           },
-        } as unknown as PersistedTask,
+        } as WritableTask,
       },
       places: {},
     };

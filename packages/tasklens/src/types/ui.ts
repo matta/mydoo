@@ -15,9 +15,14 @@
 // ===========================================================================
 // Branded IDs
 // ===========================================================================
-import type { PlaceID, TaskID } from "./persistence";
+import {
+  type PlaceID,
+  type Scalar,
+  type TaskID,
+  unwrapScalar,
+} from "./persistence";
 
-export type { PlaceID, TaskID };
+export { type PlaceID, type Scalar, type TaskID, unwrapScalar };
 
 /**
  * Common fields for a Task, stripped of index signatures.

@@ -4,7 +4,12 @@ import {
   type EnrichedTask,
   type PriorityOptions,
 } from "../types/internal";
-import type { PersistedTask, TaskID, TunnelState } from "../types/persistence";
+import {
+  type TaskID,
+  type TunnelState,
+  unwrapScalar,
+  type WritableTask,
+} from "../types/persistence";
 import type { ComputedTask, ViewFilter } from "../types/ui";
 import { getCurrentTimestamp, getIntervalMs } from "../utils/time";
 
@@ -96,7 +101,7 @@ function assignOutlineIndexes(
  * This is asymmetric with ops.ts which preserves unknown fields during writes.
  * The view layer (ComputedTask) should not expose fields the UI doesn't understand.
  */
-function hydrateTask(persisted: PersistedTask): EnrichedTask {
+function hydrateTask(persisted: WritableTask): EnrichedTask {
   const {
     id,
     title,
@@ -127,7 +132,8 @@ function hydrateTask(persisted: PersistedTask): EnrichedTask {
   // They are preserved in the store via ops.ts but not exposed in ComputedTask.
 
   const isContainer = childTaskIds.length > 0;
-  const isPending = status === "Pending";
+  const normalizedStatus = unwrapScalar(status);
+  const isPending = normalizedStatus === "Pending";
 
   return {
     id,
@@ -136,7 +142,7 @@ function hydrateTask(persisted: PersistedTask): EnrichedTask {
     parentId,
     childTaskIds,
     placeId,
-    status,
+    status: normalizedStatus,
     importance,
     creditIncrement,
     credits,
@@ -146,8 +152,18 @@ function hydrateTask(persisted: PersistedTask): EnrichedTask {
     isSequential,
     isAcknowledged,
     lastCompletedAt,
-    schedule: { ...schedule }, // Deep clone to allow mutation without side effects
-    repeatConfig: repeatConfig ? { ...repeatConfig } : undefined, // Explicit clone to ensure availability
+    schedule: {
+      ...schedule,
+      type: unwrapScalar(schedule.type),
+      leadTime: Number(schedule.leadTime),
+    }, // Deep clone & normalize to allow mutation without side effects
+    repeatConfig: repeatConfig
+      ? {
+          ...repeatConfig,
+          frequency: unwrapScalar(repeatConfig.frequency),
+          interval: Number(repeatConfig.interval),
+        }
+      : undefined, // Explicit clone & normalize to ensure availability
     effectiveCredits: 0,
     feedbackFactor: 1.0,
     leadTimeFactor: 0,

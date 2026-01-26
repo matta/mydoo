@@ -1,6 +1,7 @@
 import type { DocHandle } from "@automerge/automerge-repo";
 import { z } from "zod";
 import type { TaskID, TunnelState } from "../types/persistence";
+import { unwrapScalar } from "../types/persistence";
 
 // Define strict runtime schema for legacy tasks
 // We specifically look for tasks that have the OLD 'Recurring' type.
@@ -23,9 +24,12 @@ export function runReconciler(handle: DocHandle<TunnelState>): boolean {
 
   // 1. Schema Migration: Recurring -> Routinely
   // Filter for legacy tasks first to avoid iterating the whole mutable doc later
-  const legacyTasks = Object.values(doc.tasks).filter(
-    (t) => LegacyRecurringTaskSchema.safeParse(t).success,
-  );
+  const legacyTasks = Object.values(doc.tasks).filter((t) => {
+    return (
+      (unwrapScalar(t.schedule?.type) as string) === "Recurring" ||
+      LegacyRecurringTaskSchema.safeParse(t).success
+    );
+  });
 
   // 2. Schema Migration: Backfill metadata.automerge_url
   const needsMetadata = !doc.metadata?.automerge_url;
@@ -45,7 +49,10 @@ export function runReconciler(handle: DocHandle<TunnelState>): boolean {
         task.schedule.type = "Routinely";
 
         // Backfill lastCompletedAt
-        if (legacyTask.status === "Done" && !legacyTask.lastCompletedAt) {
+        if (
+          unwrapScalar(legacyTask.status) === "Done" &&
+          !legacyTask.lastCompletedAt
+        ) {
           task.lastCompletedAt = Date.now();
         }
       }

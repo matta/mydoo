@@ -17,17 +17,24 @@ import type {
 } from "../../src/generated/feature";
 import { TunnelStore } from "../../src/persistence/store";
 import type { EnrichedTask } from "../../src/types/internal";
+
 import {
   ANYWHERE_PLACE_ID,
   DEFAULT_CREDIT_INCREMENT,
-  type PersistedTask,
   type Place,
   type PlaceID,
   type RepeatConfig,
   type Schedule,
   TaskStatus as StoreTaskStatus,
+  type TaskCreateInput,
   type TaskID,
+  type TaskUpdateInput,
+  toFrequencyScalar,
+  toTaskStatusScalar,
+  unwrapScalar,
+  type WritableTask,
 } from "../../src/types/persistence";
+
 import type { ViewFilter } from "../../src/types/ui";
 import {
   getCurrentTimestamp,
@@ -37,9 +44,142 @@ import {
 
 const ajv = new Ajv({
   allowUnionTypes: true,
-  allErrors: true,
   strict: false,
 });
+
+/**
+ * Safely converts a WritableTask into a TaskCreateInput for store creation.
+ */
+function taskToCreateInput(task: WritableTask): TaskCreateInput {
+  const status = unwrapScalar(task.status);
+  const scheduleType = unwrapScalar(task.schedule.type);
+
+  let repeatConfig: TaskCreateInput["repeatConfig"];
+  if (task.repeatConfig) {
+    const freq = unwrapScalar(task.repeatConfig.frequency);
+    const interval =
+      typeof task.repeatConfig.interval === "number"
+        ? task.repeatConfig.interval
+        : 1;
+    repeatConfig = { frequency: freq, interval };
+  }
+
+  const schedule: NonNullable<TaskCreateInput["schedule"]> = {
+    type: scheduleType,
+    leadTime:
+      typeof task.schedule.leadTime === "number" ? task.schedule.leadTime : 0,
+  };
+  if (typeof task.schedule.dueDate === "number")
+    schedule.dueDate = task.schedule.dueDate;
+  if (typeof task.schedule.lastDone === "number")
+    schedule.lastDone = task.schedule.lastDone;
+
+  const input: TaskCreateInput = {
+    id: task.id,
+    title: task.title,
+    status: status as StoreTaskStatus,
+    importance: typeof task.importance === "number" ? task.importance : 1.0,
+    credits: typeof task.credits === "number" ? task.credits : 0,
+    desiredCredits:
+      typeof task.desiredCredits === "number" ? task.desiredCredits : 0,
+    creditsTimestamp:
+      typeof task.creditsTimestamp === "number"
+        ? task.creditsTimestamp
+        : Date.now(),
+    priorityTimestamp:
+      typeof task.priorityTimestamp === "number"
+        ? task.priorityTimestamp
+        : Date.now(),
+    schedule,
+    isSequential:
+      typeof task.isSequential === "boolean" ? task.isSequential : false,
+    isAcknowledged:
+      typeof task.isAcknowledged === "boolean" ? task.isAcknowledged : false,
+    notes: task.notes,
+  };
+
+  if (task.parentId) input.parentId = task.parentId;
+  if (task.placeId) input.placeId = task.placeId;
+  if (typeof task.creditIncrement === "number")
+    input.creditIncrement = task.creditIncrement;
+  if (repeatConfig) input.repeatConfig = repeatConfig;
+  if (typeof task.lastCompletedAt === "number")
+    input.lastCompletedAt = task.lastCompletedAt;
+
+  return input;
+}
+
+/**
+ * Safely converts a WritableTask into a TaskUpdateInput for store updates.
+ */
+function taskToUpdateInput(task: WritableTask): TaskUpdateInput {
+  const status =
+    typeof task.status === "string" ? task.status : task.status.val;
+  const scheduleType =
+    typeof task.schedule.type === "string"
+      ? task.schedule.type
+      : task.schedule.type.val;
+
+  let repeatConfig: TaskUpdateInput["repeatConfig"];
+  if (task.repeatConfig) {
+    const freq =
+      typeof task.repeatConfig.frequency === "string"
+        ? task.repeatConfig.frequency
+        : task.repeatConfig.frequency.val;
+    const interval =
+      typeof task.repeatConfig.interval === "number"
+        ? task.repeatConfig.interval
+        : undefined;
+
+    const config: NonNullable<TaskUpdateInput["repeatConfig"]> = {};
+    if (freq) config.frequency = freq;
+    if (interval !== undefined) config.interval = interval;
+    repeatConfig = config;
+  }
+
+  const schedule: NonNullable<TaskUpdateInput["schedule"]> = {
+    type: scheduleType,
+  };
+  if (typeof task.schedule.dueDate === "number")
+    schedule.dueDate = task.schedule.dueDate;
+  if (typeof task.schedule.leadTime === "number")
+    schedule.leadTime = task.schedule.leadTime;
+  if (typeof task.schedule.lastDone === "number")
+    schedule.lastDone = task.schedule.lastDone;
+
+  const input: TaskUpdateInput = {
+    title: task.title,
+    notes: task.notes,
+    status: status as StoreTaskStatus,
+    isSequential:
+      typeof task.isSequential === "boolean" ? task.isSequential : false,
+    isAcknowledged:
+      typeof task.isAcknowledged === "boolean" ? task.isAcknowledged : false,
+    importance: typeof task.importance === "number" ? task.importance : 1.0,
+    credits: typeof task.credits === "number" ? task.credits : 0,
+    desiredCredits:
+      typeof task.desiredCredits === "number" ? task.desiredCredits : 0,
+    creditsTimestamp:
+      typeof task.creditsTimestamp === "number"
+        ? task.creditsTimestamp
+        : Date.now(),
+    priorityTimestamp:
+      typeof task.priorityTimestamp === "number"
+        ? task.priorityTimestamp
+        : Date.now(),
+    schedule,
+  };
+
+  if (task.parentId) input.parentId = task.parentId;
+  if (task.placeId) input.placeId = task.placeId;
+  if (typeof task.creditIncrement === "number")
+    input.creditIncrement = task.creditIncrement;
+  if (repeatConfig) input.repeatConfig = repeatConfig;
+  if (typeof task.lastCompletedAt === "number")
+    input.lastCompletedAt = task.lastCompletedAt;
+
+  return input;
+}
 addFormats(ajv);
 
 const validateFeatureStructure = ajv.compile(featureSchemaJson);
@@ -112,8 +252,8 @@ function parseTaskInput(
   parentId?: string,
   parentPlaceId?: PlaceID,
   parentCreditIncrement?: number,
-): PersistedTask[] {
-  const tasks: PersistedTask[] = [];
+): WritableTask[] {
+  const tasks: WritableTask[] = [];
 
   const effectivePlaceId =
     (input.place_id !== undefined ? (input.place_id as PlaceID) : undefined) ??
@@ -133,13 +273,12 @@ function parseTaskInput(
     repeatConfig = input.repeat_config as RepeatConfig;
   }
 
-  const task: PersistedTask = {
+  const task: WritableTask = {
     id: input.id as TaskID,
     title: input.title ?? "Default Task",
-    status:
-      StoreTaskStatus[
-        (input.status as keyof typeof StoreTaskStatus) ?? "Pending"
-      ],
+    status: toTaskStatusScalar(
+      (input.status as StoreTaskStatus) ?? StoreTaskStatus.Pending,
+    ),
     importance: Number(input.importance ?? 1.0),
     creditIncrement: effectiveCreditIncrement,
     credits: Number(input.credits ?? 0),
@@ -163,7 +302,10 @@ function parseTaskInput(
   };
 
   if (repeatConfig) {
-    task.repeatConfig = repeatConfig;
+    task.repeatConfig = {
+      ...repeatConfig,
+      frequency: toFrequencyScalar(repeatConfig.frequency),
+    };
   }
 
   const effectiveParentId = (parentId ?? input.parent_id) as TaskID | undefined;
@@ -211,7 +353,7 @@ function computePartialUpdate(
   store: TunnelStore,
   id: string,
   props: Omit<TaskUpdate, "id">,
-): Partial<PersistedTask> {
+): TaskUpdateInput {
   const {
     status,
     credits,
@@ -233,7 +375,7 @@ function computePartialUpdate(
   const _exhaustiveCheck: Record<string, never> = rest as Record<string, never>;
   void _exhaustiveCheck;
 
-  const taskProps: Partial<PersistedTask> = {};
+  const taskProps: TaskUpdateInput = {};
 
   if (status) {
     taskProps.status = StoreTaskStatus[status as keyof typeof StoreTaskStatus];
@@ -280,7 +422,7 @@ function computeScheduleUpdate(
   store: TunnelStore,
   id: string,
   props: Omit<TaskUpdate, "id">,
-  taskProps: Partial<PersistedTask>,
+  taskProps: TaskUpdateInput,
 ): void {
   if (
     props.due_date !== undefined ||
@@ -353,7 +495,7 @@ function setupStore(hydratedBackground: InitialState) {
 
   mockCurrentTimestamp(testStartTime);
 
-  const initialTasks: Record<string, PersistedTask> = {};
+  const initialTasks: Record<string, WritableTask> = {};
   const initialPlaces: Record<string, Place> = {};
   const rootTaskIds: TaskID[] = [];
 
@@ -376,7 +518,7 @@ function setupStore(hydratedBackground: InitialState) {
   }
 
   const store = new TunnelStore({
-    tasks: initialTasks,
+    tasks: initialTasks as Record<TaskID, WritableTask>,
     places: initialPlaces,
     rootTaskIds,
     nextTaskId: 1,
@@ -584,9 +726,11 @@ function executeStep(step: Step, store: TunnelStore, currentTestTime: number) {
         );
         for (const task of parsedTasks) {
           if (store.getTask(task.id)) {
-            store.updateTask(task.id, task);
+            const unwrapped = taskToUpdateInput(task);
+            store.updateTask(task.id, unwrapped);
           } else {
-            store.createTask(task);
+            const unwrapped = taskToCreateInput(task);
+            store.createTask(unwrapped);
           }
         }
       }

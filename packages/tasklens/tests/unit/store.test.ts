@@ -5,6 +5,7 @@ import {
   type PersistedTask,
   type RepeatConfig,
   TaskStatus,
+  unwrapScalar,
 } from "../../src/types/persistence";
 
 describe("TunnelStore", () => {
@@ -20,7 +21,7 @@ describe("TunnelStore", () => {
 
       expect(task.id).toBeDefined();
       expect(task.title).toBe("Test Task");
-      expect(task.status).toBe(TaskStatus.Pending);
+      expect(unwrapScalar(task.status)).toBe(TaskStatus.Pending);
       expect(task.importance).toBe(1.0);
       expect(task.creditIncrement).toBe(0.5);
       expect(task.credits).toBe(0.0);
@@ -41,7 +42,7 @@ describe("TunnelStore", () => {
       expect(task.title).toBe("Custom Task");
       expect(task.importance).toBe(0.8);
       expect(task.creditIncrement).toBe(2.0);
-      expect(task.status).toBe(TaskStatus.Done);
+      expect(unwrapScalar(task.status)).toBe(TaskStatus.Done);
     });
 
     it("should initialize task with notes", () => {
@@ -93,8 +94,16 @@ describe("TunnelStore", () => {
       const repeatConfig: RepeatConfig = { frequency: "weekly", interval: 2 };
       const updatedTask = store.updateTask(initialTask.id, { repeatConfig });
 
-      expect(updatedTask.repeatConfig).toEqual(repeatConfig);
-      expect(store.getTask(initialTask.id)?.repeatConfig).toEqual(repeatConfig);
+      expect(String(updatedTask.repeatConfig?.frequency)).toBe(
+        repeatConfig.frequency,
+      );
+      expect(updatedTask.repeatConfig?.interval).toBe(repeatConfig.interval);
+      expect(
+        String(store.getTask(initialTask.id)?.repeatConfig?.frequency),
+      ).toBe(repeatConfig.frequency);
+      expect(store.getTask(initialTask.id)?.repeatConfig?.interval).toBe(
+        repeatConfig.interval,
+      );
     });
 
     it("should explicitly delete repeatConfig when set to undefined", () => {

@@ -5,6 +5,7 @@ import {
   ANYWHERE_PLACE_ID,
   type PlaceID,
   type TaskID,
+  unwrapScalar,
 } from "../../src/types/persistence";
 
 describe("createTask - Default Values and Inheritance", () => {
@@ -79,7 +80,7 @@ describe("createTask - Default Values and Inheritance", () => {
     const store = new TunnelStore();
     const task = createTask(store.state, { title: "Test Task" });
 
-    expect(task.status).toBe("Pending");
+    expect(unwrapScalar(task.status)).toBe("Pending");
   });
 
   it("should generate a valid UUID for task id", () => {
