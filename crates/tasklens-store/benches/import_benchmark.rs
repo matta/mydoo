@@ -4,7 +4,7 @@
 // This benchmark is excluded from WASM builds because it depends on `criterion` and `tokio`.
 #[cfg(not(target_arch = "wasm32"))]
 mod bench {
-    use criterion::{Criterion, criterion_group, criterion_main};
+    use criterion::{Criterion, criterion_group};
     use samod::runtime::LocalRuntimeHandle;
     use std::fs;
     use std::future::Future;
@@ -67,8 +67,10 @@ mod bench {
         config = config();
         targets = benchmark_import_doc
     }
-    criterion_main!(benches);
 }
+
+#[cfg(not(target_arch = "wasm32"))]
+criterion::criterion_main!(bench::benches);
 
 #[cfg(target_arch = "wasm32")]
 fn main() {}
