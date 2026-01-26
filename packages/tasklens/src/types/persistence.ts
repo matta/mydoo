@@ -5,17 +5,62 @@
  * application state (`TunnelState`) as they are stored in the database.
  */
 
+import { ImmutableString } from "@automerge/automerge";
 import type { z } from "zod";
 
 import type {
+  FrequencyType,
   PersistedTask,
   Place,
   PlaceIDSchema,
   RepeatConfig,
+  Scalar,
   Schedule,
+  ScheduleType,
   TaskIDSchema,
 } from "../persistence/schemas";
-import type { KnownKeysOnly } from "../utils/types";
+
+export type {
+  FrequencyType,
+  PersistedTask,
+  Place,
+  RepeatConfig,
+  Scalar,
+  Schedule,
+  ScheduleType,
+};
+
+export type OpenHoursRange = string;
+
+export interface OpenHours {
+  mode: "always_open" | "always_closed" | "custom";
+  schedule?: {
+    [day: string]: OpenHoursRange[];
+  };
+}
+
+/** Factory for TaskStatus scalar */
+export function toTaskStatusScalar(status: TaskStatus): Scalar<TaskStatus> {
+  return new ImmutableString(String(status)) as Scalar<TaskStatus>;
+}
+
+/** Factory for ScheduleType scalar */
+export function toScheduleTypeScalar(type: ScheduleType): Scalar<ScheduleType> {
+  return new ImmutableString(String(type)) as Scalar<ScheduleType>;
+}
+
+/** Factory for Frequency scalar */
+export function toFrequencyScalar(freq: FrequencyType): Scalar<FrequencyType> {
+  return new ImmutableString(String(freq)) as Scalar<FrequencyType>;
+}
+
+/**
+ * Safely extracts the value from a Scalar or primitive union.
+ * Useful for reading Automerge values that might be proxied or raw.
+ */
+export function unwrapScalar<T extends string>(value: T | Scalar<T>): T {
+  return typeof value === "string" ? value : value.val;
+}
 
 /**
  * Unique identifier for a Task.
@@ -77,60 +122,47 @@ export const TaskStatus = {
 export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
 
 /**
- * Scheduling information for a task.
+ * A version of PersistedTask that allows `Scalar<T>` for enum fields.
+ * This reflects the actual state in the Automerge document before sanitization.
  *
- * Derived from ScheduleSchema in persistence/schemas.ts.
- * @see ScheduleSchema for the runtime validation schema.
+ * **Role in Program:**
+ * - This type represents the **Mutable Proxy Object** inside an Automerge change function.
+ * - It is providing the "Input/Output" for `ops.ts` and `store.ts`.
+ * - **Scalars:** It accommodates Automerge's `Scalar` wrappers for primitive values (like strings that need conflict resolution).
+ * - **Index Signature:** `[k: string]: unknown` explicitly allows "unknown" fields to persist, ensuring forward compatibility with future schema versions (data preservation).
  */
-export type { Schedule };
-
-/**
- * Configuration for recurring tasks.
- *
- * Derived from RepeatConfigSchema in persistence/schemas.ts.
- * @see RepeatConfigSchema for the runtime validation schema.
- */
-export type { RepeatConfig };
-
-/**
- * Time range string in HH:MM-HH:MM format (24h).
- */
-export type OpenHoursRange = string;
-
-/**
- * Defines the operating hours for a place.
- */
-export interface OpenHours {
-  /**
-   * Operating mode: 'always_open', 'always_closed', or 'custom'.
-   */
-  mode: "always_open" | "always_closed" | "custom";
-  /**
-   * Weekly schedule mapping days to time ranges (required if mode is 'custom').
-   */
-  schedule?: {
-    [day: string]: OpenHoursRange[];
+export type WritableTask = Pick<
+  PersistedTask,
+  | "id"
+  | "title"
+  | "notes"
+  | "parentId"
+  | "childTaskIds"
+  | "placeId"
+  | "importance"
+  | "creditIncrement"
+  | "credits"
+  | "desiredCredits"
+  | "creditsTimestamp"
+  | "priorityTimestamp"
+  | "isSequential"
+  | "isAcknowledged"
+  | "lastCompletedAt"
+> & {
+  // Allow booth primitive and Scalar forms for Automerge compatibility
+  status: TaskStatus | Scalar<TaskStatus>;
+  schedule: Omit<PersistedTask["schedule"], "type"> & {
+    type: ScheduleType | Scalar<ScheduleType>;
   };
-}
-
-/**
- * A unit of work in the task management system (Persisted Record).
- *
- * This interface represents the raw data stored in the database (Automerge).
- * Unlike the legacy `Task` type, it does NOT contain computed properties.
- *
- * Derived from TaskSchema in persistence/schemas.ts.
- * @see TaskSchema for the runtime validation schema.
- */
-export type { PersistedTask };
-
-/**
- * A physical or virtual location where tasks can be performed.
- *
- * Derived from PlaceSchema in persistence/schemas.ts.
- * @see PlaceSchema for the runtime validation schema.
- */
-export type { Place };
+  repeatConfig?:
+    | (Omit<Exclude<PersistedTask["repeatConfig"], undefined>, "frequency"> & {
+        frequency: FrequencyType | Scalar<FrequencyType>;
+      })
+    | undefined;
+  // Allow unknown fields without explicit catch-all in the type itself
+  // to avoid index signature conflicts when nested.
+  [k: string]: unknown;
+};
 
 /**
  * The complete application state stored in the database.
@@ -151,8 +183,7 @@ export type { Place };
  * application code should not need to know about it.
  */
 export interface TunnelState {
-  [key: string]: unknown;
-  tasks: Record<TaskID, PersistedTask>;
+  tasks: Record<TaskID, WritableTask>;
   rootTaskIds: TaskID[];
   places: Record<PlaceID, Place>;
   metadata?:
@@ -160,6 +191,7 @@ export interface TunnelState {
         automerge_url?: string | undefined;
       }
     | undefined;
+  [key: string]: unknown;
 }
 
 export type CreateTaskOptions =
@@ -185,8 +217,18 @@ export interface TaskCreateInput {
   desiredCredits?: number;
   creditsTimestamp?: number;
   priorityTimestamp?: number;
-  schedule?: KnownKeysOnly<Schedule>;
-  repeatConfig?: KnownKeysOnly<RepeatConfig> | undefined;
+  schedule?: {
+    type: ScheduleType;
+    dueDate?: number | undefined;
+    leadTime: number;
+    lastDone?: number | undefined;
+  };
+  repeatConfig?:
+    | {
+        frequency: FrequencyType;
+        interval: number;
+      }
+    | undefined;
   isSequential?: boolean;
   isAcknowledged?: boolean;
   notes?: string;
@@ -213,7 +255,17 @@ export interface TaskUpdateInput {
   desiredCredits?: number;
   creditsTimestamp?: number;
   priorityTimestamp?: number;
-  schedule?: KnownKeysOnly<Schedule>;
-  repeatConfig?: KnownKeysOnly<RepeatConfig> | undefined;
+  schedule?: {
+    type?: ScheduleType;
+    dueDate?: number | undefined;
+    leadTime?: number;
+    lastDone?: number | undefined;
+  };
+  repeatConfig?:
+    | {
+        frequency?: FrequencyType;
+        interval?: number;
+      }
+    | undefined;
   lastCompletedAt?: number | undefined;
 }

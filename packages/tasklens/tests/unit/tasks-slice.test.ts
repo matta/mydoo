@@ -4,12 +4,14 @@ import tasksReducer, {
   syncDoc,
   type TasksState,
 } from "../../src/store/slices/tasks-slice";
-import type {
-  PersistedTask,
-  TaskID as PersistenceTaskID,
-  TunnelState,
+import {
+  ANYWHERE_PLACE_ID,
+  TaskStatus as PersistenceTaskStatus,
+  type TunnelState,
+  toTaskStatusScalar,
+  type WritableTask,
 } from "../../src/types/persistence";
-import { type TaskID, TaskStatus } from "../../src/types/ui";
+import type { TaskID } from "../../src/types/ui";
 
 /**
  * Helper to create a SyncDocPayload for tests.
@@ -34,10 +36,10 @@ describe("tasksSlice - syncDoc", () => {
     });
   });
 
-  const createMockTask = (id: string, title: string): PersistedTask => ({
+  const createMockTask = (id: string, title: string): WritableTask => ({
     id: id as TaskID,
     title,
-    status: TaskStatus.Pending,
+    status: toTaskStatusScalar(PersistenceTaskStatus.Pending),
     importance: 1.0,
     creditIncrement: 0.5,
     credits: 0.0,
@@ -46,9 +48,10 @@ describe("tasksSlice - syncDoc", () => {
     priorityTimestamp: 0,
     schedule: { type: "Once", leadTime: 0 },
     isSequential: false,
-    childTaskIds: [] as PersistenceTaskID[],
+    childTaskIds: [],
     notes: "",
     isAcknowledged: false,
+    placeId: ANYWHERE_PLACE_ID,
   });
 
   it("should initialize state and preserve stable references", async () => {

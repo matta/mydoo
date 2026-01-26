@@ -7,12 +7,14 @@ import {
 import { describe, expect, it } from "vitest";
 
 import { wakeUpRoutineTasks } from "../../src/domain/routine-tasks";
-import type {
-  PersistedTask,
-  TaskID,
-  TunnelState,
+import {
+  type PlaceID,
+  type TaskID,
+  TaskStatus,
+  type TunnelState,
+  unwrapScalar,
+  type WritableTask,
 } from "../../src/types/persistence";
-import { TaskStatus } from "../../src/types/persistence";
 
 class DummyStorageAdapter implements StorageAdapterInterface {
   async load(_key: StorageKey): Promise<Uint8Array | undefined> {
@@ -49,26 +51,27 @@ describe("wakeUpRoutineTasks", () => {
           },
           // Add required PersistedTask properties with dummy values
           childTaskIds: [],
-          creditIncrement: 0,
+          importance: 1.0,
+          creditIncrement: 0.1,
           credits: 0,
-          creditsTimestamp: 0,
           desiredCredits: 0,
-          importance: 0,
-          isSequential: false,
-
+          creditsTimestamp: 0,
           priorityTimestamp: 0,
+          isSequential: false,
+          placeId: "Anywhere" as PlaceID,
           notes: "",
           lastCompletedAt: Date.now() - 1000 * 60 * 60 * 24, // Completed 24 hours ago
-        } as PersistedTask,
-      };
+        } as WritableTask,
+      } as Record<TaskID, WritableTask>;
     });
 
     wakeUpRoutineTasks(handle);
 
     const doc = handle.doc();
     const task = doc?.tasks["task-1" as TaskID];
+    if (!task) throw new Error("Task not found");
 
-    expect(task?.status).toBe(TaskStatus.Pending);
+    expect(unwrapScalar(task.status)).toBe(TaskStatus.Pending);
     expect(task?.isAcknowledged).toBe(false);
 
     // Verify schedule update
@@ -104,14 +107,15 @@ describe("wakeUpRoutineTasks", () => {
           credits: 0,
           creditsTimestamp: 0,
           desiredCredits: 0,
-          importance: 0,
+          importance: 1.0,
           isSequential: false,
           priorityTimestamp: 0,
           notes: "",
+          placeId: "Anywhere" as PlaceID,
           // Completed just now
           lastCompletedAt: Date.now(),
-        } as PersistedTask,
-      };
+        } as WritableTask,
+      } as Record<TaskID, WritableTask>;
     });
 
     wakeUpRoutineTasks(handle);
@@ -120,7 +124,7 @@ describe("wakeUpRoutineTasks", () => {
     const task = doc?.tasks["task-1" as TaskID];
 
     // Should still be done
-    expect(task?.status).toBe(TaskStatus.Done);
+    expect(String(task?.status)).toBe(TaskStatus.Done);
     expect(task?.isAcknowledged).toBe(true);
   });
 
@@ -146,18 +150,19 @@ describe("wakeUpRoutineTasks", () => {
           },
           // Dummy props
           childTaskIds: [],
-          creditIncrement: 0,
+          importance: 1.0,
+          creditIncrement: 0.1,
           credits: 0,
-          creditsTimestamp: 0,
           desiredCredits: 0,
-          importance: 0,
-          isSequential: false,
+          creditsTimestamp: 0,
           priorityTimestamp: 0,
+          isSequential: false,
+          placeId: "Anywhere" as PlaceID,
           notes: "",
           // Completed 6 minutes ago
           lastCompletedAt: Date.now() - 1000 * 60 * 6,
-        } as PersistedTask,
-      };
+        } as WritableTask,
+      } as Record<TaskID, WritableTask>;
     });
 
     wakeUpRoutineTasks(handle);
@@ -165,7 +170,7 @@ describe("wakeUpRoutineTasks", () => {
     const doc = handle.doc();
     const task = doc?.tasks["task-min" as TaskID];
 
-    expect(task?.status).toBe(TaskStatus.Pending);
+    expect(String(task?.status)).toBe(TaskStatus.Pending);
   });
 
   it("should wake up a task with HOUR frequency", () => {
@@ -190,25 +195,27 @@ describe("wakeUpRoutineTasks", () => {
           },
           // Dummy props
           childTaskIds: [],
-          creditIncrement: 0,
+          importance: 1.0,
+          creditIncrement: 0.1,
           credits: 0,
-          creditsTimestamp: 0,
           desiredCredits: 0,
-          importance: 0,
-          isSequential: false,
+          creditsTimestamp: 0,
           priorityTimestamp: 0,
+          isSequential: false,
+          placeId: "Anywhere" as PlaceID,
           notes: "",
           // Completed 2.1 hours ago
           lastCompletedAt: Date.now() - 1000 * 60 * 60 * 2.1,
-        } as PersistedTask,
-      };
+        } as WritableTask,
+      } as Record<TaskID, WritableTask>;
     });
 
     wakeUpRoutineTasks(handle);
 
     const doc = handle.doc();
     const task = doc?.tasks["task-hour" as TaskID];
+    if (!task) throw new Error("Task not found");
 
-    expect(task?.status).toBe(TaskStatus.Pending);
+    expect(unwrapScalar(task.status)).toBe(TaskStatus.Pending);
   });
 });

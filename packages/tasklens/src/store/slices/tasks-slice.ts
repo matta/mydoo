@@ -1,4 +1,8 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {
+  type ActionReducerMapBuilder,
+  createAsyncThunk,
+  createSlice,
+} from "@reduxjs/toolkit";
 import { getPrioritizedTasks } from "../../domain/priority";
 import type { TunnelState } from "../../types/persistence";
 import type { ComputedTask, TaskID } from "../../types/ui";
@@ -103,7 +107,7 @@ const tasksSlice = createSlice({
   name: "tasks",
   initialState,
   reducers: {},
-  extraReducers: (builder) => {
+  extraReducers: (builder: ActionReducerMapBuilder<TasksState>) => {
     builder.addCase(syncDoc.fulfilled, (state, action) => {
       state.entities = action.payload.entities;
       state.rootTaskIds = action.payload.rootTaskIds;

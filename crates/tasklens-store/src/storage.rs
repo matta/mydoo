@@ -1,9 +1,8 @@
 #[cfg(target_arch = "wasm32")]
 mod wasm_storage {
-    use crate::doc_id::{DocumentId, TaskLensUrl};
-    use anyhow::{Result, anyhow};
+    use crate::doc_id::TaskLensUrl;
+    use anyhow::anyhow;
     use gloo_storage::{LocalStorage, Storage};
-    use wasm_bindgen::JsValue;
 
     const ACTIVE_DOC_STORAGE_KEY: &str = "tasklens_active_doc_id";
 

@@ -28,7 +28,9 @@ import {
   type PersistedTask,
   type TaskCreateInput,
   type TaskID,
+  type TaskUpdateInput,
   type TunnelState,
+  type WritableTask,
 } from "../types/persistence";
 import {
   completeTask,
@@ -38,6 +40,7 @@ import {
   getTask,
   updateTask,
 } from "./ops";
+import { TaskSchema } from "./schemas";
 
 /**
  * A store that wraps an Automerge document containing task state.
@@ -109,7 +112,8 @@ export class TunnelStore {
    * @returns The Task object, or undefined if not found.
    */
   getTask(id: TaskID): PersistedTask | undefined {
-    return getTask(this.doc, id);
+    const task = getTask(this.doc, id);
+    return task ? TaskSchema.parse(task) : undefined;
   }
 
   /**
@@ -119,7 +123,7 @@ export class TunnelStore {
    * @returns An array of child Task objects in display order.
    */
   getChildren(parentId: TaskID | undefined): PersistedTask[] {
-    return getChildren(this.doc, parentId);
+    return getChildren(this.doc, parentId).map((t) => TaskSchema.parse(t));
   }
 
   /**
@@ -158,7 +162,7 @@ export class TunnelStore {
    * const task = store.createTask({ title: "New task", parentId: "1" });
    */
   createTask(props: TaskCreateInput): PersistedTask {
-    let newTask: PersistedTask | undefined;
+    let newTask: WritableTask | undefined;
     this.doc = change(this.doc, "Create task", (doc) => {
       newTask = createTask(doc, props);
     });
@@ -166,7 +170,7 @@ export class TunnelStore {
 
     const task = getTask(this.doc, newTask.id);
     if (!task) throw new Error("Retrieved task is undefined");
-    return task;
+    return TaskSchema.parse(task);
   }
 
   /**
@@ -177,13 +181,13 @@ export class TunnelStore {
    * @returns The updated Task object.
    * @throws Error if the task does not exist.
    */
-  updateTask(id: TaskID, props: Partial<PersistedTask>): PersistedTask {
+  updateTask(id: TaskID, props: TaskUpdateInput): PersistedTask {
     this.doc = change(this.doc, `Update task ${id}`, (doc) => {
       updateTask(doc, id, props);
     });
     const task = getTask(this.doc, id);
     if (!task) throw new Error("Retrieved task is undefined");
-    return task;
+    return TaskSchema.parse(task);
   }
 
   /**

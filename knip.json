@@ -5,15 +5,9 @@
   "workspaces": {
     ".": {},
     "scripts": {
-      "entry": [
-        "check-turbo-inputs.ts",
-        "check-dependency-health.ts",
-        "lint-filenames.ts",
-        "sync-server.js"
-      ]
+      "entry": ["check-dependency-health.ts", "sync-server.js"]
     },
     "packages/tasklens": {
-      "entry": ["src/index.ts", "src/test/index.ts"],
       "project": ["src/**/*.{ts,tsx}!"]
     },
     "apps/client": {

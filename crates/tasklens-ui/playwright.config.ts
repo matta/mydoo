@@ -6,23 +6,15 @@ const bddCommon = {
   steps: "tests/e2e/{steps/*.steps.ts,fixtures.ts}",
 };
 
-const testDirDesktop = defineBddConfig({
+const testDirBdd = defineBddConfig({
   ...bddCommon,
-  outputDir: "tests/e2e/.features-gen/desktop",
-});
-
-const testDirMobile = defineBddConfig({
-  ...bddCommon,
-  outputDir: "tests/e2e/.features-gen/mobile",
+  outputDir: "tests/e2e/.features-gen",
 });
 
 const isCI = !!process.env.CI;
 
 export default defineConfig({
-  fullyParallel: true,
-  forbidOnly: isCI,
-  retries: isCI ? 2 : 0,
-  ...(isCI && { workers: 4 }),
+  workers: 1,
   reporter: [["html", { open: "never" }]],
   use: {
     baseURL: "http://localhost:5180",
@@ -41,13 +33,13 @@ export default defineConfig({
   projects: [
     {
       name: "bdd-desktop",
-      testDir: testDirDesktop,
+      testDir: testDirBdd,
       use: { ...devices["Desktop Chrome"] },
       grepInvert: /@migration-pending/,
     },
     {
       name: "bdd-mobile",
-      testDir: testDirMobile,
+      testDir: testDirBdd,
       use: { ...devices["Pixel 7"] },
       grepInvert: /@migration-pending/,
     },
