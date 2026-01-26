@@ -212,7 +212,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                         }
                     } else {
                         for FlattenedTask { task , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
-                            crate::components::task_row::TaskRow {
+                            TaskRow {
                                 key: "{task.id}",
                                 task: task.clone(),
                                 depth,
