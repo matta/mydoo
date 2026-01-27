@@ -5,7 +5,7 @@
 //! - Generating a new document (new random ID)
 //! - Entering an existing document ID to switch documents
 
-use crate::components::*;
+use crate::{components::*, hooks::use_tunnel_state::use_tunnel_state};
 use dioxus::prelude::*;
 // use dioxus::events::FormEvent;
 
@@ -38,7 +38,7 @@ pub fn DocIdManager(
         })
     });
 
-    let tunnel_state = crate::hooks::use_tunnel_state::use_tunnel_state();
+    let tunnel_state = use_tunnel_state();
 
     let metadata_doc_id = use_memo(move || {
         tunnel_state
