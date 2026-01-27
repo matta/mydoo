@@ -38,8 +38,10 @@ pub fn DocIdManager(
         })
     });
 
+    let tunnel_state = crate::hooks::use_tunnel_state::use_tunnel_state();
+
     let metadata_doc_id = use_memo(move || {
-        crate::hooks::use_tunnel_state::use_tunnel_state()
+        tunnel_state
             .read()
             .metadata
             .as_ref()
