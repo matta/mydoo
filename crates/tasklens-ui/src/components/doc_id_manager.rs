@@ -164,7 +164,7 @@ pub fn DocIdManager(
                                 Ok((handle, new_id)) => {
                                     tracing::info!("Imported document: {}", new_id);
                                     // Acquire lock only to update state
-                                    store.write().set_active_doc(handle, new_id.clone());
+                                    store.write().set_active_doc(handle, new_id);
                                     on_change.call(new_id);
                                 }
                                 Err(e) => {

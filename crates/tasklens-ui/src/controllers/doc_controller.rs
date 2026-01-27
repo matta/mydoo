@@ -17,7 +17,7 @@ pub fn switch_document(
 
         if let Some(repo) = repo {
             // 2. Perform async lookup detached from store instance
-            match AppStore::find_doc(repo, new_doc_id.clone()).await {
+            match AppStore::find_doc(repo, new_doc_id).await {
                 Ok(Some(handle)) => {
                     tracing::info!(
                         "find_doc_detached successful for Document ID: {}",
@@ -25,10 +25,10 @@ pub fn switch_document(
                     );
 
                     // 3. Acquire lock ONLY for the sync update
-                    store.write().set_active_doc(handle, new_doc_id.clone());
+                    store.write().set_active_doc(handle, new_doc_id);
                     tracing::info!("set_active_doc successful for Document ID: {}", new_doc_id);
 
-                    let logged_doc_id = new_doc_id.clone();
+                    let logged_doc_id = new_doc_id;
                     doc_id.set(Some(new_doc_id));
                     tracing::info!("doc_id.set() successful for Document ID: {}", logged_doc_id);
                 }
@@ -59,7 +59,7 @@ pub fn create_new_document(mut store: Signal<AppStore>, mut doc_id: Signal<Optio
                     tracing::info!("Created new doc successfully: {}", new_id);
 
                     // 3. Acquire lock ONLY for the sync update
-                    store.write().set_active_doc(handle, new_id.clone());
+                    store.write().set_active_doc(handle, new_id);
                     doc_id.set(Some(new_id));
                 }
                 Err(e) => tracing::error!("Failed to create doc: {:?}", e),

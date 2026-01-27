@@ -175,11 +175,11 @@ fn App() -> Element {
             tracing::info!("Found active document ID: {}", id);
 
             // Attempt to find existing document without holding store lock
-            let find_res = AppStore::find_doc(repo.clone(), id.clone()).await;
+            let find_res = AppStore::find_doc(repo.clone(), id).await;
 
             match find_res {
                 Ok(Some(handle)) => {
-                    store.write().set_active_doc(handle, id.clone());
+                    store.write().set_active_doc(handle, id);
                     doc_id.set(Some(id));
                 }
                 Ok(None) => {
@@ -187,7 +187,7 @@ fn App() -> Element {
                     // Fallback to create new
                     match AppStore::create_new(repo.clone()).await {
                         Ok((handle, new_id)) => {
-                            store.write().set_active_doc(handle, new_id.clone());
+                            store.write().set_active_doc(handle, new_id);
                             doc_id.set(Some(new_id));
                         }
                         Err(e) => {
@@ -202,7 +202,7 @@ fn App() -> Element {
                     tracing::error!("{}", msg);
                     match AppStore::create_new(repo.clone()).await {
                         Ok((handle, new_id)) => {
-                            store.write().set_active_doc(handle, new_id.clone());
+                            store.write().set_active_doc(handle, new_id);
                             doc_id.set(Some(new_id));
                         }
                         Err(e) => {
@@ -218,7 +218,7 @@ fn App() -> Element {
             tracing::info!("No active doc. Creating new.");
             match AppStore::create_new(repo.clone()).await {
                 Ok((handle, new_id)) => {
-                    store.write().set_active_doc(handle, new_id.clone());
+                    store.write().set_active_doc(handle, new_id);
                     doc_id.set(Some(new_id));
                 }
                 Err(e) => {

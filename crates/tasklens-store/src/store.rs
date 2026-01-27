@@ -45,7 +45,7 @@ impl AppStore {
         let handle = handle
             .await
             .map_err(|e| anyhow!("Failed to create doc: {:?}", e))?;
-        let id = DocumentId::from(handle.document_id().clone());
+        let id = DocumentId::from(handle.document_id());
 
         // Initialize with default state
         handle.with_document(|doc| {
@@ -69,15 +69,15 @@ impl AppStore {
     /// Updates the store to track the provided document.
     pub fn set_active_doc(&mut self, handle: samod::DocHandle, id: DocumentId) {
         self.handle = Some(handle);
-        self.current_id = Some(id.clone());
+        self.current_id = Some(id);
         #[cfg(target_arch = "wasm32")]
         ActiveDocStorage::save_active_url(&TaskLensUrl::from(id));
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub fn save_active_doc_id(id: &DocumentId) {
+    pub fn save_active_doc_id(id: DocumentId) {
         tracing::info!("Saving active doc id: {}", id);
-        crate::storage::ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
+        crate::storage::ActiveDocStorage::save_active_url(&TaskLensUrl::from(id));
     }
 
     /// Imports a document from a byte array.
@@ -100,20 +100,14 @@ impl AppStore {
             tracing::info!("Importing document with existing ID: {}", id);
 
             #[cfg(target_arch = "wasm32")]
-            {
-                use crate::samod_storage::SamodStorage;
-                use samod::storage::LocalStorage;
-
-                // Manually inject into storage to bypass Repo::create generating a new ID
-                let storage = SamodStorage::new("tasklens_samod", "documents");
-                // Samod keys are typically the string representation of the ID
-                if let Ok(key) = samod::storage::StorageKey::from_parts(vec![id.to_string()]) {
-                    storage.put(key, bytes.clone()).await;
-
-                    // Now find it via Repo (which should look in storage)
-                    if let Ok(Some(handle)) = Self::find_doc(repo.clone(), id.clone()).await {
-                        return Ok((handle, id));
-                    }
+            match Self::inject_existing_doc(repo.clone(), id, &doc).await {
+                Ok((handle, id)) => return Ok((handle, id)),
+                Err(e) => {
+                    tracing::error!(
+                        "Manual injection failed for ID {}, falling back to new document creation: {:?}",
+                        id,
+                        e
+                    );
                 }
             }
         }
@@ -122,10 +116,10 @@ impl AppStore {
             .create(doc)
             .await
             .map_err(|e| anyhow!("Failed to create (import) doc: {:?}", e))?;
-        let id = DocumentId::from(handle.document_id().clone());
+        let id = DocumentId::from(handle.document_id());
 
         #[cfg(target_arch = "wasm32")]
-        ActiveDocStorage::save_active_url(&TaskLensUrl::from(id.clone()));
+        ActiveDocStorage::save_active_url(&TaskLensUrl::from(id));
 
         Ok((handle, id))
     }
@@ -207,6 +201,50 @@ impl AppStore {
         handle
             .with_document(|doc| adapter::dispatch(doc, action))
             .map_err(|e| anyhow!(e))
+    }
+
+    /// Explicitly inject a document into the underlying WASM storage with a known ID.
+    /// This bypasses `repo.create()` which forces a new random ID.
+    #[cfg(target_arch = "wasm32")]
+    async fn inject_existing_doc(
+        repo: samod::Repo,
+        id: DocumentId,
+        doc: &automerge::Automerge,
+    ) -> Result<(samod::DocHandle, DocumentId)> {
+        // This code is a hack to work around the fact that we can't create a
+        // document with a known ID. TODO: Remove this hack when we figure out
+        // how to create a document with a known ID. See also
+        // https://github.com/alexjg/samod/issues/60
+        //
+        // The problem is that `repo.create()` always generates a new random ID,
+        // but we need to create a document with a specific ID (the one passed
+        // in as an argument).
+        //
+        // The solution is to manually inject the document into storage and then
+        // find it via `repo.find()`.
+
+        use crate::samod_storage::SamodStorage;
+        use samod::storage::{LocalStorage, StorageKey};
+
+        let hash = samod_core::CompactionHash::new(&doc.get_heads());
+        let key = StorageKey::snapshot_path(&id.into(), &hash);
+
+        let storage = SamodStorage::new("tasklens_samod", "documents");
+        storage.put(key, doc.save()).await;
+
+        // Now find it via Repo (which should look in storage)
+        match Self::find_doc(repo, id).await {
+            Ok(Some(handle)) => Ok((handle, id)),
+            Ok(None) => Err(anyhow!(
+                "Document {} not found after manual storage injection",
+                id
+            )),
+            Err(e) => Err(anyhow!(
+                "Error finding document {} after manual injection: {:?}",
+                id,
+                e
+            )),
+        }
     }
 }
 
