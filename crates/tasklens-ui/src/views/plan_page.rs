@@ -1,3 +1,4 @@
+use crate::components::task_row::TaskRow;
 use crate::components::{LoadErrorView, PageHeader, TaskInput};
 use crate::controllers::task_controller;
 use dioxus::prelude::*;
