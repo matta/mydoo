@@ -4,7 +4,6 @@
 //! It handles state management, synchronization integration, and the composition of the main page.
 
 use crate::components::*;
-use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskStatus};
 use tasklens_store::store::AppStore;
@@ -18,13 +17,11 @@ use tasklens_store::store::AppStore;
 /// - Integrates the `SettingsModal` for identity management.
 #[component]
 pub fn TaskPage() -> Element {
-    let mut doc_id = use_context::<Signal<Option<tasklens_store::doc_id::DocumentId>>>();
-    let service_worker_active = use_context::<Signal<bool>>(); // Assuming bool not ReadSignal for context simplicity, or ReadSignal
-    let mut store = use_context::<Signal<AppStore>>();
+    let service_worker_active = use_context::<Signal<bool>>();
+    let store = use_context::<Signal<AppStore>>();
     let load_error = use_context::<Signal<Option<String>>>();
 
     let mut input_text = use_signal(String::new);
-    let mut show_settings = use_signal(|| false);
 
     // Hydrate state from the store
     let state = crate::hooks::use_tunnel_state::use_tunnel_state();
@@ -72,83 +69,25 @@ pub fn TaskPage() -> Element {
         t
     };
 
-    // FIXME: This logic is duplicated in plan_page.rs and should be consolidated.
-    let handle_doc_change = move |new_doc_id: tasklens_store::doc_id::DocumentId| {
-        tracing::info!("Attempting to switch to Document ID: {}", new_doc_id);
-        spawn(async move {
-            // 1. Get repo without holding lock
-            let repo = store.read().repo.clone();
-
-            if let Some(repo) = repo {
-                // 2. Perform async lookup detached from store instance
-                match AppStore::find_doc(repo, new_doc_id.clone()).await {
-                    Ok(Some(handle)) => {
-                        // 3. Acquire lock ONLY for the sync update
-                        store.write().set_active_doc(handle, new_doc_id.clone());
-                        doc_id.set(Some(new_doc_id));
-                        tracing::info!("Switch successful");
-                    }
-                    Ok(None) => {
-                        tracing::error!("Document not found: {}", new_doc_id);
-                    }
-                    Err(e) => {
-                        tracing::error!("Switch failed: {:?}", e);
-                    }
-                }
-            } else {
-                tracing::error!("Repo not initialized");
-            }
-        });
-    };
-
-    // FIXME: This logic is duplicated in plan_page.rs and should be consolidated.
-    let handle_create_doc = move |_| {
-        tracing::info!("Creating new document");
-        spawn(async move {
-            // 1. Get repo without holding lock
-            let repo = store.read().repo.clone();
-
-            if let Some(repo) = repo {
-                // 2. Perform async creation detached from store instance
-                match AppStore::create_new(repo).await {
-                    Ok((handle, new_id)) => {
-                        tracing::info!("Created new doc successfully: {}", new_id);
-
-                        // 3. Acquire lock ONLY for the sync update
-                        store.write().set_active_doc(handle, new_id.clone());
-                        doc_id.set(Some(new_id));
-                    }
-                    Err(e) => tracing::error!("Failed to create doc: {:?}", e),
-                }
-            } else {
-                tracing::error!("Repo not initialized");
-            }
-        });
-    };
-
     rsx! {
-        if show_settings() {
-            SettingsModal {
-                on_close: move |_| show_settings.set(false),
-                doc_id,
-                on_doc_change: handle_doc_change,
-                on_create_doc: handle_create_doc,
-            }
-        }
-
         div {
-            class: "container mx-auto max-w-md p-4",
+            class: "px-4 pt-4 pb-20 container mx-auto max-w-2xl",
             style: "padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
-            Header {
-                service_worker_active: service_worker_active(),
-                on_settings_click: move |_| show_settings.set(true),
+            PageHeader { title: "TaskLens",
+                if service_worker_active() {
+                    div {
+                        class: "px-2 py-0.5 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full border border-blue-200 mr-2",
+                        title: "Service Worker Active",
+                        "Offline Ready"
+                    }
+                }
             }
 
             if let Some(error) = load_error() {
                 LoadErrorView {
                     error,
                     help_text: Some(
-                        "Access the settings menu to switch documents or change sync servers."
+                        "Access the settings menu from the navigation bar to switch documents or change sync servers."
                             .to_string(),
                     ),
                 }
@@ -158,53 +97,6 @@ pub fn TaskPage() -> Element {
             }
 
             div { class: "mt-8 text-center text-base text-gray-500", "Build: {crate::BUILD_VERSION}" }
-        }
-    }
-}
-
-#[component]
-fn Header(service_worker_active: bool, on_settings_click: EventHandler<()>) -> Element {
-    let indicator_color = "bg-green-500";
-    let indicator_title = "Sync Active";
-    let indicator_class = format!("h-3 w-3 rounded-full {} mr-2", indicator_color);
-
-    rsx! {
-        div { class: "flex justify-between items-center mb-6",
-            h1 { class: "text-2xl font-bold", "TaskLens" }
-            div { class: "flex items-center space-x-2",
-                div { class: "{indicator_class}", title: "{indicator_title}" }
-
-                if service_worker_active {
-                    div {
-                        class: "px-2 py-0.5 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full border border-blue-200 mr-2",
-                        title: "Service Worker Active",
-                        "Offline Ready"
-                    }
-                }
-
-                button {
-                    class: "text-gray-500 hover:text-gray-700 p-1 rounded-md hover:bg-gray-100",
-                    onclick: move |_| on_settings_click.call(()),
-                    svg {
-                        class: "h-6 w-6",
-                        fill: "none",
-                        view_box: "0 0 24 24",
-                        stroke: "currentColor",
-                        path {
-                            stroke_linecap: "round",
-                            stroke_linejoin: "round",
-                            stroke_width: "2",
-                            d: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z",
-                        }
-                        path {
-                            stroke_linecap: "round",
-                            stroke_linejoin: "round",
-                            stroke_width: "2",
-                            d: "M15 12a3 3 0 11-6 0 3 3 0 016 0z",
-                        }
-                    }
-                }
-            }
         }
     }
 }

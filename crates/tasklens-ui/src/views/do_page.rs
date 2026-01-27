@@ -1,6 +1,5 @@
-use crate::components::LoadErrorView;
 use crate::components::priority_task_row::PriorityTaskRow;
-use crate::components::task_input::TaskInput;
+use crate::components::{LoadErrorView, PageHeader, TaskInput};
 use crate::controllers::task_controller;
 use dioxus::prelude::*;
 use tasklens_core::domain::priority::get_prioritized_tasks;
@@ -60,9 +59,11 @@ pub fn DoPage() -> Element {
     };
 
     rsx! {
-        div { class: "container mx-auto px-4 py-6 max-w-3xl",
-            div { class: "flex justify-between items-center mb-6",
-                h1 { class: "text-2xl font-bold text-gray-900", "Work" }
+        div {
+            class: "px-4 pt-4 pb-20 container mx-auto max-w-2xl",
+            style: "padding-top: var(--safe-top); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
+
+            PageHeader { title: "Work",
                 button {
                     class: "px-3 py-1 bg-white border border-gray-200 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 flex items-center shadow-sm",
                     onclick: move |_| task_controller::refresh_lifecycle(store, load_error),
@@ -80,7 +81,7 @@ pub fn DoPage() -> Element {
                 LoadErrorView {
                     error,
                     help_text: Some(
-                        "Access the settings menu from the Task or Plan page to switch documents or change sync servers."
+                        "Access the settings menu from the navigation bar to switch documents or change sync servers."
                             .to_string(),
                     ),
                 }
