@@ -5,6 +5,10 @@ use tasklens_store::store::AppStore;
 /// A hook that centralizes hydration of TunnelState from the AppStore.
 /// It handles error logging and surfaces errors via the `load_error` signal context.
 pub fn use_tunnel_state() -> Memo<TunnelState> {
+    if let Some(state) = try_use_context::<Memo<TunnelState>>() {
+        return state;
+    }
+
     let mut store = use_context::<Signal<AppStore>>();
     let mut load_error = use_context::<Signal<Option<String>>>();
     let memory_heads = use_context::<crate::MemoryHeads>();

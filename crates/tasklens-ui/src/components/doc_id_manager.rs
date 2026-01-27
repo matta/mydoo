@@ -38,6 +38,16 @@ pub fn DocIdManager(
         })
     });
 
+    let metadata_doc_id = use_memo(move || {
+        crate::hooks::use_tunnel_state::use_tunnel_state()
+            .read()
+            .metadata
+            .as_ref()
+            .and_then(|meta| meta.automerge_url.as_ref())
+            .and_then(|url| url.parse::<tasklens_store::doc_id::TaskLensUrl>().ok())
+            .map(|url| url.document_id.to_string())
+    });
+
     let handle_new_document = move |_| {
         on_create.call(());
     };
@@ -202,6 +212,26 @@ pub fn DocIdManager(
                         onclick: handle_copy,
                         disabled: current_doc_id().is_none(),
                         "Copy Full ID"
+                    }
+                }
+
+                if let Some(meta_id) = metadata_doc_id() {
+                    div { class: "mt-2 pt-2 border-t border-gray-100",
+                        label { class: "block text-xs font-medium text-gray-500 mb-1",
+                            "Metadata ID (Internal)"
+                        }
+                        div { class: "flex items-center space-x-2",
+                            div { class: "px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs font-mono text-gray-600",
+                                "{meta_id}"
+                            }
+                            if let Some(curr) = current_doc_id() {
+                                if curr.to_string() != meta_id {
+                                    span { class: "text-red-600 text-xs font-bold", "Mismatch!" }
+                                } else {
+                                    span { class: "text-green-600 text-xs", "Matches" }
+                                }
+                            }
+                        }
                     }
                 }
 
