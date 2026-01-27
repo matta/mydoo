@@ -13,6 +13,10 @@ pub fn AppNavBar() -> Element {
     let store = use_context::<Signal<AppStore>>();
     let doc_id = use_context::<Signal<Option<DocumentId>>>();
 
+    // Hydrate state at the top level and provide it to children
+    let state = crate::hooks::use_tunnel_state::use_tunnel_state();
+    use_context_provider(|| state);
+
     let handle_doc_change = move |new_doc_id: DocumentId| {
         doc_controller::switch_document(store, doc_id, new_doc_id);
     };
