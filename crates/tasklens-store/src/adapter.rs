@@ -124,7 +124,7 @@ pub(crate) fn init_state(
         places: HashMap::new(),
         root_task_ids: Vec::new(),
         metadata: Some(DocMetadata {
-            automerge_url: Some(TaskLensUrl::from(id.clone()).to_string()),
+            automerge_url: Some(TaskLensUrl::from(id).to_string()),
         }),
     };
 

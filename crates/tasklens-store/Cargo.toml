@@ -17,6 +17,7 @@ autosurgeon.workspace = true
 uuid.workspace = true
 tracing.workspace = true
 samod = { workspace = true }
+samod-core = { workspace = true }
 scopeguard = { workspace = true }
 
 futures = "0.3"

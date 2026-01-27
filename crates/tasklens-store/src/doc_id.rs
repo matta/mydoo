@@ -8,7 +8,7 @@ use uuid::Uuid;
 ///
 /// Wraps a UUID and serializes to a Base58Check string.
 /// Bit-identical format to the Automerge Repo (samod) DocumentId.
-#[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct DocumentId(Uuid);
 
 impl DocumentId {
@@ -54,7 +54,7 @@ impl FromStr for DocumentId {
 /// A user-facing locator for a TaskLens document.
 ///
 /// Encapsulates the "automerge:{DocumentId}" format.
-#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct TaskLensUrl {
     pub document_id: DocumentId,
 }
@@ -87,13 +87,21 @@ impl FromStr for TaskLensUrl {
 impl TaskLensUrl {
     /// Returns the document ID.
     pub fn document_id(&self) -> DocumentId {
-        self.document_id.clone()
+        self.document_id
     }
 }
 
 impl From<DocumentId> for TaskLensUrl {
     fn from(document_id: DocumentId) -> Self {
         Self { document_id }
+    }
+}
+
+impl From<&DocumentId> for TaskLensUrl {
+    fn from(document_id: &DocumentId) -> Self {
+        Self {
+            document_id: *document_id,
+        }
     }
 }
 
@@ -104,9 +112,21 @@ impl From<samod::DocumentId> for DocumentId {
     }
 }
 
+impl From<&samod::DocumentId> for DocumentId {
+    fn from(id: &samod::DocumentId) -> Self {
+        Self(Uuid::from_slice(id.as_bytes()).expect("Samod DocumentId should be valid UUID"))
+    }
+}
+
 impl From<DocumentId> for samod::DocumentId {
     fn from(id: DocumentId) -> Self {
         // samod::DocumentId::try_from(Vec<u8>)
+        Self::try_from(id.0.as_bytes().to_vec()).expect("DocumentId should be valid UUID")
+    }
+}
+
+impl From<&DocumentId> for samod::DocumentId {
+    fn from(id: &DocumentId) -> Self {
         Self::try_from(id.0.as_bytes().to_vec()).expect("DocumentId should be valid UUID")
     }
 }
@@ -132,7 +152,7 @@ mod tests {
     #[test]
     fn test_tasklens_url_parsing() {
         let id = DocumentId::new();
-        let url = TaskLensUrl::from(id.clone());
+        let url = TaskLensUrl::from(id);
         let s = url.to_string();
         assert!(s.starts_with("automerge:"));
 
