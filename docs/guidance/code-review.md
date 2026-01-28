@@ -192,7 +192,7 @@ unexpected failure.
 
 ## General
 
-## Verification
+### Verification Before Commit
 
 Before submitting a PR, run:
 
