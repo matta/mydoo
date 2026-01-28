@@ -1,8 +1,22 @@
-import { UrgencyStatus } from "@mydoo/tasklens";
 import { createBdd } from "playwright-bdd";
 import { expect, test } from "../fixtures";
 import { formatDateAsISO } from "../utils/date-formatter";
 import { durationToMs, parseDuration } from "../utils/duration-parser";
+
+export type UrgencyStatus =
+  | "Overdue"
+  | "Urgent"
+  | "Active"
+  | "Upcoming"
+  | "None";
+
+export const UrgencyStatus = {
+  Overdue: "Overdue",
+  Urgent: "Urgent",
+  Active: "Active",
+  Upcoming: "Upcoming",
+  None: "None",
+} as const;
 
 const { Given, When, Then } = createBdd(test);
 
