@@ -45,16 +45,16 @@ Migrate unit tests and E2E tests.
     - [x] Ensure build dependencies (building the UI) are explicit in the recipe or documented.
 - [x] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
 
-## Phase 5: Finalization and Orchestration
+## Phase 5: Finalization and Orchestration [checkpoint: 15bd0b4]
 Remove Turbo and wrap all workflows in Just.
 
 - [x] Task: Implement `fix` and `verify` recipes 83c85f1
-    - [ ] Create the high-level `verify` recipe (sequential `check-style` -> `check-types` -> `test`).
-    - [ ] Create the `check-agent` recipe.
+    - [x] Create the high-level `verify` recipe (sequential `check-style` -> `check-types` -> `test`).
+    - [x] Create the `check-agent` recipe.
 - [x] Task: Redirect `package.json` scripts to Just e610d43
-    - [ ] Update root `package.json` scripts to call `just <recipe>`.
+    - [x] Update root `package.json` scripts to call `just <recipe>`.
 - [x] Task: Remove Turborepo dependencies b61188f
-    - [ ] Delete `turbo.json` and `turbo-exclusions.json`.
-    - [ ] Uninstall `turbo` from the root package.
-    - [ ] Run `pnpm install` to update the lockfile.
-- [~] Task: Conductor - User Manual Verification 'Phase 5' (Protocol in workflow.md)
+    - [x] Delete `turbo.json` and `turbo-exclusions.json`.
+    - [x] Uninstall `turbo` from the root package.
+    - [x] Run `pnpm install` to update the lockfile.
+- [x] Task: Conductor - User Manual Verification 'Phase 5' (Protocol in workflow.md)
