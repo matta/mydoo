@@ -249,13 +249,13 @@ are slated for conversion to code-first specs.
 ### Checklist
 
 - [x] `binary-import-export.feature` → `specs/binary-import-export.spec.ts`
-- [ ] `document-switching.feature` → `specs/document-switching.spec.ts`
+- [x] `document-switching.feature` → `specs/document-switching.spec.ts`
 - [ ] `due-dates.feature` → `specs/due-dates.spec.ts`
 - [ ] `mobile-journeys.feature` → `specs/mobile-journeys.spec.ts`
 - [ ] `plan-management.feature` → `specs/plan-management.spec.ts`
 - [ ] `routine-tasks.feature` → `specs/routine-tasks.spec.ts`
 - [ ] `sequential-projects.feature` → `specs/sequential-projects.spec.ts`
-- [ ] `smoke.feature` → `specs/smoke.spec.ts`
-- [ ] `task-creation.feature` → `specs/task-creation.spec.ts`
+- [x] `smoke.feature` → `specs/smoke.spec.ts`
+- [x] `task-creation.feature` → `specs/task-creation.spec.ts`
 - [ ] `task-lifecycle.feature` → `specs/task-lifecycle.spec.ts`
 - [ ] `task-moving.feature` → `specs/task-moving.spec.ts`

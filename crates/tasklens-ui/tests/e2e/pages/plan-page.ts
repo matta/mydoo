@@ -39,12 +39,15 @@ export interface PlanFixture {
     config: { dueDate: string; leadTimeVal: number; leadTimeUnit: string },
   ) => Promise<void>;
   createTaskInDoView: (title: string) => Promise<void>;
+  openCreateTaskModal: () => Promise<void>;
 
   // Verification Helpers
   verifyTaskVisible: (title: string) => Promise<void>;
   verifyTaskHidden: (title: string) => Promise<void>;
   verifyTaskCompleted: (title: string) => Promise<void>;
   verifyFocusedByLabel: (label: string) => Promise<void>;
+  verifyFieldValue: (label: string, value: string) => Promise<void>;
+  verifyElementVisible: (selector: string) => Promise<void>;
 
   // Mobile Helpers
   mobileDrillDown: (title: string) => Promise<void>;
@@ -215,6 +218,26 @@ export class PlanPage implements PlanFixture {
     await this.page.keyboard.press("Enter");
 
     await expect(this.page.getByText(title).first()).toBeVisible();
+  }
+
+  async openCreateTaskModal(): Promise<void> {
+    const addFirst = this.page.getByRole("button", { name: "Add First Task" });
+    const addTop = this.page.getByLabel("Add Task at Top");
+
+    if (await addFirst.isVisible()) {
+      await addFirst.click();
+    } else if (await addTop.isVisible()) {
+      await addTop.click();
+    } else {
+      // If none of those, maybe we are in Plan view with many tasks.
+      // Try finding the first task and adding a sibling if that's easier,
+      // but "Add Task at Top" should be there on mobile/desktop headers.
+      // Let's try to find ANY add task button.
+      throw new Error("Could not find a button to open Create Task modal");
+    }
+
+    const modal = this.page.getByRole("dialog", { name: "Create Task" });
+    await expect(modal).toBeVisible({ timeout: 5000 });
   }
 
   async addFirstTask(title: string): Promise<void> {
@@ -556,6 +579,16 @@ export class PlanPage implements PlanFixture {
 
   async verifyFocusedByLabel(label: string): Promise<void> {
     await expect(this.page.getByLabel(label)).toBeFocused();
+  }
+
+  async verifyFieldValue(label: string, value: string): Promise<void> {
+    await expect(this.page.getByLabel(label, { exact: true })).toHaveValue(
+      value,
+    );
+  }
+
+  async verifyElementVisible(label: string): Promise<void> {
+    await expect(this.page.getByLabel(label, { exact: true })).toBeVisible();
   }
 
   // --- Navigation ---

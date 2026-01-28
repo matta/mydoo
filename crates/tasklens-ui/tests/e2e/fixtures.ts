@@ -12,12 +12,6 @@ type UserContext = {
   plan: PlanPage;
 };
 
-type DocumentContextFixture = {
-  documentContext: {
-    documents: Map<string, string>;
-  };
-};
-
 // Combine all fixtures
 type MyFixtures = {
   plan: PlanFixture;
@@ -25,7 +19,7 @@ type MyFixtures = {
   I: Steps;
   alice: UserContext;
   bob: UserContext;
-} & DocumentContextFixture;
+};
 
 type MyWorkerFixtures = {
   syncServer: SyncServerHelper;
@@ -84,13 +78,6 @@ export const test = bddTest.extend<MyFixtures, MyWorkerFixtures>({
     // plan fixture is typed as interface but at runtime it's PlanPage instance
     // We cast to PlanPage because Steps expects the concrete class or compatible interface
     await use(new Steps(plan as PlanPage, page));
-  },
-  documentContext: async (
-    // biome-ignore lint/correctness/noEmptyPattern: playwright-bdd requires destructuring pattern
-    {},
-    use: (r: { documents: Map<string, string> }) => Promise<void>,
-  ) => {
-    await use({ documents: new Map() });
   },
   debugFailure: [
     async (
