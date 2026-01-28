@@ -248,7 +248,7 @@ are slated for conversion to code-first specs.
 
 ### Checklist
 
-- [ ] `binary-import-export.feature` → `specs/binary-import-export.spec.ts`
+- [x] `binary-import-export.feature` → `specs/binary-import-export.spec.ts`
 - [ ] `document-switching.feature` → `specs/document-switching.spec.ts`
 - [ ] `due-dates.feature` → `specs/due-dates.spec.ts`
 - [ ] `mobile-journeys.feature` → `specs/mobile-journeys.spec.ts`

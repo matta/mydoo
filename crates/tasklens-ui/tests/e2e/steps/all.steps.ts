@@ -63,36 +63,6 @@ Given("I have a clean workspace", async ({ page, plan }) => {
   await plan.waitForAppReady();
 });
 
-// Added for binary-import-export.feature
-Given("I am on the home page", async ({ page, plan }) => {
-  // Equivalent to starting clean or just navigating
-  await page.goto("/");
-  await plan.waitForAppReady();
-});
-
-Given("I have created a new document", async ({ plan, documentContext }) => {
-  await plan.createNewDocument();
-  const id = await plan.getCurrentDocumentId();
-  if (!id) throw new Error("Failed to get document ID");
-  documentContext.documents.set("original", id);
-});
-
-Given(
-  "I have a task {string} in the {string} view",
-  async ({ plan }, taskTitle, viewName) => {
-    if (viewName === "Plan") {
-      await plan.switchToPlanView();
-    } else {
-      await plan.switchToDoView();
-    }
-    await plan.createTask(taskTitle);
-  },
-);
-
-Then("I should see the task {string}", async ({ plan }, title) => {
-  await plan.verifyTaskVisible(title);
-});
-
 Given("I start with a clean workspace", async ({ page, plan }) => {
   await plan.setupClock();
   await page.goto("/");
@@ -380,48 +350,6 @@ Then("the document ID changes", async ({ plan, documentContext }) => {
   const newId = await plan.getCurrentDocumentId();
   expect(newId).not.toBe(documentContext.documents.get("original"));
 });
-
-When('I click the "Download" button', async ({ plan, documentContext }) => {
-  const path = await plan.downloadDocument();
-  documentContext.documents.set("downloaded_file_path", path);
-});
-
-When("I wait for the file to download", async () => {
-  // Handled in clickDownloadButton via waitForEvent("download")
-});
-
-When("I clear the application state", async ({ plan }) => {
-  // Instead of reloading (which causes flake/rebuild issues), we create a new document.
-  // This effectively "clears" the current document from view and changes the ID.
-  // When we upload the original, we verify that the ID switches back to the original.
-  await plan.createNewDocument();
-});
-
-When("I upload the downloaded document", async ({ plan, documentContext }) => {
-  const filePath = documentContext.documents.get("downloaded_file_path");
-  if (!filePath) throw new Error("No downloaded file path found");
-  await plan.uploadDocument(filePath);
-});
-
-Then(
-  "the current document ID should remain the same",
-  async ({ plan, documentContext }) => {
-    const currentId = await plan.getCurrentDocumentId();
-    const originalId = documentContext.documents.get("original");
-    // Extract ID (remove tasklens: prefix if present in stored value,
-    // though getCurrentDocumentId returns raw ID usually).
-    // Let's assume strict equality for now.
-    expect(currentId).toBe(originalId);
-  },
-);
-
-Then(
-  'the document URL should use the "automerge:" schema',
-  async ({ plan }) => {
-    const url = await plan.getDetailedDocumentUrl();
-    expect(url).toMatch(/^automerge:/);
-  },
-);
 
 Then("the new document is empty", async ({ plan }) => {
   await plan.switchToPlanView();
