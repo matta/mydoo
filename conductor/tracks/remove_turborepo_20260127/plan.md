@@ -12,7 +12,7 @@ Audit the existing task graph and establish the core `justfile` structure.
     - [x] Define variables for package paths in the `justfile`.
     - [x] Set up the default recipe to list available commands.
     - [x] **Cleanup:** Remove the dead `generate` scripts from `package.json` and `turbo.json`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Core Build Pipeline
 Migrate build processes and ensure dependencies are explicit.

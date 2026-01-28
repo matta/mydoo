@@ -1,0 +1,8 @@
+{
+  "track_id": "remove_turborepo_20260127",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-01-27T12:00:00Z",
+  "updated_at": "2026-01-27T12:00:00Z",
+  "description": "Remove use of turborepo in this repository. move build logic that was into turborepo into regular pnpm scripts and/or the top level justfile, as appropriate."
+}
