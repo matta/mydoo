@@ -67,4 +67,4 @@ if [ -f "Cargo.toml" ]; then
 fi
 
 
-just check-human
+just check

@@ -214,7 +214,7 @@ _Goal: Working Rust domain logic and basic persistence._
               ensure all fields are matched.
       - [x] `cargo test` passes.
       - [x] `cargo fmt --check` passes.
-      - [x] `just check-human` passes.
+      - [x] `just check` passes.
 
 ### Epoch 2: The Walking Skeleton
 

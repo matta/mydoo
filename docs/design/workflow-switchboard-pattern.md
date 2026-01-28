@@ -42,11 +42,11 @@ flowchart TD
     end
 
     subgraph "Root package.json"
-        B["just check-human"]
+        B["just check"]
     end
 
     subgraph "Justfile (The Brain)"
-        C["check-human"]
+        C["check"]
         D["check-style"]
         E["check-types"]
         F["check-catalog-root"]
@@ -94,7 +94,7 @@ script delegates to `just`.
     "dev": "just dev",
     "build": "just build",
     "test": "just test",
-    "check": "just check-human",
+    "check": "just check",
     "fix": "just fix"
   }
 }

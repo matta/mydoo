@@ -201,11 +201,11 @@ just verify
 ```
 
 This is the **full verification gate** that runs auto-fixes (`just fix`)
-followed by all checks (`just check-agent`).
+followed by all checks, unit tests, and E2E tests.
 
-> [!IMPORTANT] Use `just verify`, not `just check-human`, as your final verification
+> [!IMPORTANT] Use `just verify`, not `just check`, as your final verification
 > step.
 >
-> - `just check-human` runs linting, type checking, and format checking (read-only)
-> - `just verify` runs `just fix` first (auto-formatting), then
->   `just check-agent` (all checks including tests)
+> - `just check` runs all static analysis (linting, type checking, rust checks).
+> - `just verify` runs `just fix` (auto-formatting), `just check` (analysis),
+>   `just test` (unit tests), and `just test-e2e` (E2E tests).

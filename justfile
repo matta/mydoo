@@ -157,14 +157,11 @@ test-e2e-mobile:
 # Orchestration Commands
 # -----------------------------------------------------------------------------
 
-# Full validation before human review
-check-human: check-catalog-root check-deps-root check-syncpack-root check-style check-types
-
-# Full CI-like validation
-check-agent: check-human test test-e2e
+# Full validation (static analysis)
+check: check-catalog-root check-deps-root check-syncpack-root check-style check-types check-rust
 
 # The "ultimate" verification command
-verify: check-rust fix check-agent
+verify: fix check test test-e2e
 
 # Development server
 dev:

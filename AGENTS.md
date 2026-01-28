@@ -114,8 +114,9 @@
 - We use Vitest for testing.
 - All new code must have tests.
 - **Strict Verification:** ALWAYS run `just verify` before certifying a change.
-  You MAY use targeted `just` commands during development, but you MUST run the
-  full `just verify` sequence before asking the user to commit.
+  `just verify` is the source of truth; it runs auto-fixes (`just fix`),
+  all static analysis (`just check`), and all tests (`just test`, `just test-e2e`).
+  You MUST run the full `just verify` sequence before asking the user to commit.
 
 ### Test Commands
 

@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     # Default permissions are read-only for contents, which is sufficient for testing.
 
-    env:
-      TURBO_CACHE_DIR: .turbo
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
@@ -29,14 +27,6 @@ jobs:
           node-version: 24
           cache: 'pnpm'
 
-      - name: Cache Turbo
-        uses: actions/cache@v5
-        with:
-          path: .turbo
-          key: turbo-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            turbo-${{ runner.os }}-
-
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -45,10 +35,10 @@ jobs:
       - name: Cache Rust
         uses: swatinem/rust-cache@v2
 
-      - name: Install cargo-binstall
+      - name: Install tools
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-binstall
+          tool: cargo-binstall,just
 
       - name: Install dioxus-cli
         run: |
@@ -64,16 +54,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check Rust
-        run: cargo check --workspace --all-targets
+        run: just check-rust
 
       - name: Test Rust
-        run: cargo test --workspace
+        run: just test-rust
 
       - name: Run all checks
-        run: pnpm check
+        run: just check
 
       - name: Build
-        run: pnpm build
+        run: just build
 
       - name: Cache Playwright binaries
         uses: actions/cache@v5
@@ -88,10 +78,10 @@ jobs:
         run: pnpm --filter @mydoo/tasklens-ui exec playwright install chromium --with-deps
 
       - name: Test
-        run: pnpm test
+        run: just test
 
       - name: E2E Tests
-        run: pnpm test-e2e
+        run: just test-e2e
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v6
