@@ -1,1 +1,0 @@
-../../docs/guidance/derived-state.md

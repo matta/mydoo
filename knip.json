@@ -9,14 +9,6 @@
     },
     "packages/tasklens": {
       "project": ["src/**/*.{ts,tsx}!"]
-    },
-    "apps/client": {
-      "entry": [
-        "src/main.tsx",
-        "tests/e2e/steps/**/*.steps.ts",
-        "tests/e2e/fixtures.ts"
-      ],
-      "ignoreDependencies": ["@vitest/browser"]
     }
   }
 }

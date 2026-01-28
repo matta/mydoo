@@ -416,14 +416,7 @@
     },
     "@mydoo/tasklens-ui#test-e2e": {
       "outputLogs": "new-only",
-      "dependsOn": [
-        "@mydoo/client#test-e2e",
-        "check-style",
-        "build",
-        "check-types",
-        "generate",
-        "test"
-      ],
+      "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
       "outputs": ["playwright-report/**", "test-results/**"],
       "env": ["CI"]
     },
