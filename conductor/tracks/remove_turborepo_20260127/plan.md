@@ -22,7 +22,7 @@ Migrate build processes and ensure dependencies are explicit.
 - [x] Task: Implement root `build` recipe 98a5e60
     - [ ] Define the root `build` recipe to run package builds sequentially.
     - [ ] Verify that `just build` compiles the entire project correctly.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Validation and Linting
 Migrate static analysis and type-checking tasks.
