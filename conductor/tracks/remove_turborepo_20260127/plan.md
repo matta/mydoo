@@ -33,7 +33,7 @@ Migrate static analysis and type-checking tasks.
     - [ ] Migrate `tsc` checks for all TS packages.
 - [x] Task: Implement `check-rust` (Clippy/Fmt) recipes d011434
     - [ ] Ensure existing Rust audit logic is integrated into the `just` flow.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
 
 ## Phase 4: Testing Suite
 Migrate unit tests and E2E tests.
