@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <filter id="extreme-glow">
-    <feDropShadow dx="0" dy="0" stdDeviation="15" flood-color="white" flood-opacity="1" />
-    <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="white" flood-opacity="1" />
-    <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="white" flood-opacity="1" />
-  </filter>
-  <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-size="80" filter="url(#extreme-glow)">💩</text>
-</svg>

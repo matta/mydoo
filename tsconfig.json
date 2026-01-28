@@ -8,7 +8,6 @@
   // for bundler HMR.
   "files": [],
   "references": [
-    { "path": "./apps/client" },
     { "path": "./packages/tasklens" },
     { "path": "./scripts" },
     { "path": "./crates/tasklens-ui" }
