@@ -1,10 +1,6 @@
 import { test } from "../fixtures";
 
 test.describe("Sequential Projects", () => {
-  test.beforeEach(async ({ I }) => {
-    await I.Given.cleanWorkspace();
-  });
-
   test("Sequential tasks are blocked until previous sibling is done", async ({
     I,
   }) => {
