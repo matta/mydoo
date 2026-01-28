@@ -1,15 +1,4 @@
 import { defineConfig, devices } from "@playwright/test";
-import { defineBddConfig } from "playwright-bdd";
-
-const bddCommon = {
-  features: "tests/e2e/features/*.feature",
-  steps: "tests/e2e/{steps/*.steps.ts,fixtures.ts}",
-};
-
-const testDirBdd = defineBddConfig({
-  ...bddCommon,
-  outputDir: "tests/e2e/.features-gen",
-});
 
 const isCI = !!process.env.CI;
 
@@ -32,27 +21,13 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "bdd-desktop",
-      testDir: testDirBdd,
-      use: { ...devices["Desktop Chrome"] },
-      grepInvert: /@migration-pending/,
-    },
-    {
-      name: "bdd-mobile",
-      testDir: testDirBdd,
-      use: { ...devices["Pixel 7"] },
-      grepInvert: /@migration-pending/,
-    },
-    {
       name: "e2e-desktop",
       testDir: "tests/e2e",
-      testIgnore: ["features/**", "steps/**", ".features-gen/**"],
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "e2e-mobile",
       testDir: "tests/e2e",
-      testIgnore: ["features/**", "steps/**", ".features-gen/**"],
       use: { ...devices["Pixel 7"] },
     },
   ],

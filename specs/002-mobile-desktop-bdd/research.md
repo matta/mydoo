@@ -34,11 +34,11 @@
 
 ### 4. BDD Integration
 
-**Decision**: Share the `playwright-bdd` generated test directory across both projects.
+**Decision**: Use Code-First Gherkin (TypeScript specs) with the `I` actor fixture.
 **Rationale**:
 
-- `defineBddConfig` generates standard Playwright test files.
-- These files can be executed by multiple projects with different `use` parameters (viewport, user agent) without regeneration.
+- Replaces previous Gherkin generation tools with strictly typed TypeScript tests.
+- These specs can be executed by multiple projects with different `use` parameters (viewport, user agent) natively.
 
 ## Alternatives Considered
 

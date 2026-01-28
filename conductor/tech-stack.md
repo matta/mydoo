@@ -20,7 +20,7 @@
 
 - **Unit & Integration:** Vitest
 - **End-to-End (E2E):** Playwright
-- **Behavior-Driven Development (BDD):** `playwright-bdd`
+- **Behavior-Driven Development (BDD):** Code-First Gherkin (TypeScript)
 
 ## Code Quality & Tooling
 

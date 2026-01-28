@@ -1,5 +1,9 @@
-import { type Browser, expect, type Page } from "@playwright/test";
-import { test as bddTest } from "playwright-bdd";
+import {
+  type Browser,
+  test as baseTest,
+  expect,
+  type Page,
+} from "@playwright/test";
 import { type PlanFixture, PlanPage } from "./pages/plan-page";
 import { Steps } from "./steps/steps-library";
 import { dumpFailureContext, formatConsoleMessage } from "./utils/debug-utils";
@@ -42,7 +46,7 @@ const createUserFixture = async (
   return { page, plan };
 };
 
-export const test = bddTest.extend<MyFixtures, MyWorkerFixtures>({
+export const test = baseTest.extend<MyFixtures, MyWorkerFixtures>({
   plan: async (
     { page }: { page: Page },
     use: (r: PlanPage) => Promise<void>,

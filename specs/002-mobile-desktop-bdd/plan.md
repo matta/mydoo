@@ -12,7 +12,7 @@ Implement cross-platform BDD test execution by configuring Playwright to run sce
 ## Technical Context
 
 **Language/Version**: TypeScript / Node.js
-**Primary Dependencies**: Playwright (`@playwright/test`), `playwright-bdd`
+**Primary Dependencies**: Playwright (`@playwright/test`)
 **Storage**: N/A (Test Configuration)
 **Testing**: Playwright (E2E/BDD)
 **Target Platform**: Desktop (Chrome) & Mobile (Pixel 7 Emulation)
