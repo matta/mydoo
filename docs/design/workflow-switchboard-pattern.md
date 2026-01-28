@@ -113,12 +113,13 @@ check-style: check-format-root check-biome-root check-eslint-root check-format c
 
 # Check formatting for root files
 check-format-root:
-    pnpm prettier --check "*.{json,md,yaml}"
+    pnpm prettier --check "*.{json,md,yaml,yml,js,ts,tsx,jsx,css,html}"
 
 # Check formatting for all packages
 check-format:
     cd {{ui_pkg}} && pnpm prettier --check .
     cd {{docs_pkg}} && pnpm prettier --check .
+    cd {{scripts_pkg}} && pnpm prettier --check .
 ```
 
 ### C. The Leaf `package.json` (The Code)
