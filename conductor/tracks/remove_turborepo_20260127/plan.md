@@ -48,7 +48,7 @@ Migrate unit tests and E2E tests.
 ## Phase 5: Finalization and Orchestration
 Remove Turbo and wrap all workflows in Just.
 
-- [ ] Task: Implement `fix` and `verify` recipes
+- [x] Task: Implement `fix` and `verify` recipes 83c85f1
     - [ ] Create the high-level `verify` recipe (sequential `check-style` -> `check-types` -> `test`).
     - [ ] Create the `check-agent` recipe.
 - [ ] Task: Redirect `package.json` scripts to Just
