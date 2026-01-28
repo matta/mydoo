@@ -251,13 +251,15 @@ pub fn TaskEditor(
                         }
                     }
 
-                    // Importance
                     div {
-                        label { class: "block text-base font-medium",
+                        label {
+                            class: "block text-base font-medium",
+                            r#for: "importance-input",
                             "Importance: {current_draft.importance:.2}"
                         }
                         input {
                             r#type: "range",
+                            id: "importance-input",
                             class: "w-full",
                             min: 0.0,
                             max: 1.0,
@@ -275,11 +277,14 @@ pub fn TaskEditor(
 
                     // Effort / Credit Increment
                     div {
-                        label { class: "block text-base font-medium",
+                        label {
+                            class: "block text-base font-medium",
+                            r#for: "effort-input",
                             "Effort ({current_draft.credit_increment.unwrap_or(0.5):.2})"
                         }
                         input {
                             r#type: "range",
+                            id: "effort-input",
                             class: "w-full",
                             min: 0.0,
                             max: 1.0,
@@ -483,7 +488,11 @@ pub fn TaskEditor(
 
                     // Lead Time
                     div {
-                        label { class: "block text-base font-medium", "Lead Time" }
+                        label {
+                            class: "block text-base font-medium",
+                            r#for: "lead-time-scalar-input",
+                            "Lead Time"
+                        }
                         div { class: "flex gap-2",
                             {
                                 let lead_time_ms = current_draft.schedule.lead_time;
@@ -507,6 +516,7 @@ pub fn TaskEditor(
                                         id: "lead-time-unit-select",
                                         class: "border rounded p-2 text-base",
                                         value: "{unit}",
+                                        aria_label: "Lead Time Unit",
                                         onchange: move |e| {
                                             let mut d = draft().expect("draft should be initialized");
                                             let (val, _) = time_conversion::ms_to_period(d.schedule.lead_time);

@@ -230,3 +230,32 @@ test.describe("Sequential Projects", () => {
   });
 });
 ```
+
+## 5. Conversion Roadmap
+
+The following legacy `.feature` files in `crates/tasklens-ui/tests/e2e/features`
+are slated for conversion to code-first specs.
+
+### Conversion Steps
+
+1.  **Create Spec**: Create a new file in `crates/tasklens-ui/tests/e2e/specs/`
+    named `<feature-name>.spec.ts`.
+2.  **Implement Steps**: Translate Gherkin scenarios into `test()` calls using
+    the `I` actor fixture.
+3.  **Delete Feature**: Once the spec is passing, delete the `.feature` file.
+4.  **Cleanup**: If a step was unique to that feature and is no longer needed in
+    `all.steps.ts`, it can eventually be removed from the legacy system.
+
+### Checklist
+
+- [x] `binary-import-export.feature` → `specs/binary-import-export.spec.ts`
+- [x] `document-switching.feature` → `specs/document-switching.spec.ts`
+- [ ] `due-dates.feature` → `specs/due-dates.spec.ts`
+- [ ] `mobile-journeys.feature` → `specs/mobile-journeys.spec.ts`
+- [ ] `plan-management.feature` → `specs/plan-management.spec.ts`
+- [ ] `routine-tasks.feature` → `specs/routine-tasks.spec.ts`
+- [ ] `sequential-projects.feature` → `specs/sequential-projects.spec.ts`
+- [x] `smoke.feature` → `specs/smoke.spec.ts`
+- [x] `task-creation.feature` → `specs/task-creation.spec.ts`
+- [ ] `task-lifecycle.feature` → `specs/task-lifecycle.spec.ts`
+- [ ] `task-moving.feature` → `specs/task-moving.spec.ts`
