@@ -44,7 +44,7 @@
     (logic or documentation), the Agent MUST NOT touch the stage for that file.
     Meta-documentation updates (like `AGENTS.md`) are NOT exceptions.
   - **Exception**: Staging IS permitted and encouraged for results produced by
-    vetted automated tools (e.g., `./scripts/format`, `cargo fmt`, `pnpm fix`)
+    vetted automated tools (e.g., `just fix`, `cargo fmt`)
     or when explicitly instructed by prompts, commands, workflows, or skills.
   - **Future Tense Prohibition:** Phrases like "we'll commit", "undo and redo",
     or "fix and commit" act as plans, NOT commands. You must execute the work
@@ -799,7 +799,7 @@ To validate changes in this project, run:
 - Do not use "conventional commit" prefixes (e.g. `feat:`, `fix:`) in commit
   messages.
 - Do not use markdown quoting (backticks) in commit messages.
-- Always run "./scripts/format --write" to format files before committing, and
+- Always run `just fix` to format files before committing, and
   be sure to stage the changes.
 - Always check the codebase for existing functions and features and do not
   duplicate anything.
