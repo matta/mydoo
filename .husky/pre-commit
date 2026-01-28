@@ -67,4 +67,4 @@ if [ -f "Cargo.toml" ]; then
 fi
 
 
-pnpm exec turbo run check-human
+just check

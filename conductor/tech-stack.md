@@ -3,24 +3,26 @@
 ## Core Infrastructure
 
 - **Language:** Rust (Core Logic & UI), TypeScript (Tooling & E2E Tests)
-- **Monorepo Management:** pnpm workspaces, Turbo, Cargo Workspaces
+- **Monorepo Management:** pnpm workspaces, Just, Cargo Workspaces
 - **Runtime:** Node.js (>=24)
 
 ## Frontend Application
 
-- **Framework:** Dioxus (Rust)
-- **State Management:**
-  - **Local-First Sync:** Samod (Rust-based Automerge wrapper)
-  - **Application State:** Signals (Dioxus native)
-- **UI Toolkit:** Tailwind CSS, Dioxus Primitives
-- **Network:** WebSocket (Samod sync)
-- **Persistence:** IndexedDB (via Samod/Rexie in WASM)
+- **Framework:** Dioxus (0.7.x)
+- **Language:** Rust (WASM)
+- **Styling:** Tailwind CSS
 
-## Testing
+## Persistence & Sync
+
+- **CRDT Library:** Automerge
+- **Persistence:** IndexedDB (Browser)
+- **Sync Protocol:** WebSockets (Custom)
+
+## Quality Assurance
 
 - **Unit & Integration:** Cargo Test (Rust), Vitest (Scripts)
 - **End-to-End (E2E):** Playwright
-- **Behavior-Driven Development (BDD):** Code-First Gherkin (TypeScript)
+- **End-to-End Style:** Code-First Gherkin (TypeScript)
 
 ## Code Quality & Tooling
 

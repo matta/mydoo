@@ -44,7 +44,7 @@
     (logic or documentation), the Agent MUST NOT touch the stage for that file.
     Meta-documentation updates (like `AGENTS.md`) are NOT exceptions.
   - **Exception**: Staging IS permitted and encouraged for results produced by
-    vetted automated tools (e.g., `./scripts/format`, `cargo fmt`, `pnpm fix`)
+    vetted automated tools (e.g., `just fix`, `cargo fmt`)
     or when explicitly instructed by prompts, commands, workflows, or skills.
   - **Future Tense Prohibition:** Phrases like "we'll commit", "undo and redo",
     or "fix and commit" act as plans, NOT commands. You must execute the work
@@ -113,43 +113,44 @@
 
 - We use Vitest for testing.
 - All new code must have tests.
-- **Strict Verification:** ALWAYS run `pnpm verify` before certifying a change.
-  You MAY use targeted `turbo` commands during development, but you MUST run the
-  full `pnpm verify` sequence before asking the user to commit.
+- **Strict Verification:** ALWAYS run `just verify` before certifying a change.
+  `just verify` is the source of truth; it runs auto-fixes (`just fix`),
+  all static analysis (`just check`), and all tests (`just test`, `just test-e2e`).
+  You MUST run the full `just verify` sequence before asking the user to commit.
 
 ### Test Commands
 
 ```bash
 # All unit tests (monorepo-wide)
-pnpm test
+just test
 
 # All E2E tests (monorepo-wide)
-pnpm test:e2e
+just test-e2e
 
 # All unit tests in a specific package
-pnpm exec turbo run test --filter <package>
-# e.g. pnpm exec turbo run test --filter @mydoo/client
+cd <package> && pnpm test
+# e.g. cd scripts && pnpm test
 
 # Specific test file within a package
-pnpm exec turbo run test --filter <package> -- <RelativePathToTestFile>
-# e.g. pnpm exec turbo run test --filter @mydoo/client -- src/test/utils/date-formatter.test.ts
+cd <package> && pnpm exec vitest <RelativePathToTestFile>
+# e.g. cd scripts && pnpm exec vitest src/test/utils/date-formatter.test.ts
 
 # Specific E2E feature or test
-pnpm exec turbo run test-e2e --filter <package> -- --project=<project> -g <pattern>
-# e.g. pnpm exec turbo run test-e2e --filter @mydoo/tasklens-ui -- --project='e2e-desktop' -g 'Due Dates'
+just test-e2e-desktop -- -g <pattern>
+# e.g. just test-e2e-desktop -- -g 'Due Dates'
 
-# Fully build everything and re-run all tests including e2e (monorepo-wide), ignoring cache
-TURBO_FORCE=true pnpm exec turbo run check-agent
+# Fully build everything and re-run all tests including e2e (monorepo-wide)
+just verify
 ```
 
 ### Rust Validation
 
-The `pnpm verify` command includes Rust checks via `scripts/check-rust.sh`. You
+The `just verify` command includes Rust checks via `just check-rust`. You
 can also run Rust checks independently:
 
 ```bash
 # Full Rust validation (fmt, clippy, WASM build, dx build, tests)
-pnpm check-rust
+just check-rust
 
 # Individual checks during development
 cargo fmt --check                                    # Formatting
@@ -206,12 +207,12 @@ simulated environments like JSDOM**.
 **Tier 1 (Packages/Logic):**
 
 - **Status:** Runs in **Node**.
-- **Command:** `pnpm test` (via Turbo).
+- **Command:** `just test`.
 
 **Tier 2 (Client Components):**
 
 - **Status:** Runs in **JSDOM**.
-- **Command:** `pnpm test` (via Turbo).
+- **Command:** `just test`.
 - **Aspiration:** We will migrate this to Browser Mode (`--project=browser`).
 
 **Tier 3 (E2E):**
@@ -799,7 +800,7 @@ To validate changes in this project, run:
 - Do not use "conventional commit" prefixes (e.g. `feat:`, `fix:`) in commit
   messages.
 - Do not use markdown quoting (backticks) in commit messages.
-- Always run "./scripts/format --write" to format files before committing, and
+- Always run `just fix` to format files before committing, and
   be sure to stage the changes.
 - Always check the codebase for existing functions and features and do not
   duplicate anything.

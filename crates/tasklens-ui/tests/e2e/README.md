@@ -3,17 +3,17 @@
 This directory contains Playwright-based end-to-end tests for the Dioxus
 TaskLens UI application.
 
-## Running Tests
+### Running Tests Locally
 
 ```bash
-# From project root
-pnpm --filter @mydoo/tasklens-ui test-e2e
+# Run all tests (desktop + mobile)
+just test-e2e
 
-# With specific project
-pnpm --filter @mydoo/tasklens-ui test-e2e -- --project=e2e-desktop
+# Run only desktop tests
+just test-e2e-desktop
 
-# With pattern matching
-pnpm --filter @mydoo/tasklens-ui test-e2e -- -g "Move Task"
+# Run with specific pattern (grep)
+just test-e2e-desktop -- -g "Move Task"
 ```
 
 ## Test Output Locations
