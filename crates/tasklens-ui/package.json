@@ -3,7 +3,6 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@mydoo/tasklens": "workspace:*",
     "@playwright/test": "catalog:",
     "@types/js-yaml": "catalog:",
     "@types/node": "catalog:",

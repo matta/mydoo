@@ -1,6 +1,0 @@
-node_modules
-coverage
-.tmp_gen
-dist
-*.tsbuildinfo
-src/generated/

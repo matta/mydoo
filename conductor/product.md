@@ -23,10 +23,10 @@ availability.
 ## Core Value Proposition
 
 - **Dynamic Prioritization:** Utilizes a custom Prioritization Algorithm to
-  calculate task priority based on importance, effort history, and staleness.
+  calculate task priority based on importance, effort history, and staleness (Implemented in Rust).
 - **Local-First Architecture:** Built on Automerge and IndexedDB, ensuring full
   offline capability. Synchronization is currently handled via a central server
-  using the `automerge-repo` sync protocol, though the design allows for
+  using the `samod` sync protocol, though the design allows for
   potential future decentralized strategies.
 - **Flexible Scheduling:** Offers a robust system for handling both routine
   tasks (floating intervals based on completion) and strict scheduled events

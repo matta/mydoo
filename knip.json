@@ -6,9 +6,6 @@
     ".": {},
     "scripts": {
       "entry": ["check-dependency-health.ts", "sync-server.js"]
-    },
-    "packages/tasklens": {
-      "project": ["src/**/*.{ts,tsx}!"]
     }
   }
 }
