@@ -480,35 +480,3 @@ function TaskItem({
   );
 }
 ```
-
-### E. Enforcement (ESLint)
-
-We can strictly enforce these architectural boundaries using ESLint
-(specifically `no-restricted-imports`), avoiding the overhead of separate
-packages.
-
-| Rule               | ESLint Configuration                                  | Reasoning                                                                  |
-| :----------------- | :---------------------------------------------------- | :------------------------------------------------------------------------- |
-| **Domain is Pure** | Block `@automerge/*`, `react`                         | Domain logic must stay framework-agnostic and testable with plain objects. |
-| **UI is Dumb**     | Block `@automerge/*`, `src/domain`, `src/persistence` | UI components should never touch the store or business logic directly.     |
-
-**Example `.eslintrc.js` snippet**:
-
-```javascript
-{
-  "overrides": [
-    {
-      "files": ["src/domain/**/*"],
-      "rules": {
-        "no-restricted-imports": ["error", { "patterns": ["@automerge/*", "react"] }]
-      }
-    },
-    {
-      "files": ["src/ui/**/*"],
-      "rules": {
-        "no-restricted-imports": ["error", { "patterns": ["@automerge/*", "src/persistence/*"] }]
-      }
-    }
-  ]
-}
-```

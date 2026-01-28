@@ -30,14 +30,13 @@ Banned actions: `lint`, `format`, `verify`, `validate`, `check-*-fix`.
 
 The domain being acted upon.
 
-- **style:** Code patterns & quality (ESLint, Biome).
+- **style:** Code patterns & quality (Biome).
 - **format:** Whitespace & layout (Prettier).
 - **types:** Type definitions (TSC).
 - **deps:** Dependencies (Knip).
 
 Or, when specificity is needed, name by tool:
 
-- **eslint** (for style)
 - **biome** (for style)
 - **tsc** (for types)
 - **knip** (for deps)

@@ -14,10 +14,8 @@
     "vitest": "catalog:"
   },
   "scripts": {
-    "check-eslint": "eslint .",
     "check-format": "prettier --check .",
     "check-types": "tsc --noEmit",
-    "fix-eslint": "eslint . --fix",
     "fix-format": "prettier --write .",
     "test": "vitest run"
   }

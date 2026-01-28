@@ -53,13 +53,13 @@ flowchart TD
         G["check-deps-root"]
         H["check-format-root"]
         I["check-biome-root"]
-        J["check-eslint-root"]
+
     end
 
     subgraph "Leaf Packages"
         K["tsc (scripts)"]
         L["prettier (ui)"]
-        M["eslint (scripts)"]
+
     end
 
     A --> B
@@ -70,10 +70,10 @@ flowchart TD
     C --> G
     D --> H
     D --> I
-    D --> J
+
     E --> K
     D --> L
-    D --> M
+
 ```
 
 ---
@@ -109,7 +109,7 @@ script delegates to `just`.
 
 ```makefile
 # Run all style checks
-check-style: check-format-root check-biome-root check-eslint-root check-format check-eslint
+check-style: check-format-root check-biome-root check-format
 
 # Check formatting for root files
 check-format-root:
@@ -140,7 +140,6 @@ check-format:
 
 ### Handling Root Files
 
-Root-level files (`README.md`, `eslint.config.js`, `justfile`, etc.) are not
 part of any leaf package, so they require explicit Just recipes (`check-*-root`)
 to be processed.
 
@@ -149,7 +148,7 @@ of the main `check` and `fix` recipes.
 
 ```makefile
 # The main verbs aggregate all root tasks as dependencies
-check-style: check-format-root check-biome-root check-eslint-root
+check-style: check-format-root check-biome-root
 
 # Prettier: Formats markdown, YAML, and other files at root
 check-format-root:
