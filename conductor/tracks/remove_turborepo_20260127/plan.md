@@ -8,10 +8,10 @@ Audit the existing task graph and establish the core `justfile` structure.
 - [x] Task: Map existing Turbo tasks to Just recipes a62b431
     - [x] Create a mapping document of every `turbo.json` task and its dependencies.
     - [x] Identify all root-level `package.json` scripts that currently rely on `turbo`.
-- [ ] Task: Initialize Justfile structure and variables
-    - [ ] Define variables for package paths in the `justfile`.
-    - [ ] Set up the default recipe to list available commands.
-    - [ ] **Cleanup:** Remove the dead `generate` scripts from `package.json` and `turbo.json`.
+- [x] Task: Initialize Justfile structure and variables 069af01
+    - [x] Define variables for package paths in the `justfile`.
+    - [x] Set up the default recipe to list available commands.
+    - [x] **Cleanup:** Remove the dead `generate` scripts from `package.json` and `turbo.json`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Core Build Pipeline
