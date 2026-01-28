@@ -145,6 +145,19 @@ test-rust:
     @echo "🧪 Running rust tests..."
     cargo test --workspace
 
+# Run all e2e tests
+test-e2e: build-ui test-e2e-desktop test-e2e-mobile
+
+# Run e2e tests for desktop
+test-e2e-desktop:
+    @echo "🧪 Running desktop e2e tests..."
+    cd {{ui_pkg}} && pnpm exec playwright test --project=e2e-desktop
+
+# Run e2e tests for mobile
+test-e2e-mobile:
+    @echo "🧪 Running mobile e2e tests..."
+    cd {{ui_pkg}} && pnpm exec playwright test --project=e2e-mobile
+
 # -----------------------------------------------------------------------------
 # Core Audit Commands
 # -----------------------------------------------------------------------------
