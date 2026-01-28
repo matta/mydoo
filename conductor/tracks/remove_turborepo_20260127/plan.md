@@ -57,4 +57,4 @@ Remove Turbo and wrap all workflows in Just.
     - [ ] Delete `turbo.json` and `turbo-exclusions.json`.
     - [ ] Uninstall `turbo` from the root package.
     - [ ] Run `pnpm install` to update the lockfile.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 5' (Protocol in workflow.md)
