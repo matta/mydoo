@@ -491,7 +491,7 @@ Use `.read()` to check if the data has arrived. Dioxus handles the "loading" sta
 
 ```rust
 let user = use_resource(move || async move { fetch_user().await });
-match &*user.read_unchecked() {
+match &*user.read() {
     Some(Ok(u)) => rsx! { "Hello {u.name}" },
     _ => rsx! { "Loading..." }
 }
@@ -698,7 +698,7 @@ Do not call Hooks inside loops, conditions, or nested functions. Instead, always
 🔴 Do not call Hooks inside closures passed to `use_memo` or `spawn`.
 
 **Why?**
-If the call order changes between renders, Dioxus will fail try to map the 2nd hook call to the 1st hook's state, causing a type mismatch panic or logic error.
+If the call order changes between renders, Dioxus will incorrectly try to map the 2nd hook call to the 1st hook's state, causing a type mismatch panic or logic error.
 
 **Examples of Mistakes**
 
@@ -777,14 +777,18 @@ Standard props are cloned when passed down. For small data (integers, booleans),
 Instead of passing the large data directly, pass a `Signal` (which is just a small pointer).
 
 ```rust
-// Slow: Copies the vector
-struct ListProps {
-    items: Vec<String>
+// Slow: Copies the entire vector on each render.
+#[derive(Props, Clone, PartialEq)]
+struct ListPropsSlow {
+    items: Vec<String>,
 }
 
-// Fast: Copies the pointer
-struct ListProps {
-    items: Signal<Vec<String>>
+// Fast: Copies a lightweight handle (Signal).
+// The child component subscribes to the signal and only re-renders when its value changes.
+// Note: You can't derive PartialEq because Signal doesn't implement it.
+#[derive(Props, Clone)]
+struct ListPropsFast {
+    items: Signal<Vec<String>>,
 }
 ```
 
