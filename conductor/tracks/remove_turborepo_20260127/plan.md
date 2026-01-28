@@ -17,7 +17,7 @@ Audit the existing task graph and establish the core `justfile` structure.
 ## Phase 2: Core Build Pipeline
 Migrate build processes and ensure dependencies are explicit.
 
-- [ ] Task: Implement package-specific `build` recipes
+- [x] Task: Implement package-specific `build` recipes 0ecea7e
     - [ ] Add recipes for building `tasklens-ui` (wrapping `dx build`), `docs`, etc.
 - [ ] Task: Implement root `build` recipe
     - [ ] Define the root `build` recipe to run package builds sequentially.
