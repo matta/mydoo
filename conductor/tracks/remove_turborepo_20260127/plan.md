@@ -31,7 +31,7 @@ Migrate static analysis and type-checking tasks.
     - [ ] Migrate Biome, ESLint, and Prettier checks for all packages and root.
 - [x] Task: Implement `check-types` (TypeScript) recipes 1490305
     - [ ] Migrate `tsc` checks for all TS packages.
-- [ ] Task: Implement `check-rust` (Clippy/Fmt) recipes
+- [x] Task: Implement `check-rust` (Clippy/Fmt) recipes d011434
     - [ ] Ensure existing Rust audit logic is integrated into the `just` flow.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
 
