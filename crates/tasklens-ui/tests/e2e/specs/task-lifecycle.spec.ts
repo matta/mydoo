@@ -1,10 +1,6 @@
 import { test } from "../fixtures";
 
 test.describe("Task Lifecycle", () => {
-  test.beforeEach(async ({ I }) => {
-    await I.Given.onHomePage();
-  });
-
   test("Full Desktop Journey", async ({ I }) => {
     await I.When.switchToPlanView();
     await I.When.createsFirstTask("Desktop Root");

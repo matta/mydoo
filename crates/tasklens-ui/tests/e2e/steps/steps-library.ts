@@ -11,12 +11,6 @@ export class Steps {
   ) {}
 
   public Given = {
-    onHomePage: async () => {
-      await this.plan.setupClock();
-      await this.page.goto("/");
-      await this.plan.waitForAppReady();
-    },
-
     documentExists: async () => {
       await this.When.createsNewDocument();
     },
