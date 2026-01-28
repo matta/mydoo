@@ -107,22 +107,34 @@ check-types-ui:
     cd {{ui_pkg}} && pnpm tsc --noEmit
 
 # -----------------------------------------------------------------------------
+# Rust Commands
+# -----------------------------------------------------------------------------
+
+# Run all rust checks
+check-rust: check-rust-fmt check-clippy check-wasm
+
+# Check rust formatting
+check-rust-fmt:
+    @echo "🔍 Checking rust formatting..."
+    cargo fmt --all -- --check
+
+# Check clippy
+check-clippy:
+    @echo "🔍 Checking clippy..."
+    cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+# Check compilation for WASM target
+check-wasm:
+    @echo "🔍 Checking wasm compilation..."
+    cargo check --target wasm32-unknown-unknown --all-targets
+
+# -----------------------------------------------------------------------------
 # Core Audit Commands
 # -----------------------------------------------------------------------------
 
 # Run full dead code detection suite (Lints + Dependencies)
-audit: lint udeps
+audit: check-clippy udeps
     @echo "✅ Audit complete! No dead code detected."
-
-# Check compilation for WASM target
-check-wasm:
-    cargo check --target wasm32-unknown-unknown --all-targets
-
-# Check for unused internal code and unreachable public API
-# Relies on your Cargo.toml [workspace.lints] settings
-lint:
-    # @echo "🔍 Scanning for unused code (Internal & Public API)..."
-    cargo clippy --workspace --all-targets --all-features -- -D warnings
 
 # Check for unused dependencies in Cargo.toml
 # Note: Requires nightly toolchain and cargo-udeps installed
@@ -141,5 +153,5 @@ install-tools:
     cargo install cargo-udeps --locked
 
 # Fix code automatically where possible (standard cargo fix)
-fix:
+fix-rust:
     cargo fix --workspace --allow-dirty --allow-staged
