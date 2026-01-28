@@ -53,13 +53,13 @@
     "check-deps-root": "just check-deps-root",
     "check-filenames-root": "just check-filenames-root",
     "check-format-root": "just check-format-root",
-    "fix-biome-root": "just fix-style",
-    "fix-format-root": "just fix-style",
+    "fix-biome-root": "just fix-biome-root",
+    "fix-format-root": "just fix-format-root",
     "check-staged": "./scripts/check-staged.sh",
     "check-eslint-root": "just check-eslint-root",
     "check-syncpack-root": "just check-syncpack-root",
     "check-catalog-root": "just check-catalog-root",
-    "fix-eslint-root": "just fix-style",
+    "fix-eslint-root": "just fix-eslint-root",
     "fix-syncpack-root": "just fix-syncpack-root"
   }
 }

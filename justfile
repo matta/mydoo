@@ -207,15 +207,41 @@ check-deps-root:
 # Run all auto-fixes
 fix: fix-style fix-syncpack-root fix-rust
 
-# Fix style (formatting and linting)
-fix-style:
-    @echo "🛠️ Fixing style..."
-    pnpm biome check --write .
-    pnpm eslint . --fix --ignore-pattern '*/**'
+# Run all style fixes
+fix-style: fix-format-root fix-biome-root fix-eslint-root fix-format fix-biome fix-eslint
+
+# Fix formatting for root files
+fix-format-root:
+    @echo "🛠️ Fixing root formatting..."
     pnpm prettier --write "*.{json,md,yaml,yml,js,ts,tsx,jsx,css,html}"
-    cd {{ui_pkg}} && pnpm prettier --write .
-    cd {{docs_pkg}} && pnpm prettier --write .
-    cd {{scripts_pkg}} && pnpm prettier --write .
+
+# Fix biome for root
+fix-biome-root:
+    @echo "🛠️ Fixing root biome..."
+    pnpm biome check --write .
+
+# Fix eslint for root
+fix-eslint-root:
+    @echo "🛠️ Fixing root eslint..."
+    pnpm eslint . --fix --ignore-pattern '*/**'
+
+# Fix formatting for all packages
+fix-format:
+    @echo "🛠️ Fixing package formatting..."
+    @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm prettier --write .
+    @echo "  - {{docs_pkg}}" && cd {{docs_pkg}} && pnpm prettier --write .
+    @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm prettier --write .
+
+# Fix biome for all packages
+fix-biome:
+    @echo "🛠️ Fixing package biome..."
+    @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm biome check --write .
+
+# Fix eslint for all packages
+fix-eslint:
+    @echo "🛠️ Fixing package eslint..."
+    @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm eslint . --fix
+    @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm eslint . --fix
 
 # Fix syncpack
 fix-syncpack-root:
