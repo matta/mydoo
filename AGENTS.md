@@ -121,25 +121,25 @@
 
 ```bash
 # All unit tests (monorepo-wide)
-pnpm test
+just test
 
 # All E2E tests (monorepo-wide)
-pnpm test:e2e
+just test-e2e
 
 # All unit tests in a specific package
-pnpm exec turbo run test --filter <package>
-# e.g. pnpm exec turbo run test --filter @mydoo/client
+cd <package> && pnpm test
+# e.g. cd scripts && pnpm test
 
 # Specific test file within a package
-pnpm exec turbo run test --filter <package> -- <RelativePathToTestFile>
-# e.g. pnpm exec turbo run test --filter @mydoo/client -- src/test/utils/date-formatter.test.ts
+cd <package> && pnpm exec vitest <RelativePathToTestFile>
+# e.g. cd scripts && pnpm exec vitest src/test/utils/date-formatter.test.ts
 
 # Specific E2E feature or test
-pnpm exec turbo run test-e2e --filter <package> -- --project=<project> -g <pattern>
-# e.g. pnpm exec turbo run test-e2e --filter @mydoo/tasklens-ui -- --project='e2e-desktop' -g 'Due Dates'
+just test-e2e-desktop -- -g <pattern>
+# e.g. just test-e2e-desktop -- -g 'Due Dates'
 
-# Fully build everything and re-run all tests including e2e (monorepo-wide), ignoring cache
-TURBO_FORCE=true pnpm exec turbo run check-agent
+# Fully build everything and re-run all tests including e2e (monorepo-wide)
+just verify
 ```
 
 ### Rust Validation
@@ -206,12 +206,12 @@ simulated environments like JSDOM**.
 **Tier 1 (Packages/Logic):**
 
 - **Status:** Runs in **Node**.
-- **Command:** `pnpm test` (via Turbo).
+- **Command:** `just test`.
 
 **Tier 2 (Client Components):**
 
 - **Status:** Runs in **JSDOM**.
-- **Command:** `pnpm test` (via Turbo).
+- **Command:** `just test`.
 - **Aspiration:** We will migrate this to Browser Mode (`--project=browser`).
 
 **Tier 3 (E2E):**

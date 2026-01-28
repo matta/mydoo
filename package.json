@@ -56,7 +56,6 @@
     "fix-biome-root": "just fix-style",
     "fix-format-root": "just fix-style",
     "check-staged": "./scripts/check-staged.sh",
-    "check-turbo-root": "just check-turbo-root",
     "check-eslint-root": "just check-eslint-root",
     "check-syncpack-root": "just check-syncpack-root",
     "check-catalog-root": "just check-catalog-root",

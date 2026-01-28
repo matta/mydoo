@@ -118,7 +118,7 @@ For faster iteration, you can run specific tests or patterns:
 
 ## Pre-Commit Quality Gates
 
-The pre-commit hook runs via Turbo:
+The pre-commit hook runs via Just:
 
 - `pnpm fix` (lint + format)
 - `pnpm typecheck`
