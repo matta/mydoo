@@ -17,6 +17,25 @@ _default:
     @just --list
 
 # -----------------------------------------------------------------------------
+# Build Commands
+# -----------------------------------------------------------------------------
+
+# Build tasklens-ui
+build-ui:
+    @echo "🏗️ Building tasklens-ui..."
+    cd {{ui_pkg}} && dx build --platform web
+
+# Build tasklens-core
+build-core:
+    @echo "🏗️ Building tasklens-core..."
+    cargo build -p tasklens-core
+
+# Build tasklens-store
+build-store:
+    @echo "🏗️ Building tasklens-store..."
+    cargo build -p tasklens-store
+
+# -----------------------------------------------------------------------------
 # Core Audit Commands
 # -----------------------------------------------------------------------------
 
