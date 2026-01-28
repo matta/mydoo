@@ -26,7 +26,7 @@ export class Steps {
     },
 
     documentExists: async () => {
-      await this.plan.createNewDocument();
+      await this.When.createsNewDocument();
     },
 
     taskExistsInView: async (title: string, view: string) => {
@@ -47,7 +47,7 @@ export class Steps {
     },
 
     taskExists: async (title: string) => {
-      await this.plan.createTask(title);
+      await this.When.createTask(title);
     },
 
     currentTimeIs: async (isoTime: string) => {
@@ -67,15 +67,13 @@ export class Steps {
     },
 
     taskWithChild: async (parent: string, child: string) => {
-      await this.plan.createTask(parent);
-      await this.plan.openTaskEditor(parent);
-      await this.plan.addChild(child);
+      await this.When.createTask(parent);
+      await this.When.addsChild(parent, child);
       await this.plan.closeEditor();
     },
 
     taskAsChildOf: async (child: string, parent: string) => {
-      await this.plan.openTaskEditor(parent);
-      await this.plan.addChild(child);
+      await this.When.addsChild(parent, child);
       await this.plan.closeEditor();
     },
 
@@ -96,14 +94,11 @@ export class Steps {
     },
 
     addsChildTask: async (childTitle: string, parentTitle: string) => {
-      await this.plan.switchToPlanView();
-      await this.plan.openTaskEditor(parentTitle);
-      await this.plan.addChild(childTitle);
-      await this.plan.closeEditor();
+      await this.When.addsChildTask(childTitle, parentTitle);
     },
 
     marksTaskAsSequential: async (title: string) => {
-      await this.plan.setSequential(title, true);
+      await this.When.marksTaskAsSequential(title);
     },
   };
   public When = {
@@ -232,11 +227,14 @@ export class Steps {
     },
 
     addsChildTask: async (childTitle: string, parentTitle: string) => {
-      await this.Given.addsChildTask(childTitle, parentTitle);
+      await this.plan.switchToPlanView();
+      await this.plan.openTaskEditor(parentTitle);
+      await this.plan.addChild(childTitle);
+      await this.plan.closeEditor();
     },
 
     marksTaskAsSequential: async (title: string) => {
-      await this.Given.marksTaskAsSequential(title);
+      await this.plan.setSequential(title, true);
     },
 
     drillsDownInto: async (title: string) => {
