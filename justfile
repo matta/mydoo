@@ -205,7 +205,7 @@ check-deps-root:
 fix: fix-style fix-syncpack-root fix-rust
 
 # Run all style fixes
-fix-style: fix-format-root fix-biome-root fix-eslint-root fix-format fix-biome fix-eslint
+fix-style: fix-format-root fix-biome-root fix-eslint-root fix-format fix-eslint
 
 # Fix formatting for root files
 fix-format-root:
@@ -228,11 +228,6 @@ fix-format:
     @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm prettier --write .
     @echo "  - {{docs_pkg}}" && cd {{docs_pkg}} && pnpm prettier --write .
     @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm prettier --write .
-
-# Fix biome for all packages
-fix-biome:
-    @echo "🛠️ Fixing package biome..."
-    @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm biome check --write .
 
 # Fix eslint for all packages
 fix-eslint:
