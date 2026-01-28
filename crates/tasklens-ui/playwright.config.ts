@@ -1,10 +1,23 @@
-import { defineConfig, devices } from "@playwright/test";
+import {
+  defineConfig,
+  devices,
+  type ReporterDescription,
+} from "@playwright/test";
 
 const isCI = !!process.env.CI;
 
+const reporters: ReporterDescription[] = [
+  ["html", { open: "never" }],
+  ["list", undefined],
+];
+
+if (process.env.SHOW_STEPS) {
+  reporters.push(["./tests/e2e/reporters/step-reporter.ts", {}]);
+}
+
 export default defineConfig({
   workers: 1,
-  reporter: [["html", { open: "never" }]],
+  reporter: reporters,
   use: {
     baseURL: "http://localhost:5180",
     trace: "on-first-retry",
