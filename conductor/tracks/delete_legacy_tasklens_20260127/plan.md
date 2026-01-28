@@ -5,8 +5,8 @@ Decouple the `packages/tasklens` package from the monorepo workspace and build c
 
 - [x] Task: Remove `packages/tasklens` from `pnpm-workspace.yaml`. efc6682
     - [x] Remove the entry from the `packages` list.
-- [ ] Task: Remove project references in `crates/tasklens-ui`.
-    - [ ] Edit `crates/tasklens-ui/tsconfig.json` to remove the reference to `../../packages/tasklens`.
+- [x] Task: Remove project references in `crates/tasklens-ui`. 889dec2
+    - [x] Edit `crates/tasklens-ui/tsconfig.json` to remove the reference to `../../packages/tasklens`.
 - [ ] Task: Scan and remove dependencies in other packages.
     - [ ] Check `apps/client/package.json` and remove any dependency on `@tasklens/core` (or equivalent).
     - [ ] Check root `package.json` (if applicable).
