@@ -118,11 +118,11 @@ For faster iteration, you can run specific tests or patterns:
 
 ## Pre-Commit Quality Gates
 
-The pre-commit hook runs via Just:
+**General:**
 
-- `pnpm fix` (lint + format)
-- `pnpm typecheck`
-- `pnpm test` (Unit + Integration)
-- `pnpm test:e2e` (E2E)
+- `just fix` (lint + format)
+- `just check-types`
+- `just test` (Unit + Integration)
+- `just test-e2e` (E2E)
 
 All must pass before a commit is accepted.

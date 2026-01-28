@@ -214,7 +214,7 @@ _Goal: Working Rust domain logic and basic persistence._
               ensure all fields are matched.
       - [x] `cargo test` passes.
       - [x] `cargo fmt --check` passes.
-      - [x] `pnpm check` passes.
+      - [x] `just check-human` passes.
 
 ### Epoch 2: The Walking Skeleton
 
@@ -455,7 +455,7 @@ Server._
 - **Verification**:
   - [x] **Verify Harness**: Create a minimal "Smoke" spec (tagged `@smoke`)
         that checks the app title to confirm the harness works.
-  - [x] **Run Tests**: Execute `pnpm test-e2e` (MUST PASS: expecting 0 failures
+  - [x] **Run Tests**: Execute `just test-e2e` (MUST PASS: expecting 0 failures
         due to `@migration-pending` exclusion).
 
 ### Epoch 3: Feature Parity (The Grind)
@@ -728,7 +728,7 @@ _Goal: Porting UI components to match functionality._
     - [x] **[MODIFY]
           `crates/tasklens-ui/tests/e2e/features/task-creation.feature`**:
       - [x] Remove `@migration-pending` tag.
-    - [x] **[VERIFY]**: Run `pnpm test-e2e` and ensure these features pass in
+    - [x] **[VERIFY]**: Run `just test-e2e` and ensure these features pass in
           the CI flow.
 
 #### [x] Milestone 3.5: Task Lifecycle (Refresh & Acknowledge)

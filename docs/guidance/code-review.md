@@ -192,22 +192,20 @@ unexpected failure.
 
 ## General
 
-### Verification Before Commit
+## Verification
 
-**Always** run the following before committing:
+Before submitting a PR, run:
 
 ```bash
-pnpm verify
+just verify
 ```
 
-This is the **full verification gate** that runs auto-fixes (`pnpm fix`)
-followed by all checks (`pnpm check-agent`).
+This is the **full verification gate** that runs auto-fixes (`just fix`)
+followed by all checks (`just check-agent`).
 
-> [!IMPORTANT] Use `pnpm verify`, not `pnpm check`, as your final verification
+> [!IMPORTANT] Use `just verify`, not `just check-human`, as your final verification
 > step.
 >
-> - `pnpm check` runs linting, type checking, and tests
-> - `pnpm verify` runs `pnpm fix` first (auto-formatting), then
->   `pnpm check-agent` (all checks)
->
-> The `verify` command matches the pre-commit hook and CI pipeline behavior.
+> - `just check-human` runs linting, type checking, and format checking (read-only)
+> - `just verify` runs `just fix` first (auto-formatting), then
+>   `just check-agent` (all checks including tests)

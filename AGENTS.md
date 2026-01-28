@@ -113,9 +113,9 @@
 
 - We use Vitest for testing.
 - All new code must have tests.
-- **Strict Verification:** ALWAYS run `pnpm verify` before certifying a change.
-  You MAY use targeted `turbo` commands during development, but you MUST run the
-  full `pnpm verify` sequence before asking the user to commit.
+- **Strict Verification:** ALWAYS run `just verify` before certifying a change.
+  You MAY use targeted `just` commands during development, but you MUST run the
+  full `just verify` sequence before asking the user to commit.
 
 ### Test Commands
 
@@ -144,12 +144,12 @@ just verify
 
 ### Rust Validation
 
-The `pnpm verify` command includes Rust checks via `scripts/check-rust.sh`. You
+The `just verify` command includes Rust checks via `just check-rust`. You
 can also run Rust checks independently:
 
 ```bash
 # Full Rust validation (fmt, clippy, WASM build, dx build, tests)
-pnpm check-rust
+just check-rust
 
 # Individual checks during development
 cargo fmt --check                                    # Formatting
