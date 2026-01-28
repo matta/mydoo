@@ -15,7 +15,6 @@ const HIGH_CONFIDENCE_PATTERNS = [
   /test-results\//,
   /\.tsbuildinfo/,
   /\.husky\/_/,
-  /\.features-gen/,
   /src\/generated/,
 ];
 

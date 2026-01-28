@@ -13,7 +13,7 @@ organized by Gherkin phase (`Given`, `When`, `Then`).
 
 ### Comparison
 
-| Feature             | Classic Gherkin (Cucumber/Playwright-BDD)            | Code-First Gherkin (Step-Object)              |
+| Feature             | Classic Gherkin (Cucumber)                           | Code-First Gherkin (Step-Object)              |
 | :------------------ | :--------------------------------------------------- | :-------------------------------------------- |
 | **Source of Truth** | `.feature` text file                                 | `.spec.ts` TypeScript file                    |
 | **Step Matching**   | Regex / String matching at runtime                   | Static method calls at compile time           |
@@ -245,17 +245,3 @@ are slated for conversion to code-first specs.
 3.  **Delete Feature**: Once the spec is passing, delete the `.feature` file.
 4.  **Cleanup**: If a step was unique to that feature and is no longer needed in
     `all.steps.ts`, it can eventually be removed from the legacy system.
-
-### Checklist
-
-- [x] `binary-import-export.feature` → `specs/binary-import-export.spec.ts`
-- [x] `document-switching.feature` → `specs/document-switching.spec.ts`
-- [x] `due-dates.feature` → `specs/due-dates.spec.ts`
-- [x] `mobile-journeys.feature` → `specs/mobile-journeys.spec.ts`
-- [x] `plan-management.feature` → `specs/plan-management.spec.ts`
-- [x] `routine-tasks.feature` → `specs/routine-tasks.spec.ts`
-- [x] `sequential-projects.feature` → `specs/sequential-projects.spec.ts`
-- [x] `smoke.feature` → `specs/smoke.spec.ts`
-- [x] `task-creation.feature` → `specs/task-creation.spec.ts`
-- [x] `task-lifecycle.feature` → `specs/task-lifecycle.spec.ts`
-- [x] `task-moving.feature` → `specs/task-moving.spec.ts`

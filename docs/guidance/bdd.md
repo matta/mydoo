@@ -280,51 +280,15 @@ function detectPlatform(page: Page): Platform {
 
 ### The 3-Tier Testing Stack
 
-From [AGENTS.md](../../AGENTS.md):
+See [AGENTS.md](../../AGENTS.md) for the architecture.
 
-| Tier       | Scope                   | Infrastructure                    | Command         |
-| :--------- | :---------------------- | :-------------------------------- | :-------------- |
-| **Tier 1** | Pure Logic (`tasklens`) | Node.js                           | `pnpm test`     |
-| **Tier 2** | Components (React)      | JSDOM (migrating to Browser Mode) | `pnpm test`     |
-| **Tier 3** | E2E Journeys            | Playwright Chromium               | `pnpm test:e2e` |
+### Code-First Gherkin (Current Pattern)
 
-Gherkin applies to **Tier 3 only**—behavioral journeys across the full stack.
+We use **Code-First Gherkin** where scenarios are written in TypeScript using
+strictly typed actor fixtures.
 
-### Existing Fixture Pattern
-
-The project uses a `PlanFixture` interface (see
-[fixtures.ts](../../apps/client/tests/e2e/fixtures.ts)) implementing these
-action categories:
-
-- **Core Task Operations:** `createTask`, `addChild`, `addSibling`,
-  `completeTask`, `deleteTask`
-- **Verification Helpers:** `verifyTaskVisible`, `verifyTaskHidden`,
-  `verifyTaskCompleted`
-- **Mobile Helpers:** `mobileDrillDown`, `mobileNavigateUpLevel`
-- **Navigation:** `switchToPlanView`, `switchToDoView`
-
-### Inline Gherkin (Current Pattern)
-
-Until playwright-bdd is adopted, use **Inline Gherkin comments** in
-`test.step()` blocks:
-
-```typescript
-test("User can complete tasks", async ({ plan }) => {
-  await test.step("Setup", async () => {
-    // Given a pending task in Do mode
-    await plan.primeWithSampleData();
-    await plan.switchToDoView();
-  });
-
-  await test.step("Complete task", async () => {
-    // When the user completes the task
-    await plan.completeTask("Research Requirements");
-
-    // Then the task is marked as completed
-    await plan.verifyTaskCompleted("Research Requirements");
-  });
-});
-```
+For more details, see
+[docs/guidance/bdd-code-first-gherkin.md](bdd-code-first-gherkin.md).
 
 ---
 

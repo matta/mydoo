@@ -422,46 +422,38 @@ Server._
         `register_service_worker` is called and status is tracked. (Already
         present, verified behavior).
 
-#### [x] Milestone 2.8: Playwright Infrastructure & BDD Port
+#### [x] Milestone 2.8: Playwright Infrastructure & Code-First Gherkin Port
 
 - **Goal**: Establish the E2E testing harness for Dioxus by porting BDD specs
-  from the React app.
-- **Strategy**: Copy configuration and feature files verbatim, setting up the
-  infrastructure to run them against the Dioxus app.
+  from the React app to a Code-First Gherkin structure.
+- **Strategy**: implementstrictly typed actor fixtures (`I`) and translate
+  scenarios into TypeScript specs.
 - **Implementation Details**:
   - [x] **[MODIFY] `crates/tasklens-ui/package.json`**:
-    - Add `playwright-bdd`, `@playwright/test`, and related dependencies.
-    - Add scripts: `test-e2e`, `generate`.
+    - Add `@playwright/test` and related dependencies.
+    - Add script: `test-e2e`.
   - [x] **[NEW] `crates/tasklens-ui/playwright.config.ts`**:
     - Port from `apps/client/playwright.config.ts`.
     - Configure `webServer` to run `dx serve` with a fixed port (e.g. `5180`).
     - Adjust paths to point to `tests/e2e`.
-  - [x] **[NEW] `crates/tasklens-ui/tests/e2e/features/`**:
-    - Copy all `.feature` files from `apps/client` verbatim.
-  - [x] **[NEW] `crates/tasklens-ui/tests/e2e/steps/`**:
-    - Copy `all.steps.ts` from `apps/client`.
+  - [x] **[NEW] `crates/tasklens-ui/tests/e2e/specs/`**:
+    - Create Code-First Gherkin specs (.spec.ts) based on the React app's
+      features.
   - [x] **[NEW] `crates/tasklens-ui/tests/e2e/fixtures.ts`**:
     - Copy from `apps/client`.
   - [x] **[NEW] `crates/tasklens-ui/tests/e2e/pages/`**:
     - Copy Page Objects from `apps/client`.
-  - [x] **[VERIFY] Tool Configuration**:
-    - Ensure `prettier`, `biome`, and `eslint` are configured to ignore
-      `.features-gen`.
 - **Verification**:
-  - [x] **Generate Tests**: Run `pnpm generate` and verify
-        `tests/e2e/.features-gen` is populated with `.spec.ts` files.
-  - [x] **Verify Harness**: Create a minimal "Smoke" feature that checks the app
+  - [x] **Verify Harness**: Create a minimal "Smoke" spec that checks the app
         title or a static element to confirm the harness works.
   - [x] **[MODIFY] `crates/tasklens-ui/playwright.config.ts`**:
     - Configure `grepInvert: /@migration-pending/` to skip unimplemented
       features.
-  - [x] **[MODIFY] Feature Files**:
-    - Bulk add `@migration-pending` tag to all ported feature files (since
+  - [x] **[MODIFY] Spec Files**:
+    - Bulk add `@migration-pending` tag to all ported spec files (since
       functionality is not yet implemented).
 - **Verification**:
-  - [x] **Generate Tests**: Run `pnpm generate` and verify
-        `tests/e2e/.features-gen` is populated with `.spec.ts` files.
-  - [x] **Verify Harness**: Create a minimal "Smoke" feature (tagged `@smoke`)
+  - [x] **Verify Harness**: Create a minimal "Smoke" spec (tagged `@smoke`)
         that checks the app title to confirm the harness works.
   - [x] **Run Tests**: Execute `pnpm test-e2e` (MUST PASS: expecting 0 failures
         due to `@migration-pending` exclusion).

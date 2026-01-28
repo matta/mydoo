@@ -15,7 +15,7 @@ _Goal: Initialize configuration for multi-project support._
 _Goal: Ensure reporting and infrastructure can handle multiple test runs._
 
 - [x] T003 Configure Playwright HTML reporter to support merged/grouped results in `apps/client/playwright.config.ts`
-- [x] T004 Validate that `playwright-bdd` generation is compatible with shared project execution (no code changes expected, verification step) in `apps/client/playwright.config.ts`
+- [x] T004 Validate that Code-First Gherkin is compatible with shared project execution in `crates/tasklens-ui/playwright.config.ts`
 
 ## Phase 3: Desktop Verification (US1)
 
@@ -51,7 +51,7 @@ _Goal: Documentation and final cleanup._
 
 ## Parallel Execution Examples
 
-- **Mobile & Desktop Verification**: Developers can run `pnpm test:e2e --project='bdd-desktop'` and `pnpm test:e2e --project='bdd-mobile'` in separate terminals.
+- **Mobile & Desktop Verification**: Developers can run `pnpm test:e2e --project='e2e-desktop'` and `pnpm test:e2e --project='e2e-mobile'` in separate terminals.
 
 ## Implementation Strategy
 

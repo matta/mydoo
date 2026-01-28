@@ -10,7 +10,7 @@ TaskLens UI application.
 pnpm --filter @mydoo/tasklens-ui test-e2e
 
 # With specific project
-pnpm --filter @mydoo/tasklens-ui test-e2e -- --project=bdd-desktop
+pnpm --filter @mydoo/tasklens-ui test-e2e -- --project=e2e-desktop
 
 # With pattern matching
 pnpm --filter @mydoo/tasklens-ui test-e2e -- -g "Move Task"
@@ -39,7 +39,7 @@ Example path:
 
 ```
 test-results/
-└── tests-e2e-features-task-mo-f6890-Move-Task-to-Another-Parent-bdd-desktop/
+└── tests-e2e-specs-task-moving-spec-ts-Task-Moving-Move-Task-to-Another-Parent-e2e-desktop/
     ├── synthetic-dom.md
     └── error-context.md
 ```
@@ -61,11 +61,10 @@ Or open `crates/tasklens-ui/playwright-report/index.html` directly.
 
 ```
 tests/e2e/
-├── .features-gen/     # Generated BDD tests (gitignored)
-├── features/          # Gherkin .feature files
-├── fixtures.ts        # Test fixtures (plan, debugFailure)
+├── specs/             # TypeScript Gherkin specs (.spec.ts)
+├── fixtures.ts        # Test fixtures (I, debugFailure)
 ├── pages/             # Page Objects
-├── steps/             # Step definitions
+├── steps/             # Step definitions (actor logic)
 └── utils/             # Helpers (debug-utils.ts, etc.)
 ```
 
