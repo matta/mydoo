@@ -2,7 +2,7 @@
 
 This plan details the steps to migrate monorepo orchestration from Turborepo to `just`, favoring sequential execution and explicit package listing in the root `justfile`.
 
-## Phase 1: Audit and Foundation
+## Phase 1: Audit and Foundation [checkpoint: ec42b50]
 Audit the existing task graph and establish the core `justfile` structure.
 
 - [x] Task: Map existing Turbo tasks to Just recipes a62b431
@@ -12,7 +12,7 @@ Audit the existing task graph and establish the core `justfile` structure.
     - [x] Define variables for package paths in the `justfile`.
     - [x] Set up the default recipe to list available commands.
     - [x] **Cleanup:** Remove the dead `generate` scripts from `package.json` and `turbo.json`.
-- [~] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Core Build Pipeline
 Migrate build processes and ensure dependencies are explicit.
