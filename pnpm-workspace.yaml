@@ -6,36 +6,26 @@ packages:
 
 catalogs:
   default:
-    "@automerge/automerge": ^3.2.2
     "@automerge/automerge-repo": 2.5.1
     "@automerge/automerge-repo-network-websocket": 2.5.1
-    "@automerge/automerge-repo-react-hooks": ^2.5.1
-    "@automerge/automerge-repo-storage-nodefs": ^2.5.1
+    "@automerge/automerge-repo-storage-nodefs": 2.5.1
     "@biomejs/biome": ^2.3.11
     "@commitlint/cli": ^20.3.0
     "@commitlint/types": ^20.3.1
     "@playwright/test": ^1.57.0
-    "@reduxjs/toolkit": ^2.11.2
     "@types/js-yaml": 4.0.9
     "@types/minimist": ^1.2.5
     "@types/node": 25.0.9
-    "@types/react": ^19.2.7
-    "@vitest/coverage-v8": 4.0.17
-    ajv: ^8.17.1
-    ajv-formats: ^3.0.1
     eslint: ^9.39.2
     eslint-plugin-import-x: ^4.16.1
     glob: ^13.0.0
     husky: ^9.1.7
     js-yaml: 4.1.1
-    json-schema-to-typescript: ^15.0.4
     knip: ^5.80.2
     minimatch: ^10.1.1
     minimist: ^1.2.8
     playwright-bdd: ^8.4.2
     prettier: ^3.4.2
-    react: ^19.2.3
-    react-redux: 9.2.0
     syncpack: ^13.0.2
     tsx: ^4.21.0
     turbo: ^2.7.4

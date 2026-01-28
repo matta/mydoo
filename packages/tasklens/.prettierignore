@@ -1,6 +1,0 @@
-# Local Prettier Ignore for packages/tasklens
-dist/
-node_modules/
-coverage/
-src/generated/
-specs/compliance/schemas/test-case.d.ts
