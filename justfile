@@ -43,7 +43,7 @@ build-store:
 # -----------------------------------------------------------------------------
 
 # Run all style checks
-check-style: check-format-root check-biome-root check-eslint-root check-filenames-root check-format check-eslint
+check-style: check-format-root check-biome-root check-filenames-root check-format
 
 # Check formatting for root files
 check-format-root:
@@ -55,10 +55,7 @@ check-biome-root:
     @echo "🔍 Checking root biome..."
     pnpm biome check .
 
-# Check eslint for root
-check-eslint-root:
-    @echo "🔍 Checking root eslint..."
-    pnpm eslint . --max-warnings 0 --ignore-pattern '*/**'
+
 
 # Check filenames
 check-filenames-root:
@@ -72,11 +69,7 @@ check-format:
     @echo "  - {{docs_pkg}}" && cd {{docs_pkg}} && pnpm prettier --check .
     @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm prettier --check .
 
-# Check eslint for all packages
-check-eslint:
-    @echo "🔍 Checking package eslint..."
-    @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm eslint .
-    @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm eslint .
+
 
 # -----------------------------------------------------------------------------
 # Type Checking Commands
@@ -205,7 +198,7 @@ check-deps-root:
 fix: fix-style fix-syncpack-root fix-rust
 
 # Run all style fixes
-fix-style: fix-format-root fix-biome-root fix-eslint-root fix-format fix-eslint
+fix-style: fix-format-root fix-biome-root fix-format
 
 # Fix formatting for root files
 fix-format-root:
@@ -217,10 +210,7 @@ fix-biome-root:
     @echo "🛠️ Fixing root biome..."
     pnpm biome check --write .
 
-# Fix eslint for root
-fix-eslint-root:
-    @echo "🛠️ Fixing root eslint..."
-    pnpm eslint . --fix --ignore-pattern '*/**'
+
 
 # Fix formatting for all packages
 fix-format:
@@ -229,11 +219,7 @@ fix-format:
     @echo "  - {{docs_pkg}}" && cd {{docs_pkg}} && pnpm prettier --write .
     @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm prettier --write .
 
-# Fix eslint for all packages
-fix-eslint:
-    @echo "🛠️ Fixing package eslint..."
-    @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm eslint . --fix
-    @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm eslint . --fix
+
 
 # Fix syncpack
 fix-syncpack-root:

@@ -10,15 +10,12 @@
     "@biomejs/biome": "catalog:",
     "@commitlint/cli": "catalog:",
     "@commitlint/types": "catalog:",
-    "eslint": "catalog:",
-    "eslint-plugin-import-x": "catalog:",
     "husky": "catalog:",
     "knip": "catalog:",
     "prettier": "catalog:",
     "syncpack": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "typescript-eslint": "catalog:",
     "ws": "catalog:"
   },
   "engines": {
@@ -35,7 +32,6 @@
     "//": "Most build/validation logic moved to justfile",
     "build": "just build",
     "check-biome": "just check-biome-root",
-    "check-eslint": "just check-eslint",
     "check-style": "just check-style",
     "check-types": "just check-types",
     "check": "just check",
@@ -54,10 +50,8 @@
     "fix-biome-root": "just fix-biome-root",
     "fix-format-root": "just fix-format-root",
     "check-staged": "./scripts/check-staged.sh",
-    "check-eslint-root": "just check-eslint-root",
     "check-syncpack-root": "just check-syncpack-root",
     "check-catalog-root": "just check-catalog-root",
-    "fix-eslint-root": "just fix-eslint-root",
     "fix-syncpack-root": "just fix-syncpack-root"
   }
 }
