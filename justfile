@@ -84,6 +84,29 @@ check-eslint:
     @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm eslint .
 
 # -----------------------------------------------------------------------------
+# Type Checking Commands
+# -----------------------------------------------------------------------------
+
+# Run all type checks
+check-types: check-types-root check-types-scripts check-types-ui
+
+# Check types for root
+check-types-root:
+    @echo "🔍 Checking root types..."
+    pnpm tsc --noEmit
+
+# Check types for scripts
+check-types-scripts:
+    @echo "🔍 Checking scripts types..."
+    cd {{scripts_pkg}} && pnpm tsc --noEmit
+
+# Check types for tasklens-ui
+check-types-ui:
+    @echo "🔍 Checking ui types..."
+    # UI types are checked during build/dx build, but we can run tsc if config exists
+    cd {{ui_pkg}} && pnpm tsc --noEmit
+
+# -----------------------------------------------------------------------------
 # Core Audit Commands
 # -----------------------------------------------------------------------------
 
