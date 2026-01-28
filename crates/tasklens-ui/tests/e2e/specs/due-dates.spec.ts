@@ -2,7 +2,6 @@ import { test } from "../fixtures";
 
 test.describe("Due Date Indicators and Inheritance", () => {
   test.beforeEach(async ({ I }) => {
-    await I.Given.cleanWorkspace();
     await I.Given.currentTimeIs("2024-06-01T12:00:00Z");
   });
 

@@ -3,7 +3,9 @@ import {
   test as baseTest,
   expect,
   type Page,
+  test as pwTest,
 } from "@playwright/test";
+
 import { type PlanFixture, PlanPage } from "./pages/plan-page";
 import { Steps } from "./steps/steps-library";
 import { dumpFailureContext, formatConsoleMessage } from "./utils/debug-utils";
@@ -81,7 +83,49 @@ export const test = baseTest.extend<MyFixtures, MyWorkerFixtures>({
   I: async ({ plan, page }, use) => {
     // plan fixture is typed as interface but at runtime it's PlanPage instance
     // We cast to PlanPage because Steps expects the concrete class or compatible interface
-    await use(new Steps(plan as PlanPage, page));
+    // Setup logic moved from onHomePage
+    await plan.setupClock();
+    await page.goto("/");
+    await plan.waitForAppReady();
+
+    const steps = new Steps(plan as PlanPage, page);
+
+    // Auto-wrap steps in test.step() for reporting
+    const wrapStepGroup = (
+      groupName: string,
+      group: Record<string, unknown>,
+    ) => {
+      for (const key of Object.keys(group)) {
+        const original = group[key];
+        if (typeof original === "function") {
+          group[key] = async (...args: unknown[]) => {
+            // Convert camelCase to Title Case (e.g. "cleanWorkspace" -> "Clean Workspace")
+            const title = key
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, (str) => str.toUpperCase());
+
+            // Format args for display if simple
+            const argsStr = args.length
+              ? ` ${args.map((a) => (typeof a === "string" ? `"${a}"` : JSON.stringify(a))).join(", ")}`
+              : "";
+
+            return await pwTest.step(
+              `${groupName} ${title}${argsStr}`,
+              async () => {
+                // biome-ignore lint/suspicious/noExplicitAny: generic wrapper needs any
+                return await original.apply(group, args as any[]);
+              },
+            );
+          };
+        }
+      }
+    };
+
+    wrapStepGroup("Given", steps.Given);
+    wrapStepGroup("When", steps.When);
+    wrapStepGroup("Then", steps.Then);
+
+    await use(steps);
   },
   debugFailure: [
     async (
