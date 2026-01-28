@@ -35,15 +35,15 @@ Migrate static analysis and type-checking tasks.
     - [x] Ensure existing Rust audit logic is integrated into the `just` flow.
 - [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
 
-## Phase 4: Testing Suite
+## Phase 4: Testing Suite [checkpoint: 1887938]
 Migrate unit tests and E2E tests.
 
 - [x] Task: Implement `test` (Unit) recipes 38a3fb3
-    - [ ] Migrate Vitest and Cargo test executions.
+    - [x] Migrate Vitest and Cargo test executions.
 - [x] Task: Implement `test-e2e` (Playwright) recipes 8faf01f
-    - [ ] Migrate Playwright execution.
-    - [ ] Ensure build dependencies (building the UI) are explicit in the recipe or documented.
-- [~] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
+    - [x] Migrate Playwright execution.
+    - [x] Ensure build dependencies (building the UI) are explicit in the recipe or documented.
+- [x] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
 
 ## Phase 5: Finalization and Orchestration
 Remove Turbo and wrap all workflows in Just.
