@@ -38,7 +38,7 @@ Migrate static analysis and type-checking tasks.
 ## Phase 4: Testing Suite
 Migrate unit tests and E2E tests.
 
-- [ ] Task: Implement `test` (Unit) recipes
+- [x] Task: Implement `test` (Unit) recipes 38a3fb3
     - [ ] Migrate Vitest and Cargo test executions.
 - [ ] Task: Implement `test-e2e` (Playwright) recipes
     - [ ] Migrate Playwright execution.
