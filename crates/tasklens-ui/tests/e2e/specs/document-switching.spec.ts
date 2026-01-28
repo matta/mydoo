@@ -2,7 +2,7 @@ import { test } from "../fixtures";
 
 test.describe("Document Switching", () => {
   test.beforeEach(async ({ I }) => {
-    await I.Given.cleanWorkspace();
+    await I.Given.onHomePage();
   });
 
   test("User creates a new document", async ({ I }) => {

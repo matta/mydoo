@@ -129,12 +129,6 @@ export class PlanPage implements PlanFixture {
 
     // Wait for the app to be attached
     await expect(this.page.locator("#main")).toBeAttached({ timeout: 10000 });
-
-    try {
-      await this.page.waitForLoadState("networkidle", { timeout: 2000 });
-    } catch (_e) {
-      // Ignore timeout if network never settles (e.g. constant polling)
-    }
   }
 
   private async getMemoryHeads(): Promise<string> {
@@ -669,22 +663,6 @@ export class PlanPage implements PlanFixture {
         throw e;
       }
     }
-  }
-
-  async clearAndReload(): Promise<void> {
-    // Clear localStorage first to ensure clean state
-    await this.page.goto("/");
-    await this.page.evaluate(() => {
-      localStorage.clear();
-    });
-
-    // Reload the app
-    await this.page.goto("/plan");
-    await this.waitForAppReady();
-    // Ensure the app is loaded by waiting for the Plan heading
-    await expect(
-      this.page.getByRole("heading", { name: "Plan" }),
-    ).toBeVisible();
   }
 
   async primeWithSampleData(): Promise<void> {
