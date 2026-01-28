@@ -11,5 +11,5 @@ _Link: [./tracks/prettier-isolation-20260108/](./tracks/prettier-isolation-20260
 
 ---
 
-- [~] **Track: Remove use of turborepo in this repository. move build logic that was into turborepo into regular pnpm scripts and/or the top level justfile, as appropriate.**
+- [x] **Track: Remove use of turborepo in this repository. move build logic that was into turborepo into regular pnpm scripts and/or the top level justfile, as appropriate.**
 *Link: [./tracks/remove_turborepo_20260127/](./tracks/remove_turborepo_20260127/)*
