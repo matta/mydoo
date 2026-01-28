@@ -1,10 +1,6 @@
 import { test } from "../fixtures";
 
 test.describe("Sync Settings", () => {
-  test.beforeEach(async ({ I }) => {
-    await I.Given.onHomePage();
-  });
-
   test("User can change and persist sync server URL", async ({ I }) => {
     const customUrl = "ws://localhost:9999/sync";
 

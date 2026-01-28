@@ -1,13 +1,8 @@
 import { test } from "../fixtures";
 
 test.describe("Document Switching", () => {
-  test.beforeEach(async ({ I }) => {
-    await I.Given.onHomePage();
-  });
-
   test("User creates a new document", async ({ I }) => {
     // Given
-    await I.Given.onHomePage();
     const oldId = await I.Then.getCurrentDocumentId();
 
     // When
