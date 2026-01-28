@@ -265,13 +265,9 @@
       ],
       "outputs": []
     },
-    "generate": {
-      "outputLogs": "new-only",
-      "outputs": ["src/generated/**"]
-    },
     "check-types": {
       "outputLogs": "new-only",
-      "dependsOn": ["^build", "generate"],
+      "dependsOn": ["^build"],
       "inputs": [
         "src/**/*.ts",
         "src/**/*.tsx",
@@ -364,7 +360,7 @@
     },
     "test": {
       "outputLogs": "new-only",
-      "dependsOn": ["check-style", "build", "check-types", "generate"],
+      "dependsOn": ["check-style", "build", "check-types"],
       "env": ["FEATURE_FILTER"],
       "inputs": [
         "src/**/*",
@@ -391,25 +387,25 @@
     },
     "test-e2e": {
       "outputLogs": "new-only",
-      "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
+      "dependsOn": ["check-style", "build", "check-types", "test"],
       "outputs": ["playwright-report/**", "test-results/**"],
       "env": ["CI"]
     },
     "test-e2e-desktop": {
       "outputLogs": "new-only",
-      "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
+      "dependsOn": ["check-style", "build", "check-types", "test"],
       "outputs": ["playwright-report/**", "test-results/**"],
       "env": ["CI"]
     },
     "test-e2e-mobile": {
       "outputLogs": "new-only",
-      "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
+      "dependsOn": ["check-style", "build", "check-types", "test"],
       "outputs": ["playwright-report/**", "test-results/**"],
       "env": ["CI"]
     },
     "@mydoo/tasklens-ui#test-e2e": {
       "outputLogs": "new-only",
-      "dependsOn": ["check-style", "build", "check-types", "generate", "test"],
+      "dependsOn": ["check-style", "build", "check-types", "test"],
       "outputs": ["playwright-report/**", "test-results/**"],
       "env": ["CI"]
     },

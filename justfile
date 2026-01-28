@@ -2,6 +2,16 @@
 
 set shell := ["bash", "-c"]
 
+# -----------------------------------------------------------------------------
+# Configuration
+# -----------------------------------------------------------------------------
+
+ui_pkg := "crates/tasklens-ui"
+docs_pkg := "docs"
+scripts_pkg := "scripts"
+core_pkg := "crates/tasklens-core"
+store_pkg := "crates/tasklens-store"
+
 # List available commands
 _default:
     @just --list
