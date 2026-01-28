@@ -40,7 +40,7 @@ Migrate unit tests and E2E tests.
 
 - [x] Task: Implement `test` (Unit) recipes 38a3fb3
     - [ ] Migrate Vitest and Cargo test executions.
-- [ ] Task: Implement `test-e2e` (Playwright) recipes
+- [x] Task: Implement `test-e2e` (Playwright) recipes 8faf01f
     - [ ] Migrate Playwright execution.
     - [ ] Ensure build dependencies (building the UI) are explicit in the recipe or documented.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
