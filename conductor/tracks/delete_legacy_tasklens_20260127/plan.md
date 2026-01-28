@@ -7,11 +7,11 @@ Decouple the `packages/tasklens` package from the monorepo workspace and build c
     - [x] Remove the entry from the `packages` list.
 - [x] Task: Remove project references in `crates/tasklens-ui`. 889dec2
     - [x] Edit `crates/tasklens-ui/tsconfig.json` to remove the reference to `../../packages/tasklens`.
-- [ ] Task: Scan and remove dependencies in other packages.
-    - [ ] Check `apps/client/package.json` and remove any dependency on `@tasklens/core` (or equivalent).
-    - [ ] Check root `package.json` (if applicable).
-- [ ] Task: Clean up `turbo.json`.
-    - [ ] Remove any pipeline configurations specifically targeting the deleted package.
+- [x] Task: Scan and remove dependencies in other packages. 889dec2
+    - [x] Check `apps/client/package.json` and remove any dependency on `@tasklens/core` (or equivalent).
+    - [x] Check root `package.json` (if applicable).
+- [x] Task: Clean up `turbo.json`. 889dec2
+    - [x] Remove any pipeline configurations specifically targeting the deleted package.
 - [ ] Task: Conductor - User Manual Verification 'Configuration Decoupling' (Protocol in workflow.md)
 
 ## Phase 2: Source Removal
