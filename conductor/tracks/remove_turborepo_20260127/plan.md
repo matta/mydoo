@@ -24,16 +24,16 @@ Migrate build processes and ensure dependencies are explicit.
     - [x] Verify that `just build` compiles the entire project correctly.
 - [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
-## Phase 3: Validation and Linting
+## Phase 3: Validation and Linting [checkpoint: 33312e6]
 Migrate static analysis and type-checking tasks.
 
 - [x] Task: Implement `check-style` (Linting) recipes d5fd01f
-    - [ ] Migrate Biome, ESLint, and Prettier checks for all packages and root.
+    - [x] Migrate Biome, ESLint, and Prettier checks for all packages and root.
 - [x] Task: Implement `check-types` (TypeScript) recipes 1490305
-    - [ ] Migrate `tsc` checks for all TS packages.
+    - [x] Migrate `tsc` checks for all TS packages.
 - [x] Task: Implement `check-rust` (Clippy/Fmt) recipes d011434
-    - [ ] Ensure existing Rust audit logic is integrated into the `just` flow.
-- [~] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+    - [x] Ensure existing Rust audit logic is integrated into the `just` flow.
+- [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
 
 ## Phase 4: Testing Suite
 Migrate unit tests and E2E tests.
