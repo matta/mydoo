@@ -53,7 +53,7 @@ Remove Turbo and wrap all workflows in Just.
     - [ ] Create the `check-agent` recipe.
 - [x] Task: Redirect `package.json` scripts to Just e610d43
     - [ ] Update root `package.json` scripts to call `just <recipe>`.
-- [ ] Task: Remove Turborepo dependencies
+- [~] Task: Remove Turborepo dependencies
     - [ ] Delete `turbo.json` and `turbo-exclusions.json`.
     - [ ] Uninstall `turbo` from the root package.
     - [ ] Run `pnpm install` to update the lockfile.

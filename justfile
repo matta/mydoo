@@ -43,7 +43,7 @@ build-store:
 # -----------------------------------------------------------------------------
 
 # Run all style checks
-check-style: check-format-root check-biome-root check-eslint-root check-filenames-root check-turbo-root check-format check-eslint
+check-style: check-format-root check-biome-root check-eslint-root check-filenames-root check-format check-eslint
 
 # Check formatting for root files
 check-format-root:
@@ -64,11 +64,6 @@ check-eslint-root:
 check-filenames-root:
     @echo "🔍 Checking filenames..."
     pnpm tsx scripts/lint-filenames.ts
-
-# Check turbo config
-check-turbo-root:
-    @echo "🔍 Checking turbo config..."
-    pnpm tsx scripts/check-turbo-inputs.ts
 
 # Check formatting for all packages
 check-format:

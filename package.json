@@ -17,7 +17,6 @@
     "prettier": "catalog:",
     "syncpack": "catalog:",
     "tsx": "catalog:",
-    "turbo": "catalog:",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:",
     "ws": "catalog:"
