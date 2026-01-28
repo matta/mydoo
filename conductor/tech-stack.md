@@ -2,23 +2,23 @@
 
 ## Core Infrastructure
 
-- **Language:** TypeScript
-- **Monorepo Management:** pnpm workspaces, Turbo
+- **Language:** Rust (Core Logic & UI), TypeScript (Tooling & E2E Tests)
+- **Monorepo Management:** pnpm workspaces, Turbo, Cargo Workspaces
 - **Runtime:** Node.js (>=24)
 
 ## Frontend Application
 
-- **Framework:** React (Vite)
+- **Framework:** Dioxus (Rust)
 - **State Management:**
-  - **Local-First Sync:** Automerge (`@automerge/automerge-repo`)
-  - **Application State:** Redux Toolkit
-- **UI Toolkit:** Mantine (Current) / MUI (Future Consideration)
-- **Network:** WebSocket (`automerge-repo-network-websocket`)
-- **Persistence:** IndexedDB (`automerge-repo-storage-indexeddb`)
+  - **Local-First Sync:** Samod (Rust-based Automerge wrapper)
+  - **Application State:** Signals (Dioxus native)
+- **UI Toolkit:** Tailwind CSS, Dioxus Primitives
+- **Network:** WebSocket (Samod sync)
+- **Persistence:** IndexedDB (via Samod/Rexie in WASM)
 
 ## Testing
 
-- **Unit & Integration:** Vitest
+- **Unit & Integration:** Cargo Test (Rust), Vitest (Scripts)
 - **End-to-End (E2E):** Playwright
 - **Behavior-Driven Development (BDD):** `playwright-bdd`
 

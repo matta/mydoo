@@ -54,5 +54,5 @@
   written before implementation to drive design and ensure correctness.
 - **Full E2E Coverage:** Maintain comprehensive End-to-End (E2E) test coverage
   for all critical user stories.
-- **Tooling:** Utilize `playwright-bdd` (Playwright with BDD/Gherkin syntax) to
+- **Tooling:** Utilize Playwright to
   express and verify these user stories in a clear, readable format.
