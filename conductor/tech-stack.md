@@ -7,10 +7,22 @@
 - **Runtime:** Node.js (>=24)
 
 ## Frontend Application
-@@ -23,7 +23,7 @@
- - **Unit & Integration:** Cargo Test (Rust), Vitest (Scripts)
- - **End-to-End (E2E):** Playwright
- - **End-to-End Style:** Code-First Gherkin (TypeScript)
+
+- **Framework:** Dioxus (0.7.x)
+- **Language:** Rust (WASM)
+- **Styling:** Tailwind CSS
+
+## Persistence & Sync
+
+- **CRDT Library:** Automerge
+- **Persistence:** IndexedDB (Browser)
+- **Sync Protocol:** WebSockets (Custom)
+
+## Quality Assurance
+
+- **Unit & Integration:** Cargo Test (Rust), Vitest (Scripts)
+- **End-to-End (E2E):** Playwright
+- **End-to-End Style:** Code-First Gherkin (TypeScript)
 
 ## Code Quality & Tooling
 
