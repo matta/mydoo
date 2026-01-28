@@ -19,7 +19,7 @@ Migrate build processes and ensure dependencies are explicit.
 
 - [x] Task: Implement package-specific `build` recipes 0ecea7e
     - [ ] Add recipes for building `tasklens-ui` (wrapping `dx build`), `docs`, etc.
-- [ ] Task: Implement root `build` recipe
+- [x] Task: Implement root `build` recipe 98a5e60
     - [ ] Define the root `build` recipe to run package builds sequentially.
     - [ ] Verify that `just build` compiles the entire project correctly.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
