@@ -51,7 +51,7 @@ Remove Turbo and wrap all workflows in Just.
 - [x] Task: Implement `fix` and `verify` recipes 83c85f1
     - [ ] Create the high-level `verify` recipe (sequential `check-style` -> `check-types` -> `test`).
     - [ ] Create the `check-agent` recipe.
-- [ ] Task: Redirect `package.json` scripts to Just
+- [x] Task: Redirect `package.json` scripts to Just e610d43
     - [ ] Update root `package.json` scripts to call `just <recipe>`.
 - [ ] Task: Remove Turborepo dependencies
     - [ ] Delete `turbo.json` and `turbo-exclusions.json`.
