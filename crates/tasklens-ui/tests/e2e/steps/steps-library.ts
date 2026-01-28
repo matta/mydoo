@@ -86,7 +86,8 @@ export class Steps {
       const lead = parseDuration(leadTimeStr);
 
       await this.plan.createRoutineTask(title, {
-      frequency: repeat.uiUnit === "Days" ? "daily" : repeat.uiUnit.toLowerCase(),
+        frequency:
+          repeat.uiUnit === "Days" ? "daily" : repeat.uiUnit.toLowerCase(),
         interval: repeat.value,
         leadTimeVal: lead.value,
         leadTimeUnit: lead.uiUnit,
