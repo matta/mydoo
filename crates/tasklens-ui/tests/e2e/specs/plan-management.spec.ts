@@ -2,7 +2,7 @@ import { test } from "../fixtures";
 
 test.describe("Plan Management", () => {
   test.beforeEach(async ({ I }) => {
-    await I.Given.cleanWorkspace();
+    await I.Given.onHomePage();
     await I.Given.seededWithSampleData();
   });
 

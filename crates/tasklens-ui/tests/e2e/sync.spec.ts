@@ -7,7 +7,7 @@ test.describe("End-to-End Synchronization", () => {
     // 1. Setup Alice
     let aliceDocId: string;
     await test.step("Setup Alice", async () => {
-      await alice.plan.clearAndReload();
+      await alice.plan.goto("/");
       await alice.plan.openSyncSettings();
       await alice.plan.setSyncServerUrl(syncUrl);
       await alice.plan.saveSyncSettings();
@@ -25,7 +25,7 @@ test.describe("End-to-End Synchronization", () => {
 
     // 2. Setup Bob (Join Alice's Document)
     await test.step("Setup Bob", async () => {
-      await bob.plan.clearAndReload();
+      await bob.plan.goto("/");
       await bob.plan.openSyncSettings();
       await bob.plan.setSyncServerUrl(syncUrl);
       await bob.plan.saveSyncSettings();

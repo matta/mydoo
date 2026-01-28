@@ -3,7 +3,7 @@ import { test } from "../fixtures";
 test.describe("Task Creation Defaults", () => {
   test.beforeEach(async ({ I }) => {
     // Background: Given I have a workspace seeded with sample data
-    await I.Given.cleanWorkspace();
+    await I.Given.onHomePage();
     // (Existing background says seeded, but cleanWorkspace is safer for testing defaults)
     await I.When.switchToPlanView();
   });

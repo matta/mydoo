@@ -2,7 +2,7 @@ import { test } from "../fixtures";
 
 test.describe("Sequential Projects", () => {
   test.beforeEach(async ({ I }) => {
-    await I.Given.cleanWorkspace();
+    await I.Given.onHomePage();
   });
 
   test("Sequential tasks are blocked until previous sibling is done", async ({

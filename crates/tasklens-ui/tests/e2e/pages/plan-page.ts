@@ -665,22 +665,6 @@ export class PlanPage implements PlanFixture {
     }
   }
 
-  async clearAndReload(): Promise<void> {
-    // Clear localStorage first to ensure clean state
-    await this.page.goto("/");
-    await this.page.evaluate(() => {
-      localStorage.clear();
-    });
-
-    // Reload the app
-    await this.page.goto("/plan");
-    await this.waitForAppReady();
-    // Ensure the app is loaded by waiting for the Plan heading
-    await expect(
-      this.page.getByRole("heading", { name: "Plan" }),
-    ).toBeVisible();
-  }
-
   async primeWithSampleData(): Promise<void> {
     // Navigate to seed URL which triggers internal seeding logic
     await this.page.goto("/plan?seed=true");

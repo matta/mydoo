@@ -5,7 +5,7 @@ test.describe("Mobile Journeys", () => {
   // For now, we rely on the project config to set the viewport
 
   test.beforeEach(async ({ I }) => {
-    await I.Given.cleanWorkspace();
+    await I.Given.onHomePage();
     await I.Given.seededWithSampleData();
     await I.When.switchToPlanView();
   });

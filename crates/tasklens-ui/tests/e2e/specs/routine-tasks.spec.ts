@@ -2,7 +2,7 @@ import { test } from "../fixtures";
 
 test.describe("Routine Tasks", () => {
   test.beforeEach(async ({ I }) => {
-    await I.Given.cleanWorkspace();
+    await I.Given.onHomePage();
   });
 
   test("Routine task reappears after lead time", async ({ I }) => {

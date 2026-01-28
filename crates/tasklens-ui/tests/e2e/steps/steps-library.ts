@@ -11,16 +11,8 @@ export class Steps {
   ) {}
 
   public Given = {
-    cleanWorkspace: async () => {
-      await this.plan.setupClock();
-      await this.page.goto("/");
-      await this.page.evaluate(() => localStorage.clear());
-      await this.page.reload();
-      await this.plan.setupClock();
-      await this.plan.waitForAppReady();
-    },
-
     onHomePage: async () => {
+      await this.plan.setupClock();
       await this.page.goto("/");
       await this.plan.waitForAppReady();
     },
@@ -60,10 +52,6 @@ export class Steps {
 
     onMobileDevice: async () => {
       // Intentionally empty as project config handles this.
-    },
-
-    startWithCleanWorkspace: async () => {
-      await this.Given.cleanWorkspace();
     },
 
     taskWithChild: async (parent: string, child: string) => {
@@ -121,12 +109,6 @@ export class Steps {
 
     downloadsDocument: async () => {
       return await this.plan.downloadDocument();
-    },
-
-    clearsApplicationState: async () => {
-      await this.page.evaluate(() => localStorage.clear());
-      await this.page.reload();
-      await this.plan.waitForAppReady();
     },
 
     uploadsDocument: async (filePath: string) => {
