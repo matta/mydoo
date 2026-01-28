@@ -155,7 +155,6 @@
         "**/*.config.js",
         "**/*.config.ts",
         ".ls-lint.yml",
-        "!**/.features-gen/**",
         "!**/.husky/_/**",
         "!**/.moon/**",
         "!**/.turbo/**",
@@ -178,7 +177,6 @@
       "outputLogs": "new-only",
       "inputs": [
         "*",
-        "!**/.features-gen/**",
         "!**/.husky/_/**",
         "!**/.moon/**",
         "!**/.turbo/**",
@@ -206,7 +204,6 @@
         "*.config.js",
         "*.config.ts",
         "eslint.config.js",
-        "!**/.features-gen/**",
         "!**/.husky/_/**",
         "!**/.moon/**",
         "!**/.turbo/**",
@@ -237,7 +234,6 @@
         "specs/**/*",
         "*.ts",
         "*.tsx",
-        "!**/.features-gen/**",
         "!**/.husky/_/**",
         "!**/.moon/**",
         "!**/.turbo/**",
@@ -271,7 +267,7 @@
     },
     "generate": {
       "outputLogs": "new-only",
-      "outputs": ["tests/e2e/.features-gen/**", "src/generated/**"]
+      "outputs": ["src/generated/**"]
     },
     "check-types": {
       "outputLogs": "new-only",
@@ -286,7 +282,6 @@
         "*.tsx",
         "*.config.ts",
         "tsconfig.json",
-        "!**/.features-gen/**",
         "!**/.husky/_/**",
         "!**/.moon/**",
         "!**/.turbo/**",
@@ -349,7 +344,6 @@
         "vite.config.ts",
         "index.html",
         "specs/**/*.d.ts",
-        "!**/.features-gen/**",
         "!**/.husky/_/**",
         "!**/.moon/**",
         "!**/.turbo/**",
@@ -377,7 +371,6 @@
         "tests/**/*",
         "test/**/*",
         "specs/**/*",
-        "!**/.features-gen/**",
         "!**/.husky/_/**",
         "!**/.moon/**",
         "!**/.turbo/**",
@@ -430,7 +423,6 @@
         "turbo.json",
         "**/turbo.json",
         "turbo-exclusions.json",
-        "!**/.features-gen/**",
         "!**/.husky/_/**",
         "!**/.moon/**",
         "!**/.turbo/**",

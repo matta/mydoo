@@ -9,7 +9,6 @@ export default tseslint.config(
       "**/node_modules/**",
       "**/coverage/**",
       "**/.turbo/**",
-      "**/.features-gen/**",
       "**/dev-dist/**",
       "**/.vercel/**",
       "**/pnpm-lock.yaml",
