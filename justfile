@@ -39,6 +39,51 @@ build-store:
     cargo build -p tasklens-store
 
 # -----------------------------------------------------------------------------
+# Style & Linting Commands
+# -----------------------------------------------------------------------------
+
+# Run all style checks
+check-style: check-format-root check-biome-root check-eslint-root check-filenames-root check-turbo-root check-format check-eslint
+
+# Check formatting for root files
+check-format-root:
+    @echo "🔍 Checking root formatting..."
+    pnpm prettier --check "*.{json,md,yaml,yml,js,ts,tsx,jsx,css,html}"
+
+# Check biome for root
+check-biome-root:
+    @echo "🔍 Checking root biome..."
+    pnpm biome check .
+
+# Check eslint for root
+check-eslint-root:
+    @echo "🔍 Checking root eslint..."
+    pnpm eslint . --max-warnings 0 --ignore-pattern '*/**'
+
+# Check filenames
+check-filenames-root:
+    @echo "🔍 Checking filenames..."
+    pnpm tsx scripts/lint-filenames.ts
+
+# Check turbo config
+check-turbo-root:
+    @echo "🔍 Checking turbo config..."
+    pnpm tsx scripts/check-turbo-inputs.ts
+
+# Check formatting for all packages
+check-format:
+    @echo "🔍 Checking package formatting..."
+    @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm prettier --check .
+    @echo "  - {{docs_pkg}}" && cd {{docs_pkg}} && pnpm prettier --check .
+    @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm prettier --check .
+
+# Check eslint for all packages
+check-eslint:
+    @echo "🔍 Checking package eslint..."
+    @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm eslint .
+    @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm eslint .
+
+# -----------------------------------------------------------------------------
 # Core Audit Commands
 # -----------------------------------------------------------------------------
 

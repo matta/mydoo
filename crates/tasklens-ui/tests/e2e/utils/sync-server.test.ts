@@ -1,12 +1,12 @@
-import * as net from "node:net";
+import { type AddressInfo, createServer, Socket } from "node:net";
 import { expect, test } from "@playwright/test";
 import { SyncServerHelper } from "./sync-server";
 
 const getFreePort = async (): Promise<number> => {
   return new Promise((resolve, reject) => {
-    const srv = net.createServer();
+    const srv = createServer();
     srv.listen(0, () => {
-      const port = (srv.address() as net.AddressInfo).port;
+      const port = (srv.address() as AddressInfo).port;
       srv.close((err) => {
         if (err) reject(err);
         else resolve(port);
@@ -38,7 +38,7 @@ test.describe("SyncServerHelper", () => {
       .poll(
         async () => {
           return new Promise<boolean>((resolve) => {
-            const socket = new net.Socket();
+            const socket = new Socket();
             socket.setTimeout(1000);
             socket.on("connect", () => {
               socket.destroy();
