@@ -20,6 +20,9 @@ _default:
 # Build Commands
 # -----------------------------------------------------------------------------
 
+# Build all packages
+build: build-core build-store build-ui
+
 # Build tasklens-ui
 build-ui:
     @echo "🏗️ Building tasklens-ui..."
