@@ -159,11 +159,29 @@ test-e2e-mobile:
     cd {{ui_pkg}} && pnpm exec playwright test --project=e2e-mobile
 
 # -----------------------------------------------------------------------------
+# Orchestration Commands
+# -----------------------------------------------------------------------------
+
+# Full validation before human review
+check-human: check-catalog-root check-deps-root check-syncpack-root check-style check-types
+
+# Full CI-like validation
+check-agent: check-human test test-e2e
+
+# The "ultimate" verification command
+verify: check-rust fix check-agent
+
+# Development server
+dev:
+    @echo "🚀 Starting development server..."
+    dx serve --platform web --package tasklens-ui
+
+# -----------------------------------------------------------------------------
 # Core Audit Commands
 # -----------------------------------------------------------------------------
 
 # Run full dead code detection suite (Lints + Dependencies)
-audit: check-clippy udeps
+audit: check-clippy check-catalog-root check-deps-root udeps
     @echo "✅ Audit complete! No dead code detected."
 
 # Check for unused dependencies in Cargo.toml
@@ -171,6 +189,48 @@ audit: check-clippy udeps
 udeps:
     # @echo "📦 Scanning for unused dependencies..."
     cargo +nightly udeps --all-targets --all-features
+
+# Check syncpack
+check-syncpack-root:
+    @echo "🔍 Checking syncpack..."
+    pnpm syncpack list-mismatches
+
+# Check catalog
+check-catalog-root:
+    @echo "🔍 Checking catalog..."
+    pnpm tsx scripts/check-unused-catalog-entries.ts
+
+# Check dependencies
+check-deps-root:
+    @echo "🔍 Checking dependencies..."
+    pnpm knip
+
+# -----------------------------------------------------------------------------
+# Fix Commands
+# -----------------------------------------------------------------------------
+
+# Run all auto-fixes
+fix: fix-style fix-syncpack-root fix-rust
+
+# Fix style (formatting and linting)
+fix-style:
+    @echo "🛠️ Fixing style..."
+    pnpm biome check --write .
+    pnpm eslint . --fix --ignore-pattern '*/**'
+    pnpm prettier --write "*.{json,md,yaml,yml,js,ts,tsx,jsx,css,html}"
+    cd {{ui_pkg}} && pnpm prettier --write .
+    cd {{docs_pkg}} && pnpm prettier --write .
+    cd {{scripts_pkg}} && pnpm prettier --write .
+
+# Fix syncpack
+fix-syncpack-root:
+    @echo "🛠️ Fixing syncpack..."
+    pnpm syncpack fix-mismatches
+
+# Fix rust (standard cargo fix)
+fix-rust:
+    @echo "🛠️ Fixing rust..."
+    cargo fix --workspace --allow-dirty --allow-staged
 
 # -----------------------------------------------------------------------------
 # Setup & Maintenance
@@ -181,7 +241,3 @@ install-tools:
     @echo "🛠️ Installing cargo-udeps..."
     rustup toolchain install nightly
     cargo install cargo-udeps --locked
-
-# Fix code automatically where possible (standard cargo fix)
-fix-rust:
-    cargo fix --workspace --allow-dirty --allow-staged
