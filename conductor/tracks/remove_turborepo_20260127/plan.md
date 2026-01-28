@@ -29,7 +29,7 @@ Migrate static analysis and type-checking tasks.
 
 - [x] Task: Implement `check-style` (Linting) recipes d5fd01f
     - [ ] Migrate Biome, ESLint, and Prettier checks for all packages and root.
-- [ ] Task: Implement `check-types` (TypeScript) recipes
+- [x] Task: Implement `check-types` (TypeScript) recipes 1490305
     - [ ] Migrate `tsc` checks for all TS packages.
 - [ ] Task: Implement `check-rust` (Clippy/Fmt) recipes
     - [ ] Ensure existing Rust audit logic is integrated into the `just` flow.
