@@ -14,15 +14,15 @@ Audit the existing task graph and establish the core `justfile` structure.
     - [x] **Cleanup:** Remove the dead `generate` scripts from `package.json` and `turbo.json`.
 - [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
-## Phase 2: Core Build Pipeline
+## Phase 2: Core Build Pipeline [checkpoint: 434c9e3]
 Migrate build processes and ensure dependencies are explicit.
 
 - [x] Task: Implement package-specific `build` recipes 0ecea7e
-    - [ ] Add recipes for building `tasklens-ui` (wrapping `dx build`), `docs`, etc.
+    - [x] Add recipes for building `tasklens-ui` (wrapping `dx build`), `docs`, etc.
 - [x] Task: Implement root `build` recipe 98a5e60
-    - [ ] Define the root `build` recipe to run package builds sequentially.
-    - [ ] Verify that `just build` compiles the entire project correctly.
-- [~] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+    - [x] Define the root `build` recipe to run package builds sequentially.
+    - [x] Verify that `just build` compiles the entire project correctly.
+- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Validation and Linting
 Migrate static analysis and type-checking tasks.
