@@ -42,16 +42,16 @@ Remove unused dependencies and update project-wide tooling configurations.
     - [x] Identify and remove dependencies that were *only* used by `packages/tasklens` (e.g., specific dev dependencies) from the root `package.json` if they were hoisted, or rely on `knip` to identify them later.
 - [x] Task: Conductor - User Manual Verification 'Dependency & Tooling Cleanup' (Protocol in workflow.md) 0bfa08e
 
-## Phase 4: System Verification
+## Phase 4: System Verification [checkpoint: 433f8e8]
 Verify that the monorepo is healthy and the Rust crate can still access the fixtures.
 
-- [ ] Task: Clean install.
-    - [ ] Run `pnpm install` to update the lockfile and verify workspace integrity.
-- [ ] Task: Verify Monorepo Health.
-    - [ ] Run `pnpm check` (which includes knip).
-    - [ ] Run `pnpm fix`.
-- [ ] Task: Verify Full Build & Test Suite.
-    - [ ] Run `pnpm verify` to ensure no regressions in other packages.
-- [ ] Task: Verify Rust Compliance Tests.
-    - [ ] Run `cargo test -p tasklens-core` to ensure it can still read the fixtures.
-- [ ] Task: Conductor - User Manual Verification 'System Verification' (Protocol in workflow.md)
+- [x] Task: Clean install. 433f8e8
+    - [x] Run `pnpm install` to update the lockfile and verify workspace integrity.
+- [x] Task: Verify Monorepo Health. 433f8e8
+    - [x] Run `pnpm check` (which includes knip).
+    - [x] Run `pnpm fix`.
+- [x] Task: Verify Full Build & Test Suite. 433f8e8
+    - [x] Run `pnpm verify` to ensure no regressions in other packages.
+- [x] Task: Verify Rust Compliance Tests. 433f8e8
+    - [x] Run `cargo test -p tasklens-core` to ensure it can still read the fixtures.
+- [x] Task: Conductor - User Manual Verification 'System Verification' (Protocol in workflow.md) 433f8e8
