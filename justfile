@@ -129,6 +129,23 @@ check-wasm:
     cargo check --target wasm32-unknown-unknown --all-targets
 
 # -----------------------------------------------------------------------------
+# Test Commands
+# -----------------------------------------------------------------------------
+
+# Run all unit tests
+test: test-scripts test-rust
+
+# Run unit tests for scripts
+test-scripts:
+    @echo "🧪 Running scripts tests..."
+    cd {{scripts_pkg}} && pnpm test
+
+# Run unit tests for rust crates
+test-rust:
+    @echo "🧪 Running rust tests..."
+    cargo test --workspace
+
+# -----------------------------------------------------------------------------
 # Core Audit Commands
 # -----------------------------------------------------------------------------
 
