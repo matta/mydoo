@@ -67,4 +67,4 @@ if [ -f "Cargo.toml" ]; then
 fi
 
 
-pnpm exec just check-human
+just check-human
