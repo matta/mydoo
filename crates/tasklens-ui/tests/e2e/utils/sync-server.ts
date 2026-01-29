@@ -14,7 +14,10 @@ export class SyncServerHelper {
 
   constructor(port: number = 3030) {
     this.port = port;
-    this.dbPath = path.resolve(`./test-sync-db-${port}`);
+    const randomSuffix = Math.random().toString(36).substring(2, 6);
+    this.dbPath = path.resolve(
+      `./test-scratch/test-sync-db-${port}-${randomSuffix}`,
+    );
   }
 
   getPort() {
