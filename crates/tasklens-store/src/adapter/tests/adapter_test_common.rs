@@ -1,9 +1,11 @@
-use crate::actions::{Action, TaskUpdates};
 use crate::adapter;
 use anyhow::Result;
 use automerge::Automerge;
 use proptest::prelude::*;
-use tasklens_core::types::{PlaceID, RepeatConfig, ScheduleType, TaskID, TaskStatus, TunnelState};
+use tasklens_core::{
+    Action, TaskUpdates,
+    types::{PlaceID, RepeatConfig, ScheduleType, TaskID, TaskStatus, TunnelState},
+};
 
 #[allow(dead_code)]
 pub(super) static SETUP_PREFIXES: &[&str] = &["s-"];

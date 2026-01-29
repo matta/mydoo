@@ -5,11 +5,11 @@ use crate::components::loading::Loading;
 use crate::components::{DatePicker, Select};
 use crate::utils::time_conversion;
 use dioxus::prelude::*;
+use tasklens_core::TaskUpdates;
 use tasklens_core::domain::constants::DEFAULT_LEAD_TIME_MILLIS;
 use tasklens_core::types::{
     Frequency, PersistedTask, PlaceID, RepeatConfig, Schedule, ScheduleType, TaskID, TaskStatus,
 };
-use tasklens_store::store::TaskUpdates;
 use tracing;
 
 #[derive(Debug, Clone, PartialEq)]

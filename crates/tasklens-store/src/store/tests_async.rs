@@ -1,9 +1,9 @@
 use samod::runtime::LocalRuntimeHandle;
 use std::future::Future;
 use std::pin::Pin;
-use tasklens_core::{TaskID, TaskStatus, TunnelState};
+use tasklens_core::{Action, TaskID, TaskStatus, TaskUpdates, TunnelState};
 
-use crate::store::{Action, AppStore, TaskUpdates};
+use crate::store::AppStore;
 
 #[derive(Clone, Debug)]
 struct TestRuntime;

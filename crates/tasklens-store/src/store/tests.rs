@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use anyhow::{Result, anyhow};
 use automerge::AutoCommit;
 use automerge_test::{assert_doc, list, map};
-use tasklens_core::{TaskID, TaskStatus, TunnelState};
+use tasklens_core::{TaskID, TaskStatus, TaskUpdates, TunnelState};
 
 use crate::adapter::ensure_path;
 use crate::store::Action;
@@ -402,7 +402,7 @@ fn test_dispatch_update_all_fields() {
     store
         .dispatch(Action::UpdateTask {
             id: task_id.clone(),
-            updates: crate::actions::TaskUpdates {
+            updates: TaskUpdates {
                 title: Some("Updated Title".to_string()),
                 status: Some(TaskStatus::Done),
                 place_id: Some(Some(place_id.clone())),
@@ -450,7 +450,7 @@ fn test_dispatch_update() {
     store
         .dispatch(Action::UpdateTask {
             id: task_id.clone(),
-            updates: crate::actions::TaskUpdates {
+            updates: TaskUpdates {
                 title: Some("Updated".to_string()),
                 status: Some(TaskStatus::Done),
                 ..Default::default()

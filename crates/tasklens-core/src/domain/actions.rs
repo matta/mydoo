@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
-use tasklens_core::types::{PlaceID, TaskID, TaskStatus};
+
+use crate::types::{PlaceID, RepeatConfig, ScheduleType, TaskID, TaskStatus};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Action {
@@ -36,8 +37,8 @@ pub struct TaskUpdates {
     pub place_id: Option<Option<PlaceID>>,
     /// Optional update: `Some(None)` clears the due date, `Some(Some(ts))` sets it, `None` keeps current.
     pub due_date: Option<Option<i64>>,
-    pub schedule_type: Option<tasklens_core::types::ScheduleType>,
+    pub schedule_type: Option<ScheduleType>,
     pub lead_time: Option<i64>,
-    pub repeat_config: Option<Option<tasklens_core::types::RepeatConfig>>,
+    pub repeat_config: Option<Option<RepeatConfig>>,
     pub is_sequential: Option<bool>,
 }
