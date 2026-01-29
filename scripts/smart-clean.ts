@@ -25,8 +25,6 @@ const GIT_CLEAN_ARGS = [
   "-fdX", // force, directories, ignored only
   "-n", // dry run (critical!)
   "-e",
-  "!ROLLING_CONTEXT.md",
-  "-e",
   "!.proto",
   "-e",
   "!.env",
