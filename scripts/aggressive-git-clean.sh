@@ -5,7 +5,7 @@
 # It purposefully EXCLUDES (preserves) files that are expensive to re-download or critical for local dev.
 
 echo "Running git clean -fdX..."
-echo "Excluding: ROLLING_CONTEXT.md, .proto (toolchain), .env, *.local"
+echo "Excluding: .proto (toolchain), .env, *.local"
 
 # -f: force
 # -d: recurse into untracked directories
@@ -13,7 +13,6 @@ echo "Excluding: ROLLING_CONTEXT.md, .proto (toolchain), .env, *.local"
 # -e: exclude pattern (using '!' to un-ignore files so -X leaves them alone)
 
 git clean -fdX \
-  -e '!ROLLING_CONTEXT.md' \
   -e '!.proto' \
   -e '!.env' \
   -e '!*.local' \

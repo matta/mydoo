@@ -30,7 +30,6 @@ playwright-report
 test-results
 .last-run.json
 coverage
-ROLLING_CONTEXT.md
 **/__screenshots__
 **/.features-gen
 .ralph-state/

@@ -15,6 +15,13 @@
 
 # Development Guidelines
 
+## Task Tracking
+
+- **Use the CLI:** ALWAYS use the `bd` command line tool for reading, creating, and updating tasks.
+- **Do Not Read Files:** NEVER attempt to parse or read files in the `.beads` directory directly. The file format is internal and subject to change.
+- **Listing Tasks:** Use `bd list` to see available tasks.
+- **Viewing Details:** Use `bd show <id>` to see task details.
+
 ## Package Management
 
 - Use `pnpm` for all package management and scripts.
@@ -159,25 +166,6 @@ cargo build --target wasm32-unknown-unknown -p tasklens-store  # WASM build
 dx build -p tasklens-ui                             # Dioxus build
 cargo test                                          # Tests
 ```
-
-## Context Convention: `ROLLING_CONTEXT.md`
-
-For efforts spanning multiple sessions or commits, we maintain a root-level
-`ROLLING_CONTEXT.md`.
-
-- **Purpose:** Persistent, user-editable "working memory" for the project's
-  current focus.
-- **Workflow:**
-  - **User:** Updates this file to set high-level goals, shift direction, or
-    clarify requirements.
-  - **Agent:** Reads at new phase start (per Clean Tree Rule). Must keep rolling
-    task lists up to date. May update other agent-designated sections
-    autonomously.
-- **Contrast with System Artifacts:**
-  - `task.md` / `implementation_plan.md`: The agent's _ephemeral, internal_
-    checklist for the immediate next step.
-  - `ROLLING_CONTEXT.md`: The _persistent, shared_ narrative of the broader
-    effort. It is not tracked in git.
 
 ## Testing Strategy
 
@@ -1162,3 +1150,32 @@ UI rendered on the server.
   - _Symptom_: Buttons are reachable on Desktop but unclickable/hidden on Mobile
     viewports, causing split-brain test failures.
   - _Fix_: Use `flex-col sm:flex-row` pattern for dense action bars.
+
+## Landing the Plane (Session Completion)
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up (use `bd create "Title"`)
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work (use `bd close ID`), update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd sync
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds
+
+Use 'bd' for task tracking

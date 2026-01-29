@@ -227,6 +227,40 @@ def Label(text: str) -> Element:
 
 ---
 
+## State Management Patterns
+
+The application distinguishes between state that must be synchronized and
+persisted, and state that is ephemeral to the current view.
+
+### 1. Domain State (Persisted)
+
+- **Definition**: Data that belongs to the user's workspace (tasks, places,
+  projects).
+- **Management**: Managed by the `AppStore` and backed by Automerge.
+- **Access**: Read via signals/context; written via Controllers which trigger
+  Automerge transactions.
+
+### 2. Local UI State (Ephemeral)
+
+- **Definition**: State that only matters for the current session or view (e.g.,
+  expanded tree nodes, current tab, scroll position).
+- **Management**: Managed by Dioxus `Signal` at the component or view level.
+- **Access**: Local to the component tree where it is defined.
+
+### 3. Buffered Edits (Draft Pattern)
+
+- **Definition**: A local copy of domain state used during editing (e.g., a
+  "Draft Task").
+- **Pattern**:
+  1.  Copy domain data into a local `Signal<DraftTask>` when an editor opens.
+  2.  The UI binds directly to this local signal for fast, fluid editing.
+  3.  Upon "Save", the local state is committed back to the `AppStore` in a
+      single transaction.
+- **Rationale**: Avoids "keystroke-level" churn in Automerge, improves
+  performance, and allows for easy "Cancel" by simply discarding the draft.
+
+---
+
 ## Directory Structure
 
 ```text
