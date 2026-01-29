@@ -24,6 +24,17 @@ pub fn use_task_controller() -> TaskController {
 }
 
 impl TaskController {
+    fn dispatch_and_log_error(&self, action: Action, context: &'static str) -> anyhow::Result<()> {
+        let mut store = self.store;
+        let mut load_error = self.load_error;
+        let result = store.write().dispatch(action);
+        if let Err(e) = &result {
+            tracing::error!("{}: {}", context, e);
+            load_error.set(Some(e.to_string()));
+        }
+        result
+    }
+
     pub fn create(&self, parent_id: Option<TaskID>, title: String) -> Option<TaskID> {
         let id = TaskID::new();
         let action = Action::CreateTask {
@@ -31,25 +42,19 @@ impl TaskController {
             parent_id,
             title,
         };
-        let mut store = self.store;
-        let mut load_error = self.load_error;
-        if let Err(e) = store.write().dispatch(action) {
-            tracing::error!("Failed to create task: {}", e);
-            load_error.set(Some(e.to_string()));
-            None
-        } else {
+        if self
+            .dispatch_and_log_error(action, "Failed to create task")
+            .is_ok()
+        {
             Some(id)
+        } else {
+            None
         }
     }
 
     pub fn update(&self, id: TaskID, updates: TaskUpdates) {
         let action = Action::UpdateTask { id, updates };
-        let mut store = self.store;
-        let mut load_error = self.load_error;
-        if let Err(e) = store.write().dispatch(action) {
-            tracing::error!("Failed to update task: {}", e);
-            load_error.set(Some(e.to_string()));
-        }
+        let _ = self.dispatch_and_log_error(action, "Failed to update task");
     }
 
     pub fn rename(&self, id: TaskID, new_title: String) {
@@ -64,30 +69,18 @@ impl TaskController {
 
     pub fn delete(&self, id: TaskID) {
         let action = Action::DeleteTask { id };
-        let mut store = self.store;
-        let mut load_error = self.load_error;
-        if let Err(e) = store.write().dispatch(action) {
-            tracing::error!("Failed to delete task: {}", e);
-            load_error.set(Some(e.to_string()));
-        }
+        let _ = self.dispatch_and_log_error(action, "Failed to delete task");
     }
 
     pub fn move_item(&self, id: TaskID, new_parent_id: Option<TaskID>) {
         let action = Action::MoveTask { id, new_parent_id };
-        let mut store = self.store;
-        let mut load_error = self.load_error;
-        if let Err(e) = store.write().dispatch(action) {
-            tracing::error!("Failed to move task: {}", e);
-            load_error.set(Some(e.to_string()));
-        }
+        let _ = self.dispatch_and_log_error(action, "Failed to move task");
     }
 
     pub fn toggle(&self, id: TaskID) {
         // Use memoized state to avoid hydration
         let state = self.tunnel_state.read();
         let current_status = state.tasks.get(&id).map(|t| t.status);
-        let mut store = self.store;
-        let mut load_error = self.load_error;
 
         if let Some(status) = current_status {
             match status {
@@ -97,10 +90,7 @@ impl TaskController {
                         id: id.clone(),
                         current_time,
                     };
-                    if let Err(e) = store.write().dispatch(action) {
-                        tracing::error!("Failed to complete task: {}", e);
-                        load_error.set(Some(e.to_string()));
-                    }
+                    let _ = self.dispatch_and_log_error(action, "Failed to complete task");
                 }
                 TaskStatus::Done => {
                     let action = Action::UpdateTask {
@@ -110,10 +100,7 @@ impl TaskController {
                             ..Default::default()
                         },
                     };
-                    if let Err(e) = store.write().dispatch(action) {
-                        tracing::error!("Failed to toggle task status: {}", e);
-                        load_error.set(Some(e.to_string()));
-                    }
+                    let _ = self.dispatch_and_log_error(action, "Failed to toggle task status");
                 }
             };
         }
@@ -185,11 +172,6 @@ impl TaskController {
     pub fn refresh_lifecycle(&self) {
         let current_time = chrono::Utc::now().timestamp_millis();
         let action = Action::RefreshLifecycle { current_time };
-        let mut store = self.store;
-        let mut load_error = self.load_error;
-        if let Err(e) = store.write().dispatch(action) {
-            tracing::error!("Failed to refresh lifecycle: {}", e);
-            load_error.set(Some(e.to_string()));
-        }
+        let _ = self.dispatch_and_log_error(action, "Failed to refresh lifecycle");
     }
 }
