@@ -330,11 +330,8 @@ fn handle_complete_task(
     loop {
         path.push(current_obj.clone());
 
-        let parent_id_opt: Option<TaskID> = hydrate_optional_task_id(
-            doc,
-            &current_obj,
-            autosurgeon::Prop::Key("parentId".into()),
-        )?;
+        let parent_id_opt: Option<TaskID> =
+            hydrate_optional_task_id(doc, &current_obj, autosurgeon::Prop::Key("parentId".into()))?;
 
         if let Some(pid) = parent_id_opt {
             match am_get(doc, &tasks_obj_id, pid.as_str())? {
