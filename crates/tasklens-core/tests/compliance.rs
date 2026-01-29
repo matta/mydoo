@@ -135,6 +135,7 @@ struct Mutation {
     update_credits: Option<HashMap<String, F64OrString>>,
     task_updates: Option<Vec<TaskUpdate>>,
     delete_tasks: Option<Vec<String>>,
+    complete_tasks: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -167,6 +168,7 @@ struct Assertion {
 struct ExpectedTaskProps {
     id: String,
     score: Option<F64OrString>,
+    credits: Option<F64OrString>,
     effective_credits: Option<F64OrString>,
     effective_due_date: Option<serde_yaml_ng::Value>,
     effective_lead_time: Option<F64OrString>,
@@ -199,6 +201,7 @@ fn test_compliance() -> Result<()> {
         "boost-lead-time.feature.yaml",
         "completion-acknowledgement.feature.yaml",
         "complex-mutation.feature.yaml",
+        "credit-attribution.feature.yaml",
         "decay.feature.yaml",
         "due_dates.feature.yaml",
         "deletion.feature.yaml",
@@ -469,6 +472,7 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
                     let ExpectedTaskProps {
                         id: _,
                         score,
+                        credits,
                         effective_credits,
                         effective_due_date,
                         effective_lead_time,
@@ -536,6 +540,17 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
                             eff_credits.to_f64(),
                             &format!(
                                 "Task: {}, Scenario: {}, Effective Credits",
+                                expected.id, scenario.name
+                            ),
+                        );
+                    }
+
+                    if let Some(c) = credits {
+                        assert_f64_near(
+                            actual.credits,
+                            c.to_f64(),
+                            &format!(
+                                "Task: {}, Scenario: {}, Credits (stored)",
                                 expected.id, scenario.name
                             ),
                         );
@@ -832,6 +847,7 @@ fn apply_mutation(
         update_credits,
         task_updates,
         delete_tasks,
+        complete_tasks,
     } = mutation;
 
     if let Some(advance) = advance_time_seconds {
@@ -918,7 +934,35 @@ fn apply_mutation(
         }
     }
 
+    if let Some(to_complete) = complete_tasks {
+        for id in to_complete {
+            let task_id = TaskID::from(id.clone());
+            complete_task_inline(state, &task_id, *current_time);
+        }
+    }
+
     Ok(())
+}
+
+/// Half-life for credit decay in milliseconds (7 days).
+const CREDITS_HALF_LIFE_MS: f64 = 604_800_000.0;
+
+/// Inline credit attribution for compliance tests.
+/// This will be removed when the compliance harness is refactored to use Store::dispatch.
+fn complete_task_inline(state: &mut TunnelState, task_id: &TaskID, current_time: i64) {
+    if let Some(task) = state.tasks.get_mut(task_id) {
+        // Apply decay to existing credits (bring history to present)
+        let time_delta_ms = current_time.saturating_sub(task.credits_timestamp) as f64;
+        let decay_factor = 0.5_f64.powf(time_delta_ms / CREDITS_HALF_LIFE_MS);
+        let decayed_credits = task.credits * decay_factor;
+
+        // Add credit_increment (default 0.5 per algorithm.md §4.1)
+        let increment = task.credit_increment.unwrap_or(0.5);
+        task.credits = decayed_credits + increment;
+
+        // Checkpoint time
+        task.credits_timestamp = current_time;
+    }
 }
 
 fn recursive_delete_task(state: &mut TunnelState, task_id: &TaskID) {

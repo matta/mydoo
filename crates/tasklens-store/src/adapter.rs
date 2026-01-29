@@ -6,7 +6,8 @@ use thiserror::Error;
 
 use crate::doc_id::TaskLensUrl;
 use tasklens_core::types::{
-    DocMetadata, PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_optional_task_id,
+    DocMetadata, PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_optional_f64,
+    hydrate_optional_i64, hydrate_optional_task_id,
 };
 
 #[derive(Debug, Error)]
@@ -358,6 +359,9 @@ pub(crate) fn handle_delete_task(doc: &mut (impl Transactable + Doc), id: TaskID
     Ok(())
 }
 
+/// Half-life for credit decay in milliseconds (7 days).
+const CREDITS_HALF_LIFE_MS: f64 = 604_800_000.0;
+
 pub(crate) fn handle_complete_task(
     doc: &mut (impl Transactable + Doc),
     id: TaskID,
@@ -370,9 +374,39 @@ pub(crate) fn handle_complete_task(
         _ => return Err(AdapterError::TaskNotFound(id.clone())),
     };
 
-    autosurgeon::reconcile_prop(doc, &task_obj_id, "status", TaskStatus::Done)
+    // 1. Hydrate current credit values using custom hydrators that handle Int/F64 flexibility
+    let credits: f64 = hydrate_f64(doc, &task_obj_id, autosurgeon::Prop::Key("credits".into()))?;
+    let credits_timestamp: i64 = hydrate_optional_i64(
+        doc,
+        &task_obj_id,
+        autosurgeon::Prop::Key("creditsTimestamp".into()),
+    )?
+    .unwrap_or(0);
+    let credit_increment: Option<f64> = hydrate_optional_f64(
+        doc,
+        &task_obj_id,
+        autosurgeon::Prop::Key("creditIncrement".into()),
+    )?;
+
+    // 2. Apply decay to existing credits (bring history to present)
+    // Use saturating_sub to avoid overflow with fuzz-generated extreme values
+    let time_delta_ms = current_time.saturating_sub(credits_timestamp) as f64;
+    let decay_factor = 0.5_f64.powf(time_delta_ms / CREDITS_HALF_LIFE_MS);
+    let decayed_credits = credits * decay_factor;
+
+    // 3. Add credit_increment (default 0.5 per algorithm.md §4.1)
+    let increment = credit_increment.unwrap_or(0.5);
+    let new_credits = decayed_credits + increment;
+
+    // 4. Reconcile updated credit values
+    autosurgeon::reconcile_prop(doc, &task_obj_id, "credits", new_credits)
+        .map_err(AdapterError::from)?;
+    autosurgeon::reconcile_prop(doc, &task_obj_id, "creditsTimestamp", current_time)
         .map_err(AdapterError::from)?;
 
+    // 5. Update status and completion time
+    autosurgeon::reconcile_prop(doc, &task_obj_id, "status", TaskStatus::Done)
+        .map_err(AdapterError::from)?;
     autosurgeon::reconcile_prop(doc, &task_obj_id, "lastCompletedAt", Some(current_time))
         .map_err(AdapterError::from)?;
 

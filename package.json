@@ -42,7 +42,7 @@
     "check-rust": "just check-rust",
     "verify": "just verify",
     "// Implementation scripts": "",
-    "clean": "tsx scripts/smart-clean.ts",
+    "clean": "./scripts/smart-clean.py",
     "check-biome-root": "just check-biome-root",
     "check-deps-root": "just check-deps-root",
     "check-filenames-root": "just check-filenames-root",
