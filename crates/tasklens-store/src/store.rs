@@ -1,8 +1,11 @@
 pub use crate::actions::{Action, TaskUpdates};
-use crate::doc_id::{DocumentId, TaskLensUrl};
+use crate::doc_id::DocumentId;
+#[cfg(target_arch = "wasm32")]
+use crate::doc_id::TaskLensUrl;
 #[cfg(target_arch = "wasm32")]
 use crate::storage::ActiveDocStorage;
 use anyhow::{Result, anyhow};
+#[cfg(target_arch = "wasm32")]
 use tasklens_core::types::TunnelState;
 
 use crate::adapter;
@@ -88,26 +91,26 @@ impl AppStore {
     ) -> Result<(samod::DocHandle, DocumentId)> {
         let doc = automerge::Automerge::load(&bytes)?;
 
-        // Try to extract existing ID from metadata to preserve identity
-        let target_id = adapter::hydrate::<TunnelState>(&doc)
-            .ok()
-            .and_then(|state| state.metadata)
-            .and_then(|meta| meta.automerge_url)
-            .and_then(|url_str| url_str.parse::<TaskLensUrl>().ok())
-            .map(|url| url.document_id);
+        #[cfg(target_arch = "wasm32")]
+        {
+            // Try to extract existing ID from metadata to preserve identity
+            let target_id = adapter::hydrate::<TunnelState>(&doc)
+                .ok()
+                .and_then(|state| state.metadata)
+                .and_then(|meta| meta.automerge_url)
+                .and_then(|url_str| url_str.parse::<TaskLensUrl>().ok())
+                .map(|url| url.document_id);
 
-        if let Some(id) = target_id {
-            tracing::info!("Importing document with existing ID: {}", id);
-
-            #[cfg(target_arch = "wasm32")]
-            match Self::inject_existing_doc(repo.clone(), id, &doc).await {
-                Ok((handle, id)) => return Ok((handle, id)),
-                Err(e) => {
-                    tracing::error!(
-                        "Manual injection failed for ID {}, falling back to new document creation: {:?}",
-                        id,
-                        e
-                    );
+            if let Some(id) = target_id {
+                match Self::inject_existing_doc(repo.clone(), id, &doc).await {
+                    Ok((handle, id)) => return Ok((handle, id)),
+                    Err(e) => {
+                        tracing::error!(
+                            "Manual injection failed for ID {}, falling back to new document creation: {:?}",
+                            id,
+                            e
+                        );
+                    }
                 }
             }
         }

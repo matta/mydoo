@@ -67,7 +67,6 @@ pub fn use_sync_client(store: Signal<AppStore>) -> Signal<SyncStatus> {
                 if let Ok(url) = LocalStorage::get::<String>(SYNC_SERVER_URL_KEY)
                     && !url.is_empty()
                 {
-                    tracing::info!("Starting sync with {}", url);
                     status.set(SyncStatus::Connecting);
 
                     match gloo_net::websocket::futures::WebSocket::open(&url) {
@@ -77,10 +76,7 @@ pub fn use_sync_client(store: Signal<AppStore>) -> Signal<SyncStatus> {
                             // Map gloo_net messages to Vec<u8> for repo.connect
                             let stream = read.filter_map(|res| async move {
                                 match res {
-                                    Ok(gloo_net::websocket::Message::Bytes(b)) => {
-                                        tracing::info!("Sync RX: {} bytes", b.len());
-                                        Some(Ok(b))
-                                    }
+                                    Ok(gloo_net::websocket::Message::Bytes(b)) => Some(Ok(b)),
                                     Ok(gloo_net::websocket::Message::Text(_)) => {
                                         tracing::warn!(
                                             "Received unexpected text message on sync websocket"
@@ -93,7 +89,6 @@ pub fn use_sync_client(store: Signal<AppStore>) -> Signal<SyncStatus> {
 
                             let sink = write
                                 .with(|b: Vec<u8>| async move {
-                                    tracing::info!("Sync TX: {} bytes", b.len());
                                     Ok::<_, gloo_net::websocket::WebSocketError>(
                                         gloo_net::websocket::Message::Bytes(b),
                                     )

@@ -202,33 +202,25 @@ fix-style: fix-format-root fix-biome-root fix-format
 
 # Fix formatting for root files
 fix-format-root:
-    @echo "🛠️ Fixing root formatting..."
     pnpm prettier --write "*.{json,md,yaml,yml,js,ts,tsx,jsx,css,html}"
 
 # Fix biome for root
 fix-biome-root:
-    @echo "🛠️ Fixing root biome..."
     pnpm biome check --write .
-
-
 
 # Fix formatting for all packages
 fix-format:
-    @echo "🛠️ Fixing package formatting..."
-    @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm prettier --write .
-    @echo "  - {{docs_pkg}}" && cd {{docs_pkg}} && pnpm prettier --write .
-    @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm prettier --write .
-
-
+    cd {{ui_pkg}} && pnpm prettier --write .
+    cd {{docs_pkg}} && pnpm prettier --write .
+    cd {{scripts_pkg}} && pnpm prettier --write .
 
 # Fix syncpack
 fix-syncpack-root:
-    @echo "🛠️ Fixing syncpack..."
     pnpm syncpack fix-mismatches
 
 # Fix rust (standard cargo fix)
 fix-rust:
-    @echo "🛠️ Fixing rust..."
+    cargo fmt
     cargo fix --workspace --allow-dirty --allow-staged
 
 # -----------------------------------------------------------------------------
@@ -237,6 +229,5 @@ fix-rust:
 
 # Install required tools (cargo-udeps)
 install-tools:
-    @echo "🛠️ Installing cargo-udeps..."
     rustup toolchain install nightly
     cargo install cargo-udeps --locked
