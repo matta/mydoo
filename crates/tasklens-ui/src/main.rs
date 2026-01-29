@@ -129,6 +129,10 @@ fn App() -> Element {
     let sync_status = hooks::use_sync::use_sync_client(store);
     hooks::use_persistence::use_persistence(store, memory_heads, persisted_heads);
 
+    // Context for TunnelState (Memoized state)
+    let tunnel_state = hooks::use_tunnel_state::use_tunnel_state();
+    use_context_provider(|| tunnel_state);
+
     use_context_provider(|| sync_status);
 
     // Unified Reactive Initialization

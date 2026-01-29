@@ -60,7 +60,7 @@ pub(super) fn check_invariants(doc: &Automerge, strategy: HydrationStrategy) -> 
         }
         HydrationStrategy::Heal => {
             // Use the adapter's hydrate which heals structural issues.
-            match adapter::hydrate(doc) {
+            match adapter::hydrate_tunnel_state(doc) {
                 Ok(s) => s,
                 Err(e) => {
                     let realized = crate::debug_utils::inspect_automerge_doc_full(doc);

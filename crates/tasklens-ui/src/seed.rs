@@ -3,7 +3,8 @@ use tasklens_core::types::{PersistedTask, Schedule, ScheduleType, TaskID, TaskSt
 use tasklens_store::store::AppStore;
 
 pub fn prime_store_with_sample_data(store: &mut AppStore) {
-    let mut state: tasklens_core::types::TunnelState = store.hydrate().unwrap_or_default();
+    let mut state: tasklens_core::types::TunnelState =
+        store.store_hydrate_tunnel_state().unwrap_or_default();
     state.tasks.clear();
     state.root_task_ids.clear();
 

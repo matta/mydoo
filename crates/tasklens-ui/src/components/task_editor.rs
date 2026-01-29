@@ -9,7 +9,7 @@ use tasklens_core::domain::constants::DEFAULT_LEAD_TIME_MILLIS;
 use tasklens_core::types::{
     Frequency, PersistedTask, PlaceID, RepeatConfig, Schedule, ScheduleType, TaskID, TaskStatus,
 };
-use tasklens_store::store::{Action, AppStore, TaskUpdates};
+use tasklens_store::store::TaskUpdates;
 use tracing;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -49,8 +49,7 @@ pub fn TaskEditor(
     on_add_child: Option<EventHandler<TaskID>>,
     on_task_created: Option<EventHandler<TaskID>>,
 ) -> Element {
-    let store = use_context::<Signal<AppStore>>();
-    let load_error = use_context::<Signal<Option<String>>>();
+    let task_controller = crate::controllers::task_controller::use_task_controller();
     let mut draft = use_signal(|| None::<DraftTask>);
     let mut initialized = use_signal(|| false);
     let state = crate::hooks::use_tunnel_state::use_tunnel_state();
@@ -132,9 +131,7 @@ pub fn TaskEditor(
             let task_id_clone = task_id.clone();
             if let Some(id) = task_id_clone {
                 // Update
-                crate::controllers::task_controller::update_task(
-                    store,
-                    load_error,
+                task_controller.update(
                     id,
                     TaskUpdates {
                         title: Some(d.title),
@@ -147,19 +144,14 @@ pub fn TaskEditor(
                         is_sequential: Some(d.is_sequential),
                     },
                 );
-            } else if let Some(id) = crate::controllers::task_controller::create_task(
-                store,
-                load_error,
-                initial_parent_id.clone(),
-                d.title.clone(),
-            ) {
+            } else if let Some(id) =
+                task_controller.create(initial_parent_id.clone(), d.title.clone())
+            {
                 if let Some(handler) = on_task_created.as_ref() {
                     handler.call(id.clone());
                 }
                 // After creation, update with other draft fields
-                crate::controllers::task_controller::update_task(
-                    store,
-                    load_error,
+                task_controller.update(
                     id,
                     TaskUpdates {
                         title: Some(d.title),
@@ -178,17 +170,12 @@ pub fn TaskEditor(
     };
 
     let on_delete = {
-        let mut store = store;
-        let mut load_error = load_error;
         let task_id = task_id.clone();
         let on_close = on_close;
         move |_| {
             let task_id_clone = task_id.clone();
-            if let Some(id) = task_id_clone
-                && let Err(e) = store.write().dispatch(Action::DeleteTask { id })
-            {
-                tracing::error!("Failed to delete task: {}", e);
-                load_error.set(Some(e.to_string()));
+            if let Some(id) = task_id_clone {
+                task_controller.delete(id);
             }
             on_close.call(());
         }
@@ -586,11 +573,7 @@ pub fn TaskEditor(
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
-                                                crate::controllers::task_controller::outdent_task(
-                                                    store,
-                                                    load_error,
-                                                    id.clone(),
-                                                );
+                                                task_controller.outdent(id.clone());
                                                 on_close.call(());
                                             }
                                         },
@@ -603,11 +586,7 @@ pub fn TaskEditor(
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
-                                                crate::controllers::task_controller::indent_task(
-                                                    store,
-                                                    load_error,
-                                                    id.clone(),
-                                                );
+                                                task_controller.indent(id.clone());
                                                 on_close.call(());
                                             }
                                         },
@@ -662,12 +641,7 @@ pub fn TaskEditor(
                 crate::components::MovePicker {
                     task_id: id.clone(),
                     on_select: move |new_parent_id| {
-                        crate::controllers::task_controller::move_task(
-                            store,
-                            load_error,
-                            id.clone(),
-                            new_parent_id,
-                        );
+                        task_controller.move_item(id.clone(), new_parent_id);
                         show_move_picker.set(false);
                         on_close.call(());
                     },

@@ -3,11 +3,10 @@ use crate::components::{LoadErrorView, PageHeader, TaskInput};
 use crate::controllers::task_controller;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
-use tasklens_store::store::AppStore;
 
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
-    let store = use_context::<Signal<AppStore>>();
+    let task_controller = task_controller::use_task_controller();
     let load_error = use_context::<Signal<Option<String>>>();
 
     // Track expanded task IDs.
@@ -86,7 +85,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                 return;
             }
 
-            if let Some(id) = task_controller::create_task(store, load_error, None, text) {
+            if let Some(id) = task_controller.create(None, text) {
                 highlighted_task_id.set(Some(id));
             }
             trigger_sync();
@@ -95,27 +94,22 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     };
 
     let toggle_task = move |task: PersistedTask| {
-        task_controller::toggle_task_status(store, load_error, task.id);
+        task_controller.toggle(task.id);
         trigger_sync();
     };
 
     let handle_rename = move |(id, new_title): (TaskID, String)| {
-        task_controller::rename_task(store, load_error, id, new_title);
+        task_controller.rename(id, new_title);
         trigger_sync();
     };
 
     let handle_delete = move |id: TaskID| {
-        task_controller::delete_task(store, load_error, id);
+        task_controller.delete(id);
         trigger_sync();
     };
 
     let handle_create_subtask = move |parent_id: TaskID| {
-        if let Some(id) = task_controller::create_task(
-            store,
-            load_error,
-            Some(parent_id.clone()),
-            "New Task".to_string(),
-        ) {
+        if let Some(id) = task_controller.create(Some(parent_id.clone()), "New Task".to_string()) {
             highlighted_task_id.set(Some(id));
         }
 
@@ -143,8 +137,9 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         highlighted_task_id.set(Some(id.clone()));
 
         // Check if it has a parent and expand it
-        if let Ok(state) = store.read().hydrate::<TunnelState>()
-            && let Some(task) = state.tasks.get(&id)
+        // Use memoized state
+        let state = state.read();
+        if let Some(task) = state.tasks.get(&id)
             && let Some(ref pid) = task.parent_id
         {
             let mut expanded = expanded_tasks.write();
