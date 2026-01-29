@@ -244,6 +244,7 @@ fn test_compliance() -> Result<()> {
         "completion-acknowledgement.feature.yaml",
         "complex-mutation.feature.yaml",
         "credit-attribution.feature.yaml",
+        "credit-propagation.feature.yaml",
         "decay.feature.yaml",
         "due_dates.feature.yaml",
         "deletion.feature.yaml",
