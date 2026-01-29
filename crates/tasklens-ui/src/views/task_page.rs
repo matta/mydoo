@@ -6,7 +6,6 @@
 use crate::components::*;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskStatus};
-use tasklens_store::store::AppStore;
 
 /// The main application page component.
 ///
@@ -14,11 +13,10 @@ use tasklens_store::store::AppStore;
 /// - Manages the local `AppStore` state.
 /// - Handles hydration from persistent storage (IndexedDB).
 /// - Orchestrates the background synchronization task.
-/// - Integrates the `SettingsModal` for identity management.
 #[component]
 pub fn TaskPage() -> Element {
     let service_worker_active = use_context::<Signal<bool>>();
-    let store = use_context::<Signal<AppStore>>();
+    let task_controller = crate::controllers::task_controller::use_task_controller();
     let load_error = use_context::<Signal<Option<String>>>();
 
     let mut input_text = use_signal(String::new);
@@ -37,14 +35,7 @@ pub fn TaskPage() -> Element {
                 return;
             }
 
-            if crate::controllers::task_controller::create_task(
-                store,
-                load_error,
-                None,
-                text.clone(),
-            )
-            .is_none()
-            {
+            if task_controller.create(None, text.clone()).is_none() {
                 return;
             }
 
@@ -55,7 +46,7 @@ pub fn TaskPage() -> Element {
 
     let toggle_task = {
         move |task: PersistedTask| {
-            crate::controllers::task_controller::toggle_task_status(store, load_error, task.id);
+            task_controller.toggle(task.id);
             save_and_sync();
         }
     };

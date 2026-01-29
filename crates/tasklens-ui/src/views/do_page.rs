@@ -4,11 +4,10 @@ use crate::controllers::task_controller;
 use dioxus::prelude::*;
 use tasklens_core::domain::priority::get_prioritized_tasks;
 use tasklens_core::types::{PriorityMode, PriorityOptions, TaskID, ViewFilter};
-use tasklens_store::store::AppStore;
 
 #[component]
 pub fn DoPage() -> Element {
-    let store = use_context::<Signal<AppStore>>();
+    let task_controller = task_controller::use_task_controller();
     let load_error = use_context::<Signal<Option<String>>>();
     let mut input_text = use_signal(String::new);
 
@@ -38,7 +37,7 @@ pub fn DoPage() -> Element {
 
     let on_toggle = {
         move |id: TaskID| {
-            task_controller::toggle_task_status(store, load_error, id);
+            task_controller.toggle(id);
         }
     };
 
@@ -53,7 +52,7 @@ pub fn DoPage() -> Element {
                 return;
             }
 
-            task_controller::create_task(store, load_error, None, text);
+            task_controller.create(None, text);
             input_text.set(String::new());
         }
     };
@@ -66,7 +65,7 @@ pub fn DoPage() -> Element {
             PageHeader { title: "Work",
                 button {
                     class: "px-3 py-1 bg-white border border-gray-200 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 flex items-center shadow-sm",
-                    onclick: move |_| task_controller::refresh_lifecycle(store, load_error),
+                    onclick: move |_| task_controller.refresh_lifecycle(),
                     "Refresh"
                 }
             }

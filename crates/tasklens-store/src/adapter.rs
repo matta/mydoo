@@ -1,5 +1,4 @@
 use crate::actions::{Action, TaskUpdates};
-use automerge::ReadDoc;
 use automerge::transaction::Transactable;
 use autosurgeon::{Doc, MaybeMissing, reconcile};
 use std::collections::HashMap;
@@ -98,16 +97,9 @@ pub(crate) fn ensure_path<T: Transactable + Doc>(
 }
 
 /// Hydrates a Rust struct from the current document or handle.
-pub(crate) fn hydrate<T: autosurgeon::Hydrate + 'static>(
-    doc: &impl autosurgeon::ReadDoc,
-) -> Result<T> {
-    let mut state: T = autosurgeon::hydrate(doc)?;
-
-    // Fix orphaned tasks (Structural Leak) which can occur after concurrent merge/delete.
-    if let Some(state_mut) = (&mut state as &mut dyn std::any::Any).downcast_mut::<TunnelState>() {
-        state_mut.heal_structural_inconsistencies();
-    }
-
+pub(crate) fn hydrate_tunnel_state(doc: &impl autosurgeon::ReadDoc) -> Result<TunnelState> {
+    let mut state: TunnelState = autosurgeon::hydrate(doc)?;
+    state.heal_structural_inconsistencies();
     Ok(state)
 }
 
@@ -146,57 +138,6 @@ pub(crate) fn expensive_reconcile<T: autosurgeon::Reconcile>(
 ) -> Result<()> {
     let mut tx = doc.transaction();
     reconcile(&mut tx, data)?;
-    tx.commit();
-    Ok(())
-}
-
-/// A "total hack" repair utility that fixes tasks with "DoDonee" status,
-/// changing them to "Done".
-pub(crate) fn repair_dodonee(doc: &mut automerge::Automerge) -> Result<()> {
-    let mut tx = doc.transaction();
-
-    // 1. Get tasks map
-    let tasks_obj_id = match am_get(&tx, &automerge::ROOT, "tasks")? {
-        Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
-        _ => return Ok(()),
-    };
-
-    // 2. Iterate keys and find those needing repair
-    let mut tasks_to_repair = Vec::new();
-    {
-        let keys = tx.keys(&tasks_obj_id);
-        for task_id in keys {
-            let task_obj_id = match am_get(&tx, &tasks_obj_id, task_id.as_str())? {
-                Some((automerge::Value::Object(automerge::ObjType::Map), id)) => id,
-                _ => continue,
-            };
-
-            // Check status
-            let status_val = am_get(&tx, &task_obj_id, "status")?;
-            let is_dodonee = match status_val {
-                Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
-                    automerge::ScalarValue::Str(s) => s.as_str() == "DoDonee",
-                    _ => false,
-                },
-                Some((automerge::Value::Object(automerge::ObjType::Text), id)) => {
-                    tx.text(id)? == "DoDonee"
-                }
-                _ => false,
-            };
-
-            if is_dodonee {
-                tasks_to_repair.push(task_obj_id);
-            }
-        }
-    }
-
-    // 3. Repair them
-    for task_obj_id in tasks_to_repair {
-        tracing::info!("Repairing task {:?}: DoDonee -> Done", task_obj_id);
-        // Set it to Done.
-        autosurgeon::reconcile_prop(&mut tx, task_obj_id, "status", TaskStatus::Done)
-            .map_err(AdapterError::from)?;
-    }
     tx.commit();
     Ok(())
 }
@@ -556,7 +497,7 @@ pub(crate) fn handle_refresh_lifecycle(
     doc: &mut (impl Transactable + Doc),
     current_time: i64,
 ) -> Result<()> {
-    let mut state: TunnelState = hydrate(doc)?;
+    let mut state: TunnelState = hydrate_tunnel_state(doc)?;
     tasklens_core::domain::lifecycle::acknowledge_completed_tasks(&mut state);
     tasklens_core::domain::routine_tasks::wake_up_routine_tasks(&mut state, current_time);
     reconcile(doc, &state).map_err(AdapterError::from)?;

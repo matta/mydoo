@@ -5,7 +5,6 @@ use crate::doc_id::TaskLensUrl;
 #[cfg(target_arch = "wasm32")]
 use crate::storage::ActiveDocStorage;
 use anyhow::{Result, anyhow};
-#[cfg(target_arch = "wasm32")]
 use tasklens_core::types::TunnelState;
 
 use crate::adapter;
@@ -94,7 +93,7 @@ impl AppStore {
         #[cfg(target_arch = "wasm32")]
         {
             // Try to extract existing ID from metadata to preserve identity
-            let target_id = adapter::hydrate::<TunnelState>(&doc)
+            let target_id = adapter::hydrate_tunnel_state(&doc)
                 .ok()
                 .and_then(|state| state.metadata)
                 .and_then(|meta| meta.automerge_url)
@@ -156,22 +155,12 @@ impl AppStore {
     }
 
     /// Hydrates a Rust struct from the current document.
-    pub fn hydrate<T: autosurgeon::Hydrate + 'static>(&self) -> Result<T> {
+    pub fn store_hydrate_tunnel_state(&self) -> Result<TunnelState> {
         if let Some(handle) = &self.handle {
-            handle.with_document(|doc| adapter::hydrate(doc).map_err(|e| anyhow!(e)))
+            handle.with_document(|doc| adapter::hydrate_tunnel_state(doc).map_err(|e| anyhow!(e)))
         } else {
             Err(anyhow!("No handle available"))
         }
-    }
-
-    /// A "total hack" repair utility that fixes tasks with "DoDonee" status,
-    /// changing them to "Done". This should be called if hydration fails
-    /// because of an "unexpected DoDonee" error.
-    pub fn repair_dodonee(&mut self) -> Result<()> {
-        let handle = self.handle.as_mut().ok_or_else(|| anyhow!("No handle"))?;
-        handle
-            .with_document(adapter::repair_dodonee)
-            .map_err(|e| anyhow!(e))
     }
 
     /// Dispatches an action to modify the application state.

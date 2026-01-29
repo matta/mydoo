@@ -41,7 +41,7 @@ async fn test_dispatch_create_task() {
                 })
                 .unwrap();
 
-            let state: TunnelState = store.hydrate().unwrap();
+            let state: TunnelState = store.store_hydrate_tunnel_state().unwrap();
             assert_eq!(state.tasks[&task_id].title, "Dispatch Test");
         })
         .await;
@@ -73,7 +73,7 @@ async fn test_dispatch_update_task() {
                 })
                 .unwrap();
 
-            let state: TunnelState = store.hydrate().unwrap();
+            let state: TunnelState = store.store_hydrate_tunnel_state().unwrap();
             assert_eq!(state.tasks[&task_id].title, "Updated Title");
             assert_eq!(state.tasks[&task_id].status, TaskStatus::Done);
         })
@@ -113,7 +113,7 @@ async fn test_dispatch_move_task() {
                 .unwrap();
 
             // Verify initial state
-            let state: TunnelState = store.hydrate().unwrap();
+            let state: TunnelState = store.store_hydrate_tunnel_state().unwrap();
             assert!(state.tasks[&parent1].child_task_ids.contains(&child));
 
             // Move
@@ -124,7 +124,7 @@ async fn test_dispatch_move_task() {
                 })
                 .unwrap();
 
-            let state: TunnelState = store.hydrate().unwrap();
+            let state: TunnelState = store.store_hydrate_tunnel_state().unwrap();
             assert!(!state.tasks[&parent1].child_task_ids.contains(&child));
             assert!(state.tasks[&parent2].child_task_ids.contains(&child));
             assert_eq!(state.tasks[&child].parent_id, Some(parent2));
