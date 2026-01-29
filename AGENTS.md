@@ -15,6 +15,13 @@
 
 # Development Guidelines
 
+## Task Tracking
+
+- **Use the CLI:** ALWAYS use the `bd` command line tool for reading, creating, and updating tasks.
+- **Do Not Read Files:** NEVER attempt to parse or read files in the `.beads` directory directly. The file format is internal and subject to change.
+- **Listing Tasks:** Use `bd list` to see available tasks.
+- **Viewing Details:** Use `bd show <id>` to see task details.
+
 ## Package Management
 
 - Use `pnpm` for all package management and scripts.
