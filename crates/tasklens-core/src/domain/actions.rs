@@ -41,4 +41,12 @@ pub struct TaskUpdates {
     pub lead_time: Option<i64>,
     pub repeat_config: Option<Option<RepeatConfig>>,
     pub is_sequential: Option<bool>,
+    pub credits: Option<f64>,
+    pub desired_credits: Option<f64>,
+    pub credit_increment: Option<f64>,
+    pub importance: Option<f64>,
+    pub is_acknowledged: Option<bool>,
+    /// Optional update: `Some(None)` clears the last done date, `Some(Some(ts))` sets it, `None` keeps current.
+    pub last_done: Option<Option<i64>>,
+    pub credits_timestamp: Option<i64>,
 }

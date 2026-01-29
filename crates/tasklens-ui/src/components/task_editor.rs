@@ -142,6 +142,7 @@ pub fn TaskEditor(
                         lead_time: Some(d.schedule.lead_time),
                         repeat_config: Some(d.repeat_config),
                         is_sequential: Some(d.is_sequential),
+                        ..Default::default()
                     },
                 );
             } else if let Some(id) =
@@ -162,6 +163,7 @@ pub fn TaskEditor(
                         lead_time: Some(d.schedule.lead_time),
                         repeat_config: Some(d.repeat_config),
                         is_sequential: Some(d.is_sequential),
+                        ..Default::default()
                     },
                 );
             }

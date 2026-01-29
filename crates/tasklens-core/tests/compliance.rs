@@ -12,6 +12,7 @@ use tasklens_core::types::{
     Context, Frequency, Place, PlaceID, PriorityOptions, RepeatConfig, ScheduleType, TaskID,
     TaskStatus, TunnelState, UrgencyStatus, ViewFilter,
 };
+use tasklens_core::TaskUpdates;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(deny_unknown_fields)]
@@ -895,15 +896,17 @@ fn apply_mutation(
         *current_time += (advance.to_f64() * 1000.0) as i64;
     }
 
-    let mut state = store.hydrate()?;
-
     if let Some(credits_map) = update_credits {
         for (id, val) in credits_map {
             let task_id = TaskID::from(id.clone());
-            if let Some(task) = state.tasks.get_mut(&task_id) {
-                task.credits = val.to_f64();
-                task.credits_timestamp = *current_time;
-            }
+            store.dispatch(Action::UpdateTask {
+                id: task_id,
+                updates: TaskUpdates {
+                    credits: Some(val.to_f64()),
+                    credits_timestamp: Some(*current_time),
+                    ..Default::default()
+                },
+            })?;
         }
     }
 
@@ -925,52 +928,55 @@ fn apply_mutation(
             } = u;
 
             let task_id = TaskID::from(id.clone());
-            if let Some(task) = state.tasks.get_mut(&task_id) {
-                if let Some(val) = status {
-                    task.status = *val;
-                }
-                if let Some(val) = importance {
-                    task.importance = val.to_f64();
-                }
-                if let Some(val) = credits {
-                    task.credits = val.to_f64();
-                }
-                if let Some(val) = desired_credits {
-                    task.desired_credits = val.to_f64();
-                }
-                if let Some(dd) = due_date {
-                    task.schedule.due_date = parse_yaml_date(dd)?;
-                }
-                if let Some(ack) = is_acknowledged {
-                    task.is_acknowledged = ack.to_bool();
-                }
-                if let Some(ci) = credit_increment {
-                    task.credit_increment = Some(ci.to_f64());
-                }
-                if let Some(pid) = place_id {
-                    task.place_id = if pid == "null" || pid.is_empty() {
-                        None
-                    } else {
-                        Some(tasklens_core::types::PlaceID::from(pid.clone()))
-                    };
-                }
-                if let Some(st) = schedule_type {
-                    task.schedule.schedule_type = *st;
-                }
-                if let Some(rc) = repeat_config {
-                    task.repeat_config = Some(RepeatConfig {
-                        frequency: rc.frequency,
-                        interval: rc.interval as i64,
-                    });
-                }
-                if let Some(ld) = last_done {
-                    task.schedule.last_done = parse_yaml_date(ld)?;
-                }
+            let mut action_updates = TaskUpdates::default();
+
+            if let Some(val) = status {
+                action_updates.status = Some(*val);
             }
+            if let Some(val) = importance {
+                action_updates.importance = Some(val.to_f64());
+            }
+            if let Some(val) = credits {
+                action_updates.credits = Some(val.to_f64());
+            }
+            if let Some(val) = desired_credits {
+                action_updates.desired_credits = Some(val.to_f64());
+            }
+            if let Some(dd) = due_date {
+                action_updates.due_date = Some(parse_yaml_date(dd)?);
+            }
+            if let Some(ack) = is_acknowledged {
+                action_updates.is_acknowledged = Some(ack.to_bool());
+            }
+            if let Some(ci) = credit_increment {
+                action_updates.credit_increment = Some(ci.to_f64());
+            }
+            if let Some(pid) = place_id {
+                action_updates.place_id = if pid == "null" || pid.is_empty() {
+                    Some(None)
+                } else {
+                    Some(Some(tasklens_core::types::PlaceID::from(pid.clone())))
+                };
+            }
+            if let Some(st) = schedule_type {
+                action_updates.schedule_type = Some(*st);
+            }
+            if let Some(rc) = repeat_config {
+                action_updates.repeat_config = Some(Some(RepeatConfig {
+                    frequency: rc.frequency,
+                    interval: rc.interval as i64,
+                }));
+            }
+            if let Some(ld) = last_done {
+                action_updates.last_done = Some(parse_yaml_date(ld)?);
+            }
+
+            store.dispatch(Action::UpdateTask {
+                id: task_id,
+                updates: action_updates,
+            })?;
         }
     }
-
-    store.expensive_reconcile(&state)?;
 
     if let Some(to_delete) = delete_tasks {
         for id in to_delete {

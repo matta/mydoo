@@ -251,40 +251,42 @@ pub(super) fn any_place_id() -> impl Strategy<Value = PlaceID> {
     ]
 }
 
-pub(super) fn any_task_updates() -> impl Strategy<Value = TaskUpdates> {
-    (
-        any::<Option<String>>(),
-        any::<Option<TaskStatus>>(),
-        any::<Option<Option<PlaceID>>>(),
-        any::<Option<Option<i64>>>(),
-        any::<Option<ScheduleType>>(),
-        any::<Option<i64>>(),
-        any::<Option<Option<RepeatConfig>>>(),
-        any::<Option<bool>>(),
-    )
-        .prop_map(
-            |(
-                title,
-                status,
-                place_id,
-                due_date,
-                schedule_type,
-                lead_time,
-                repeat_config,
-                is_sequential,
-            )| {
-                TaskUpdates {
-                    title,
-                    status,
-                    place_id,
-                    due_date,
-                    schedule_type,
-                    lead_time,
-                    repeat_config,
-                    is_sequential,
-                }
-            },
-        )
+prop_compose! {
+    pub(super) fn any_task_updates()(
+        title in any::<Option<String>>(),
+        status in any::<Option<TaskStatus>>(),
+        place_id in any::<Option<Option<PlaceID>>>(),
+        due_date in any::<Option<Option<i64>>>(),
+        schedule_type in any::<Option<ScheduleType>>(),
+        lead_time in any::<Option<i64>>(),
+        repeat_config in any::<Option<Option<RepeatConfig>>>(),
+        is_sequential in any::<Option<bool>>(),
+        credits in any::<Option<f64>>(),
+        desired_credits in any::<Option<f64>>(),
+        credit_increment in any::<Option<f64>>(),
+        importance in any::<Option<f64>>(),
+        is_acknowledged in any::<Option<bool>>(),
+        last_done in any::<Option<Option<i64>>>(),
+        credits_timestamp in any::<Option<i64>>(),
+    ) -> TaskUpdates {
+        TaskUpdates {
+            title,
+            status,
+            place_id,
+            due_date,
+            schedule_type,
+            lead_time,
+            repeat_config,
+            is_sequential,
+            credits,
+            desired_credits,
+            credit_increment,
+            importance,
+            is_acknowledged,
+            last_done,
+            credits_timestamp,
+        }
+    }
 }
 
 pub(super) fn any_optional_task_id_for_prefixes(

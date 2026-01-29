@@ -411,6 +411,7 @@ fn test_dispatch_update_all_fields() {
                 lead_time: Some(3600),
                 repeat_config: Some(Some(repeat_config.clone())),
                 is_sequential: Some(true),
+                ..Default::default()
             },
         })
         .unwrap();

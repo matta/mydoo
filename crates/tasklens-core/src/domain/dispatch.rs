@@ -216,7 +216,43 @@ fn handle_update_task(
             .map_err(DispatchError::from)?;
     }
 
-    if updates.due_date.is_some() || updates.schedule_type.is_some() || updates.lead_time.is_some()
+    if let Some(is_seq) = updates.is_sequential {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "isSequential", is_seq)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(val) = updates.credits {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "credits", val)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(val) = updates.desired_credits {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "desiredCredits", val)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(val) = updates.credit_increment {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "creditIncrement", val)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(val) = updates.importance {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "importance", val)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(val) = updates.is_acknowledged {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "isAcknowledged", val)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(repeat_config_update) = updates.repeat_config {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "repeatConfig", repeat_config_update)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(val) = updates.credits_timestamp {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "creditsTimestamp", val)
+            .map_err(DispatchError::from)?;
+    }
+
+    if updates.due_date.is_some()
+        || updates.schedule_type.is_some()
+        || updates.lead_time.is_some()
+        || updates.last_done.is_some()
     {
         let schedule_obj_id = ensure_path(doc, &task_obj_id, vec!["schedule"])?;
 
@@ -232,15 +268,10 @@ fn handle_update_task(
             autosurgeon::reconcile_prop(doc, &schedule_obj_id, "leadTime", lead_time_update)
                 .map_err(DispatchError::from)?;
         }
-    }
-
-    if let Some(repeat_config_update) = updates.repeat_config {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "repeatConfig", repeat_config_update)
-            .map_err(DispatchError::from)?;
-    }
-    if let Some(is_seq) = updates.is_sequential {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "isSequential", is_seq)
-            .map_err(DispatchError::from)?;
+        if let Some(last_done_update) = updates.last_done {
+            autosurgeon::reconcile_prop(doc, &schedule_obj_id, "lastDone", last_done_update)
+                .map_err(DispatchError::from)?;
+        }
     }
 
     Ok(())
