@@ -39,11 +39,13 @@ const createUserFixture = async (
   const page = await context.newPage();
   const plan = new PlanPage(page);
 
-  page.on("console", async (msg) => {
-    const type = msg.type();
-    const text = await formatConsoleMessage(msg);
-    console.log(`[${name}] PAGE ${type}: ${text}`);
-  });
+  if (process.env.SHOW_CONSOLE) {
+    page.on("console", async (msg) => {
+      const type = msg.type();
+      const text = await formatConsoleMessage(msg);
+      console.log(`[${name}] PAGE ${type}: ${text}`);
+    });
+  }
 
   return { page, plan };
 };
@@ -54,20 +56,22 @@ export const test = baseTest.extend<MyFixtures, MyWorkerFixtures>({
     use: (r: PlanPage) => Promise<void>,
   ) => {
     const planPage = new PlanPage(page);
-    page.on("console", async (msg) => {
-      const type = msg.type();
-      const cleanText = await formatConsoleMessage(msg);
-      const text = `PAGE ${type}: ${cleanText}`;
-      if (type === "error") {
-        console.error(text);
-      } else if (type === "warning") {
-        console.warn(text);
-      } else if (type === "debug") {
-        console.debug(text);
-      } else {
-        console.log(text);
-      }
-    });
+    if (process.env.SHOW_CONSOLE) {
+      page.on("console", async (msg) => {
+        const type = msg.type();
+        const cleanText = await formatConsoleMessage(msg);
+        const text = `PAGE ${type}: ${cleanText}`;
+        if (type === "error") {
+          console.error(text);
+        } else if (type === "warning") {
+          console.warn(text);
+        } else if (type === "debug") {
+          console.debug(text);
+        } else {
+          console.log(text);
+        }
+      });
+    }
     await use(planPage);
   },
   alice: async ({ browser }, use) => {
