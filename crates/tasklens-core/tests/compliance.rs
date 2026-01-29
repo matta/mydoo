@@ -214,7 +214,7 @@ impl ComplianceStore {
     }
 
     fn dispatch(&mut self, action: Action) -> Result<()> {
-        tasklens_store::adapter::run_action(&mut self.doc, action).map_err(|e| anyhow!(e))
+        tasklens_core::run_action(&mut self.doc, action).map_err(|e| anyhow!(e))
     }
 
     fn hydrate(&self) -> Result<TunnelState> {

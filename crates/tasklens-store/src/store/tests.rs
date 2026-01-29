@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use anyhow::{Result, anyhow};
 use automerge::AutoCommit;
 use automerge_test::{assert_doc, list, map};
-use tasklens_core::{TaskID, TaskStatus, TaskUpdates, TunnelState};
+use tasklens_core::domain::dispatch::ensure_path;
+use tasklens_core::{TaskID, TaskStatus, TaskUpdates, TunnelState, run_action};
 
-use crate::adapter::ensure_path;
 use crate::store::Action;
 use automerge_test::RealizedObject;
 use std::collections::BTreeSet;
@@ -52,7 +52,7 @@ impl AppStore {
     }
 
     fn dispatch_static(doc: &mut AutoCommit, action: Action) -> Result<()> {
-        crate::adapter::run_action(doc, action).map_err(|e| anyhow!(e))
+        run_action(doc, action).map_err(|e| anyhow!(e))
     }
 
     fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T> {
