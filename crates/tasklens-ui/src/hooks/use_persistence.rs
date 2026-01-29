@@ -11,7 +11,7 @@ pub fn use_persistence(
 
     // Spawn a task that polls document heads and updates the signals
     use_future(move || async move {
-        tracing::info!("use_persistence: hook initialized");
+        tracing::debug!("use_persistence: hook initialized");
         loop {
             // Poll every 100ms
             gloo_timers::future::TimeoutFuture::new(100).await;
@@ -34,16 +34,12 @@ pub fn use_persistence(
                 });
 
                 let current_mem = memory_heads.read().clone();
-                // tracing::info!("Persistence tick. Heads: {} vs Memory: {}", heads, current_mem);
 
                 // Update memory heads and persisted heads
                 if current_mem != heads {
-                    tracing::info!("Heads changed! OLD: {} NEW: {}", current_mem, heads);
                     memory_heads.set(heads.clone());
                     persisted_heads.set(heads);
                 }
-            } else {
-                tracing::info!("Persistence tick: No Handle");
             }
         }
     });

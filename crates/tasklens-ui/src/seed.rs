@@ -3,21 +3,13 @@ use tasklens_core::types::{PersistedTask, Schedule, ScheduleType, TaskID, TaskSt
 use tasklens_store::store::AppStore;
 
 pub fn prime_store_with_sample_data(store: &mut AppStore) {
-    tracing::info!("Priming store with sample data...");
-
-    // Get current state or default
     let mut state: tasklens_core::types::TunnelState = store.hydrate().unwrap_or_default();
-
-    // Clear existing for seed? Or just append?
-    // Let's assume clear if we are seeding strictly.
     state.tasks.clear();
     state.root_task_ids.clear();
 
-    // Create Root Project "Project Alpha"
     let project_alpha_id = TaskID::new();
     let mut project_alpha = create_base_task(project_alpha_id.clone(), "Project Alpha", None);
 
-    // Create Children for Project Alpha
     let research_id = TaskID::new();
     let research_task = create_base_task(
         research_id.clone(),
@@ -32,29 +24,22 @@ pub fn prime_store_with_sample_data(store: &mut AppStore) {
         Some(project_alpha_id.clone()),
     );
 
-    // Link children to Project Alpha
     project_alpha.child_task_ids.push(research_id.clone());
     project_alpha.child_task_ids.push(design_id.clone());
 
-    // Create Sibling Task "Buy Groceries"
     let groceries_id = TaskID::new();
     let groceries_task = create_base_task(groceries_id.clone(), "Buy Groceries", None);
 
-    // Insert tasks into map
     state.tasks.insert(project_alpha_id.clone(), project_alpha);
     state.tasks.insert(research_id.clone(), research_task);
     state.tasks.insert(design_id.clone(), design_task);
     state.tasks.insert(groceries_id.clone(), groceries_task);
 
-    // Add roots
     state.root_task_ids.push(project_alpha_id);
     state.root_task_ids.push(groceries_id);
 
-    // Persist
     if let Err(e) = store.expensive_reconcile(&state) {
         tracing::error!("Failed to seed data: {:?}", e);
-    } else {
-        tracing::info!("Seeding complete.");
     }
 }
 

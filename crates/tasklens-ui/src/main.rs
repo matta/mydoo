@@ -143,7 +143,6 @@ fn App() -> Element {
         }
 
         // --- Samod Repo Initialization ---
-        tracing::info!("Initialization: Starting Samod Repo");
 
         #[cfg(target_arch = "wasm32")]
         {
@@ -157,11 +156,9 @@ fn App() -> Element {
                 .await;
 
             store.write().repo = Some(repo);
-            tracing::info!("Samod Repo initialized");
         }
 
         // --- Document Discovery ---
-        tracing::info!("Initialization: Document Discovery");
 
         // Determine Initial Document ID from URL/LocalStorage
         let initial_url_opt = ActiveDocStorage::load_active_url();
@@ -172,7 +169,6 @@ fn App() -> Element {
 
         if let Some(url) = initial_url_opt {
             let id = url.document_id();
-            tracing::info!("Found active document ID: {}", id);
 
             // Attempt to find existing document without holding store lock
             let find_res = AppStore::find_doc(repo.clone(), id).await;
@@ -215,7 +211,6 @@ fn App() -> Element {
             }
         } else {
             // No active doc, create new
-            tracing::info!("No active doc. Creating new.");
             match AppStore::create_new(repo.clone()).await {
                 Ok((handle, new_id)) => {
                     store.write().set_active_doc(handle, new_id);
