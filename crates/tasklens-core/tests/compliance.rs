@@ -937,11 +937,32 @@ fn apply_mutation(
     if let Some(to_complete) = complete_tasks {
         for id in to_complete {
             let task_id = TaskID::from(id.clone());
-            tasklens_core::complete_task(state, &task_id, *current_time);
+            complete_task_inline(state, &task_id, *current_time);
         }
     }
 
     Ok(())
+}
+
+/// Half-life for credit decay in milliseconds (7 days).
+const CREDITS_HALF_LIFE_MS: f64 = 604_800_000.0;
+
+/// Inline credit attribution for compliance tests.
+/// This will be removed when the compliance harness is refactored to use Store::dispatch.
+fn complete_task_inline(state: &mut TunnelState, task_id: &TaskID, current_time: i64) {
+    if let Some(task) = state.tasks.get_mut(task_id) {
+        // Apply decay to existing credits (bring history to present)
+        let time_delta_ms = current_time.saturating_sub(task.credits_timestamp) as f64;
+        let decay_factor = 0.5_f64.powf(time_delta_ms / CREDITS_HALF_LIFE_MS);
+        let decayed_credits = task.credits * decay_factor;
+
+        // Add credit_increment (default 0.5 per algorithm.md §4.1)
+        let increment = task.credit_increment.unwrap_or(0.5);
+        task.credits = decayed_credits + increment;
+
+        // Checkpoint time
+        task.credits_timestamp = current_time;
+    }
 }
 
 fn recursive_delete_task(state: &mut TunnelState, task_id: &TaskID) {
