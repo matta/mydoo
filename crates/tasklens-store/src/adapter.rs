@@ -72,9 +72,7 @@ pub(crate) type Result<T> = std::result::Result<T, AdapterError>;
 
 /// Hydrates a TunnelState from the current document, healing any structural inconsistencies.
 pub(crate) fn hydrate_tunnel_state(doc: &impl autosurgeon::ReadDoc) -> Result<TunnelState> {
-    let mut state: TunnelState = autosurgeon::hydrate(doc)?;
-    state.heal_structural_inconsistencies();
-    Ok(state)
+    tasklens_core::domain::dispatch::hydrate_tunnel_state(doc).map_err(AdapterError::from)
 }
 
 pub(crate) fn init_state(
