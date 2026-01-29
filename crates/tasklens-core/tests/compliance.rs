@@ -135,6 +135,7 @@ struct Mutation {
     update_credits: Option<HashMap<String, F64OrString>>,
     task_updates: Option<Vec<TaskUpdate>>,
     delete_tasks: Option<Vec<String>>,
+    complete_tasks: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -167,6 +168,7 @@ struct Assertion {
 struct ExpectedTaskProps {
     id: String,
     score: Option<F64OrString>,
+    credits: Option<F64OrString>,
     effective_credits: Option<F64OrString>,
     effective_due_date: Option<serde_yaml_ng::Value>,
     effective_lead_time: Option<F64OrString>,
@@ -199,6 +201,7 @@ fn test_compliance() -> Result<()> {
         "boost-lead-time.feature.yaml",
         "completion-acknowledgement.feature.yaml",
         "complex-mutation.feature.yaml",
+        "credit-attribution.feature.yaml",
         "decay.feature.yaml",
         "due_dates.feature.yaml",
         "deletion.feature.yaml",
@@ -469,6 +472,7 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
                     let ExpectedTaskProps {
                         id: _,
                         score,
+                        credits,
                         effective_credits,
                         effective_due_date,
                         effective_lead_time,
@@ -536,6 +540,17 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
                             eff_credits.to_f64(),
                             &format!(
                                 "Task: {}, Scenario: {}, Effective Credits",
+                                expected.id, scenario.name
+                            ),
+                        );
+                    }
+
+                    if let Some(c) = credits {
+                        assert_f64_near(
+                            actual.credits,
+                            c.to_f64(),
+                            &format!(
+                                "Task: {}, Scenario: {}, Credits (stored)",
                                 expected.id, scenario.name
                             ),
                         );
@@ -832,6 +847,7 @@ fn apply_mutation(
         update_credits,
         task_updates,
         delete_tasks,
+        complete_tasks,
     } = mutation;
 
     if let Some(advance) = advance_time_seconds {
@@ -915,6 +931,13 @@ fn apply_mutation(
         for id in to_delete {
             let task_id = TaskID::from(id.clone());
             recursive_delete_task(state, &task_id);
+        }
+    }
+
+    if let Some(to_complete) = complete_tasks {
+        for id in to_complete {
+            let task_id = TaskID::from(id.clone());
+            tasklens_core::complete_task(state, &task_id, *current_time);
         }
     }
 
