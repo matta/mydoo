@@ -152,7 +152,8 @@ pub(crate) fn dispatch(doc: &mut automerge::Automerge, action: Action) -> Result
 }
 
 /// Lower-level action handler that works on any transactable object.
-pub(crate) fn run_action(doc: &mut (impl Transactable + Doc), action: Action) -> Result<()> {
+/// This is public to allow compliance tests to run actions directly on AutoCommit.
+pub fn run_action(doc: &mut (impl Transactable + Doc), action: Action) -> Result<()> {
     match action {
         Action::CreateTask {
             id,

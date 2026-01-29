@@ -5107,6 +5107,7 @@ dependencies = [
  "serde_json",
  "serde_yaml_ng",
  "tasklens-core",
+ "tasklens-store",
  "uuid",
  "wasm-bindgen",
 ]
