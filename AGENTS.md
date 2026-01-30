@@ -47,20 +47,6 @@ While doing work, create or update beads tasks to accurately reflect the state o
   - State the intended commit message
   - Then proceed with the commit unless the user intervenes
 
-- **No Auto-Staging Rule**: The Agent MUST NOT stage its own manual code edits
-  using `git add`. The user relies on unstaged changes to review the Agent's
-  work via the diff.
-  - **The Content-Stage Heuristic**: If the Agent touch the content of a file
-    (logic or documentation), the Agent MUST NOT touch the stage for that file.
-    Meta-documentation updates (like `AGENTS.md`) are NOT exceptions.
-  - **Exception**: Staging IS permitted and encouraged for results produced by
-    vetted automated tools (e.g., `just fix`, `cargo fmt`)
-    or when explicitly instructed by prompts, commands, workflows, or skills.
-
-- **Git Push Rule:** NEVER run `git push` unless the user explicitly commands it
-  (e.g., "push", "sync"). "Commit" does NOT imply "Push". You must stop after
-  committing.
-
 - **Git Presubmit Rule:** NEVER use `--no-verify`. On presubmit failure: fix
   trivial issues and retry; otherwise STOP AND WAIT.
 - **Foreground Commit Rule:** ALWAYS run `git commit` in the foreground

@@ -15,6 +15,9 @@
  * This globally adds `accessibility: { snapshot(...) }` to the `Page` type throughout
  * the entire project, allowing us to use `page.accessibility.snapshot()` without
  * manual casting or "any" types.
+ *
+ * NOTE: page.accessibility is deprecated. Prefer Locator.ariaSnapshot() or Axe.
+ * Example: const snapshot = await page.locator('body').ariaSnapshot();
  */
 import type { ElementHandle } from "@playwright/test";
 
