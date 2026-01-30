@@ -1487,3 +1487,38 @@ pub mod test_strategies {
         proptest::option::of(0.0..1000000.0)
     }
 }
+
+/// A single item in the Balance View, representing a top-level goal (TLI).
+///
+/// This is a projection type computed from `EnrichedTask` data for root tasks only.
+/// It provides the view layer with pre-computed percentages for display.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BalanceItem {
+    /// The task ID of the root goal.
+    pub id: TaskID,
+    /// The display title of the goal.
+    pub title: String,
+    /// User's desired allocation as a percentage (0.0 - 1.0).
+    /// Computed as: task.desired_credits / sum(all_roots.desired_credits)
+    pub target_percent: f64,
+    /// Actual effort allocation as a percentage (0.0 - 1.0).
+    /// Computed as: task.effective_credits / sum(all_roots.effective_credits)
+    pub actual_percent: f64,
+    /// True if actual_percent < target_percent (goal is under-served).
+    pub is_starving: bool,
+    /// The raw desired_credits value for editing.
+    pub desired_credits: f64,
+    /// The raw effective_credits value for display.
+    pub effective_credits: f64,
+}
+
+/// Result of projecting balance data from enriched tasks.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BalanceData {
+    /// List of balance items, one per root goal (excluding Inbox).
+    pub items: Vec<BalanceItem>,
+    /// Sum of all effective_credits across root goals.
+    pub total_credits: f64,
+}
