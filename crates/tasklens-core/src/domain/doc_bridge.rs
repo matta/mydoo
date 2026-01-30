@@ -37,10 +37,10 @@ pub fn reconcile_tunnel_state<T: Transactable + autosurgeon::Doc>(
     state: &TunnelState,
 ) -> Result<(), ReconcileError> {
     // nextTaskId
-    reconcile_i64_prop(doc, &automerge::ROOT, "nextTaskId", state.next_task_id)?;
+    autosurgeon::reconcile_prop(doc, &automerge::ROOT, "nextTaskId", state.next_task_id)?;
 
     // nextPlaceId
-    reconcile_i64_prop(doc, &automerge::ROOT, "nextPlaceId", state.next_place_id)?;
+    autosurgeon::reconcile_prop(doc, &automerge::ROOT, "nextPlaceId", state.next_place_id)?;
 
     // tasks
     autosurgeon::reconcile_prop(doc, &automerge::ROOT, "tasks", &state.tasks)?;
