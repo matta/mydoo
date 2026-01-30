@@ -891,7 +891,15 @@ pub struct Context {
 #[serde(rename_all = "camelCase")]
 pub struct PriorityOptions {
     pub include_hidden: bool,
+    #[autosurgeon(
+        hydrate = "hydrate_option_maybe_missing",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub mode: Option<PriorityMode>,
+    #[autosurgeon(
+        hydrate = "hydrate_option_maybe_missing",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub context: Option<Context>,
 }
 
@@ -935,6 +943,10 @@ impl Reconcile for PriorityMode {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewFilter {
+    #[autosurgeon(
+        hydrate = "hydrate_option_maybe_missing",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub place_id: Option<String>, // "All", "Anywhere", or a specific ID
 }
 
@@ -983,6 +995,10 @@ impl Reconcile for OpenHoursMode {
 pub struct OpenHours {
     pub mode: OpenHoursMode,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[autosurgeon(
+        hydrate = "hydrate_option_maybe_missing",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub schedule: Option<HashMap<String, Vec<String>>>,
 }
 
