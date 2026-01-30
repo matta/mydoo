@@ -353,57 +353,29 @@ fn handle_complete_task(
     )?;
     let increment_val = credit_increment.unwrap_or(0.5);
 
-    // 2. Build Ancestor Path (Target -> Root)
-    let mut path: Vec<automerge::ObjId> = Vec::new();
-    let mut current_obj = target_obj_id.clone();
-    let mut loop_safety = 0;
+    // 3. Update Credits (Target Only)
+    let credits: f64 = hydrate_f64(
+        doc,
+        &target_obj_id,
+        autosurgeon::Prop::Key("credits".into()),
+    )?;
+    let credits_timestamp: i64 = hydrate_optional_i64(
+        doc,
+        &target_obj_id,
+        autosurgeon::Prop::Key("creditsTimestamp".into()),
+    )?
+    .unwrap_or(0);
 
-    loop {
-        path.push(current_obj.clone());
+    let time_delta_ms = current_time.saturating_sub(credits_timestamp) as f64;
+    let decay_factor = 0.5_f64.powf(time_delta_ms / CREDITS_HALF_LIFE_MS);
+    let decayed_credits = credits * decay_factor;
 
-        let parent_id_opt: Option<TaskID> =
-            hydrate_optional_task_id(doc, &current_obj, autosurgeon::Prop::Key("parentId".into()))?;
+    let new_credits = decayed_credits + increment_val;
 
-        if let Some(pid) = parent_id_opt {
-            match am_get(doc, &tasks_obj_id, pid.as_str())? {
-                Some((automerge::Value::Object(automerge::ObjType::Map), p_obj)) => {
-                    current_obj = p_obj;
-                }
-                _ => break, // Parent missing (Consistency error handled by treating as root)
-            }
-        } else {
-            break; // Reached root
-        }
-
-        loop_safety += 1;
-        if loop_safety > 100 {
-            return Err(DispatchError::Internal(
-                "Cycle detected or recursion limit exceeded during credit propagation".into(),
-            ));
-        }
-    }
-
-    // 3. Propagate Credits (Decay + Increment)
-    for obj_id in path {
-        let credits: f64 = hydrate_f64(doc, &obj_id, autosurgeon::Prop::Key("credits".into()))?;
-        let credits_timestamp: i64 = hydrate_optional_i64(
-            doc,
-            &obj_id,
-            autosurgeon::Prop::Key("creditsTimestamp".into()),
-        )?
-        .unwrap_or(0);
-
-        let time_delta_ms = current_time.saturating_sub(credits_timestamp) as f64;
-        let decay_factor = 0.5_f64.powf(time_delta_ms / CREDITS_HALF_LIFE_MS);
-        let decayed_credits = credits * decay_factor;
-
-        let new_credits = decayed_credits + increment_val;
-
-        autosurgeon::reconcile_prop(doc, &obj_id, "credits", new_credits)
-            .map_err(DispatchError::from)?;
-        autosurgeon::reconcile_prop(doc, &obj_id, "creditsTimestamp", current_time)
-            .map_err(DispatchError::from)?;
-    }
+    autosurgeon::reconcile_prop(doc, &target_obj_id, "credits", new_credits)
+        .map_err(DispatchError::from)?;
+    autosurgeon::reconcile_prop(doc, &target_obj_id, "creditsTimestamp", current_time)
+        .map_err(DispatchError::from)?;
 
     // 4. Update Status (Target Only)
     autosurgeon::reconcile_prop(doc, &target_obj_id, "status", TaskStatus::Done)

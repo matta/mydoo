@@ -259,6 +259,13 @@ fn evaluate_task_recursive(
         ) || has_visible_descendant;
     }
 
+    // --- Post-Order: Aggregate Effective Credits ---
+    let sum_children: f64 = child_indices
+        .iter()
+        .map(|&i| enriched_tasks[i].effective_credits)
+        .sum();
+    enriched_tasks[task_idx].effective_credits += sum_children;
+
     let feedback_factor = enriched_tasks[effective_root_idx].feedback_factor;
     let task = &mut enriched_tasks[task_idx];
     if !child_indices.is_empty() && has_visible_descendant {
