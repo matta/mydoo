@@ -67,6 +67,16 @@ impl TaskController {
         );
     }
 
+    pub fn update_desired_credits(&self, id: TaskID, desired_credits: f64) {
+        self.update(
+            id,
+            TaskUpdates {
+                desired_credits: Some(desired_credits),
+                ..Default::default()
+            },
+        );
+    }
+
     pub fn delete(&self, id: TaskID) {
         let action = Action::DeleteTask { id };
         let _ = self.dispatch_and_log_error(action, "Failed to delete task");

@@ -107,6 +107,35 @@ export interface PlanFixture {
 
   goto: (path?: string) => Promise<void>;
   evaluate: <T>(fn: () => T) => Promise<T>;
+
+  // Balance View
+  switchToBalanceView: () => Promise<void>;
+  getBalanceItemCount: () => Promise<number>;
+  getBalanceItem: (title: string) => Promise<{
+    title: string;
+    isStarving: boolean;
+    targetPercent: number;
+    actualPercent: number;
+    desiredCredits: number;
+  }>;
+  setDesiredCredits: (title: string, value: number) => Promise<void>;
+  verifyBalanceItemVisible: (title: string) => Promise<void>;
+  verifyBalanceItemStarving: (
+    title: string,
+    isStarving: boolean,
+  ) => Promise<void>;
+  verifyBalanceStatus: (
+    title: string,
+    status: "Starving" | "Balanced",
+  ) => Promise<void>;
+
+  // Task ordering in Do view
+  getDoListTaskOrder: () => Promise<string[]>;
+  getTaskPosition: (title: string) => Promise<number>;
+  verifyTaskAppearsBeforeInDoList: (
+    firstTask: string,
+    secondTask: string,
+  ) => Promise<void>;
 }
 
 /**
@@ -1045,5 +1074,143 @@ export class PlanPage implements PlanFixture {
 
   async verifyEffortLabel(expectedText: string): Promise<void> {
     await expect(this.page.getByText(`Effort (${expectedText})`)).toBeVisible();
+  }
+
+  // --- Balance View ---
+
+  async switchToBalanceView(): Promise<void> {
+    await this.page.getByRole("menuitem", { name: "Balance" }).click();
+    await expect(this.page).toHaveURL(/\/balance/);
+  }
+
+  async getBalanceItemCount(): Promise<number> {
+    return await this.page.getByTestId("balance-item").count();
+  }
+
+  async getBalanceItem(title: string): Promise<{
+    title: string;
+    isStarving: boolean;
+    targetPercent: number;
+    actualPercent: number;
+    desiredCredits: number;
+  }> {
+    const item = this.page
+      .getByTestId("balance-item")
+      .filter({ hasText: title })
+      .first();
+    await expect(item).toBeVisible();
+
+    const starvingAttr = await item.getAttribute("data-starving");
+    const isStarving = starvingAttr === "true";
+
+    // Parse percentages from text like "Target: 50%"
+    const targetText = await item.getByText(/Target:/).textContent();
+    const actualText = await item.getByText(/Actual:/).textContent();
+
+    const targetPercent = parseInt(targetText?.match(/(\d+)%/)?.[1] || "0", 10);
+    const actualPercent = parseInt(actualText?.match(/(\d+)%/)?.[1] || "0", 10);
+
+    // Get slider value for desired credits
+    const slider = item.locator('input[type="range"]');
+    const sliderValue = await slider.inputValue();
+    const desiredCredits = parseFloat(sliderValue);
+
+    return {
+      title,
+      isStarving,
+      targetPercent,
+      actualPercent,
+      desiredCredits,
+    };
+  }
+
+  async setDesiredCredits(title: string, value: number): Promise<void> {
+    const item = this.page
+      .getByTestId("balance-item")
+      .filter({ hasText: title })
+      .first();
+    await expect(item).toBeVisible();
+
+    const slider = item.locator('input[type="range"]');
+    await slider.fill(value.toString());
+  }
+
+  async verifyBalanceItemVisible(title: string): Promise<void> {
+    const item = this.page
+      .getByTestId("balance-item")
+      .filter({ hasText: title })
+      .first();
+    await expect(item).toBeVisible();
+  }
+
+  async verifyBalanceItemStarving(
+    title: string,
+    isStarving: boolean,
+  ): Promise<void> {
+    const item = this.page
+      .getByTestId("balance-item")
+      .filter({ hasText: title })
+      .first();
+    await expect(item).toBeVisible();
+    await expect(item).toHaveAttribute("data-starving", isStarving.toString());
+  }
+
+  async verifyBalanceStatus(
+    title: string,
+    status: "Starving" | "Balanced",
+  ): Promise<void> {
+    const item = this.page
+      .getByTestId("balance-item")
+      .filter({ hasText: title })
+      .first();
+    await expect(item).toBeVisible();
+    const statusEl = item.getByTestId("balance-status");
+    await expect(statusEl).toHaveText(status);
+  }
+
+  // --- Task Ordering in Do View ---
+
+  async getDoListTaskOrder(): Promise<string[]> {
+    await this.switchToDoView();
+    const tasks = this.page.getByTestId("task-item");
+    const count = await tasks.count();
+    const titles: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const task = tasks.nth(i);
+      const titleText = await task.textContent();
+      if (titleText) {
+        titles.push(titleText.trim().split("\n")[0] || "");
+      }
+    }
+
+    return titles;
+  }
+
+  async getTaskPosition(title: string): Promise<number> {
+    const order = await this.getDoListTaskOrder();
+    const position = order.findIndex((t) => t.includes(title));
+    if (position === -1) {
+      throw new Error(`Task "${title}" not found in Do list`);
+    }
+    return position;
+  }
+
+  async verifyTaskAppearsBeforeInDoList(
+    firstTask: string,
+    secondTask: string,
+  ): Promise<void> {
+    const order = await this.getDoListTaskOrder();
+    const firstPos = order.findIndex((t) => t.includes(firstTask));
+    const secondPos = order.findIndex((t) => t.includes(secondTask));
+
+    if (firstPos === -1) {
+      throw new Error(`Task "${firstTask}" not found in Do list`);
+    }
+    if (secondPos === -1) {
+      throw new Error(`Task "${secondTask}" not found in Do list`);
+    }
+
+    expect(firstPos).toBeLessThan(secondPos);
   }
 }
