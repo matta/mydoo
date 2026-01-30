@@ -24,17 +24,13 @@ if [ "$allownonascii" != "true" ] &&
         test $(git diff-index --cached --name-only --diff-filter=A -z $against |
           LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
 then
-        cat <<\EOF
-Error: Attempt to add a non-ASCII file name.
-
-This can cause problems if you want to work with people on other platforms.
-
-To be portable it is advisable to rename the file.
-
-If you know what you are doing you can disable this check using:
-
-  git config hooks.allownonascii true
-EOF
+        echo "Error: Attempt to add a non-ASCII file name."
+        echo ""
+        echo "This can cause problems if you want to work with people on other platforms."
+        echo "To be portable it is advisable to rename the file."
+        echo ""
+        echo "If you know what you are doing you can disable this check using:"
+        echo "  git config hooks.allownonascii true"
         exit 1
 fi
 
@@ -45,14 +41,14 @@ git diff-index --check --cached $against -- || exit 1
 
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 if [ "$current_branch" = "main" ]; then
-  echo "❌ Error: Committing directly to the 'main' branch is prohibited. Please use a feature branch."
+  echo "Error: Committing directly to the 'main' branch is prohibited. Please use a feature branch."
   exit 1
 fi
 
 # --- Project Specific Checks ---
 
 if git diff --name-only --cached | grep -q "^ROLLING_CONTEXT.md$"; then
-  echo "❌ Error: ROLLING_CONTEXT.md is staged for commit. This file must not be committed. Please unstage it: git restore --staged ROLLING_CONTEXT.md"
+  echo "Error: ROLLING_CONTEXT.md is staged for commit. This file must not be committed. Please unstage it: git restore --staged ROLLING_CONTEXT.md"
   exit 1
 fi
 
@@ -61,10 +57,20 @@ fi
 if [ -f "Cargo.toml" ]; then
   echo "Checking Rust formatting..."
   if ! cargo fmt --check; then
-    echo "❌ Error: Rust code is not formatted. Run 'cargo fmt' to fix."
+    echo "Error: Rust code is not formatted. Run 'cargo fmt' to fix."
     exit 1
   fi
 fi
 
+# Check if bd is available
+if ! command -v bd >/dev/null 2>&1; then
+    echo "Warning: bd command not found in PATH, skipping pre-commit hook" >&2
+    echo "  Install bd: brew install beads" >&2
+    echo "  Or add bd to your PATH" >&2
+else
+    if ! bd hooks run pre-commit "$@"; then
+        exit 1
+    fi
+fi
 
 just check
