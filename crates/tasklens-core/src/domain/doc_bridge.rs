@@ -52,7 +52,8 @@ pub fn reconcile_tunnel_state<T: Transactable + autosurgeon::Doc>(
     autosurgeon::reconcile_prop(doc, &automerge::ROOT, "places", &state.places)?;
 
     // metadata
-    reconcile_optional_metadata_prop(doc, &automerge::ROOT, "metadata", &state.metadata)?;
+    use autosurgeon::MaybeMissing;
+    autosurgeon::reconcile_prop(doc, &automerge::ROOT, "metadata", MaybeMissing::from(state.metadata.as_ref()))?;
 
     Ok(())
 }
