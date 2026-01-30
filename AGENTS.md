@@ -37,13 +37,22 @@
 - **Clean Tree Rule:** Before starting unrelated work or a new development
   phase, run `git status`. If the working tree is not clean, STOP and notify the
   user.
-- **Git Commit Rule:** NEVER commit a git change without an explicit command
-  from the user beginning with `git commit`. If the user asks to commit (e.g.,
-  "commit this") without the explicit command, STOP and ask for confirmation.
-  - **Enforcement Protocol:** When work is complete and ready to commit, the
-    Agent MUST explicitly state "Waiting for git commit command" and STOP. The
-    Agent must NOT infer or assume permission to commit from context, prior
-    commits, or phrases like "continue" or "finish this."
+- **Git Commit Rule:** The Agent MAY commit changes autonomously when:
+  1. Work is complete and all quality gates pass (`just verify` succeeds)
+  2. Changes are logically cohesive and address a single concern
+  3. The Agent clearly communicates what is being committed and why
+
+  The Agent MUST NOT commit if:
+  - Quality gates fail (tests, lints, builds)
+  - Changes are incomplete or experimental
+  - The user explicitly asks to review before committing
+
+  **Communication Protocol:** Before committing, the Agent MUST:
+  - Summarize what changed and why
+  - Confirm quality gates passed
+  - State the intended commit message
+  - Then proceed with the commit unless the user intervenes
+
 - **No Auto-Staging Rule**: The Agent MUST NOT stage its own manual code edits
   using `git add`. The user relies on unstaged changes to review the Agent's
   work via the diff.
@@ -53,19 +62,11 @@
   - **Exception**: Staging IS permitted and encouraged for results produced by
     vetted automated tools (e.g., `just fix`, `cargo fmt`)
     or when explicitly instructed by prompts, commands, workflows, or skills.
-  - **Future Tense Prohibition:** Phrases like "we'll commit", "undo and redo",
-    or "fix and commit" act as plans, NOT commands. You must execute the work
-    (e.g., the undo/fix) and then **STOP** to request a fresh commit command.
-  - **Verification Check:** Before executing any `git commit`, the Agent must
-    verify: "Did the user's most recent message start with 'git commit'?" If NO,
-    STOP immediately.
+
 - **Git Push Rule:** NEVER run `git push` unless the user explicitly commands it
   (e.g., "push", "sync"). "Commit" does NOT imply "Push". You must stop after
   committing.
-- **Ambiguity Protocol:** If a user's instruction combines a correction ("undo
-  this") with a future action ("we'll commit"), treating the future action as
-  authorized is a **Violation**. You must strictly separate the immediate
-  correction from the subsequent authorization.
+
 - **Git Presubmit Rule:** NEVER use `--no-verify`. On presubmit failure: fix
   trivial issues and retry; otherwise STOP AND WAIT.
 - **Foreground Commit Rule:** ALWAYS run `git commit` in the foreground
