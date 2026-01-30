@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use anyhow::{Result, anyhow};
 use automerge::AutoCommit;
 use automerge_test::{assert_doc, list, map};
-use tasklens_core::{TaskID, TaskStatus, TunnelState};
+use tasklens_core::domain::dispatch::ensure_path;
+use tasklens_core::{TaskID, TaskStatus, TaskUpdates, TunnelState, run_action};
 
-use crate::adapter::ensure_path;
 use crate::store::Action;
 use automerge_test::RealizedObject;
 use std::collections::BTreeSet;
@@ -52,7 +52,7 @@ impl AppStore {
     }
 
     fn dispatch_static(doc: &mut AutoCommit, action: Action) -> Result<()> {
-        crate::adapter::run_action(doc, action).map_err(|e| anyhow!(e))
+        run_action(doc, action).map_err(|e| anyhow!(e))
     }
 
     fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T> {
@@ -402,7 +402,7 @@ fn test_dispatch_update_all_fields() {
     store
         .dispatch(Action::UpdateTask {
             id: task_id.clone(),
-            updates: crate::actions::TaskUpdates {
+            updates: TaskUpdates {
                 title: Some("Updated Title".to_string()),
                 status: Some(TaskStatus::Done),
                 place_id: Some(Some(place_id.clone())),
@@ -411,6 +411,7 @@ fn test_dispatch_update_all_fields() {
                 lead_time: Some(3600),
                 repeat_config: Some(Some(repeat_config.clone())),
                 is_sequential: Some(true),
+                ..Default::default()
             },
         })
         .unwrap();
@@ -450,7 +451,7 @@ fn test_dispatch_update() {
     store
         .dispatch(Action::UpdateTask {
             id: task_id.clone(),
-            updates: crate::actions::TaskUpdates {
+            updates: TaskUpdates {
                 title: Some("Updated".to_string()),
                 status: Some(TaskStatus::Done),
                 ..Default::default()

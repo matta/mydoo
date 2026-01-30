@@ -1,9 +1,11 @@
-use crate::actions::{Action, TaskUpdates};
 use crate::adapter::{
     self, AdapterError,
     tests::adapter_test_common::{HydrationStrategy, check_invariants, init_doc},
 };
-use tasklens_core::types::{TaskID, TunnelState};
+use tasklens_core::{
+    Action, TaskUpdates,
+    types::{TaskID, TunnelState},
+};
 
 #[test]
 fn test_create_task_on_absent_key() {
@@ -274,7 +276,7 @@ fn test_move_cycle_bug() {
     // 1. Create Task A
     adapter::dispatch(
         &mut doc,
-        crate::actions::Action::CreateTask {
+        Action::CreateTask {
             id: TaskID::from("task-1"),
             parent_id: None,
             title: "Task A".into(),
@@ -285,7 +287,7 @@ fn test_move_cycle_bug() {
     // 2. Create Task B as child of A
     adapter::dispatch(
         &mut doc,
-        crate::actions::Action::CreateTask {
+        Action::CreateTask {
             id: TaskID::from("task-2"),
             parent_id: Some(TaskID::from("task-1")),
             title: "Task B".into(),
@@ -296,7 +298,7 @@ fn test_move_cycle_bug() {
     // 3. Move A to be child of B (this should fail but might not)
     let _ = adapter::dispatch(
         &mut doc,
-        crate::actions::Action::MoveTask {
+        Action::MoveTask {
             id: TaskID::from("task-1"),
             new_parent_id: Some(TaskID::from("task-2")),
         },

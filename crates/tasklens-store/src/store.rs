@@ -1,11 +1,10 @@
-pub use crate::actions::{Action, TaskUpdates};
 use crate::doc_id::DocumentId;
 #[cfg(target_arch = "wasm32")]
 use crate::doc_id::TaskLensUrl;
 #[cfg(target_arch = "wasm32")]
 use crate::storage::ActiveDocStorage;
 use anyhow::{Result, anyhow};
-use tasklens_core::types::TunnelState;
+use tasklens_core::{Action, types::TunnelState};
 
 use crate::adapter;
 

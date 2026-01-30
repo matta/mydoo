@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
-use tasklens_store::actions::{Action, TaskUpdates};
+use tasklens_core::{Action, TaskUpdates};
 use tasklens_store::store::AppStore;
 
 #[derive(Clone, Copy, PartialEq)]

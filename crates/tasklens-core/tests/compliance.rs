@@ -1,10 +1,13 @@
 use anyhow::{Context as _, Result, anyhow};
+use automerge::AutoCommit;
 use chrono::{DateTime, Utc};
 use glob::glob;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use tasklens_core::Action;
+use tasklens_core::TaskUpdates;
 use tasklens_core::domain::priority::get_prioritized_tasks;
 use tasklens_core::types::{
     Context, Frequency, Place, PlaceID, PriorityOptions, RepeatConfig, ScheduleType, TaskID,
@@ -185,6 +188,46 @@ struct ExpectedTaskProps {
     credit_increment: Option<F64OrString>,
 }
 
+/// A shim to support compliance tests with in-memory Automerge documents.
+/// This mirrors the pattern from `tasklens_store::store::tests::AppStore`.
+struct ComplianceStore {
+    doc: AutoCommit,
+}
+
+impl ComplianceStore {
+    fn new() -> Self {
+        Self {
+            doc: AutoCommit::new(),
+        }
+    }
+
+    fn init(&mut self) -> Result<()> {
+        let initial_state = TunnelState {
+            next_task_id: 1,
+            next_place_id: 1,
+            tasks: HashMap::new(),
+            places: HashMap::new(),
+            root_task_ids: Vec::new(),
+            metadata: None,
+        };
+        autosurgeon::reconcile(&mut self.doc, &initial_state)
+            .map_err(|e| anyhow!("Init failed: {}", e))
+    }
+
+    fn dispatch(&mut self, action: Action) -> Result<()> {
+        tasklens_core::run_action(&mut self.doc, action).map_err(|e| anyhow!(e))
+    }
+
+    fn hydrate(&self) -> Result<TunnelState> {
+        autosurgeon::hydrate(&self.doc).map_err(|e| anyhow!("Hydration failed: {}", e))
+    }
+
+    fn expensive_reconcile(&mut self, state: &TunnelState) -> Result<()> {
+        autosurgeon::reconcile(&mut self.doc, state)
+            .map_err(|e| anyhow!("Reconciliation failed: {}", e))
+    }
+}
+
 #[test]
 fn test_compliance() -> Result<()> {
     let fixtures_pattern = "../../packages/tasklens/specs/compliance/fixtures/*.yaml";
@@ -202,6 +245,7 @@ fn test_compliance() -> Result<()> {
         "completion-acknowledgement.feature.yaml",
         "complex-mutation.feature.yaml",
         "credit-attribution.feature.yaml",
+        "credit-propagation.feature.yaml",
         "decay.feature.yaml",
         "due_dates.feature.yaml",
         "deletion.feature.yaml",
@@ -358,19 +402,13 @@ fn assert_f64_near(actual: f64, expected: f64, label: &str) {
 }
 
 fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Result<()> {
-    let mut state = TunnelState {
-        next_task_id: 1,
-        next_place_id: 1,
-        tasks: HashMap::new(),
-        places: HashMap::new(),
-        root_task_ids: Vec::new(),
-        metadata: None,
-    };
+    let mut store = ComplianceStore::new();
+    store.init()?;
 
     let mut current_time = parse_date("2025-01-01T12:00:00Z")?;
 
     if let Some(bg) = background {
-        apply_initial_state(&mut state, &mut current_time, bg)?;
+        apply_initial_state(&mut store, &mut current_time, bg)?;
     }
 
     let Scenario { steps, .. } = scenario;
@@ -385,14 +423,15 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
         } = step;
 
         if let Some(given_state) = given {
-            apply_initial_state(&mut state, &mut current_time, given_state)?;
+            apply_initial_state(&mut store, &mut current_time, given_state)?;
         }
 
         if let Some(mutation) = when {
-            apply_mutation(&mut state, &mut current_time, mutation)?;
+            apply_mutation(&mut store, &mut current_time, mutation)?;
         }
 
         if let Some(assertion) = then {
+            let state = store.hydrate()?;
             let filter_str = view_filter.as_deref().unwrap_or("All Places");
             let place_id_filter = if filter_str == "All Places" {
                 Some("All".to_string())
@@ -648,7 +687,7 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
 }
 
 fn apply_initial_state(
-    state: &mut TunnelState,
+    store: &mut ComplianceStore,
     current_time: &mut i64,
     init: &InitialState,
 ) -> Result<()> {
@@ -663,18 +702,21 @@ fn apply_initial_state(
         *current_time = parse_date(time_str)?;
     }
 
+    let mut state = store.hydrate()?;
+
     if let Some(places_input) = places {
         for p in places_input {
-            apply_place_input(state, p)?;
+            apply_place_input(&mut state, p)?;
         }
     }
 
     if let Some(tasks_input) = tasks {
         for t in tasks_input {
-            apply_task_input(state, t, None, *current_time)?;
+            apply_task_input(&mut state, t, None, *current_time)?;
         }
     }
 
+    store.expensive_reconcile(&state)?;
     Ok(())
 }
 
@@ -838,7 +880,7 @@ fn apply_task_input(
 }
 
 fn apply_mutation(
-    state: &mut TunnelState,
+    store: &mut ComplianceStore,
     current_time: &mut i64,
     mutation: &Mutation,
 ) -> Result<()> {
@@ -857,10 +899,14 @@ fn apply_mutation(
     if let Some(credits_map) = update_credits {
         for (id, val) in credits_map {
             let task_id = TaskID::from(id.clone());
-            if let Some(task) = state.tasks.get_mut(&task_id) {
-                task.credits = val.to_f64();
-                task.credits_timestamp = *current_time;
-            }
+            store.dispatch(Action::UpdateTask {
+                id: task_id,
+                updates: TaskUpdates {
+                    credits: Some(val.to_f64()),
+                    credits_timestamp: Some(*current_time),
+                    ..Default::default()
+                },
+            })?;
         }
     }
 
@@ -882,103 +928,72 @@ fn apply_mutation(
             } = u;
 
             let task_id = TaskID::from(id.clone());
-            if let Some(task) = state.tasks.get_mut(&task_id) {
-                if let Some(val) = status {
-                    task.status = *val;
-                }
-                if let Some(val) = importance {
-                    task.importance = val.to_f64();
-                }
-                if let Some(val) = credits {
-                    task.credits = val.to_f64();
-                }
-                if let Some(val) = desired_credits {
-                    task.desired_credits = val.to_f64();
-                }
-                if let Some(dd) = due_date {
-                    task.schedule.due_date = parse_yaml_date(dd)?;
-                }
-                if let Some(ack) = is_acknowledged {
-                    task.is_acknowledged = ack.to_bool();
-                }
-                if let Some(ci) = credit_increment {
-                    task.credit_increment = Some(ci.to_f64());
-                }
-                if let Some(pid) = place_id {
-                    task.place_id = if pid == "null" || pid.is_empty() {
-                        None
-                    } else {
-                        Some(tasklens_core::types::PlaceID::from(pid.clone()))
-                    };
-                }
-                if let Some(st) = schedule_type {
-                    task.schedule.schedule_type = *st;
-                }
-                if let Some(rc) = repeat_config {
-                    task.repeat_config = Some(RepeatConfig {
-                        frequency: rc.frequency,
-                        interval: rc.interval as i64,
-                    });
-                }
-                if let Some(ld) = last_done {
-                    task.schedule.last_done = parse_yaml_date(ld)?;
-                }
+            let mut action_updates = TaskUpdates::default();
+
+            if let Some(val) = status {
+                action_updates.status = Some(*val);
             }
+            if let Some(val) = importance {
+                action_updates.importance = Some(val.to_f64());
+            }
+            if let Some(val) = credits {
+                action_updates.credits = Some(val.to_f64());
+            }
+            if let Some(val) = desired_credits {
+                action_updates.desired_credits = Some(val.to_f64());
+            }
+            if let Some(dd) = due_date {
+                action_updates.due_date = Some(parse_yaml_date(dd)?);
+            }
+            if let Some(ack) = is_acknowledged {
+                action_updates.is_acknowledged = Some(ack.to_bool());
+            }
+            if let Some(ci) = credit_increment {
+                action_updates.credit_increment = Some(ci.to_f64());
+            }
+            if let Some(pid) = place_id {
+                action_updates.place_id = if pid == "null" || pid.is_empty() {
+                    Some(None)
+                } else {
+                    Some(Some(tasklens_core::types::PlaceID::from(pid.clone())))
+                };
+            }
+            if let Some(st) = schedule_type {
+                action_updates.schedule_type = Some(*st);
+            }
+            if let Some(rc) = repeat_config {
+                action_updates.repeat_config = Some(Some(RepeatConfig {
+                    frequency: rc.frequency,
+                    interval: rc.interval as i64,
+                }));
+            }
+            if let Some(ld) = last_done {
+                action_updates.last_done = Some(parse_yaml_date(ld)?);
+            }
+
+            store.dispatch(Action::UpdateTask {
+                id: task_id,
+                updates: action_updates,
+            })?;
         }
     }
 
     if let Some(to_delete) = delete_tasks {
         for id in to_delete {
             let task_id = TaskID::from(id.clone());
-            recursive_delete_task(state, &task_id);
+            store.dispatch(Action::DeleteTask { id: task_id })?;
         }
     }
 
     if let Some(to_complete) = complete_tasks {
         for id in to_complete {
             let task_id = TaskID::from(id.clone());
-            complete_task_inline(state, &task_id, *current_time);
+            store.dispatch(Action::CompleteTask {
+                id: task_id,
+                current_time: *current_time,
+            })?;
         }
     }
 
     Ok(())
-}
-
-/// Half-life for credit decay in milliseconds (7 days).
-const CREDITS_HALF_LIFE_MS: f64 = 604_800_000.0;
-
-/// Inline credit attribution for compliance tests.
-/// This will be removed when the compliance harness is refactored to use Store::dispatch.
-fn complete_task_inline(state: &mut TunnelState, task_id: &TaskID, current_time: i64) {
-    if let Some(task) = state.tasks.get_mut(task_id) {
-        // Apply decay to existing credits (bring history to present)
-        let time_delta_ms = current_time.saturating_sub(task.credits_timestamp) as f64;
-        let decay_factor = 0.5_f64.powf(time_delta_ms / CREDITS_HALF_LIFE_MS);
-        let decayed_credits = task.credits * decay_factor;
-
-        // Add credit_increment (default 0.5 per algorithm.md §4.1)
-        let increment = task.credit_increment.unwrap_or(0.5);
-        task.credits = decayed_credits + increment;
-
-        // Checkpoint time
-        task.credits_timestamp = current_time;
-    }
-}
-
-fn recursive_delete_task(state: &mut TunnelState, task_id: &TaskID) {
-    if let Some(task) = state.tasks.remove(task_id) {
-        // Recursively delete children
-        for child_id in task.child_task_ids {
-            recursive_delete_task(state, &child_id);
-        }
-
-        // Remove from parent or root list
-        if let Some(pid) = task.parent_id {
-            if let Some(parent) = state.tasks.get_mut(&pid) {
-                parent.child_task_ids.retain(|cid| cid != task_id);
-            }
-        } else {
-            state.root_task_ids.retain(|rid| rid != task_id);
-        }
-    }
 }

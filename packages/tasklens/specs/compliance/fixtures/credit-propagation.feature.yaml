@@ -1,0 +1,63 @@
+feature: Credit Propagation
+description: >
+  Validates that completing a task propagates the credit increment to all ancestors,
+  updating their stored credits after applying decay.
+  Per algorithm.md §5.1.
+background:
+  current_time: "2025-01-01T00:00:00Z"
+  tasks: []
+
+scenarios:
+  - name: Propagate to Parent and Root
+    description: >
+      Completing a leaf task adds its credit_increment (0.5) to itself,
+      its parent, and the root. All start with 0 credits, so no decay is visible.
+    steps:
+      - given:
+          tasks:
+            - id: Root
+              credits: 0
+              children:
+                - id: Middle
+                  credits: 0
+                  children:
+                    - id: Leaf
+                      credits: 0
+                      credit_increment: 0.5
+      - when:
+          complete_tasks:
+            - Leaf
+      - then:
+          expected_props:
+            - id: Leaf
+              credits: 0.5
+            - id: Middle
+              credits: 0.5
+            - id: Root
+              credits: 0.5
+
+  - name: Independent Decay with Propagation
+    description: >
+      Parent has existing credits (100). Leaf has 0.
+      Time advances 7 days (Half-life). Parent decays to 50.
+      Leaf completion (0.5) is added to Parent.
+      Parent final = 50 + 0.5 = 50.5.
+    steps:
+      - given:
+          tasks:
+            - id: Root
+              credits: 100
+              children:
+                - id: Leaf
+                  credits: 0
+                  credit_increment: 0.5
+      - when:
+          advance_time_seconds: 604800
+          complete_tasks:
+            - Leaf
+      - then:
+          expected_props:
+            - id: Leaf
+              credits: 0.5
+            - id: Root
+              credits: 50.5
