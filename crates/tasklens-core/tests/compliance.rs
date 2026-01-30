@@ -245,6 +245,7 @@ fn test_compliance() -> Result<()> {
         "boost-lead-time.feature.yaml",
         "completion-acknowledgement.feature.yaml",
         "complex-mutation.feature.yaml",
+        "container-visibility.feature.yaml",
         "credit-attribution-aggregation.feature.yaml",
         "credit-attribution.feature.yaml",
         "decay.feature.yaml",
