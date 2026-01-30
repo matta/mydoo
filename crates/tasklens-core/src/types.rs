@@ -131,11 +131,6 @@ pub fn hydrate_i64<D: autosurgeon::ReadDoc>(
         .ok_or_else(|| autosurgeon::HydrateError::unexpected("i64", "missing value".to_string()))
 }
 
-/// Reconciles an i64.
-pub fn reconcile_i64<R: autosurgeon::Reconciler>(val: &i64, reconciler: R) -> Result<(), R::Error> {
-    val.reconcile(reconciler)
-}
-
 /// Reconciles an Option<T> using MaybeMissing semantics (None deletes the field).
 pub fn reconcile_optional_as_maybe_missing<T, R>(
     val: &Option<T>,

@@ -1,10 +1,8 @@
 use automerge::transaction::Transactable;
-use autosurgeon::{Hydrate, HydrateError, ReadDoc, Reconcile, ReconcileError, Reconciler};
+use autosurgeon::{Hydrate, HydrateError, ReadDoc, ReconcileError};
 
-use crate::types::{
-    TunnelState, hydrate_i64, hydrate_optional_metadata, reconcile_i64,
-    reconcile_optional_as_maybe_missing,
-};
+use crate::types::TunnelState;
+use crate::types::{hydrate_i64, hydrate_optional_metadata};
 
 /// Hydrates a TunnelState manually from an Automerge document.
 ///
@@ -53,41 +51,13 @@ pub fn reconcile_tunnel_state<T: Transactable + autosurgeon::Doc>(
 
     // metadata
     use autosurgeon::MaybeMissing;
-    autosurgeon::reconcile_prop(doc, &automerge::ROOT, "metadata", MaybeMissing::from(state.metadata.as_ref()))?;
+    let metadata_mm = match state.metadata.as_ref() {
+        Some(m) => MaybeMissing::Present(m),
+        None => MaybeMissing::Missing,
+    };
+    autosurgeon::reconcile_prop(doc, &automerge::ROOT, "metadata", metadata_mm)?;
 
     Ok(())
-}
-
-fn reconcile_i64_prop<T: Transactable + autosurgeon::Doc>(
-    doc: &mut T,
-    obj: &automerge::ObjId,
-    prop: &str,
-    val: i64,
-) -> Result<(), ReconcileError> {
-    struct JSI64(i64);
-    impl Reconcile for JSI64 {
-        type Key<'a> = autosurgeon::reconcile::NoKey;
-        fn reconcile<R: Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-            reconcile_i64(&self.0, reconciler)
-        }
-    }
-    autosurgeon::reconcile_prop(doc, obj, prop, JSI64(val))
-}
-
-fn reconcile_optional_metadata_prop<T: Transactable + autosurgeon::Doc>(
-    doc: &mut T,
-    obj: &automerge::ObjId,
-    prop: &str,
-    val: &Option<crate::types::DocMetadata>,
-) -> Result<(), ReconcileError> {
-    struct OptionalMetadata<'a>(&'a Option<crate::types::DocMetadata>);
-    impl Reconcile for OptionalMetadata<'_> {
-        type Key<'a> = autosurgeon::reconcile::NoKey;
-        fn reconcile<R: Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-            reconcile_optional_as_maybe_missing(self.0, reconciler)
-        }
-    }
-    autosurgeon::reconcile_prop(doc, obj, prop, OptionalMetadata(val))
 }
 
 /// Field names for PersistedTask in the Automerge document.
