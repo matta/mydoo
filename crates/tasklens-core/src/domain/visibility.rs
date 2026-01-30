@@ -52,7 +52,7 @@ pub fn calculate_contextual_visibility(
             }
         };
 
-        task.visibility = is_open && filter_match;
+        task.visibility = is_open && filter_match && !task.is_acknowledged;
     }
 }
 
