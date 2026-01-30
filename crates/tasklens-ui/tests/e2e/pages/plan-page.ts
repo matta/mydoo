@@ -128,7 +128,15 @@ export class PlanPage implements PlanFixture {
     }
 
     // Wait for the app to be attached
-    await expect(this.page.locator("#main")).toBeAttached({ timeout: 10000 });
+    const main = this.page.locator("#main");
+    await expect(main).toBeAttached({ timeout: 10000 });
+
+    // Ensure store is initialized (memory heads should be non-empty)
+    await expect(this.page.locator("[data-memory-heads]")).toHaveAttribute(
+      "data-memory-heads",
+      /.+/,
+      { timeout: 10000 },
+    );
   }
 
   private async getMemoryHeads(): Promise<string> {
@@ -380,9 +388,18 @@ export class PlanPage implements PlanFixture {
     const toggle = row.getByLabel("Toggle expansion");
 
     // If the toggle isn't visible, the task might not have children yet (or just got its first one)
-    // Wait a bit for the UI to update if we expect it to have children.
-    if (!(await toggle.isVisible()) && shouldExpand) {
-      await this.page.waitForTimeout(500);
+    // Wait for the UI to update if we expect it to have children.
+    if (shouldExpand) {
+      try {
+        await toggle.waitFor({ state: "visible", timeout: 2000 });
+      } catch (error) {
+        // It's acceptable for the toggle to not appear if the task has no children.
+        // We proceed and let the next `if (await toggle.isVisible())` handle it.
+        // We only ignore timeout errors, to not mask other issues.
+        if (error instanceof Error && error.name !== "TimeoutError") {
+          throw error;
+        }
+      }
     }
 
     if (await toggle.isVisible()) {
@@ -903,8 +920,6 @@ export class PlanPage implements PlanFixture {
 
   async uploadDocument(filePath: string): Promise<void> {
     await this.waitForAppReady();
-    // Add a small delay to ensure hydration/state stability after reload
-    await this.page.waitForTimeout(500);
 
     const modal = this.page.getByRole("dialog", { name: "Settings" });
 

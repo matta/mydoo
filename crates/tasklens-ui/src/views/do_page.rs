@@ -64,7 +64,7 @@ pub fn DoPage() -> Element {
 
             PageHeader { title: "Work",
                 button {
-                    class: "px-3 py-1 bg-white border border-gray-200 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 flex items-center shadow-sm",
+                    class: "px-3 py-1 bg-white border border-gray-200 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 flex items-center shadow-sm dark:bg-stone-800 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-700",
                     onclick: move |_| task_controller.refresh_lifecycle(),
                     "Refresh"
                 }
