@@ -180,6 +180,10 @@ export class Steps {
       await this.plan.openCreateTaskModal();
     },
 
+    opensTaskEditor: async (title: string) => {
+      await this.plan.openTaskEditor(title);
+    },
+
     addsChild: async (parent: string, child: string) => {
       await this.plan.openTaskEditor(parent);
       await this.plan.addChild(child);
@@ -246,6 +250,24 @@ export class Steps {
 
     opensMovePickerFor: async (title: string) => {
       await this.plan.openMovePicker(title);
+    },
+
+    setsImportance: async (title: string, value: number) => {
+      await this.plan.openTaskEditor(title);
+      await this.plan.setImportance(value);
+      await this.plan.closeEditor();
+    },
+
+    setsEffort: async (title: string, value: number) => {
+      await this.plan.openTaskEditor(title);
+      await this.plan.setEffort(value);
+      await this.plan.closeEditor();
+    },
+
+    setsNotes: async (title: string, notes: string) => {
+      await this.plan.openTaskEditor(title);
+      await this.plan.setNotes(notes);
+      await this.plan.closeEditor();
     },
   };
 
@@ -349,6 +371,24 @@ export class Steps {
 
     shouldSeeDisabledOrHiddenInMovePicker: async (title: string) => {
       await this.plan.verifyMovePickerExcludes(title);
+    },
+
+    importanceShouldBe: async (title: string, value: string) => {
+      await this.plan.openTaskEditor(title);
+      await this.plan.verifyImportance(value);
+      await this.plan.closeEditor();
+    },
+
+    effortShouldBe: async (title: string, value: string) => {
+      await this.plan.openTaskEditor(title);
+      await this.plan.verifyEffort(value);
+      await this.plan.closeEditor();
+    },
+
+    notesShouldBe: async (title: string, notes: string) => {
+      await this.plan.openTaskEditor(title);
+      await this.plan.verifyNotes(notes);
+      await this.plan.closeEditor();
     },
   };
 }

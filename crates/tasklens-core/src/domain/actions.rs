@@ -32,6 +32,7 @@ pub enum Action {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TaskUpdates {
     pub title: Option<String>,
+    pub notes: Option<String>,
     pub status: Option<TaskStatus>,
     /// Optional update: `Some(None)` clears the place, `Some(Some(id))` sets it, `None` keeps current.
     pub place_id: Option<Option<PlaceID>>,

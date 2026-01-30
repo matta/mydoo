@@ -207,6 +207,10 @@ fn handle_update_task(
         autosurgeon::reconcile_prop(doc, &task_obj_id, "title", title)
             .map_err(DispatchError::from)?;
     }
+    if let Some(notes) = updates.notes {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "notes", notes)
+            .map_err(DispatchError::from)?;
+    }
     if let Some(status) = updates.status {
         autosurgeon::reconcile_prop(doc, &task_obj_id, "status", status)
             .map_err(DispatchError::from)?;
