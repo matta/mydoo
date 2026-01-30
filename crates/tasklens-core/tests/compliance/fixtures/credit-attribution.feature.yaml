@@ -3,7 +3,7 @@ description: >
   Validates that completing a task adds its credit_increment to its own credits,
   applying decay before adding new credits, and updating credits_timestamp.
   See algorithm.md §5.1.
-  
+
   NOTE: Scenarios requiring effective_credits aggregation from children are in
   credit-attribution-aggregation.feature.yaml (blocked on mydoo-59v).
 background:
