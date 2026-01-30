@@ -14,6 +14,15 @@ allownonascii=$(git config --type=bool hooks.allownonascii 2>/dev/null || echo "
 # Redirect output to stderr.
 exec 1>&2
 
+# --- Branch Protection ---
+
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+if [ "$current_branch" = "main" ]; then
+  echo "Error: Committing directly to the 'main' branch is prohibited. Please use a feature branch."
+  exit 1
+fi
+
+
 # Cross platform projects tend to avoid non-ASCII filenames; prevent
 # them from being added to the repository. We exploit the fact that the
 # printable range starts at the space character and ends with tilde.
@@ -36,14 +45,6 @@ fi
 
 # If there are whitespace errors, print the offending file names and fail.
 git diff-index --check --cached $against -- || exit 1
-
-# --- Branch Protection ---
-
-current_branch=$(git rev-parse --abbrev-ref HEAD)
-if [ "$current_branch" = "main" ]; then
-  echo "Error: Committing directly to the 'main' branch is prohibited. Please use a feature branch."
-  exit 1
-fi
 
 # --- Project Specific Checks ---
 
