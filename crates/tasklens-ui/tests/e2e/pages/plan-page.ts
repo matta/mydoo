@@ -396,7 +396,7 @@ export class PlanPage implements PlanFixture {
         // It's acceptable for the toggle to not appear if the task has no children.
         // We proceed and let the next `if (await toggle.isVisible())` handle it.
         // We only ignore timeout errors, to not mask other issues.
-        if (error.name !== "TimeoutError") {
+        if (error instanceof Error && error.name !== "TimeoutError") {
           throw error;
         }
       }
