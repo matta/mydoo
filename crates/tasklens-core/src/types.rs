@@ -121,6 +121,21 @@ pub fn hydrate_optional_i64<D: autosurgeon::ReadDoc>(
     }
 }
 
+/// Hydrates an i64.
+pub fn hydrate_i64<D: autosurgeon::ReadDoc>(
+    doc: &D,
+    obj: &automerge::ObjId,
+    prop: autosurgeon::Prop<'_>,
+) -> Result<i64, autosurgeon::HydrateError> {
+    hydrate_optional_i64(doc, obj, prop)?
+        .ok_or_else(|| autosurgeon::HydrateError::unexpected("i64", "missing value".to_string()))
+}
+
+/// Reconciles an i64.
+pub fn reconcile_i64<R: autosurgeon::Reconciler>(val: &i64, reconciler: R) -> Result<(), R::Error> {
+    val.reconcile(reconciler)
+}
+
 /// Reconciles an Option<T> using MaybeMissing semantics (None deletes the field).
 pub fn reconcile_optional_as_maybe_missing<T, R>(
     val: &Option<T>,
@@ -1152,21 +1167,11 @@ pub fn hydrate_optional_metadata<D: autosurgeon::ReadDoc>(
 /// The root state of a TaskLens document.
 ///
 /// This is the top-level structure serialized to/from Automerge.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
 pub struct TunnelState {
-    #[autosurgeon(rename = "nextTaskId")]
-    #[cfg_attr(
-        any(test, feature = "test-utils"),
-        proptest(strategy = "test_strategies::js_safe_i64()")
-    )]
     pub next_task_id: i64,
-    #[autosurgeon(rename = "nextPlaceId")]
-    #[cfg_attr(
-        any(test, feature = "test-utils"),
-        proptest(strategy = "test_strategies::js_safe_i64()")
-    )]
     pub next_place_id: i64,
     #[cfg_attr(
         any(test, feature = "test-utils"),
@@ -1177,7 +1182,6 @@ pub struct TunnelState {
         any(test, feature = "test-utils"),
         proptest(strategy = "test_strategies::arbitrary_vec_task_id()")
     )]
-    #[autosurgeon(rename = "rootTaskIds")]
     pub root_task_ids: Vec<TaskID>,
     #[cfg_attr(
         any(test, feature = "test-utils"),
@@ -1185,10 +1189,6 @@ pub struct TunnelState {
     )]
     pub places: HashMap<PlaceID, Place>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(
-        hydrate = "hydrate_optional_metadata",
-        reconcile = "reconcile_optional_as_maybe_missing"
-    )]
     pub metadata: Option<DocMetadata>,
 }
 

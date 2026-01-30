@@ -8,6 +8,7 @@ use std::path::PathBuf;
 
 use tasklens_core::Action;
 use tasklens_core::TaskUpdates;
+use tasklens_core::domain::doc_bridge;
 use tasklens_core::domain::priority::get_prioritized_tasks;
 use tasklens_core::types::{
     Context, Frequency, Place, PlaceID, PriorityOptions, RepeatConfig, ScheduleType, TaskID,
@@ -210,7 +211,7 @@ impl ComplianceStore {
             root_task_ids: Vec::new(),
             metadata: None,
         };
-        autosurgeon::reconcile(&mut self.doc, &initial_state)
+        doc_bridge::reconcile_tunnel_state(&mut self.doc, &initial_state)
             .map_err(|e| anyhow!("Init failed: {}", e))
     }
 
@@ -219,11 +220,11 @@ impl ComplianceStore {
     }
 
     fn hydrate(&self) -> Result<TunnelState> {
-        autosurgeon::hydrate(&self.doc).map_err(|e| anyhow!("Hydration failed: {}", e))
+        doc_bridge::hydrate_tunnel_state(&self.doc).map_err(|e| anyhow!("Hydration failed: {}", e))
     }
 
     fn expensive_reconcile(&mut self, state: &TunnelState) -> Result<()> {
-        autosurgeon::reconcile(&mut self.doc, state)
+        doc_bridge::reconcile_tunnel_state(&mut self.doc, state)
             .map_err(|e| anyhow!("Reconciliation failed: {}", e))
     }
 }

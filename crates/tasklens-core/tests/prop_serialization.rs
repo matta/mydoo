@@ -1,6 +1,6 @@
 use automerge::AutoCommit;
-use autosurgeon::{hydrate, reconcile};
 use proptest::prelude::*;
+use tasklens_core::domain::doc_bridge;
 use tasklens_core::types::TunnelState;
 
 proptest! {
@@ -15,8 +15,8 @@ proptest! {
 
         // 2. Autosurgeon Roundtrip
         let mut doc = AutoCommit::new();
-        reconcile(&mut doc, &state).expect("reconcile failed");
-        let hydrated: TunnelState = hydrate(&doc).expect("hydrate failed");
+        doc_bridge::reconcile_tunnel_state(&mut doc, &state).expect("reconcile failed");
+        let hydrated: TunnelState = doc_bridge::hydrate_tunnel_state(&doc).expect("hydrate failed");
         prop_assert_eq!(&state, &hydrated, "Autosurgeon roundtrip failed");
 
         // 3. Cross-Format Parity: Original JSON vs Hydrated JSON

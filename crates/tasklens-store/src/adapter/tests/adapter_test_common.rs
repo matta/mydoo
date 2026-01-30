@@ -49,7 +49,7 @@ pub(super) fn check_invariants(doc: &Automerge, strategy: HydrationStrategy) -> 
     let state: TunnelState = match strategy {
         HydrationStrategy::Strict => {
             // We use autosurgeon::hydrate directly here because we WANT to see inconsistencies.
-            match autosurgeon::hydrate(doc) {
+            match crate::adapter::hydrate_tunnel_state_and_heal(doc) {
                 Ok(s) => s,
                 Err(e) => {
                     let realized = crate::debug_utils::inspect_automerge_doc_full(doc);
@@ -62,7 +62,7 @@ pub(super) fn check_invariants(doc: &Automerge, strategy: HydrationStrategy) -> 
         }
         HydrationStrategy::Heal => {
             // Use the adapter's hydrate which heals structural issues.
-            match adapter::hydrate_tunnel_state(doc) {
+            match adapter::hydrate_tunnel_state_and_heal(doc) {
                 Ok(s) => s,
                 Err(e) => {
                     let realized = crate::debug_utils::inspect_automerge_doc_full(doc);

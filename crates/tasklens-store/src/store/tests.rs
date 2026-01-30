@@ -4,6 +4,7 @@ use anyhow::{Result, anyhow};
 use automerge::AutoCommit;
 use automerge_test::{assert_doc, list, map};
 use tasklens_core::domain::dispatch::ensure_path;
+use tasklens_core::domain::doc_bridge;
 use tasklens_core::{TaskID, TaskStatus, TaskUpdates, TunnelState, run_action};
 
 use crate::store::Action;
@@ -43,7 +44,7 @@ impl AppStore {
             root_task_ids: Vec::new(),
             metadata: None,
         };
-        autosurgeon::reconcile(&mut self.doc, &initial_state)
+        doc_bridge::reconcile_tunnel_state(&mut self.doc, &initial_state)
             .map_err(|e| anyhow!("Init failed: {}", e))
     }
 
@@ -55,12 +56,12 @@ impl AppStore {
         run_action(doc, action).map_err(|e| anyhow!(e))
     }
 
-    fn hydrate<T: autosurgeon::Hydrate>(&self) -> Result<T> {
-        autosurgeon::hydrate(&self.doc).map_err(|e| anyhow!("Hydration failed: {}", e))
+    fn hydrate_tunnel_state(&self) -> Result<TunnelState> {
+        doc_bridge::hydrate_tunnel_state(&self.doc).map_err(|e| anyhow!("Hydration failed: {}", e))
     }
 
     fn expensive_reconcile(&mut self, state: &TunnelState) -> Result<()> {
-        autosurgeon::reconcile(&mut self.doc, state)
+        doc_bridge::reconcile_tunnel_state(&mut self.doc, state)
             .map_err(|e| anyhow!("Reconciliation failed: {}", e))
     }
 }
@@ -129,7 +130,7 @@ fn test_store_init() {
         }
     );
 
-    let state: TunnelState = store.hydrate().unwrap();
+    let state: TunnelState = store.hydrate_tunnel_state().unwrap();
     assert!(state.tasks.is_empty());
 }
 
@@ -190,7 +191,7 @@ fn test_dispatch_create() {
         }
     );
 
-    let state: TunnelState = store.hydrate().unwrap();
+    let state: TunnelState = store.hydrate_tunnel_state().unwrap();
     assert_eq!(state.tasks.len(), 1);
     let task = state.tasks.values().next().unwrap();
     assert_eq!(task.title, "Test Task");
@@ -330,7 +331,7 @@ fn test_dispatch_create_with_parent() {
         }
     );
 
-    let state: TunnelState = store.hydrate().unwrap();
+    let state: TunnelState = store.hydrate_tunnel_state().unwrap();
 
     let parent = state.tasks.get(&parent_id).unwrap();
     assert_eq!(parent.child_task_ids.len(), 2);
@@ -372,7 +373,7 @@ fn test_dispatch_create_multiple_roots() {
         })
         .unwrap();
 
-    let state: TunnelState = store.hydrate().unwrap();
+    let state: TunnelState = store.hydrate_tunnel_state().unwrap();
     assert_eq!(state.root_task_ids.len(), 2);
     assert_eq!(state.root_task_ids[0], root1_id);
     assert_eq!(state.root_task_ids[1], root2_id);
@@ -416,7 +417,7 @@ fn test_dispatch_update_all_fields() {
         })
         .unwrap();
 
-    let state: TunnelState = store.hydrate().unwrap();
+    let state: TunnelState = store.hydrate_tunnel_state().unwrap();
     let task = state.tasks.get(&task_id).unwrap();
 
     assert_eq!(task.title, "Updated Title");
@@ -501,7 +502,7 @@ fn test_dispatch_update() {
         }
     );
 
-    let state: TunnelState = store.hydrate().unwrap();
+    let state: TunnelState = store.hydrate_tunnel_state().unwrap();
     let task = state.tasks.get(&task_id).unwrap();
     assert_eq!(task.title, "Updated");
     assert_eq!(task.status, TaskStatus::Done);
@@ -539,7 +540,7 @@ fn test_dispatch_delete() {
         }
     );
 
-    let state: TunnelState = store.hydrate().unwrap();
+    let state: TunnelState = store.hydrate_tunnel_state().unwrap();
     assert!(state.tasks.is_empty());
     assert!(state.root_task_ids.is_empty());
 }
@@ -570,7 +571,7 @@ fn test_dispatch_delete_with_parent() {
 
     // Verify setup
     {
-        let state: TunnelState = store.hydrate().unwrap();
+        let state: TunnelState = store.hydrate_tunnel_state().unwrap();
         let parent = state.tasks.get(&parent_id).unwrap();
         assert!(parent.child_task_ids.contains(&child_id));
     }
@@ -583,7 +584,7 @@ fn test_dispatch_delete_with_parent() {
         .unwrap();
 
     // Verify child is gone from tasks and parent's children
-    let state: TunnelState = store.hydrate().unwrap();
+    let state: TunnelState = store.hydrate_tunnel_state().unwrap();
     assert!(!state.tasks.contains_key(&child_id));
     let parent = state.tasks.get(&parent_id).unwrap();
     assert!(!parent.child_task_ids.contains(&child_id));
@@ -696,7 +697,7 @@ fn test_dispatch_complete() {
         }
     );
 
-    let state: TunnelState = store.hydrate().unwrap();
+    let state: TunnelState = store.hydrate_tunnel_state().unwrap();
     assert_eq!(state.tasks.get(&task_id).unwrap().status, TaskStatus::Done);
 }
 
@@ -809,7 +810,7 @@ fn test_dispatch_move() {
         }
     );
 
-    let state: TunnelState = store.hydrate().unwrap();
+    let state: TunnelState = store.hydrate_tunnel_state().unwrap();
     assert_eq!(state.root_task_ids.len(), 1);
     assert_eq!(state.root_task_ids[0], parent_id);
 
@@ -938,7 +939,7 @@ fn test_dispatch_refresh_lifecycle() {
         }
     );
 
-    assert!(store.hydrate::<TunnelState>().unwrap().tasks[&task_id].is_acknowledged);
+    assert!(store.hydrate_tunnel_state().unwrap().tasks[&task_id].is_acknowledged);
 }
 
 #[test]
@@ -959,7 +960,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
         .unwrap();
 
     {
-        let mut state: TunnelState = store.hydrate().unwrap();
+        let mut state: TunnelState = store.hydrate_tunnel_state().unwrap();
         let task = state.tasks.get_mut(&task_id).unwrap();
         task.status = TaskStatus::Done;
         task.schedule.schedule_type = tasklens_core::types::ScheduleType::Routinely;
@@ -1027,7 +1028,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
         }
     );
     assert_eq!(
-        store.hydrate::<TunnelState>().unwrap().tasks[&task_id].status,
+        store.hydrate_tunnel_state().unwrap().tasks[&task_id].status,
         TaskStatus::Done
     );
 
@@ -1088,7 +1089,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
         }
     );
     assert_eq!(
-        store.hydrate::<TunnelState>().unwrap().tasks[&task_id].status,
+        store.hydrate_tunnel_state().unwrap().tasks[&task_id].status,
         TaskStatus::Pending
     );
 }

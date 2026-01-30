@@ -39,7 +39,7 @@ pub fn prime_store_with_sample_data(store: &mut AppStore) {
     state.root_task_ids.push(project_alpha_id);
     state.root_task_ids.push(groceries_id);
 
-    if let Err(e) = store.expensive_reconcile(&state) {
+    if let Err(e) = store.reconcile_tunnel_state(&state) {
         tracing::error!("Failed to seed data: {:?}", e);
     }
 }
