@@ -16,30 +16,29 @@ pub fn hydrate_string_or_text<D: autosurgeon::ReadDoc>(
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,
 ) -> Result<String, autosurgeon::HydrateError> {
-    let val = match prop {
+    let (val, id) = match prop {
         autosurgeon::Prop::Key(k) => doc.get(obj, k.as_ref()),
         autosurgeon::Prop::Index(i) => doc.get(obj, i as usize),
     }
-    .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
+    .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?
+    .ok_or_else(|| {
+        autosurgeon::HydrateError::unexpected("string or text", "missing value".to_string())
+    })?;
 
     match val {
-        Some((automerge::Value::Object(automerge::ObjType::Text), id)) => doc
+        automerge::Value::Object(automerge::ObjType::Text) => doc
             .text(&id)
             .map_err(|e| autosurgeon::HydrateError::unexpected("read text", e.to_string())),
-        Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
+        automerge::Value::Scalar(scalar) => match scalar.as_ref() {
             automerge::ScalarValue::Str(s) => Ok(s.to_string()),
             _ => Err(autosurgeon::HydrateError::unexpected(
                 "string",
                 format!("found {:?}", scalar),
             )),
         },
-        Some((v, _)) => Err(autosurgeon::HydrateError::unexpected(
+        _ => Err(autosurgeon::HydrateError::unexpected(
             "string or text",
-            format!("found {:?}", v),
-        )),
-        None => Err(autosurgeon::HydrateError::unexpected(
-            "string or text",
-            "missing value".to_string(),
+            format!("found {:?}", val),
         )),
     }
 }
@@ -238,145 +237,82 @@ pub fn reconcile_option_string_as_text_as_maybe_missing<R: autosurgeon::Reconcil
     }
 }
 
-/// Unique identifier for a task.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
-#[serde(transparent)]
-pub struct TaskID(String);
+macro_rules! define_id_type {
+    ($doc:expr, $name:ident) => {
+        #[doc = $doc]
+        #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+        #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
+        #[serde(transparent)]
+        pub struct $name(String);
 
-impl Hydrate for TaskID {
-    fn hydrate<D: autosurgeon::ReadDoc>(
-        doc: &D,
-        obj: &automerge::ObjId,
-        prop: autosurgeon::Prop<'_>,
-    ) -> Result<Self, autosurgeon::HydrateError> {
-        hydrate_string_or_text(doc, obj, prop).map(Self)
-    }
+        impl Hydrate for $name {
+            fn hydrate<D: autosurgeon::ReadDoc>(
+                doc: &D,
+                obj: &automerge::ObjId,
+                prop: autosurgeon::Prop<'_>,
+            ) -> Result<Self, autosurgeon::HydrateError> {
+                hydrate_string_or_text(doc, obj, prop).map(Self)
+            }
+        }
+
+        impl Reconcile for $name {
+            type Key<'a> = autosurgeon::reconcile::NoKey;
+            fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
+                reconcile_string_as_scalar(&self.0, reconciler)
+            }
+        }
+
+        impl $name {
+            pub fn new() -> Self {
+                Self(Uuid::new_v4().to_string())
+            }
+
+            pub fn as_str(&self) -> &str {
+                &self.0
+            }
+        }
+
+        impl AsRef<str> for $name {
+            fn as_ref(&self) -> &str {
+                &self.0
+            }
+        }
+
+        impl Default for $name {
+            fn default() -> Self {
+                Self::new()
+            }
+        }
+
+        impl From<String> for $name {
+            fn from(s: String) -> Self {
+                Self(s)
+            }
+        }
+
+        impl std::str::FromStr for $name {
+            type Err = std::convert::Infallible;
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                Ok(Self(s.to_string()))
+            }
+        }
+
+        impl From<&str> for $name {
+            fn from(s: &str) -> Self {
+                Self(s.to_string())
+            }
+        }
+
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.0)
+            }
+        }
+    };
 }
 
-impl Reconcile for TaskID {
-    type Key<'a> = autosurgeon::reconcile::NoKey;
-    fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        reconcile_string_as_scalar(&self.0, reconciler)
-    }
-}
-
-impl TaskID {
-    pub fn new() -> Self {
-        Self(Uuid::new_v4().to_string())
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl AsRef<str> for TaskID {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
-impl Default for TaskID {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl From<String> for TaskID {
-    fn from(s: String) -> Self {
-        Self(s)
-    }
-}
-
-impl std::str::FromStr for TaskID {
-    type Err = std::convert::Infallible;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(s.to_string()))
-    }
-}
-
-impl From<&str> for TaskID {
-    fn from(s: &str) -> Self {
-        Self(s.to_string())
-    }
-}
-
-impl std::fmt::Display for TaskID {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-/// Unique identifier for a place/context.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
-#[serde(transparent)]
-pub struct PlaceID(String);
-
-impl Hydrate for PlaceID {
-    fn hydrate<D: autosurgeon::ReadDoc>(
-        doc: &D,
-        obj: &automerge::ObjId,
-        prop: autosurgeon::Prop<'_>,
-    ) -> Result<Self, autosurgeon::HydrateError> {
-        hydrate_string_or_text(doc, obj, prop).map(Self)
-    }
-}
-
-impl Reconcile for PlaceID {
-    type Key<'a> = autosurgeon::reconcile::NoKey;
-    fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        reconcile_string_as_scalar(&self.0, reconciler)
-    }
-}
-
-impl PlaceID {
-    pub fn new() -> Self {
-        Self(Uuid::new_v4().to_string())
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl AsRef<str> for PlaceID {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
-impl Default for PlaceID {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl From<String> for PlaceID {
-    fn from(s: String) -> Self {
-        Self(s)
-    }
-}
-
-impl std::str::FromStr for PlaceID {
-    type Err = std::convert::Infallible;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(s.to_string()))
-    }
-}
-
-impl From<&str> for PlaceID {
-    fn from(s: &str) -> Self {
-        Self(s.to_string())
-    }
-}
-
-impl std::fmt::Display for PlaceID {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
+define_id_type!("Unique identifier for a task.", TaskID);
+define_id_type!("Unique identifier for a place/context.", PlaceID);
 
 /// Reserved Place ID representing "any location".
 pub const ANYWHERE_PLACE_ID: &str = "Anywhere";
@@ -455,14 +391,14 @@ impl Hydrate for UrgencyStatus {
 impl Reconcile for UrgencyStatus {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        match self {
+        let text = match self {
             Self::Overdue => "Overdue",
             Self::Urgent => "Urgent",
             Self::Active => "Active",
             Self::Upcoming => "Upcoming",
             Self::None => "None",
-        }
-        .reconcile(reconciler)
+        };
+        reconcile_string_as_scalar(text, reconciler)
     }
 }
 
@@ -657,7 +593,7 @@ impl Reconcile for Frequency {
             Self::Monthly => "monthly",
             Self::Yearly => "yearly",
         };
-        reconcile_string_as_text(s, reconciler)
+        reconcile_string_as_scalar(s, reconciler)
     }
 }
 
@@ -1338,8 +1274,103 @@ mod tests {
     }
 
     #[test]
-    fn test_tunnel_state_serialization_old() {
-        // (existing content)
+    fn test_task_id_hydration() {
+        use automerge::transaction::Transactable;
+        use automerge::{AutoCommit, ObjType};
+        use autosurgeon::{Hydrate, hydrate};
+
+        let mut doc = AutoCommit::new();
+
+        // 1. Scalar String
+        doc.put(automerge::ROOT, "id_scalar", "task-scalar")
+            .unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct ScalarTest {
+            #[autosurgeon(rename = "id_scalar")]
+            id: TaskID,
+        }
+        let res: ScalarTest = hydrate(&doc).unwrap();
+        assert_eq!(res.id.as_str(), "task-scalar");
+
+        // 2. Text Object
+        let text_id = doc
+            .put_object(automerge::ROOT, "id_text", ObjType::Text)
+            .unwrap();
+        doc.splice_text(&text_id, 0, 0, "task-text").unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct TextTest {
+            #[autosurgeon(rename = "id_text")]
+            id: TaskID,
+        }
+        let res: TextTest = hydrate(&doc).unwrap();
+        assert_eq!(res.id.as_str(), "task-text");
+    }
+
+    #[test]
+    fn test_place_id_hydration() {
+        use automerge::transaction::Transactable;
+        use automerge::{AutoCommit, ObjType};
+        use autosurgeon::{Hydrate, hydrate};
+
+        let mut doc = AutoCommit::new();
+
+        // 1. Scalar String
+        doc.put(automerge::ROOT, "id_scalar", "place-scalar")
+            .unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct ScalarTest {
+            #[autosurgeon(rename = "id_scalar")]
+            id: PlaceID,
+        }
+        let res: ScalarTest = hydrate(&doc).unwrap();
+        assert_eq!(res.id.as_str(), "place-scalar");
+
+        // 2. Text Object
+        let text_id = doc
+            .put_object(automerge::ROOT, "id_text", ObjType::Text)
+            .unwrap();
+        doc.splice_text(&text_id, 0, 0, "place-text").unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct TextTest {
+            #[autosurgeon(rename = "id_text")]
+            id: PlaceID,
+        }
+        let res: TextTest = hydrate(&doc).unwrap();
+        assert_eq!(res.id.as_str(), "place-text");
+    }
+
+    #[test]
+    fn test_enum_hydration() {
+        use automerge::transaction::Transactable;
+        use automerge::{AutoCommit, ObjType};
+        use autosurgeon::{Hydrate, hydrate};
+
+        let mut doc = AutoCommit::new();
+
+        // TaskStatus from Text
+        let text_id = doc
+            .put_object(automerge::ROOT, "status", ObjType::Text)
+            .unwrap();
+        doc.splice_text(&text_id, 0, 0, "Done").unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct StatusTest {
+            status: TaskStatus,
+        }
+        let res: StatusTest = hydrate(&doc).unwrap();
+        assert_eq!(res.status, TaskStatus::Done);
+
+        // Frequency from Text (Standardize to scalar later)
+        let text_id = doc
+            .put_object(automerge::ROOT, "freq", ObjType::Text)
+            .unwrap();
+        doc.splice_text(&text_id, 0, 0, "weekly").unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct FreqTest {
+            #[autosurgeon(rename = "freq")]
+            frequency: Frequency,
+        }
+        let res: FreqTest = hydrate(&doc).unwrap();
+        assert_eq!(res.frequency, Frequency::Weekly);
     }
 }
 
