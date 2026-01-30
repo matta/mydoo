@@ -7,12 +7,12 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use tasklens_core::Action;
+use tasklens_core::TaskUpdates;
 use tasklens_core::domain::priority::get_prioritized_tasks;
 use tasklens_core::types::{
     Context, Frequency, Place, PlaceID, PriorityOptions, RepeatConfig, ScheduleType, TaskID,
     TaskStatus, TunnelState, UrgencyStatus, ViewFilter,
 };
-use tasklens_core::TaskUpdates;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(deny_unknown_fields)]
