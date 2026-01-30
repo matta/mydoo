@@ -1,11 +1,11 @@
 use automerge::transaction::Transactable;
-use autosurgeon::{Doc, MaybeMissing, reconcile};
+use autosurgeon::{Doc, MaybeMissing};
 use std::collections::HashMap;
 use thiserror::Error;
 
 use crate::{
     Action, TaskUpdates,
-    domain::{lifecycle, routine_tasks},
+    domain::{doc_bridge, lifecycle, routine_tasks},
     types::{
         PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_optional_f64,
         hydrate_optional_i64, hydrate_optional_task_id,
@@ -102,7 +102,7 @@ pub fn ensure_path<T: Transactable + Doc>(
 
 /// Hydrates a TunnelState from the current document, healing any structural inconsistencies.
 pub fn hydrate_tunnel_state(doc: &impl autosurgeon::ReadDoc) -> Result<TunnelState> {
-    let mut state: TunnelState = autosurgeon::hydrate(doc)?;
+    let mut state = doc_bridge::hydrate_tunnel_state(doc).map_err(DispatchError::from)?;
     state.heal_structural_inconsistencies();
     Ok(state)
 }
@@ -434,7 +434,7 @@ fn handle_move_task(
     }
 
     {
-        let state: TunnelState = autosurgeon::hydrate(doc)?;
+        let state = doc_bridge::hydrate_tunnel_state(doc).map_err(DispatchError::from)?;
         if let Some(ref npid) = new_parent_id {
             if !state.tasks.contains_key(npid) {
                 return Err(DispatchError::ParentNotFound(npid.clone()));
@@ -518,10 +518,10 @@ fn handle_move_task(
 }
 
 fn handle_refresh_lifecycle(doc: &mut (impl Transactable + Doc), current_time: i64) -> Result<()> {
-    let mut state: TunnelState = hydrate_tunnel_state(doc)?;
+    let mut state = hydrate_tunnel_state(doc)?;
     lifecycle::acknowledge_completed_tasks(&mut state);
     routine_tasks::wake_up_routine_tasks(&mut state, current_time);
-    reconcile(doc, &state).map_err(DispatchError::from)?;
+    doc_bridge::reconcile_tunnel_state(doc, &state).map_err(DispatchError::from)?;
     Ok(())
 }
 

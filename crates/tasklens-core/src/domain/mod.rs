@@ -3,6 +3,7 @@ pub mod constants;
 pub mod creation;
 pub mod dates;
 pub mod dispatch;
+pub mod doc_bridge;
 pub mod feedback;
 pub mod hierarchy;
 pub mod lifecycle;

@@ -92,7 +92,7 @@ impl AppStore {
         #[cfg(target_arch = "wasm32")]
         {
             // Try to extract existing ID from metadata to preserve identity
-            let target_id = adapter::hydrate_tunnel_state(&doc)
+            let target_id = adapter::hydrate_tunnel_state_and_heal(&doc)
                 .ok()
                 .and_then(|state| state.metadata)
                 .and_then(|meta| meta.automerge_url)
@@ -156,7 +156,9 @@ impl AppStore {
     /// Hydrates a Rust struct from the current document.
     pub fn store_hydrate_tunnel_state(&self) -> Result<TunnelState> {
         if let Some(handle) = &self.handle {
-            handle.with_document(|doc| adapter::hydrate_tunnel_state(doc).map_err(|e| anyhow!(e)))
+            handle.with_document(|doc| {
+                adapter::hydrate_tunnel_state_and_heal(doc).map_err(|e| anyhow!(e))
+            })
         } else {
             Err(anyhow!("No handle available"))
         }
@@ -235,6 +237,21 @@ impl AppStore {
                 id,
                 e
             )),
+        }
+    }
+
+    /// Reconciles a TunnelState with the current document.
+    pub fn reconcile_tunnel_state(&mut self, state: &TunnelState) -> Result<()> {
+        if let Some(handle) = &mut self.handle {
+            handle.with_document(|doc| {
+                let mut tx = doc.transaction();
+                tasklens_core::domain::doc_bridge::reconcile_tunnel_state(&mut tx, state)
+                    .map_err(|e| anyhow!(e))?;
+                tx.commit();
+                Ok(())
+            })
+        } else {
+            Err(anyhow!("No handle available"))
         }
     }
 }

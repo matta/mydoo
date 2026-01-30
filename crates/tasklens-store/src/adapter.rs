@@ -1,4 +1,4 @@
-use autosurgeon::reconcile;
+// Re-index.
 use std::collections::HashMap;
 use thiserror::Error;
 
@@ -71,8 +71,15 @@ impl From<DispatchError> for AdapterError {
 pub(crate) type Result<T> = std::result::Result<T, AdapterError>;
 
 /// Hydrates a TunnelState from the current document, healing any structural inconsistencies.
-pub(crate) fn hydrate_tunnel_state(doc: &impl autosurgeon::ReadDoc) -> Result<TunnelState> {
-    tasklens_core::domain::dispatch::hydrate_tunnel_state(doc).map_err(AdapterError::from)
+pub(crate) fn hydrate_tunnel_state_and_heal(
+    doc: &impl autosurgeon::ReadDoc,
+) -> Result<TunnelState> {
+    tasklens_core::domain::doc_bridge::hydrate_tunnel_state(doc)
+        .map(|mut state| {
+            state.heal_structural_inconsistencies();
+            state
+        })
+        .map_err(AdapterError::from)
 }
 
 pub(crate) fn init_state(
@@ -92,7 +99,9 @@ pub(crate) fn init_state(
         }),
     };
 
-    if let Err(e) = reconcile(&mut tx, &initial_state) {
+    if let Err(e) =
+        tasklens_core::domain::doc_bridge::reconcile_tunnel_state(&mut tx, &initial_state)
+    {
         tracing::error!("Failed to reconcile initial state: {}", e);
         return Err(AdapterError::Internal(format!(
             "Failed to reconcile initial state: {}",
@@ -104,12 +113,20 @@ pub(crate) fn init_state(
 }
 
 /// Reconciles a Rust struct with the current document.
-pub(crate) fn expensive_reconcile<T: autosurgeon::Reconcile>(
+/// Specializes for TunnelState using manual bridge logic.
+pub(crate) fn expensive_reconcile<T: autosurgeon::Reconcile + 'static>(
     doc: &mut automerge::Automerge,
     data: &T,
 ) -> Result<()> {
     let mut tx = doc.transaction();
-    reconcile(&mut tx, data)?;
+
+    // Use manual bridge if T is TunnelState
+    if let Some(state) = (data as &dyn std::any::Any).downcast_ref::<TunnelState>() {
+        tasklens_core::domain::doc_bridge::reconcile_tunnel_state(&mut tx, state)?;
+    } else {
+        autosurgeon::reconcile(&mut tx, data)?;
+    }
+
     tx.commit();
     Ok(())
 }

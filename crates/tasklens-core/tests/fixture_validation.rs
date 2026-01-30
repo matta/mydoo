@@ -1,7 +1,7 @@
 use assert_json_diff::assert_json_eq;
 use automerge::AutoCommit;
-use autosurgeon::{hydrate, reconcile};
 use std::fs;
+use tasklens_core::domain::doc_bridge;
 use tasklens_core::types::TunnelState;
 
 /// Normalize JSON values by converting all numbers to f64.
@@ -66,10 +66,11 @@ fn test_medieval_fixture_autosurgeon_roundtrip() {
 
     // 2. Automerge Roundtrip
     let mut doc = AutoCommit::new();
-    reconcile(&mut doc, &state).expect("Failed to reconcile TunnelState into Automerge");
+    doc_bridge::reconcile_tunnel_state(&mut doc, &state)
+        .expect("Failed to reconcile TunnelState into Automerge");
 
-    let hydrated: TunnelState =
-        hydrate(&doc).expect("Failed to hydrate TunnelState from Automerge");
+    let hydrated: TunnelState = doc_bridge::hydrate_tunnel_state(&doc)
+        .expect("Failed to hydrate TunnelState from Automerge");
 
     assert_eq!(state, hydrated, "Autosurgeon hydration roundtrip failed");
 }
@@ -89,10 +90,11 @@ fn test_medieval_fixture_cross_format_parity() {
 
     // 3. Cross-Format Parity: Original JSON vs Hydrated JSON
     let mut doc = AutoCommit::new();
-    reconcile(&mut doc, &state).expect("Failed to reconcile state into Automerge");
+    doc_bridge::reconcile_tunnel_state(&mut doc, &state)
+        .expect("Failed to reconcile state into Automerge");
 
     let hydrated_state: TunnelState =
-        hydrate(&doc).expect("Failed to hydrate state from Automerge");
+        doc_bridge::hydrate_tunnel_state(&doc).expect("Failed to hydrate state from Automerge");
     let json_from_hydrated =
         serde_json::to_value(&hydrated_state).expect("Failed to serialize hydrated state");
 

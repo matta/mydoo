@@ -139,7 +139,7 @@ fn test_update_task_non_existent() {
     ));
 
     // Verify it didn't create anything
-    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
+    let state: TunnelState = crate::adapter::hydrate_tunnel_state_and_heal(&doc).unwrap();
     assert!(!state.tasks.contains_key(&TaskID::from("non-existent")));
 }
 
@@ -258,7 +258,7 @@ fn test_move_task_duplicate_prevention() {
     )
     .unwrap();
 
-    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
+    let state: TunnelState = crate::adapter::hydrate_tunnel_state_and_heal(&doc).unwrap();
     assert_eq!(
         state
             .root_task_ids
@@ -400,7 +400,7 @@ fn test_move_task_to_root_removes_parent_id() {
     }
 
     // 5. Verify parent_id is None in hydrated state
-    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
+    let state: TunnelState = crate::adapter::hydrate_tunnel_state_and_heal(&doc).unwrap();
     let task = state.tasks.get(&TaskID::from("task-5")).unwrap();
     assert!(
         task.parent_id.is_none(),
@@ -590,7 +590,7 @@ fn test_delete_task_cascades() {
     .unwrap();
 
     // 4. Verify both are gone from the tasks map
-    let state: TunnelState = autosurgeon::hydrate(&doc).unwrap();
+    let state: TunnelState = crate::adapter::hydrate_tunnel_state_and_heal(&doc).unwrap();
     assert!(
         !state.tasks.contains_key(&TaskID::from("parent")),
         "Parent should be deleted"
