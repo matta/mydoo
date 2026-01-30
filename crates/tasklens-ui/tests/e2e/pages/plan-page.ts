@@ -390,7 +390,16 @@ export class PlanPage implements PlanFixture {
     // If the toggle isn't visible, the task might not have children yet (or just got its first one)
     // Wait for the UI to update if we expect it to have children.
     if (shouldExpand) {
-      await toggle.waitFor({ state: "visible", timeout: 2000 }).catch(() => {});
+      try {
+        await toggle.waitFor({ state: "visible", timeout: 2000 });
+      } catch (error) {
+        // It's acceptable for the toggle to not appear if the task has no children.
+        // We proceed and let the next `if (await toggle.isVisible())` handle it.
+        // We only ignore timeout errors, to not mask other issues.
+        if (error.name !== 'TimeoutError') {
+          throw error;
+        }
+      }
     }
 
     if (await toggle.isVisible()) {
