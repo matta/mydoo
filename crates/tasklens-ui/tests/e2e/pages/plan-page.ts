@@ -96,6 +96,15 @@ export interface PlanFixture {
   saveSyncSettings: () => Promise<void>;
   verifySyncServerUrl: (url: string) => Promise<void>;
 
+  setImportance: (value: number) => Promise<void>;
+  setEffort: (value: number) => Promise<void>;
+  setNotes: (notes: string) => Promise<void>;
+  verifyImportance: (expectedValue: string) => Promise<void>;
+  verifyEffort: (expectedValue: string) => Promise<void>;
+  verifyNotes: (expectedNotes: string) => Promise<void>;
+  verifyImportanceLabel: (expectedText: string) => Promise<void>;
+  verifyEffortLabel: (expectedText: string) => Promise<void>;
+
   goto: (path?: string) => Promise<void>;
   evaluate: <T>(fn: () => T) => Promise<T>;
 }
@@ -1000,5 +1009,41 @@ export class PlanPage implements PlanFixture {
 
   async mobileNavigateUpLevel(): Promise<void> {
     throw new Error("mobileNavigateUpLevel is not implemented in the UI");
+  }
+
+  async setImportance(value: number): Promise<void> {
+    await this.page.locator("#importance-input").fill(value.toString());
+  }
+
+  async setEffort(value: number): Promise<void> {
+    await this.page.locator("#effort-input").fill(value.toString());
+  }
+
+  async setNotes(notes: string): Promise<void> {
+    await this.page.locator("#notes-input").fill(notes);
+  }
+
+  async verifyImportance(expectedValue: string): Promise<void> {
+    await expect(this.page.locator("#importance-input")).toHaveValue(
+      expectedValue,
+    );
+  }
+
+  async verifyEffort(expectedValue: string): Promise<void> {
+    await expect(this.page.locator("#effort-input")).toHaveValue(expectedValue);
+  }
+
+  async verifyNotes(expectedNotes: string): Promise<void> {
+    await expect(this.page.locator("#notes-input")).toHaveValue(expectedNotes);
+  }
+
+  async verifyImportanceLabel(expectedText: string): Promise<void> {
+    await expect(
+      this.page.getByText(`Importance: ${expectedText}`),
+    ).toBeVisible();
+  }
+
+  async verifyEffortLabel(expectedText: string): Promise<void> {
+    await expect(this.page.getByText(`Effort (${expectedText})`)).toBeVisible();
   }
 }

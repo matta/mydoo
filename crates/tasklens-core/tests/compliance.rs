@@ -267,6 +267,7 @@ fn test_compliance() -> Result<()> {
         "thermostat.feature.yaml",
         "tree-order-id-conflict.feature.yaml",
         "tree-order.feature.yaml",
+        "task-update-fields.feature.yaml",
         "visibility-place-filtering.feature.yaml",
         "weight.feature.yaml",
         "zero-feedback.feature.yaml",
