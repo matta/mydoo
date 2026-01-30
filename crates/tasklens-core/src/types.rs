@@ -16,73 +16,77 @@ pub fn hydrate_string_or_text<D: autosurgeon::ReadDoc>(
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,
 ) -> Result<String, autosurgeon::HydrateError> {
-    let val = match prop {
+    let (val, id) = match prop {
         autosurgeon::Prop::Key(k) => doc.get(obj, k.as_ref()),
         autosurgeon::Prop::Index(i) => doc.get(obj, i as usize),
     }
-    .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
+    .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?
+    .ok_or_else(|| {
+        autosurgeon::HydrateError::unexpected("string or text", "missing value".to_string())
+    })?;
 
     match val {
-        Some((automerge::Value::Object(automerge::ObjType::Text), id)) => doc
+        automerge::Value::Object(automerge::ObjType::Text) => doc
             .text(&id)
             .map_err(|e| autosurgeon::HydrateError::unexpected("read text", e.to_string())),
-        Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
+        automerge::Value::Scalar(scalar) => match scalar.as_ref() {
             automerge::ScalarValue::Str(s) => Ok(s.to_string()),
             _ => Err(autosurgeon::HydrateError::unexpected(
                 "string",
                 format!("found {:?}", scalar),
             )),
         },
-        Some((v, _)) => Err(autosurgeon::HydrateError::unexpected(
+        _ => Err(autosurgeon::HydrateError::unexpected(
             "string or text",
-            format!("found {:?}", v),
-        )),
-        None => Err(autosurgeon::HydrateError::unexpected(
-            "string or text",
-            "missing value".to_string(),
+            format!("found {:?}", val),
         )),
     }
 }
 
-/// Hydrates an Option<TaskID> from an Automerge document.
-/// Returns Ok(None) if the property is missing, Ok(Some(TaskID)) if present.
-pub fn hydrate_optional_task_id<D: autosurgeon::ReadDoc>(
+/// Hydrates an `Option<T>` while tolerating both missing keys and null values.
+///
+/// This provides a universal "optional" behavior for struct fields:
+/// 1. If the property is missing from the document, returns `Ok(None)`.
+/// 2. If the property is present but set to `null`, returns `Ok(None)`.
+/// 3. If the property is present and non-null, delegates to `T::hydrate`.
+///
+/// Use this with the `#[autosurgeon(hydrate = "hydrate_option_maybe_missing")]`
+/// attribute on `Option<T>` fields where you want to support both missing and null states.
+pub fn hydrate_option_maybe_missing<D: autosurgeon::ReadDoc, T: Hydrate>(
     doc: &D,
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,
-) -> Result<Option<TaskID>, autosurgeon::HydrateError> {
-    match hydrate_string_or_text(doc, obj, prop) {
-        Ok(s) => Ok(Some(TaskID::from(s))),
-        Err(_) => Ok(None), // Missing or invalid = None
+) -> Result<Option<T>, autosurgeon::HydrateError> {
+    let val = match prop {
+        autosurgeon::Prop::Key(ref k) => doc.get(obj, k.as_ref()),
+        autosurgeon::Prop::Index(i) => doc.get(obj, i as usize),
+    }
+    .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
+
+    match val {
+        None => Ok(None),
+        Some((automerge::Value::Scalar(s), _)) if s.as_ref().is_null() => Ok(None),
+        Some(_) => T::hydrate(doc, obj, prop).map(Some),
     }
 }
 
-/// Hydrates an Option<PlaceID> from an Automerge document.
-pub fn hydrate_optional_place_id<D: autosurgeon::ReadDoc>(
-    doc: &D,
-    obj: &automerge::ObjId,
-    prop: autosurgeon::Prop<'_>,
-) -> Result<Option<PlaceID>, autosurgeon::HydrateError> {
-    match hydrate_string_or_text(doc, obj, prop) {
-        Ok(s) => Ok(Some(PlaceID::from(s))),
-        Err(_) => Ok(None),
-    }
-}
-
-/// Hydrates an Option<f64> that may be stored as Int or F64.
+/// Hydrates an `Option<f64>` while tolerating various Automerge numeric types.
+///
+/// This follows the "Tolerant Hydration" principle: it accepts `Int`, `Uint`, and `F64`
+/// from Automerge and converts them to `Option<f64>`. This is essential for
+/// interoperability with JavaScript, which uses double-precision floats for all numbers.
+///
+/// If the value is missing or not a number, it returns `Ok(None)`.
 pub fn hydrate_optional_f64<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,
 ) -> Result<Option<f64>, autosurgeon::HydrateError> {
-    let key = match prop {
-        autosurgeon::Prop::Key(k) => k,
-        autosurgeon::Prop::Index(_) => return Ok(None),
-    };
-
-    let val = doc
-        .get(obj, key.as_ref())
-        .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
+    let val = match prop {
+        autosurgeon::Prop::Key(ref k) => doc.get(obj, k.as_ref()),
+        autosurgeon::Prop::Index(i) => doc.get(obj, i as usize),
+    }
+    .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
 
     match val {
         Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
@@ -95,20 +99,20 @@ pub fn hydrate_optional_f64<D: autosurgeon::ReadDoc>(
     }
 }
 
-/// Hydrates an Option<i64> that may be missing.
+/// Hydrates an `Option<i64>` while tolerating various Automerge numeric types.
+///
+/// Similar to `hydrate_optional_f64`, this accepts `Int`, `Uint`, and `F64`,
+/// truncating fractional parts when converting to `i64`.
 pub fn hydrate_optional_i64<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,
 ) -> Result<Option<i64>, autosurgeon::HydrateError> {
-    let key = match prop {
-        autosurgeon::Prop::Key(k) => k,
-        autosurgeon::Prop::Index(_) => return Ok(None),
-    };
-
-    let val = doc
-        .get(obj, key.as_ref())
-        .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
+    let val = match prop {
+        autosurgeon::Prop::Key(ref k) => doc.get(obj, k.as_ref()),
+        autosurgeon::Prop::Index(i) => doc.get(obj, i as usize),
+    }
+    .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
 
     match val {
         Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
@@ -121,7 +125,9 @@ pub fn hydrate_optional_i64<D: autosurgeon::ReadDoc>(
     }
 }
 
-/// Hydrates an i64.
+/// Hydrates an `i64` while tolerating various Automerge numeric types.
+///
+/// Returns an error if the value is missing or not a number.
 pub fn hydrate_i64<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,
@@ -172,8 +178,12 @@ pub fn reconcile_optional_f64_as_maybe_missing<R: autosurgeon::Reconciler>(
     }
 }
 
-/// Reconciles an f64 as an Int if it has no fractional part and fits in a JS safe integer,
-/// otherwise reconciles as an F64.
+/// Reconciles an `f64` into Automerge, optimizing for storage if it's a "Safe Integer".
+///
+/// If the value has no fractional part and fits within the "JavaScript Safe Integer"
+/// range (±2^53 - 1), it is reconciled as an Automerge `Int` (i64). Otherwise, it is
+/// reconciled as an Automerge `F64` (f64). This ensures precision for non-integers
+/// while saving space and maintaining full JS safety for integers.
 pub fn reconcile_f64<R: autosurgeon::Reconciler>(val: &f64, reconciler: R) -> Result<(), R::Error> {
     const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
     const MIN_SAFE_INTEGER: f64 = -9_007_199_254_740_991.0;
@@ -236,145 +246,82 @@ pub fn reconcile_option_string_as_text_as_maybe_missing<R: autosurgeon::Reconcil
     }
 }
 
-/// Unique identifier for a task.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
-#[serde(transparent)]
-pub struct TaskID(String);
+macro_rules! define_id_type {
+    ($doc:expr, $name:ident) => {
+        #[doc = $doc]
+        #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+        #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
+        #[serde(transparent)]
+        pub struct $name(String);
 
-impl Hydrate for TaskID {
-    fn hydrate<D: autosurgeon::ReadDoc>(
-        doc: &D,
-        obj: &automerge::ObjId,
-        prop: autosurgeon::Prop<'_>,
-    ) -> Result<Self, autosurgeon::HydrateError> {
-        hydrate_string_or_text(doc, obj, prop).map(Self)
-    }
+        impl Hydrate for $name {
+            fn hydrate<D: autosurgeon::ReadDoc>(
+                doc: &D,
+                obj: &automerge::ObjId,
+                prop: autosurgeon::Prop<'_>,
+            ) -> Result<Self, autosurgeon::HydrateError> {
+                hydrate_string_or_text(doc, obj, prop).map(Self)
+            }
+        }
+
+        impl Reconcile for $name {
+            type Key<'a> = autosurgeon::reconcile::NoKey;
+            fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
+                reconcile_string_as_scalar(&self.0, reconciler)
+            }
+        }
+
+        impl $name {
+            pub fn new() -> Self {
+                Self(Uuid::new_v4().to_string())
+            }
+
+            pub fn as_str(&self) -> &str {
+                &self.0
+            }
+        }
+
+        impl AsRef<str> for $name {
+            fn as_ref(&self) -> &str {
+                &self.0
+            }
+        }
+
+        impl Default for $name {
+            fn default() -> Self {
+                Self::new()
+            }
+        }
+
+        impl From<String> for $name {
+            fn from(s: String) -> Self {
+                Self(s)
+            }
+        }
+
+        impl std::str::FromStr for $name {
+            type Err = std::convert::Infallible;
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                Ok(Self(s.to_string()))
+            }
+        }
+
+        impl From<&str> for $name {
+            fn from(s: &str) -> Self {
+                Self(s.to_string())
+            }
+        }
+
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.0)
+            }
+        }
+    };
 }
 
-impl Reconcile for TaskID {
-    type Key<'a> = autosurgeon::reconcile::NoKey;
-    fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        reconcile_string_as_scalar(&self.0, reconciler)
-    }
-}
-
-impl TaskID {
-    pub fn new() -> Self {
-        Self(Uuid::new_v4().to_string())
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl AsRef<str> for TaskID {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
-impl Default for TaskID {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl From<String> for TaskID {
-    fn from(s: String) -> Self {
-        Self(s)
-    }
-}
-
-impl std::str::FromStr for TaskID {
-    type Err = std::convert::Infallible;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(s.to_string()))
-    }
-}
-
-impl From<&str> for TaskID {
-    fn from(s: &str) -> Self {
-        Self(s.to_string())
-    }
-}
-
-impl std::fmt::Display for TaskID {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-/// Unique identifier for a place/context.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
-#[serde(transparent)]
-pub struct PlaceID(String);
-
-impl Hydrate for PlaceID {
-    fn hydrate<D: autosurgeon::ReadDoc>(
-        doc: &D,
-        obj: &automerge::ObjId,
-        prop: autosurgeon::Prop<'_>,
-    ) -> Result<Self, autosurgeon::HydrateError> {
-        hydrate_string_or_text(doc, obj, prop).map(Self)
-    }
-}
-
-impl Reconcile for PlaceID {
-    type Key<'a> = autosurgeon::reconcile::NoKey;
-    fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        reconcile_string_as_scalar(&self.0, reconciler)
-    }
-}
-
-impl PlaceID {
-    pub fn new() -> Self {
-        Self(Uuid::new_v4().to_string())
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl AsRef<str> for PlaceID {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
-impl Default for PlaceID {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl From<String> for PlaceID {
-    fn from(s: String) -> Self {
-        Self(s)
-    }
-}
-
-impl std::str::FromStr for PlaceID {
-    type Err = std::convert::Infallible;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(s.to_string()))
-    }
-}
-
-impl From<&str> for PlaceID {
-    fn from(s: &str) -> Self {
-        Self(s.to_string())
-    }
-}
-
-impl std::fmt::Display for PlaceID {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
+define_id_type!("Unique identifier for a task.", TaskID);
+define_id_type!("Unique identifier for a place/context.", PlaceID);
 
 /// Reserved Place ID representing "any location".
 pub const ANYWHERE_PLACE_ID: &str = "Anywhere";
@@ -453,14 +400,14 @@ impl Hydrate for UrgencyStatus {
 impl Reconcile for UrgencyStatus {
     type Key<'a> = autosurgeon::reconcile::NoKey;
     fn reconcile<R: autosurgeon::Reconciler>(&self, reconciler: R) -> Result<(), R::Error> {
-        match self {
+        let text = match self {
             Self::Overdue => "Overdue",
             Self::Urgent => "Urgent",
             Self::Active => "Active",
             Self::Upcoming => "Upcoming",
             Self::None => "None",
-        }
-        .reconcile(reconciler)
+        };
+        reconcile_string_as_scalar(text, reconciler)
     }
 }
 
@@ -522,14 +469,18 @@ pub struct Schedule {
     pub schedule_type: ScheduleType,
     /// Optional due date as Unix timestamp in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "dueDate", reconcile = "reconcile_optional_as_maybe_missing")]
+    #[autosurgeon(
+        rename = "dueDate",
+        hydrate = "hydrate_optional_i64",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "test_strategies::js_safe_option_i64()")
     )]
     pub due_date: Option<i64>,
     /// Lead time in milliseconds before due date to start showing urgency.
-    #[autosurgeon(rename = "leadTime")]
+    #[autosurgeon(rename = "leadTime", hydrate = "hydrate_i64")]
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "test_strategies::js_safe_i64()")
@@ -537,7 +488,11 @@ pub struct Schedule {
     pub lead_time: i64,
     /// Timestamp of last completion (for Routinely tasks).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[autosurgeon(rename = "lastDone", reconcile = "reconcile_optional_as_maybe_missing")]
+    #[autosurgeon(
+        rename = "lastDone",
+        hydrate = "hydrate_optional_i64",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "test_strategies::js_safe_option_i64()")
@@ -585,20 +540,20 @@ impl Hydrate for Schedule {
                 );
                 res?
             },
-            due_date: Hydrate::hydrate(
+            due_date: hydrate_optional_i64(
                 doc,
                 &sched_obj,
                 autosurgeon::Prop::Key(Cow::Borrowed("dueDate")),
             )
             .ok()
             .flatten(),
-            lead_time: Hydrate::hydrate(
+            lead_time: hydrate_i64(
                 doc,
                 &sched_obj,
                 autosurgeon::Prop::Key(Cow::Borrowed("leadTime")),
             )
             .unwrap_or(crate::domain::constants::DEFAULT_LEAD_TIME_MILLIS),
-            last_done: Hydrate::hydrate(
+            last_done: hydrate_optional_i64(
                 doc,
                 &sched_obj,
                 autosurgeon::Prop::Key(Cow::Borrowed("lastDone")),
@@ -655,7 +610,7 @@ impl Reconcile for Frequency {
             Self::Monthly => "monthly",
             Self::Yearly => "yearly",
         };
-        reconcile_string_as_text(s, reconciler)
+        reconcile_string_as_scalar(s, reconciler)
     }
 }
 
@@ -666,23 +621,12 @@ pub struct RepeatConfig {
     /// The unit of frequency (daily, weekly, etc.).
     pub frequency: Frequency,
     /// The interval multiplier (e.g., 2 for "every 2 weeks").
+    #[autosurgeon(hydrate = "hydrate_i64")]
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "1i64..=1000i64")
     )]
     pub interval: i64,
-}
-
-/// Hydrates an Option<RepeatConfig> treating missing values as None.
-pub fn hydrate_optional_repeat_config<D: autosurgeon::ReadDoc>(
-    doc: &D,
-    obj: &automerge::ObjId,
-    prop: autosurgeon::Prop<'_>,
-) -> Result<Option<RepeatConfig>, autosurgeon::HydrateError> {
-    match RepeatConfig::hydrate(doc, obj, prop) {
-        Ok(config) => Ok(Some(config)),
-        Err(_) => Ok(None),
-    }
 }
 
 /// A task as persisted in the Automerge document.
@@ -710,7 +654,7 @@ pub struct PersistedTask {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "parentId",
-        hydrate = "hydrate_optional_task_id",
+        hydrate = "hydrate_option_maybe_missing",
         reconcile = "reconcile_optional_as_maybe_missing"
     )]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
@@ -724,7 +668,7 @@ pub struct PersistedTask {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "placeId",
-        hydrate = "hydrate_optional_place_id",
+        hydrate = "hydrate_option_maybe_missing",
         reconcile = "reconcile_optional_as_maybe_missing"
     )]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
@@ -759,13 +703,13 @@ pub struct PersistedTask {
         proptest(strategy = "0.0..=1000000.0")
     )]
     pub desired_credits: f64,
-    #[autosurgeon(rename = "creditsTimestamp")]
+    #[autosurgeon(rename = "creditsTimestamp", hydrate = "hydrate_i64")]
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "test_strategies::js_safe_u64()")
     )]
     pub credits_timestamp: i64,
-    #[autosurgeon(rename = "priorityTimestamp")]
+    #[autosurgeon(rename = "priorityTimestamp", hydrate = "hydrate_i64")]
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "test_strategies::js_safe_u64()")
@@ -775,7 +719,7 @@ pub struct PersistedTask {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "repeatConfig",
-        hydrate = "hydrate_optional_repeat_config",
+        hydrate = "hydrate_option_maybe_missing",
         reconcile = "reconcile_optional_as_maybe_missing"
     )]
     pub repeat_config: Option<RepeatConfig>,
@@ -797,44 +741,16 @@ pub struct PersistedTask {
     pub last_completed_at: Option<i64>,
 }
 
+/// Hydrates an `f64` while tolerating various Automerge numeric types.
+///
+/// Returns an error if the value is missing or not a number.
 pub fn hydrate_f64<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,
 ) -> Result<f64, autosurgeon::HydrateError> {
-    let key = match prop {
-        autosurgeon::Prop::Key(k) => k,
-        autosurgeon::Prop::Index(_) => {
-            return Err(autosurgeon::HydrateError::unexpected(
-                "f64 prop",
-                "index prop not supported".to_string(),
-            ));
-        }
-    };
-
-    let val = doc
-        .get(obj, key.as_ref())
-        .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
-
-    match val {
-        Some((automerge::Value::Scalar(scalar), _)) => match scalar.as_ref() {
-            automerge::ScalarValue::F64(f) => Ok(*f),
-            automerge::ScalarValue::Int(i) => Ok(*i as f64),
-            automerge::ScalarValue::Uint(u) => Ok(*u as f64),
-            _ => Err(autosurgeon::HydrateError::unexpected(
-                "number",
-                format!("found {:?}", scalar),
-            )),
-        },
-        Some((v, _)) => Err(autosurgeon::HydrateError::unexpected(
-            "number",
-            format!("found {:?}", v),
-        )),
-        None => Err(autosurgeon::HydrateError::unexpected(
-            "number",
-            "missing value".to_string(),
-        )),
-    }
+    hydrate_optional_f64(doc, obj, prop)?
+        .ok_or_else(|| autosurgeon::HydrateError::unexpected("f64", "missing value".to_string()))
 }
 
 /// Internal Mutable Object for Algorithm Processing.
@@ -966,6 +882,7 @@ pub struct ComputedTask {
 #[serde(rename_all = "camelCase")]
 pub struct Context {
     pub current_place_id: Option<PlaceID>,
+    #[autosurgeon(hydrate = "hydrate_i64")]
     pub current_time: i64,
 }
 
@@ -974,7 +891,15 @@ pub struct Context {
 #[serde(rename_all = "camelCase")]
 pub struct PriorityOptions {
     pub include_hidden: bool,
+    #[autosurgeon(
+        hydrate = "hydrate_option_maybe_missing",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub mode: Option<PriorityMode>,
+    #[autosurgeon(
+        hydrate = "hydrate_option_maybe_missing",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub context: Option<Context>,
 }
 
@@ -1018,6 +943,10 @@ impl Reconcile for PriorityMode {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewFilter {
+    #[autosurgeon(
+        hydrate = "hydrate_option_maybe_missing",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub place_id: Option<String>, // "All", "Anywhere", or a specific ID
 }
 
@@ -1066,6 +995,10 @@ impl Reconcile for OpenHoursMode {
 pub struct OpenHours {
     pub mode: OpenHoursMode,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[autosurgeon(
+        hydrate = "hydrate_option_maybe_missing",
+        reconcile = "reconcile_optional_as_maybe_missing"
+    )]
     pub schedule: Option<HashMap<String, Vec<String>>>,
 }
 
@@ -1348,8 +1281,160 @@ mod tests {
     }
 
     #[test]
-    fn test_tunnel_state_serialization_old() {
-        // (existing content)
+    fn test_task_id_hydration() {
+        use automerge::transaction::Transactable;
+        use automerge::{AutoCommit, ObjType};
+        use autosurgeon::{Hydrate, hydrate};
+
+        let mut doc = AutoCommit::new();
+
+        // 1. Scalar String
+        doc.put(automerge::ROOT, "id_scalar", "task-scalar")
+            .unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct ScalarTest {
+            #[autosurgeon(rename = "id_scalar")]
+            id: TaskID,
+        }
+        let res: ScalarTest = hydrate(&doc).unwrap();
+        assert_eq!(res.id.as_str(), "task-scalar");
+
+        // 2. Text Object
+        let text_id = doc
+            .put_object(automerge::ROOT, "id_text", ObjType::Text)
+            .unwrap();
+        doc.splice_text(&text_id, 0, 0, "task-text").unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct TextTest {
+            #[autosurgeon(rename = "id_text")]
+            id: TaskID,
+        }
+        let res: TextTest = hydrate(&doc).unwrap();
+        assert_eq!(res.id.as_str(), "task-text");
+    }
+
+    #[test]
+    fn test_place_id_hydration() {
+        use automerge::transaction::Transactable;
+        use automerge::{AutoCommit, ObjType};
+        use autosurgeon::{Hydrate, hydrate};
+
+        let mut doc = AutoCommit::new();
+
+        // 1. Scalar String
+        doc.put(automerge::ROOT, "id_scalar", "place-scalar")
+            .unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct ScalarTest {
+            #[autosurgeon(rename = "id_scalar")]
+            id: PlaceID,
+        }
+        let res: ScalarTest = hydrate(&doc).unwrap();
+        assert_eq!(res.id.as_str(), "place-scalar");
+
+        // 2. Text Object
+        let text_id = doc
+            .put_object(automerge::ROOT, "id_text", ObjType::Text)
+            .unwrap();
+        doc.splice_text(&text_id, 0, 0, "place-text").unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct TextTest {
+            #[autosurgeon(rename = "id_text")]
+            id: PlaceID,
+        }
+        let res: TextTest = hydrate(&doc).unwrap();
+        assert_eq!(res.id.as_str(), "place-text");
+    }
+
+    #[test]
+    fn test_enum_hydration() {
+        use automerge::transaction::Transactable;
+        use automerge::{AutoCommit, ObjType};
+        use autosurgeon::{Hydrate, hydrate};
+
+        let mut doc = AutoCommit::new();
+
+        // TaskStatus from Text
+        let text_id = doc
+            .put_object(automerge::ROOT, "status", ObjType::Text)
+            .unwrap();
+        doc.splice_text(&text_id, 0, 0, "Done").unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct StatusTest {
+            status: TaskStatus,
+        }
+        let res: StatusTest = hydrate(&doc).unwrap();
+        assert_eq!(res.status, TaskStatus::Done);
+
+        // Frequency from Text (Standardize to scalar later)
+        let text_id = doc
+            .put_object(automerge::ROOT, "freq", ObjType::Text)
+            .unwrap();
+        doc.splice_text(&text_id, 0, 0, "weekly").unwrap();
+        #[derive(Hydrate, Debug, PartialEq)]
+        struct FreqTest {
+            #[autosurgeon(rename = "freq")]
+            frequency: Frequency,
+        }
+        let res: FreqTest = hydrate(&doc).unwrap();
+        assert_eq!(res.frequency, Frequency::Weekly);
+    }
+
+    #[derive(Hydrate, Debug, PartialEq)]
+    struct I64Test {
+        #[autosurgeon(hydrate = "hydrate_i64")]
+        val: i64,
+    }
+
+    #[derive(Hydrate, Debug, PartialEq)]
+    struct F64Test {
+        #[autosurgeon(hydrate = "hydrate_f64", rename = "val2")]
+        val: f64,
+    }
+
+    #[test]
+    fn test_numeric_hydration_tolerance() {
+        use automerge::AutoCommit;
+        use automerge::transaction::Transactable;
+        use autosurgeon::hydrate;
+
+        let mut doc = AutoCommit::new();
+
+        // 1. i64 from F64
+        doc.put(automerge::ROOT, "val", 123.45f64).unwrap();
+        let res: I64Test = hydrate(&doc).unwrap();
+        assert_eq!(res.val, 123); // Truncated
+
+        // 2. f64 from Int
+        doc.put(automerge::ROOT, "val2", 456i64).unwrap();
+        let res: F64Test = hydrate(&doc).unwrap();
+        assert_eq!(res.val, 456.0);
+    }
+
+    #[test]
+    fn test_numeric_list_hydration() {
+        use automerge::transaction::Transactable;
+        use automerge::{AutoCommit, ObjType};
+
+        let mut doc = AutoCommit::new();
+        let list_id = doc
+            .put_object(automerge::ROOT, "list", ObjType::List)
+            .unwrap();
+        doc.insert(&list_id, 0, 1.23f64).unwrap();
+        doc.insert(&list_id, 1, 456i64).unwrap();
+
+        // Test direct call with Index
+        let val1 = hydrate_f64(&doc, &list_id, autosurgeon::Prop::Index(0)).unwrap();
+        assert_eq!(val1, 1.23);
+
+        let val2 = hydrate_f64(&doc, &list_id, autosurgeon::Prop::Index(1)).unwrap();
+        assert_eq!(val2, 456.0);
+
+        let val3 = hydrate_i64(&doc, &list_id, autosurgeon::Prop::Index(1)).unwrap();
+        assert_eq!(val3, 456);
+
+        let val4 = hydrate_i64(&doc, &list_id, autosurgeon::Prop::Index(0)).unwrap();
+        assert_eq!(val4, 1); // Truncated
     }
 }
 
