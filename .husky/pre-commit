@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# --- Beads Auto-Sync ---
+if command -v bd >/dev/null 2>&1; then
+  bd hook pre-commit "$@"
+fi
+
 if git rev-parse --verify HEAD >/dev/null 2>&1
 then
         against=HEAD
