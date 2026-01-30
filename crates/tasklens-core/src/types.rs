@@ -44,28 +44,30 @@ pub fn hydrate_string_or_text<D: autosurgeon::ReadDoc>(
     }
 }
 
-/// Hydrates an Option<TaskID> from an Automerge document.
-/// Returns Ok(None) if the property is missing, Ok(Some(TaskID)) if present.
-pub fn hydrate_optional_task_id<D: autosurgeon::ReadDoc>(
+/// Hydrates an `Option<T>` while tolerating both missing keys and null values.
+///
+/// This provides a universal "optional" behavior for struct fields:
+/// 1. If the property is missing from the document, returns `Ok(None)`.
+/// 2. If the property is present but set to `null`, returns `Ok(None)`.
+/// 3. If the property is present and non-null, delegates to `T::hydrate`.
+///
+/// Use this with the `#[autosurgeon(hydrate = "hydrate_option_maybe_missing")]`
+/// attribute on `Option<T>` fields where you want to support both missing and null states.
+pub fn hydrate_option_maybe_missing<D: autosurgeon::ReadDoc, T: Hydrate>(
     doc: &D,
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,
-) -> Result<Option<TaskID>, autosurgeon::HydrateError> {
-    match hydrate_string_or_text(doc, obj, prop) {
-        Ok(s) => Ok(Some(TaskID::from(s))),
-        Err(_) => Ok(None), // Missing or invalid = None
+) -> Result<Option<T>, autosurgeon::HydrateError> {
+    let val = match prop {
+        autosurgeon::Prop::Key(ref k) => doc.get(obj, k.as_ref()),
+        autosurgeon::Prop::Index(i) => doc.get(obj, i as usize),
     }
-}
+    .map_err(|e| autosurgeon::HydrateError::unexpected("get", e.to_string()))?;
 
-/// Hydrates an Option<PlaceID> from an Automerge document.
-pub fn hydrate_optional_place_id<D: autosurgeon::ReadDoc>(
-    doc: &D,
-    obj: &automerge::ObjId,
-    prop: autosurgeon::Prop<'_>,
-) -> Result<Option<PlaceID>, autosurgeon::HydrateError> {
-    match hydrate_string_or_text(doc, obj, prop) {
-        Ok(s) => Ok(Some(PlaceID::from(s))),
-        Err(_) => Ok(None),
+    match val {
+        None => Ok(None),
+        Some((automerge::Value::Scalar(s), _)) if s.as_ref().is_null() => Ok(None),
+        Some(_) => T::hydrate(doc, obj, prop).map(Some),
     }
 }
 
@@ -673,18 +675,6 @@ pub struct RepeatConfig {
     pub interval: i64,
 }
 
-/// Hydrates an Option<RepeatConfig> treating missing values as None.
-pub fn hydrate_optional_repeat_config<D: autosurgeon::ReadDoc>(
-    doc: &D,
-    obj: &automerge::ObjId,
-    prop: autosurgeon::Prop<'_>,
-) -> Result<Option<RepeatConfig>, autosurgeon::HydrateError> {
-    match RepeatConfig::hydrate(doc, obj, prop) {
-        Ok(config) => Ok(Some(config)),
-        Err(_) => Ok(None),
-    }
-}
-
 /// A task as persisted in the Automerge document.
 ///
 /// Uses `extra_fields` with `#[serde(flatten)]` to preserve any
@@ -710,7 +700,7 @@ pub struct PersistedTask {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "parentId",
-        hydrate = "hydrate_optional_task_id",
+        hydrate = "hydrate_option_maybe_missing",
         reconcile = "reconcile_optional_as_maybe_missing"
     )]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
@@ -724,7 +714,7 @@ pub struct PersistedTask {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "placeId",
-        hydrate = "hydrate_optional_place_id",
+        hydrate = "hydrate_option_maybe_missing",
         reconcile = "reconcile_optional_as_maybe_missing"
     )]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
@@ -775,7 +765,7 @@ pub struct PersistedTask {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "repeatConfig",
-        hydrate = "hydrate_optional_repeat_config",
+        hydrate = "hydrate_option_maybe_missing",
         reconcile = "reconcile_optional_as_maybe_missing"
     )]
     pub repeat_config: Option<RepeatConfig>,

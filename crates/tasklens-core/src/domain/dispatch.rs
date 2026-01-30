@@ -7,8 +7,8 @@ use crate::{
     Action, TaskUpdates,
     domain::{doc_bridge, lifecycle, routine_tasks},
     types::{
-        PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_optional_f64,
-        hydrate_optional_i64, hydrate_optional_task_id,
+        PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_option_maybe_missing,
+        hydrate_optional_f64, hydrate_optional_i64,
     },
 };
 
@@ -286,7 +286,7 @@ fn handle_delete_task(doc: &mut (impl Transactable + Doc), id: TaskID) -> Result
     };
 
     let parent_id: Option<TaskID> =
-        hydrate_optional_task_id(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))?;
+        hydrate_option_maybe_missing(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))?;
 
     let child_ids: Vec<TaskID> = match autosurgeon::hydrate_prop(doc, &task_obj_id, "childTaskIds")?
     {
@@ -399,7 +399,7 @@ fn handle_move_task(
     };
 
     let old_parent_id: Option<TaskID> =
-        hydrate_optional_task_id(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))?;
+        hydrate_option_maybe_missing(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))?;
 
     if old_parent_id == new_parent_id {
         return Ok(());
