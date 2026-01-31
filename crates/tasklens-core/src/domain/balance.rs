@@ -52,7 +52,7 @@ pub fn get_balance_data(state: &TunnelState) -> BalanceData {
     get_balance_data_with_time(state, get_current_timestamp())
 }
 
-/// Computes balance data with a specific timestamp (for testing).
+/// Computes balance data with a specific timestamp.
 pub fn get_balance_data_with_time(state: &TunnelState, current_time: i64) -> BalanceData {
     use std::collections::HashMap;
 
@@ -103,9 +103,10 @@ pub fn get_balance_data_with_time(state: &TunnelState, current_time: i64) -> Bal
 
     let mut aggregated_credits: HashMap<TaskID, f64> = HashMap::new();
 
-    let roots: Vec<_> = tasks
-        .values()
-        .filter(|t| t.parent_id.is_none())
+    let roots: Vec<_> = state
+        .root_task_ids
+        .iter()
+        .map(|id| tasks.get(id).unwrap())
         .filter(|t| t.title != "Inbox")
         .collect();
 
