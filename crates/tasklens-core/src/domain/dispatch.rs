@@ -120,7 +120,27 @@ pub fn run_action(doc: &mut (impl Transactable + Doc), action: Action) -> Result
         Action::CompleteTask { id, current_time } => handle_complete_task(doc, id, current_time),
         Action::MoveTask { id, new_parent_id } => handle_move_task(doc, id, new_parent_id),
         Action::RefreshLifecycle { current_time } => handle_refresh_lifecycle(doc, current_time),
+        Action::SetBalanceDistribution { distribution } => {
+            handle_set_balance_distribution(doc, distribution)
+        }
     }
+}
+
+fn handle_set_balance_distribution(
+    doc: &mut (impl Transactable + Doc),
+    distribution: HashMap<TaskID, f64>,
+) -> Result<()> {
+    let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
+
+    for (task_id, desired_credits) in distribution {
+        if let Some((automerge::Value::Object(automerge::ObjType::Map), task_obj_id)) =
+            am_get(doc, &tasks_obj_id, task_id.as_str())?
+        {
+            autosurgeon::reconcile_prop(doc, &task_obj_id, "desiredCredits", desired_credits)
+                .map_err(DispatchError::from)?;
+        }
+    }
+    Ok(())
 }
 
 fn handle_create_task(

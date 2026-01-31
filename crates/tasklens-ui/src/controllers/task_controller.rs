@@ -184,4 +184,9 @@ impl TaskController {
         let action = Action::RefreshLifecycle { current_time };
         let _ = self.dispatch_and_log_error(action, "Failed to refresh lifecycle");
     }
+
+    pub fn set_balance_distribution(&self, distribution: std::collections::HashMap<TaskID, f64>) {
+        let action = Action::SetBalanceDistribution { distribution };
+        let _ = self.dispatch_and_log_error(action, "Failed to set balance distribution");
+    }
 }
