@@ -219,16 +219,59 @@ impl LocalStorage for SamodStorage {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug)]
-pub struct SamodStorage;
+#[allow(clippy::type_complexity)]
+pub struct SamodStorage {
+    data: std::sync::Arc<std::sync::Mutex<HashMap<StorageKey, Vec<u8>>>>,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl SamodStorage {
+    pub fn new(_db_name: &str, _store_name: &str) -> Self {
+        Self {
+            data: std::sync::Arc::new(std::sync::Mutex::new(HashMap::new())),
+        }
+    }
+
+    fn key_to_string(key: &StorageKey) -> String {
+        let parts: Vec<&str> = key.into_iter().map(|s| s.as_str()).collect();
+        format!("/{}", parts.join("/"))
+    }
+}
 
 #[cfg(not(target_arch = "wasm32"))]
 impl LocalStorage for SamodStorage {
-    async fn load(&self, _key: StorageKey) -> Option<Vec<u8>> {
-        None
+    async fn load(&self, key: StorageKey) -> Option<Vec<u8>> {
+        let data = self.data.lock().unwrap();
+        data.get(&key).cloned()
     }
-    async fn put(&self, _key: StorageKey, _data: Vec<u8>) -> () {}
-    async fn delete(&self, _key: StorageKey) -> () {}
-    async fn load_range(&self, _prefix: StorageKey) -> HashMap<StorageKey, Vec<u8>> {
-        HashMap::new()
+
+    async fn put(&self, key: StorageKey, val: Vec<u8>) -> () {
+        let mut data = self.data.lock().unwrap();
+        data.insert(key, val);
+    }
+
+    async fn delete(&self, key: StorageKey) -> () {
+        let mut data = self.data.lock().unwrap();
+        data.remove(&key);
+    }
+
+    async fn load_range(&self, prefix: StorageKey) -> HashMap<StorageKey, Vec<u8>> {
+        let data = self.data.lock().unwrap();
+        let mut results = HashMap::new();
+        // Naive implementation, key prefix matching
+        // Since StorageKey is a list of strings, we need to check if it "starts with" the prefix parts
+        // This is a bit tricky with strict equality, but assuming standard layout:
+
+        for (k, v) in data.iter() {
+            // We can convert to string keys for prefix matching if we follow the same convention as wasm
+            // Or just implement prefix matching on the vector of strings
+            let k_str = Self::key_to_string(k);
+            let prefix_str = Self::key_to_string(&prefix);
+
+            if k_str.starts_with(&prefix_str) {
+                results.insert(k.clone(), v.clone());
+            }
+        }
+        results
     }
 }
