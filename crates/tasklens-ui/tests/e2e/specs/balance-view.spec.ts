@@ -48,11 +48,11 @@ test.describe("Balance View", () => {
     await I.Then.balanceItemIsVisible("Health");
     await I.Then.balanceItemIsVisible("Career");
 
-    // Set Career's desired credits much higher than Health's
-    // Health default: 1.0, Career: set to 9.0
-    // This makes Career's TargetPercent = 9/(1+9) = 90%
+    // Set Career's target percentage much higher than Health's
+    // The slider accepts percentages in the range 0.01-1.0
+    // Career: set to 0.9 (90%), Health will be automatically reduced to ~0.1 (10%)
     // With no credits earned yet, Career is "starving" and gets boosted
-    await I.When.adjustsDesiredCredits("Career", 9.0);
+    await I.When.adjustsDesiredCredits("Career", 0.9);
 
     // Verify Career is now marked as starving (wants 90% but has ~50%)
     await I.Then.balanceItemIsStarving("Career");
@@ -72,10 +72,11 @@ test.describe("Balance View", () => {
     await I.When.createTask("Career");
     await I.When.addsChild("Career", "Team Meeting");
 
-    // Set equal desired credits
+    // Set equal target percentages (each at 50%)
+    // The slider accepts percentages in the range 0.01-1.0
     await I.When.switchToBalanceView();
-    await I.When.adjustsDesiredCredits("Health", 5.0);
-    await I.When.adjustsDesiredCredits("Career", 5.0);
+    await I.When.adjustsDesiredCredits("Health", 0.5);
+    await I.When.adjustsDesiredCredits("Career", 0.5);
 
     // Initially both are "starving" because no credits have been earned yet
     // (actual_percent = 0, target_percent = 0.5, so actual < target)
