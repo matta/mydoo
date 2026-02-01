@@ -28,6 +28,9 @@ getrandom = { workspace = true }
 # Crypto dependencies
 bs58 = { version = "0.5.1", features = ["check"] }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { version = "1", features = ["rt", "macros", "rt-multi-thread"] }
+
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom.workspace = true
 rexie = "0.6.2"

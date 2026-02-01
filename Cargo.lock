@@ -5177,6 +5177,7 @@ dependencies = [
  "sha2 0.10.9",
  "tasklens-core",
  "tasklens-store",
+ "tokio",
  "tracing",
  "wasm-bindgen",
  "wasm-bindgen-futures",
