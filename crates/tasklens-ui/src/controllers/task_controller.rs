@@ -67,6 +67,16 @@ impl TaskController {
         );
     }
 
+    pub fn update_desired_credits(&self, id: TaskID, desired_credits: f64) {
+        self.update(
+            id,
+            TaskUpdates {
+                desired_credits: Some(desired_credits),
+                ..Default::default()
+            },
+        );
+    }
+
     pub fn delete(&self, id: TaskID) {
         let action = Action::DeleteTask { id };
         let _ = self.dispatch_and_log_error(action, "Failed to delete task");
@@ -173,5 +183,10 @@ impl TaskController {
         let current_time = chrono::Utc::now().timestamp_millis();
         let action = Action::RefreshLifecycle { current_time };
         let _ = self.dispatch_and_log_error(action, "Failed to refresh lifecycle");
+    }
+
+    pub fn set_balance_distribution(&self, distribution: std::collections::HashMap<TaskID, f64>) {
+        let action = Action::SetBalanceDistribution { distribution };
+        let _ = self.dispatch_and_log_error(action, "Failed to set balance distribution");
     }
 }

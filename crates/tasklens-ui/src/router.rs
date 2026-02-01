@@ -1,4 +1,5 @@
 use crate::components::app_navbar::AppNavBar;
+use crate::views::balance_page::BalancePage;
 use crate::views::do_page::DoPage;
 use crate::views::plan_page::PlanPage;
 use crate::views::task_page::TaskPage;
@@ -22,7 +23,7 @@ pub(crate) enum Route {
     DoPage {},
 
     #[route("/balance")]
-    Balance {}, // Placeholder
+    BalancePage {},
 
     #[end_layout]
     #[route("/:..route")]
@@ -33,14 +34,6 @@ pub(crate) enum Route {
 fn PageNotFound(route: Vec<String>) -> Element {
     rsx! {
         div { "Page not found: {route:?}" }
-    }
-}
-
-// Temporary placeholders if pages don't exist yet
-#[component]
-fn Balance() -> Element {
-    rsx! {
-        div { "Balance View (Coming Soon)" }
     }
 }
 

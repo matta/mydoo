@@ -269,6 +269,15 @@ export class Steps {
       await this.plan.setNotes(notes);
       await this.plan.closeEditor();
     },
+
+    // Balance View
+    switchToBalanceView: async () => {
+      await this.plan.switchToBalanceView();
+    },
+
+    adjustsDesiredCredits: async (title: string, value: number) => {
+      await this.plan.setDesiredCredits(title, value);
+    },
   };
 
   public Then = {
@@ -389,6 +398,50 @@ export class Steps {
       await this.plan.openTaskEditor(title);
       await this.plan.verifyNotes(notes);
       await this.plan.closeEditor();
+    },
+
+    // Balance View
+    balanceItemIsVisible: async (title: string) => {
+      await this.plan.verifyBalanceItemVisible(title);
+    },
+
+    balanceItemHasStatus: async (
+      title: string,
+      status: "Starving" | "Balanced",
+    ) => {
+      await this.plan.verifyBalanceStatus(title, status);
+    },
+
+    balanceItemIsStarving: async (title: string) => {
+      await this.plan.verifyBalanceItemStarving(title, true);
+    },
+
+    balanceItemIsBalanced: async (title: string) => {
+      await this.plan.verifyBalanceItemStarving(title, false);
+    },
+
+    balanceViewIsEmpty: async () => {
+      const count = await this.plan.getBalanceItemCount();
+      expect(count).toBe(0);
+      await expect(this.page.getByText("No goals to balance.")).toBeVisible();
+    },
+
+    balanceItemCount: async (expected: number) => {
+      const count = await this.plan.getBalanceItemCount();
+      expect(count).toBe(expected);
+    },
+
+    // Task ordering in Do view
+    taskAppearsBeforeInDoList: async (
+      firstTask: string,
+      secondTask: string,
+    ) => {
+      await this.plan.verifyTaskAppearsBeforeInDoList(firstTask, secondTask);
+    },
+
+    taskIsAtPosition: async (title: string, position: number) => {
+      const actualPosition = await this.plan.getTaskPosition(title);
+      expect(actualPosition).toBe(position);
     },
   };
 }
