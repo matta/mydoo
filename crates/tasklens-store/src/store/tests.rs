@@ -998,7 +998,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                             "priorityTimestamp" => { 0 },
                             "repeatConfig" => {
                                 map! {
-                                    "frequency" => { am_text("daily") },
+                                    "frequency" => { "daily" },
                                     "interval" => { 1 }
                                 }
                             },
@@ -1059,7 +1059,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                             "priorityTimestamp" => { 0 },
                             "repeatConfig" => {
                                 map! {
-                                    "frequency" => { am_text("daily") },
+                                    "frequency" => { "daily" },
                                     "interval" => { 1 }
                                 }
                             },

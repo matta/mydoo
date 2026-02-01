@@ -286,32 +286,32 @@ When the algorithm requires the value of a property for Task $T$:
 
 ### 5.1 Credit Attribution (Task Completion)
 
-Completion of a task generates credit which propagates upwards from the task to
-the hierarchy root. This process converts the task's potential value
-(`CreditIncrement`) into historical effort (`Credits`) on the task and all its
-ancestors.
+Completion of a task generates credit which is attributed directly to the
+completed task. Ancestors reflect this historical effort through runtime
+aggregation of `EffectiveCredits`.
 
 **Trigger:** User marks Task C as complete.
 
 **Procedure:**
 
-1.  **Identify Ancestors:** Identify the path from Task C to the Root.
-    `Path = [Task C, Parent(C), ..., Root]`
-
-2.  **Bring History to Present:** Before adding new credit, apply pending decay
-    to the existing `Credits` of every node in the Path. This ensures the
-    current balance correctly reflects the passage of time (decay) up to the
-    present moment before new credit is added.
+1.  **Bring History to Present:** Before adding new credit, apply pending decay
+    to the existing `Credits` of Task C. This ensures the current balance
+    correctly reflects the passage of time (decay) up to the present moment
+    before new credit is added.
 
     **Decay Formula:**
     `EffectiveCredits = Credits * (0.5 ^ ((CurrentTime - CreditsTimestamp) / HalfLife))`
     _(Default HalfLife = 7 Days)_
 
-3.  **Accrue Credit:** Add the task's `CreditIncrement` to the decayed `Credits`
-    of every node `N` in the Path. `N.Credits = N.Credits + C.CreditIncrement`
+2.  **Accrue Credit:** Add the task's `CreditIncrement` to the decayed `Credits`
+    of Task C. `C.Credits = C.Credits + C.CreditIncrement`
 
-4.  **Checkpoint Time:** Update `CreditsTimestamp` to `CurrentSystemTime` for
-    every node `N` in the Path.
+3.  **Checkpoint Time:** Update `CreditsTimestamp` to `CurrentSystemTime` for
+    Task C.
+
+4.  **Ancestor Aggregation (Runtime):** Ancestors do NOT store propagated
+    credits. Instead, their `EffectiveCredits` property aggregates the
+    `EffectiveCredits` of all descendants during the prioritization cycle.
 
 5.  **Recurring Tasks:** Recurring tasks maintain a persistent `Credits`
     balance. Completing an instance adds to this running total; it does not

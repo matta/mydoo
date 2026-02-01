@@ -254,6 +254,7 @@ pub(super) fn any_place_id() -> impl Strategy<Value = PlaceID> {
 prop_compose! {
     pub(super) fn any_task_updates()(
         title in any::<Option<String>>(),
+        notes in any::<Option<String>>(),
         status in any::<Option<TaskStatus>>(),
         place_id in any::<Option<Option<PlaceID>>>(),
         due_date in any::<Option<Option<i64>>>(),
@@ -271,6 +272,7 @@ prop_compose! {
     ) -> TaskUpdates {
         TaskUpdates {
             title,
+            notes,
             status,
             place_id,
             due_date,

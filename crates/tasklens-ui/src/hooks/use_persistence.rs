@@ -14,7 +14,7 @@ pub fn use_persistence(
         tracing::debug!("use_persistence: hook initialized");
         loop {
             // Poll every 100ms
-            gloo_timers::future::TimeoutFuture::new(100).await;
+            crate::utils::async_utils::sleep(100).await;
 
             let handle_opt = store.read().handle.clone();
 

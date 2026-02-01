@@ -32,10 +32,10 @@ test.afterEach(async ({ page }, testInfo) => {
 
     // 1. Accessibility Tree (The Semantic Truth)
     try {
-      const snapshot = await page.accessibility.snapshot();
-      console.log('--- ACCESSIBILITY TREE ---');
-      console.log(JSON.stringify(snapshot, null, 2));
-    } catch (e) { console.log('A11y snapshot failed:', e); }
+      const snapshot = await page.locator('body').ariaSnapshot();
+      console.log('--- ACCESSIBILITY TREE (ARIA SNAPSHOT) ---');
+      console.log(snapshot); // ariaSnapshot returns YAML string
+    } catch (e) { console.log('ARIA snapshot failed:', e); }
 
     // 2. Console Logs (The Internal Truth)
     // Note: Ensure you have page.on('console', ...) listeners set up in beforeEach

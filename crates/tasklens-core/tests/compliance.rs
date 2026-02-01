@@ -231,7 +231,7 @@ impl ComplianceStore {
 
 #[test]
 fn test_compliance() -> Result<()> {
-    let fixtures_pattern = "../../packages/tasklens/specs/compliance/fixtures/*.yaml";
+    let fixtures_pattern = "tests/compliance/fixtures/*.yaml";
     let mut files_found = Vec::new();
 
     for entry in glob(fixtures_pattern)? {
@@ -245,8 +245,9 @@ fn test_compliance() -> Result<()> {
         "boost-lead-time.feature.yaml",
         "completion-acknowledgement.feature.yaml",
         "complex-mutation.feature.yaml",
+        "container-visibility.feature.yaml",
+        "credit-attribution-aggregation.feature.yaml",
         "credit-attribution.feature.yaml",
-        "credit-propagation.feature.yaml",
         "decay.feature.yaml",
         "due_dates.feature.yaml",
         "deletion.feature.yaml",
@@ -266,6 +267,7 @@ fn test_compliance() -> Result<()> {
         "thermostat.feature.yaml",
         "tree-order-id-conflict.feature.yaml",
         "tree-order.feature.yaml",
+        "task-update-fields.feature.yaml",
         "visibility-place-filtering.feature.yaml",
         "weight.feature.yaml",
         "zero-feedback.feature.yaml",
@@ -281,7 +283,7 @@ fn test_compliance() -> Result<()> {
     );
 
     for file in &files_found {
-        let mut path = PathBuf::from("../../packages/tasklens/specs/compliance/fixtures/");
+        let mut path = PathBuf::from("tests/compliance/fixtures/");
         path.push(file);
         println!("Running compliance test: {:?}", path);
         run_feature_test(path)?;

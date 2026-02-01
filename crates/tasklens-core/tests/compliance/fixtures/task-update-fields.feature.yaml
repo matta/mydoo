@@ -1,0 +1,24 @@
+feature: "Task Update Fields Persistence"
+description: >
+  Verifies that importance and credit_increment updates are correctly persisted
+  via the UpdateTask action and reflected in subsequent state hydrations.
+background:
+  current_time: "2025-01-01T12:00:00Z"
+  tasks:
+    - id: TargetTask
+      title: "Original Title"
+      importance: 0.5
+      credit_increment: 0.5
+scenarios:
+  - name: "Update importance and credit_increment"
+    steps:
+      - when:
+          task_updates:
+            - id: TargetTask
+              importance: 0.75
+              credit_increment: 0.8
+        then:
+          expected_props:
+            - id: TargetTask
+              importance: 0.75
+              credit_increment: 0.8

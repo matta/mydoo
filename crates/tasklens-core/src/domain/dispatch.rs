@@ -7,8 +7,8 @@ use crate::{
     Action, TaskUpdates,
     domain::{doc_bridge, lifecycle, routine_tasks},
     types::{
-        PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_optional_f64,
-        hydrate_optional_i64, hydrate_optional_task_id,
+        PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_option_maybe_missing,
+        hydrate_optional_f64, hydrate_optional_i64,
     },
 };
 
@@ -120,7 +120,27 @@ pub fn run_action(doc: &mut (impl Transactable + Doc), action: Action) -> Result
         Action::CompleteTask { id, current_time } => handle_complete_task(doc, id, current_time),
         Action::MoveTask { id, new_parent_id } => handle_move_task(doc, id, new_parent_id),
         Action::RefreshLifecycle { current_time } => handle_refresh_lifecycle(doc, current_time),
+        Action::SetBalanceDistribution { distribution } => {
+            handle_set_balance_distribution(doc, distribution)
+        }
     }
+}
+
+fn handle_set_balance_distribution(
+    doc: &mut (impl Transactable + Doc),
+    distribution: HashMap<TaskID, f64>,
+) -> Result<()> {
+    let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
+
+    for (task_id, desired_credits) in distribution {
+        if let Some((automerge::Value::Object(automerge::ObjType::Map), task_obj_id)) =
+            am_get(doc, &tasks_obj_id, task_id.as_str())?
+        {
+            autosurgeon::reconcile_prop(doc, &task_obj_id, "desiredCredits", desired_credits)
+                .map_err(DispatchError::from)?;
+        }
+    }
+    Ok(())
 }
 
 fn handle_create_task(
@@ -207,6 +227,10 @@ fn handle_update_task(
         autosurgeon::reconcile_prop(doc, &task_obj_id, "title", title)
             .map_err(DispatchError::from)?;
     }
+    if let Some(notes) = updates.notes {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "notes", notes)
+            .map_err(DispatchError::from)?;
+    }
     if let Some(status) = updates.status {
         autosurgeon::reconcile_prop(doc, &task_obj_id, "status", status)
             .map_err(DispatchError::from)?;
@@ -286,7 +310,7 @@ fn handle_delete_task(doc: &mut (impl Transactable + Doc), id: TaskID) -> Result
     };
 
     let parent_id: Option<TaskID> =
-        hydrate_optional_task_id(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))?;
+        hydrate_option_maybe_missing(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))?;
 
     let child_ids: Vec<TaskID> = match autosurgeon::hydrate_prop(doc, &task_obj_id, "childTaskIds")?
     {
@@ -353,57 +377,29 @@ fn handle_complete_task(
     )?;
     let increment_val = credit_increment.unwrap_or(0.5);
 
-    // 2. Build Ancestor Path (Target -> Root)
-    let mut path: Vec<automerge::ObjId> = Vec::new();
-    let mut current_obj = target_obj_id.clone();
-    let mut loop_safety = 0;
+    // 3. Update Credits (Target Only)
+    let credits: f64 = hydrate_f64(
+        doc,
+        &target_obj_id,
+        autosurgeon::Prop::Key("credits".into()),
+    )?;
+    let credits_timestamp: i64 = hydrate_optional_i64(
+        doc,
+        &target_obj_id,
+        autosurgeon::Prop::Key("creditsTimestamp".into()),
+    )?
+    .unwrap_or(0);
 
-    loop {
-        path.push(current_obj.clone());
+    let time_delta_ms = current_time.saturating_sub(credits_timestamp) as f64;
+    let decay_factor = 0.5_f64.powf(time_delta_ms / CREDITS_HALF_LIFE_MS);
+    let decayed_credits = credits * decay_factor;
 
-        let parent_id_opt: Option<TaskID> =
-            hydrate_optional_task_id(doc, &current_obj, autosurgeon::Prop::Key("parentId".into()))?;
+    let new_credits = decayed_credits + increment_val;
 
-        if let Some(pid) = parent_id_opt {
-            match am_get(doc, &tasks_obj_id, pid.as_str())? {
-                Some((automerge::Value::Object(automerge::ObjType::Map), p_obj)) => {
-                    current_obj = p_obj;
-                }
-                _ => break, // Parent missing (Consistency error handled by treating as root)
-            }
-        } else {
-            break; // Reached root
-        }
-
-        loop_safety += 1;
-        if loop_safety > 100 {
-            return Err(DispatchError::Internal(
-                "Cycle detected or recursion limit exceeded during credit propagation".into(),
-            ));
-        }
-    }
-
-    // 3. Propagate Credits (Decay + Increment)
-    for obj_id in path {
-        let credits: f64 = hydrate_f64(doc, &obj_id, autosurgeon::Prop::Key("credits".into()))?;
-        let credits_timestamp: i64 = hydrate_optional_i64(
-            doc,
-            &obj_id,
-            autosurgeon::Prop::Key("creditsTimestamp".into()),
-        )?
-        .unwrap_or(0);
-
-        let time_delta_ms = current_time.saturating_sub(credits_timestamp) as f64;
-        let decay_factor = 0.5_f64.powf(time_delta_ms / CREDITS_HALF_LIFE_MS);
-        let decayed_credits = credits * decay_factor;
-
-        let new_credits = decayed_credits + increment_val;
-
-        autosurgeon::reconcile_prop(doc, &obj_id, "credits", new_credits)
-            .map_err(DispatchError::from)?;
-        autosurgeon::reconcile_prop(doc, &obj_id, "creditsTimestamp", current_time)
-            .map_err(DispatchError::from)?;
-    }
+    autosurgeon::reconcile_prop(doc, &target_obj_id, "credits", new_credits)
+        .map_err(DispatchError::from)?;
+    autosurgeon::reconcile_prop(doc, &target_obj_id, "creditsTimestamp", current_time)
+        .map_err(DispatchError::from)?;
 
     // 4. Update Status (Target Only)
     autosurgeon::reconcile_prop(doc, &target_obj_id, "status", TaskStatus::Done)
@@ -427,7 +423,7 @@ fn handle_move_task(
     };
 
     let old_parent_id: Option<TaskID> =
-        hydrate_optional_task_id(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))?;
+        hydrate_option_maybe_missing(doc, &task_obj_id, autosurgeon::Prop::Key("parentId".into()))?;
 
     if old_parent_id == new_parent_id {
         return Ok(());

@@ -135,6 +135,7 @@ pub fn TaskEditor(
                     id,
                     TaskUpdates {
                         title: Some(d.title),
+                        notes: Some(d.notes),
                         status: Some(d.status),
                         place_id: Some(d.place_id),
                         due_date: Some(d.schedule.due_date),
@@ -142,12 +143,16 @@ pub fn TaskEditor(
                         lead_time: Some(d.schedule.lead_time),
                         repeat_config: Some(d.repeat_config),
                         is_sequential: Some(d.is_sequential),
+                        importance: Some(d.importance),
+                        credit_increment: d.credit_increment,
                         ..Default::default()
                     },
                 );
             } else if let Some(id) =
                 task_controller.create(initial_parent_id.clone(), d.title.clone())
             {
+                // TODO: it seems weird to call a handler here and then update the task
+                // immediately after.
                 if let Some(handler) = on_task_created.as_ref() {
                     handler.call(id.clone());
                 }
@@ -156,6 +161,7 @@ pub fn TaskEditor(
                     id,
                     TaskUpdates {
                         title: Some(d.title),
+                        notes: Some(d.notes),
                         status: Some(d.status),
                         place_id: Some(d.place_id),
                         due_date: Some(d.schedule.due_date),
@@ -163,6 +169,8 @@ pub fn TaskEditor(
                         lead_time: Some(d.schedule.lead_time),
                         repeat_config: Some(d.repeat_config),
                         is_sequential: Some(d.is_sequential),
+                        importance: Some(d.importance),
+                        credit_increment: d.credit_increment,
                         ..Default::default()
                     },
                 );
@@ -523,8 +531,13 @@ pub fn TaskEditor(
 
                     // Notes
                     div {
-                        label { class: "block text-base font-medium", "Notes" }
+                        label {
+                            class: "block text-base font-medium",
+                            r#for: "notes-input",
+                            "Notes"
+                        }
                         textarea {
+                            id: "notes-input",
                             class: "w-full border rounded p-3 text-base",
                             rows: 4,
                             value: current_draft.notes.clone(),
