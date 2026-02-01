@@ -3,8 +3,8 @@ use tasklens_store::store::AppStore;
 
 pub fn use_persistence(
     store: Signal<AppStore>,
-    mut memory_heads: Signal<String>,
-    mut persisted_heads: Signal<String>,
+    mut memory_heads: crate::MemoryHeads,
+    mut persisted_heads: crate::PersistedHeads,
 ) {
     // Removed use_context calls as we now accept signals directly to avoid context resolution issues
     // in the root component.
@@ -37,6 +37,11 @@ pub fn use_persistence(
 
                 // Update memory heads and persisted heads
                 if current_mem != heads {
+                    // TODO: It is silly: there is no functional difference
+                    // between memory_heads and persisted_heads. We can get rid
+                    // of one of them. The original point was to track the
+                    // in-memory doc and the persisted doc so we could update UI
+                    // when pending changes were comitted.
                     memory_heads.set(heads.clone());
                     persisted_heads.set(heads);
                 }
