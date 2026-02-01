@@ -5108,6 +5108,7 @@ dependencies = [
  "serde_yaml_ng",
  "tasklens-core",
  "thiserror 2.0.18",
+ "tracing",
  "uuid",
  "wasm-bindgen",
 ]

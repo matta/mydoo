@@ -69,4 +69,4 @@ bd update <ISSUE_ID> --title "New Title"
 ## Troubleshooting
 
 -   If a command fails, check `bd --help`.
--   If you cannot find an issue you just thought you created, check for exit codes of `1` in previous commands.
+-   If you cannot find an issue you just thought you created, check the exit codes of previous commands.
