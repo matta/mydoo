@@ -20,7 +20,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     use_effect(move || {
         if highlighted_task_id().is_some() {
             spawn(async move {
-                gloo_timers::future::TimeoutFuture::new(2000).await;
+                crate::utils::async_utils::sleep(2000).await;
                 highlighted_task_id.set(None);
             });
         }

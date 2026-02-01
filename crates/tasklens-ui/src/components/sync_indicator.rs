@@ -1,17 +1,47 @@
 use crate::components::Button;
 use crate::components::button::ButtonVariant;
-use crate::hooks::use_sync::{SYNC_SERVER_URL_KEY, SyncStatus};
+#[cfg(target_arch = "wasm32")]
+use crate::hooks::use_sync::SYNC_SERVER_URL_KEY;
+use crate::hooks::use_sync::SyncStatus;
 use dioxus::prelude::*;
+#[cfg(target_arch = "wasm32")]
 use gloo_storage::{LocalStorage, Storage};
+
+fn get_sync_url() -> String {
+    #[cfg(target_arch = "wasm32")]
+    {
+        LocalStorage::get::<String>(SYNC_SERVER_URL_KEY)
+            .unwrap_or_else(|_| "ws://localhost:3000/sync".to_string())
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        "ws://localhost:3000/sync".to_string()
+    }
+}
+
+fn set_sync_url(url: &str) {
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = LocalStorage::set(SYNC_SERVER_URL_KEY, url);
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        tracing::warn!("Sync URL settings not persisted on desktop: {}", url);
+    }
+}
+
+fn reload_application() {
+    #[cfg(target_arch = "wasm32")]
+    if let Some(window) = web_sys::window() {
+        let _ = window.location().reload();
+    }
+}
 
 #[component]
 pub fn SyncIndicator() -> Element {
     let sync_status = use_context::<Signal<SyncStatus>>();
     let mut show_settings = use_signal(|| false);
-    let mut url_input = use_signal(|| {
-        LocalStorage::get::<String>(SYNC_SERVER_URL_KEY)
-            .unwrap_or_else(|_| "ws://localhost:3000/sync".to_string())
-    });
+    let mut url_input = use_signal(get_sync_url);
 
     let (color, text) = match sync_status() {
         SyncStatus::Disconnected => ("bg-gray-400", "Disconnected"),
@@ -30,9 +60,7 @@ pub fn SyncIndicator() -> Element {
                 onclick: move |_| {
                     let new_state = !show_settings();
                     if new_state {
-                        let stored = LocalStorage::get::<String>(SYNC_SERVER_URL_KEY)
-                            .unwrap_or_else(|_| "ws://localhost:3000/sync".to_string());
-                        url_input.set(stored);
+                        url_input.set(get_sync_url());
                     }
                     show_settings.set(new_state);
                 },
@@ -60,13 +88,11 @@ pub fn SyncIndicator() -> Element {
                                 variant: ButtonVariant::Primary,
                                 class: "flex-1 text-sm py-2",
                                 onclick: move |_| {
-                                    let _ = LocalStorage::set(SYNC_SERVER_URL_KEY, url_input());
+                                    set_sync_url(&url_input());
                                     show_settings.set(false);
                                     // Reload to reconnect with new URL
                                     // In a better implementation, the hook would watch this.
-                                    if let Some(window) = web_sys::window() {
-                                        let _ = window.location().reload();
-                                    }
+                                    reload_application();
                                 },
                                 "Save & Reconnect"
                             }
