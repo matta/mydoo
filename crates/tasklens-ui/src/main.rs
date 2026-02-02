@@ -17,11 +17,9 @@ pub mod views;
 use crate::router::Route;
 use tasklens_store::store::AppStore;
 
-#[cfg(target_arch = "wasm32")]
 use samod::RepoBuilder;
 #[cfg(target_arch = "wasm32")]
 use tasklens_store::samod_runtime::WasmRuntime;
-#[cfg(target_arch = "wasm32")]
 use tasklens_store::samod_storage::SamodStorage;
 use tasklens_store::storage::ActiveDocStorage;
 
@@ -201,6 +199,19 @@ fn App() -> Element {
             let repo = RepoBuilder::new(runtime)
                 .with_storage(storage)
                 // TODO: Set announce policy if needed
+                .load_local()
+                .await;
+
+            store.write().repo = Some(repo);
+        }
+
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let runtime = crate::utils::dioxus_runtime::DioxusRuntime;
+            // In-memory storage for desktop (persists only for session duration)
+            let storage = SamodStorage::new("tasklens_samod", "documents");
+            let repo = RepoBuilder::new(runtime)
+                .with_storage(storage)
                 .load_local()
                 .await;
 

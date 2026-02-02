@@ -27,6 +27,9 @@ pub enum Action {
     RefreshLifecycle {
         current_time: i64,
     },
+    SetBalanceDistribution {
+        distribution: std::collections::HashMap<TaskID, f64>,
+    },
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

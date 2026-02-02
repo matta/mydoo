@@ -45,6 +45,9 @@ pub(super) fn dispatch_and_validate(doc: &mut Automerge, action: Action, context
 }
 
 pub(super) fn check_invariants(doc: &Automerge, strategy: HydrationStrategy) -> Result<(), String> {
+    // 0. Count tasks before healing to prevent adversarial healing that deletes tasks
+    let raw_task_count = tasklens_core::domain::doc_bridge::count_tasks(doc);
+
     // 1. Hydrate according to strategy
     let state: TunnelState = match strategy {
         HydrationStrategy::Strict => {
@@ -74,6 +77,15 @@ pub(super) fn check_invariants(doc: &Automerge, strategy: HydrationStrategy) -> 
             }
         }
     };
+
+    // 2. Verify healing did not delete any tasks
+    if state.tasks.len() != raw_task_count {
+        return Err(format!(
+            "Task count mismatch: healing changed task count from {} to {} (healing must not delete tasks)",
+            raw_task_count,
+            state.tasks.len()
+        ));
+    }
 
     // 3. Structural Integrity & Cycle Detection
     let mut seen_in_lists = std::collections::HashSet::with_capacity(state.tasks.len());

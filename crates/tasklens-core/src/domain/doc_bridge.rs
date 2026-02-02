@@ -1,4 +1,5 @@
 use automerge::transaction::Transactable;
+use automerge::{ObjType, ROOT};
 use autosurgeon::{Hydrate, HydrateError, ReadDoc, ReconcileError};
 
 use crate::types::TunnelState;
@@ -59,6 +60,20 @@ pub fn reconcile_tunnel_state<T: Transactable + autosurgeon::Doc>(
     autosurgeon::reconcile_prop(doc, &automerge::ROOT, "metadata", metadata_mm)?;
 
     Ok(())
+}
+
+/// Counts tasks in the document without hydrating their contents.
+///
+/// This is an efficient O(n) key-count operation that avoids
+/// deserializing all task data. Used to verify healing doesn't delete tasks.
+pub fn count_tasks(doc: &impl automerge::ReadDoc) -> usize {
+    let Some((automerge::Value::Object(ObjType::Map), tasks_obj_id)) =
+        doc.get(ROOT, "tasks").ok().flatten()
+    else {
+        return 0;
+    };
+
+    doc.keys(&tasks_obj_id).count()
 }
 
 /// Field names for PersistedTask in the Automerge document.

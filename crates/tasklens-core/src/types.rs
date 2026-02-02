@@ -8,7 +8,7 @@ use autosurgeon::{Hydrate, Reconcile};
 use serde::{Deserialize, Serialize};
 pub use serde_json::json;
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
 pub fn hydrate_string_or_text<D: autosurgeon::ReadDoc>(
@@ -1136,6 +1136,9 @@ impl TunnelState {
     ///    *Healing*: The `parent_id` is treated as the source of truth. The task is
     ///    removed from any "incorrect" lists and ensured to be present in its
     ///    designated parent's list (or roots), preserving existing order.
+    /// 4. **Cycles**: Concurrent moves can create cycles (e.g., A→B and B→A).
+    ///    *Healing*: We detect unreachable tasks by walking from roots and break
+    ///    cycles by promoting one task to root.
     pub fn heal_structural_inconsistencies(&mut self) {
         // 0. Deduplicate lists (keeping first occurrence) to fix duplicate ID regression
         // This handles cases where concurrent merges might insert the same ID multiple times.
@@ -1207,6 +1210,48 @@ impl TunnelState {
                 }
             } else if !self.root_task_ids.contains(&id) {
                 self.root_task_ids.push(id);
+            }
+        }
+
+        // 5. Detect and break cycles by finding tasks unreachable from roots
+        // Concurrent moves (e.g., A→B on one replica, B→A on another) can create
+        // closed loops that are disconnected from the root hierarchy.
+        let mut reachable = std::collections::HashSet::with_capacity(self.tasks.len());
+        let mut stack: Vec<TaskID> = self.root_task_ids.clone();
+        while let Some(id) = stack.pop() {
+            if reachable.insert(id.clone())
+                && let Some(task) = self.tasks.get(&id)
+            {
+                stack.extend(task.child_task_ids.iter().cloned());
+            }
+        }
+
+        // For any unreachable tasks, break the cycle by clearing parent_id
+        // and adding them to roots. Process in sorted order for determinism.
+        let mut unreachable: Vec<_> = self
+            .tasks
+            .keys()
+            .filter(|id| !reachable.contains(*id))
+            .cloned()
+            .collect();
+        unreachable.sort_unstable_by(|a, b| a.as_str().cmp(b.as_str()));
+
+        if !unreachable.is_empty() {
+            let mut root_task_ids: HashSet<TaskID> = self.root_task_ids.iter().cloned().collect();
+            for id in unreachable {
+                // Remove from old parent's child list
+                if let Some(parent_id) = self.tasks.get(&id).and_then(|t| t.parent_id.clone())
+                    && let Some(parent) = self.tasks.get_mut(&parent_id)
+                {
+                    parent.child_task_ids.retain(|child_id| *child_id != id);
+                }
+                // Clear parent_id and add to roots
+                if let Some(task) = self.tasks.get_mut(&id) {
+                    task.parent_id = None;
+                }
+                if root_task_ids.insert(id.clone()) {
+                    self.root_task_ids.push(id);
+                }
             }
         }
     }
@@ -1492,8 +1537,7 @@ pub mod test_strategies {
 ///
 /// This is a projection type computed from `EnrichedTask` data for root tasks only.
 /// It provides the view layer with pre-computed percentages for display.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BalanceItem {
     /// The task ID of the root goal.
     pub id: TaskID,
@@ -1511,14 +1555,38 @@ pub struct BalanceItem {
     pub desired_credits: f64,
     /// The raw effective_credits value for display.
     pub effective_credits: f64,
+    /// Optional preview percentage for redistribution UI.
+    pub preview_percent: Option<f64>,
 }
 
 /// Result of projecting balance data from enriched tasks.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BalanceData {
     /// List of balance items, one per root goal (excluding Inbox).
     pub items: Vec<BalanceItem>,
     /// Sum of all effective_credits across root goals.
     pub total_credits: f64,
+}
+
+impl BalanceData {
+    /// Returns a map of current target percentages for redistribution.
+    pub fn get_percentage_map(&self) -> HashMap<TaskID, f64> {
+        self.items
+            .iter()
+            .map(|i| (i.id.clone(), i.target_percent))
+            .collect()
+    }
+
+    /// Merges current balance data with a preview percentage map.
+    pub fn apply_previews(&self, previews: &Option<HashMap<TaskID, f64>>) -> Vec<BalanceItem> {
+        self.items
+            .iter()
+            .map(|item| {
+                let preview_percent = previews.as_ref().and_then(|m| m.get(&item.id).copied());
+                let mut new_item = item.clone();
+                new_item.preview_percent = preview_percent;
+                new_item
+            })
+            .collect()
+    }
 }

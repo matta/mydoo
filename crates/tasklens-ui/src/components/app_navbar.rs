@@ -51,7 +51,7 @@ pub fn AppNavBar() -> Element {
                 NavbarItem {
                     index: active_index,
                     value: 2usize,
-                    to: Route::Balance {},
+                    to: Route::BalancePage {},
                     "Balance"
                 }
             }
