@@ -30,6 +30,12 @@ pub enum Action {
     SetBalanceDistribution {
         distribution: std::collections::HashMap<TaskID, f64>,
     },
+    CreatePlace {
+        id: PlaceID,
+        name: String,
+        hours: String,
+        included_places: Vec<PlaceID>,
+    },
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -53,4 +59,5 @@ pub struct TaskUpdates {
     /// Optional update: `Some(None)` clears the last done date, `Some(Some(ts))` sets it, `None` keeps current.
     pub last_done: Option<Option<i64>>,
     pub credits_timestamp: Option<i64>,
+    pub priority_timestamp: Option<i64>,
 }

@@ -46,8 +46,8 @@ scenarios:
 
   - name: "Variable Lead Times"
     steps:
-      - given:
-          tasks:
+      - when:
+          task_updates:
             - id: "parent-1"
               lead_time_seconds: ${lead_time}
       - when:

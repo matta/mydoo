@@ -5,14 +5,15 @@ use glob::glob;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
+use tasklens_core::PlaceID;
 
 use tasklens_core::Action;
 use tasklens_core::TaskUpdates;
 use tasklens_core::domain::doc_bridge;
 use tasklens_core::domain::priority::get_prioritized_tasks;
 use tasklens_core::types::{
-    Context, Frequency, Place, PlaceID, PriorityOptions, RepeatConfig, ScheduleType, TaskID,
-    TaskStatus, TunnelState, UrgencyStatus, ViewFilter,
+    Context, Frequency, PriorityOptions, RepeatConfig, ScheduleType, TaskID, TaskStatus,
+    TunnelState, UrgencyStatus, ViewFilter,
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -158,6 +159,7 @@ struct TaskUpdate {
     schedule_type: Option<ScheduleType>,
     repeat_config: Option<RepeatConfigInput>,
     last_done: Option<serde_yaml_ng::Value>,
+    lead_time_seconds: Option<F64OrString>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -221,11 +223,6 @@ impl ComplianceStore {
 
     fn hydrate(&self) -> Result<TunnelState> {
         doc_bridge::hydrate_tunnel_state(&self.doc).map_err(|e| anyhow!("Hydration failed: {}", e))
-    }
-
-    fn expensive_reconcile(&mut self, state: &TunnelState) -> Result<()> {
-        doc_bridge::reconcile_tunnel_state(&mut self.doc, state)
-            .map_err(|e| anyhow!("Reconciliation failed: {}", e))
     }
 }
 
@@ -705,177 +702,128 @@ fn apply_initial_state(
         *current_time = parse_date(time_str)?;
     }
 
-    let mut state = store.hydrate()?;
-
     if let Some(places_input) = places {
         for p in places_input {
-            apply_place_input(&mut state, p)?;
+            apply_place_input(store, p)?;
         }
     }
 
     if let Some(tasks_input) = tasks {
         for t in tasks_input {
-            apply_task_input(&mut state, t, None, *current_time)?;
+            apply_task_input(store, t, None, *current_time)?;
         }
     }
 
-    store.expensive_reconcile(&state)?;
     Ok(())
 }
 
-fn apply_place_input(state: &mut TunnelState, p: &PlaceInput) -> Result<()> {
-    let PlaceInput {
-        id,
-        hours,
-        included_places,
-    } = p;
-    let place_id = PlaceID::from(id.clone());
-    let mut hours_json = "{\"mode\":\"always_open\"}".to_string();
-    if let Some(h) = hours {
-        let OpenHoursInput { mode, schedule } = h;
-        let h_obj = serde_json::json!({
-            "mode": mode,
-            "schedule": schedule
-        });
-        hours_json = h_obj.to_string();
-    }
+fn apply_place_input(store: &mut ComplianceStore, p: &PlaceInput) -> Result<()> {
+    let place_id = PlaceID::from(p.id.clone());
 
-    let place = Place {
-        id: place_id.clone(),
-        name: id.clone(),
-        hours: hours_json,
-        included_places: included_places
+    store.dispatch(Action::CreatePlace {
+        id: place_id,
+        name: p.id.clone(),
+        hours: p
+            .hours
             .as_ref()
-            .map(|ips| ips.iter().map(|s| PlaceID::from(s.clone())).collect())
+            .map(|h| serde_json::to_string(h).unwrap())
             .unwrap_or_default(),
-    };
-    state.places.insert(place_id, place);
+        included_places: p
+            .included_places
+            .as_ref()
+            .map(|list| list.iter().map(|s| PlaceID::from(s.clone())).collect())
+            .unwrap_or_default(),
+    })?;
     Ok(())
 }
 
 fn apply_task_input(
-    state: &mut TunnelState,
+    store: &mut ComplianceStore,
     t: &TaskInput,
     parent_id: Option<TaskID>,
     current_time: i64,
 ) -> Result<()> {
-    // Collect children before destructuring for recursion later
-    let children_input = t.children.clone();
+    let task_id = TaskID::from(t.id.clone());
 
-    let TaskInput {
-        id,
-        parent_id: yaml_parent_id,
-        children: _, // Handled via children_input
-        title,
-        importance,
-        status,
-        credits,
-        credit_increment,
-        credits_timestamp,
-        desired_credits,
-        due_date,
-        place_id,
-        lead_time_seconds,
-        is_sequential,
-        schedule_type,
-        period_seconds: _, // Irrelevant for core domain, used by UI/sync
-        last_done,
-        repeat_config,
-    } = t;
+    let effective_parent_id = t
+        .parent_id
+        .as_ref()
+        .map(|s| TaskID::from(s.clone()))
+        .or(parent_id);
 
-    let task_id = TaskID::from(id.clone());
+    // 1. Dispatch CreateTask
+    // Compliance tests assume creation at `current_time` is handled via defaults or explicit updates.
+    store.dispatch(Action::CreateTask {
+        id: task_id.clone(),
+        parent_id: effective_parent_id,
+        title: t.title.clone().unwrap_or_default(),
+    })?;
 
-    // 1. Get existing or create new
-    let mut persisted = if let Some(existing) = state.tasks.remove(&task_id) {
-        existing
-    } else {
-        // Create new using domain logic
-        let parent_ref = parent_id.as_ref().and_then(|pid| state.tasks.get(pid));
-        let mut task = tasklens_core::create_new_task(task_id.clone(), String::new(), parent_ref);
-
-        // Compliance tests assume creation at `current_time`
-        task.credits_timestamp = current_time;
-        task.priority_timestamp = current_time;
-
-        task
+    // 2. Build and Dispatch UpdateTask for all other fields
+    let mut updates = TaskUpdates {
+        // Compliance tests assume tasks are "born" at current_time for decay calculations
+        credits_timestamp: Some(current_time),
+        priority_timestamp: Some(current_time),
+        ..Default::default()
     };
 
-    // 2. Override with input fields
-    if let Some(val) = title {
-        persisted.title = val.clone();
+    if let Some(val) = t.status {
+        updates.status = Some(val);
     }
-    if let Some(val) = status {
-        persisted.status = *val;
+    if let Some(val) = &t.importance {
+        updates.importance = Some(val.to_f64());
     }
-    if let Some(val) = importance {
-        persisted.importance = val.to_f64();
+    if let Some(val) = &t.credits {
+        updates.credits = Some(val.to_f64());
     }
-    if let Some(val) = credits {
-        persisted.credits = val.to_f64();
+    if let Some(val) = &t.credit_increment {
+        updates.credit_increment = Some(val.to_f64());
     }
-    if let Some(val) = credit_increment {
-        persisted.credit_increment = Some(val.to_f64());
+    if let Some(val) = &t.desired_credits {
+        updates.desired_credits = Some(val.to_f64());
     }
-    if let Some(val) = desired_credits {
-        persisted.desired_credits = val.to_f64();
-    }
-    if let Some(ts) = credits_timestamp {
-        persisted.credits_timestamp = parse_date(ts)?;
+    if let Some(ts) = &t.credits_timestamp {
+        updates.credits_timestamp = Some(parse_date(ts)?);
     }
 
-    if let Some(pid) = place_id {
-        persisted.place_id = if pid == "null" || pid.is_empty() {
+    if let Some(pid) = &t.place_id {
+        updates.place_id = Some(if pid == "null" || pid.is_empty() {
             None
         } else {
-            Some(tasklens_core::types::PlaceID::from(pid.clone()))
-        };
-    }
-    if let Some(is) = is_sequential {
-        persisted.is_sequential = is.to_bool();
-    }
-    if let Some(st) = schedule_type {
-        persisted.schedule.schedule_type = *st;
-    }
-    if let Some(dd) = due_date {
-        persisted.schedule.due_date = parse_yaml_date(dd)?;
-    }
-    if let Some(lt) = lead_time_seconds {
-        persisted.schedule.lead_time = (lt.to_f64() * 1000.0) as i64;
-    }
-    if let Some(ld) = last_done {
-        persisted.schedule.last_done = parse_yaml_date(ld)?;
-    }
-    if let Some(rc) = repeat_config {
-        persisted.repeat_config = Some(RepeatConfig {
-            frequency: rc.frequency,
-            interval: rc.interval as i64,
+            Some(PlaceID::from(pid.clone()))
         });
     }
-
-    // 3. Update parent_id if it changed in YAML or was passed
-    if let Some(pid_str) = yaml_parent_id {
-        persisted.parent_id = Some(TaskID::from(pid_str.clone()));
-    } else if let Some(pid) = &parent_id {
-        persisted.parent_id = Some(pid.clone());
+    if let Some(is) = &t.is_sequential {
+        updates.is_sequential = Some(is.to_bool());
+    }
+    if let Some(st) = t.schedule_type {
+        updates.schedule_type = Some(st);
+    }
+    if let Some(dd) = &t.due_date {
+        updates.due_date = Some(parse_yaml_date(dd)?);
+    }
+    if let Some(lt) = &t.lead_time_seconds {
+        updates.lead_time = Some((lt.to_f64() * 1000.0) as i64);
+    }
+    if let Some(ld) = &t.last_done {
+        updates.last_done = Some(parse_yaml_date(ld)?);
+    }
+    if let Some(rc) = &t.repeat_config {
+        updates.repeat_config = Some(Some(RepeatConfig {
+            frequency: rc.frequency,
+            interval: rc.interval as i64,
+        }));
     }
 
-    // Re-insert
-    state.tasks.insert(task_id.clone(), persisted);
+    store.dispatch(Action::UpdateTask {
+        id: task_id.clone(),
+        updates,
+    })?;
 
-    // Update parent's collection list or root list
-    let effective_parent_id = state.tasks.get(&task_id).unwrap().parent_id.clone();
-    if let Some(parent) = effective_parent_id.and_then(|pid| state.tasks.get_mut(&pid)) {
-        if !parent.child_task_ids.contains(&task_id) {
-            parent.child_task_ids.push(task_id.clone());
-        }
-    } else if !state.root_task_ids.contains(&task_id) {
-        state.root_task_ids.push(task_id.clone());
-    }
-
-    // 4. Recurse children
-    if let Some(children) = children_input {
+    // 3. Recurse children
+    if let Some(children) = &t.children {
         for child_input in children {
-            apply_task_input(state, &child_input, Some(task_id.clone()), current_time)?;
+            apply_task_input(store, child_input, Some(task_id.clone()), current_time)?;
         }
     }
 
@@ -928,6 +876,7 @@ fn apply_mutation(
                 schedule_type,
                 repeat_config,
                 last_done,
+                lead_time_seconds,
             } = u;
 
             let task_id = TaskID::from(id.clone());
@@ -958,7 +907,7 @@ fn apply_mutation(
                 action_updates.place_id = if pid == "null" || pid.is_empty() {
                     Some(None)
                 } else {
-                    Some(Some(tasklens_core::types::PlaceID::from(pid.clone())))
+                    Some(Some(PlaceID::from(pid.clone())))
                 };
             }
             if let Some(st) = schedule_type {
@@ -972,6 +921,10 @@ fn apply_mutation(
             }
             if let Some(ld) = last_done {
                 action_updates.last_done = Some(parse_yaml_date(ld)?);
+            }
+
+            if let Some(lt) = lead_time_seconds {
+                action_updates.lead_time = Some((lt.to_f64() * 1000.0) as i64);
             }
 
             store.dispatch(Action::UpdateTask {

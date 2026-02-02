@@ -299,6 +299,7 @@ prop_compose! {
             is_acknowledged,
             last_done,
             credits_timestamp,
+            priority_timestamp: None,
         }
     }
 }
