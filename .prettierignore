@@ -3,6 +3,7 @@
 
 # Ignore all subdirectories
 */*
+!/.vscode/settings.json
 
 # Standard ignores (restored)
 **/dist
