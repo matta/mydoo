@@ -8,7 +8,7 @@ use autosurgeon::{Hydrate, Reconcile};
 use serde::{Deserialize, Serialize};
 pub use serde_json::json;
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
 pub fn hydrate_string_or_text<D: autosurgeon::ReadDoc>(
@@ -1236,19 +1236,22 @@ impl TunnelState {
             .collect();
         unreachable.sort_unstable_by(|a, b| a.as_str().cmp(b.as_str()));
 
-        for id in unreachable {
-            // Remove from old parent's child list
-            if let Some(pid) = self.tasks.get(&id).and_then(|t| t.parent_id.clone())
-                && let Some(parent) = self.tasks.get_mut(&pid)
-            {
-                parent.child_task_ids.retain(|cid| *cid != id);
-            }
-            // Clear parent_id and add to roots
-            if let Some(task) = self.tasks.get_mut(&id) {
-                task.parent_id = None;
-            }
-            if !self.root_task_ids.contains(&id) {
-                self.root_task_ids.push(id);
+        if !unreachable.is_empty() {
+            let mut root_task_ids: HashSet<TaskID> = self.root_task_ids.iter().cloned().collect();
+            for id in unreachable {
+                // Remove from old parent's child list
+                if let Some(parent_id) = self.tasks.get(&id).and_then(|t| t.parent_id.clone())
+                    && let Some(parent) = self.tasks.get_mut(&parent_id)
+                {
+                    parent.child_task_ids.retain(|child_id| *child_id != id);
+                }
+                // Clear parent_id and add to roots
+                if let Some(task) = self.tasks.get_mut(&id) {
+                    task.parent_id = None;
+                }
+                if root_task_ids.insert(id.clone()) {
+                    self.root_task_ids.push(id);
+                }
             }
         }
     }
