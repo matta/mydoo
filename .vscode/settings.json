@@ -2,7 +2,10 @@
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[rust]": {
-    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
   },
   "editor.codeActionsOnSave": {
     "source.organizeImports.biome": "explicit",
@@ -13,7 +16,7 @@
   },
   "eslint.enable": true,
   "eslint.useFlatConfig": true,
-  "eslint.workingDirectories": [{"mode": "auto"}],
+  "eslint.workingDirectories": [{ "mode": "auto" }],
   "eslint.run": "onType",
   "eslint.validate": [
     "javascript",
