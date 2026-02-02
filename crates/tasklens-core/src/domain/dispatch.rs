@@ -123,6 +123,12 @@ pub fn run_action(doc: &mut (impl Transactable + Doc), action: Action) -> Result
         Action::SetBalanceDistribution { distribution } => {
             handle_set_balance_distribution(doc, distribution)
         }
+        Action::CreatePlace {
+            id,
+            name,
+            hours,
+            included_places,
+        } => handle_create_place(doc, id, name, hours, included_places),
     }
 }
 
@@ -140,6 +146,28 @@ fn handle_set_balance_distribution(
                 .map_err(DispatchError::from)?;
         }
     }
+    Ok(())
+}
+
+fn handle_create_place(
+    doc: &mut (impl Transactable + Doc),
+    id: crate::types::PlaceID,
+    name: String,
+    hours: String,
+    included_places: Vec<crate::types::PlaceID>,
+) -> Result<()> {
+    let places_obj_id = ensure_path(doc, &automerge::ROOT, vec!["places"])?;
+
+    let place = crate::types::Place {
+        id: id.clone(),
+        name,
+        hours,
+        included_places,
+    };
+
+    autosurgeon::reconcile_prop(doc, &places_obj_id, id.as_str(), &place)
+        .map_err(DispatchError::from)?;
+
     Ok(())
 }
 
@@ -270,6 +298,10 @@ fn handle_update_task(
     }
     if let Some(val) = updates.credits_timestamp {
         autosurgeon::reconcile_prop(doc, &task_obj_id, "creditsTimestamp", val)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(ts) = updates.priority_timestamp {
+        autosurgeon::reconcile_prop(doc, &task_obj_id, "priorityTimestamp", ts)
             .map_err(DispatchError::from)?;
     }
 
