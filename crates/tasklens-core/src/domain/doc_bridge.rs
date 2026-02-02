@@ -3,7 +3,7 @@ use automerge::{ObjType, ROOT};
 use autosurgeon::{Hydrate, HydrateError, ReadDoc, ReconcileError};
 
 use crate::types::TunnelState;
-use crate::types::{hydrate_i64, hydrate_optional_metadata};
+use crate::types::{hydrate_i64, hydrate_option_metadata};
 
 /// Hydrates a TunnelState manually from an Automerge document.
 ///
@@ -19,7 +19,7 @@ pub fn hydrate_tunnel_state(doc: &impl ReadDoc) -> Result<TunnelState, HydrateEr
     let tasks = Hydrate::hydrate(doc, &root, "tasks".into())?;
     let root_task_ids = Hydrate::hydrate(doc, &root, "rootTaskIds".into())?;
     let places = Hydrate::hydrate(doc, &root, "places".into())?;
-    let metadata = hydrate_optional_metadata(doc, &root, "metadata".into())?;
+    let metadata = hydrate_option_metadata(doc, &root, "metadata".into())?;
 
     Ok(TunnelState {
         next_task_id,
