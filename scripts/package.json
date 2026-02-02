@@ -14,6 +14,7 @@
     "vitest": "catalog:"
   },
   "scripts": {
+    "check-biome-schema": "tsx check-biome-schema.ts",
     "check-format": "prettier --check .",
     "check-types": "tsc --noEmit",
     "fix-format": "prettier --write .",
