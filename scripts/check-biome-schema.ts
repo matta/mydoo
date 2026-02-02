@@ -6,78 +6,74 @@
 
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 
-interface BiomeCheckResult {
-  summary: {
-    infos: number;
+interface PnpmListEntry {
+  devDependencies?: {
+    "@biomejs/biome"?: {
+      version: string;
+    };
   };
-  diagnostics: Array<{
-    category: string;
-    description: string;
-  }>;
+  dependencies?: {
+    "@biomejs/biome"?: {
+      version: string;
+    };
+  };
+}
+
+function getInstalledBiomeVersion(rootDir: string): string {
+  const output = execSync("pnpm list @biomejs/biome --json", {
+    cwd: rootDir,
+    encoding: "utf-8",
+  });
+  const parsed: PnpmListEntry[] = JSON.parse(output);
+  const entry = parsed[0];
+  const version =
+    entry?.devDependencies?.["@biomejs/biome"]?.version ??
+    entry?.dependencies?.["@biomejs/biome"]?.version;
+  if (!version) {
+    throw new Error("Could not find @biomejs/biome in pnpm list output");
+  }
+  return version;
+}
+
+function getSchemaVersion(biomeConfigPath: string): string | null {
+  const config = JSON.parse(readFileSync(biomeConfigPath, "utf-8"));
+  const schema: unknown = config.$schema;
+  if (typeof schema !== "string") {
+    return null;
+  }
+  // Extract version from URL like: https://biomejs.dev/schemas/2.3.12/schema.json
+  const match = schema.match(/\/schemas\/([^/]+)\/schema\.json$/);
+  return match?.[1] ?? null;
 }
 
 function main(): void {
   const rootDir = join(import.meta.dirname, "..");
   const biomeConfigPath = join(rootDir, "biome.json");
 
-  // Run biome check with JSON reporter to get structured output
-  let output: string;
-  try {
-    output = execSync("pnpm biome check . --reporter=json", {
-      cwd: rootDir,
-      encoding: "utf-8",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-  } catch (error) {
-    // biome check may exit non-zero for other reasons, but we still get output
-    const execError = error as { stdout?: string; stderr?: string };
-    output = execError.stdout ?? "";
-    if (!output) {
-      console.error("Failed to run biome check:", execError.stderr);
-      process.exit(1);
-    }
-  }
+  const installedVersion = getInstalledBiomeVersion(rootDir);
+  const schemaVersion = getSchemaVersion(biomeConfigPath);
 
-  // Parse JSON output (skip the unstable warning line if present)
-  const jsonLine = output
-    .split("\n")
-    .find((line) => line.trim().startsWith("{"));
-  if (!jsonLine) {
-    console.error("Could not parse biome JSON output");
+  const scriptName = "check-biome-schema.ts";
+  const relativeConfigPath = relative(rootDir, biomeConfigPath);
+
+  if (schemaVersion === null) {
+    console.error(
+      `ERROR [${scriptName}]: Could not extract version from ` +
+        `${relativeConfigPath} $schema`,
+    );
     process.exit(1);
   }
 
-  const result: BiomeCheckResult = JSON.parse(jsonLine);
-
-  // Look for schema version mismatch diagnostic
-  const schemaMismatch = result.diagnostics.find(
-    (d) =>
-      d.category === "deserialize" &&
-      d.description.includes("configuration schema version does not match"),
-  );
-
-  if (schemaMismatch) {
-    // Read the config to show current value
-    const config = JSON.parse(readFileSync(biomeConfigPath, "utf-8"));
-    const currentSchema = config.$schema ?? "(not set)";
-
-    // Get installed version
-    const versionOutput = execSync("pnpm biome --version", {
-      encoding: "utf-8",
-    }).trim();
-    const installedVersion = versionOutput.replace("Version: ", "");
-
-    console.error("ERROR: Biome schema version mismatch detected!");
-    console.error(`  Config $schema: ${currentSchema}`);
-    console.error(`  Installed CLI:  ${installedVersion}`);
-    console.error("");
-    console.error("Run 'pnpm biome migrate' to update the configuration.");
+  if (installedVersion !== schemaVersion) {
+    console.error(
+      `ERROR [${scriptName}]: ${relativeConfigPath} schema version ` +
+        `${schemaVersion} does not match installed CLI version ` +
+        `${installedVersion}. Run 'pnpm biome migrate' to fix.`,
+    );
     process.exit(1);
   }
-
-  console.log("✓ Biome schema version matches CLI version");
 }
 
 main();
