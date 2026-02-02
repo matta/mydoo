@@ -1,0 +1,47 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:best-practices"],
+  "packageRules": [
+    // Group patch and minor updates by ecosystem (npm vs cargo) to keep
+    // PRs cohesive and avoid mixing unrelated dependency changes.
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["patch"],
+      "groupName": "npm patch updates",
+      // Wait for 7 days to ensure patch releases are stable before updating.
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "matchManagers": ["cargo"],
+      "matchUpdateTypes": ["patch"],
+      "groupName": "cargo patch updates",
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor"],
+      "groupName": "npm minor updates",
+      // Wait for 14 days for minor updates to allow more time for potential
+      // regressions to be discovered in the wider ecosystem.
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      "matchManagers": ["cargo"],
+      "matchUpdateTypes": ["minor"],
+      "groupName": "cargo minor updates",
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      // Major updates are NOT grouped to ensure each breaking change
+      // is evaluated individually.
+      "matchUpdateTypes": ["major"],
+      // Wait for 28 days for major updates to ensure they are well-vetted.
+      "minimumReleaseAge": "28 days"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    // Vulnerability fixes skip the long stability waits but still wait 3 days
+    // to avoid potential "poisoned" versions that are immediately yanked.
+    "minimumReleaseAge": "3 days"
+  }
+}
