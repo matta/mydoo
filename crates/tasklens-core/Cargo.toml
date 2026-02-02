@@ -16,6 +16,7 @@ autosurgeon.workspace = true
 automerge.workspace = true
 thiserror.workspace = true
 proptest-derive = { version = "0.7.0", optional = true }
+tracing.workspace = true
 
 [features]
 test-utils = ["dep:proptest", "dep:proptest-derive"]

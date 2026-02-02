@@ -9,6 +9,7 @@ use crate::types::{hydrate_i64, hydrate_optional_metadata};
 ///
 /// This provides a single source of truth for the document structure and
 /// ensures that custom hydrators (like hydrate_f64) are used consistently.
+#[tracing::instrument(skip_all)]
 pub fn hydrate_tunnel_state(doc: &impl ReadDoc) -> Result<TunnelState, HydrateError> {
     let root = automerge::ROOT;
 

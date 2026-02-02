@@ -94,10 +94,51 @@ fn main() {
     dioxus::launch(App);
 }
 #[derive(Clone, Copy)]
-pub struct MemoryHeads(pub Signal<String>);
-#[derive(Clone, Copy)]
-pub struct PersistedHeads(pub Signal<String>);
+pub struct MemoryHeads(Signal<String>);
 
+impl MemoryHeads {
+    pub fn new(signal: Signal<String>) -> Self {
+        Self(signal)
+    }
+
+    pub fn read(&self) -> impl std::ops::Deref<Target = String> + '_ {
+        self.0.read()
+    }
+
+    pub fn set(&mut self, value: String) {
+        self.0.set(value);
+    }
+}
+
+impl std::fmt::Display for MemoryHeads {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct PersistedHeads(Signal<String>);
+
+impl PersistedHeads {
+    pub fn new(signal: Signal<String>) -> Self {
+        Self(signal)
+    }
+
+    pub fn read(&self) -> impl std::ops::Deref<Target = String> + '_ {
+        self.0.read()
+    }
+
+    pub fn set(&mut self, value: String) {
+        self.0.set(value);
+    }
+}
+impl std::fmt::Display for PersistedHeads {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[tracing::instrument(skip_all)]
 fn App() -> Element {
     // Session state
     let mut doc_id = use_signal(|| None::<DocumentId>);
@@ -120,12 +161,16 @@ fn App() -> Element {
     use_context_provider(|| service_worker_active);
     use_context_provider(|| store);
     use_context_provider(|| load_error);
-    use_context_provider(|| MemoryHeads(memory_heads));
-    use_context_provider(|| PersistedHeads(persisted_heads));
+    use_context_provider(|| MemoryHeads::new(memory_heads));
+    use_context_provider(|| PersistedHeads::new(persisted_heads));
 
     // Sync Client Hook
     let sync_status = hooks::use_sync::use_sync_client(store);
-    hooks::use_persistence::use_persistence(store, memory_heads, persisted_heads);
+    hooks::use_persistence::use_persistence(
+        store,
+        MemoryHeads::new(memory_heads),
+        PersistedHeads::new(persisted_heads),
+    );
 
     // Context for TunnelState (Memoized state)
     let tunnel_state = hooks::use_tunnel_state::use_tunnel_state();
