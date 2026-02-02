@@ -1493,7 +1493,6 @@ pub mod test_strategies {
 /// This is a projection type computed from `EnrichedTask` data for root tasks only.
 /// It provides the view layer with pre-computed percentages for display.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct BalanceItem {
     /// The task ID of the root goal.
     pub id: TaskID,
@@ -1515,7 +1514,6 @@ pub struct BalanceItem {
 
 /// Result of projecting balance data from enriched tasks.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct BalanceData {
     /// List of balance items, one per root goal (excluding Inbox).
     pub items: Vec<BalanceItem>,

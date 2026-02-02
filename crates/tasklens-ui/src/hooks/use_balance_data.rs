@@ -21,6 +21,7 @@ pub fn use_balance_data() -> Memo<BalanceData> {
     let tunnel_state = crate::hooks::use_tunnel_state::use_tunnel_state();
 
     use_memo(move || {
+        tracing::info!("use_balance_data: computing");
         let state = tunnel_state.read();
         get_balance_data(&state)
     })
