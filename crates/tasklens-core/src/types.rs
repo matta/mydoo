@@ -1136,6 +1136,9 @@ impl TunnelState {
     ///    *Healing*: The `parent_id` is treated as the source of truth. The task is
     ///    removed from any "incorrect" lists and ensured to be present in its
     ///    designated parent's list (or roots), preserving existing order.
+    /// 4. **Cycles**: Concurrent moves can create cycles (e.g., A→B and B→A).
+    ///    *Healing*: We detect unreachable tasks by walking from roots and break
+    ///    cycles by promoting one task to root.
     pub fn heal_structural_inconsistencies(&mut self) {
         // 0. Deduplicate lists (keeping first occurrence) to fix duplicate ID regression
         // This handles cases where concurrent merges might insert the same ID multiple times.
@@ -1206,6 +1209,45 @@ impl TunnelState {
                     parent_task.child_task_ids.push(id);
                 }
             } else if !self.root_task_ids.contains(&id) {
+                self.root_task_ids.push(id);
+            }
+        }
+
+        // 5. Detect and break cycles by finding tasks unreachable from roots
+        // Concurrent moves (e.g., A→B on one replica, B→A on another) can create
+        // closed loops that are disconnected from the root hierarchy.
+        let mut reachable = std::collections::HashSet::with_capacity(self.tasks.len());
+        let mut stack: Vec<TaskID> = self.root_task_ids.clone();
+        while let Some(id) = stack.pop() {
+            if reachable.insert(id.clone())
+                && let Some(task) = self.tasks.get(&id)
+            {
+                stack.extend(task.child_task_ids.iter().cloned());
+            }
+        }
+
+        // For any unreachable tasks, break the cycle by clearing parent_id
+        // and adding them to roots. Process in sorted order for determinism.
+        let mut unreachable: Vec<_> = self
+            .tasks
+            .keys()
+            .filter(|id| !reachable.contains(*id))
+            .cloned()
+            .collect();
+        unreachable.sort_by_key(|id| id.to_string());
+
+        for id in unreachable {
+            // Remove from old parent's child list
+            if let Some(pid) = self.tasks.get(&id).and_then(|t| t.parent_id.clone())
+                && let Some(parent) = self.tasks.get_mut(&pid)
+            {
+                parent.child_task_ids.retain(|cid| *cid != id);
+            }
+            // Clear parent_id and add to roots
+            if let Some(task) = self.tasks.get_mut(&id) {
+                task.parent_id = None;
+            }
+            if !self.root_task_ids.contains(&id) {
                 self.root_task_ids.push(id);
             }
         }
