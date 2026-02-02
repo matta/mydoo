@@ -8,14 +8,19 @@ use crate::controllers::task_controller;
 use crate::hooks::use_balance_interaction::{BalanceItem, use_balance_interaction};
 use dioxus::prelude::*;
 
+/// The main page component for the Balance View.
+///
+/// This view allows users to visualize and adjust the distribution of effort
+/// across their top-level goals. It uses the `use_balance_interaction` hook
+/// to manage the state of the sliders and the distribution logic.
 #[component]
 pub fn BalancePage() -> Element {
     let load_error = use_context::<Signal<Option<String>>>();
-    let task_controller = task_controller::use_task_controller();
+    let controller = task_controller::use_task_controller();
     let (render_items, interaction) =
-        use_balance_interaction(EventHandler::new(move |update_map| {
-            tracing::info!("set_balance_distribution: {:#?}", update_map);
-            task_controller.set_balance_distribution(update_map);
+        use_balance_interaction(EventHandler::new(move |distribution| {
+            tracing::info!("set_balance_distribution: {:#?}", distribution);
+            controller.set_balance_distribution(distribution);
         }));
 
     rsx! {
@@ -46,7 +51,7 @@ pub fn BalancePage() -> Element {
                         BalanceItemRow {
                             key: "{item.id}",
                             item,
-                            on_input: move |(id, val)| interaction.handle_input(id, val),
+                            on_input: move |(target_id, new_value)| interaction.handle_input(target_id, new_value),
                             on_change: move || interaction.handle_change(),
                         }
                     }
@@ -56,6 +61,10 @@ pub fn BalancePage() -> Element {
     }
 }
 
+/// A row in the balance list representing a single root goal.
+///
+/// It displays the goal's title, its current status (Starving/Balanced),
+/// and provides a slider to adjust the target percentage.
 #[component]
 fn BalanceItemRow(
     item: BalanceItem,
@@ -123,8 +132,8 @@ fn BalanceItemRow(
                     step: 0.01,
                     value: current_target_percent,
                     oninput: {
-                        let id = item.id.clone();
-                        move |val| on_input.call((id.clone(), val))
+                        let target_id = item.id.clone();
+                        move |new_value| on_input.call((target_id.clone(), new_value))
                     },
                     onchange: move |_| on_change.call(()),
                 }
@@ -133,6 +142,10 @@ fn BalanceItemRow(
     }
 }
 
+/// A visual progress bar that displays both the target distribution and the actual effort.
+///
+/// The target distribution is shown as a light blue background bar,
+/// and the actual effort is shown as a darker blue foreground bar.
 #[component]
 fn BalanceBar(target_percent: f64, actual_percent: f64) -> Element {
     let target_width = format!("{}%", (target_percent * 100.0).clamp(0.0, 100.0));

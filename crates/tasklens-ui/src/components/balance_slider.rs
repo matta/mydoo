@@ -21,13 +21,13 @@ pub fn BalanceSlider(props: BalanceSliderProps) -> Element {
             step: "{props.step}",
             value: "{props.value}",
             oninput: move |evt| {
-                if let Ok(val) = evt.value().parse::<f64>() {
-                    props.oninput.call(val);
+                if let Ok(new_value) = evt.value().parse::<f64>() {
+                    props.oninput.call(new_value);
                 }
             },
             onchange: move |evt| {
-                if let Ok(val) = evt.value().parse::<f64>() {
-                    props.onchange.call(val);
+                if let Ok(new_value) = evt.value().parse::<f64>() {
+                    props.onchange.call(new_value);
                 }
             }
         }
