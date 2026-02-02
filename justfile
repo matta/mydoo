@@ -54,6 +54,7 @@ check-format-root:
 check-biome-root:
     @echo "🔍 Checking root biome..."
     pnpm biome check .
+    pnpm tsx scripts/check-biome-schema.ts
 
 
 
