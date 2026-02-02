@@ -2,7 +2,7 @@
 //!
 //! Handles the "fixed pie" redistribution of task percentages.
 
-use crate::types::TaskID;
+use crate::types::{BalanceData, TaskID};
 use std::collections::HashMap;
 
 /// Minimum percentage allowed for any task (1%).
@@ -73,6 +73,19 @@ pub fn redistribute_percentages(
     result
 }
 
+/// Calculates the new absolute credits for all tasks based on a percentage distribution.
+pub fn apply_redistribution_to_credits(
+    balance_data: &BalanceData,
+    percentages: &HashMap<TaskID, f64>,
+) -> HashMap<TaskID, f64> {
+    let total = balance_data.items.len() as f64;
+
+    percentages
+        .iter()
+        .map(|(id, percent)| (id.clone(), percent * total))
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -89,7 +102,7 @@ mod tests {
 
         assert!((result[&t1] - 0.75).abs() < 0.001);
         assert!((result[&t2] - 0.25).abs() < 0.001);
-    } // turbo
+    }
 
     #[test]
     fn test_redistribute_three_items() {
@@ -107,7 +120,7 @@ mod tests {
         // Remaining 0.5 should be split evenly between t2 and t3 (relative to their original Equal weights)
         assert!((result[&t2] - 0.25).abs() < 0.001);
         assert!((result[&t3] - 0.25).abs() < 0.001);
-    } // turbo
+    }
 
     #[test]
     fn test_clamping_min() {
@@ -121,7 +134,7 @@ mod tests {
 
         assert!((result[&t1] - MIN_PERCENTAGE).abs() < 0.001);
         assert!((result[&t2] - (1.0 - MIN_PERCENTAGE)).abs() < 0.001);
-    } // turbo
+    }
 
     #[test]
     fn test_clamping_max() {
@@ -135,5 +148,5 @@ mod tests {
 
         assert!((result[&t1] - MAX_PERCENTAGE).abs() < 0.001);
         assert!((result[&t2] - (1.0 - MAX_PERCENTAGE)).abs() < 0.001);
-    } // turbo
+    }
 }

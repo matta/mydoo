@@ -1492,8 +1492,7 @@ pub mod test_strategies {
 ///
 /// This is a projection type computed from `EnrichedTask` data for root tasks only.
 /// It provides the view layer with pre-computed percentages for display.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BalanceItem {
     /// The task ID of the root goal.
     pub id: TaskID,
@@ -1511,14 +1510,38 @@ pub struct BalanceItem {
     pub desired_credits: f64,
     /// The raw effective_credits value for display.
     pub effective_credits: f64,
+    /// Optional preview percentage for redistribution UI.
+    pub preview_percent: Option<f64>,
 }
 
 /// Result of projecting balance data from enriched tasks.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BalanceData {
     /// List of balance items, one per root goal (excluding Inbox).
     pub items: Vec<BalanceItem>,
     /// Sum of all effective_credits across root goals.
     pub total_credits: f64,
+}
+
+impl BalanceData {
+    /// Returns a map of current target percentages for redistribution.
+    pub fn get_percentage_map(&self) -> HashMap<TaskID, f64> {
+        self.items
+            .iter()
+            .map(|i| (i.id.clone(), i.target_percent))
+            .collect()
+    }
+
+    /// Merges current balance data with a preview percentage map.
+    pub fn apply_previews(&self, previews: &Option<HashMap<TaskID, f64>>) -> Vec<BalanceItem> {
+        self.items
+            .iter()
+            .map(|item| {
+                let preview_percent = previews.as_ref().and_then(|m| m.get(&item.id).copied());
+                let mut new_item = item.clone();
+                new_item.preview_percent = preview_percent;
+                new_item
+            })
+            .collect()
+    }
 }
