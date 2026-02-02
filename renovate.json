@@ -4,10 +4,12 @@
   "packageRules": [
     {
       "matchUpdateTypes": ["patch"],
+      "groupName": "patch updates",
       "minimumReleaseAge": "7 days"
     },
     {
       "matchUpdateTypes": ["minor"],
+      "groupName": "minor updates",
       "minimumReleaseAge": "14 days"
     },
     {
