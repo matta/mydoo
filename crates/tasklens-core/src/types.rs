@@ -77,7 +77,7 @@ pub fn hydrate_option_maybe_missing<D: autosurgeon::ReadDoc, T: Hydrate>(
 /// interoperability with JavaScript, which uses double-precision floats for all numbers.
 ///
 /// If the value is missing or not a number, it returns `Ok(None)`.
-pub fn hydrate_optional_f64<D: autosurgeon::ReadDoc>(
+pub fn hydrate_option_f64<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,
@@ -101,9 +101,9 @@ pub fn hydrate_optional_f64<D: autosurgeon::ReadDoc>(
 
 /// Hydrates an `Option<i64>` while tolerating various Automerge numeric types.
 ///
-/// Similar to `hydrate_optional_f64`, this accepts `Int`, `Uint`, and `F64`,
+/// Similar to `hydrate_option_f64`, this accepts `Int`, `Uint`, and `F64`,
 /// truncating fractional parts when converting to `i64`.
-pub fn hydrate_optional_i64<D: autosurgeon::ReadDoc>(
+pub fn hydrate_option_i64<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,
@@ -133,12 +133,12 @@ pub fn hydrate_i64<D: autosurgeon::ReadDoc>(
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,
 ) -> Result<i64, autosurgeon::HydrateError> {
-    hydrate_optional_i64(doc, obj, prop)?
+    hydrate_option_i64(doc, obj, prop)?
         .ok_or_else(|| autosurgeon::HydrateError::unexpected("i64", "missing value".to_string()))
 }
 
 /// Reconciles an Option<T> using MaybeMissing semantics (None deletes the field).
-pub fn reconcile_optional_as_maybe_missing<T, R>(
+pub fn reconcile_option_as_maybe_missing<T, R>(
     val: &Option<T>,
     reconciler: R,
 ) -> Result<(), R::Error>
@@ -155,7 +155,7 @@ where
 }
 
 /// Reconciles an Option<f64> as MaybeMissing while preserving safe integer conversion.
-pub fn reconcile_optional_f64_as_maybe_missing<R: autosurgeon::Reconciler>(
+pub fn reconcile_option_f64_as_maybe_missing<R: autosurgeon::Reconciler>(
     val: &Option<f64>,
     reconciler: R,
 ) -> Result<(), R::Error> {
@@ -196,7 +196,7 @@ pub fn reconcile_f64<R: autosurgeon::Reconciler>(val: &f64, reconciler: R) -> Re
 }
 
 /// Reconciles an Option<f64> using the same logic as reconcile_f64.
-pub fn reconcile_optional_f64<R: autosurgeon::Reconciler>(
+pub fn reconcile_option_f64<R: autosurgeon::Reconciler>(
     val: &Option<f64>,
     mut reconciler: R,
 ) -> Result<(), R::Error> {
@@ -471,8 +471,8 @@ pub struct Schedule {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "dueDate",
-        hydrate = "hydrate_optional_i64",
-        reconcile = "reconcile_optional_as_maybe_missing"
+        hydrate = "hydrate_option_i64",
+        reconcile = "reconcile_option_as_maybe_missing"
     )]
     #[cfg_attr(
         any(test, feature = "test-utils"),
@@ -490,8 +490,8 @@ pub struct Schedule {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "lastDone",
-        hydrate = "hydrate_optional_i64",
-        reconcile = "reconcile_optional_as_maybe_missing"
+        hydrate = "hydrate_option_i64",
+        reconcile = "reconcile_option_as_maybe_missing"
     )]
     #[cfg_attr(
         any(test, feature = "test-utils"),
@@ -540,7 +540,7 @@ impl Hydrate for Schedule {
                 );
                 res?
             },
-            due_date: hydrate_optional_i64(
+            due_date: hydrate_option_i64(
                 doc,
                 &sched_obj,
                 autosurgeon::Prop::Key(Cow::Borrowed("dueDate")),
@@ -553,7 +553,7 @@ impl Hydrate for Schedule {
                 autosurgeon::Prop::Key(Cow::Borrowed("leadTime")),
             )
             .unwrap_or(crate::domain::constants::DEFAULT_LEAD_TIME_MILLIS),
-            last_done: hydrate_optional_i64(
+            last_done: hydrate_option_i64(
                 doc,
                 &sched_obj,
                 autosurgeon::Prop::Key(Cow::Borrowed("lastDone")),
@@ -655,7 +655,7 @@ pub struct PersistedTask {
     #[autosurgeon(
         rename = "parentId",
         hydrate = "hydrate_option_maybe_missing",
-        reconcile = "reconcile_optional_as_maybe_missing"
+        reconcile = "reconcile_option_as_maybe_missing"
     )]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub parent_id: Option<TaskID>,
@@ -669,7 +669,7 @@ pub struct PersistedTask {
     #[autosurgeon(
         rename = "placeId",
         hydrate = "hydrate_option_maybe_missing",
-        reconcile = "reconcile_optional_as_maybe_missing"
+        reconcile = "reconcile_option_as_maybe_missing"
     )]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub place_id: Option<PlaceID>,
@@ -679,8 +679,8 @@ pub struct PersistedTask {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "creditIncrement",
-        hydrate = "hydrate_optional_f64",
-        reconcile = "reconcile_optional_f64_as_maybe_missing"
+        hydrate = "hydrate_option_f64",
+        reconcile = "reconcile_option_f64_as_maybe_missing"
     )]
     #[cfg_attr(
         any(test, feature = "test-utils"),
@@ -720,7 +720,7 @@ pub struct PersistedTask {
     #[autosurgeon(
         rename = "repeatConfig",
         hydrate = "hydrate_option_maybe_missing",
-        reconcile = "reconcile_optional_as_maybe_missing"
+        reconcile = "reconcile_option_as_maybe_missing"
     )]
     pub repeat_config: Option<RepeatConfig>,
     #[autosurgeon(rename = "isSequential")]
@@ -731,8 +731,8 @@ pub struct PersistedTask {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "lastCompletedAt",
-        hydrate = "hydrate_optional_i64",
-        reconcile = "reconcile_optional_as_maybe_missing"
+        hydrate = "hydrate_option_i64",
+        reconcile = "reconcile_option_as_maybe_missing"
     )]
     #[cfg_attr(
         any(test, feature = "test-utils"),
@@ -749,7 +749,7 @@ pub fn hydrate_f64<D: autosurgeon::ReadDoc>(
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,
 ) -> Result<f64, autosurgeon::HydrateError> {
-    hydrate_optional_f64(doc, obj, prop)?
+    hydrate_option_f64(doc, obj, prop)?
         .ok_or_else(|| autosurgeon::HydrateError::unexpected("f64", "missing value".to_string()))
 }
 
@@ -893,12 +893,12 @@ pub struct PriorityOptions {
     pub include_hidden: bool,
     #[autosurgeon(
         hydrate = "hydrate_option_maybe_missing",
-        reconcile = "reconcile_optional_as_maybe_missing"
+        reconcile = "reconcile_option_as_maybe_missing"
     )]
     pub mode: Option<PriorityMode>,
     #[autosurgeon(
         hydrate = "hydrate_option_maybe_missing",
-        reconcile = "reconcile_optional_as_maybe_missing"
+        reconcile = "reconcile_option_as_maybe_missing"
     )]
     pub context: Option<Context>,
 }
@@ -945,7 +945,7 @@ impl Reconcile for PriorityMode {
 pub struct ViewFilter {
     #[autosurgeon(
         hydrate = "hydrate_option_maybe_missing",
-        reconcile = "reconcile_optional_as_maybe_missing"
+        reconcile = "reconcile_option_as_maybe_missing"
     )]
     pub place_id: Option<String>, // "All", "Anywhere", or a specific ID
 }
@@ -997,7 +997,7 @@ pub struct OpenHours {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         hydrate = "hydrate_option_maybe_missing",
-        reconcile = "reconcile_optional_as_maybe_missing"
+        reconcile = "reconcile_option_as_maybe_missing"
     )]
     pub schedule: Option<HashMap<String, Vec<String>>>,
 }
@@ -1081,7 +1081,7 @@ impl Hydrate for DocMetadata {
 }
 
 /// Hydrates an Option<DocMetadata> treating missing values as None.
-pub fn hydrate_optional_metadata<D: autosurgeon::ReadDoc>(
+pub fn hydrate_option_metadata<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,
     prop: autosurgeon::Prop<'_>,

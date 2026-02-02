@@ -7,8 +7,8 @@ use crate::{
     Action, TaskUpdates,
     domain::{doc_bridge, lifecycle, routine_tasks},
     types::{
-        PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_option_maybe_missing,
-        hydrate_optional_f64, hydrate_optional_i64,
+        PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_option_f64,
+        hydrate_option_i64, hydrate_option_maybe_missing,
     },
 };
 
@@ -370,7 +370,7 @@ fn handle_complete_task(
         _ => return Err(DispatchError::TaskNotFound(id.clone())),
     };
 
-    let credit_increment: Option<f64> = hydrate_optional_f64(
+    let credit_increment: Option<f64> = hydrate_option_f64(
         doc,
         &target_obj_id,
         autosurgeon::Prop::Key("creditIncrement".into()),
@@ -383,7 +383,7 @@ fn handle_complete_task(
         &target_obj_id,
         autosurgeon::Prop::Key("credits".into()),
     )?;
-    let credits_timestamp: i64 = hydrate_optional_i64(
+    let credits_timestamp: i64 = hydrate_option_i64(
         doc,
         &target_obj_id,
         autosurgeon::Prop::Key("creditsTimestamp".into()),
