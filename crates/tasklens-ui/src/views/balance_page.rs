@@ -5,9 +5,8 @@
 
 use crate::components::{LoadErrorView, PageHeader};
 use crate::controllers::task_controller;
-use crate::hooks::use_balance_interaction::{BalanceRenderItem, use_balance_interaction};
+use crate::hooks::use_balance_interaction::{BalanceItem, use_balance_interaction};
 use dioxus::prelude::*;
-use tasklens_core::types::BalanceItem;
 
 #[component]
 pub fn BalancePage() -> Element {
@@ -43,11 +42,10 @@ pub fn BalancePage() -> Element {
                 }
             } else {
                 div { class: "space-y-4",
-                    for BalanceRenderItem { item , preview_percent } in render_items.iter().cloned() {
+                    for item in render_items.iter().cloned() {
                         BalanceItemRow {
                             key: "{item.id}",
                             item,
-                            preview_percent,
                             on_input: move |(id, val)| interaction.handle_input(id, val),
                             on_change: move || interaction.handle_change(),
                         }
@@ -61,12 +59,11 @@ pub fn BalancePage() -> Element {
 #[component]
 fn BalanceItemRow(
     item: BalanceItem,
-    preview_percent: Option<f64>,
     on_input: EventHandler<(tasklens_core::types::TaskID, f64)>,
     on_change: EventHandler<()>,
 ) -> Element {
     // If we have a preview, use it. Otherwise use the item's target (which comes from store).
-    let current_target_percent = preview_percent.unwrap_or(item.target_percent);
+    let current_target_percent = item.preview_percent.unwrap_or(item.target_percent);
 
     let display_target_pct = (current_target_percent * 100.0).round() as i32;
     let actual_pct = (item.actual_percent * 100.0).round() as i32;

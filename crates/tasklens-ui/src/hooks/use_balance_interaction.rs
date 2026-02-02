@@ -1,11 +1,10 @@
 use crate::hooks::use_balance_data::use_balance_data;
 use dioxus::prelude::*;
 use std::collections::HashMap;
-pub use tasklens_core::domain::balance_distribution::compute_balance_render_items;
 use tasklens_core::domain::balance_distribution::{
     apply_redistribution_to_credits, redistribute_percentages,
 };
-pub use tasklens_core::types::BalanceRenderItem;
+pub use tasklens_core::types::BalanceItem;
 use tasklens_core::types::{BalanceData, TaskID};
 
 #[derive(Clone, Copy)]
@@ -21,15 +20,9 @@ impl BalanceInteraction {
             let current_data = self.get_balance_data.read();
             let preview = self.preview_state.read();
 
-            if let Some(p) = preview.as_ref() {
-                p.clone()
-            } else {
-                let mut map = HashMap::new();
-                for item in &current_data.items {
-                    map.insert(item.id.clone(), item.target_percent);
-                }
-                map
-            }
+            preview
+                .clone()
+                .unwrap_or_else(|| current_data.get_percentage_map())
         };
 
         let next_preview = redistribute_percentages(&base_map, &target_id, new_value);
@@ -50,14 +43,14 @@ impl BalanceInteraction {
 /// Hook to manage the interaction state for the Balance View.
 pub fn use_balance_interaction(
     on_update: EventHandler<HashMap<TaskID, f64>>,
-) -> (Vec<BalanceRenderItem>, BalanceInteraction) {
+) -> (Vec<BalanceItem>, BalanceInteraction) {
     let balance_data = use_balance_data();
     let preview_state = use_signal(|| None);
 
     let render_items = use_memo(move || {
         let data = balance_data.read();
         let preview = preview_state.read();
-        compute_balance_render_items(&data, &preview)
+        data.apply_previews(&preview)
     });
 
     (

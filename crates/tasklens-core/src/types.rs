@@ -1510,6 +1510,8 @@ pub struct BalanceItem {
     pub desired_credits: f64,
     /// The raw effective_credits value for display.
     pub effective_credits: f64,
+    /// Optional preview percentage for redistribution UI.
+    pub preview_percent: Option<f64>,
 }
 
 /// Result of projecting balance data from enriched tasks.
@@ -1521,9 +1523,25 @@ pub struct BalanceData {
     pub total_credits: f64,
 }
 
-/// A render-ready balance item that includes potential preview state.
-#[derive(Debug, Clone, PartialEq)]
-pub struct BalanceRenderItem {
-    pub item: BalanceItem,
-    pub preview_percent: Option<f64>,
+impl BalanceData {
+    /// Returns a map of current target percentages for redistribution.
+    pub fn get_percentage_map(&self) -> HashMap<TaskID, f64> {
+        self.items
+            .iter()
+            .map(|i| (i.id.clone(), i.target_percent))
+            .collect()
+    }
+
+    /// Merges current balance data with a preview percentage map.
+    pub fn apply_previews(&self, previews: &Option<HashMap<TaskID, f64>>) -> Vec<BalanceItem> {
+        self.items
+            .iter()
+            .map(|item| {
+                let preview_percent = previews.as_ref().and_then(|m| m.get(&item.id).copied());
+                let mut new_item = item.clone();
+                new_item.preview_percent = preview_percent;
+                new_item
+            })
+            .collect()
+    }
 }

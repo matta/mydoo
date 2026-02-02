@@ -2,7 +2,7 @@
 //!
 //! Handles the "fixed pie" redistribution of task percentages.
 
-use crate::types::{BalanceData, BalanceRenderItem, TaskID};
+use crate::types::{BalanceData, TaskID};
 use std::collections::HashMap;
 
 /// Minimum percentage allowed for any task (1%).
@@ -90,26 +90,6 @@ pub fn apply_redistribution_to_credits(
     percentages
         .iter()
         .map(|(id, pct)| (id.clone(), pct * base_total))
-        .collect()
-}
-
-/// Merges current balance data with a preview percentage map to produce render items.
-pub fn compute_balance_render_items(
-    balance_data: &BalanceData,
-    preview_percentages: &Option<HashMap<TaskID, f64>>,
-) -> Vec<BalanceRenderItem> {
-    balance_data
-        .items
-        .iter()
-        .map(|item| {
-            let preview_percent = preview_percentages
-                .as_ref()
-                .and_then(|m| m.get(&item.id).copied());
-            BalanceRenderItem {
-                item: item.clone(),
-                preview_percent,
-            }
-        })
         .collect()
 }
 

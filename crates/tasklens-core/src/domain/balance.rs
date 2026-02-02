@@ -151,6 +151,7 @@ pub fn get_balance_data_with_time(state: &TunnelState, current_time: i64) -> Bal
                 is_starving,
                 desired_credits: task.desired_credits,
                 effective_credits: effective,
+                preview_percent: None,
             }
         })
         .collect();
@@ -200,6 +201,7 @@ pub fn project_balance_data(enriched_tasks: &[EnrichedTask]) -> BalanceData {
                 is_starving,
                 desired_credits: task.desired_credits,
                 effective_credits: task.effective_credits,
+                preview_percent: None,
             }
         })
         .collect();
