@@ -1234,7 +1234,7 @@ impl TunnelState {
             .filter(|id| !reachable.contains(*id))
             .cloned()
             .collect();
-        unreachable.sort_by_key(|id| id.to_string());
+        unreachable.sort_unstable_by(|a, b| a.as_str().cmp(b.as_str()));
 
         for id in unreachable {
             // Remove from old parent's child list
