@@ -48,7 +48,7 @@ check-style: check-format-root check-biome-root check-filenames-root check-forma
 # Check formatting for root files
 check-format-root:
     @echo "🔍 Checking root formatting..."
-    pnpm prettier --check "*.{json,md,yaml,yml,js,ts,tsx,jsx,css,html}"
+    pnpm prettier --check "*.{json,jsonc,md,yaml,yml,js,ts,tsx,jsx,css,html}"
 
 # Check biome for root
 check-biome-root:
@@ -203,7 +203,7 @@ fix-style: fix-format-root fix-biome-root fix-format
 
 # Fix formatting for root files
 fix-format-root:
-    pnpm prettier --write "*.{json,md,yaml,yml,js,ts,tsx,jsx,css,html}"
+    pnpm prettier --write "*.{json,jsonc,md,yaml,yml,js,ts,tsx,jsx,css,html}"
 
 # Fix biome for root
 fix-biome-root:
