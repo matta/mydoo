@@ -5,7 +5,6 @@
 
 use crate::components::{LoadErrorView, PageHeader};
 use crate::controllers::task_controller;
-use crate::hooks::use_balance_data::use_balance_data;
 use crate::hooks::use_balance_interaction::{BalanceRenderItem, use_balance_interaction};
 use dioxus::prelude::*;
 use tasklens_core::types::BalanceItem;
@@ -13,15 +12,12 @@ use tasklens_core::types::BalanceItem;
 #[component]
 pub fn BalancePage() -> Element {
     let load_error = use_context::<Signal<Option<String>>>();
-    let balance_data = use_balance_data();
     let task_controller = task_controller::use_task_controller();
-    let (render_items, interaction) = use_balance_interaction(
-        move || balance_data.read().clone(),
-        move |update_map| {
+    let (render_items, interaction) =
+        use_balance_interaction(EventHandler::new(move |update_map| {
             tracing::info!("set_balance_distribution: {:#?}", update_map);
             task_controller.set_balance_distribution(update_map);
-        },
-    );
+        }));
 
     rsx! {
         div {

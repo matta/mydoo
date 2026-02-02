@@ -1520,3 +1520,10 @@ pub struct BalanceData {
     /// Sum of all effective_credits across root goals.
     pub total_credits: f64,
 }
+
+/// A render-ready balance item that includes potential preview state.
+#[derive(Debug, Clone, PartialEq)]
+pub struct BalanceRenderItem {
+    pub item: BalanceItem,
+    pub preview_percent: Option<f64>,
+}
