@@ -1110,3 +1110,67 @@ fn test_multiple_parents_child_list_minimal_repro() {
         );
     }
 }
+
+/// Regression test for cycle detection after merge.
+///
+/// This reproduces a bug found by proptest where concurrent moves create a
+/// cycle that is unreachable from roots:
+///
+/// - Replica A moves task-1 under task-2
+/// - Replica B moves task-2 under task-1
+///
+/// After merge, task-1 → task-2 → task-1 forms a closed loop.
+#[test]
+fn test_concurrent_moves_create_cycle() {
+    let mut doc_a = init_doc().expect("Init failed");
+
+    // 1. Setup: Create task-1 and task-2 as root tasks
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-1"),
+            parent_id: None,
+            title: "Task 1".into(),
+        },
+    )
+    .unwrap();
+    adapter::dispatch(
+        &mut doc_a,
+        Action::CreateTask {
+            id: TaskID::from("task-2"),
+            parent_id: None,
+            title: "Task 2".into(),
+        },
+    )
+    .unwrap();
+
+    let mut doc_b = doc_a.fork();
+
+    // 2. Concurrent A: Move task-1 under task-2
+    adapter::dispatch(
+        &mut doc_a,
+        Action::MoveTask {
+            id: TaskID::from("task-1"),
+            new_parent_id: Some(TaskID::from("task-2")),
+        },
+    )
+    .unwrap();
+
+    // 3. Concurrent B: Move task-2 under task-1
+    adapter::dispatch(
+        &mut doc_b,
+        Action::MoveTask {
+            id: TaskID::from("task-2"),
+            new_parent_id: Some(TaskID::from("task-1")),
+        },
+    )
+    .unwrap();
+
+    // 4. Merge
+    doc_a.merge(&mut doc_b).expect("Merge failed");
+
+    // 5. Assert: Invariants held - the healing logic must break the cycle
+    if let Err(msg) = check_invariants(&doc_a, HydrationStrategy::Heal) {
+        panic!("Invariant Failure (Cycle after concurrent moves)!\n{}", msg);
+    }
+}
