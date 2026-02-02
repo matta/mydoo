@@ -51,7 +51,7 @@ impl BalanceInteractionLogic {
     }
 
     fn handle_input(&mut self, current_data: &BalanceData, target_id: &TaskID, new_value: f64) {
-        let string_map = if let Some(preview) = &self.preview_targets {
+        let percentages_map = if let Some(preview) = &self.preview_targets {
             preview.clone()
         } else {
             // Initialize from current data
@@ -62,7 +62,11 @@ impl BalanceInteractionLogic {
             map
         };
 
-        self.preview_targets = Some(redistribute_percentages(&string_map, target_id, new_value));
+        self.preview_targets = Some(redistribute_percentages(
+            &percentages_map,
+            target_id,
+            new_value,
+        ));
     }
 
     fn handle_commit(&mut self, current_data: &BalanceData) -> Option<HashMap<TaskID, f64>> {
@@ -75,11 +79,10 @@ impl BalanceInteractionLogic {
             base_total = 100.0;
         }
 
-        let mut distribution_update = HashMap::new();
-        for (id, pct) in preview {
-            let absolute = pct * base_total;
-            distribution_update.insert(id.clone(), absolute);
-        }
+        let distribution_update: HashMap<_, _> = preview
+            .iter()
+            .map(|(id, pct)| (id.clone(), pct * base_total))
+            .collect();
 
         self.preview_targets = None;
         Some(distribution_update)
