@@ -43,7 +43,7 @@ build-store:
 # -----------------------------------------------------------------------------
 
 # Run all style checks
-check-style: check-format-root check-biome-root check-filenames-root check-format check-dark-mode
+check-style: check-format-root check-biome-root check-filenames-root check-context-root check-format check-dark-mode
 
 # Check formatting for root files
 check-format-root:
@@ -62,6 +62,11 @@ check-biome-root:
 check-filenames-root:
     @echo "🔍 Checking filenames..."
     pnpm tsx scripts/lint-filenames.ts
+
+# Check context for accidental commits
+check-context-root:
+    @echo "🔍 Checking context..."
+    pnpm tsx scripts/lint-context.ts
 
 # Check formatting for all packages
 check-format:

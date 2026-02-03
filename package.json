@@ -46,6 +46,7 @@
     "check-biome-root": "just check-biome-root",
     "check-deps-root": "just check-deps-root",
     "check-filenames-root": "just check-filenames-root",
+    "check-context-root": "just check-context-root",
     "check-format-root": "just check-format-root",
     "fix-biome-root": "just fix-biome-root",
     "fix-format-root": "just fix-format-root",

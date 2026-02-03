@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "ignore": ["pnpm-workspace.yaml", "reference_repos/**", "crates/**"],
+  "ignore": ["pnpm-workspace.yaml", "context/**", "crates/**"],
   "ignoreDependencies": ["@biomejs/biome", "syncpack", "tsx"],
   "ignoreBinaries": ["just"],
   "workspaces": {
@@ -9,7 +9,8 @@
       "entry": [
         "check-dependency-health.ts",
         "sync-server.js",
-        "check-unused-catalog-entries.ts"
+        "check-unused-catalog-entries.ts",
+        "lint-context.ts"
       ]
     }
   }
