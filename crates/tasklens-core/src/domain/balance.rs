@@ -420,8 +420,6 @@ mod tests {
                 tasks: task_map,
                 root_task_ids: root_ids,
                 places: HashMap::new(),
-                next_task_id: 100,
-                next_place_id: 1,
                 metadata: None,
             }
         }

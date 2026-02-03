@@ -89,8 +89,6 @@ pub(crate) fn init_state(
     let mut tx = doc.transaction();
 
     let initial_state = TunnelState {
-        next_task_id: 1,
-        next_place_id: 1,
         tasks: HashMap::new(),
         places: HashMap::new(),
         root_task_ids: Vec::new(),

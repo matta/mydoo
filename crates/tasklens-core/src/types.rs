@@ -1095,12 +1095,10 @@ pub fn hydrate_option_metadata<D: autosurgeon::ReadDoc>(
 /// The root state of a TaskLens document.
 ///
 /// This is the top-level structure serialized to/from Automerge.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
 pub struct TunnelState {
-    pub next_task_id: i64,
-    pub next_place_id: i64,
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "test_strategies::arbitrary_tasks_map()")
@@ -1253,19 +1251,6 @@ impl TunnelState {
                     self.root_task_ids.push(id);
                 }
             }
-        }
-    }
-}
-
-impl Default for TunnelState {
-    fn default() -> Self {
-        Self {
-            next_task_id: 1,
-            next_place_id: 1,
-            tasks: HashMap::new(),
-            places: HashMap::new(),
-            root_task_ids: Vec::new(),
-            metadata: None,
         }
     }
 }

@@ -206,8 +206,6 @@ impl ComplianceStore {
 
     fn init(&mut self) -> Result<()> {
         let initial_state = TunnelState {
-            next_task_id: 1,
-            next_place_id: 1,
             tasks: HashMap::new(),
             places: HashMap::new(),
             root_task_ids: Vec::new(),
