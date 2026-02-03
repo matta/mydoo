@@ -37,8 +37,6 @@ impl AppStore {
 
     fn init(&mut self) -> Result<()> {
         let initial_state = TunnelState {
-            next_task_id: 1,
-            next_place_id: 1,
             tasks: HashMap::new(),
             places: HashMap::new(),
             root_task_ids: Vec::new(),
@@ -124,9 +122,7 @@ fn test_store_init() {
         map! {
             "tasks" => { map!{} },
             "places" => { map!{} },
-            "rootTaskIds" => { list![] },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 }
+            "rootTaskIds" => { list![] }
         }
     );
 
@@ -185,8 +181,6 @@ fn test_dispatch_create() {
                     { task_id_str.as_str() }
                 ]
             },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
             "places" => { map!{} }
         }
     );
@@ -325,8 +319,6 @@ fn test_dispatch_create_with_parent() {
                     { parent_id_str.as_str() }
                 ]
             },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
             "places" => { map!{} }
         }
     );
@@ -496,9 +488,7 @@ fn test_dispatch_update() {
                     { task_id_str.as_str() }
                 ]
             },
-            "places" => { map!{} },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
+            "places" => { map!{} }
         }
     );
 
@@ -534,9 +524,7 @@ fn test_dispatch_delete() {
         map! {
             "tasks" => { map!{} },
             "rootTaskIds" => { list![] },
-            "places" => { map!{} },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
+            "places" => { map!{} }
         }
     );
 
@@ -623,9 +611,7 @@ fn test_dispatch_delete_with_parent() {
             "rootTaskIds" => {
                 list![ { parent_id.as_str() } ]
             },
-            "places" => { map!{} },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
+            "places" => { map!{} }
         }
     );
 }
@@ -691,9 +677,7 @@ fn test_dispatch_complete() {
                     { task_id_str.as_str() }
                 ]
             },
-            "places" => { map!{} },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
+            "places" => { map!{} }
         }
     );
 
@@ -804,9 +788,7 @@ fn test_dispatch_move() {
                     { parent_id_str.as_str() }
                 ]
             },
-            "places" => { map!{} },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
+            "places" => { map!{} }
         }
     );
 
@@ -884,9 +866,7 @@ fn test_dispatch_refresh_lifecycle() {
                     { task_id_str.as_str() }
                 ]
             },
-            "places" => { map!{} },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
+            "places" => { map!{} }
         }
     );
 
@@ -933,9 +913,7 @@ fn test_dispatch_refresh_lifecycle() {
                     { task_id_str.as_str() }
                 ]
             },
-            "places" => { map!{} },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
+            "places" => { map!{} }
         }
     );
 
@@ -1022,9 +1000,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                     { task_id_str.as_str() }
                 ]
             },
-            "places" => { map!{} },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
+            "places" => { map!{} }
         }
     );
     assert_eq!(
@@ -1083,9 +1059,7 @@ fn test_dispatch_refresh_lifecycle_with_routine() {
                     { task_id_str.as_str() }
                 ]
             },
-            "places" => { map!{} },
-            "nextTaskId" => { 1 },
-            "nextPlaceId" => { 1 },
+            "places" => { map!{} }
         }
     );
     assert_eq!(

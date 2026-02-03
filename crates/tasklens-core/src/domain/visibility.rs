@@ -182,8 +182,6 @@ mod tests {
         );
 
         let doc = TunnelState {
-            next_task_id: 1,
-            next_place_id: 1,
             tasks: HashMap::new(),
             root_task_ids: vec![],
             places,

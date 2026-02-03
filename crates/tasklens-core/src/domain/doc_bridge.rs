@@ -3,7 +3,7 @@ use automerge::{ObjType, ROOT};
 use autosurgeon::{Hydrate, HydrateError, ReadDoc, ReconcileError};
 
 use crate::types::TunnelState;
-use crate::types::{hydrate_i64, hydrate_option_metadata};
+use crate::types::hydrate_option_metadata;
 
 /// Hydrates a TunnelState manually from an Automerge document.
 ///
@@ -13,17 +13,12 @@ use crate::types::{hydrate_i64, hydrate_option_metadata};
 pub fn hydrate_tunnel_state(doc: &impl ReadDoc) -> Result<TunnelState, HydrateError> {
     let root = automerge::ROOT;
 
-    let next_task_id = hydrate_i64(doc, &root, "nextTaskId".into())?;
-    let next_place_id = hydrate_i64(doc, &root, "nextPlaceId".into())?;
-
     let tasks = Hydrate::hydrate(doc, &root, "tasks".into())?;
     let root_task_ids = Hydrate::hydrate(doc, &root, "rootTaskIds".into())?;
     let places = Hydrate::hydrate(doc, &root, "places".into())?;
     let metadata = hydrate_option_metadata(doc, &root, "metadata".into())?;
 
     Ok(TunnelState {
-        next_task_id,
-        next_place_id,
         tasks,
         root_task_ids,
         places,
@@ -36,12 +31,6 @@ pub fn reconcile_tunnel_state<T: Transactable + autosurgeon::Doc>(
     doc: &mut T,
     state: &TunnelState,
 ) -> Result<(), ReconcileError> {
-    // nextTaskId
-    autosurgeon::reconcile_prop(doc, &automerge::ROOT, "nextTaskId", state.next_task_id)?;
-
-    // nextPlaceId
-    autosurgeon::reconcile_prop(doc, &automerge::ROOT, "nextPlaceId", state.next_place_id)?;
-
     // tasks
     autosurgeon::reconcile_prop(doc, &automerge::ROOT, "tasks", &state.tasks)?;
 

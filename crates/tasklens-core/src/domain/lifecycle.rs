@@ -52,8 +52,6 @@ mod tests {
         );
 
         let mut state = TunnelState {
-            next_task_id: 1,
-            next_place_id: 1,
             tasks,
             root_task_ids: vec![task_id.clone()],
             places: HashMap::new(),
