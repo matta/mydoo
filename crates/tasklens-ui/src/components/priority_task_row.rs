@@ -17,7 +17,7 @@ pub fn PriorityTaskRow(
         UrgencyStatus::Urgent => "text-orange-600 font-semibold",
         UrgencyStatus::Active => "text-yellow-600",
         UrgencyStatus::Upcoming => "text-green-600",
-        UrgencyStatus::None => "text-gray-500",
+        UrgencyStatus::None => "text-gray-500 dark:text-stone-400",
     };
 
     let urgency_label = match task.urgency_status {
@@ -30,7 +30,7 @@ pub fn PriorityTaskRow(
 
     rsx! {
         div {
-            class: "flex items-center p-3 mb-2 bg-white rounded-lg shadow-sm border border-gray-100 hover:bg-gray-50 group",
+            class: "flex items-center p-3 mb-2 bg-white dark:bg-stone-900 rounded-lg shadow-sm border border-gray-100 dark:border-stone-700 hover:bg-gray-50 dark:hover:bg-stone-800 group",
             "data-testid": "task-item",
             "data-urgency": "{task.urgency_status:?}",
 
@@ -43,7 +43,7 @@ pub fn PriorityTaskRow(
             span {
                 class: format_args!(
                     "flex-grow cursor-pointer select-none {} {}",
-                    if is_done { "line-through text-gray-400" } else { "text-gray-800" },
+                    if is_done { "line-through text-gray-400 dark:text-stone-500" } else { "text-gray-800 dark:text-stone-100" },
                     if !is_done && task.urgency_status == UrgencyStatus::Overdue { "font-medium" } else { "" }
                 ),
                 "data-testid": "task-title",

@@ -25,7 +25,10 @@ pub fn Checkbox(
         input {
             id: "{id_str}",
             r#type: "checkbox",
-            class: "focus:ring-blue-500 h-5 w-5 text-blue-600 border-gray-300 rounded {extra_classes}",
+            // DaisyUI "checkbox" class handles the base styling.
+            // "checkbox-primary" adds the primary color (usually matches theme).
+            // "checkbox-sm" sets the size (1.25rem / 20px), matching the previous h-5 w-5.
+            class: "checkbox checkbox-primary checkbox-sm {extra_classes}",
             checked,
             onchange: move |evt| onchange.call(evt.checked()),
             onclick: move |evt| evt.stop_propagation(), // often useful in lists
@@ -39,7 +42,7 @@ pub fn Checkbox(
                 div { class: "ml-3 text-base",
                     label {
                         r#for: "{id_str}",
-                        class: "font-medium text-gray-700 select-none",
+                        class: "font-medium text-gray-700 dark:text-stone-200 select-none",
                         "{text}"
                     }
                 }
