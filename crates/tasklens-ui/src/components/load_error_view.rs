@@ -8,30 +8,26 @@ pub fn LoadErrorView(error: String, help_text: Option<String>) -> Element {
     });
 
     rsx! {
-        div { class: "mt-8 p-6 bg-red-50 border border-red-200 rounded-xl shadow-sm",
-            div { class: "flex items-center space-x-3 mb-4",
-                span { class: "p-2 bg-red-100 rounded-lg",
-                    svg {
-                        class: "h-6 w-6 text-red-600",
-                        fill: "none",
-                        view_box: "0 0 24 24",
-                        stroke: "currentColor",
-                        path {
-                            stroke_linecap: "round",
-                            stroke_linejoin: "round",
-                            stroke_width: "2",
-                            d: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
-                        }
+        div { class: "alert alert-error shadow-sm items-start flex-col gap-4",
+            div { class: "flex items-center gap-3 w-full",
+                svg {
+                    class: "h-6 w-6 shrink-0 stroke-current",
+                    fill: "none",
+                    view_box: "0 0 24 24",
+                    path {
+                        stroke_linecap: "round",
+                        stroke_linejoin: "round",
+                        stroke_width: "2",
+                        d: "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z",
                     }
                 }
-                h2 { class: "text-lg font-semibold text-red-800", "Loading Error" }
+                h2 { class: "text-lg font-bold", "Loading Error" }
             }
-            div { class: "text-red-700 text-sm font-mono break-words leading-relaxed",
+            div { class: "font-mono text-sm break-words leading-relaxed w-full",
                 "{error}"
             }
-            div { class: "mt-6 pt-4 border-t border-red-100 flex flex-col space-y-3",
-                p { class: "text-sm text-red-600", "{help_text}" }
-            }
+            div { class: "divider my-0 opacity-20" }
+            p { class: "text-sm opacity-90", "{help_text}" }
         }
     }
 }

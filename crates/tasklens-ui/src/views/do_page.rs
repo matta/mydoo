@@ -1,5 +1,5 @@
 use crate::components::priority_task_row::PriorityTaskRow;
-use crate::components::{LoadErrorView, PageHeader, TaskInput};
+use crate::components::{Button, ButtonVariant, LoadErrorView, PageHeader, TaskInput};
 use crate::controllers::task_controller;
 use dioxus::prelude::*;
 use tasklens_core::domain::priority::get_prioritized_tasks;
@@ -63,8 +63,9 @@ pub fn DoPage() -> Element {
             style: "padding-top: var(--safe-top); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
 
             PageHeader { title: "Work",
-                button {
-                    class: "px-3 py-1 bg-white border border-gray-200 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 flex items-center shadow-sm dark:bg-stone-800 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-700",
+                Button {
+                    variant: ButtonVariant::Ghost,
+                    class: "btn-sm text-base-content/70 hover:text-base-content border border-base-300",
                     onclick: move |_| task_controller.refresh_lifecycle(),
                     "Refresh"
                 }
@@ -85,9 +86,11 @@ pub fn DoPage() -> Element {
                     ),
                 }
             } else if prioritized_tasks().is_empty() {
-                div { class: "text-center py-12 text-gray-500 dark:text-stone-400 bg-gray-50 dark:bg-stone-800 rounded-lg border-2 border-dashed border-gray-200 dark:border-stone-700",
-                    p { "No tasks ready for now." }
-                    p { class: "text-base mt-2", "Check your Plan or wait for scheduled tasks." }
+                div { class: "card bg-base-200 border-2 border-dashed border-base-300 py-12 text-center",
+                    div { class: "card-body items-center text-base-content/60",
+                        p { "No tasks ready for now." }
+                        p { class: "text-base mt-2", "Check your Plan or wait for scheduled tasks." }
+                    }
                 }
             } else {
                 div { class: "space-y-1",
