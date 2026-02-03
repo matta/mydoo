@@ -222,7 +222,7 @@ Properties are initialized using one of three strategies:
 
 | Property          | Strategy             | Details                                              |
 | :---------------- | :------------------- | :--------------------------------------------------- |
-| `Importance`      | **Fixed Default**    | Always `1.0`. Never inherited.                       |
+| `Importance`      | **Fixed Default**    | Always `0.5`. Never inherited.                       |
 | `PlaceID`         | **Copy-on-Create**   | Copy parent's value. Root default: `ANYWHERE`.       |
 | `CreditIncrement` | **Copy-on-Create**   | Copy parent's value. Root default: `0.5`.            |
 | `Due`             | **Runtime Fallback** | Only when `Schedule='Once'`. Resolves at query time. |
@@ -252,7 +252,7 @@ When a new task $T$ is created within a parent $P$:
 
 **Fixed Defaults** (`Importance`):
 
-1.  Always initialize to `1.0`.
+1.  Always initialize to `0.5`.
 2.  **Effect**: Independent of hierarchy.
 
 #### 4.2.2 Resolution (Runtime)

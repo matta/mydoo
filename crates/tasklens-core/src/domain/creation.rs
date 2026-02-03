@@ -27,7 +27,7 @@ pub fn create_new_task(id: TaskID, title: String, parent: Option<&PersistedTask>
         child_task_ids: Vec::new(),
         place_id,
         status: TaskStatus::Pending,
-        importance: 1.0,
+        importance: 0.5,
         credit_increment,
         credits: 0.0,
         desired_credits: 1.0,

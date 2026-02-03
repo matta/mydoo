@@ -30,7 +30,7 @@ scenarios:
             - Step_A
           expected_props:
             - id: Step_A
-              score: 1
+              score: 0.5
               is_ready: true
               is_visible: true
             - id: Step_B
@@ -54,7 +54,7 @@ scenarios:
               score: 0
               is_visible: false
             - id: Step_B
-              score: 1
+              score: 0.5
               is_ready: true
               is_visible: true
             - id: Step_C

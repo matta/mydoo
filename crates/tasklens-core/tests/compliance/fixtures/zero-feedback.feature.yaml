@@ -8,6 +8,7 @@ background:
   tasks:
     - id: ZeroRoot
       title: Zero Credits Root
+      importance: 1.0
       desired_credits: 100
       credits: 0
       children:

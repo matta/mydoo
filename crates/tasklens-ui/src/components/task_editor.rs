@@ -78,7 +78,7 @@ pub fn TaskEditor(
             draft.set(Some(DraftTask {
                 title: "".to_string(),
                 notes: "".to_string(),
-                importance: 1.0,
+                importance: 0.5,
                 credit_increment,
                 place_id,
                 status: TaskStatus::Pending,

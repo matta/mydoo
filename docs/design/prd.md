@@ -103,7 +103,7 @@ inheritance and algorithm behavior:
 The system uses two distinct inheritance strategies:
 
 1. **Fixed Default** (Importance):
-   - **Importance**: Always initializes to `1.0` (maximum value). It does NOT
+   - **Importance**: Always initializes to `0.5` (middle value). It does NOT
      inherit from the parent.
 
 2. **Copy-on-Create** (Effort, Place): The value is determined at task creation
