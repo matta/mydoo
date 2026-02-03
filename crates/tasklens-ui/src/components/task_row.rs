@@ -63,11 +63,11 @@ pub fn TaskRow(
     let urgency_classes = match urgency {
         UrgencyStatus::Overdue => "text-red-600 flex-grow cursor-pointer font-medium",
         UrgencyStatus::Active | UrgencyStatus::Urgent => "text-orange-600 flex-grow cursor-pointer",
-        _ => "text-gray-800 flex-grow cursor-pointer",
+        _ => "text-gray-800 dark:text-stone-100 flex-grow cursor-pointer",
     };
 
     let title_class = if is_done {
-        "line-through text-gray-400 flex-grow cursor-pointer"
+        "line-through text-gray-400 dark:text-stone-500 flex-grow cursor-pointer"
     } else {
         urgency_classes
     };
@@ -76,12 +76,12 @@ pub fn TaskRow(
         UrgencyStatus::Overdue => "bg-red-500",
         UrgencyStatus::Active | UrgencyStatus::Urgent => "bg-orange-500",
         UrgencyStatus::Upcoming => "bg-yellow-500",
-        _ => "bg-gray-300",
+        _ => "bg-gray-300 dark:bg-stone-600",
     };
 
     rsx! {
         div {
-            class: "flex items-center py-3 border-b border-gray-100 hover:bg-gray-50 group pr-2",
+            class: "flex items-center py-3 border-b border-gray-100 dark:border-stone-700 hover:bg-gray-50 dark:hover:bg-stone-800 group pr-2",
             class: if is_highlighted { "animate-flash" } else { "" },
             style: "padding-left: {indentation}px",
             "data-testid": "task-item",
@@ -97,7 +97,7 @@ pub fn TaskRow(
             div { class: "w-10 flex justify-center flex-shrink-0",
                 if has_children {
                     div {
-                        class: "cursor-pointer p-2 rounded hover:bg-gray-200 text-gray-500",
+                        class: "cursor-pointer p-2 rounded hover:bg-gray-200 dark:hover:bg-stone-700 text-gray-500 dark:text-stone-400",
                         onclick: move |evt| {
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
@@ -172,7 +172,7 @@ pub fn TaskRow(
             if let Some(due_ts) = effective_due_date {
                 if !is_done {
                     span {
-                        class: "text-base text-gray-400 ml-2",
+                        class: "text-base text-gray-400 dark:text-stone-500 ml-2",
                         "data-testid": "due-date-text",
                         {format_relative_due_date(due_ts, now)}
                     }
@@ -182,7 +182,7 @@ pub fn TaskRow(
             // Actions
             div { class: "flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2",
                 button {
-                    class: "p-2 hover:bg-gray-200 rounded text-gray-500",
+                    class: "p-2 hover:bg-gray-200 dark:hover:bg-stone-700 rounded text-gray-500 dark:text-stone-400",
                     title: "Add Subtask",
                     onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
                     svg {

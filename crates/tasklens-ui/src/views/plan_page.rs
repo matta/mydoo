@@ -187,10 +187,10 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                     }
                 }
 
-                div { class: "bg-white shadow rounded-lg overflow-hidden mt-4",
+                div { class: "bg-white dark:bg-stone-900 shadow rounded-lg overflow-hidden mt-4",
                     if flattened_tasks().is_empty() {
                         div { class: "p-8 text-center",
-                            p { class: "text-gray-500 mb-4",
+                            p { class: "text-gray-500 dark:text-stone-400 mb-4",
                                 "No tasks found. Try adding seed data? (?seed=true)"
                             }
                             button {

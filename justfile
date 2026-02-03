@@ -43,7 +43,7 @@ build-store:
 # -----------------------------------------------------------------------------
 
 # Run all style checks
-check-style: check-format-root check-biome-root check-filenames-root check-format
+check-style: check-format-root check-biome-root check-filenames-root check-format check-dark-mode
 
 # Check formatting for root files
 check-format-root:
@@ -69,6 +69,11 @@ check-format:
     @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm prettier --check .
     @echo "  - {{docs_pkg}}" && cd {{docs_pkg}} && pnpm prettier --check .
     @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm prettier --check .
+
+# Check for dark mode violations in UI components
+check-dark-mode:
+    @echo "🌙 Checking dark mode theming..."
+    pnpm tsx scripts/lint-dark-mode.ts
 
 
 

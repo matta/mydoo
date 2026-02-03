@@ -47,13 +47,13 @@ pub fn Button(
             "border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         }
         ButtonVariant::Secondary => {
-            "border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500"
+            "border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-200 bg-white dark:bg-stone-900 hover:bg-gray-50 dark:hover:bg-stone-800 focus:ring-blue-500"
         }
         ButtonVariant::Destructive => {
             "border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-500"
         }
         ButtonVariant::Ghost => {
-            "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100 shadow-none"
+            "border-transparent text-gray-500 dark:text-stone-400 hover:text-gray-700 dark:hover:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-700 shadow-none"
         }
     };
 

@@ -55,18 +55,18 @@ pub fn MovePicker(
                 div { class: "mt-4 max-h-[60vh] overflow-y-auto border rounded-md",
                     // Option for Root
                     div {
-                        class: "p-3 hover:bg-gray-100 cursor-pointer border-b flex items-center justify-between",
+                        class: "p-3 hover:bg-gray-100 dark:hover:bg-stone-700 cursor-pointer border-b flex items-center justify-between",
                         onclick: move |_| on_select.call(None),
                         span { class: "font-medium", "(Root)" }
                     }
 
                     if flattened_tasks().is_empty() {
-                        div { class: "p-4 text-center text-gray-500", "No other valid parents found." }
+                        div { class: "p-4 text-center text-gray-500 dark:text-stone-400", "No other valid parents found." }
                     } else {
                         for (task, depth) in flattened_tasks() {
                             div {
                                 key: "{task.id}",
-                                class: "p-3 hover:bg-gray-100 cursor-pointer border-b flex items-center",
+                                class: "p-3 hover:bg-gray-100 dark:hover:bg-stone-700 cursor-pointer border-b flex items-center",
                                 style: "padding-left: {12 + depth * 16}px",
                                 onclick: {
                                     let id = task.id.clone();
@@ -80,7 +80,7 @@ pub fn MovePicker(
 
                 div { class: "mt-4 flex justify-end",
                     button {
-                        class: "px-4 py-2 text-gray-600 hover:text-gray-800",
+                        class: "px-4 py-2 text-gray-600 dark:text-stone-400 hover:text-gray-800 dark:hover:text-stone-200",
                         onclick: move |_| on_close.call(()),
                         "Cancel"
                     }

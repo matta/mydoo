@@ -551,7 +551,7 @@ pub fn TaskEditor(
 
                     // Sequential Project (Edit mode only)
                     if task_id.is_some() {
-                        div { class: "flex items-center gap-2 p-3 bg-gray-50 rounded-md border border-gray-200",
+                        div { class: "flex items-center gap-2 p-3 bg-gray-50 dark:bg-stone-800 rounded-md border border-gray-200 dark:border-stone-700",
                             input {
                                 r#type: "checkbox",
                                 id: "sequential-toggle",
@@ -569,7 +569,7 @@ pub fn TaskEditor(
                                 class: "text-base font-medium cursor-pointer",
                                 "Sequential Project"
                             }
-                            span { class: "text-xs text-gray-500 ml-auto", "Do steps in order" }
+                            span { class: "text-xs text-gray-500 dark:text-stone-400 ml-auto", "Do steps in order" }
                         }
                     }
 
