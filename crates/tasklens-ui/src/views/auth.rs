@@ -4,6 +4,7 @@
 //! It includes the [`SettingsModal`] which acts as the main container for
 //! managing documents (switching, creating, etc).
 
+use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use crate::components::*;
 use dioxus::prelude::*;
 use tasklens_store::doc_id::DocumentId;
@@ -25,53 +26,24 @@ pub fn SettingsModal(
     on_create_doc: EventHandler<()>,
 ) -> Element {
     rsx! {
-        div {
-            class: "fixed inset-0 z-50 overflow-y-auto",
-            role: "dialog",
-            "aria-modal": "true",
-            "aria-label": "Settings",
+        DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
+            DialogContent { class: "max-w-lg",
+                DialogTitle { "Document Management" }
 
-            div { class: "flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0",
-                div {
-                    class: "fixed inset-0 transition-opacity",
-                    aria_hidden: "true",
-                    onclick: move |_| on_close.call(()),
-                    div { class: "absolute inset-0 bg-gray-500 opacity-75" }
-                }
-
-                span {
-                    class: "hidden sm:inline-block sm:align-middle sm:h-screen",
-                    aria_hidden: "true",
-                    "\u{200b}"
-                }
-
-                div { class: "relative z-10 inline-block align-bottom bg-white dark:bg-stone-900 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full",
-                    div { class: "bg-white dark:bg-stone-900 px-4 pt-5 pb-4 sm:p-6 sm:pb-4",
-                        div { class: "sm:flex sm:items-start",
-                            div { class: "mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full",
-                                h3 { class: "text-lg leading-6 font-medium text-gray-900 dark:text-stone-100 mb-4",
-                                    "Document Management"
-                                }
-
-                                // 1. Document Management
-                                div { class: "mb-8",
-                                    DocIdManager {
-                                        current_doc_id: doc_id,
-                                        on_change: on_doc_change,
-                                        on_create: on_create_doc,
-                                    }
-                                }
-                            }
-                        }
+                div { class: "py-4",
+                    DocIdManager {
+                        current_doc_id: doc_id,
+                        on_change: on_doc_change,
+                        on_create: on_create_doc,
                     }
-                    div { class: "bg-gray-50 dark:bg-stone-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse",
-                        Button {
-                            variant: ButtonVariant::Secondary,
-                            class: "mt-3 w-full sm:mt-0 sm:ml-3 sm:w-auto",
-                            onclick: move |_| on_close.call(()),
-                            data_testid: "close-settings",
-                            "Close"
-                        }
+                }
+
+                div { class: "mt-6 flex justify-end",
+                    Button {
+                        variant: ButtonVariant::Secondary,
+                        onclick: move |_| on_close.call(()),
+                        data_testid: "close-settings",
+                        "Close"
                     }
                 }
             }

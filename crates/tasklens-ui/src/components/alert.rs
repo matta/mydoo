@@ -32,22 +32,21 @@ pub fn Alert(
     let variant = variant.unwrap_or(AlertVariant::Info);
     let extra_classes = class.unwrap_or_default();
 
-    let (bg_color, text_color, heading_color) = match variant {
-        AlertVariant::Info => ("bg-blue-50", "text-blue-700", "text-blue-800"),
-        AlertVariant::Success => ("bg-green-50", "text-green-700", "text-green-800"),
-        AlertVariant::Error => ("bg-red-50", "text-red-700", "text-red-800"),
+    let variant_class = match variant {
+        AlertVariant::Info => "alert-info",
+        AlertVariant::Success => "alert-success",
+        AlertVariant::Error => "alert-error",
     };
 
     rsx! {
-        div { class: "rounded-md {bg_color} p-4 {extra_classes}",
-            div { class: "flex",
-                // Icon could be added here based on variant, keeping it simple for now or strictly generic
-                div { class: "ml-3",
-                    if let Some(t) = title {
-                        h3 { class: "text-base font-bold {heading_color}", "{t}" }
-                    }
-                    div { class: "mt-2 text-base {text_color}", {children} }
+        div {
+            class: "alert {variant_class} {extra_classes}",
+            role: "alert",
+            div {
+                if let Some(t) = title {
+                    h3 { class: "font-bold", "{t}" }
                 }
+                div { class: "text-base", {children} }
             }
         }
     }
