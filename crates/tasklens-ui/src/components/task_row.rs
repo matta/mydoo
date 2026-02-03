@@ -60,23 +60,27 @@ pub fn TaskRow(
     // Urgency Logic
     let now = js_sys::Date::now() as i64;
     let urgency = get_urgency_status(effective_due_date, effective_lead_time, now);
-    let urgency_classes = match urgency {
-        UrgencyStatus::Overdue => "text-error flex-grow cursor-pointer font-medium",
-        UrgencyStatus::Active | UrgencyStatus::Urgent => "text-warning flex-grow cursor-pointer",
-        _ => "text-base-content flex-grow cursor-pointer",
+
+    let (urgency_text_class, badge_class, urgency_label) = match urgency {
+        UrgencyStatus::Overdue => ("text-error font-medium", "badge-error", "Overdue"),
+        UrgencyStatus::Urgent => ("text-warning", "badge-warning", "Urgent"),
+        UrgencyStatus::Active => ("text-warning", "badge-warning", "Active"),
+        UrgencyStatus::Upcoming => ("text-base-content", "badge-info", "Upcoming"),
+        _ => ("text-base-content", "badge-neutral", ""),
     };
+
+    let data_urgency = if urgency_label.is_empty() {
+        "None"
+    } else {
+        urgency_label
+    };
+
+    let urgency_classes = format!("{} flex-grow cursor-pointer", urgency_text_class);
 
     let title_class = if is_done {
-        "line-through text-base-content/50 flex-grow cursor-pointer"
+        "line-through text-base-content/50 flex-grow cursor-pointer".to_string()
     } else {
         urgency_classes
-    };
-
-    let badge_color = match urgency {
-        UrgencyStatus::Overdue => "badge-error",
-        UrgencyStatus::Active | UrgencyStatus::Urgent => "badge-warning",
-        UrgencyStatus::Upcoming => "badge-info",
-        _ => "badge-neutral",
     };
 
     let row_class = format!(
@@ -90,13 +94,7 @@ pub fn TaskRow(
             style: "--indent: {indentation}px; padding-left: var(--indent);",
             "data-testid": "task-item",
             "data-depth": "{depth}",
-            "data-urgency": match urgency {
-                UrgencyStatus::Overdue => "Overdue",
-                UrgencyStatus::Active => "Active",
-                UrgencyStatus::Urgent => "Urgent",
-                UrgencyStatus::Upcoming => "Upcoming",
-                _ => "None",
-            },
+            "data-urgency": "{data_urgency}",
 
             // Expand/Collapse Chevron
             div { class: "w-10 flex justify-center flex-shrink-0",
@@ -156,21 +154,9 @@ pub fn TaskRow(
             if urgency != UrgencyStatus::None {
                 span {
                     "data-testid": "urgency-badge",
-                    "data-urgency": match urgency {
-                        UrgencyStatus::Overdue => "Overdue",
-                        UrgencyStatus::Active => "Active",
-                        UrgencyStatus::Urgent => "Urgent",
-                        UrgencyStatus::Upcoming => "Upcoming",
-                        _ => "None",
-                    },
-                    class: "badge badge-sm {badge_color} ml-2",
-                    {match urgency {
-                        UrgencyStatus::Overdue => "Overdue",
-                        UrgencyStatus::Urgent => "Urgent",
-                        UrgencyStatus::Active => "Active",
-                        UrgencyStatus::Upcoming => "Upcoming",
-                        _ => "",
-                    }}
+                    "data-urgency": "{data_urgency}",
+                    class: "badge badge-sm {badge_class} ml-2",
+                    "{urgency_label}"
                 }
             }
 
