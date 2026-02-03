@@ -140,17 +140,16 @@ test-rust:
     cargo test --workspace
 
 # Run all e2e tests
-test-e2e: build-ui test-e2e-desktop test-e2e-mobile
+test-e2e *args: build-ui
+    cd {{ui_pkg}} && pnpm exec playwright test {{args}}
 
 # Run e2e tests for desktop
-test-e2e-desktop:
-    @echo "🧪 Running desktop e2e tests..."
-    cd {{ui_pkg}} && pnpm exec playwright test --project=e2e-desktop
+test-e2e-desktop *args: build-ui
+    cd {{ui_pkg}} && pnpm exec playwright test --project=e2e-desktop {{args}}
 
 # Run e2e tests for mobile
-test-e2e-mobile:
-    @echo "🧪 Running mobile e2e tests..."
-    cd {{ui_pkg}} && pnpm exec playwright test --project=e2e-mobile
+test-e2e-mobile *args: build-ui
+    cd {{ui_pkg}} && pnpm exec playwright test --project=e2e-mobile {{args}}
 
 # -----------------------------------------------------------------------------
 # Orchestration Commands
