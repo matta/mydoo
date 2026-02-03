@@ -1,5 +1,5 @@
 use crate::components::priority_task_row::PriorityTaskRow;
-use crate::components::{Button, ButtonVariant, LoadErrorView, PageHeader, TaskInput};
+use crate::components::{Button, ButtonVariant, EmptyState, LoadErrorView, PageHeader, TaskInput};
 use crate::controllers::task_controller;
 use dioxus::prelude::*;
 use tasklens_core::domain::priority::get_prioritized_tasks;
@@ -86,14 +86,12 @@ pub fn DoPage() -> Element {
                     ),
                 }
             } else if prioritized_tasks().is_empty() {
-                div { class: "card bg-base-200 border-2 border-dashed border-base-300 py-12 text-center",
-                    div { class: "card-body items-center text-base-content/60",
-                        p { "No tasks ready for now." }
-                        p { class: "text-base mt-2", "Check your Plan or wait for scheduled tasks." }
-                    }
+                EmptyState {
+                    title: "No tasks ready for now.",
+                    subtitle: "Check your Plan or wait for scheduled tasks.",
                 }
             } else {
-                div { class: "space-y-1",
+                div { class: "space-y-2",
                     for task in prioritized_tasks() {
                         PriorityTaskRow {
                             key: "{task.id}",

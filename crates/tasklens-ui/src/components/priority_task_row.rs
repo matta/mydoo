@@ -30,14 +30,13 @@ pub fn PriorityTaskRow(
 
     rsx! {
         div {
-            class: "card card-compact card-bordered card-side bg-base-100 shadow-sm p-3 mb-2 items-center hover:bg-base-200/50 transition-colors group",
+            class: "flex items-center gap-2 p-3 bg-base-100 border border-base-200 rounded-lg shadow-sm hover:bg-base-200/50 transition-colors group",
             "data-testid": "task-item",
             "data-urgency": "{task.urgency_status:?}",
 
             Checkbox {
                 checked: is_done,
                 onchange: move |_| on_toggle.call(task_id_toggle.clone()),
-                class: "mr-3",
             }
 
             span {

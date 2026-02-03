@@ -56,13 +56,7 @@ pub fn CollapsibleItem(
     children: Element,
 ) -> Element {
     rsx! {
-        div {
-            border: "1px solid var(--primary-color-6)",
-            border_radius: "0.5rem",
-            padding: "1rem",
-            ..attributes,
-            {children}
-        }
+        div { class: "border border-base-300 rounded-lg p-4", ..attributes, {children} }
     }
 }
 
@@ -72,14 +66,6 @@ pub fn CollapsibleList(
     children: Element,
 ) -> Element {
     rsx! {
-        div {
-            display: "flex",
-            flex_direction: "column",
-            gap: "0.5rem",
-            max_width: "20rem",
-            color: "var(--secondary-color-3)",
-            ..attributes,
-            {children}
-        }
+        div { class: "flex flex-col gap-2 max-w-xs text-base-content/70", ..attributes, {children} }
     }
 }
