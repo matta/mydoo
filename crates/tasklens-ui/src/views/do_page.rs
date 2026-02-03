@@ -85,7 +85,7 @@ pub fn DoPage() -> Element {
                     ),
                 }
             } else if prioritized_tasks().is_empty() {
-                div { class: "text-center py-12 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200",
+                div { class: "text-center py-12 text-gray-500 dark:text-stone-400 bg-gray-50 dark:bg-stone-800 rounded-lg border-2 border-dashed border-gray-200 dark:border-stone-700",
                     p { "No tasks ready for now." }
                     p { class: "text-base mt-2", "Check your Plan or wait for scheduled tasks." }
                 }

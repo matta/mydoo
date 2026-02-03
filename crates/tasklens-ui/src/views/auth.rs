@@ -45,11 +45,11 @@ pub fn SettingsModal(
                     "\u{200b}"
                 }
 
-                div { class: "relative z-10 inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full",
-                    div { class: "bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4",
+                div { class: "relative z-10 inline-block align-bottom bg-white dark:bg-stone-900 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full",
+                    div { class: "bg-white dark:bg-stone-900 px-4 pt-5 pb-4 sm:p-6 sm:pb-4",
                         div { class: "sm:flex sm:items-start",
                             div { class: "mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full",
-                                h3 { class: "text-lg leading-6 font-medium text-gray-900 mb-4",
+                                h3 { class: "text-lg leading-6 font-medium text-gray-900 dark:text-stone-100 mb-4",
                                     "Document Management"
                                 }
 
@@ -64,7 +64,7 @@ pub fn SettingsModal(
                             }
                         }
                     }
-                    div { class: "bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse",
+                    div { class: "bg-gray-50 dark:bg-stone-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse",
                         Button {
                             variant: ButtonVariant::Secondary,
                             class: "mt-3 w-full sm:mt-0 sm:ml-3 sm:w-auto",
