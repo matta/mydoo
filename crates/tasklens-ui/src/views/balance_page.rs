@@ -78,9 +78,9 @@ fn BalanceItemRow(
     let actual_pct = (item.actual_percent * 100.0).round() as i32;
 
     let status_class = if item.is_starving {
-        "text-red-600 dark:text-red-400"
+        "badge badge-error"
     } else {
-        "text-green-600 dark:text-green-400"
+        "badge badge-success"
     };
 
     let status_label = if item.is_starving {

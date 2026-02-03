@@ -16,7 +16,7 @@ pub fn Select(props: SelectProps) -> Element {
     rsx! {
         select {
             id: props.id,
-            class: format!("border rounded p-2 text-base bg-white dark:bg-gray-800 dark:border-gray-700 {}", props.class.unwrap_or_default()),
+            class: format!("select select-bordered w-full text-base {}", props.class.unwrap_or_default()),
             value: "{props.value}",
             onchange: move |evt| props.onchange.call(evt.value()),
             {props.children}

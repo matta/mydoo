@@ -257,7 +257,7 @@ pub fn TaskEditor(
                         input {
                             r#type: "range",
                             id: "importance-input",
-                            class: "w-full",
+                            class: "range range-primary range-sm",
                             min: 0.0,
                             max: 1.0,
                             step: 0.01,
@@ -282,7 +282,7 @@ pub fn TaskEditor(
                         input {
                             r#type: "range",
                             id: "effort-input",
-                            class: "w-full",
+                            class: "range range-primary range-sm",
                             min: 0.0,
                             max: 1.0,
                             step: 0.01,
@@ -369,12 +369,11 @@ pub fn TaskEditor(
                             option { value: "DueDate", "Due Date" }
                         }
                     }
-                    // Routine Repetition (Conditional)
                     if matches!(current_draft.schedule.schedule_type, ScheduleType::Routinely) {
-                        div { class: "p-3 bg-blue-50 rounded-md border border-blue-100 space-y-3",
+                        div { class: "p-3 bg-base-200 rounded-md border border-base-300 space-y-3",
                             div {
                                 label {
-                                    class: "block text-base font-medium text-blue-800",
+                                    class: "block text-base font-medium text-primary",
                                     r#for: "repetition-frequency-select",
                                     "Repeat Every"
                                 }
@@ -382,7 +381,7 @@ pub fn TaskEditor(
                                     input {
                                         r#type: "number",
                                         id: "repetition-interval-input",
-                                        class: "w-20 border rounded p-2 text-base",
+                                        class: "input input-bordered w-20 px-2 text-base",
                                         value: current_draft.repeat_config.as_ref().map(|r| r.interval).unwrap_or(1),
                                         oninput: move |e| {
                                             if let Ok(val) = e.value().parse::<i64>() {
@@ -401,7 +400,7 @@ pub fn TaskEditor(
                                     }
                                     select {
                                         id: "repetition-frequency-select",
-                                        class: "flex-grow border rounded p-2 text-base",
+                                        class: "select select-bordered flex-grow text-base",
                                         value: current_draft
                                             .repeat_config
                                             .as_ref()
@@ -499,7 +498,7 @@ pub fn TaskEditor(
                                     input {
                                         r#type: "number",
                                         id: "lead-time-scalar-input",
-                                        class: "w-20 border rounded p-2 text-base",
+                                        class: "input input-bordered w-20 px-2 text-base",
                                         value: "{val}",
                                         oninput: move |e| {
                                             if let Ok(val) = e.value().parse::<u32>() {
@@ -511,7 +510,7 @@ pub fn TaskEditor(
                                     }
                                     select {
                                         id: "lead-time-unit-select",
-                                        class: "border rounded p-2 text-base",
+                                        class: "select select-bordered text-base",
                                         value: "{unit}",
                                         aria_label: "Lead Time Unit",
                                         onchange: move |e| {
@@ -538,7 +537,7 @@ pub fn TaskEditor(
                         }
                         textarea {
                             id: "notes-input",
-                            class: "w-full border rounded p-3 text-base",
+                            class: "textarea textarea-bordered w-full text-base",
                             rows: 4,
                             value: current_draft.notes.clone(),
                             oninput: move |e| {
@@ -549,13 +548,12 @@ pub fn TaskEditor(
                         }
                     }
 
-                    // Sequential Project (Edit mode only)
                     if task_id.is_some() {
-                        div { class: "flex items-center gap-2 p-3 bg-gray-50 rounded-md border border-gray-200",
+                        div { class: "flex items-center gap-2 p-3 bg-base-200 rounded-md border border-base-300",
                             input {
                                 r#type: "checkbox",
                                 id: "sequential-toggle",
-                                class: "w-4 h-4",
+                                class: "checkbox checkbox-primary",
                                 checked: current_draft.is_sequential,
                                 aria_label: "Sequential Project",
                                 onchange: move |e| {
