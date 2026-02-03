@@ -38,12 +38,18 @@ async function run() {
   let errorCount = 0;
 
   for (const file of trackedFiles) {
+    let isForbidden = false;
     // Check forbidden patterns
     for (const pattern of FORBIDDEN_PATTERNS) {
       if (pattern.test(file)) {
         console.error(`❌ ERROR: Forbidden git-related file detected: ${file}`);
         errorCount++;
+        isForbidden = true;
       }
+    }
+
+    if (isForbidden) {
+      continue;
     }
 
     // Check whitelist
@@ -66,9 +72,6 @@ async function run() {
     process.exit(1);
   }
 
-  console.log(
-    `✅ context/ lint check passed (${trackedFiles.length} files checked).`,
-  );
   process.exit(0);
 }
 

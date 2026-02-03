@@ -136,12 +136,10 @@ async function run() {
     const config = loadConfig();
     const files = getTrackedFiles();
 
-    let ignoredCount = 0;
     let errorCount = 0;
 
     for (const file of files) {
       if (isIgnored(file, config.ignore)) {
-        ignoredCount++;
         continue;
       }
 
@@ -154,10 +152,6 @@ async function run() {
         }
       }
     }
-
-    console.log(
-      `Checked ${files.length} files. Ignored ${ignoredCount}. Found ${errorCount} errors.`,
-    );
 
     if (errorCount > 0) {
       process.exit(1);
