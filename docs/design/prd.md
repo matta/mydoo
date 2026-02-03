@@ -272,9 +272,12 @@ fixtures.
 
 - **Visual Structure:** A flat list of tasks sorted **purely by computed
   priority score**. There are no section headers or temporal groupings (e.g.,
-  "Overdue", "Today", "Later"). Overdue items, items due today, and items due
-  later are intermixed—their position in the list is determined solely by the
-  algorithm's priority calculation.
+  "Overdue", "Today", "Later").
+- **Strict Actionability**: The Do list is strictly for **"things I can
+  physically do right now"**. It is not a planning tool or a pipeline view.
+  - If a task is scheduled for the future, it is hidden.
+  - If a task is for a different place (Context), it is hidden.
+  - If a Project contains only hidden tasks, the Project itself is hidden.
 - **Filter Logic:** Shows tasks where `Visibility = True` per
   [ALGORITHM.md](./algorithm.md) Pass 1.
 - **Context Filter:** Header dropdown (e.g., "Home", "Work"). Place filtering

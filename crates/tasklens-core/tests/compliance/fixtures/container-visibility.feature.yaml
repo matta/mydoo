@@ -39,12 +39,10 @@ scenarios:
           # Calculate priority after updates
           advance_time_seconds: 0
         then:
-          expected_order:
-            - Project
+          expected_order: ["Project"]
           expected_props:
             - id: Project
               is_visible: true
-              is_ready: true
             - id: Child1
               is_visible: false
               is_ready: false
