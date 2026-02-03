@@ -85,6 +85,7 @@ pub fn TaskRow(
             class: if is_highlighted { "animate-flash" } else { "" },
             style: "padding-left: {indentation}px",
             "data-testid": "task-item",
+            "data-depth": "{depth}",
             "data-urgency": match urgency {
                 UrgencyStatus::Overdue => "Overdue",
                 UrgencyStatus::Active => "Active",

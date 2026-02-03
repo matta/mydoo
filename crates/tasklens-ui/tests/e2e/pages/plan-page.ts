@@ -323,13 +323,15 @@ export class PlanPage implements PlanFixture {
 
   async addSibling(targetTitle: string, siblingTitle: string): Promise<void> {
     const row = this.page
-      .locator(`[data-testid="task-item"]`, { hasText: targetTitle })
+      .locator(`[data-testid="task-item"][data-depth]`, {
+        hasText: targetTitle,
+      })
       .first();
 
     await expect(row).toBeVisible({ timeout: 5000 });
 
-    const style = await row.getAttribute("style");
-    const isRoot = !style || style.includes("padding-left: 0px");
+    const depthAttr = await row.getAttribute("data-depth");
+    const isRoot = depthAttr === "0";
 
     if (isRoot) {
       const input = this.page
@@ -343,7 +345,7 @@ export class PlanPage implements PlanFixture {
       // But we don't know parent here. This is a limitation.
       // For now, BDD tests mainly add siblings to root.
       throw new Error(
-        `Add Sibling not implemented for non-root tasks in Dioxus UI yet. Target: ${targetTitle}`,
+        `Add Sibling not implemented for non-root tasks in Dioxus UI yet. Target: ${targetTitle} (depth: ${depthAttr})`,
       );
     }
 
@@ -711,7 +713,9 @@ export class PlanPage implements PlanFixture {
     await this.page.getByTestId("settings-button").click();
 
     // Find the modal
-    const modal = this.page.getByRole("dialog", { name: "Settings" });
+    const modal = this.page.getByRole("dialog", {
+      name: "Document Management",
+    });
     await expect(modal).toBeVisible();
 
     // Get the ID from the hidden span using data-testid
@@ -729,7 +733,9 @@ export class PlanPage implements PlanFixture {
     await this.page.getByTestId("settings-button").click();
 
     // Find the modal
-    const modal = this.page.getByRole("dialog", { name: "Settings" });
+    const modal = this.page.getByRole("dialog", {
+      name: "Document Management",
+    });
     await expect(modal).toBeVisible();
 
     // Click "New Document"
@@ -749,7 +755,9 @@ export class PlanPage implements PlanFixture {
     await this.page.getByTestId("settings-button").click();
 
     // Find the modal
-    const modal = this.page.getByRole("dialog", { name: "Settings" });
+    const modal = this.page.getByRole("dialog", {
+      name: "Document Management",
+    });
     await expect(modal).toBeVisible();
 
     // Click "Enter ID" to reveal input
@@ -875,7 +883,9 @@ export class PlanPage implements PlanFixture {
     await this.page.getByTestId("settings-button").click();
 
     // Find the modal
-    const modal = this.page.getByRole("dialog", { name: "Settings" });
+    const modal = this.page.getByRole("dialog", {
+      name: "Document Management",
+    });
     await expect(modal).toBeVisible();
 
     // Setup download listener
@@ -907,7 +917,9 @@ export class PlanPage implements PlanFixture {
   async uploadDocument(filePath: string): Promise<void> {
     await this.waitForAppReady();
 
-    const modal = this.page.getByRole("dialog", { name: "Settings" });
+    const modal = this.page.getByRole("dialog", {
+      name: "Document Management",
+    });
 
     for (let i = 0; i < 3; i++) {
       if (await modal.isVisible()) break;
@@ -957,6 +969,7 @@ export class PlanPage implements PlanFixture {
 
   async goto(path = "/"): Promise<void> {
     await this.page.goto(path);
+    await this.waitForAppReady();
   }
 
   async evaluate<T>(fn: () => T): Promise<T> {
