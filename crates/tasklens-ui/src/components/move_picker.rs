@@ -3,6 +3,8 @@ use dioxus::prelude::*;
 use std::collections::HashSet;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
 
+use crate::components::button::{Button, ButtonVariant};
+
 #[component]
 pub fn MovePicker(
     task_id: TaskID,
@@ -46,16 +48,22 @@ pub fn MovePicker(
 
     rsx! {
         DialogRoot {
+            // Already using DaisyUI 'modal' from component update.
             open: true,
             on_open_change: move |_| on_close.call(()),
             DialogContent {
+                // Tailwind: 'max-w-md'. Justification: Modal width.
                 class: "max-w-md",
                 DialogTitle { "Move \"{task_title}\"" }
 
-                div { class: "mt-4 max-h-[60vh] overflow-y-auto border rounded-md",
+                // DaisyUI: 'menu' provides the list styling.
+                // Tailwind: 'max-h-[60vh] overflow-y-auto'. Justification: Scrollable area for list.
+                div { class: "mt-4 max-h-[60vh] overflow-y-auto border rounded-md menu bg-base-100 p-2",
                     // Option for Root
                     div {
-                        class: "p-3 hover:bg-gray-100 cursor-pointer border-b flex items-center justify-between",
+                        // DaisyUI: 'btn btn-ghost' for item styling.
+                        // Tailwind: 'w-full justify-start font-normal'. Justification: Align text left.
+                        class: "btn btn-ghost btn-sm w-full justify-start font-normal",
                         onclick: move |_| on_select.call(None),
                         span { class: "font-medium", "(Root)" }
                     }
@@ -66,7 +74,10 @@ pub fn MovePicker(
                         for (task, depth) in flattened_tasks() {
                             div {
                                 key: "{task.id}",
-                                class: "p-3 hover:bg-gray-100 cursor-pointer border-b flex items-center",
+                                // DaisyUI: 'btn btn-ghost' for item styling.
+                                // Tailwind: 'w-full justify-start font-normal'.
+                                class: "btn btn-ghost btn-sm w-full justify-start font-normal",
+                                // Tailwind: Dynamic indentation via style.
                                 style: "padding-left: {12 + depth * 16}px",
                                 onclick: {
                                     let id = task.id.clone();
@@ -79,8 +90,8 @@ pub fn MovePicker(
                 }
 
                 div { class: "mt-4 flex justify-end",
-                    button {
-                        class: "px-4 py-2 text-gray-600 hover:text-gray-800",
+                    Button {
+                        variant: ButtonVariant::Secondary,
                         onclick: move |_| on_close.call(()),
                         "Cancel"
                     }

@@ -45,7 +45,7 @@ pub fn Button(
     let variant_classes = match variant {
         ButtonVariant::Primary => "btn-primary",
         ButtonVariant::Secondary => "btn-neutral",
-        ButtonVariant::Destructive => "btn-error text-white",
+        ButtonVariant::Destructive => "btn-error",
         ButtonVariant::Ghost => "btn-ghost",
     };
 

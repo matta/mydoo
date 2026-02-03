@@ -5,10 +5,15 @@ use dioxus_primitives::dialog::{
 
 #[component]
 pub fn DialogRoot(props: DialogRootProps) -> Element {
+    // DaisyUI: 'modal-open' is the utility to force the modal to show.
+    // We conditionally apply it based on the `open` prop.
+    // Fix: dereference the signal to get the boolean value.
+    let is_open = props.open.read().unwrap_or(false);
+    let open_class = if is_open { "modal-open" } else { "" };
     rsx! {
-        document::Link { rel: "stylesheet", href: asset!("./style.css") }
         dialog::DialogRoot {
-            class: "dialog-backdrop",
+            // DaisyUI: 'modal' provides the backdrop and container.
+            class: "modal {open_class}",
             id: props.id,
             is_modal: props.is_modal,
             open: props.open,
@@ -24,10 +29,11 @@ pub fn DialogRoot(props: DialogRootProps) -> Element {
 pub fn DialogContent(props: DialogContentProps) -> Element {
     rsx! {
         dialog::DialogContent {
+            // DaisyUI: 'modal-box' provides the card styling.
             class: if let Some(c) = &props.class {
-                format!("dialog {}", c)
+                format!("modal-box {}", c)
             } else {
-                "dialog".to_string()
+                "modal-box".to_string()
             },
             id: props.id,
             attributes: props.attributes,
@@ -40,7 +46,9 @@ pub fn DialogContent(props: DialogContentProps) -> Element {
 pub fn DialogTitle(props: DialogTitleProps) -> Element {
     rsx! {
         dialog::DialogTitle {
-            class: "dialog-title",
+            // Tailwind: 'font-bold text-lg'. Justification: DaisyUI's 'modal-box' does not strictly enforce title typography.
+            // These utilities match the standard modal header style in DaisyUI docs.
+            class: "font-bold text-lg",
             id: props.id,
             attributes: props.attributes,
             {props.children}
@@ -52,7 +60,8 @@ pub fn DialogTitle(props: DialogTitleProps) -> Element {
 pub fn DialogDescription(props: DialogDescriptionProps) -> Element {
     rsx! {
         dialog::DialogDescription {
-            class: "dialog-description",
+            // Tailwind: 'py-4'. Justification: Standard padding utility to separate description from title.
+            class: "py-4",
             id: props.id,
             attributes: props.attributes,
             {props.children}
