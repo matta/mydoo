@@ -13,11 +13,11 @@ pub fn PriorityTaskRow(
     let task_id_tap = task.id.clone();
 
     let urgency_class = match task.urgency_status {
-        UrgencyStatus::Overdue => "text-red-600 font-bold",
-        UrgencyStatus::Urgent => "text-orange-600 font-semibold",
-        UrgencyStatus::Active => "text-yellow-600",
-        UrgencyStatus::Upcoming => "text-green-600",
-        UrgencyStatus::None => "text-gray-500 dark:text-stone-400",
+        UrgencyStatus::Overdue => "badge-error",
+        UrgencyStatus::Urgent => "badge-warning",
+        UrgencyStatus::Active => "badge-info",
+        UrgencyStatus::Upcoming => "badge-success",
+        UrgencyStatus::None => "hidden",
     };
 
     let urgency_label = match task.urgency_status {
@@ -30,7 +30,7 @@ pub fn PriorityTaskRow(
 
     rsx! {
         div {
-            class: "flex items-center p-3 mb-2 bg-white dark:bg-stone-900 rounded-lg shadow-sm border border-gray-100 dark:border-stone-700 hover:bg-gray-50 dark:hover:bg-stone-800 group",
+            class: "card card-compact card-bordered card-side bg-base-100 shadow-sm p-3 mb-2 flex flex-row items-center border-base-200 hover:bg-base-200/50 transition-colors group",
             "data-testid": "task-item",
             "data-urgency": "{task.urgency_status:?}",
 
@@ -42,9 +42,8 @@ pub fn PriorityTaskRow(
 
             span {
                 class: format_args!(
-                    "flex-grow cursor-pointer select-none {} {}",
-                    if is_done { "line-through text-gray-400 dark:text-stone-500" } else { "text-gray-800 dark:text-stone-100" },
-                    if !is_done && task.urgency_status == UrgencyStatus::Overdue { "font-medium" } else { "" }
+                    "flex-grow cursor-pointer select-none text-base font-medium {}",
+                    if is_done { "line-through text-base-content/50" } else { "text-base-content" },
                 ),
                 "data-testid": "task-title",
                 onclick: move |_| on_title_tap.call(task_id_tap.clone()),
@@ -53,7 +52,7 @@ pub fn PriorityTaskRow(
 
             if !is_done && !urgency_label.is_empty() {
                 span {
-                    class: format_args!("text-xs px-2 py-0.5 rounded-full bg-opacity-10 {}", urgency_class),
+                    class: format_args!("badge badge-sm ml-2 {}", urgency_class),
                     "data-testid": "urgency-badge",
                     "data-urgency": "{task.urgency_status:?}".to_lowercase(),
                     "{urgency_label}"

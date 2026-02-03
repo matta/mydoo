@@ -567,7 +567,7 @@ pub fn TaskEditor(
                                 class: "text-base font-medium cursor-pointer",
                                 "Sequential Project"
                             }
-                            span { class: "text-xs text-gray-500 dark:text-stone-400 ml-auto", "Do steps in order" }
+                            span { class: "text-xs text-base-content/60 ml-auto", "Do steps in order" }
                         }
                     }
 
