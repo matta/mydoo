@@ -30,7 +30,7 @@ pub fn PriorityTaskRow(
 
     rsx! {
         div {
-            class: "card card-compact card-bordered card-side bg-base-100 shadow-sm p-3 mb-2 flex flex-row items-center border-base-200 hover:bg-base-200/50 transition-colors group",
+            class: "card card-compact card-bordered card-side bg-base-100 shadow-sm p-3 mb-2 items-center hover:bg-base-200/50 transition-colors group",
             "data-testid": "task-item",
             "data-urgency": "{task.urgency_status:?}",
 
