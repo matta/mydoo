@@ -111,7 +111,11 @@ fn traverse_assign(
 /// Hydrates a persisted task into an enriched task object.
 fn hydrate_task(persisted: &PersistedTask) -> EnrichedTask {
     let is_container = !persisted.child_task_ids.is_empty();
-    let is_pending = persisted.status == TaskStatus::Pending;
+    let is_pending = persisted.status == TaskStatus::Pending
+        || matches!(
+            persisted.schedule.schedule_type,
+            ScheduleType::Routinely | ScheduleType::Calendar
+        );
 
     let effective_due_date = match persisted.schedule.schedule_type {
         ScheduleType::Routinely => {
@@ -230,13 +234,14 @@ pub fn recalculate_priorities(
     }
 }
 
+/// Returns (is_visible, has_pending_descendants)
 fn evaluate_task_recursive(
     task_idx: usize,
     root_idx: Option<usize>,
     enriched_tasks: &mut [EnrichedTask],
     children_index: &ChildrenLookup,
     current_time: i64,
-) -> bool {
+) -> (bool, bool) {
     let child_indices = children_index
         .get(&Some(enriched_tasks[task_idx].id.clone()))
         .cloned()
@@ -248,15 +253,19 @@ fn evaluate_task_recursive(
     process_children(task_idx, &child_indices, enriched_tasks, current_time);
 
     // --- Recurse ---
-    let mut has_visible_descendant = false;
+    let mut has_pending_descendant = false;
+
     for &child_idx in &child_indices {
-        has_visible_descendant = evaluate_task_recursive(
+        let (_, child_pending_subtree) = evaluate_task_recursive(
             child_idx,
             Some(effective_root_idx),
             enriched_tasks,
             children_index,
             current_time,
-        ) || has_visible_descendant;
+        );
+
+        let child_is_pending = enriched_tasks[child_idx].is_pending;
+        has_pending_descendant |= child_pending_subtree || child_is_pending;
     }
 
     // --- Post-Order: Aggregate Effective Credits ---
@@ -268,11 +277,15 @@ fn evaluate_task_recursive(
 
     let feedback_factor = enriched_tasks[effective_root_idx].feedback_factor;
     let task = &mut enriched_tasks[task_idx];
-    if !child_indices.is_empty() && has_visible_descendant {
-        // --- Post-Order: Aggregate ---
+
+    // Pass 7: Container Visibility (Delegation Logic)
+    // 1. If has pending descendants -> Hidden (Delegated to children)
+    // 2. If NO pending descendants -> Treated as Leaf (Local Visibility)
+    if has_pending_descendant {
         task.visibility = false;
         task.priority = 0.0;
     } else {
+        // Leaf Node Logic (or Empty/Done Container)
         // Compute Final Priority
         let visibility_factor = if task.visibility { 1.0 } else { 0.0 };
 
@@ -293,7 +306,7 @@ fn evaluate_task_recursive(
         task.priority = visibility_factor * safe_importance * feedback_factor * safe_lead_time;
     }
 
-    enriched_tasks[task_idx].visibility || has_visible_descendant
+    (task.visibility, has_pending_descendant)
 }
 
 fn process_children(

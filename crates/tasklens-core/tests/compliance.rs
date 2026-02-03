@@ -92,6 +92,7 @@ struct TaskInput {
     period_seconds: Option<F64OrString>,
     last_done: Option<serde_yaml_ng::Value>,
     repeat_config: Option<RepeatConfigInput>,
+    is_acknowledged: Option<BoolOrString>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -256,6 +257,7 @@ fn test_compliance() -> Result<()> {
         "min-threshold.feature.yaml",
         "repro-stale-leadtime.feature.yaml",
         "root-importance.feature.yaml",
+        "routinely-parent-visibility.feature.yaml",
         "sequential-flow.feature.yaml",
         "sorting.feature.yaml",
         "sorting-importance-tiebreaker.feature.yaml",
@@ -796,6 +798,9 @@ fn apply_task_input(
     }
     if let Some(st) = t.schedule_type {
         updates.schedule_type = Some(st);
+    }
+    if let Some(ack) = &t.is_acknowledged {
+        updates.is_acknowledged = Some(ack.to_bool());
     }
     if let Some(dd) = &t.due_date {
         updates.due_date = Some(parse_yaml_date(dd)?);

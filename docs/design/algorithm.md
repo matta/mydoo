@@ -95,9 +95,26 @@ current value of past credits after applying time decay. Formula:
 `Task.Credits * (0.5 ^ (TimeDelta / HalfLife))` Where
 `TimeDelta = CurrentTime - Task.CreditsTimestamp`.
 
-**`Task.Visibility`** (`Boolean`) _Source: Context_ : View Filter. Final
-visibility state combining Place (Open), Time (Ready), and Blocking. Formula:
-`True` if (Open AND Task.IsReady AND FilterMatch), else `False`.
+**`Task.Visibility`** (`Boolean`) _Source: Context_ : The final "Show/Hide" determination for the **Do View**. Defined by **Delegation**:
+
+1.  **Container with Pending Descendants**:
+    - **Visibility**: **Always `False`**.
+    - **Logic**: Actionability is delegated to the descendants. The Container itself is not actionable because it contains unfinished sub-tasks.
+    - **Note**: This applies even if descendants are not done but are hidden for other reasons (e.g., future-scheduled, blocked, place filtered, etc.).
+
+2.  **Leaf (or Container with NO Pending Descendants)**:
+    - **Visibility**: Calculated Local State.
+    - **Logic**: Treated as an atomic actionable unit.
+    - **Formula**: `True` if (IsPending AND IsReady AND IsOpen AND !IsBlocked AND FilterMatch).
+
+**Summary Table**:
+
+| Task Type     | Condition               | Visibility Result               |
+| :------------ | :---------------------- | :------------------------------ |
+| **Container** | Has Pending Descendants | **Hidden** (Look at children)   |
+| **Leaf**      | Local Criteria Met      | **Visible**                     |
+| **Leaf**      | Local Criteria Failed   | **Hidden**                      |
+| **Container** | All Descendants Done    | **Visible** (Behaves like Leaf) |
 
 **`Task.Priority`** (`Float`) _Source: Algorithm_ : Final Sort Score. The
 ultimate sorting value derived from all passes. Formula:
@@ -165,12 +182,12 @@ Implementations may model this as a single record with a discriminator flag
 To ensure the `Priority` formula is deterministic, we define four distinct
 boolean input states. These combine to determine the final `Visibility` boolean.
 
-| State         | Definition | Logic                                                                               |
-| :------------ | :--------- | :---------------------------------------------------------------------------------- |
-| **IsPending** | Completion | `Status != Done` (and not Deleted).                                                 |
-| **IsReady**   | Temporal   | `CurrentTime >= (DueDate - 2 * LeadTime)`.                                          |
-| **IsOpen**    | Contextual | `Place.Hours.Contains(CurrentTime)`.                                                |
-| **IsBlocked** | Sequential | True if Parent is Sequential AND a preceding sibling (in Outline Order) is Pending. |
+| State         | Definition | Logic                                                                                                                                      |
+| :------------ | :--------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| **IsPending** | Completion | `Status != Done` **OR** `Schedule` is (`Routinely` or `Calendar`). (These tasks are never truly "Done"; they cycle or persist externally). |
+| **IsReady**   | Temporal   | `CurrentTime >= (DueDate - 2 * LeadTime)`.                                                                                                 |
+| **IsOpen**    | Contextual | `Place.Hours.Contains(CurrentTime)`.                                                                                                       |
+| **IsBlocked** | Sequential | True if Parent is Sequential AND a preceding sibling (in Outline Order) is Pending.                                                        |
 
 **Relationship to Visibility**: The `Visibility` computed property (Boolean) is
 the logical conjunction of these states and the active View Filter.
@@ -419,13 +436,14 @@ Priority = (Visibility ? 1.0 : 0.0) * NormalizedImportance * Root.FeedbackFactor
 Recursively hide any Container Task that has at least one visible descendant
 (child, grandchild, etc.).
 
-- **Goal**: Ensure the Todo List remains uncluttered, showing only actionable
-  leaves or empty containers.
+### Pass 7: Container Visibility (Strict Actionability)
+
+Enforce the **Delegation Visibility** rules defined in **[3.4 State Definitions & Visibility Logic](#3-4-state-definitions-visibility-logic)**.
+
+- **Goal**: Ensure the Do List remains uncluttered. Containers delegate actionability to their children.
 - **Logic**:
-  - For each Task T where `IsContainer = True`:
-    - If `Any(Descendants(T).Visibility == True)`:
-      - Set `T.Visibility = False`
-      - Set `T.Priority = 0.0` (Effectively hidden)
+  - If a Container acts as a **Project** (has Pending Descendants): `Visibility = False`.
+  - If a Container acts as a **Leaf** (No Pending Descendants): `Visibility` is determined by its own state (Pass 1).
 
 **Noise Gate**: Tasks with a final `Priority <= 0.001` are effectively "noise"
 and are excluded from the final sorted results (The Todo List), even if their
@@ -495,9 +513,14 @@ Roots: work (`Target=50%`) and life (`Target=50%`). `k=2.0`.
 1.  **Feedback Ratio**: Calculated as `(Target% / Actual%)` rather than raw
     values to avoid scaling issues (Large projects would dominate small ones
     without % normalization).
-2.  **Container Visibility**: We hide the Project when it has actionable steps
-    to reduce clutter. However, if steps are hidden (sleeping), we show the
-    Project to prevent "Black Holes".
+2.  **Container Visibility**: We strictly hide the Project ("Container") unless it
+    has **at least one visible descendant**.
+    - **Philosophy**: The Do list is for immediately actionable items only. If a
+      Project has no actionable steps (e.g., all tasks are future-scheduled or
+      in a different Context), the Project is hidden to reduce clutter.
+    - **Ramification**: This removes the prevention of "Black Holes". Users rely
+      on the system to wake up tasks (and thus their parents) at the correct
+      time/place.
 3.  **Non-Recursive Places**: Defines `IncludedPlaces` as strictly one-level
     deep (A includes B). Complexity trade-off for performance.
 
