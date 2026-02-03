@@ -89,6 +89,7 @@ pub fn TaskRow(
             class: "{row_class}",
             style: "--indent: {indentation}px; padding-left: var(--indent);",
             "data-testid": "task-item",
+            "data-depth": "{depth}",
             "data-urgency": match urgency {
                 UrgencyStatus::Overdue => "Overdue",
                 UrgencyStatus::Active => "Active",
