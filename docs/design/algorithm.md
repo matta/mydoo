@@ -513,15 +513,7 @@ Roots: work (`Target=50%`) and life (`Target=50%`). `k=2.0`.
 1.  **Feedback Ratio**: Calculated as `(Target% / Actual%)` rather than raw
     values to avoid scaling issues (Large projects would dominate small ones
     without % normalization).
-2.  **Container Visibility**: We strictly hide the Project ("Container") unless it
-    has **at least one visible descendant**.
-    - **Philosophy**: The Do list is for immediately actionable items only. If a
-      Project has no actionable steps (e.g., all tasks are future-scheduled or
-      in a different Context), the Project is hidden to reduce clutter.
-    - **Ramification**: This removes the prevention of "Black Holes". Users rely
-      on the system to wake up tasks (and thus their parents) at the correct
-      time/place.
-3.  **Non-Recursive Places**: Defines `IncludedPlaces` as strictly one-level
+2.  **Non-Recursive Places**: Defines `IncludedPlaces` as strictly one-level
     deep (A includes B). Complexity trade-off for performance.
 
 ## Appendix B: Success Criteria
