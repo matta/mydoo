@@ -24,8 +24,7 @@ fn compute_tunnel_state(
     memory_heads: crate::MemoryHeads,
 ) -> TunnelState {
     // Subscribe to heads updates to trigger re-hydration when the document changes
-    let heads = memory_heads.read();
-    info!("compute_tunnel_state Heads: {}", *heads);
+    let _heads = memory_heads.read();
 
     let state = store.read().store_hydrate_tunnel_state();
 

@@ -51,11 +51,10 @@ pub fn TaskEditor(
 ) -> Element {
     let task_controller = crate::controllers::task_controller::use_task_controller();
     let mut draft = use_signal(|| None::<DraftTask>);
-    let mut initialized = use_signal(|| false);
     let state = crate::hooks::use_tunnel_state::use_tunnel_state();
 
     // Initialize draft
-    if !initialized() {
+    if draft().is_none() {
         if let Some(ref id) = task_id {
             let task_ref = state().tasks.get(id).cloned();
             if let Some(task) = task_ref {
@@ -92,7 +91,6 @@ pub fn TaskEditor(
                 is_sequential: false,
             }));
         }
-        initialized.set(true);
     }
 
     if draft().is_none() {
@@ -319,15 +317,35 @@ pub fn TaskEditor(
                             rsx! {
                                 Select {
                                     id: "place-select",
-                                    value: current_draft.place_id.clone().map(|id| id.to_string()).unwrap_or_default(),
+                                    value: current_draft
+                                        .place_id
+                                        .clone()
+                                        .map(|id| id.to_string())
+                                        .unwrap_or_default(),
                                     onchange: move |v: String| {
                                         let mut d = draft().expect("draft should be initialized");
-                                        d.place_id = if v.is_empty() { None } else { Some(PlaceID::from(v)) };
+                                        d.place_id = if v.is_empty() {
+                                            None
+                                        } else {
+                                            Some(PlaceID::from(v))
+                                        };
                                         draft.set(Some(d));
                                     },
-                                    option { value: "", "Anywhere" }
+                                    option {
+                                        value: "",
+                                        selected: current_draft.place_id.is_none(),
+                                        "Anywhere"
+                                    }
                                     for place in places {
-                                        option { value: "{place.id}", "{place.name}" }
+                                        option {
+                                            value: "{place.id}",
+                                            selected: current_draft
+                                                .place_id
+                                                .as_ref()
+                                                .map(|id| id == &place.id)
+                                                .unwrap_or(false),
+                                            "{place.name}"
+                                        }
                                     }
                                 }
                             }
@@ -374,9 +392,24 @@ pub fn TaskEditor(
 
                                 draft.set(Some(d));
                             },
-                            option { value: "Once", "Once" }
-                            option { value: "Routinely", "Routinely" }
-                            option { value: "DueDate", "Due Date" }
+                            option {
+                                value: "Once",
+                                selected: matches!(current_draft.schedule.schedule_type, ScheduleType::Once),
+                                "Once"
+                            }
+                            option {
+                                value: "Routinely",
+                                selected: matches!(current_draft.schedule.schedule_type, ScheduleType::Routinely),
+                                "Routinely"
+                            }
+                            option {
+                                value: "DueDate",
+                                selected: matches!(
+                                    current_draft.schedule.schedule_type,
+                                    ScheduleType::DueDate | ScheduleType::Calendar
+                                ),
+                                "Due Date"
+                            }
                         }
                     }
                     if matches!(current_draft.schedule.schedule_type, ScheduleType::Routinely) {
