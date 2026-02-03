@@ -79,11 +79,15 @@ pub fn TaskRow(
         _ => "badge-neutral",
     };
 
+    let row_class = format!(
+        "flex items-center py-3 border-b border-base-200 hover:bg-base-200 group pr-2 {}",
+        if is_highlighted { "animate-flash" } else { "" }
+    );
+
     rsx! {
         div {
-            class: "flex items-center py-3 border-b border-base-200 hover:bg-base-200 group pr-2",
-            class: if is_highlighted { "animate-flash" } else { "" },
-            style: "padding-left: {indentation}px",
+            class: "{row_class}",
+            style: "--indent: {indentation}px; padding-left: var(--indent);",
             "data-testid": "task-item",
             "data-urgency": match urgency {
                 UrgencyStatus::Overdue => "Overdue",
@@ -158,7 +162,14 @@ pub fn TaskRow(
                         UrgencyStatus::Upcoming => "Upcoming",
                         _ => "None",
                     },
-                    class: "badge badge-xs {badge_color} ml-2 mb-0.5",
+                    class: "badge badge-sm {badge_color} ml-2",
+                    {match urgency {
+                        UrgencyStatus::Overdue => "Overdue",
+                        UrgencyStatus::Urgent => "Urgent",
+                        UrgencyStatus::Active => "Active",
+                        UrgencyStatus::Upcoming => "Upcoming",
+                        _ => "",
+                    }}
                 }
             }
 

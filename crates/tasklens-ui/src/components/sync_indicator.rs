@@ -52,10 +52,10 @@ pub fn SyncIndicator() -> Element {
 
     rsx! {
         div {
-            class: "relative inline-block",
+            class: format!("dropdown dropdown-end {}", if show_settings() { "dropdown-open" } else { "" }),
             "data-testid": "sync-indicator",
             button {
-                class: "flex items-center space-x-2 px-3 py-2 rounded-full text-sm font-medium bg-base-100 border border-base-300 shadow-sm hover:bg-base-200 transition-colors",
+                class: "btn btn-ghost btn-sm gap-2",
                 "data-testid": "sync-status-button",
                 onclick: move |_| {
                     let new_state = !show_settings();
@@ -70,12 +70,14 @@ pub fn SyncIndicator() -> Element {
 
             if show_settings() {
                 div {
-                    class: "absolute top-full left-0 mt-2 w-64 p-4 bg-base-100 rounded-lg shadow-xl border border-base-300 z-50",
+                    class: "dropdown-content menu bg-base-100 rounded-box shadow-lg border border-base-300 z-50 w-64 p-4",
                     "data-testid": "sync-settings-popover",
-                    h3 { class: "text-base font-semibold text-base-content/90 mb-3", "Sync Settings" }
+                    h3 { class: "font-semibold text-base-content mb-3", "Sync Settings" }
                     div { class: "space-y-3",
-                        div {
-                            label { class: "block text-xs text-base-content/50 mb-1", "Server URL" }
+                        div { class: "form-control",
+                            label { class: "label py-1",
+                                span { class: "label-text text-xs", "Server URL" }
+                            }
                             input {
                                 class: "input input-bordered input-sm w-full",
                                 "data-testid": "sync-server-url-input",
@@ -83,19 +85,15 @@ pub fn SyncIndicator() -> Element {
                                 oninput: move |e| url_input.set(e.value()),
                             }
                         }
-                        div { class: "flex space-x-2",
-                            Button {
-                                variant: ButtonVariant::Primary,
-                                class: "flex-1 text-sm py-2",
-                                onclick: move |_| {
-                                    set_sync_url(&url_input());
-                                    show_settings.set(false);
-                                    // Reload to reconnect with new URL
-                                    // In a better implementation, the hook would watch this.
-                                    reload_application();
-                                },
-                                "Save & Reconnect"
-                            }
+                        Button {
+                            variant: ButtonVariant::Primary,
+                            class: "btn-sm w-full",
+                            onclick: move |_| {
+                                set_sync_url(&url_input());
+                                show_settings.set(false);
+                                reload_application();
+                            },
+                            "Save & Reconnect"
                         }
                     }
                 }

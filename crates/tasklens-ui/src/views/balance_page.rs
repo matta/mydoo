@@ -3,7 +3,7 @@
 //! Displays the Balance View showing effort distribution across root goals.
 //! Users can adjust target percentages via sliders to rebalance their focus.
 
-use crate::components::{LoadErrorView, PageHeader};
+use crate::components::{EmptyState, LoadErrorView, PageHeader};
 use crate::controllers::task_controller;
 use crate::hooks::use_balance_interaction::{BalanceItem, use_balance_interaction};
 use dioxus::prelude::*;
@@ -39,13 +39,9 @@ pub fn BalancePage() -> Element {
                     ),
                 }
             } else if render_items.is_empty() {
-                div { class: "card bg-base-200 border-2 border-dashed border-base-300 py-12 text-center",
-                    div { class: "card-body items-center text-base-content/60",
-                        p { "No goals to balance." }
-                        p { class: "text-base mt-2",
-                            "Create root-level tasks in the Plan view to see balance data."
-                        }
-                    }
+                EmptyState {
+                    title: "No goals to balance.",
+                    subtitle: "Create root-level tasks in the Plan view to see balance data.",
                 }
             } else {
                 div { class: "space-y-4",
@@ -102,7 +98,7 @@ fn BalanceItemRow(
                 div {
                     h3 { class: "font-medium text-base-content", "{item.title}" }
                     span {
-                        class: "text-xs font-medium {status_class}",
+                        class: "{status_class} badge-sm",
                         "data-testid": "balance-status",
                         "{status_label}"
                     }
@@ -146,24 +142,25 @@ fn BalanceItemRow(
 
 /// A visual progress bar that displays both the target distribution and the actual effort.
 ///
-/// The target distribution is shown as a light blue background bar,
-/// and the actual effort is shown as a darker blue foreground bar.
+/// Uses DaisyUI progress component with an overlay for the target indicator.
+/// The actual effort is shown as the primary progress bar, with target as a subtle overlay.
 #[component]
 fn BalanceBar(target_percent: f64, actual_percent: f64) -> Element {
-    let target_width = format!("{}%", (target_percent * 100.0).clamp(0.0, 100.0));
-    let actual_width = format!("{}%", (actual_percent * 100.0).clamp(0.0, 100.0));
+    let target_value = (target_percent * 100.0).clamp(0.0, 100.0) as i32;
+    let actual_value = (actual_percent * 100.0).clamp(0.0, 100.0) as i32;
 
     rsx! {
-        div { class: "relative h-4 bg-base-200 rounded-full overflow-hidden",
-            div {
-                class: "absolute h-full bg-primary/20 rounded-full transition-all duration-300",
-                style: "width: {target_width}",
-                "data-testid": "target-bar",
+        div { class: "relative",
+            progress {
+                class: "progress progress-primary h-4 w-full",
+                value: "{actual_value}",
+                max: "100",
+                "data-testid": "actual-bar",
             }
             div {
-                class: "absolute h-full bg-primary rounded-full transition-all duration-300",
-                style: "width: {actual_width}",
-                "data-testid": "actual-bar",
+                class: "absolute top-0 left-0 h-4 border-r-2 border-base-content/30 transition-all duration-300",
+                style: "width: {target_value}%",
+                "data-testid": "target-bar",
             }
         }
     }

@@ -34,9 +34,9 @@ pub fn Checkbox(
 
     if let Some(text) = label {
         rsx! {
-            label { class: "form-control flex-row items-center gap-3 cursor-pointer",
+            label { class: "label cursor-pointer justify-start gap-3",
                 {input_node}
-                span { class: "label-text text-base font-medium text-base-content", "{text}" }
+                span { class: "label-text", "{text}" }
             }
         }
     } else {
