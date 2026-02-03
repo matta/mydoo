@@ -85,7 +85,7 @@ When parsing the `initial_state` and task definitions, the following default
 values **MUST** be applied if specific fields are missing in the schema:
 
 - **Task `lead_time`**: Defaults to `604800.0` seconds (1 week).
-- **Task `importance`**: Defaults to `1.0`.
+- **Task `importance`**: Defaults to `0.5`.
 - **Task `is_sequential`**: Defaults to `False`.
 - **Task `desired_credits`**: Defaults to `1.0`.
 - **Task State `status`**: Defaults to `"Pending"`.

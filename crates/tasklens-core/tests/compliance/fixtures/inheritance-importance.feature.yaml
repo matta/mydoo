@@ -3,7 +3,7 @@ background:
   current_time: "2025-01-01T00:00:00Z"
 
 scenarios:
-  - name: Root Default (undefined -> 1.0)
+  - name: Root Default (undefined -> 0.5)
     steps:
       - given:
           tasks:
@@ -13,23 +13,23 @@ scenarios:
       - then:
           expected_props:
             - id: A
-              importance: 1.0
+              importance: 0.5
 
   - name: No Inheritance from Parent
     steps:
       - given:
           tasks:
             - id: A
-              importance: 0.5
+              importance: 0.3
               children:
                 - id: B
                   # importance: undefined
       - then:
           expected_props:
             - id: A
-              importance: 0.5
+              importance: 0.3
             - id: B
-              importance: 1.0
+              importance: 0.5
 
   - name: Explicit Override
     steps:
@@ -55,15 +55,15 @@ scenarios:
               importance: 0.2
               children:
                 - id: B
-                  # importance: undefined -> 1.0
+                  # importance: undefined -> 0.5
                   children:
                     - id: C
-                      # importance: undefined -> 1.0
+                      # importance: undefined -> 0.5
       - then:
           expected_props:
             - id: A
               importance: 0.2
             - id: B
-              importance: 1.0
+              importance: 0.5
             - id: C
-              importance: 1.0
+              importance: 0.5

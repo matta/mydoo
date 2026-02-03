@@ -11,8 +11,8 @@ test.describe("Task Creation Defaults", () => {
     // When I open the Create Task modal
     await I.When.opensCreateTaskModal();
 
-    // Then I should see "Importance: 1.00"
-    await I.Then.shouldSeeText("Importance: 1.00");
+    // Then I should see "Importance: 0.50"
+    await I.Then.shouldSeeText("Importance: 0.50");
 
     // And I should see Lead Time "8" "Hours"
     await I.Then.shouldSeeLeadTime("8", "Hours");
@@ -31,8 +31,8 @@ test.describe("Task Creation Defaults", () => {
     // When I add a child to "Root Task for Defaults"
     await I.When.opensAddChildModal("Root Task for Defaults");
 
-    // Then I should see "Importance: 1.00"
-    await I.Then.shouldSeeText("Importance: 1.00");
+    // Then I should see "Importance: 0.50"
+    await I.Then.shouldSeeText("Importance: 0.50");
 
     // And I should see Lead Time "8" "Hours"
     await I.Then.shouldSeeLeadTime("8", "Hours");

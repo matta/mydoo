@@ -53,7 +53,7 @@ fn create_base_task(id: TaskID, title: &str, parent_id: Option<TaskID>) -> Persi
         child_task_ids: Vec::new(),
         place_id: None,
         status: TaskStatus::Pending,
-        importance: 1.0,
+        importance: 0.5,
         credit_increment: None,
         credits: 0.0,
         desired_credits: 1.0,
