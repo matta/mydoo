@@ -194,19 +194,19 @@ pub fn TaskEditor(
     rsx! {
         DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
             DialogContent { class: "task-editor-content",
-                DialogTitle {
-                    if task_id.is_some() {
-                        "Edit Task"
-                    } else {
-                        "Create Task"
+                div { class: "flex justify-between items-start mb-4",
+                    DialogTitle {
+                        if task_id.is_some() {
+                            "Edit Task"
+                        } else {
+                            "Create Task"
+                        }
                     }
-                }
 
-                if let Some(id) = task_id.clone() {
-                    div { class: "flex justify-end px-4 -mt-8 mb-4",
+                    if let Some(id) = task_id.clone() {
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: "text-xs",
+                            class: "btn-sm text-xs",
                             onclick: move |_| {
                                 let nav = navigator();
                                 nav.push(crate::router::Route::PlanPage {
@@ -576,13 +576,13 @@ pub fn TaskEditor(
                         div { class: "flex flex-wrap gap-2 justify-center sm:justify-start",
                             if let Some(id) = task_id.clone() {
                                 Button {
-                                    variant: ButtonVariant::Ghost,
+                                    variant: ButtonVariant::Secondary,
                                     onclick: move |_| show_move_picker.set(true),
                                     "Move..."
                                 }
                                 if can_outdent {
                                     Button {
-                                        variant: ButtonVariant::Ghost,
+                                        variant: ButtonVariant::Secondary,
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -595,7 +595,7 @@ pub fn TaskEditor(
                                 }
                                 if can_indent {
                                     Button {
-                                        variant: ButtonVariant::Ghost,
+                                        variant: ButtonVariant::Secondary,
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -607,7 +607,7 @@ pub fn TaskEditor(
                                     }
                                 }
                                 Button {
-                                    variant: ButtonVariant::Ghost,
+                                    variant: ButtonVariant::Secondary,
                                     onclick: {
                                         let id = id.clone();
                                         let on_add_child = on_add_child;
@@ -624,13 +624,13 @@ pub fn TaskEditor(
                         div { class: "flex flex-wrap gap-2 justify-center sm:justify-end",
                             if task_id.is_some() {
                                 Button {
-                                    variant: ButtonVariant::Secondary,
+                                    variant: ButtonVariant::Destructive,
                                     onclick: on_delete,
                                     "Delete"
                                 }
                             }
                             Button {
-                                variant: ButtonVariant::Secondary,
+                                variant: ButtonVariant::Ghost,
                                 onclick: move |_| on_close.call(()),
                                 "Cancel"
                             }
