@@ -63,15 +63,15 @@ pub fn TaskEditor(
         } else {
             // Create Mode - Apply Defaults
             let parent_id = initial_parent_id.as_ref();
-            let (place_id, credit_increment) = if let Some(p_id) = parent_id {
+            let (place_id, credit_increment, lead_time) = if let Some(p_id) = parent_id {
                 let parent = state().tasks.get(p_id).cloned();
                 if let Some(p) = parent {
-                    (p.place_id, p.credit_increment)
+                    (p.place_id, p.credit_increment, p.schedule.lead_time)
                 } else {
-                    (None, Some(0.5))
+                    (None, Some(0.5), DEFAULT_LEAD_TIME_MILLIS)
                 }
             } else {
-                (None, Some(0.5))
+                (None, Some(0.5), DEFAULT_LEAD_TIME_MILLIS)
             };
 
             draft.set(Some(DraftTask {
@@ -84,7 +84,7 @@ pub fn TaskEditor(
                 schedule: Schedule {
                     schedule_type: ScheduleType::Once,
                     due_date: None,
-                    lead_time: DEFAULT_LEAD_TIME_MILLIS,
+                    lead_time,
                     last_done: None,
                 },
                 repeat_config: None,

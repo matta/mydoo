@@ -37,4 +37,15 @@ test.describe("Task Creation Defaults", () => {
     // And I should see Lead Time "8" "Hours"
     await I.Then.shouldSeeLeadTime("8", "Hours");
   });
+
+  test("Add Child modal has a blank title", async ({ I }) => {
+    // Given I have a task "Parent Task"
+    await I.Given.taskExists("Parent Task");
+
+    // When I add a child to "Parent Task"
+    await I.When.opensAddChildModal("Parent Task");
+
+    // Then the Title field should be blank
+    await I.Then.shouldSeeTitle("");
+  });
 });

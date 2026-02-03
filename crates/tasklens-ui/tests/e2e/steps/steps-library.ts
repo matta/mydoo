@@ -335,6 +335,10 @@ export class Steps {
       await this.plan.verifyFieldValue("Lead Time Unit", unit);
     },
 
+    shouldSeeTitle: async (title: string) => {
+      await this.plan.verifyFieldValue("Title", title);
+    },
+
     shouldSeeSelector: async (label: string) => {
       await this.plan.verifyElementVisible(label);
     },

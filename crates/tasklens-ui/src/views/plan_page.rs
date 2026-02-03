@@ -233,6 +233,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                 match state {
                     EditorState::Edit(id) => rsx! {
                         crate::components::TaskEditor {
+                            key: "edit-{id}",
                             task_id: Some(id),
                             on_close: move |_| editor_state.set(None),
                             on_add_child: move |parent_id| {
@@ -248,6 +249,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                     },
                     EditorState::Create { parent_id } => rsx! {
                         crate::components::TaskEditor {
+                            key: "create-{parent_id:?}",
                             initial_parent_id: parent_id,
                             on_close: move |_| editor_state.set(None),
                             on_task_created: handle_task_created,
@@ -307,11 +309,16 @@ fn flatten_recursive(
         let has_children = !task.child_task_ids.is_empty();
         let is_expanded = ctx.expanded.contains(id);
 
-        let effective_due_date = task
-            .schedule
-            .due_date
-            .or(parent_schedule.and_then(|s| s.due_date));
-        let effective_lead_time = Some(task.schedule.lead_time);
+        // Inherit both due date and lead time from parent if local due date is missing.
+        let (effective_due_date, effective_lead_time) = if let Some(due) = task.schedule.due_date {
+            (Some(due), Some(task.schedule.lead_time))
+        } else if let Some(ps) = parent_schedule
+            && let Some(pdue) = ps.due_date
+        {
+            (Some(pdue), ps.lead_time)
+        } else {
+            (None, Some(task.schedule.lead_time))
+        };
 
         ctx.result.push(FlattenedTask {
             task: task.clone(),
