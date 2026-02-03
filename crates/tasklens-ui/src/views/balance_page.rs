@@ -39,10 +39,12 @@ pub fn BalancePage() -> Element {
                     ),
                 }
             } else if render_items.is_empty() {
-                div { class: "text-center py-12 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 dark:bg-stone-800 dark:border-stone-700 dark:text-stone-400",
-                    p { "No goals to balance." }
-                    p { class: "text-base mt-2",
-                        "Create root-level tasks in the Plan view to see balance data."
+                div { class: "card bg-base-200 border-2 border-dashed border-base-300 py-12 text-center",
+                    div { class: "card-body items-center text-base-content/60",
+                        p { "No goals to balance." }
+                        p { class: "text-base mt-2",
+                            "Create root-level tasks in the Plan view to see balance data."
+                        }
                     }
                 }
             } else {
@@ -91,14 +93,14 @@ fn BalanceItemRow(
 
     rsx! {
         div {
-            class: "p-4 bg-white rounded-lg shadow border border-gray-100 dark:bg-stone-900 dark:border-stone-700",
+            class: "card card-compact bg-base-100 shadow border border-base-200 p-4",
             "data-testid": "balance-item",
             "data-task-id": "{item.id}",
             "data-starving": "{item.is_starving}",
 
             div { class: "flex justify-between items-start mb-3",
                 div {
-                    h3 { class: "font-medium text-gray-900 dark:text-white", "{item.title}" }
+                    h3 { class: "font-medium text-base-content", "{item.title}" }
                     span {
                         class: "text-xs font-medium {status_class}",
                         "data-testid": "balance-status",
@@ -106,13 +108,13 @@ fn BalanceItemRow(
                     }
                 }
                 div { class: "text-right text-sm",
-                    div { class: "text-gray-600 dark:text-stone-400",
+                    div { class: "text-base-content/70",
                         "Target: "
-                        span { class: "font-medium", "{display_target_pct}%" }
+                        span { class: "font-medium text-base-content", "{display_target_pct}%" }
                     }
-                    div { class: "text-gray-600 dark:text-stone-400",
+                    div { class: "text-base-content/70",
                         "Actual: "
-                        span { class: "font-medium", "{actual_pct}%" }
+                        span { class: "font-medium text-base-content", "{actual_pct}%" }
                     }
                 }
             }
@@ -123,7 +125,7 @@ fn BalanceItemRow(
             }
 
             div { class: "mt-3",
-                label { class: "block text-xs text-gray-500 dark:text-stone-500 mb-1",
+                label { class: "block text-xs text-base-content/50 mb-1",
                     "Adjust Target"
                 }
                 crate::components::BalanceSlider {
@@ -152,14 +154,14 @@ fn BalanceBar(target_percent: f64, actual_percent: f64) -> Element {
     let actual_width = format!("{}%", (actual_percent * 100.0).clamp(0.0, 100.0));
 
     rsx! {
-        div { class: "relative h-4 bg-gray-200 rounded-full overflow-hidden dark:bg-stone-700",
+        div { class: "relative h-4 bg-base-200 rounded-full overflow-hidden",
             div {
-                class: "absolute h-full bg-blue-200 dark:bg-blue-900 rounded-full transition-all duration-300",
+                class: "absolute h-full bg-primary/20 rounded-full transition-all duration-300",
                 style: "width: {target_width}",
                 "data-testid": "target-bar",
             }
             div {
-                class: "absolute h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300",
+                class: "absolute h-full bg-primary rounded-full transition-all duration-300",
                 style: "width: {actual_width}",
                 "data-testid": "actual-bar",
             }

@@ -67,7 +67,7 @@ pub fn TaskPage() -> Element {
             PageHeader { title: "TaskLens",
                 if service_worker_active() {
                     div {
-                        class: "px-2 py-0.5 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full border border-blue-200 mr-2",
+                        class: "badge badge-info mr-2",
                         title: "Service Worker Active",
                         "Offline Ready"
                     }
@@ -87,7 +87,7 @@ pub fn TaskPage() -> Element {
                 TaskList { tasks, on_toggle: toggle_task }
             }
 
-            div { class: "mt-8 text-center text-base text-gray-500 dark:text-stone-400", "Build: {crate::BUILD_VERSION}" }
+            div { class: "mt-8 text-center text-base text-base-content/50", "Build: {crate::BUILD_VERSION}" }
         }
     }
 }
@@ -112,14 +112,14 @@ fn TaskItem(task: PersistedTask, on_toggle: EventHandler<PersistedTask>) -> Elem
     let task_check = task.clone();
     rsx! {
         li {
-            class: "flex items-center gap-2 p-3 border rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-stone-800 dark:border-stone-700",
+            class: "flex items-center gap-2 p-3 border border-base-200 rounded cursor-pointer hover:bg-base-200",
             onclick: move |_| on_toggle.call(task_toggle.clone()),
             Checkbox {
                 checked: is_done,
                 onchange: move |_| on_toggle.call(task_check.clone()),
                 class: "cursor-pointer",
             }
-            span { class: if is_done { "line-through text-gray-500 dark:text-stone-400" } else { "" }, "{task.title}" }
+            span { class: if is_done { "line-through text-base-content/50" } else { "" }, "{task.title}" }
         }
     }
 }

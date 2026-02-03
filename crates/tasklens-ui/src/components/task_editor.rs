@@ -222,11 +222,13 @@ pub fn TaskEditor(
 
                 div { class: "task-editor-fields space-y-4 p-4",
                     // Title
-                    div {
-                        label {
-                            class: "block text-base font-medium",
-                            r#for: "task-title-input",
-                            "Title"
+                    div { class: "form-control w-full",
+                        div { class: "label",
+                            label {
+                                class: "label-text text-base font-medium",
+                                r#for: "task-title-input",
+                                "Title"
+                            }
                         }
                         Input {
                             id: "task-title-input",
@@ -248,11 +250,13 @@ pub fn TaskEditor(
                         }
                     }
 
-                    div {
-                        label {
-                            class: "block text-base font-medium",
-                            r#for: "importance-input",
-                            "Importance: {current_draft.importance:.2}"
+                    div { class: "form-control w-full",
+                        div { class: "label",
+                            label {
+                                class: "label-text text-base font-medium",
+                                r#for: "importance-input",
+                                "Importance: {current_draft.importance:.2}"
+                            }
                         }
                         input {
                             r#type: "range",
@@ -273,11 +277,13 @@ pub fn TaskEditor(
                     }
 
                     // Effort / Credit Increment
-                    div {
-                        label {
-                            class: "block text-base font-medium",
-                            r#for: "effort-input",
-                            "Effort ({current_draft.credit_increment.unwrap_or(0.5):.2})"
+                    div { class: "form-control w-full",
+                        div { class: "label",
+                            label {
+                                class: "label-text text-base font-medium",
+                                r#for: "effort-input",
+                                "Effort ({current_draft.credit_increment.unwrap_or(0.5):.2})"
+                            }
                         }
                         input {
                             r#type: "range",
@@ -298,11 +304,13 @@ pub fn TaskEditor(
                     }
 
                     // Place
-                    div {
-                        label {
-                            class: "block text-base font-medium",
-                            r#for: "place-select",
-                            "Place"
+                    div { class: "form-control w-full",
+                        div { class: "label",
+                            label {
+                                class: "label-text text-base font-medium",
+                                r#for: "place-select",
+                                "Place"
+                            }
                         }
                         {
                             let state_val = state();
@@ -327,11 +335,13 @@ pub fn TaskEditor(
                     }
 
                     // Schedule Type
-                    div {
-                        label {
-                            class: "block text-base font-medium",
-                            r#for: "schedule-type-select",
-                            "Schedule Type"
+                    div { class: "form-control w-full",
+                        div { class: "label",
+                            label {
+                                class: "label-text text-base font-medium",
+                                r#for: "schedule-type-select",
+                                "Schedule Type"
+                            }
                         }
                         Select {
                             id: "schedule-type-select",
@@ -373,7 +383,7 @@ pub fn TaskEditor(
                         div { class: "p-3 bg-base-200 rounded-md border border-base-300 space-y-3",
                             div {
                                 label {
-                                    class: "block text-base font-medium text-primary",
+                                    class: "label-text text-base font-medium text-primary",
                                     r#for: "repetition-frequency-select",
                                     "Repeat Every"
                                 }
@@ -450,8 +460,10 @@ pub fn TaskEditor(
                         ScheduleType::DueDate | ScheduleType::Calendar
                     )
                     {
-                        div {
-                            label { class: "block text-base font-medium", "Due Date" }
+                        div { class: "form-control w-full",
+                            div { class: "label",
+                                label { class: "label-text text-base font-medium", "Due Date" }
+                            }
                             DatePicker {
                                 data_testid: "date-input",
                                 value: current_draft
@@ -483,11 +495,13 @@ pub fn TaskEditor(
                     }
 
                     // Lead Time
-                    div {
-                        label {
-                            class: "block text-base font-medium",
-                            r#for: "lead-time-scalar-input",
-                            "Lead Time"
+                    div { class: "form-control w-full",
+                        div { class: "label",
+                            label {
+                                class: "label-text text-base font-medium",
+                                r#for: "lead-time-scalar-input",
+                                "Lead Time"
+                            }
                         }
                         div { class: "flex gap-2",
                             {
@@ -529,11 +543,13 @@ pub fn TaskEditor(
                     }
 
                     // Notes
-                    div {
-                        label {
-                            class: "block text-base font-medium",
-                            r#for: "notes-input",
-                            "Notes"
+                    div { class: "form-control w-full",
+                        div { class: "label",
+                            label {
+                                class: "label-text text-base font-medium",
+                                r#for: "notes-input",
+                                "Notes"
+                            }
                         }
                         textarea {
                             id: "notes-input",
@@ -572,7 +588,7 @@ pub fn TaskEditor(
                     }
 
                     // Footer Actions
-                    div { class: "flex flex-col sm:flex-row justify-between items-center pt-4 border-t gap-4",
+                    div { class: "flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-base-200 gap-4",
                         div { class: "flex flex-wrap gap-2 justify-center sm:justify-start",
                             if let Some(id) = task_id.clone() {
                                 Button {

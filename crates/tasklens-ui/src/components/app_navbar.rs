@@ -59,7 +59,7 @@ pub fn AppNavBar() -> Element {
                 crate::components::SyncIndicator {}
 
                 button {
-                    class: "text-gray-500 dark:text-stone-400 hover:text-gray-700 dark:hover:text-stone-200 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-stone-700",
+                    class: "btn btn-ghost btn-sm btn-square text-base-content/70 hover:text-base-content",
                     onclick: move |_| show_settings.set(true),
                     aria_label: "Settings",
                     "data-testid": "settings-button",

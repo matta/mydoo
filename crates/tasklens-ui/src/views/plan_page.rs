@@ -155,7 +155,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
             PageHeader { title: "Plan",
                 if !flattened_tasks().is_empty() && load_error().is_none() {
                     button {
-                        class: "p-2 bg-blue-600 text-white rounded-md text-base hover:bg-blue-700",
+                        class: "btn btn-primary btn-sm",
                         aria_label: "Add Task at Top",
                         onclick: move |_| {
                             editor_state
@@ -187,14 +187,14 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                     }
                 }
 
-                div { class: "bg-white dark:bg-stone-900 shadow rounded-lg overflow-hidden mt-4",
+                div { class: "bg-base-100 shadow rounded-lg overflow-hidden mt-4 border border-base-200",
                     if flattened_tasks().is_empty() {
                         div { class: "p-8 text-center",
-                            p { class: "text-gray-500 dark:text-stone-400 mb-4",
+                            p { class: "text-base-content/60 mb-4",
                                 "No tasks found. Try adding seed data? (?seed=true)"
                             }
                             button {
-                                class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700",
+                                class: "btn btn-primary",
                                 onclick: move |_| {
                                     editor_state
                                         .set(

@@ -25,27 +25,18 @@ pub fn Checkbox(
         input {
             id: "{id_str}",
             r#type: "checkbox",
-            // DaisyUI "checkbox" class handles the base styling.
-            // "checkbox-primary" adds the primary color (usually matches theme).
-            // "checkbox-sm" sets the size (1.25rem / 20px), matching the previous h-5 w-5.
             class: "checkbox checkbox-primary checkbox-sm {extra_classes}",
             checked,
             onchange: move |evt| onchange.call(evt.checked()),
-            onclick: move |evt| evt.stop_propagation(), // often useful in lists
+            onclick: move |evt| evt.stop_propagation(),
         }
     };
 
     if let Some(text) = label {
         rsx! {
-            div { class: "flex items-center",
+            label { class: "form-control flex-row items-center gap-3 cursor-pointer",
                 {input_node}
-                div { class: "ml-3 text-base",
-                    label {
-                        r#for: "{id_str}",
-                        class: "font-medium text-gray-700 dark:text-stone-200 select-none",
-                        "{text}"
-                    }
-                }
+                span { class: "label-text text-base font-medium text-base-content", "{text}" }
             }
         }
     } else {

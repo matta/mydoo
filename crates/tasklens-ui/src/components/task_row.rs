@@ -61,27 +61,27 @@ pub fn TaskRow(
     let now = js_sys::Date::now() as i64;
     let urgency = get_urgency_status(effective_due_date, effective_lead_time, now);
     let urgency_classes = match urgency {
-        UrgencyStatus::Overdue => "text-red-600 flex-grow cursor-pointer font-medium",
-        UrgencyStatus::Active | UrgencyStatus::Urgent => "text-orange-600 flex-grow cursor-pointer",
-        _ => "text-gray-800 dark:text-stone-100 flex-grow cursor-pointer",
+        UrgencyStatus::Overdue => "text-error flex-grow cursor-pointer font-medium",
+        UrgencyStatus::Active | UrgencyStatus::Urgent => "text-warning flex-grow cursor-pointer",
+        _ => "text-base-content flex-grow cursor-pointer",
     };
 
     let title_class = if is_done {
-        "line-through text-gray-400 dark:text-stone-500 flex-grow cursor-pointer"
+        "line-through text-base-content/50 flex-grow cursor-pointer"
     } else {
         urgency_classes
     };
 
     let badge_color = match urgency {
-        UrgencyStatus::Overdue => "bg-red-500",
-        UrgencyStatus::Active | UrgencyStatus::Urgent => "bg-orange-500",
-        UrgencyStatus::Upcoming => "bg-yellow-500",
-        _ => "bg-gray-300 dark:bg-stone-600",
+        UrgencyStatus::Overdue => "badge-error",
+        UrgencyStatus::Active | UrgencyStatus::Urgent => "badge-warning",
+        UrgencyStatus::Upcoming => "badge-info",
+        _ => "badge-neutral",
     };
 
     rsx! {
         div {
-            class: "flex items-center py-3 border-b border-gray-100 dark:border-stone-700 hover:bg-gray-50 dark:hover:bg-stone-800 group pr-2",
+            class: "flex items-center py-3 border-b border-base-200 hover:bg-base-200 group pr-2",
             class: if is_highlighted { "animate-flash" } else { "" },
             style: "padding-left: {indentation}px",
             "data-testid": "task-item",
@@ -97,7 +97,7 @@ pub fn TaskRow(
             div { class: "w-10 flex justify-center flex-shrink-0",
                 if has_children {
                     button {
-                        class: "btn btn-ghost btn-xs btn-circle text-gray-500 dark:text-stone-400",
+                        class: "btn btn-ghost btn-xs btn-circle text-base-content/70",
                         onclick: move |evt| {
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
@@ -158,7 +158,7 @@ pub fn TaskRow(
                         UrgencyStatus::Upcoming => "Upcoming",
                         _ => "None",
                     },
-                    class: "w-2 h-2 rounded-full inline-block ml-2 mb-0.5 {badge_color}",
+                    class: "badge badge-xs {badge_color} ml-2 mb-0.5",
                 }
             }
 
@@ -172,7 +172,7 @@ pub fn TaskRow(
             if let Some(due_ts) = effective_due_date {
                 if !is_done {
                     span {
-                        class: "text-base text-gray-400 dark:text-stone-500 ml-2",
+                        class: "text-base text-base-content/50 ml-2",
                         "data-testid": "due-date-text",
                         {format_relative_due_date(due_ts, now)}
                     }
@@ -182,7 +182,7 @@ pub fn TaskRow(
             // Actions
             div { class: "flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2",
                 button {
-                    class: "btn btn-ghost btn-xs btn-circle text-gray-500 dark:text-stone-400",
+                    class: "btn btn-ghost btn-xs btn-circle text-base-content/70",
                     title: "Add Subtask",
                     onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
                     svg {
@@ -200,7 +200,7 @@ pub fn TaskRow(
                     }
                 }
                 button {
-                    class: "btn btn-ghost btn-xs btn-circle text-red-500 hover:bg-red-100",
+                    class: "btn btn-ghost btn-xs btn-circle text-error hover:bg-error/10",
                     title: "Delete",
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
                     svg {
