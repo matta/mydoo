@@ -16,6 +16,8 @@ catalogs:
     "@types/js-yaml": 4.0.9
     "@types/node": 25.0.10
 
+    daisyui: ^5.5.17
+
     glob: ^13.0.0
     husky: ^9.1.7
     js-yaml: 4.1.1

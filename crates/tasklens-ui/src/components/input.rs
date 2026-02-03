@@ -34,7 +34,7 @@ pub fn Input(
         input {
             id: "{id_str}",
             r#type: "{type_str}",
-            class: "appearance-none block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base {class_str}",
+            class: "input input-bordered w-full text-base {class_str}",
             placeholder: placeholder.unwrap_or_default(),
             value: "{value}",
             autofocus: autofocus,

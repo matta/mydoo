@@ -40,24 +40,16 @@ pub fn Button(
     let type_str = r#type.unwrap_or("button".to_string());
     let extra_classes = class.unwrap_or_default();
 
-    let base_classes = "inline-flex items-center justify-center rounded-md border text-base font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+    let base_classes = "btn";
 
     let variant_classes = match variant {
-        ButtonVariant::Primary => {
-            "border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
-        }
-        ButtonVariant::Secondary => {
-            "border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500"
-        }
-        ButtonVariant::Destructive => {
-            "border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-500"
-        }
-        ButtonVariant::Ghost => {
-            "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100 shadow-none"
-        }
+        ButtonVariant::Primary => "btn-primary",
+        ButtonVariant::Secondary => "btn-neutral",
+        ButtonVariant::Destructive => "btn-error text-white",
+        ButtonVariant::Ghost => "btn-ghost",
     };
 
-    let padding_classes = "px-4 py-3";
+    let padding_classes = "";
 
     rsx! {
         button {

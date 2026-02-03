@@ -15,7 +15,7 @@ pub fn BalanceSlider(props: BalanceSliderProps) -> Element {
     rsx! {
         input {
             r#type: "range",
-            class: "w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-stone-700",
+            class: "range range-primary range-xs",
             min: "{props.min}",
             max: "{props.max}",
             step: "{props.step}",
