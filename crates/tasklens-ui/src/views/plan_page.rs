@@ -233,6 +233,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                 match state {
                     EditorState::Edit(id) => rsx! {
                         crate::components::TaskEditor {
+                            key: "edit-{id}",
                             task_id: Some(id),
                             on_close: move |_| editor_state.set(None),
                             on_add_child: move |parent_id| {
@@ -248,6 +249,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                     },
                     EditorState::Create { parent_id } => rsx! {
                         crate::components::TaskEditor {
+                            key: "create-{parent_id:?}",
                             initial_parent_id: parent_id,
                             on_close: move |_| editor_state.set(None),
                             on_task_created: handle_task_created,
