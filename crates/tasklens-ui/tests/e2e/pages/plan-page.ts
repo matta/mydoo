@@ -372,34 +372,8 @@ export class PlanPage implements PlanFixture {
     // Retry loop: If task not found, try navigating up (up to 5 levels)
     // This handles cases where we are drilled down into a child task, but we want to edit the parent
     // (which is now in the header/breadcrumb and not in the list).
-    for (let i = 0; i < 5; i++) {
-      const row = this.page
-        .locator(`[data-testid="task-item"]`, { hasText: title })
-        .first();
-      if ((await row.count()) > 0 && (await row.isVisible())) {
-        await row.click();
-        await expect(modal).toBeVisible();
-        return;
-      }
-
-      // Not found visible in list. Check if we can go up.
-      const upLevel = this.page.getByLabel("Up Level");
-      if ((await upLevel.isVisible()) && (await upLevel.isEnabled())) {
-        // Capture breadcrumb count before navigating up
-        const breadcrumbs = this.page.locator(
-          ".mantine-Breadcrumbs-root button",
-        );
-        const countBefore = await breadcrumbs.count();
-
-        await upLevel.click();
-
-        // Wait for breadcrumb count to decrease, indicating nav is complete
-        await expect(breadcrumbs).toHaveCount(countBefore - 1);
-      } else {
-        // Cannot go up further, and item not found.
-        break;
-      }
-    }
+    // Previously we had a retry loop here to navigate up breadcrumbs.
+    // Breadcrumbs are removed, so we now rely on the flat list view.
 
     // Final attempt (or failure if loop exhausted)
     const finalRow = this.page
@@ -820,24 +794,17 @@ export class PlanPage implements PlanFixture {
     const row = this.page
       .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
       .first();
-    const breadcrumb = this.page
-      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
-      .first();
-
     const normalizedUrgency =
       urgency.charAt(0).toUpperCase() + urgency.slice(1).toLowerCase();
 
     const badge = row.locator(
       `[data-testid="urgency-badge"][data-urgency="${normalizedUrgency}"]`,
     );
-    const breadcrumbBadge = breadcrumb.locator(
-      `[data-testid="urgency-badge"][data-urgency="${normalizedUrgency}"]`,
-    );
 
     if (normalizedUrgency === "None") {
-      await expect(badge.or(breadcrumbBadge)).toBeHidden();
+      await expect(badge).toBeHidden();
     } else {
-      await expect(badge.or(breadcrumbBadge)).toBeVisible();
+      await expect(badge).toBeVisible();
     }
   }
 
@@ -845,16 +812,9 @@ export class PlanPage implements PlanFixture {
     const row = this.page
       .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
       .first();
-    const breadcrumb = this.page
-      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
-      .first();
-
     // Badges have data-testid="urgency-badge"
     await expect(
       row.locator('[data-testid="urgency-badge"]'),
-    ).not.toBeVisible();
-    await expect(
-      breadcrumb.locator('[data-testid="urgency-badge"]'),
     ).not.toBeVisible();
   }
 
@@ -865,14 +825,8 @@ export class PlanPage implements PlanFixture {
     const row = this.page
       .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
       .first();
-    const breadcrumb = this.page
-      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
-      .first();
-
     const rowText = row.getByText(expectedText, { exact: true });
-    const breadcrumbText = breadcrumb.getByText(expectedText, { exact: true });
-
-    await expect(rowText.or(breadcrumbText)).toBeVisible();
+    await expect(rowText).toBeVisible();
   }
 
   async verifyDueDateTextContains(
@@ -882,14 +836,8 @@ export class PlanPage implements PlanFixture {
     const row = this.page
       .locator(`[data-testid="task-item"]`, { hasText: taskTitle })
       .first();
-    const breadcrumb = this.page
-      .locator(".mantine-Breadcrumbs-root button", { hasText: taskTitle })
-      .first();
-
     const rowText = row.getByText(part, { exact: false });
-    const breadcrumbText = breadcrumb.getByText(part, { exact: false });
-
-    await expect(rowText.or(breadcrumbText)).toBeVisible();
+    await expect(rowText).toBeVisible();
   }
 
   // --- Sync Settings ---

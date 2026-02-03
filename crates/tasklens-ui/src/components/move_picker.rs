@@ -69,7 +69,7 @@ pub fn MovePicker(
                     }
 
                     if flattened_tasks().is_empty() {
-                        div { class: "p-4 text-center text-gray-500", "No other valid parents found." }
+                        div { class: "p-4 text-center text-gray-500 dark:text-stone-400", "No other valid parents found." }
                     } else {
                         for (task, depth) in flattened_tasks() {
                             div {

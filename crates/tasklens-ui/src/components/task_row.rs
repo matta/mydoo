@@ -96,8 +96,8 @@ pub fn TaskRow(
             // Expand/Collapse Chevron
             div { class: "w-10 flex justify-center flex-shrink-0",
                 if has_children {
-                    div {
-                        class: "cursor-pointer p-2 rounded hover:bg-gray-200 dark:hover:bg-stone-700 text-gray-500 dark:text-stone-400",
+                    button {
+                        class: "btn btn-ghost btn-xs btn-circle text-gray-500 dark:text-stone-400",
                         onclick: move |evt| {
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
@@ -182,7 +182,7 @@ pub fn TaskRow(
             // Actions
             div { class: "flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2",
                 button {
-                    class: "p-2 hover:bg-gray-200 dark:hover:bg-stone-700 rounded text-gray-500 dark:text-stone-400",
+                    class: "btn btn-ghost btn-xs btn-circle text-gray-500 dark:text-stone-400",
                     title: "Add Subtask",
                     onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
                     svg {
@@ -200,7 +200,7 @@ pub fn TaskRow(
                     }
                 }
                 button {
-                    class: "p-2 hover:bg-red-100 rounded text-red-500",
+                    class: "btn btn-ghost btn-xs btn-circle text-red-500 hover:bg-red-100",
                     title: "Delete",
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
                     svg {

@@ -53,7 +53,6 @@
     --color-stone-800: oklch(26.8% 0.007 34.298);
     --color-stone-900: oklch(21.6% 0.006 56.043);
     --color-black: #000;
-    --color-stone-950: oklch(14.7% 0.004 49.25);
     --color-white: #fff;
     --spacing: 0.25rem;
     --container-md: 28rem;
@@ -1913,62 +1912,6 @@
   .mt-8 {
     margin-top: calc(var(--spacing) * 8);
   }
-  .breadcrumbs {
-    @layer daisyui.l1.l2.l3 {
-      max-width: 100%;
-      overflow-x: auto;
-      padding-block: calc(0.25rem * 2);
-      > menu, > ul, > ol {
-        display: flex;
-        min-height: min-content;
-        align-items: center;
-        white-space: nowrap;
-        > li {
-          display: flex;
-          align-items: center;
-          > * {
-            display: flex;
-            cursor: pointer;
-            align-items: center;
-            gap: calc(0.25rem * 2);
-            &:hover {
-              @media (hover: hover) {
-                text-decoration-line: underline;
-              }
-            }
-            &:focus {
-              --tw-outline-style: none;
-              outline-style: none;
-              @media (forced-colors: active) {
-                outline: 2px solid transparent;
-                outline-offset: 2px;
-              }
-            }
-            &:focus-visible {
-              outline: 2px solid currentColor;
-              outline-offset: 2px;
-            }
-          }
-          & + *:before {
-            content: "";
-            margin-right: calc(0.25rem * 3);
-            margin-left: calc(0.25rem * 2);
-            display: block;
-            height: calc(0.25rem * 1.5);
-            width: calc(0.25rem * 1.5);
-            opacity: 40%;
-            rotate: 45deg;
-            border-top: 1px solid;
-            border-right: 1px solid;
-            background-color: #0000;
-          }
-          [dir="rtl"] & + *:before {
-            rotate: -135deg;
-          }
-        }
-      }
-    }
-  }
   .mr-1 {
     margin-right: calc(var(--spacing) * 1);
   }
@@ -2124,6 +2067,14 @@
   }
   .table {
     display: table;
+  }
+  .btn-circle {
+    @layer daisyui.l1.l2 {
+      border-radius: calc(infinity * 1px);
+      padding-inline: calc(0.25rem * 0);
+      width: var(--size);
+      height: var(--size);
+    }
   }
   .h-2 {
     height: calc(var(--spacing) * 2);
@@ -2434,6 +2385,12 @@
       mask-image: url("data:image/svg+xml,%3Csvg width='24' height='24' stroke='black' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform-origin='center'%3E%3Ccircle cx='12' cy='12' r='9.5' fill='none' stroke-width='3' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='2s' repeatCount='indefinite'/%3E%3Canimate attributeName='stroke-dasharray' values='0,150;42,150;42,150' keyTimes='0;0.475;1' dur='1.5s' repeatCount='indefinite'/%3E%3Canimate attributeName='stroke-dashoffset' values='0;-16;-59' keyTimes='0;0.475;1' dur='1.5s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/g%3E%3C/svg%3E");
     }
   }
+  .checkbox-sm {
+    @layer daisyui.l1.l2 {
+      padding: 0.1875rem;
+      --size: calc(var(--size-selector, 0.25rem) * 5);
+    }
+  }
   .p-1 {
     padding: calc(var(--spacing) * 1);
   }
@@ -2592,9 +2549,6 @@
   .text-base-content {
     color: var(--color-base-content);
   }
-  .text-blue-600 {
-    color: var(--color-blue-600);
-  }
   .text-blue-700 {
     color: var(--color-blue-700);
   }
@@ -2735,6 +2689,13 @@
       --size: calc(var(--size-field, 0.25rem) * 8);
     }
   }
+  .btn-xs {
+    @layer daisyui.l1.l2 {
+      --fontsize: 0.6875rem;
+      --btn-p: 0.5rem;
+      --size: calc(var(--size-field, 0.25rem) * 6);
+    }
+  }
   .badge-error {
     @layer daisyui.l1.l2 {
       --badge-color: var(--color-error);
@@ -2808,13 +2769,6 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-gray-100);
-      }
-    }
-  }
-  .hover\:bg-gray-200 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-gray-200);
       }
     }
   }
@@ -3015,29 +2969,11 @@
       background-color: var(--color-stone-900);
     }
   }
-<<<<<<< HEAD
-=======
-  .dark\:bg-stone-950 {
-    @media (prefers-color-scheme: dark) {
-      background-color: var(--color-stone-950);
-    }
-  }
-  .dark\:text-green-400 {
-    @media (prefers-color-scheme: dark) {
-      color: var(--color-green-400);
-    }
-  }
-  .dark\:text-red-400 {
-    @media (prefers-color-scheme: dark) {
-      color: var(--color-red-400);
-    }
-  }
   .dark\:text-stone-100 {
     @media (prefers-color-scheme: dark) {
       color: var(--color-stone-100);
     }
   }
->>>>>>> 8f33e35 (fix: add dark mode theming to all UI components)
   .dark\:text-stone-200 {
     @media (prefers-color-scheme: dark) {
       color: var(--color-stone-200);
@@ -3061,13 +2997,6 @@
   .dark\:text-white {
     @media (prefers-color-scheme: dark) {
       color: var(--color-white);
-    }
-  }
-  .dark\:placeholder-stone-500 {
-    @media (prefers-color-scheme: dark) {
-      &::placeholder {
-        color: var(--color-stone-500);
-      }
     }
   }
   .dark\:hover\:bg-stone-700 {
