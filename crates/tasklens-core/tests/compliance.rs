@@ -32,7 +32,7 @@ struct Scenario {
     name: String,
     description: Option<String>,
     steps: Vec<Step>,
-    examples: Option<Vec<HashMap<String, serde_yaml_ng::Value>>>,
+    examples: Option<Vec<HashMap<String, serde_json::Value>>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -50,7 +50,7 @@ struct Step {
 #[serde(deny_unknown_fields)]
 struct InitialState {
     current_time: Option<String>,
-    timezone_offset: Option<serde_yaml_ng::Value>,
+    timezone_offset: Option<serde_json::Value>,
     places: Option<Vec<PlaceInput>>,
     tasks: Option<Vec<TaskInput>>,
 }
@@ -84,13 +84,13 @@ struct TaskInput {
     credit_increment: Option<F64OrString>,
     credits_timestamp: Option<String>,
     desired_credits: Option<F64OrString>,
-    due_date: Option<serde_yaml_ng::Value>,
+    due_date: Option<serde_json::Value>,
     place_id: Option<String>,
     lead_time_seconds: Option<F64OrString>,
     is_sequential: Option<BoolOrString>,
     schedule_type: Option<ScheduleType>,
     period_seconds: Option<F64OrString>,
-    last_done: Option<serde_yaml_ng::Value>,
+    last_done: Option<serde_json::Value>,
     repeat_config: Option<RepeatConfigInput>,
     is_acknowledged: Option<BoolOrString>,
 }
@@ -155,19 +155,19 @@ struct TaskUpdate {
     credit_increment: Option<F64OrString>,
     desired_credits: Option<F64OrString>,
     importance: Option<F64OrString>,
-    due_date: Option<serde_yaml_ng::Value>,
+    due_date: Option<serde_json::Value>,
     place_id: Option<String>,
     is_acknowledged: Option<BoolOrString>,
     schedule_type: Option<ScheduleType>,
     repeat_config: Option<RepeatConfigInput>,
-    last_done: Option<serde_yaml_ng::Value>,
+    last_done: Option<serde_json::Value>,
     lead_time_seconds: Option<F64OrString>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(deny_unknown_fields)]
 struct Assertion {
-    expected_order: Option<serde_yaml_ng::Value>,
+    expected_order: Option<serde_json::Value>,
     expected_props: Option<Vec<ExpectedTaskProps>>,
 }
 
@@ -178,9 +178,9 @@ struct ExpectedTaskProps {
     score: Option<F64OrString>,
     credits: Option<F64OrString>,
     effective_credits: Option<F64OrString>,
-    effective_due_date: Option<serde_yaml_ng::Value>,
+    effective_due_date: Option<serde_json::Value>,
     effective_lead_time: Option<F64OrString>,
-    due_date: Option<serde_yaml_ng::Value>,
+    due_date: Option<serde_json::Value>,
     urgency_status: Option<UrgencyStatus>,
     importance: Option<F64OrString>,
     normalized_importance: Option<F64OrString>,
@@ -228,48 +228,57 @@ impl ComplianceStore {
 
 #[test]
 fn test_compliance() -> Result<()> {
-    let fixtures_pattern = "tests/compliance/fixtures/*.yaml";
     let mut files_found = Vec::new();
 
-    for entry in glob(fixtures_pattern)? {
+    let yaml_pattern = "tests/compliance/fixtures/*.yaml";
+    let yaml_files: Vec<_> = glob(yaml_pattern)?.collect();
+    if !yaml_files.is_empty() {
+        panic!(
+            "Found .yaml files in compliance fixtures. Only .json files are allowed to avoid duplication: {:?}",
+            yaml_files
+        );
+    }
+
+    let json_pattern = "tests/compliance/fixtures/*.json";
+    for entry in glob(json_pattern)? {
         let path = entry?;
         files_found.push(path.file_name().unwrap().to_str().unwrap().to_string());
     }
 
     let mut expected_files = vec![
-        "balancing.feature.yaml",
-        "boost-importance.feature.yaml",
-        "boost-lead-time.feature.yaml",
-        "completion-acknowledgement.feature.yaml",
-        "complex-mutation.feature.yaml",
-        "container-visibility.feature.yaml",
-        "credit-attribution-aggregation.feature.yaml",
-        "credit-attribution.feature.yaml",
-        "decay.feature.yaml",
-        "due_dates.feature.yaml",
-        "deletion.feature.yaml",
-        "inheritance-credits.feature.yaml",
-        "inheritance-importance.feature.yaml",
-        "inheritance-place.feature.yaml",
-        "inheritance-schedule.feature.yaml",
-        "lead-time-edge-cases.feature.yaml",
-        "lead-time-inheritance.feature.yaml",
-        "lead-time.feature.yaml",
-        "min-threshold.feature.yaml",
-        "repro-neutral-inheritance.feature.yaml",
-        "repro-stale-leadtime.feature.yaml",
-        "root-importance.feature.yaml",
-        "routinely-parent-visibility.feature.yaml",
-        "sequential-flow.feature.yaml",
-        "sorting.feature.yaml",
-        "sorting-importance-tiebreaker.feature.yaml",
-        "task-update-fields.feature.yaml",
-        "thermostat.feature.yaml",
-        "tree-order-id-conflict.feature.yaml",
-        "tree-order.feature.yaml",
-        "visibility-place-filtering.feature.yaml",
-        "weight.feature.yaml",
-        "zero-feedback.feature.yaml",
+        "balancing.feature.json",
+        "boost-importance.feature.json",
+        "boost-lead-time.feature.json",
+        "completion-acknowledgement.feature.json",
+        "complex-mutation.feature.json",
+        "container-visibility.feature.json",
+        "credit-attribution-aggregation.feature.json",
+        "credit-attribution.feature.json",
+        "decay.feature.json",
+        "due_dates.feature.json",
+        "deletion.feature.json",
+        "inheritance-credits.feature.json",
+        "inheritance-importance.feature.json",
+        "inheritance-place.feature.json",
+        "inheritance-schedule.feature.json",
+        "lead-time-edge-cases.feature.json",
+        "lead-time-inheritance.feature.json",
+        "lead-time.feature.json",
+        "min-threshold.feature.json",
+        "repro-neutral-inheritance.feature.json",
+        "repro-stale-leadtime.feature.json",
+        "root-importance.feature.json",
+        "routinely-parent-visibility.feature.json",
+        "sequential-flow.feature.json",
+        "sorting.feature.json",
+        "sorting-importance-tiebreaker.feature.json",
+        "thermostat.feature.json",
+        "tree-order-id-conflict.feature.json",
+        "tree-order.feature.json",
+        "task-update-fields.feature.json",
+        "visibility-place-filtering.feature.json",
+        "weight.feature.json",
+        "zero-feedback.feature.json",
     ];
 
     files_found.sort();
@@ -277,8 +286,7 @@ fn test_compliance() -> Result<()> {
 
     assert_eq!(
         files_found, expected_files,
-        "Mismatch in fixture files found at {}. This check ensures no fixtures are accidentally deleted and that the glob works correctly.",
-        fixtures_pattern
+        "Mismatch in fixture files found. This check ensures no fixtures are accidentally deleted and that the glob works correctly."
     );
 
     for file in &files_found {
@@ -294,7 +302,7 @@ fn test_compliance() -> Result<()> {
 
 fn run_feature_test(path: PathBuf) -> Result<()> {
     let content = std::fs::read_to_string(&path)?;
-    let feature: Feature = serde_yaml_ng::from_str(&content)
+    let feature: Feature = serde_json::from_str(&content)
         .with_context(|| format!("Failed to parse fixture: {:?}", path))?;
 
     // Destructure Feature to ensure exhaustiveness (except for description/feature name)
@@ -320,19 +328,19 @@ fn expand_scenarios(scenario: &Scenario) -> Result<Vec<Scenario>> {
     let mut expanded = Vec::new();
     if let Some(examples) = &scenario.examples {
         for (i, example) in examples.iter().enumerate() {
-            let yaml_str = serde_yaml_ng::to_string(scenario)?;
-            let mut expanded_str = yaml_str;
+            let json_str = serde_json::to_string(scenario)?;
+            let mut expanded_str = json_str;
             for (key, val) in example {
                 let placeholder = format!("${{{}}}", key);
                 let val_str = match val {
-                    serde_yaml_ng::Value::String(s) => s.clone(),
-                    serde_yaml_ng::Value::Number(n) => n.to_string(),
-                    serde_yaml_ng::Value::Bool(b) => b.to_string(),
+                    serde_json::Value::String(s) => s.clone(),
+                    serde_json::Value::Number(n) => n.to_string(),
+                    serde_json::Value::Bool(b) => b.to_string(),
                     _ => "".to_string(),
                 };
                 expanded_str = expanded_str.replace(&placeholder, &val_str);
             }
-            let mut new_scenario: Scenario = serde_yaml_ng::from_str(&expanded_str)?;
+            let mut new_scenario: Scenario = serde_json::from_str(&expanded_str)?;
             new_scenario.name = format!("{} (Example {})", scenario.name, i + 1);
             expanded.push(new_scenario);
         }
@@ -361,17 +369,17 @@ fn parse_date(s: &str) -> Result<i64> {
     Ok(dt.with_timezone(&Utc).timestamp_millis())
 }
 
-fn parse_yaml_date(v: &serde_yaml_ng::Value) -> Result<Option<i64>> {
+fn parse_json_date(v: &serde_json::Value) -> Result<Option<i64>> {
     match v {
-        serde_yaml_ng::Value::String(s) => match parse_date(s) {
+        serde_json::Value::String(s) => match parse_date(s) {
             Ok(ms) => Ok(Some(ms)),
             Err(e) => {
                 println!("      Warning: Failed to parse date string '{}': {}", s, e);
                 Ok(None)
             }
         },
-        serde_yaml_ng::Value::Null => Ok(None),
-        serde_yaml_ng::Value::Number(n) => {
+        serde_json::Value::Null => Ok(None),
+        serde_json::Value::Number(n) => {
             if let Some(i) = n.as_i64() {
                 Ok(Some(i))
             } else if let Some(u) = n.as_u64() {
@@ -384,7 +392,7 @@ fn parse_yaml_date(v: &serde_yaml_ng::Value) -> Result<Option<i64>> {
         }
         _ => {
             println!(
-                "      Warning: Unexpected YAML value type for date: {:?}",
+                "      Warning: Unexpected JSON value type for date: {:?}",
                 v
             );
             Ok(None)
@@ -476,11 +484,11 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
                     .map(|t| t.id.as_str().to_string())
                     .collect();
                 let expected_ids: Vec<String> = match order {
-                    serde_yaml_ng::Value::Sequence(seq) => seq
+                    serde_json::Value::Array(seq) => seq
                         .iter()
                         .map(|v| v.as_str().unwrap_or("").to_string())
                         .collect(),
-                    serde_yaml_ng::Value::String(s) => {
+                    serde_json::Value::String(s) => {
                         if s.is_empty() {
                             vec![]
                         } else {
@@ -538,7 +546,7 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
                     }
 
                     if let Some(edd) = effective_due_date {
-                        let expected_ms = parse_yaml_date(edd)?;
+                        let expected_ms = parse_json_date(edd)?;
                         assert_eq!(
                             actual.effective_due_date, expected_ms,
                             "Task: {}, Scenario: {}",
@@ -547,7 +555,7 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
                     }
 
                     if let Some(dd) = due_date {
-                        let expected_ms = parse_yaml_date(dd)?;
+                        let expected_ms = parse_json_date(dd)?;
                         assert_eq!(
                             actual.schedule.due_date, expected_ms,
                             "Task: {}, Scenario: {}",
@@ -805,13 +813,13 @@ fn apply_task_input(
         updates.is_acknowledged = Some(ack.to_bool());
     }
     if let Some(dd) = &t.due_date {
-        updates.due_date = Some(parse_yaml_date(dd)?);
+        updates.due_date = Some(parse_json_date(dd)?);
     }
     if let Some(lt) = &t.lead_time_seconds {
         updates.lead_time = Some((lt.to_f64() * 1000.0) as i64);
     }
     if let Some(ld) = &t.last_done {
-        updates.last_done = Some(parse_yaml_date(ld)?);
+        updates.last_done = Some(parse_json_date(ld)?);
     }
     if let Some(rc) = &t.repeat_config {
         updates.repeat_config = Some(Some(RepeatConfig {
@@ -907,7 +915,7 @@ fn apply_mutation(
                 action_updates.desired_credits = Some(val.to_f64());
             }
             if let Some(dd) = due_date {
-                action_updates.due_date = Some(parse_yaml_date(dd)?);
+                action_updates.due_date = Some(parse_json_date(dd)?);
             }
             if let Some(ack) = is_acknowledged {
                 action_updates.is_acknowledged = Some(ack.to_bool());
@@ -932,7 +940,7 @@ fn apply_mutation(
                 }));
             }
             if let Some(ld) = last_done {
-                action_updates.last_done = Some(parse_yaml_date(ld)?);
+                action_updates.last_done = Some(parse_json_date(ld)?);
             }
 
             if let Some(lt) = lead_time_seconds {

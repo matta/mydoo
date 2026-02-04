@@ -1,0 +1,93 @@
+{
+  "feature": "Scenario 7.1: The Thermostat",
+  "description": "Demonstrates the self-correcting 'Thermostat' mechanism where neglected areas (Life) accumulate credit deficit and rise in priority over over-serviced areas (Work).\n",
+  "background": {
+    "current_time": "2025-01-01T00:00:00Z",
+    "tasks": [
+      {
+        "id": "work",
+        "importance": 1,
+        "desired_credits": 100,
+        "credits": 100
+      },
+      {
+        "id": "life",
+        "importance": 1,
+        "desired_credits": 100,
+        "credits": 100
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Legacy Scenario",
+      "steps": [
+        {
+          "legacy_description": "Step 1: Balanced",
+          "then": {
+            "expected_order": [
+              "work",
+              "life"
+            ],
+            "expected_props": [
+              {
+                "id": "work",
+                "score": 1
+              },
+              {
+                "id": "life",
+                "score": 1
+              }
+            ]
+          }
+        },
+        {
+          "when": {
+            "update_credits": {
+              "work": 150,
+              "life": 100
+            }
+          },
+          "legacy_description": "Step 2: Imbalance",
+          "then": {
+            "expected_order": [
+              "life",
+              "work"
+            ],
+            "expected_props": [
+              {
+                "id": "life",
+                "score": 1.5625
+              },
+              {
+                "id": "work",
+                "score": 0.6944444
+              }
+            ]
+          }
+        },
+        {
+          "when": {
+            "update_credits": {
+              "work": 900,
+              "life": 100
+            }
+          },
+          "legacy_description": "Step 3: Extreme",
+          "then": {
+            "expected_order": [
+              "life",
+              "work"
+            ],
+            "expected_props": [
+              {
+                "id": "life",
+                "score": 25
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

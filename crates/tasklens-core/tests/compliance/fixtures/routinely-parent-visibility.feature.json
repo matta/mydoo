@@ -1,0 +1,52 @@
+{
+  "feature": "Routine Parent Visibility",
+  "background": {
+    "current_time": "2025-01-01T12:00:00Z",
+    "tasks": []
+  },
+  "scenarios": [
+    {
+      "name": "Parent of Sleeping Routine Task Should Be Hidden",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "Parent",
+                "schedule_type": "Once",
+                "children": [
+                  {
+                    "id": "Child_Routine",
+                    "schedule_type": "Routinely",
+                    "repeat_config": {
+                      "frequency": "daily",
+                      "interval": 1
+                    },
+                    "last_done": "2025-01-01T10:00:00Z",
+                    "status": "Done",
+                    "is_acknowledged": true,
+                    "lead_time_seconds": 3600
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "Child_Routine",
+                "is_visible": false
+              },
+              {
+                "id": "Parent",
+                "is_visible": false
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

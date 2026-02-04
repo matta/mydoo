@@ -1,0 +1,252 @@
+{
+  "feature": "Due Date Logic (E2E Compliance)",
+  "description": "Validates strict due date behavior including urgency states, inheritance rules, and override mechanics matching the requirements of the client E2E tests.\n",
+  "background": {
+    "current_time": "2024-06-01T12:00:00Z"
+  },
+  "scenarios": [
+    {
+      "name": "Urgency State - Overdue",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "overdue",
+                "title": "Overdue Task",
+                "due_date": "2024-05-31"
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "overdue",
+                "effective_due_date": "2024-05-31",
+                "due_date": "2024-05-31",
+                "urgency_status": "Overdue"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Urgency State - Urgent",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "urgent",
+                "title": "Urgent Task",
+                "due_date": "2024-06-01"
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "urgent",
+                "effective_due_date": "2024-06-01",
+                "due_date": "2024-06-01",
+                "urgency_status": "Urgent"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Urgency State - Active",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "active",
+                "title": "Active Task",
+                "due_date": "2024-06-04",
+                "lead_time_seconds": 604800
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "active",
+                "effective_due_date": "2024-06-04",
+                "due_date": "2024-06-04",
+                "effective_lead_time": 604800000,
+                "urgency_status": "Active",
+                "is_ready": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Urgency State - Future",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "future",
+                "title": "Future Task",
+                "due_date": "2024-06-11",
+                "lead_time_seconds": 604800
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "future",
+                "effective_due_date": "2024-06-11",
+                "due_date": "2024-06-11",
+                "urgency_status": "None",
+                "is_ready": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Urgency State - Upcoming",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "upcoming",
+                "title": "Upcoming Task",
+                "due_date": "2024-06-09",
+                "lead_time_seconds": 604800
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "upcoming",
+                "effective_due_date": "2024-06-09",
+                "due_date": "2024-06-09",
+                "urgency_status": "Upcoming",
+                "is_ready": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inheritance",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "parent",
+                "title": "Parent Task",
+                "due_date": "2024-06-02",
+                "lead_time_seconds": 604800
+              },
+              {
+                "id": "child",
+                "title": "Child Task",
+                "parent_id": "parent"
+              },
+              {
+                "id": "grandchild",
+                "title": "Grandchild Task",
+                "parent_id": "child"
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "parent",
+                "due_date": "2024-06-02",
+                "effective_due_date": "2024-06-02",
+                "urgency_status": "Urgent"
+              },
+              {
+                "id": "child",
+                "due_date": null,
+                "effective_due_date": "2024-06-02",
+                "effective_lead_time": 604800000,
+                "urgency_status": "Urgent"
+              },
+              {
+                "id": "grandchild",
+                "due_date": null,
+                "effective_due_date": "2024-06-02",
+                "effective_lead_time": 604800000,
+                "urgency_status": "Urgent"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Override Inherited Dates",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "parent_override",
+                "title": "Parent Task",
+                "due_date": "2024-06-02",
+                "lead_time_seconds": 2592000
+              },
+              {
+                "id": "child_override",
+                "title": "Child Task",
+                "parent_id": "parent_override",
+                "due_date": "2024-06-05",
+                "lead_time_seconds": 604800
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "parent_override",
+                "due_date": "2024-06-02",
+                "effective_due_date": "2024-06-02",
+                "urgency_status": "Urgent"
+              },
+              {
+                "id": "child_override",
+                "due_date": "2024-06-05",
+                "effective_due_date": "2024-06-05",
+                "effective_lead_time": 604800000,
+                "urgency_status": "Active"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

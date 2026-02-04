@@ -1,0 +1,76 @@
+{
+  "feature": "Container Visibility",
+  "description": "Tests container visibility logic. Containers with no visible descendants should generally be visible (if actionable), or hidden if they have visible descendants (to reduce clutter).\n",
+  "background": {
+    "current_time": "2025-01-01T09:00:00Z",
+    "places": [],
+    "tasks": [
+      {
+        "id": "Project",
+        "title": "Project (Container)",
+        "status": "Pending",
+        "importance": 1,
+        "desired_credits": 1
+      },
+      {
+        "id": "Child1",
+        "title": "Child 1 (Done)",
+        "status": "Done",
+        "parent_id": "Project",
+        "credits": 1,
+        "credits_timestamp": "2025-01-01T08:00:00Z"
+      },
+      {
+        "id": "Child2",
+        "title": "Child 2 (Done)",
+        "status": "Done",
+        "parent_id": "Project",
+        "credits": 1,
+        "credits_timestamp": "2025-01-01T08:00:00Z"
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Container with all children Done and Acknowledged",
+      "steps": [
+        {
+          "when": {
+            "task_updates": [
+              {
+                "id": "Child1",
+                "is_acknowledged": true
+              },
+              {
+                "id": "Child2",
+                "is_acknowledged": true
+              }
+            ],
+            "advance_time_seconds": 0
+          },
+          "then": {
+            "expected_order": [
+              "Project"
+            ],
+            "expected_props": [
+              {
+                "id": "Project",
+                "is_visible": true
+              },
+              {
+                "id": "Child1",
+                "is_visible": false,
+                "is_ready": false
+              },
+              {
+                "id": "Child2",
+                "is_visible": false,
+                "is_ready": false
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
