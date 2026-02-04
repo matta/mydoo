@@ -1,9 +1,9 @@
 use crate::components::priority_task_row::PriorityTaskRow;
 use crate::components::{Button, ButtonVariant, EmptyState, LoadErrorView, PageHeader, TaskInput};
 use crate::controllers::task_controller;
+use crate::hooks::use_prioritized_tasks::use_do_list_tasks;
 use dioxus::prelude::*;
-use tasklens_core::domain::priority::get_prioritized_tasks;
-use tasklens_core::types::{PriorityMode, PriorityOptions, TaskID, ViewFilter};
+use tasklens_core::types::TaskID;
 
 #[component]
 pub fn DoPage() -> Element {
@@ -18,22 +18,7 @@ pub fn DoPage() -> Element {
     }
     let mut editor_state = use_signal(|| None::<EditorState>);
 
-    let state = crate::hooks::use_tunnel_state::use_tunnel_state();
-
-    let prioritized_tasks = use_memo({
-        move || {
-            let state = state.read();
-            let view_filter = ViewFilter {
-                place_id: Some("All".to_string()),
-            };
-            let options = PriorityOptions {
-                include_hidden: false,
-                mode: Some(PriorityMode::DoList),
-                context: None, // Will use current time internally
-            };
-            get_prioritized_tasks(&state, &view_filter, &options)
-        }
-    });
+    let prioritized_tasks = use_do_list_tasks();
 
     let on_toggle = {
         move |id: TaskID| {

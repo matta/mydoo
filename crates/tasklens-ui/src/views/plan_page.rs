@@ -1,12 +1,9 @@
 use crate::components::task_row::TaskRow;
 use crate::components::{LoadErrorView, PageHeader, TaskInput};
 use crate::controllers::task_controller;
+use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
-use std::collections::HashMap;
-use tasklens_core::domain::priority::get_prioritized_tasks;
-use tasklens_core::types::{
-    PersistedTask, PriorityMode, PriorityOptions, TaskID, TunnelState, ViewFilter,
-};
+use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
 
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
@@ -75,25 +72,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         // Explicit persist removed. Handled by use_persistence hook.
     };
 
-    // Build schedule lookup from core algorithm (single source of truth for inheritance).
-    let schedule_lookup = use_memo({
-        move || {
-            let state = state.read();
-            let view_filter = ViewFilter {
-                place_id: Some("All".to_string()),
-            };
-            let options = PriorityOptions {
-                include_hidden: true, // Plan shows all tasks
-                mode: Some(PriorityMode::DoList),
-                context: None,
-            };
-            let computed = get_prioritized_tasks(&state, &view_filter, &options);
-            computed
-                .into_iter()
-                .map(|t| (t.id.clone(), (t.effective_due_date, t.effective_lead_time)))
-                .collect::<HashMap<_, _>>()
-        }
-    });
+    let schedule_lookup = use_schedule_lookup();
 
     let flattened_tasks = use_memo({
         move || {
@@ -284,9 +263,6 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         }
     }
 }
-
-/// Schedule info (effective_due_date, effective_lead_time) keyed by TaskID.
-type ScheduleLookup = HashMap<TaskID, (Option<i64>, Option<i64>)>;
 
 #[derive(Debug, Clone, PartialEq)]
 struct FlattenedTask {
