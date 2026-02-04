@@ -1,0 +1,89 @@
+{
+  "feature": "Completion Acknowledgement",
+  "description": "Verifies that tasks marked as \"Done\" remain visible until they are explicitly acknowledged, at which point they disappear from the active \"Do List\".\n",
+  "background": {
+    "current_time": "2025-01-01T09:00:00Z",
+    "tasks": [
+      {
+        "id": "Task_A",
+        "title": "Task A",
+        "status": "Pending",
+        "importance": 1
+      },
+      {
+        "id": "Task_B",
+        "title": "Task B",
+        "status": "Pending",
+        "importance": 0.5
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Legacy Scenario",
+      "steps": [
+        {
+          "legacy_description": "1. Initial State (Both Pending)",
+          "then": {
+            "expected_order": [
+              "Task_A",
+              "Task_B"
+            ]
+          }
+        },
+        {
+          "when": {
+            "task_updates": [
+              {
+                "id": "Task_A",
+                "status": "Done",
+                "is_acknowledged": false
+              }
+            ]
+          },
+          "legacy_description": "2. Complete Task A (Unacknowledged)",
+          "then": {
+            "expected_order": [
+              "Task_A",
+              "Task_B"
+            ]
+          }
+        },
+        {
+          "when": {
+            "task_updates": [
+              {
+                "id": "Task_A",
+                "is_acknowledged": true
+              }
+            ]
+          },
+          "legacy_description": "3. Acknowledge Task A",
+          "then": {
+            "expected_order": [
+              "Task_B"
+            ]
+          }
+        },
+        {
+          "when": {
+            "task_updates": [
+              {
+                "id": "Task_A",
+                "status": "Pending",
+                "is_acknowledged": false
+              }
+            ]
+          },
+          "legacy_description": "4. Reopen Task A",
+          "then": {
+            "expected_order": [
+              "Task_A",
+              "Task_B"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

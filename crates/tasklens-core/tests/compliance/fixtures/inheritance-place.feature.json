@@ -1,0 +1,218 @@
+{
+  "feature": "Property Inheritance PlaceID",
+  "background": {
+    "current_time": "2025-01-01T00:00:00Z",
+    "places": [
+      {
+        "id": "Home",
+        "hours": {
+          "mode": "always_open"
+        },
+        "included_places": []
+      },
+      {
+        "id": "Work",
+        "hours": {
+          "mode": "always_open"
+        },
+        "included_places": []
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Root Default",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A",
+                "place_id": null
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "A",
+                "place_id": "Anywhere"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Explicit Assignment",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A",
+                "place_id": "Home"
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "A",
+                "place_id": "Home"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Creation Inheritance",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A",
+                "place_id": "Home",
+                "children": [
+                  {
+                    "id": "B",
+                    "place_id": null
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "B",
+                "place_id": "Home"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grandparent Inheritance",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A",
+                "place_id": "Home",
+                "children": [
+                  {
+                    "id": "B",
+                    "place_id": null,
+                    "children": [
+                      {
+                        "id": "C",
+                        "place_id": null
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "C",
+                "place_id": "Home"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parent Change Independence",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A",
+                "place_id": "Home",
+                "children": [
+                  {
+                    "id": "B",
+                    "place_id": null
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "when": {
+            "task_updates": [
+              {
+                "id": "A",
+                "place_id": "Work"
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "A",
+                "place_id": "Work"
+              },
+              {
+                "id": "B",
+                "place_id": "Home"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Explicit Override",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A",
+                "place_id": "Home",
+                "children": [
+                  {
+                    "id": "B",
+                    "place_id": "Work"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "B",
+                "place_id": "Work"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

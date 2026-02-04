@@ -1,0 +1,80 @@
+{
+  "feature": "Boost Lead Time",
+  "description": "Validates the dynamic priority boost applied to tasks as their due date approaches. Step 1 establishes a baseline; Step 2 establishes differentiation based on proximity to due date.\n",
+  "background": {
+    "current_time": "2025-01-01T12:00:00Z",
+    "tasks": [
+      {
+        "id": "Steady",
+        "title": "Task A (Control)",
+        "desired_credits": 0,
+        "importance": 1,
+        "lead_time_seconds": 604800
+      },
+      {
+        "id": "Rushing",
+        "title": "Task B (Will become Urgent)",
+        "desired_credits": 0,
+        "importance": 1,
+        "lead_time_seconds": 604800
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Legacy Scenario",
+      "steps": [
+        {
+          "legacy_description": "1. Initial Balanced State",
+          "then": {
+            "expected_order": [
+              "Steady",
+              "Rushing"
+            ],
+            "expected_props": [
+              {
+                "id": "Steady",
+                "score": 1
+              },
+              {
+                "id": "Rushing",
+                "score": 1
+              }
+            ]
+          }
+        },
+        {
+          "when": {
+            "task_updates": [
+              {
+                "id": "Steady",
+                "due_date": "2025-01-12T12:00:00Z"
+              },
+              {
+                "id": "Rushing",
+                "due_date": "2025-01-02T12:00:00Z"
+              }
+            ]
+          },
+          "legacy_description": "2. Make Task B Urgent",
+          "then": {
+            "expected_order": [
+              "Rushing",
+              "Steady"
+            ],
+            "expected_props": [
+              {
+                "id": "Rushing",
+                "score": 1
+              },
+              {
+                "id": "Steady",
+                "score": 0.42857
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

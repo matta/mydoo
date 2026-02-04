@@ -1,0 +1,57 @@
+{
+  "feature": "Minimum Priority Threshold",
+  "description": "Verify that tasks with priority <= 0.001 are filtered out of the sorted list.",
+  "background": {
+    "current_time": "2023-01-01T12:00:00+00:00",
+    "timezone_offset": 0,
+    "tasks": [
+      {
+        "id": "Parent",
+        "desired_credits": 0,
+        "title": "Container",
+        "children": [
+          {
+            "id": "BigSibling",
+            "title": "Big Sibling",
+            "importance": 1
+          },
+          {
+            "id": "LowPri",
+            "title": "Noise Task",
+            "importance": 0.0001
+          }
+        ]
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Legacy Scenario",
+      "steps": [
+        {
+          "legacy_description": "Check Filter",
+          "then": {
+            "expected_order": [
+              "BigSibling"
+            ],
+            "expected_props": [
+              {
+                "id": "Parent",
+                "is_visible": false
+              },
+              {
+                "id": "BigSibling",
+                "is_visible": true
+              },
+              {
+                "id": "LowPri",
+                "is_visible": true,
+                "score": 0.0001
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

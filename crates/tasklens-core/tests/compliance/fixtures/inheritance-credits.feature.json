@@ -1,0 +1,198 @@
+{
+  "feature": "Property Inheritance CreditIncrement",
+  "background": {
+    "current_time": "2025-01-01T00:00:00Z",
+    "tasks": []
+  },
+  "scenarios": [
+    {
+      "name": "Root Default",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A"
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "A",
+                "credit_increment": 0.5
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Explicit Assignment",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A",
+                "credit_increment": 0.8
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "A",
+                "credit_increment": 0.8
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Creation Inheritance",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A",
+                "credit_increment": 0.8,
+                "children": [
+                  {
+                    "id": "B"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "B",
+                "credit_increment": 0.8
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grandparent Inheritance",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A",
+                "credit_increment": 0.8,
+                "children": [
+                  {
+                    "id": "B",
+                    "children": [
+                      {
+                        "id": "C"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "C",
+                "credit_increment": 0.8
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parent Change Independence",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A",
+                "credit_increment": 0.5,
+                "children": [
+                  {
+                    "id": "B"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "when": {
+            "task_updates": [
+              {
+                "id": "A",
+                "credit_increment": 1
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "A",
+                "credit_increment": 1
+              },
+              {
+                "id": "B",
+                "credit_increment": 0.5
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Explicit Override",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "A",
+                "credit_increment": 0.5,
+                "children": [
+                  {
+                    "id": "B",
+                    "credit_increment": 0.1
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "B",
+                "credit_increment": 0.1
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

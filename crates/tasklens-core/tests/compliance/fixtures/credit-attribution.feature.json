@@ -1,0 +1,134 @@
+{
+  "feature": "Credit Attribution on Task Completion",
+  "description": "Validates that completing a task adds its credit_increment to its own credits, applying decay before adding new credits, and updating credits_timestamp. See algorithm.md §5.1.\nNOTE: Scenarios requiring effective_credits aggregation from children are in credit-attribution-aggregation.feature.json (blocked on mydoo-59v).\n",
+  "background": {
+    "current_time": "2025-01-01T00:00:00Z",
+    "tasks": []
+  },
+  "scenarios": [
+    {
+      "name": "Single Task Completion",
+      "description": "Completing a root task adds its credit_increment to its own credits.\n",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "TaskA",
+                "credits": 0,
+                "credit_increment": 0.5
+              }
+            ]
+          }
+        },
+        {
+          "when": {
+            "complete_tasks": [
+              "TaskA"
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "TaskA",
+                "credits": 0.5,
+                "effective_credits": 0.5
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Decay Applied Before Adding Credits",
+      "description": "When a task with existing credits is completed, decay is applied to the existing balance before the new credit_increment is added. After 7 days (one half-life), 100 credits decay to 50, then +0.5 = 50.5.\n",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "TaskA",
+                "credits": 100,
+                "credit_increment": 0.5
+              }
+            ]
+          }
+        },
+        {
+          "when": {
+            "advance_time_seconds": 604800,
+            "complete_tasks": [
+              "TaskA"
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "TaskA",
+                "credits": 50.5,
+                "effective_credits": 50.5
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cumulative Credits",
+      "description": "Completing the same task twice (e.g., recurring) accumulates credits.\n",
+      "steps": [
+        {
+          "given": {
+            "tasks": [
+              {
+                "id": "TaskA",
+                "credits": 0,
+                "credit_increment": 1
+              }
+            ]
+          }
+        },
+        {
+          "when": {
+            "complete_tasks": [
+              "TaskA"
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "TaskA",
+                "credits": 1,
+                "effective_credits": 1
+              }
+            ]
+          }
+        },
+        {
+          "when": {
+            "complete_tasks": [
+              "TaskA"
+            ]
+          }
+        },
+        {
+          "then": {
+            "expected_props": [
+              {
+                "id": "TaskA",
+                "credits": 2,
+                "effective_credits": 2
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
