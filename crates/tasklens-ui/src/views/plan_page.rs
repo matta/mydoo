@@ -305,11 +305,14 @@ fn flatten_recursive(id: &TaskID, depth: usize, ctx: &mut FlattenContext) {
         let is_expanded = ctx.expanded.contains(id);
 
         // Lookup effective schedule from core algorithm (single source of truth).
-        let (effective_due_date, effective_lead_time) = ctx
-            .schedule_lookup
-            .get(id)
-            .copied()
-            .unwrap_or((None, Some(task.schedule.lead_time)));
+        let (effective_due_date, effective_lead_time) =
+            ctx.schedule_lookup.get(id).copied().unwrap_or_else(|| {
+                tracing::warn!(
+                    "Task {} not found in schedule_lookup, falling back to local.",
+                    id
+                );
+                (None, Some(task.schedule.lead_time))
+            });
 
         ctx.result.push(FlattenedTask {
             task: task.clone(),

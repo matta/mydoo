@@ -12,6 +12,8 @@ fn compute_prioritized_tasks(state: &TunnelState, include_hidden: bool) -> Vec<C
     let view_filter = ViewFilter {
         place_id: Some("All".to_string()),
     };
+    // FIXME(mydoo-dhh): PriorityMode::DoList is used even for Plan view schedule lookup.
+    // The mode doesn't affect schedule inheritance, but this indicates the API is too "fat".
     let options = PriorityOptions {
         include_hidden,
         mode: Some(PriorityMode::DoList),
