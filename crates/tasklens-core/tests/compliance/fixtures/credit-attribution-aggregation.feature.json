@@ -29,11 +29,11 @@
           }
         },
         {
-          "when": {
-            "complete_tasks": [
-              "Child"
-            ]
-          }
+          "when": [
+            {
+              "complete_task": "Child"
+            }
+          ]
         },
         {
           "then": {
@@ -81,11 +81,11 @@
           }
         },
         {
-          "when": {
-            "complete_tasks": [
-              "Leaf"
-            ]
-          }
+          "when": [
+            {
+              "complete_task": "Leaf"
+            }
+          ]
         },
         {
           "then": {
@@ -132,12 +132,14 @@
           }
         },
         {
-          "when": {
-            "advance_time_seconds": 604800,
-            "complete_tasks": [
-              "Child"
-            ]
-          }
+          "when": [
+            {
+              "increment_current_time": 604800
+            },
+            {
+              "complete_task": "Child"
+            }
+          ]
         },
         {
           "then": {
@@ -184,11 +186,11 @@
           }
         },
         {
-          "when": {
-            "complete_tasks": [
-              "ChildA"
-            ]
-          }
+          "when": [
+            {
+              "complete_task": "ChildA"
+            }
+          ]
         },
         {
           "then": {
@@ -212,11 +214,11 @@
           }
         },
         {
-          "when": {
-            "complete_tasks": [
-              "ChildB"
-            ]
-          }
+          "when": [
+            {
+              "complete_task": "ChildB"
+            }
+          ]
         },
         {
           "then": {

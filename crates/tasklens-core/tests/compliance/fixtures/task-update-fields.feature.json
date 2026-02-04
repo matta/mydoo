@@ -17,15 +17,15 @@
       "name": "Update importance and credit_increment",
       "steps": [
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "TargetTask",
                 "importance": 0.75,
                 "credit_increment": 0.8
               }
-            ]
-          },
+            }
+          ],
           "then": {
             "expected_props": [
               {

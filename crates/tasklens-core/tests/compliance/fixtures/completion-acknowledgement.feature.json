@@ -32,15 +32,15 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "Task_A",
                 "status": "Done",
                 "is_acknowledged": false
               }
-            ]
-          },
+            }
+          ],
           "legacy_description": "2. Complete Task A (Unacknowledged)",
           "then": {
             "expected_order": [
@@ -50,14 +50,14 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "Task_A",
                 "is_acknowledged": true
               }
-            ]
-          },
+            }
+          ],
           "legacy_description": "3. Acknowledge Task A",
           "then": {
             "expected_order": [
@@ -66,15 +66,15 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "Task_A",
                 "status": "Pending",
                 "is_acknowledged": false
               }
-            ]
-          },
+            }
+          ],
           "legacy_description": "4. Reopen Task A",
           "then": {
             "expected_order": [

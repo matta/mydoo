@@ -54,18 +54,20 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_credits": {
+                "ProjectAlpha": 50
+              }
+            },
+            {
+              "update_task": {
                 "id": "AlphaTaskOne",
                 "status": "Done",
                 "is_acknowledged": true
               }
-            ],
-            "update_credits": {
-              "ProjectAlpha": 50
             }
-          },
+          ],
           "legacy_description": "2. Finish A1 (A Utilized)",
           "then": {
             "expected_order": [
@@ -76,18 +78,20 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_credits": {
+                "ProjectBeta": 50
+              }
+            },
+            {
+              "update_task": {
                 "id": "BetaTaskOne",
                 "status": "Done",
                 "is_acknowledged": true
               }
-            ],
-            "update_credits": {
-              "ProjectBeta": 50
             }
-          },
+          ],
           "legacy_description": "3. Finish B1 (B Catches Up)",
           "then": {
             "expected_order": [

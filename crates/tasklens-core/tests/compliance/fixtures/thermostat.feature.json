@@ -42,12 +42,14 @@
           }
         },
         {
-          "when": {
-            "update_credits": {
-              "work": 150,
-              "life": 100
+          "when": [
+            {
+              "update_credits": {
+                "work": 150,
+                "life": 100
+              }
             }
-          },
+          ],
           "legacy_description": "Step 2: Imbalance",
           "then": {
             "expected_order": [
@@ -67,12 +69,14 @@
           }
         },
         {
-          "when": {
-            "update_credits": {
-              "work": 900,
-              "life": 100
+          "when": [
+            {
+              "update_credits": {
+                "work": 900,
+                "life": 100
+              }
             }
-          },
+          ],
           "legacy_description": "Step 3: Extreme",
           "then": {
             "expected_order": [

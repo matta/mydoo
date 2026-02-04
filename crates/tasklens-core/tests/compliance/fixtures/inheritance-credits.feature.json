@@ -138,14 +138,14 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "A",
                 "credit_increment": 1
               }
-            ]
-          }
+            }
+          ]
         },
         {
           "then": {

@@ -39,9 +39,11 @@
           }
         },
         {
-          "when": {
-            "advance_time_seconds": 604800
-          },
+          "when": [
+            {
+              "increment_current_time": 604800
+            }
+          ],
           "legacy_description": "Step 2: Advance Time (Decay)",
           "then": {
             "expected_order": [
@@ -57,11 +59,13 @@
           }
         },
         {
-          "when": {
-            "update_credits": {
-              "Project": 150
+          "when": [
+            {
+              "update_credits": {
+                "Project": 150
+              }
             }
-          },
+          ],
           "legacy_description": "Step 3: Add Credits (Simulate Work)",
           "then": {
             "expected_order": [

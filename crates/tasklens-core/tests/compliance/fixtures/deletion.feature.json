@@ -29,11 +29,11 @@
           }
         },
         {
-          "when": {
-            "delete_tasks": [
-              "Parent"
-            ]
-          },
+          "when": [
+            {
+              "delete_task": "Parent"
+            }
+          ],
           "legacy_description": "Delete parent task",
           "then": {
             "expected_order": []

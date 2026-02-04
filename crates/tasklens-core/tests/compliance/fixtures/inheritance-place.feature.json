@@ -158,14 +158,14 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "A",
                 "place_id": "Work"
               }
-            ]
-          }
+            }
+          ]
         },
         {
           "then": {

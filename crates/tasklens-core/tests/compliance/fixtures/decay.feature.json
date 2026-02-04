@@ -29,9 +29,11 @@
           }
         },
         {
-          "when": {
-            "advance_time_seconds": 604800
-          },
+          "when": [
+            {
+              "increment_current_time": 604800
+            }
+          ],
           "legacy_description": "Step 2: 7 Days",
           "then": {
             "expected_order": [
@@ -46,9 +48,11 @@
           }
         },
         {
-          "when": {
-            "advance_time_seconds": 604800
-          },
+          "when": [
+            {
+              "increment_current_time": 604800
+            }
+          ],
           "legacy_description": "Step 3: 14 Days",
           "then": {
             "expected_order": [

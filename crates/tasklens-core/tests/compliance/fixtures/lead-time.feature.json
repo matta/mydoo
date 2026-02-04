@@ -32,9 +32,11 @@
           }
         },
         {
-          "when": {
-            "advance_time_seconds": 518400
-          },
+          "when": [
+            {
+              "increment_current_time": 518400
+            }
+          ],
           "legacy_description": "Step 2: 14 Days Remaining (Just Appearing)",
           "then": {
             "expected_order": [],
@@ -49,9 +51,11 @@
           }
         },
         {
-          "when": {
-            "advance_time_seconds": 302400
-          },
+          "when": [
+            {
+              "increment_current_time": 302400
+            }
+          ],
           "legacy_description": "Step 3: 10.5 Days Remaining (Halfway)",
           "then": {
             "expected_order": [
@@ -66,9 +70,11 @@
           }
         },
         {
-          "when": {
-            "advance_time_seconds": 302400
-          },
+          "when": [
+            {
+              "increment_current_time": 302400
+            }
+          ],
           "legacy_description": "Step 4: 7 Days Remaining (Max)",
           "then": {
             "expected_order": [
@@ -83,9 +89,11 @@
           }
         },
         {
-          "when": {
-            "advance_time_seconds": 604800
-          },
+          "when": [
+            {
+              "increment_current_time": 604800
+            }
+          ],
           "legacy_description": "Step 5: 0 Days Remaining (Overdue)",
           "then": {
             "expected_order": [

@@ -35,19 +35,23 @@
       "name": "Container with all children Done and Acknowledged",
       "steps": [
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "increment_current_time": 0
+            },
+            {
+              "update_task": {
                 "id": "Child1",
                 "is_acknowledged": true
-              },
-              {
+              }
+            },
+            {
+              "update_task": {
                 "id": "Child2",
                 "is_acknowledged": true
               }
-            ],
-            "advance_time_seconds": 0
-          },
+            }
+          ],
           "then": {
             "expected_order": [
               "Project"

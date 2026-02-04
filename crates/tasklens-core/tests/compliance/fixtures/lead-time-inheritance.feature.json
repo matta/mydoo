@@ -49,9 +49,11 @@
       "name": "Verify Readiness after lead time",
       "steps": [
         {
-          "when": {
-            "advance_time_seconds": 777600
-          }
+          "when": [
+            {
+              "increment_current_time": 777600
+            }
+          ]
         },
         {
           "then": {
@@ -73,19 +75,21 @@
       "name": "Variable Lead Times",
       "steps": [
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "parent-1",
                 "lead_time_seconds": "${lead_time}"
               }
-            ]
-          }
+            }
+          ]
         },
         {
-          "when": {
-            "advance_time_seconds": "${wait_time}"
-          }
+          "when": [
+            {
+              "increment_current_time": "${wait_time}"
+            }
+          ]
         },
         {
           "then": {

@@ -37,16 +37,16 @@
         },
         {
           "legacy_description": "Add child to B",
-          "when": {
-            "create_tasks": [
-              {
+          "when": [
+            {
+              "create_task": {
                 "id": "B_Child",
                 "parent_id": "B",
                 "title": "B's Child",
                 "importance": 0.5
               }
-            ]
-          },
+            }
+          ],
           "then": {
             "expected_order": [
               "A",
@@ -62,24 +62,26 @@
       "steps": [
         {
           "legacy_description": "Add siblings to B (One Done, One Active) The ranking should be identical to that of the previous scenario.\n",
-          "when": {
-            "create_tasks": [
-              {
+          "when": [
+            {
+              "create_task": {
                 "id": "B_DoneSibling",
                 "parent_id": "B",
                 "title": "Done Sibling",
                 "importance": 0.5,
                 "status": "Done",
                 "is_acknowledged": true
-              },
-              {
+              }
+            },
+            {
+              "create_task": {
                 "id": "B_Child",
                 "parent_id": "B",
                 "title": "B's Child",
                 "importance": 0.5
               }
-            ]
-          },
+            }
+          ],
           "then": {
             "expected_order": [
               "A",
