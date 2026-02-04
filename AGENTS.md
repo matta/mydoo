@@ -171,7 +171,7 @@ pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
 
 ## E2E & BDD Strategy (Playwright)
 
-- **Semantic Selectors**: Avoid checking CSS styles or fragile labels. Use stable data attributes (e.g., `data-testid`, `data-urgency`). Replace legacy framework selectors (e.g., `.mantine-*`) immediately.
+- **Semantic Selectors**: Avoid checking CSS styles or fragile labels. Use stable data attributes (e.g., `data-testid`, `data-urgency`).
 - **Timezone Pitfalls**: `page.clock.setFixedTime()` sets system time (often UTC), but `new Date()` uses browser timezone. Align them or use ISO strings.
 - **Declarative Steps**: Prefer high-level domain actions (`I.Given.cleanWorkspace()`) over implementation details.
 - **Case-Sensitive BDD**: Steps often expect TitleCase for enums (e.g., `Urgent`). Check `STATUS_MAP` in `all.steps.ts`.

@@ -278,6 +278,10 @@ export class Steps {
     adjustsDesiredCredits: async (title: string, value: number) => {
       await this.plan.setDesiredCredits(title, value);
     },
+
+    selectScheduleType: async (type: string) => {
+      await this.page.selectOption("#schedule-type-select", { label: type });
+    },
   };
 
   public Then = {
