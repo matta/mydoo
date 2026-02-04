@@ -31,7 +31,7 @@ catalogs:
     vitest: 4.0.18
     wait-port: ^1.1.0
     ws: ^8.19.0
-    zod: ^4.3.5
+    zod: ^4.3.6
 
 ignoredBuiltDependencies:
   - "@swc/core"
