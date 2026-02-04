@@ -321,6 +321,7 @@ fn process_children(
 
     let sibling_importance_sum: f64 = child_indices
         .iter()
+        .filter(|&i| enriched_tasks[*i].is_pending)
         .map(|&i| enriched_tasks[i].importance)
         .sum();
 

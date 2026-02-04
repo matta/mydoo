@@ -1,0 +1,72 @@
+feature: Neutral Priority Inheritance Behavior
+description: >
+  Verifies that a child task with 'Medium' (default) priority inherits effectively the same ranking
+  power as its 'Medium' priority parent would have had.
+
+  Scenario:
+  1. Three Root tasks (A, B, C) all with default importance (0.5).
+  2. They have equal importance, therefore rank in outline order.
+  3. Adding a child to 'B' (also 0.5 importance) should NOT
+     cause 'B's branch to change rank relative to A and C.
+
+background:
+  current_time: "2025-01-01T12:00:00Z"
+  tasks:
+    - id: A
+      title: Root A
+      importance: 0.5
+
+    - id: B
+      title: Root B
+      importance: 0.5
+
+    - id: C
+      title: Root C
+      importance: 0.5
+
+scenarios:
+  - name: Verify Ranking Preservation
+    steps:
+      - legacy_description: Do list is in outline order
+        then:
+          expected_order:
+            - A
+            - B
+            - C
+
+      - legacy_description: Add child to B
+        when:
+          create_tasks:
+            - id: B_Child
+              parent_id: B
+              title: B's Child
+              importance: 0.5
+        then:
+          expected_order:
+            - A
+            - B_Child
+            - C
+
+  - name: Verify Ranking Preservation
+    steps:
+      - legacy_description: >
+          Add siblings to B (One Done, One Active)
+          The ranking should be identical to that
+          of the previous scenario.
+        when:
+          create_tasks:
+            - id: B_DoneSibling
+              parent_id: B
+              title: Done Sibling
+              importance: 0.5
+              status: Done
+              is_acknowledged: true
+            - id: B_Child
+              parent_id: B
+              title: B's Child
+              importance: 0.5
+        then:
+          expected_order:
+            - A
+            - B_Child
+            - C

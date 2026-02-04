@@ -140,6 +140,7 @@ struct Mutation {
     advance_time_seconds: Option<F64OrString>,
     update_credits: Option<HashMap<String, F64OrString>>,
     task_updates: Option<Vec<TaskUpdate>>,
+    create_tasks: Option<Vec<TaskInput>>,
     delete_tasks: Option<Vec<String>>,
     complete_tasks: Option<Vec<String>>,
 }
@@ -255,16 +256,17 @@ fn test_compliance() -> Result<()> {
         "lead-time-inheritance.feature.yaml",
         "lead-time.feature.yaml",
         "min-threshold.feature.yaml",
+        "repro-neutral-inheritance.feature.yaml",
         "repro-stale-leadtime.feature.yaml",
         "root-importance.feature.yaml",
         "routinely-parent-visibility.feature.yaml",
         "sequential-flow.feature.yaml",
         "sorting.feature.yaml",
         "sorting-importance-tiebreaker.feature.yaml",
+        "task-update-fields.feature.yaml",
         "thermostat.feature.yaml",
         "tree-order-id-conflict.feature.yaml",
         "tree-order.feature.yaml",
-        "task-update-fields.feature.yaml",
         "visibility-place-filtering.feature.yaml",
         "weight.feature.yaml",
         "zero-feedback.feature.yaml",
@@ -842,6 +844,7 @@ fn apply_mutation(
         advance_time_seconds,
         update_credits,
         task_updates,
+        create_tasks,
         delete_tasks,
         complete_tasks,
     } = mutation;
@@ -861,6 +864,12 @@ fn apply_mutation(
                     ..Default::default()
                 },
             })?;
+        }
+    }
+
+    if let Some(tasks) = create_tasks {
+        for t in tasks {
+            apply_task_input(store, t, None, *current_time)?;
         }
     }
 
