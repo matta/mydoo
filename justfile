@@ -25,17 +25,14 @@ build: build-core build-store build-ui
 
 # Build tasklens-ui
 build-ui:
-    @echo "🏗️ Building tasklens-ui..."
     cd {{ui_pkg}} && dx build --platform web
 
 # Build tasklens-core
 build-core:
-    @echo "🏗️ Building tasklens-core..."
     cargo build -p tasklens-core
 
 # Build tasklens-store
 build-store:
-    @echo "🏗️ Building tasklens-store..."
     cargo build -p tasklens-store
 
 # -----------------------------------------------------------------------------
@@ -43,36 +40,33 @@ build-store:
 # -----------------------------------------------------------------------------
 
 # Run all style checks
-check-style: check-format-root check-biome-root check-filenames-root check-format check-dark-mode
+check-style: check-format-root check-biome-root check-filenames-root check-context-root check-format check-dark-mode
 
 # Check formatting for root files
 check-format-root:
-    @echo "🔍 Checking root formatting..."
     pnpm prettier --check "*.{json,jsonc,md,yaml,yml,js,ts,tsx,jsx,css,html}"
 
 # Check biome for root
 check-biome-root:
-    @echo "🔍 Checking root biome..."
     pnpm biome check .
     pnpm tsx scripts/check-biome-schema.ts
 
-
-
 # Check filenames
 check-filenames-root:
-    @echo "🔍 Checking filenames..."
     pnpm tsx scripts/lint-filenames.ts
+
+# Check context for accidental commits
+check-context-root:
+    pnpm tsx scripts/lint-context.ts
 
 # Check formatting for all packages
 check-format:
-    @echo "🔍 Checking package formatting..."
-    @echo "  - {{ui_pkg}}" && cd {{ui_pkg}} && pnpm prettier --check .
-    @echo "  - {{docs_pkg}}" && cd {{docs_pkg}} && pnpm prettier --check .
-    @echo "  - {{scripts_pkg}}" && cd {{scripts_pkg}} && pnpm prettier --check .
+    cd {{ui_pkg}} && chronic pnpm prettier --check .
+    cd {{docs_pkg}} && chronic pnpm prettier --check .
+    cd {{scripts_pkg}} && chronic pnpm prettier --check .
 
 # Check for dark mode violations in UI components
 check-dark-mode:
-    @echo "🌙 Checking dark mode theming..."
     pnpm tsx scripts/lint-dark-mode.ts
 
 
@@ -86,18 +80,14 @@ check-types: check-types-root check-types-scripts check-types-ui
 
 # Check types for root
 check-types-root:
-    @echo "🔍 Checking root types..."
     pnpm tsc --noEmit
 
 # Check types for scripts
 check-types-scripts:
-    @echo "🔍 Checking scripts types..."
     cd {{scripts_pkg}} && pnpm tsc --noEmit
 
 # Check types for tasklens-ui
 check-types-ui:
-    @echo "🔍 Checking ui types..."
-    # UI types are checked during build/dx build, but we can run tsc if config exists
     cd {{ui_pkg}} && pnpm tsc --noEmit
 
 # -----------------------------------------------------------------------------
@@ -109,18 +99,15 @@ check-rust: check-rust-fmt check-clippy check-wasm
 
 # Check rust formatting
 check-rust-fmt:
-    @echo "🔍 Checking rust formatting..."
     cargo fmt --all -- --check
 
 # Check clippy
 check-clippy:
-    @echo "🔍 Checking clippy..."
-    cargo clippy --workspace --all-targets --all-features -- -D warnings
+    chronic cargo clippy --workspace --all-targets --all-features -- -D warnings
 
 # Check compilation for WASM target
 check-wasm:
-    @echo "🔍 Checking wasm compilation..."
-    cargo check --target wasm32-unknown-unknown --all-targets
+    chronic cargo check --target wasm32-unknown-unknown --all-targets
 
 # -----------------------------------------------------------------------------
 # Test Commands
@@ -131,12 +118,10 @@ test: test-scripts test-rust
 
 # Run unit tests for scripts
 test-scripts:
-    @echo "🧪 Running scripts tests..."
     cd {{scripts_pkg}} && pnpm test
 
 # Run unit tests for rust crates
 test-rust:
-    @echo "🧪 Running rust tests..."
     cargo test --workspace
 
 # Run all e2e tests
@@ -163,7 +148,6 @@ verify: fix check test test-e2e
 
 # Development server
 dev:
-    @echo "🚀 Starting development server..."
     dx serve --platform web --package tasklens-ui
 
 # -----------------------------------------------------------------------------
@@ -172,27 +156,22 @@ dev:
 
 # Run full dead code detection suite (Lints + Dependencies)
 audit: check-clippy check-catalog-root check-deps-root udeps
-    @echo "✅ Audit complete! No dead code detected."
 
 # Check for unused dependencies in Cargo.toml
 # Note: Requires nightly toolchain and cargo-udeps installed
 udeps:
-    # @echo "📦 Scanning for unused dependencies..."
     cargo +nightly udeps --all-targets --all-features
 
 # Check syncpack
 check-syncpack-root:
-    @echo "🔍 Checking syncpack..."
     pnpm syncpack list-mismatches
 
 # Check catalog
 check-catalog-root:
-    @echo "🔍 Checking catalog..."
     pnpm tsx scripts/check-unused-catalog-entries.ts
 
 # Check dependencies
 check-deps-root:
-    @echo "🔍 Checking dependencies..."
     pnpm knip
 
 # -----------------------------------------------------------------------------

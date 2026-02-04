@@ -19,7 +19,7 @@
       "!**/pnpm-lock.yaml",
       "!**/*.d.ts",
       "!**/.prettierignore",
-      "!**/reference_repos",
+      "!**/context",
       "!crates/tasklens-ui/assets/tailwind.css"
     ]
   },
