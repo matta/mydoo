@@ -10,7 +10,6 @@ use tasklens_core::domain::constants::DEFAULT_LEAD_TIME_MILLIS;
 use tasklens_core::types::{
     Frequency, PersistedTask, PlaceID, RepeatConfig, Schedule, ScheduleType, TaskID, TaskStatus,
 };
-use tracing;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct DraftTask {
@@ -204,20 +203,26 @@ pub fn TaskEditor(
 
     rsx! {
         DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
-            DialogContent { class: "task-editor-content",
-                div { class: "flex justify-between items-start mb-4",
-                    DialogTitle {
-                        if task_id.is_some() {
-                            "Edit Task"
-                        } else {
-                            "Create Task"
+            DialogContent { class: "w-full max-w-2xl p-0 overflow-hidden bg-base-100",
+                // Modal Header (Sticky)
+                div { class: "px-6 py-4 border-b border-base-200 flex justify-between items-center bg-base-100 sticky top-0 z-20",
+                    div { class: "flex flex-col gap-1",
+                        DialogTitle {
+                            if task_id.is_some() {
+                                "Edit Task"
+                            } else {
+                                "Create Task"
+                            }
+                        }
+                        if let Some(ref title) = parent_title {
+                            span { class: "text-xs opacity-50 font-medium", "Subtask of {title}" }
                         }
                     }
 
                     if let Some(id) = task_id.clone() {
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: "btn-sm text-xs",
+                            class: "btn-sm btn-circle hover:bg-base-200 transition-colors",
                             onclick: move |_| {
                                 let nav = navigator();
                                 nav.push(crate::router::Route::PlanPage {
@@ -226,456 +231,475 @@ pub fn TaskEditor(
                                 });
                                 on_close.call(());
                             },
-                            "Find in Plan"
+                            span { class: "sr-only", "Find in Plan" }
+                            svg {
+                                "fill": "none",
+                                "viewBox": "0 0 24 24",
+                                "stroke-width": "2",
+                                "stroke": "currentColor",
+                                class: "size-5",
+                                path {
+                                    "stroke-linecap": "round",
+                                    "stroke-linejoin": "round",
+                                    "d": "m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z",
+                                }
+                            }
                         }
                     }
                 }
 
-                div { class: "task-editor-fields space-y-4 p-4",
-                    // Parent context (if applicable)
-                    if let Some(ref title) = parent_title {
-                        p { class: "text-sm text-base-content/60",
-                            "Child of "
-                            span { class: "font-semibold text-base-content/80", "{title}" }
+                // Modal Body (Scrollable)
+                div { class: "px-6 py-6 overflow-y-auto max-h-[70vh] flex flex-col gap-10",
+                    // Section: Core Details
+                    fieldset { class: "fieldset !p-0",
+                        legend { class: "fieldset-legend text-primary uppercase text-[10px] tracking-widest font-bold",
+                            "Task Details"
                         }
-                    }
-
-                    // Title
-                    div { class: "form-control w-full",
-                        div { class: "label",
-                            label {
-                                class: "label-text text-base font-medium",
-                                r#for: "task-title-input",
-                                "Title"
-                            }
-                        }
-                        Input {
-                            id: "task-title-input",
-                            value: current_draft.title.clone(),
-                            autofocus: true,
-                            oninput: move |v| {
-                                draft.with_mut(|d_opt| {
-                                    if let Some(d) = d_opt.as_mut() {
-                                        d.title = v;
-                                    }
-                                });
-                            },
-                            onkeydown: {
-                                let save_handler = save_handler.clone();
-                                move |e: KeyboardEvent| {
-                                    if e.key() == Key::Enter {
-                                        save_handler();
-                                    }
-                                }
-                            },
-                        }
-                    }
-
-                    div { class: "form-control w-full",
-                        div { class: "label",
-                            label {
-                                class: "label-text text-base font-medium",
-                                r#for: "importance-input",
-                                "Importance: {current_draft.importance:.2}"
-                            }
-                        }
-                        input {
-                            r#type: "range",
-                            id: "importance-input",
-                            class: "range range-primary range-sm",
-                            min: 0.0,
-                            max: 1.0,
-                            step: 0.01,
-                            value: current_draft.importance,
-                            oninput: move |v| {
-                                if let Ok(val) = v.value().parse::<f64>() {
-                                    draft.with_mut(|d_opt| {
-                                        if let Some(d) = d_opt.as_mut() {
-                                            d.importance = val;
-                                        }
-                                    });
-                                }
-                            },
-                        }
-                    }
-
-                    // Effort / Credit Increment
-                    div { class: "form-control w-full",
-                        div { class: "label",
-                            label {
-                                class: "label-text text-base font-medium",
-                                r#for: "effort-input",
-                                "Effort ({current_draft.credit_increment.unwrap_or(0.5):.2})"
-                            }
-                        }
-                        input {
-                            r#type: "range",
-                            id: "effort-input",
-                            class: "range range-primary range-sm",
-                            min: 0.0,
-                            max: 1.0,
-                            step: 0.01,
-                            value: current_draft.credit_increment.unwrap_or(0.5),
-                            oninput: move |v| {
-                                if let Ok(val) = v.value().parse::<f64>() {
-                                    draft.with_mut(|d_opt| {
-                                        if let Some(d) = d_opt.as_mut() {
-                                            d.credit_increment = Some(val);
-                                        }
-                                    });
-                                }
-                            },
-                        }
-                    }
-
-                    // Place
-                    div { class: "form-control w-full",
-                        div { class: "label",
-                            label {
-                                class: "label-text text-base font-medium",
-                                r#for: "place-select",
-                                "Place"
-                            }
-                        }
-                        {
-                            let state_val = state();
-                            let places = state_val.places.values().collect::<Vec<_>>();
-
-                            rsx! {
-                                Select {
-                                    id: "place-select",
-                                    value: current_draft
-                                        .place_id
-                                        .clone()
-                                        .map(|id| id.to_string())
-                                        .unwrap_or_default(),
-                                    onchange: move |v: String| {
-                                        draft.with_mut(|d_opt| {
-                                            if let Some(d) = d_opt.as_mut() {
-                                                d.place_id = if v.is_empty() {
-                                                    None
-                                                } else {
-                                                    Some(PlaceID::from(v))
-                                                };
-                                            }
-                                        });
-                                    },
-                                    option {
-                                        value: "",
-                                        selected: current_draft.place_id.is_none(),
-                                        "Anywhere"
-                                    }
-                                    for place in places {
-                                        option {
-                                            value: "{place.id}",
-                                            selected: current_draft
-                                                .place_id
-                                                .as_ref()
-                                                .map(|id| id == &place.id)
-                                                .unwrap_or(false),
-                                            "{place.name}"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Schedule Type
-                    div { class: "form-control w-full",
-                        div { class: "label",
-                            label {
-                                class: "label-text text-base font-medium",
-                                r#for: "schedule-type-select",
-                                "Schedule Type"
-                            }
-                        }
-                        Select {
-                            id: "schedule-type-select",
-                            value: match current_draft.schedule.schedule_type {
-                                ScheduleType::Once => "Once".to_string(),
-                                ScheduleType::Routinely => "Routinely".to_string(),
-                                ScheduleType::DueDate | ScheduleType::Calendar => "DueDate".to_string(),
-                            },
-                            onchange: move |v: String| {
-                                let new_type = match v.as_str() {
-                                    "Once" => ScheduleType::Once,
-                                    "Routinely" => ScheduleType::Routinely,
-                                    "DueDate" => ScheduleType::DueDate,
-                                    _ => ScheduleType::Once,
-                                };
-                                draft.with_mut(|d_opt| {
-                                    if let Some(d) = d_opt.as_mut() {
-                                        d.schedule.schedule_type = new_type;
-
-                                        // Initialize/Clear repeat_config based on type
-                                        if matches!(new_type, ScheduleType::Routinely) {
-                                            if d.repeat_config.is_none() {
-                                                d.repeat_config = Some(RepeatConfig {
-                                                    frequency: Frequency::Daily,
-                                                    interval: 1,
-                                                });
-                                            }
-                                        } else {
-                                            d.repeat_config = None;
-                                        }
-                                    }
-                                });
-                            },
-                            option {
-                                value: "Once",
-                                selected: matches!(current_draft.schedule.schedule_type, ScheduleType::Once),
-                                "Once"
-                            }
-                            option {
-                                value: "Routinely",
-                                selected: matches!(current_draft.schedule.schedule_type, ScheduleType::Routinely),
-                                "Routinely"
-                            }
-                            option {
-                                value: "DueDate",
-                                selected: matches!(
-                                    current_draft.schedule.schedule_type,
-                                    ScheduleType::DueDate | ScheduleType::Calendar
-                                ),
-                                "Due Date"
-                            }
-                        }
-                    }
-                    if matches!(current_draft.schedule.schedule_type, ScheduleType::Routinely) {
-                        div { class: "p-3 bg-base-200 rounded-md border border-base-300 space-y-3",
+                        div { class: "w-full space-y-4",
                             div {
                                 label {
-                                    class: "label-text text-base font-medium text-primary",
-                                    r#for: "repetition-frequency-select",
-                                    "Repeat Every"
+                                    class: "label p-0 mb-1.5",
+                                    r#for: "task-title-input",
+                                    span { class: "label-text font-semibold", "Title" }
                                 }
-                                div { class: "flex gap-2",
-                                    input {
-                                        r#type: "number",
-                                        id: "repetition-interval-input",
-                                        class: "input input-bordered w-20 px-2 text-base",
-                                        value: current_draft.repeat_config.as_ref().map(|r| r.interval).unwrap_or(1),
-                                        oninput: move |e| {
-                                            if let Ok(val) = e.value().parse::<i64>() {
-                                                draft.with_mut(|d_opt| {
-                                                    if let Some(d) = d_opt.as_mut() {
-                                                        let mut config = d.repeat_config.clone().unwrap_or(RepeatConfig {
-                                                            frequency: tasklens_core::types::Frequency::Daily,
-                                                            interval: 1,
-                                                        });
-                                                        config.interval = val;
-                                                        d.repeat_config = Some(config);
-                                                    }
-                                                });
-                                            }
-                                        },
-                                    }
-                                    select {
-                                        id: "repetition-frequency-select",
-                                        class: "select select-bordered flex-grow text-base",
-                                        value: current_draft
-                                            .repeat_config
-                                            .as_ref()
-                                            .map(|r| match r.frequency {
-                                                Frequency::Minutes => "Minutes",
-                                                Frequency::Hours => "Hours",
-                                                Frequency::Daily => "Daily",
-                                                Frequency::Weekly => "Weekly",
-                                                Frequency::Monthly => "Monthly",
-                                                Frequency::Yearly => "Yearly",
-                                            })
-                                            .unwrap_or("Daily"),
-                                        onchange: move |e| {
-                                            draft.with_mut(|d_opt| {
+                                Input {
+                                    id: "task-title-input",
+                                    value: current_draft.title.clone(),
+                                    autofocus: true,
+                                    class: "input-lg w-full",
+                                    oninput: move |v| {
+                                        draft
+                                            .with_mut(|d_opt| {
                                                 if let Some(d) = d_opt.as_mut() {
-                                                    let mut config = d.repeat_config.clone().unwrap_or(RepeatConfig {
-                                                        frequency: Frequency::Daily,
-                                                        interval: 1,
+                                                    d.title = v;
+                                                }
+                                            });
+                                    },
+                                    onkeydown: {
+                                        let save_handler = save_handler.clone();
+                                        move |e: KeyboardEvent| {
+                                            if e.key() == Key::Enter {
+                                                save_handler();
+                                            }
+                                        }
+                                    },
+                                }
+                            }
+
+                            div {
+                                label {
+                                    class: "label p-0 mb-1.5",
+                                    r#for: "notes-input",
+                                    span { class: "label-text font-semibold", "Notes" }
+                                }
+                                textarea {
+                                    id: "notes-input",
+                                    class: "textarea textarea-bordered w-full h-32 text-base leading-relaxed p-4",
+                                    placeholder: "Add more context or details here...",
+                                    value: current_draft.notes.clone(),
+                                    oninput: move |e| {
+                                        draft
+                                            .with_mut(|d_opt| {
+                                                if let Some(d) = d_opt.as_mut() {
+                                                    d.notes = e.value();
+                                                }
+                                            });
+                                    },
+                                }
+                            }
+                        }
+                    }
+
+                    // Section: Prioritization & Location (Grid)
+                    div { class: "grid grid-cols-1 md:grid-cols-2 gap-8",
+                        fieldset { class: "fieldset bg-base-200/40 p-5 rounded-box",
+                            legend { class: "fieldset-legend text-primary uppercase text-[10px] tracking-widest font-bold",
+                                "Prioritization"
+                            }
+                            div { class: "space-y-6 w-full",
+                                div {
+                                    label {
+                                        class: "label p-0 mb-2 flex justify-between",
+                                        r#for: "importance-input",
+                                        span { class: "label-text font-medium",
+                                            "Importance: "
+                                            span { class: "label-text-alt font-mono opacity-70",
+                                                "{current_draft.importance:.2}"
+                                            }
+                                        }
+                                    }
+                                    input {
+                                        r#type: "range",
+                                        id: "importance-input",
+                                        class: "range range-primary range-xs",
+                                        min: 0.0,
+                                        max: 1.0,
+                                        step: 0.1,
+                                        value: current_draft.importance,
+                                        oninput: move |v| {
+                                            if let Ok(val) = v.value().parse::<f64>() {
+                                                draft
+                                                    .with_mut(|d_opt| {
+                                                        if let Some(d) = d_opt.as_mut() {
+                                                            d.importance = val;
+                                                        }
                                                     });
-                                                    config.frequency = match e.value().as_str() {
-                                                        "Minutes" => Frequency::Minutes,
-                                                        "Hours" => Frequency::Hours,
-                                                        "Weekly" => Frequency::Weekly,
-                                                        "Monthly" => Frequency::Monthly,
-                                                        "Yearly" => Frequency::Yearly,
-                                                        _ => Frequency::Daily,
-                                                    };
-                                                    d.repeat_config = Some(config);
-                                                }
-                                            });
+                                            }
                                         },
-                                        option { value: "Minutes", "Minutes" }
-                                        option { value: "Hours", "Hours" }
-                                        option { value: "Daily", "Daily" }
-                                        option { value: "Weekly", "Weekly" }
-                                        option { value: "Monthly", "Monthly" }
-                                        option { value: "Yearly", "Yearly" }
                                     }
                                 }
-                            }
-                        }
-                    }
 
-                    // Due Date (Conditional)
-                    if matches!(
-                        current_draft.schedule.schedule_type,
-                        ScheduleType::DueDate | ScheduleType::Calendar
-                    )
-                    {
-                        div { class: "form-control w-full",
-                            div { class: "label",
-                                label { class: "label-text text-base font-medium", "Due Date" }
-                            }
-                            DatePicker {
-                                data_testid: "date-input",
-                                value: current_draft
-                                    .schedule
-                                    .due_date
-                                    .map(|ts| {
-                                        use chrono::TimeZone;
-                                        let secs = ts / 1000;
-                                        if let Some(dt) = chrono::Utc.timestamp_opt(secs, 0).single() {
-                                            dt.format("%Y-%m-%d").to_string()
-                                        } else {
-                                            String::new()
-                                        }
-                                    }),
-                                onchange: move |v: String| {
-                                    if let Ok(date) = chrono::NaiveDate::parse_from_str(&v, "%Y-%m-%d")
-                                        && let Some(dt) = date.and_hms_opt(0, 0, 0)
-                                    {
-                                        let ts = dt.and_utc().timestamp_millis();
-                                        draft.with_mut(|d_opt| {
-                                            if let Some(d) = d_opt.as_mut() {
-                                                d.schedule.due_date = Some(ts);
+                                div {
+                                    label {
+                                        class: "label p-0 mb-2 flex justify-between",
+                                        r#for: "effort-input",
+                                        span { class: "label-text font-medium",
+                                            "Effort: "
+                                            span { class: "label-text-alt font-mono opacity-70",
+                                                "{current_draft.credit_increment.unwrap_or(0.5):.2}"
                                             }
-                                        });
-                                    } else if !v.is_empty() {
-                                        tracing::warn!("Failed to parse date: {}", v);
+                                        }
                                     }
-                                },
-                            }
-                        }
-                    }
-
-                    // Lead Time
-                    div { class: "form-control w-full",
-                        div { class: "label",
-                            label {
-                                class: "label-text text-base font-medium",
-                                r#for: "lead-time-scalar-input",
-                                "Lead Time"
-                            }
-                        }
-                        div { class: "flex gap-2",
-                            {
-                                let lead_time_ms = current_draft.schedule.lead_time;
-                                let (val, unit) = time_conversion::ms_to_period(lead_time_ms);
-                                let unit_clone = unit.clone();
-                                rsx! {
                                     input {
-                                        r#type: "number",
-                                        id: "lead-time-scalar-input",
-                                        class: "input input-bordered w-20 px-2 text-base",
-                                        value: "{val}",
-                                        oninput: move |e| {
-                                            if let Ok(val) = e.value().parse::<u32>() {
-                                                draft.with_mut(|d_opt| {
-                                                    if let Some(d) = d_opt.as_mut() {
-                                                        d.schedule.lead_time =
-                                                            time_conversion::period_to_ms(val, &unit_clone);
-                                                    }
-                                                });
+                                        r#type: "range",
+                                        id: "effort-input",
+                                        class: "range range-primary range-xs",
+                                        min: 0.0,
+                                        max: 1.0,
+                                        step: 0.1,
+                                        value: current_draft.credit_increment.unwrap_or(0.5),
+                                        oninput: move |v| {
+                                            if let Ok(val) = v.value().parse::<f64>() {
+                                                draft
+                                                    .with_mut(|d_opt| {
+                                                        if let Some(d) = d_opt.as_mut() {
+                                                            d.credit_increment = Some(val);
+                                                        }
+                                                    });
                                             }
                                         },
                                     }
-                                    select {
-                                        id: "lead-time-unit-select",
-                                        class: "select select-bordered text-base",
-                                        value: "{unit}",
-                                        aria_label: "Lead Time Unit",
-                                        onchange: move |e| {
-                                            draft.with_mut(|d_opt| {
-                                                if let Some(d) = d_opt.as_mut() {
-                                                    let (val, _) = time_conversion::ms_to_period(
-                                                        d.schedule.lead_time,
-                                                    );
-                                                    d.schedule.lead_time =
-                                                        time_conversion::period_to_ms(val, &e.value());
-                                                }
-                                            });
-                                        },
-                                        option { value: "Hours", "Hours" }
-                                        option { value: "Days", "Days" }
-                                        option { value: "Weeks", "Weeks" }
+                                }
+                            }
+                        }
+
+                        fieldset { class: "fieldset bg-base-200/40 p-5 rounded-box",
+                            legend { class: "fieldset-legend text-primary uppercase text-[10px] tracking-widest font-bold",
+                                "Location"
+                            }
+                            div { class: "w-full",
+                                label {
+                                    class: "label p-0 mb-2",
+                                    r#for: "place-select",
+                                    span { class: "label-text font-medium", "Place" }
+                                }
+                                {
+                                    let state_val = state();
+                                    let places = state_val.places.values().collect::<Vec<_>>();
+
+                                    rsx! {
+                                        Select {
+                                            id: "place-select",
+                                            value: current_draft.place_id.clone().map(|id| id.to_string()).unwrap_or_default(),
+                                            onchange: move |v: String| {
+                                                draft
+                                                    .with_mut(|d_opt| {
+                                                        if let Some(d) = d_opt.as_mut() {
+                                                            d.place_id = if v.is_empty() {
+                                                                None
+                                                            } else {
+                                                                Some(PlaceID::from(v))
+                                                            };
+                                                        }
+                                                    });
+                                            },
+                                            option { value: "", "Anywhere" }
+                                            for place in places {
+                                                option { value: "{place.id}", "{place.name}" }
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
 
-                    // Notes
-                    div { class: "form-control w-full",
-                        div { class: "label",
-                            label {
-                                class: "label-text text-base font-medium",
-                                r#for: "notes-input",
-                                "Notes"
-                            }
+                    // Section: Scheduling
+                    fieldset { class: "fieldset bg-base-200/40 p-5 rounded-box",
+                        legend { class: "fieldset-legend text-primary uppercase text-[10px] tracking-widest font-bold",
+                            "Scheduling"
                         }
-                        textarea {
-                            id: "notes-input",
-                            class: "textarea textarea-bordered w-full text-base",
-                            rows: 4,
-                            value: current_draft.notes.clone(),
-                            oninput: move |e| {
-                                draft.with_mut(|d_opt| {
-                                    if let Some(d) = d_opt.as_mut() {
-                                        d.notes = e.value();
+                        div { class: "grid grid-cols-1 md:grid-cols-2 gap-6 w-full",
+                            div {
+                                label {
+                                    class: "label p-0 mb-2",
+                                    r#for: "schedule-type-select",
+                                    span { class: "label-text font-medium", "Schedule Type" }
+                                }
+                                Select {
+                                    id: "schedule-type-select",
+                                    value: match current_draft.schedule.schedule_type {
+                                        ScheduleType::Once => "Once".to_string(),
+                                        ScheduleType::Routinely => "Routinely".to_string(),
+                                        ScheduleType::DueDate | ScheduleType::Calendar => "DueDate".to_string(),
+                                    },
+                                    onchange: move |v: String| {
+                                        let new_type = match v.as_str() {
+                                            "Once" => ScheduleType::Once,
+                                            "Routinely" => ScheduleType::Routinely,
+                                            "DueDate" => ScheduleType::DueDate,
+                                            _ => ScheduleType::Once,
+                                        };
+                                        draft
+                                            .with_mut(|d_opt| {
+                                                if let Some(d) = d_opt.as_mut() {
+                                                    d.schedule.schedule_type = new_type;
+                                                    if matches!(new_type, ScheduleType::Routinely) {
+                                                        if d.repeat_config.is_none() {
+                                                            d.repeat_config = Some(RepeatConfig {
+                                                                frequency: Frequency::Daily,
+                                                                interval: 1,
+                                                            });
+                                                        }
+                                                    } else {
+                                                        d.repeat_config = None;
+                                                    }
+                                                }
+                                            });
+                                    },
+                                    option { value: "Once", "Once" }
+                                    option { value: "Routinely", "Routinely" }
+                                    option { value: "DueDate", "Due Date" }
+                                }
+                            }
+
+                            if matches!(current_draft.schedule.schedule_type, ScheduleType::Routinely) {
+                                div {
+                                    label {
+                                        class: "label p-0 mb-2",
+                                        r#for: "repetition-interval-input",
+                                        span { class: "label-text font-medium", "Repeat Every" }
                                     }
-                                });
-                            },
-                        }
-                    }
-
-                    if task_id.is_some() {
-                        div { class: "flex items-center gap-2 p-3 bg-base-200 rounded-md border border-base-300",
-                            input {
-                                r#type: "checkbox",
-                                id: "sequential-toggle",
-                                class: "checkbox checkbox-primary",
-                                checked: current_draft.is_sequential,
-                                aria_label: "Sequential Project",
-                                onchange: move |e| {
-                                    draft.with_mut(|d_opt| {
-                                        if let Some(d) = d_opt.as_mut() {
-                                            d.is_sequential = e.checked();
+                                    div { class: "join w-full",
+                                        input {
+                                            r#type: "number",
+                                            id: "repetition-interval-input",
+                                            class: "input input-bordered join-item w-24 px-4",
+                                            value: current_draft.repeat_config.as_ref().map(|r| r.interval).unwrap_or(1),
+                                            oninput: move |e| {
+                                                if let Ok(val) = e.value().parse::<i64>() {
+                                                    draft
+                                                        .with_mut(|d_opt| {
+                                                            if let Some(d) = d_opt.as_mut() {
+                                                                let mut config = d
+                                                                    .repeat_config
+                                                                    .clone()
+                                                                    .unwrap_or(RepeatConfig {
+                                                                        frequency: Frequency::Daily,
+                                                                        interval: 1,
+                                                                    });
+                                                                config.interval = val;
+                                                                d.repeat_config = Some(config);
+                                                            }
+                                                        });
+                                                }
+                                            },
                                         }
-                                    });
-                                },
+                                        select {
+                                            id: "repetition-frequency-select",
+                                            class: "select select-bordered join-item flex-grow",
+                                            value: current_draft
+                                                .repeat_config
+                                                .as_ref()
+                                                .map(|r| match r.frequency {
+                                                    Frequency::Minutes => "Minutes",
+                                                    Frequency::Hours => "Hours",
+                                                    Frequency::Weekly => "Weekly",
+                                                    Frequency::Monthly => "Monthly",
+                                                    Frequency::Yearly => "Yearly",
+                                                    _ => "Daily",
+                                                })
+                                                .unwrap_or("Daily"),
+                                            onchange: move |e| {
+                                                draft
+                                                    .with_mut(|d_opt| {
+                                                        if let Some(d) = d_opt.as_mut() {
+                                                            let mut config = d
+                                                                .repeat_config
+                                                                .clone()
+                                                                .unwrap_or(RepeatConfig {
+                                                                    frequency: Frequency::Daily,
+                                                                    interval: 1,
+                                                                });
+                                                            config.frequency = match e.value().as_str() {
+                                                                "Minutes" => Frequency::Minutes,
+                                                                "Hours" => Frequency::Hours,
+                                                                "Weekly" => Frequency::Weekly,
+                                                                "Monthly" => Frequency::Monthly,
+                                                                "Yearly" => Frequency::Yearly,
+                                                                _ => Frequency::Daily,
+                                                            };
+                                                            d.repeat_config = Some(config);
+                                                        }
+                                                    });
+                                            },
+                                            option { value: "Minutes", "Minutes" }
+                                            option { value: "Hours", "Hours" }
+                                            option { value: "Daily", "Daily" }
+                                            option { value: "Weekly", "Weekly" }
+                                            option { value: "Monthly", "Monthly" }
+                                            option { value: "Yearly", "Yearly" }
+                                        }
+                                    }
+                                }
                             }
-                            label {
-                                r#for: "sequential-toggle",
-                                class: "text-base font-medium cursor-pointer",
-                                "Sequential Project"
+
+                            if matches!(
+                                current_draft.schedule.schedule_type,
+                                ScheduleType::DueDate | ScheduleType::Calendar
+                            )
+                            {
+                                div {
+                                    label {
+                                        class: "label p-0 mb-2",
+                                        r#for: "date-input",
+                                        span { class: "label-text font-medium", "Due Date" }
+                                    }
+                                    DatePicker {
+                                        id: "date-input",
+                                        data_testid: "date-input",
+                                        value: current_draft
+                                            .schedule
+                                            .due_date
+                                            .map(|ts| {
+                                                use chrono::TimeZone;
+                                                let secs = ts / 1000;
+                                                chrono::Utc
+                                                    .timestamp_opt(secs, 0)
+                                                    .single()
+                                                    .map(|dt| dt.format("%Y-%m-%d").to_string())
+                                                    .unwrap_or_default()
+                                            }),
+                                        onchange: move |v: String| {
+                                            if let Ok(date) = chrono::NaiveDate::parse_from_str(&v, "%Y-%m-%d")
+                                                && let Some(dt) = date.and_hms_opt(0, 0, 0)
+                                            {
+                                                let ts = dt.and_utc().timestamp_millis();
+                                                draft
+                                                    .with_mut(|d_opt| {
+                                                        if let Some(d) = d_opt.as_mut() {
+                                                            d.schedule.due_date = Some(ts);
+                                                        }
+                                                    });
+                                            }
+                                        },
+                                    }
+                                }
                             }
-                            span { class: "text-xs text-base-content/60 ml-auto", "Do steps in order" }
+
+                            if !matches!(current_draft.schedule.schedule_type, ScheduleType::Once) {
+                                div {
+                                    label {
+                                        class: "label p-0 mb-2",
+                                        r#for: "lead-time-scalar-input",
+                                        span { class: "label-text font-medium", "Lead Time" }
+                                    }
+                                    div { class: "join w-full",
+                                        {
+                                            let (val, unit) = time_conversion::ms_to_period(
+                                                current_draft.schedule.lead_time,
+                                            );
+                                            let unit_clone = unit.clone();
+                                            rsx! {
+                                                input {
+                                                    r#type: "number",
+                                                    id: "lead-time-scalar-input",
+                                                    class: "input input-bordered join-item w-24 px-4",
+                                                    value: "{val}",
+                                                    oninput: move |e| {
+                                                        if let Ok(v) = e.value().parse::<u32>() {
+                                                            draft
+                                                                .with_mut(|d_opt| {
+                                                                    if let Some(d) = d_opt.as_mut() {
+                                                                        d.schedule.lead_time = time_conversion::period_to_ms(
+                                                                            v,
+                                                                            &unit_clone,
+                                                                        );
+                                                                    }
+                                                                });
+                                                        }
+                                                    },
+                                                }
+                                                select {
+                                                    id: "lead-time-unit-select",
+                                                    aria_label: "Lead Time Unit",
+                                                    class: "select select-bordered join-item flex-grow",
+                                                    value: "{unit}",
+                                                    onchange: move |e| {
+                                                        draft
+                                                            .with_mut(|d_opt| {
+                                                                if let Some(d) = d_opt.as_mut() {
+                                                                    let (v, _) = time_conversion::ms_to_period(d.schedule.lead_time);
+                                                                    d.schedule.lead_time = time_conversion::period_to_ms(v, &e.value());
+                                                                }
+                                                            });
+                                                    },
+                                                    option { value: "Hours", "Hours" }
+                                                    option { value: "Days", "Days" }
+                                                    option { value: "Weeks", "Weeks" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
-                    // Footer Actions
-                    div { class: "flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-base-200 gap-4",
-                        div { class: "flex flex-wrap gap-2 justify-center sm:justify-start",
-                            if let Some(id) = task_id.clone() {
+                    // Section: Additional Options
+                    if task_id.is_some() {
+                        fieldset { class: "fieldset bg-base-200/40 p-5 rounded-box",
+                            label {
+                                class: "flex items-center justify-between w-full cursor-pointer",
+                                r#for: "sequential-toggle",
+                                div { class: "flex flex-col gap-0.5",
+                                    span { class: "text-sm font-bold", "Sequential Project" }
+                                    span { class: "text-xs opacity-60 font-medium",
+                                        "Steps must be completed in order"
+                                    }
+                                }
+                                input {
+                                    r#type: "checkbox",
+                                    id: "sequential-toggle",
+                                    class: "toggle toggle-primary toggle-sm",
+                                    checked: current_draft.is_sequential,
+                                    onchange: move |e| {
+                                        draft
+                                            .with_mut(|d_opt| {
+                                                if let Some(d) = d_opt.as_mut() {
+                                                    d.is_sequential = e.checked();
+                                                }
+                                            });
+                                    },
+                                }
+                            }
+                        }
+                    }
+
+                    // Hierarchy Controls (Compact)
+                    if let Some(id) = task_id.clone() {
+                        div { class: "flex items-center justify-center pt-2",
+                            div { class: "join border border-base-300 bg-base-100 shadow-sm",
                                 Button {
-                                    variant: ButtonVariant::Secondary,
+                                    variant: ButtonVariant::Ghost,
+                                    class: "join-item btn-xs h-9 px-5",
                                     onclick: move |_| show_move_picker.set(true),
-                                    "Move..."
+                                    "Move"
                                 }
                                 if can_outdent {
                                     Button {
-                                        variant: ButtonVariant::Secondary,
+                                        variant: ButtonVariant::Ghost,
+                                        class: "join-item btn-xs h-9 px-5 border-l border-base-300",
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -683,12 +707,13 @@ pub fn TaskEditor(
                                                 on_close.call(());
                                             }
                                         },
-                                        "← Outdent"
+                                        "Outdent"
                                     }
                                 }
                                 if can_indent {
                                     Button {
-                                        variant: ButtonVariant::Secondary,
+                                        variant: ButtonVariant::Ghost,
+                                        class: "join-item btn-xs h-9 px-5 border-l border-base-300",
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -696,17 +721,17 @@ pub fn TaskEditor(
                                                 on_close.call(());
                                             }
                                         },
-                                        "Indent →"
+                                        "Indent"
                                     }
                                 }
                                 Button {
-                                    variant: ButtonVariant::Secondary,
+                                    variant: ButtonVariant::Ghost,
+                                    class: "join-item btn-xs h-9 px-5 border-l border-base-300",
                                     onclick: {
                                         let id = id.clone();
-                                        let on_add_child = on_add_child;
                                         move |_| {
-                                            if let Some(handler) = on_add_child.as_ref() {
-                                                handler.call(id.clone());
+                                            if let Some(h) = on_add_child.as_ref() {
+                                                h.call(id.clone());
                                             }
                                         }
                                     },
@@ -714,27 +739,36 @@ pub fn TaskEditor(
                                 }
                             }
                         }
-                        div { class: "flex flex-wrap gap-2 justify-center sm:justify-end",
-                            if task_id.is_some() {
-                                Button {
-                                    variant: ButtonVariant::Destructive,
-                                    onclick: on_delete,
-                                    "Delete"
-                                }
-                            }
+                    }
+                }
+
+                // Modal Footer (Fixed at bottom)
+                div { class: "px-6 py-4 bg-base-200/50 border-t border-base-200 sticky bottom-0 z-20 flex flex-col sm:flex-row justify-between items-center gap-4",
+                    div { class: "flex-none w-full sm:w-auto",
+                        if task_id.is_some() {
                             Button {
                                 variant: ButtonVariant::Ghost,
-                                onclick: move |_| on_close.call(()),
-                                "Cancel"
+                                class: "btn-sm text-error hover:bg-error/10 hover:text-error w-full sm:w-auto",
+                                onclick: on_delete,
+                                "Delete Task"
                             }
-                            Button {
-                                variant: ButtonVariant::Primary,
-                                onclick: move |_| save_handler(),
-                                if task_id.is_some() {
-                                    "Save Changes"
-                                } else {
-                                    "Create Task"
-                                }
+                        }
+                    }
+                    div { class: "flex flex-col-reverse sm:flex-row items-center gap-3 w-full sm:w-auto",
+                        Button {
+                            variant: ButtonVariant::Ghost,
+                            class: "btn-sm px-6 w-full sm:w-auto",
+                            onclick: move |_| on_close.call(()),
+                            "Cancel"
+                        }
+                        Button {
+                            variant: ButtonVariant::Primary,
+                            class: "btn-sm min-w-[140px] shadow-lg shadow-primary/20 w-full sm:w-auto",
+                            onclick: move |_| save_handler(),
+                            if task_id.is_some() {
+                                "Save Changes"
+                            } else {
+                                "Create Task"
                             }
                         }
                     }

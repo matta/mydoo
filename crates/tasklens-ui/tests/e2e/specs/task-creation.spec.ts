@@ -14,7 +14,8 @@ test.describe("Task Creation Defaults", () => {
     // Then I should see "Importance: 0.50"
     await I.Then.shouldSeeText("Importance: 0.50");
 
-    // And I should see Lead Time "8" "Hours"
+    // And I should see Lead Time "8" "Hours" after switching to Due Date
+    await I.When.selectScheduleType("Due Date");
     await I.Then.shouldSeeLeadTime("8", "Hours");
 
     // And I should see the "Place" selector
@@ -34,7 +35,8 @@ test.describe("Task Creation Defaults", () => {
     // Then I should see "Importance: 0.50"
     await I.Then.shouldSeeText("Importance: 0.50");
 
-    // And I should see Lead Time "8" "Hours"
+    // And I should see Lead Time "8" "Hours" after switching to Due Date
+    await I.When.selectScheduleType("Due Date");
     await I.Then.shouldSeeLeadTime("8", "Hours");
   });
 
