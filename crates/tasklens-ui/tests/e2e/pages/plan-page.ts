@@ -387,7 +387,7 @@ export class PlanPage implements PlanFixture {
   }
 
   async clickMoveButton(): Promise<void> {
-    await this.page.getByRole("button", { name: "Move..." }).click();
+    await this.page.getByRole("button", { name: "Move" }).click();
   }
 
   async toggleExpand(
