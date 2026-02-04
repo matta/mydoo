@@ -260,9 +260,6 @@ async function run() {
   }
 
   if (allViolations.length === 0) {
-    console.log(
-      `✅ Checked ${files.length} files. No dark mode violations found.`,
-    );
     process.exit(0);
   }
 

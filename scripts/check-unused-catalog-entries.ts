@@ -202,8 +202,6 @@ async function main() {
   // ---------------------------------------------------------------------------
 
   let hasUnused = false;
-  console.log("Checking for unused pnpm catalog entries...");
-
   for (const [catalogName, definedSet] of Object.entries(
     definedCatalogEntries,
   )) {
@@ -227,11 +225,8 @@ async function main() {
   }
 
   if (hasUnused) {
-    console.log("\nFound unused catalog entries.");
-    // Exit with error code 1 so CI pipelines fail.
+    console.log("Found unused catalog entries.");
     process.exit(1);
-  } else {
-    console.log("\nAll catalog entries are used!");
   }
 }
 
