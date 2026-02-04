@@ -40,7 +40,8 @@ struct Scenario {
 struct Step {
     legacy_description: Option<String>,
     given: Option<InitialState>,
-    when: Option<Mutation>,
+    #[serde(default)]
+    when: Vec<Mutation>,
     then: Option<Assertion>,
     #[serde(default)]
     view_filter: Option<String>,
@@ -135,14 +136,19 @@ impl BoolOrString {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-#[serde(deny_unknown_fields)]
-struct Mutation {
-    advance_time_seconds: Option<F64OrString>,
-    update_credits: Option<HashMap<String, F64OrString>>,
-    task_updates: Option<Vec<TaskUpdate>>,
-    create_tasks: Option<Vec<TaskInput>>,
-    delete_tasks: Option<Vec<String>>,
-    complete_tasks: Option<Vec<String>>,
+enum Mutation {
+    #[serde(rename = "increment_current_time")]
+    IncrementCurrentTime(F64OrString),
+    #[serde(rename = "update_credits")]
+    UpdateCredits(HashMap<String, F64OrString>),
+    #[serde(rename = "update_task")]
+    TaskUpdate(TaskUpdate),
+    #[serde(rename = "create_task")]
+    TaskInput(TaskInput),
+    #[serde(rename = "delete_task")]
+    DeleteTask(String),
+    #[serde(rename = "complete_task")]
+    CompleteTask(String),
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -436,7 +442,7 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
             apply_initial_state(&mut store, &mut current_time, given_state)?;
         }
 
-        if let Some(mutation) = when {
+        for mutation in when {
             apply_mutation(&mut store, &mut current_time, mutation)?;
         }
 
@@ -848,41 +854,27 @@ fn apply_mutation(
     current_time: &mut i64,
     mutation: &Mutation,
 ) -> Result<()> {
-    let Mutation {
-        advance_time_seconds,
-        update_credits,
-        task_updates,
-        create_tasks,
-        delete_tasks,
-        complete_tasks,
-    } = mutation;
-
-    if let Some(advance) = advance_time_seconds {
-        *current_time += (advance.to_f64() * 1000.0) as i64;
-    }
-
-    if let Some(credits_map) = update_credits {
-        for (id, val) in credits_map {
-            let task_id = TaskID::from(id.clone());
-            store.dispatch(Action::UpdateTask {
-                id: task_id,
-                updates: TaskUpdates {
-                    credits: Some(val.to_f64()),
-                    credits_timestamp: Some(*current_time),
-                    ..Default::default()
-                },
-            })?;
+    match mutation {
+        Mutation::IncrementCurrentTime(advance) => {
+            *current_time += (advance.to_f64() * 1000.0) as i64;
         }
-    }
-
-    if let Some(tasks) = create_tasks {
-        for t in tasks {
+        Mutation::UpdateCredits(credits_map) => {
+            for (id, val) in credits_map {
+                let task_id = TaskID::from(id.clone());
+                store.dispatch(Action::UpdateTask {
+                    id: task_id,
+                    updates: TaskUpdates {
+                        credits: Some(val.to_f64()),
+                        credits_timestamp: Some(*current_time),
+                        ..Default::default()
+                    },
+                })?;
+            }
+        }
+        Mutation::TaskInput(t) => {
             apply_task_input(store, t, None, *current_time)?;
         }
-    }
-
-    if let Some(updates) = task_updates {
-        for u in updates {
+        Mutation::TaskUpdate(u) => {
             let TaskUpdate {
                 id,
                 status,
@@ -952,17 +944,11 @@ fn apply_mutation(
                 updates: action_updates,
             })?;
         }
-    }
-
-    if let Some(to_delete) = delete_tasks {
-        for id in to_delete {
+        Mutation::DeleteTask(id) => {
             let task_id = TaskID::from(id.clone());
             store.dispatch(Action::DeleteTask { id: task_id })?;
         }
-    }
-
-    if let Some(to_complete) = complete_tasks {
-        for id in to_complete {
+        Mutation::CompleteTask(id) => {
             let task_id = TaskID::from(id.clone());
             store.dispatch(Action::CompleteTask {
                 id: task_id,

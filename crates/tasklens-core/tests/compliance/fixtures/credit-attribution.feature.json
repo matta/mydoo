@@ -22,11 +22,11 @@
           }
         },
         {
-          "when": {
-            "complete_tasks": [
-              "TaskA"
-            ]
-          }
+          "when": [
+            {
+              "complete_task": "TaskA"
+            }
+          ]
         },
         {
           "then": {
@@ -57,12 +57,14 @@
           }
         },
         {
-          "when": {
-            "advance_time_seconds": 604800,
-            "complete_tasks": [
-              "TaskA"
-            ]
-          }
+          "when": [
+            {
+              "increment_current_time": 604800
+            },
+            {
+              "complete_task": "TaskA"
+            }
+          ]
         },
         {
           "then": {
@@ -93,11 +95,11 @@
           }
         },
         {
-          "when": {
-            "complete_tasks": [
-              "TaskA"
-            ]
-          }
+          "when": [
+            {
+              "complete_task": "TaskA"
+            }
+          ]
         },
         {
           "then": {
@@ -111,11 +113,11 @@
           }
         },
         {
-          "when": {
-            "complete_tasks": [
-              "TaskA"
-            ]
-          }
+          "when": [
+            {
+              "complete_task": "TaskA"
+            }
+          ]
         },
         {
           "then": {

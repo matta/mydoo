@@ -63,15 +63,15 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "Step_A",
                 "status": "Done",
                 "is_acknowledged": true
               }
-            ]
-          },
+            }
+          ],
           "legacy_description": "Complete Step A",
           "then": {
             "expected_order": [
@@ -98,15 +98,15 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "Step_B",
                 "status": "Done",
                 "is_acknowledged": true
               }
-            ]
-          },
+            }
+          ],
           "legacy_description": "Complete Step B",
           "then": {
             "expected_order": [

@@ -173,9 +173,11 @@
         },
         {
           "view_filter": "Office",
-          "when": {
-            "advance_time_seconds": 32400
-          },
+          "when": [
+            {
+              "increment_current_time": 32400
+            }
+          ],
           "legacy_description": "Advance to Closed Time (Office closes at 17:00)",
           "then": {
             "expected_order": [

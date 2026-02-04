@@ -232,9 +232,9 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "Child",
                 "schedule_type": "Routinely",
                 "repeat_config": {
@@ -243,8 +243,8 @@
                 },
                 "last_done": "2025-01-01T00:00:00Z"
               }
-            ]
-          }
+            }
+          ]
         },
         {
           "then": {
@@ -298,15 +298,15 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "Child",
                 "schedule_type": "Once",
                 "due_date": null
               }
-            ]
-          }
+            }
+          ]
         },
         {
           "then": {
@@ -433,14 +433,14 @@
           }
         },
         {
-          "when": {
-            "task_updates": [
-              {
+          "when": [
+            {
+              "update_task": {
                 "id": "A",
                 "due_date": "2025-01-20T00:00:00Z"
               }
-            ]
-          }
+            }
+          ]
         },
         {
           "then": {
