@@ -103,6 +103,19 @@ pub fn TaskEditor(
 
     let mut show_move_picker = use_signal(|| false);
 
+    // Determine parent_id: for edit mode, get from the task; for create mode, use initial_parent_id
+    let parent_id = if let Some(id) = task_id.as_ref() {
+        state().tasks.get(id).and_then(|t| t.parent_id.clone())
+    } else {
+        initial_parent_id.clone()
+    };
+
+    // Look up parent title for display
+    let parent_title = parent_id.as_ref().and_then(|pid| {
+        let s = state();
+        s.tasks.get(pid).map(|p| p.title.clone())
+    });
+
     let can_outdent = if let Some(id) = task_id.as_ref() {
         state()
             .tasks
@@ -219,6 +232,14 @@ pub fn TaskEditor(
                 }
 
                 div { class: "task-editor-fields space-y-4 p-4",
+                    // Parent context (if applicable)
+                    if let Some(ref title) = parent_title {
+                        p { class: "text-sm text-base-content/60",
+                            "Child of "
+                            span { class: "font-semibold text-base-content/80", "{title}" }
+                        }
+                    }
+
                     // Title
                     div { class: "form-control w-full",
                         div { class: "label",
