@@ -2,7 +2,11 @@ use crate::components::task_row::TaskRow;
 use crate::components::{LoadErrorView, PageHeader, TaskInput};
 use crate::controllers::task_controller;
 use dioxus::prelude::*;
-use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
+use std::collections::HashMap;
+use tasklens_core::domain::priority::get_prioritized_tasks;
+use tasklens_core::types::{
+    PersistedTask, PriorityMode, PriorityOptions, TaskID, TunnelState, ViewFilter,
+};
 
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
@@ -71,10 +75,30 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         // Explicit persist removed. Handled by use_persistence hook.
     };
 
+    // Build schedule lookup from core algorithm (single source of truth for inheritance).
+    let schedule_lookup = use_memo({
+        move || {
+            let state = state.read();
+            let view_filter = ViewFilter {
+                place_id: Some("All".to_string()),
+            };
+            let options = PriorityOptions {
+                include_hidden: true, // Plan shows all tasks
+                mode: Some(PriorityMode::DoList),
+                context: None,
+            };
+            let computed = get_prioritized_tasks(&state, &view_filter, &options);
+            computed
+                .into_iter()
+                .map(|t| (t.id.clone(), (t.effective_due_date, t.effective_lead_time)))
+                .collect::<HashMap<_, _>>()
+        }
+    });
+
     let flattened_tasks = use_memo({
         move || {
             let expanded = expanded_tasks.read();
-            flatten_tasks(&state.read(), &expanded)
+            flatten_tasks(&state.read(), &expanded, &schedule_lookup.read())
         }
     });
 
@@ -261,6 +285,9 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     }
 }
 
+/// Schedule info (effective_due_date, effective_lead_time) keyed by TaskID.
+type ScheduleLookup = HashMap<TaskID, (Option<i64>, Option<i64>)>;
+
 #[derive(Debug, Clone, PartialEq)]
 struct FlattenedTask {
     task: PersistedTask,
@@ -271,54 +298,42 @@ struct FlattenedTask {
     effective_lead_time: Option<i64>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-struct ScheduleContext {
-    due_date: Option<i64>,
-    lead_time: Option<i64>,
-}
-
 struct FlattenContext<'a> {
     state: &'a TunnelState,
     expanded: &'a std::collections::HashSet<TaskID>,
+    schedule_lookup: &'a ScheduleLookup,
     result: &'a mut Vec<FlattenedTask>,
 }
 
 fn flatten_tasks(
     state: &TunnelState,
     expanded: &std::collections::HashSet<TaskID>,
+    schedule_lookup: &ScheduleLookup,
 ) -> Vec<FlattenedTask> {
     let mut result = Vec::new();
     let mut ctx = FlattenContext {
         state,
         expanded,
+        schedule_lookup,
         result: &mut result,
     };
     for root_id in &state.root_task_ids {
-        flatten_recursive(root_id, 0, &mut ctx, None);
+        flatten_recursive(root_id, 0, &mut ctx);
     }
     result
 }
 
-fn flatten_recursive(
-    id: &TaskID,
-    depth: usize,
-    ctx: &mut FlattenContext,
-    parent_schedule: Option<ScheduleContext>,
-) {
+fn flatten_recursive(id: &TaskID, depth: usize, ctx: &mut FlattenContext) {
     if let Some(task) = ctx.state.tasks.get(id) {
         let has_children = !task.child_task_ids.is_empty();
         let is_expanded = ctx.expanded.contains(id);
 
-        // Inherit both due date and lead time from parent if local due date is missing.
-        let (effective_due_date, effective_lead_time) = if let Some(due) = task.schedule.due_date {
-            (Some(due), Some(task.schedule.lead_time))
-        } else if let Some(ps) = parent_schedule
-            && let Some(pdue) = ps.due_date
-        {
-            (Some(pdue), ps.lead_time)
-        } else {
-            (None, Some(task.schedule.lead_time))
-        };
+        // Lookup effective schedule from core algorithm (single source of truth).
+        let (effective_due_date, effective_lead_time) = ctx
+            .schedule_lookup
+            .get(id)
+            .copied()
+            .unwrap_or((None, Some(task.schedule.lead_time)));
 
         ctx.result.push(FlattenedTask {
             task: task.clone(),
@@ -330,12 +345,8 @@ fn flatten_recursive(
         });
 
         if is_expanded {
-            let next_schedule = Some(ScheduleContext {
-                due_date: effective_due_date,
-                lead_time: effective_lead_time,
-            });
             for child_id in &task.child_task_ids {
-                flatten_recursive(child_id, depth + 1, ctx, next_schedule);
+                flatten_recursive(child_id, depth + 1, ctx);
             }
         }
     }
