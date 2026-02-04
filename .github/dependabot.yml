@@ -31,3 +31,7 @@ updates:
       semver-patch-days: 7
       semver-minor-days: 14
       semver-major-days: 28
+    ignore:
+      - dependency-name: 'sha2'
+        versions:
+          - '>= 0.11.0-a, < 0.11.0' # Ignore 0.11.0 pre-releases until stable is released
