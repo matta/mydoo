@@ -9,7 +9,7 @@ catalogs:
     "@automerge/automerge-repo": 2.5.1
     "@automerge/automerge-repo-network-websocket": 2.5.1
     "@automerge/automerge-repo-storage-nodefs": 2.5.1
-    "@biomejs/biome": ^2.3.11
+    "@biomejs/biome": ^2.3.13
     "@commitlint/cli": ^20.3.0
     "@commitlint/types": ^20.3.1
     "@playwright/test": ^1.57.0
