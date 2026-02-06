@@ -39,7 +39,7 @@ fn format_heads(heads: &[automerge::ChangeHash]) -> String {
 /// events. If the active document switches, the previous listener is
 /// cancelled and a new one is started automatically.
 pub fn use_persistence(
-    doc_id_signal: Signal<Option<DocumentId>>,
+    doc_id_signal: ReadSignal<Option<DocumentId>>,
     mut memory_heads: crate::MemoryHeads,
     mut persisted_heads: crate::PersistedHeads,
 ) {
@@ -138,7 +138,7 @@ mod tests {
         let persisted_heads_signal = use_signal(String::new);
 
         use_persistence(
-            doc_id,
+            doc_id.into(),
             crate::MemoryHeads::new(memory_heads_signal),
             crate::PersistedHeads::new(persisted_heads_signal),
         );
