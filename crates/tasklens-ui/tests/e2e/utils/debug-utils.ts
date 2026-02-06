@@ -289,9 +289,7 @@ export async function assertAccessibility(
 
   if (results.violations.length > 0) {
     const yamlReport = yaml.dump(results.violations, { indent: 2 });
-    const filePath = testInfo.outputPath(
-      `accessibility-violations.yaml`,
-    );
+    const filePath = testInfo.outputPath(`accessibility-violations.yaml`);
     await writeFile(filePath, yamlReport, "utf-8");
     await testInfo.attach("Accessibility Violations", {
       path: filePath,
