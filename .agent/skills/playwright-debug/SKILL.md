@@ -44,7 +44,7 @@ test.afterEach(async ({ page }, testInfo) => {
         context.push('\n--- ACCESSIBILITY VIOLATIONS ---');
         context.push(JSON.stringify(results.violations, null, 2));
       }
-    } catch (e) { context.push(`Axe analysis failed: ${e}`); }
+} catch (e) { context.push(`Axe analysis failed: ${String(e)}`); }
 
     await testInfo.attach('failure-context', {
       body: context.join('\n'),
