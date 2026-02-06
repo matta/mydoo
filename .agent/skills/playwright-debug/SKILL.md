@@ -36,7 +36,7 @@ test.afterEach(async ({ page }, testInfo) => {
     try {
       const snapshot = await page.locator('body').ariaSnapshot();
       context.push(snapshot);
-    } catch (e) { context.push(`ARIA snapshot failed: ${e}`); }
+} catch (e) { context.push(`ARIA snapshot failed: ${String(e)}`); }
 
     try {
       const results = await new AxeBuilder({ page }).analyze();
