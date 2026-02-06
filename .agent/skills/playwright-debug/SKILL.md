@@ -24,21 +24,32 @@ Create or modify a `test.afterEach` hook to include:
 
 ```typescript
 import { test } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 test.afterEach(async ({ page }, testInfo) => {
-  if (testInfo.status !== 'passed') {
-    console.log(`\n=== FAILURE CONTEXT: ${testInfo.title} ===`);
-    console.log(`URL: ${page.url()}`);
+  if (testInfo.status !== 'passed' && testInfo.status !== 'skipped') {
+    const context: string[] = [
+      `URL: ${page.url()}`,
+      '\n--- ARIA SNAPSHOT ---',
+    ];
 
-    // 1. Accessibility Tree (The Semantic Truth)
     try {
       const snapshot = await page.locator('body').ariaSnapshot();
-      console.log('--- ACCESSIBILITY TREE (ARIA SNAPSHOT) ---');
-      console.log(snapshot); // ariaSnapshot returns YAML string
-    } catch (e) { console.log('ARIA snapshot failed:', e); }
+      context.push(snapshot);
+} catch (e) { context.push(`ARIA snapshot failed: ${String(e)}`); }
 
-    // 2. Console Logs (The Internal Truth)
-    // Note: Ensure you have page.on('console', ...) listeners set up in beforeEach
+    try {
+      const results = await new AxeBuilder({ page }).analyze();
+      if (results.violations.length > 0) {
+        context.push('\n--- ACCESSIBILITY VIOLATIONS ---');
+        context.push(JSON.stringify(results.violations, null, 2));
+      }
+} catch (e) { context.push(`Axe analysis failed: ${String(e)}`); }
+
+    await testInfo.attach('failure-context', {
+      body: context.join('\n'),
+      contentType: 'text/plain',
+    });
   }
 });
 ```
