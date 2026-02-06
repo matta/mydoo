@@ -14,6 +14,25 @@ fn format_heads(heads: &[automerge::ChangeHash]) -> String {
     }
 }
 
+/// Hook to manage background persistence tracking for the active Automerge document.
+///
+/// This hook spawns a long-running future that monitors the `AppStore` for document changes
+/// and persistence events. It updates two types of head tracking signals:
+///
+/// * `MemoryHeads`: Represents the "optimistic" state of the document in memory immediately
+///   after a mutation occurs in the store.
+/// * `PersistedHeads`: Represents the "confirmed" state of the document once the storage
+///   engine (Samod) has successfully written and flushed the changes to disk.
+///
+/// The hook implementation includes logic to detect document swaps (e.g., when a user imports
+/// a new file or creates a new document). It will restart its internal subscription loops
+/// whenever the `current_id` in the store diverges from the one it is currently tracking.
+///
+/// # Arguments
+///
+/// * `store` - Access to the global `AppStore` containing the document handle and repo.
+/// * `memory_heads` - A wrapper around a string signal that tracks memory heads.
+/// * `persisted_heads` - A wrapper around a string signal that tracks persisted heads.
 pub fn use_persistence(
     store: Signal<AppStore>,
     mut memory_heads: crate::MemoryHeads,
