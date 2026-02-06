@@ -234,7 +234,7 @@ export async function dumpFailureContext(page: Page, testInfo: TestInfo) {
       }
     } catch (e) {
       console.warn("Failed to run Axe analysis:", e);
-      axeReport = `Axe analysis failed: ${e}`;
+      axeReport = `Axe analysis failed: ${String(e)}`;
     }
 
     const markdownContent = `# Failure Context: ${testInfo.title}
