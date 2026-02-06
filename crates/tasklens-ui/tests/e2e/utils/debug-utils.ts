@@ -1,4 +1,5 @@
 import { writeFile } from "node:fs/promises";
+import AxeBuilder from "@axe-core/playwright";
 import type { ConsoleMessage, Page, TestInfo } from "@playwright/test";
 import yaml from "js-yaml";
 
@@ -214,18 +215,46 @@ export async function dumpFailureContext(page: Page, testInfo: TestInfo) {
       lineWidth: -1,
       noRefs: true,
     });
+
+    // --- NEW: Accessibility Sensors ---
+    let ariaSnapshot: string | null = null;
+    try {
+      ariaSnapshot = await page.locator("body").ariaSnapshot();
+    } catch (e) {
+      console.warn("Failed to capture ariaSnapshot:", e);
+    }
+
+    let axeReport: string | null = null;
+    try {
+      const results = await new AxeBuilder({ page }).analyze();
+      if (results.violations.length > 0) {
+        axeReport = yaml.dump(results.violations, { indent: 2 });
+      } else {
+        axeReport = "No accessibility violations found.";
+      }
+    } catch (e) {
+      console.warn("Failed to run Axe analysis:", e);
+      axeReport = `Axe analysis failed: ${e}`;
+    }
+
     const markdownContent = `# Failure Context: ${testInfo.title}
 
 **URL:** ${page.url()}
 
-## Synthetic DOM Snapshot
+## Accessibility (Axe) Report
+${axeReport ? `\`\`\`yaml\n${axeReport}\n\`\`\`` : "_Failed to run Axe analysis._"}
+
+## ARIA Snapshot (Native)
+${ariaSnapshot ? `\`\`\`yaml\n${ariaSnapshot}\n\`\`\`` : "_Failed to capture ARIA snapshot._"}
+
+## Synthetic DOM Snapshot (Enhanced)
 
 \`\`\`yaml
 ${yamlContent}
 \`\`\`
 
 ---
-*This snapshot shows the DOM state at the time of failure, optimized for debugging.*
+*This report combines native ARIA snapshots, Axe compliance checks, and a synthetic DOM tree for maximum debug visibility.*
 `;
 
     // Write to disk and attach to test report (mirrors Playwright's error-context.md pattern)
@@ -238,5 +267,39 @@ ${yamlContent}
     console.log(`Saved synthetic DOM to: ${filePath}`);
   } catch (e) {
     console.error("Failed to generate synthetic DOM:", e);
+  }
+}
+
+/**
+ * Runs a manual accessibility audit using Axe and reports violations.
+ * Useful for explicit assertions in tests.
+ *
+ * @example
+ * // In a step definition
+ * accessibilityIsClean: async () => {
+ *   await assertAccessibility(this.page, this.testInfo);
+ * },
+ */
+export async function assertAccessibility(
+  page: Page,
+  testInfo: TestInfo,
+  tags = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"],
+) {
+  const results = await new AxeBuilder({ page }).withTags(tags).analyze();
+
+  if (results.violations.length > 0) {
+    const yamlReport = yaml.dump(results.violations, { indent: 2 });
+    const filePath = testInfo.outputPath(
+      `accessibility-violations-${Date.now()}.yaml`,
+    );
+    await writeFile(filePath, yamlReport, "utf-8");
+    await testInfo.attach("Accessibility Violations", {
+      path: filePath,
+      contentType: "text/yaml",
+    });
+
+    throw new Error(
+      `Found ${results.violations.length} accessibility violations. See attached report: ${filePath}`,
+    );
   }
 }
