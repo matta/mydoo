@@ -39,33 +39,26 @@ pub fn use_persistence(
 
         // Subscribe to both changes and persisted events reactively
         let mut changes = handle.changes().fuse();
-        let mut persisted = handle.persisted().fuse();
+        let mut persisted_stream = handle.persisted().fuse();
 
         loop {
             futures::select! {
-                change = changes.next() => {
-                    if let Some(changed) = change {
-                        let heads_str = format_heads(&changed.new_heads);
-                        tracing::debug!(
-                            "use_persistence: document changed, new heads: {}",
-                            heads_str
-                        );
-                        memory_heads.set(heads_str);
-                    } else {
-                        break;
-                    }
+                changed = changes.next() => if let Some(changed) = changed {
+                    let heads_str = format_heads(&changed.new_heads);
+                    tracing::debug!(
+                        "use_persistence: document changed, new heads: {}",
+                        heads_str
+                    );
+                    memory_heads.set(heads_str);
                 },
-                persist = persisted.next() => {
-                    if let Some(persisted_event) = persist {
-                        let heads_str = format_heads(&persisted_event.persisted_heads);
-                        tracing::debug!(
-                            "use_persistence: document persisted, heads: {}",
-                            heads_str
-                        );
-                        persisted_heads.set(heads_str);
-                    } else {
-                        break;
-                    }
+                persisted = persisted_stream.next() => if let Some(persisted) = persisted {
+                    let heads_str = format_heads(&persisted.persisted_heads);
+                    tracing::debug!("use_persistence: document persisted, heads: {}", heads_str);
+                    persisted_heads.set(heads_str);
+                },
+                complete => {
+                    tracing::debug!("use_persistence: streams completed");
+                    break;
                 }
             }
         }
