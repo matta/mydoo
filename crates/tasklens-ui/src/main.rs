@@ -167,7 +167,7 @@ fn App() -> Element {
     // Sync Client Hook
     let sync_status = hooks::use_sync::use_sync_client(store);
     hooks::use_persistence::use_persistence(
-        store,
+        doc_id,
         MemoryHeads::new(memory_heads),
         PersistedHeads::new(persisted_heads),
     );
