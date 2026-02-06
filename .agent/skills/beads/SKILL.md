@@ -59,11 +59,21 @@ bd children <ISSUE_ID>
 ### Updating Issues
 
 ```bash
-# Close an issue
+# Update title, priority or status
+bd update <ISSUE_ID> --title "New Title" --priority 1 --status closed
+
+# Update a field by adding to its existing value
+bd update <ISSUE_ID> --append-notes "This is an additional note."
+```
+
+### Closing Issues
+
+```bash
+# Close an issue directly
 bd close <ISSUE_ID>
 
-# Update title or status
-bd update <ISSUE_ID> --title "New Title"
+# Close with a reason
+bd close <ISSUE_ID> --reason "Completed in PR #123"
 ```
 
 ## Troubleshooting
