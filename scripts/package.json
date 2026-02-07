@@ -4,13 +4,9 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "glob": "catalog:",
-    "js-yaml": "catalog:",
-    "minimatch": "catalog:",
-    "zod": "catalog:"
+    "glob": "catalog:"
   },
   "devDependencies": {
-    "@types/js-yaml": "catalog:",
     "vitest": "catalog:"
   },
   "scripts": {

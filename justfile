@@ -53,7 +53,7 @@ check-biome-root:
 
 # Check filenames
 check-filenames-root:
-    pnpm tsx scripts/lint-filenames.ts
+    cargo xtask lint-filenames
 
 # Check context for accidental commits
 check-context-root:
