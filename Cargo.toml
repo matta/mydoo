@@ -4,6 +4,7 @@ members = [
   "crates/tasklens-core",
   "crates/tasklens-store",
   "crates/tasklens-ui",
+  "xtask",
 ]
 
 [workspace.lints.rust]
@@ -11,7 +12,8 @@ unreachable_pub = "warn"
 
 [workspace.lints.clippy]
 # cognitive_complexity = "warn"
-redundant_pub_crate = "warn"
+# Disabled: conflicts with unreachable_pub (both can't be satisfied in nested modules)
+# redundant_pub_crate = "warn"
 # too_many_arguments = "warn"
 # type_complexity = "warn"
 
