@@ -11,7 +11,7 @@ const ALLOWED_PREFIXES: &[&str] = &[
 ///
 /// Prevents accidental commits of external git repositories or unauthorized files
 /// into the context directory.
-pub(crate) fn lint_context() -> Result<()> {
+pub(crate) fn check_context() -> Result<()> {
     let tracked_files = get_context_tracked_files()?;
 
     let mut error_count = 0;

@@ -136,7 +136,7 @@ struct Violation {
     suggestion: &'static str,
 }
 
-pub(crate) fn lint_dark_mode() -> Result<()> {
+pub(crate) fn check_dark_mode() -> Result<()> {
     let files = get_ui_rust_files().context("Failed to get UI Rust files")?;
     let mut all_violations = Vec::new();
 

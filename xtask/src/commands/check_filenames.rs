@@ -5,7 +5,7 @@ use std::fs;
 use std::sync::LazyLock;
 
 /// Lints filenames against rules defined in `.ls-lint.toml`.
-pub(crate) fn lint_filenames() -> Result<()> {
+pub(crate) fn check_filenames() -> Result<()> {
     let config = load_ls_config().context("Failed to load .ls-lint.toml")?;
     let files = get_tracked_files().context("Failed to get tracked files")?;
 

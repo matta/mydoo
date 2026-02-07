@@ -5,7 +5,8 @@ use clap::{Parser, Subcommand};
 
 use commands::{
     check_biome_schema::check_biome_schema, check_catalog::check_catalog,
-    lint_context::lint_context, lint_dark_mode::lint_dark_mode, lint_filenames::lint_filenames,
+    check_context::check_context, check_dark_mode::check_dark_mode,
+    check_filenames::check_filenames,
 };
 
 #[derive(Parser)]
@@ -17,17 +18,18 @@ struct Cli {
 }
 
 #[derive(Subcommand)]
+#[allow(clippy::enum_variant_names)]
 enum Commands {
     /// Check for unused entries in the pnpm-workspace.yaml catalog
     CheckCatalog,
     /// Check that biome.json $schema version matches installed Biome version
     CheckBiomeSchema,
-    /// Lint filenames for naming conventions
-    LintFilenames,
-    /// Lint context directory for unauthorized files
-    LintContext,
+    /// Check filenames for naming conventions
+    CheckFilenames,
+    /// Check context directory for unauthorized files
+    CheckContext,
     /// Check for dark mode violations in UI components
-    LintDarkMode,
+    CheckDarkMode,
     /// Run all checks
     CheckAll,
 }
@@ -38,15 +40,15 @@ fn main() -> Result<()> {
     match &cli.command {
         Commands::CheckCatalog => check_catalog()?,
         Commands::CheckBiomeSchema => check_biome_schema()?,
-        Commands::LintFilenames => lint_filenames()?,
-        Commands::LintContext => lint_context()?,
-        Commands::LintDarkMode => lint_dark_mode()?,
+        Commands::CheckFilenames => check_filenames()?,
+        Commands::CheckContext => check_context()?,
+        Commands::CheckDarkMode => check_dark_mode()?,
         Commands::CheckAll => {
             check_catalog()?;
             check_biome_schema()?;
-            lint_filenames()?;
-            lint_context()?;
-            lint_dark_mode()?;
+            check_filenames()?;
+            check_context()?;
+            check_dark_mode()?;
         }
     }
 

@@ -53,11 +53,11 @@ check-biome-root:
 
 # Check filenames
 check-filenames-root:
-    cargo xtask lint-filenames
+    cargo xtask check-filenames
 
 # Check context for accidental commits
 check-context-root:
-    cargo xtask lint-context
+    cargo xtask check-context
 
 # Check formatting for all packages
 check-format:
@@ -67,7 +67,7 @@ check-format:
 
 # Check for dark mode violations in UI components
 check-dark-mode:
-    cargo xtask lint-dark-mode
+    cargo xtask check-dark-mode
 
 
 
