@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# On any non-zero exit, remind AI agents to never bypass the hook.
+trap '
+  if [ $? -ne 0 ]; then
+    echo "IMPORTANT: Do NOT bypass this hook with --no-verify. Fix the error above and retry the commit." >&2
+  fi
+' EXIT
+
 if git rev-parse --verify HEAD >/dev/null 2>&1
 then
         against=HEAD
