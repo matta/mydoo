@@ -168,7 +168,7 @@ check-syncpack-root:
 
 # Check catalog
 check-catalog-root:
-    pnpm tsx scripts/check-unused-catalog-entries.ts
+    cargo xtask check-catalog
 
 # Check dependencies
 check-deps-root:

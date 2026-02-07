@@ -9,7 +9,6 @@
       "entry": [
         "check-dependency-health.ts",
         "sync-server.js",
-        "check-unused-catalog-entries.ts",
         "lint-context.ts"
       ]
     }
