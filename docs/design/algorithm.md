@@ -41,25 +41,25 @@ A `Task` represents a unit of work or a container of work.
 
 #### 3.1.1 Stored Properties
 
-| Field               | Type         | Definition                                                                                                  |
-| :------------------ | :----------- | :---------------------------------------------------------------------------------------------------------- |
-| `TaskID`            | `Integer`    | Unique Identifier (Primary Key).                                                                            |
-| `Title`             | `String`     | Display name or title of the task. (Metadata)                                                               |
-| `ParentID`          | `Integer?`   | **(Ref/Foreign Key)** Parent Task ID. Null indicates a Root Goal.                                           |
-| `PlaceID`           | `Integer?`   | **(Ref/Foreign Key)** Link to the `Place` this task belongs to. Inherits from Parent if Null.               |
-| `Status`            | `Enum`       | Current state ({ Pending, Done, Deleted }). Used to derive `IsPending`.                                     |
-| `Importance`        | `Float`      | (0.0–1.0) Importance relative to parent. Set by user.                                                       |
-| `CreditIncrement`   | `Float`      | Value added to history upon completion. Recommended range 0.0-2.0 (See Section 3.6). Must be >= 0.0.        |
-| `Sequential`        | `Boolean`    | If true, blocks sibling tasks until this one is done.                                                       |
-| `DesiredCredits`    | `Float`      | Target allocation value (only valid for Root Goals). Must be >= 0.0.                                        |
-| `Schedule`          | `Enum`       | One of: `'Once'`, `'Routinely'`, `'DueDate'`, `'Calendar'`. Default `'Once'`.                               |
-| `Due`               | `Timestamp?` | The effective due date (computed or explicit). Resolution fallback if `Once`.                               |
-| `LeadTime`          | `Duration`   | (Default 8h / 28,800,000ms) Time before Due when task becomes Ready/Visible.                                |
-| `Period`            | `Duration?`  | (Routinely only) Recurrence interval. Default 24h.                                                          |
-| `LastDone`          | `Timestamp?` | (Routinely only) Timestamp of last completion.                                                              |
-| `Credits`           | `Float`      | Current total of _decayed_ credit history for this task/subtree _as of `CreditsTimestamp`_. Must be >= 0.0. |
-| `PriorityTimestamp` | `Timestamp`  | Timestamp used for stability in sorting or priority dampening.                                              |
-| `CreditsTimestamp`  | `Timestamp`  | Timestamp of last credit modification ($t_0$ for decay calculations).                                       |
+| Field               | Type         | Definition                                                                                                                                                                    |
+| :------------------ | :----------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TaskID`            | `Integer`    | Unique Identifier (Primary Key).                                                                                                                                              |
+| `Title`             | `String`     | Display name or title of the task. (Metadata)                                                                                                                                 |
+| `ParentID`          | `Integer?`   | **(Ref/Foreign Key)** Parent Task ID. Null indicates a Root Goal.                                                                                                             |
+| `PlaceID`           | `Integer?`   | **(Ref/Foreign Key)** Link to the `Place` this task belongs to. Initialized via Copy-on-Create (see §4.1). A stored `Null` is treated as equivalent to `ANYWHERE` at runtime. |
+| `Status`            | `Enum`       | Current state ({ Pending, Done, Deleted }). Used to derive `IsPending`.                                                                                                       |
+| `Importance`        | `Float`      | (0.0–1.0) Importance relative to parent. Set by user.                                                                                                                         |
+| `CreditIncrement`   | `Float`      | Value added to history upon completion. Recommended range 0.0-2.0 (See Section 3.6). Must be >= 0.0.                                                                          |
+| `Sequential`        | `Boolean`    | If true, blocks sibling tasks until this one is done.                                                                                                                         |
+| `DesiredCredits`    | `Float`      | Target allocation value (only valid for Root Goals). Must be >= 0.0.                                                                                                          |
+| `Schedule`          | `Enum`       | One of: `'Once'`, `'Routinely'`, `'DueDate'`, `'Calendar'`. Default `'Once'`.                                                                                                 |
+| `Due`               | `Timestamp?` | The effective due date (computed or explicit). Resolution fallback if `Once`.                                                                                                 |
+| `LeadTime`          | `Duration`   | (Default 8h / 28,800,000ms) Time before Due when task becomes Ready/Visible.                                                                                                  |
+| `Period`            | `Duration?`  | (Routinely only) Recurrence interval. Default 24h.                                                                                                                            |
+| `LastDone`          | `Timestamp?` | (Routinely only) Timestamp of last completion.                                                                                                                                |
+| `Credits`           | `Float`      | Current total of _decayed_ credit history for this task/subtree _as of `CreditsTimestamp`_. Must be >= 0.0.                                                                   |
+| `PriorityTimestamp` | `Timestamp`  | Timestamp used for stability in sorting or priority dampening.                                                                                                                |
+| `CreditsTimestamp`  | `Timestamp`  | Timestamp of last credit modification ($t_0$ for decay calculations).                                                                                                         |
 
 ### 3.1.3 Scheduling Semantics
 
@@ -237,12 +237,19 @@ range `[0.0, 1.0]`. The conceptual mapping distributes these values such that
 
 Properties are initialized using one of three strategies:
 
-| Property          | Strategy             | Details                                              |
-| :---------------- | :------------------- | :--------------------------------------------------- |
-| `Importance`      | **Fixed Default**    | Always `0.5`. Never inherited.                       |
-| `PlaceID`         | **Copy-on-Create**   | Copy parent's value. Root default: `ANYWHERE`.       |
-| `CreditIncrement` | **Copy-on-Create**   | Copy parent's value. Root default: `0.5`.            |
-| `Due`             | **Runtime Fallback** | Only when `Schedule='Once'`. Resolves at query time. |
+| Property          | Strategy             | Details                                                                                                 |
+| :---------------- | :------------------- | :------------------------------------------------------------------------------------------------------ |
+| `Importance`      | **Fixed Default**    | Always `0.5`. Never inherited.                                                                          |
+| `PlaceID`         | **Copy-on-Create**   | Copy parent's value at creation. Root default: `ANYWHERE`. Always has a deterministic value after init. |
+| `CreditIncrement` | **Copy-on-Create**   | Copy parent's value at creation. Root default: `0.5`. Always has a deterministic numeric value.         |
+| `Due`             | **Runtime Fallback** | Only when `Schedule='Once'`. Resolves at query time by walking the ancestor chain.                      |
+
+> **Invariant**: Copy-on-Create properties (`PlaceID`, `CreditIncrement`) are
+> guaranteed to have a concrete value after task creation. They do NOT
+> participate in runtime recursive fallback. If a stored value is absent (e.g.,
+> due to migration or data corruption), the algorithm treats it as the system
+> default (`ANYWHERE` for `PlaceID`, `0.5` for `CreditIncrement`). This is a
+> direct substitution, not an ancestor walk.
 
 ### 4.2 Logic
 
@@ -254,11 +261,11 @@ When a new task $T$ is created within a parent $P$:
 
 **Copy-on-Create Properties** (`PlaceID`, `CreditIncrement`):
 
-1.  Read the parent's effective value (if parent undefined, walk up the
-    hierarchy).
+1.  Read the parent's effective value (if parent undefined, use the system
+    default).
 2.  Store that value directly on the new task $T$.
-3.  **Effect**: The task owns its value. Future changes to ancestors do NOT
-    propagate.
+3.  **Effect**: The task owns its value from creation onward. Future changes to
+    ancestors do NOT propagate. The value is never `undefined` after this step.
 
 **Runtime Fallback Properties** (`Due` when `Schedule='Once'`):
 
@@ -280,24 +287,25 @@ When the algorithm requires the value of a property for Task $T$:
 
 1.  **Check Local**: If $T$ has a defined value, use it.
 2.  **Recursive Fallback**: If $T$'s value is `undefined`, check if the property
-    participates in **Recursive Fallback** (e.g., `Due`, `LeadTime` for `Once`
+    participates in **Recursive Fallback** (only `Due` and `LeadTime` for `Once`
     schedules).
     - **If Participating**: Check $T$'s Parent. Repeat this step up the
       hierarchy.
-    - **If Not Participating** (e.g. `Importance`, `PlaceID`,
-      `CreditIncrement`): Stop and immediately proceed to Step 3 (System
-      Default).
-3.  **Root Default**: If the root is reached and the value is still `undefined`,
-    use the System Default.
+    - **If Not Participating**: Use the System Default directly (no ancestor
+      walk). This applies to `PlaceID`, `CreditIncrement`, and `Importance`,
+      which are always initialized at creation and should not be `undefined` at
+      runtime.
+3.  **System Default**: If the root is reached (for Recursive Fallback
+    properties) or the value is absent (for Copy-on-Create properties), use:
 
-| Property          | System Default            |
-| :---------------- | :------------------------ |
-| `PlaceID`         | `Anywhere`                |
-| `CreditIncrement` | `0.5`                     |
-| `Schedule`        | `'Once'`                  |
-| `Due`             | `undefined` (No Due Date) |
-| `LeadTime`        | `28800000` (8 Hours)      |
-| `Importance`      | `1.0`                     |
+| Property          | System Default            | Notes                                                |
+| :---------------- | :------------------------ | :--------------------------------------------------- |
+| `PlaceID`         | `Anywhere`                | Stored `Null` is equivalent to `Anywhere`.           |
+| `CreditIncrement` | `0.5`                     | Should never be absent; fallback for data integrity. |
+| `Schedule`        | `'Once'`                  |                                                      |
+| `Due`             | `undefined` (No Due Date) | Uses Recursive Fallback if not defined locally.      |
+| `LeadTime`        | `28800000` (8 Hours)      | Participates in Recursive Fallback alongside `Due`.  |
+| `Importance`      | `1.0`                     | Fixed Default; never inherited.                      |
 
 ## 5. Credit Data Management
 
@@ -362,8 +370,9 @@ ensures Deterministic results independent of execution order.
 
 Filter tasks by Physical Context and Time.
 
-- **Resolution**: `EffectivePlace = Task.PlaceID ?? Anywhere`. (See
-  **[4. Property Inheritance Model](#4-property-inheritance-model)**).
+- **Resolution**: `EffectivePlace = Task.PlaceID ?? Anywhere`. (PlaceID is a
+  Copy-on-Create property; `Null` is treated as `Anywhere`, not resolved via
+  ancestor walk. See **[4. Property Inheritance Model](#4-property-inheritance-model)**).
 - **Hours Check**: `IsOpen = EffectivePlace.Hours.Contains(CurrentTime)` (Note:
   "Anywhere" is always Open).
 - **Place Match**:
