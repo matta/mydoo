@@ -48,8 +48,8 @@ check-format-root:
 
 # Check biome for root
 check-biome-root:
+    cargo xtask check-biome-schema
     pnpm biome check .
-    pnpm tsx scripts/check-biome-schema.ts
 
 # Check filenames
 check-filenames-root:
