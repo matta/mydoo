@@ -1,0 +1,61 @@
+{
+  "feature": "Balance Feedback Aggregates Child Credits",
+  "description": "Ensures balance feedback uses aggregated effective credits from descendants when scoring the Do list.",
+  "background": {
+    "current_time": "2025-01-01T00:00:00Z",
+    "tasks": [
+      {
+        "id": "WorkRoot",
+        "title": "Work",
+        "importance": 1,
+        "desired_credits": 1,
+        "children": [
+          {
+            "id": "WorkTask",
+            "importance": 1,
+            "credits": 90
+          }
+        ]
+      },
+      {
+        "id": "LifeRoot",
+        "title": "Life",
+        "importance": 1,
+        "desired_credits": 1,
+        "children": [
+          {
+            "id": "LifeTask",
+            "importance": 1,
+            "credits": 10
+          }
+        ]
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Legacy Scenario",
+      "steps": [
+        {
+          "legacy_description": "1. Feedback uses aggregated child credits",
+          "then": {
+            "expected_order": [
+              "LifeTask",
+              "WorkTask"
+            ],
+            "expected_props": [
+              {
+                "id": "LifeTask",
+                "score": 25
+              },
+              {
+                "id": "WorkTask",
+                "score": 0.3086419
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
