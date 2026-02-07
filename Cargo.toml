@@ -4,6 +4,7 @@ members = [
   "crates/tasklens-core",
   "crates/tasklens-store",
   "crates/tasklens-ui",
+  "xtask",
 ]
 
 [workspace.lints.rust]
