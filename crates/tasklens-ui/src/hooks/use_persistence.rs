@@ -45,6 +45,9 @@ pub fn use_persistence(
 ) {
     let store = use_context::<Signal<AppStore>>();
 
+    // Acts as a synchronization gate: ensures the UI's requested document ID
+    // matches the Store's currently loaded `current_id` and that a valid `handle` exists.
+    // Prevents race conditions where the UI requests a doc that isn't loaded yet.
     let ready_id = use_memo(move || {
         let wanted = doc_id_signal();
         let s = store.read();
@@ -56,6 +59,11 @@ pub fn use_persistence(
 
     let mut task_slot: Signal<Option<Task>> = use_signal(|| None);
 
+    // Reacts to `ready_id` changes. When a valid document is fully loaded:
+    // 1. Cancels any previous background listeners.
+    // 2. Initializes heads signals with current state.
+    // 3. Spawns a dedicated task to stream real-time `changes` and `persisted` events
+    //    from the Automerge handle, keeping the UI in sync.
     use_effect(move || {
         if let Some(prev) = task_slot.write().take() {
             prev.cancel();
@@ -73,6 +81,11 @@ pub fn use_persistence(
 
         let initial_heads = handle.with_document(|doc| format_heads(&doc.get_heads()));
         memory_heads.set(initial_heads.clone());
+        // We initialize `persisted_heads` to match the current document state,
+        // effectively assuming it is already persisted. This might be a temporary
+        // lie if the document was just created/injected and hasn't flushed to disk yet,
+        // but it initializes the UI in a "clean" state while we wait for confirmation
+        // from the storage layer.
         persisted_heads.set(initial_heads);
 
         let task = spawn(async move {
