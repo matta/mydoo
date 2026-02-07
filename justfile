@@ -40,7 +40,7 @@ build-store:
 # -----------------------------------------------------------------------------
 
 # Run all style checks
-check-style: check-format-root check-biome-root check-filenames-root check-context-root check-format check-dark-mode
+check-style: check-format-root check-xtask-all check-biome-root check-format
 
 # Check formatting for root files
 check-format-root:
@@ -48,16 +48,7 @@ check-format-root:
 
 # Check biome for root
 check-biome-root:
-    cargo xtask check-biome-schema
     pnpm biome check .
-
-# Check filenames
-check-filenames-root:
-    cargo xtask check-filenames
-
-# Check context for accidental commits
-check-context-root:
-    cargo xtask check-context
 
 # Check formatting for all packages
 check-format:
@@ -65,11 +56,9 @@ check-format:
     cd {{docs_pkg}} && chronic pnpm prettier --check .
     cd {{scripts_pkg}} && chronic pnpm prettier --check .
 
-# Check for dark mode violations in UI components
-check-dark-mode:
-    cargo xtask check-dark-mode
-
-
+# Run all xtask checks
+check-xtask-all:
+    cargo xtask check-all
 
 # -----------------------------------------------------------------------------
 # Type Checking Commands
@@ -141,7 +130,7 @@ test-e2e-mobile *args: build-ui
 # -----------------------------------------------------------------------------
 
 # Full validation (static analysis)
-check: check-catalog-root check-deps-root check-syncpack-root check-style check-types check-rust
+check: check-deps-root check-syncpack-root check-style check-types check-rust
 
 # The "ultimate" verification command
 verify: fix check test test-e2e
@@ -155,7 +144,7 @@ dev:
 # -----------------------------------------------------------------------------
 
 # Run full dead code detection suite (Lints + Dependencies)
-audit: check-clippy check-catalog-root check-deps-root udeps
+audit: check-clippy check-xtask-all check-deps-root udeps
 
 # Check for unused dependencies in Cargo.toml
 # Note: Requires nightly toolchain and cargo-udeps installed
@@ -165,10 +154,6 @@ udeps:
 # Check syncpack
 check-syncpack-root:
     pnpm syncpack list-mismatches
-
-# Check catalog
-check-catalog-root:
-    cargo xtask check-catalog
 
 # Check dependencies
 check-deps-root:
