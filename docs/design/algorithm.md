@@ -303,7 +303,7 @@ When the algorithm requires the value of a property for Task $T$:
 | `PlaceID`         | `Anywhere`                | Stored `Null` is equivalent to `Anywhere`.           |
 | `CreditIncrement` | `0.5`                     | Should never be absent; fallback for data integrity. |
 | `Schedule`        | `'Once'`                  |                                                      |
-| `Due`             | `undefined` (No Due Date) | Only property using Recursive Fallback.              |
+| `Due`             | `undefined` (No Due Date) | Uses Recursive Fallback if not defined locally.      |
 | `LeadTime`        | `28800000` (8 Hours)      | Participates in Recursive Fallback alongside `Due`.  |
 | `Importance`      | `1.0`                     | Fixed Default; never inherited.                      |
 
