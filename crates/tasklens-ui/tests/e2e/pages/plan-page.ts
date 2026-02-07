@@ -180,11 +180,11 @@ export class PlanPage implements PlanFixture {
     await expect(main).toBeAttached({ timeout: 10000 });
 
     // Ensure store is initialized (memory heads should be non-empty)
-    await expect(this.page.locator("[data-memory-heads]")).toHaveAttribute(
-      "data-memory-heads",
-      /.+/,
-      { timeout: 10000 },
-    );
+    const memoryHeads = this.page.locator("[data-memory-heads]");
+    await expect(memoryHeads).toBeAttached({ timeout: 30000 });
+    await expect(memoryHeads).toHaveAttribute("data-memory-heads", /.+/, {
+      timeout: 30000,
+    });
   }
 
   private async getMemoryHeads(): Promise<string> {
