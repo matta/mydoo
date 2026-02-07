@@ -179,10 +179,11 @@ mod tests {
             if predicate() {
                 return;
             }
-            let remaining = deadline - tokio::time::Instant::now();
-            if remaining.is_zero() {
-                return;
+            let now = tokio::time::Instant::now();
+            if now >= deadline {
+                panic!("drive_until timed out after {:?}", timeout);
             }
+            let remaining = deadline - now;
             let _ = tokio::time::timeout(remaining, dom.wait_for_work()).await;
             dom.render_immediate_to_vec();
         }
