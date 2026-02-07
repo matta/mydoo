@@ -57,7 +57,7 @@ check-filenames-root:
 
 # Check context for accidental commits
 check-context-root:
-    pnpm tsx scripts/lint-context.ts
+    cargo xtask lint-context
 
 # Check formatting for all packages
 check-format:

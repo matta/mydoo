@@ -3,7 +3,9 @@ pub(crate) mod commands;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
-use commands::{check_catalog::check_catalog, lint_filenames::lint_filenames};
+use commands::{
+    check_catalog::check_catalog, lint_context::lint_context, lint_filenames::lint_filenames,
+};
 
 #[derive(Parser)]
 #[command(name = "xtask")]
@@ -19,6 +21,8 @@ enum Commands {
     CheckCatalog,
     /// Lint filenames for naming conventions
     LintFilenames,
+    /// Lint context directory for unauthorized files
+    LintContext,
     /// Run all checks
     CheckAll,
 }
@@ -29,9 +33,11 @@ fn main() -> Result<()> {
     match &cli.command {
         Commands::CheckCatalog => check_catalog()?,
         Commands::LintFilenames => lint_filenames()?,
+        Commands::LintContext => lint_context()?,
         Commands::CheckAll => {
             check_catalog()?;
             lint_filenames()?;
+            lint_context()?;
         }
     }
 

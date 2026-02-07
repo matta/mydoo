@@ -6,11 +6,7 @@
   "workspaces": {
     ".": {},
     "scripts": {
-      "entry": [
-        "check-dependency-health.ts",
-        "sync-server.js",
-        "lint-context.ts"
-      ]
+      "entry": ["check-dependency-health.ts", "sync-server.js"]
     }
   }
 }
