@@ -1,3 +1,6 @@
+use crate::domain::constants::{
+    FEEDBACK_DEVIATION_RATIO_CAP, FEEDBACK_EPSILON, FEEDBACK_SENSITIVITY,
+};
 use crate::types::EnrichedTask;
 
 /// Adaptive Feedback Control
@@ -6,8 +9,8 @@ use crate::types::EnrichedTask;
 ///
 /// Constants: `k=2.0` (Sensitivity), `epsilon=0.001` (Div/0 Protection).
 pub fn calculate_feedback_factors(tasks: &mut [EnrichedTask]) {
-    let k = 2.0; // Sensitivity
-    let epsilon = 0.001; // Division by zero protection
+    let k = FEEDBACK_SENSITIVITY;
+    let epsilon = FEEDBACK_EPSILON;
 
     // Identify root tasks
     // In Rust, we need to collect indices or use a separate way to iterate because of mutable borrowing rules.
@@ -47,7 +50,7 @@ pub fn calculate_feedback_factors(tasks: &mut [EnrichedTask]) {
         };
 
         // Cap DeviationRatio to prevent extreme spikes (spec says 1000.0)
-        let deviation_ratio = deviation_ratio.min(1000.0);
+        let deviation_ratio = deviation_ratio.min(FEEDBACK_DEVIATION_RATIO_CAP);
 
         tasks[i].feedback_factor = deviation_ratio.powf(k);
     }

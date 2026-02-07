@@ -136,6 +136,16 @@ export interface PlanFixture {
     firstTask: string,
     secondTask: string,
   ) => Promise<void>;
+
+  // Score trace in Do view
+  /** Verifies that a Do list task shows a score label. */
+  verifyDoTaskHasScore: (title: string) => Promise<void>;
+  /** Opens the score trace view for a task from the Do list. */
+  openScoreTrace: (title: string) => Promise<void>;
+  /** Verifies the score trace breakdown is visible for a task. */
+  verifyScoreTraceBreakdown: (title: string) => Promise<void>;
+  /** Verifies the lead time stage label in the score trace. */
+  verifyScoreTraceLeadTimeStage: (stage: string) => Promise<void>;
 }
 
 /**
@@ -1173,5 +1183,45 @@ export class PlanPage implements PlanFixture {
     }
 
     expect(firstPos).toBeLessThan(secondPos);
+  }
+
+  // --- Score Trace in Do View ---
+
+  /** Verifies a Do list task shows a score label. */
+  async verifyDoTaskHasScore(title: string): Promise<void> {
+    await this.switchToDoView();
+    const row = this.page.getByTestId("task-item").filter({ hasText: title });
+    await expect(row.first()).toBeVisible();
+    const score = row.first().getByTestId("task-score");
+    await expect(score).toBeVisible();
+    await expect(score).toHaveText(/Score/);
+  }
+
+  /** Opens the score trace view for a task from the Do list. */
+  async openScoreTrace(title: string): Promise<void> {
+    await this.switchToDoView();
+    const row = this.page.getByTestId("task-item").filter({ hasText: title });
+    await expect(row.first()).toBeVisible();
+    await row.first().getByTestId("task-score").click();
+    await expect(this.page.getByTestId("score-trace")).toBeVisible();
+  }
+
+  /** Verifies the score trace breakdown is visible for a task. */
+  async verifyScoreTraceBreakdown(title: string): Promise<void> {
+    const trace = this.page.getByTestId("score-trace");
+    await expect(trace).toBeVisible();
+    await expect(trace.getByTestId("score-trace-task-title")).toHaveText(title);
+    await expect(trace.getByTestId("score-trace-formula")).toBeVisible();
+    await expect(trace.getByTestId("score-trace-feedback")).toBeVisible();
+    await expect(trace.getByTestId("score-trace-importance")).toBeVisible();
+    await expect(trace.getByTestId("score-trace-lead-time")).toBeVisible();
+    await expect(trace.getByTestId("score-trace-visibility")).toBeVisible();
+  }
+
+  /** Verifies the lead time stage label in the score trace. */
+  async verifyScoreTraceLeadTimeStage(stage: string): Promise<void> {
+    const leadTime = this.page.getByTestId("score-trace-lead-time");
+    await expect(leadTime).toBeVisible();
+    await expect(leadTime).toHaveText(new RegExp(`Stage: ${stage}`));
   }
 }
