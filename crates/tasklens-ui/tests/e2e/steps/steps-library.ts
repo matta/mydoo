@@ -1,5 +1,6 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Page, type TestInfo } from "@playwright/test";
 import type { PlanPage } from "../pages/plan-page";
+import { assertAccessibility } from "../utils/debug-utils";
 import { parseDuration } from "../utils/duration-parser";
 
 export class Steps {
@@ -8,6 +9,7 @@ export class Steps {
   constructor(
     private plan: PlanPage,
     private page: Page,
+    private testInfo: TestInfo,
   ) {}
 
   public Given = {
@@ -450,6 +452,10 @@ export class Steps {
     taskIsAtPosition: async (title: string, position: number) => {
       const actualPosition = await this.plan.getTaskPosition(title);
       expect(actualPosition).toBe(position);
+    },
+
+    accessibilityIsClean: async () => {
+      await assertAccessibility(this.page, this.testInfo);
     },
   };
 }
