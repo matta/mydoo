@@ -482,12 +482,10 @@ fn has_pending_descendants(
     children_index: &ChildrenLookup,
     tasks: &[EnrichedTask],
 ) -> bool {
-    let mut to_visit: Vec<usize> = Vec::new();
-    if let Some(indices) = children_index.get(&Some(tasks[task_idx].id.clone())) {
-        to_visit.extend(indices.iter().copied());
-    } else {
-        return false;
-    }
+    let mut to_visit = children_index
+        .get(&Some(tasks[task_idx].id.clone()))
+        .cloned()
+        .unwrap_or_default();
 
     while let Some(current_idx) = to_visit.pop() {
         if tasks[current_idx].is_pending {

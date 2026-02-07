@@ -27,20 +27,16 @@ pub struct FeedbackComputation {
 
 /// Computes feedback totals across all root tasks.
 pub fn compute_feedback_totals(tasks: &[EnrichedTask]) -> FeedbackTotals {
-    let mut total_desired_credits = 0.0;
-    let mut total_effective_credits = 0.0;
-
-    for task in tasks {
-        if task.parent_id.is_none() {
-            total_desired_credits += task.desired_credits;
-            total_effective_credits += task.effective_credits;
-        }
-    }
-
-    FeedbackTotals {
-        total_desired_credits,
-        total_effective_credits,
-    }
+    tasks.iter().filter(|task| task.parent_id.is_none()).fold(
+        FeedbackTotals {
+            total_desired_credits: 0.0,
+            total_effective_credits: 0.0,
+        },
+        |acc, task| FeedbackTotals {
+            total_desired_credits: acc.total_desired_credits + task.desired_credits,
+            total_effective_credits: acc.total_effective_credits + task.effective_credits,
+        },
+    )
 }
 
 /// Computes feedback metrics for a root task given aggregate totals.
@@ -86,12 +82,13 @@ pub fn compute_feedback_metrics(
 pub fn calculate_feedback_factors(tasks: &mut [EnrichedTask]) {
     let totals = compute_feedback_totals(tasks);
 
-    for task in tasks.iter_mut() {
-        if task.parent_id.is_none() {
+    tasks
+        .iter_mut()
+        .filter(|task| task.parent_id.is_none())
+        .for_each(|task| {
             let computation = compute_feedback_metrics(task, totals);
             task.feedback_factor = computation.feedback_factor;
-        }
-    }
+        });
 }
 
 #[cfg(test)]
