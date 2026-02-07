@@ -1,1 +1,7 @@
+trap '
+  if [ $? -ne 0 ]; then
+    echo "IMPORTANT: Do NOT bypass this hook with --no-verify. Fix the error above and retry the commit." >&2
+  fi
+' EXIT
+
 pnpm exec commitlint --edit "$1"
