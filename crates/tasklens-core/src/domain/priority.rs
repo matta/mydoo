@@ -108,6 +108,27 @@ fn traverse_assign(
     }
 }
 
+/// Aggregates decayed credits from descendants into each task's effective_credits.
+fn aggregate_effective_credits(
+    task_idx: usize,
+    enriched_tasks: &mut [EnrichedTask],
+    children_index: &ChildrenLookup,
+) -> f64 {
+    let child_indices = children_index
+        .get(&Some(enriched_tasks[task_idx].id.clone()))
+        .cloned()
+        .unwrap_or_default();
+
+    let children_sum: f64 = child_indices
+        .iter()
+        .map(|&idx| aggregate_effective_credits(idx, enriched_tasks, children_index))
+        .sum();
+
+    let total = enriched_tasks[task_idx].effective_credits + children_sum;
+    enriched_tasks[task_idx].effective_credits = total;
+    total
+}
+
 /// Hydrates a persisted task into an enriched task object.
 fn hydrate_task(persisted: &PersistedTask) -> EnrichedTask {
     let is_container = !persisted.child_task_ids.is_empty();
@@ -194,6 +215,7 @@ pub fn recalculate_priorities(
     // --- Phase 0: Build Indexes & Outline Order ---
     let (_, children_index) = build_indexes(state, enriched_tasks);
     assign_outline_indexes(enriched_tasks, &children_index);
+    let root_indices = children_index.get(&None).cloned().unwrap_or_default();
 
     // --- Phase 1: Linear Local Computation ---
     calculate_contextual_visibility(state, enriched_tasks, view_filter, current_time);
@@ -216,11 +238,13 @@ pub fn recalculate_priorities(
             task.credits * 0.5f64.powf(time_delta as f64 / CREDITS_HALF_LIFE_MILLIS);
     }
 
+    for &idx in &root_indices {
+        aggregate_effective_credits(idx, enriched_tasks, &children_index);
+    }
+
     calculate_feedback_factors(enriched_tasks);
 
     // --- Phase 2: Unified DFS Traversal ---
-    let root_indices = children_index.get(&None).cloned().unwrap_or_default();
-
     for &idx in &root_indices {
         // Roots start with their raw importance
         enriched_tasks[idx].normalized_importance = enriched_tasks[idx].importance;
@@ -267,13 +291,6 @@ fn evaluate_task_recursive(
         let child_is_pending = enriched_tasks[child_idx].is_pending;
         has_pending_descendant |= child_pending_subtree || child_is_pending;
     }
-
-    // --- Post-Order: Aggregate Effective Credits ---
-    let sum_children: f64 = child_indices
-        .iter()
-        .map(|&i| enriched_tasks[i].effective_credits)
-        .sum();
-    enriched_tasks[task_idx].effective_credits += sum_children;
 
     let feedback_factor = enriched_tasks[effective_root_idx].feedback_factor;
     let task = &mut enriched_tasks[task_idx];

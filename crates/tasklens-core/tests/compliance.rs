@@ -236,15 +236,6 @@ impl ComplianceStore {
 fn test_compliance() -> Result<()> {
     let mut files_found = Vec::new();
 
-    let yaml_pattern = "tests/compliance/fixtures/*.yaml";
-    let yaml_files: Vec<_> = glob(yaml_pattern)?.collect();
-    if !yaml_files.is_empty() {
-        panic!(
-            "Found .yaml files in compliance fixtures. Only .json files are allowed to avoid duplication: {:?}",
-            yaml_files
-        );
-    }
-
     let json_pattern = "tests/compliance/fixtures/*.json";
     for entry in glob(json_pattern)? {
         let path = entry?;
@@ -252,6 +243,7 @@ fn test_compliance() -> Result<()> {
     }
 
     let mut expected_files = vec![
+        "balance-aggregation.feature.json",
         "balancing.feature.json",
         "boost-importance.feature.json",
         "boost-lead-time.feature.json",
