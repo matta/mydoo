@@ -31,7 +31,7 @@ catalogs:
       specifier: ^1.57.0
       version: 1.57.0
     '@types/js-yaml':
-      specifier: 4.0.9
+      specifier: ^4.0.9
       version: 4.0.9
     '@types/node':
       specifier: 25.0.10
@@ -46,23 +46,17 @@ catalogs:
       specifier: ^9.1.7
       version: 9.1.7
     js-yaml:
-      specifier: 4.1.1
+      specifier: ^4.1.1
       version: 4.1.1
     knip:
       specifier: ^5.80.2
       version: 5.82.1
-    minimatch:
-      specifier: ^10.1.1
-      version: 10.1.1
     prettier:
       specifier: ^3.4.2
       version: 3.8.1
     syncpack:
       specifier: ^13.0.2
       version: 13.0.4
-    tsx:
-      specifier: ^4.21.0
-      version: 4.21.0
     typescript:
       specifier: 5.9.3
       version: 5.9.3
@@ -75,9 +69,6 @@ catalogs:
     ws:
       specifier: ^8.19.0
       version: 8.19.0
-    zod:
-      specifier: ^4.3.5
-      version: 4.3.6
 
 importers:
 
@@ -113,9 +104,6 @@ importers:
       syncpack:
         specifier: 'catalog:'
         version: 13.0.4(typescript@5.9.3)
-      tsx:
-        specifier: 'catalog:'
-        version: 4.21.0
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -154,19 +142,7 @@ importers:
       glob:
         specifier: 'catalog:'
         version: 13.0.0
-      js-yaml:
-        specifier: 'catalog:'
-        version: 4.1.1
-      minimatch:
-        specifier: 'catalog:'
-        version: 10.1.1
-      zod:
-        specifier: 'catalog:'
-        version: 4.3.6
     devDependencies:
-      '@types/js-yaml':
-        specifier: 'catalog:'
-        version: 4.0.9
       vitest:
         specifier: 'catalog:'
         version: 4.0.18(@types/node@25.0.10)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.6))(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
@@ -1846,9 +1822,6 @@ packages:
   zod@4.3.5:
     resolution: {integrity: sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g==}
 
-  zod@4.3.6:
-    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
-
 snapshots:
 
   '@automerge/automerge-repo-network-websocket@2.5.1':
@@ -2711,6 +2684,7 @@ snapshots:
   get-tsconfig@4.13.0:
     dependencies:
       resolve-pkg-maps: 1.0.0
+    optional: true
 
   git-raw-commits@4.0.0:
     dependencies:
@@ -3042,7 +3016,8 @@ snapshots:
 
   resolve-from@5.0.0: {}
 
-  resolve-pkg-maps@1.0.0: {}
+  resolve-pkg-maps@1.0.0:
+    optional: true
 
   restore-cursor@5.1.0:
     dependencies:
@@ -3225,6 +3200,7 @@ snapshots:
       get-tsconfig: 4.13.0
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   typescript@5.9.3: {}
 
@@ -3347,5 +3323,3 @@ snapshots:
   yocto-queue@1.2.2: {}
 
   zod@4.3.5: {}
-
-  zod@4.3.6: {}

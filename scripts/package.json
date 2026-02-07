@@ -4,18 +4,12 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "glob": "catalog:",
-    "js-yaml": "catalog:",
-    "minimatch": "catalog:",
-    "zod": "catalog:"
+    "glob": "catalog:"
   },
   "devDependencies": {
-    "@types/js-yaml": "catalog:",
     "vitest": "catalog:"
   },
   "scripts": {
-    "check-biome-schema": "tsx check-biome-schema.ts",
-    "check-dark-mode": "tsx lint-dark-mode.ts",
     "check-format": "prettier --check .",
     "check-types": "tsc --noEmit",
     "fix-format": "prettier --write .",
