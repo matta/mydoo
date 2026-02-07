@@ -1,8 +1,10 @@
 use crate::domain::constants::{
-    CREDITS_HALF_LIFE_MILLIS, DEFAULT_CREDIT_INCREMENT, FEEDBACK_DEVIATION_RATIO_CAP,
-    FEEDBACK_EPSILON, FEEDBACK_SENSITIVITY, MIN_PRIORITY,
+    CREDITS_HALF_LIFE_MILLIS, DEFAULT_CREDIT_INCREMENT, FEEDBACK_EPSILON, FEEDBACK_SENSITIVITY,
+    MIN_PRIORITY,
 };
-use crate::domain::feedback::calculate_feedback_factors;
+use crate::domain::feedback::{
+    calculate_feedback_factors, compute_feedback_metrics, compute_feedback_totals,
+};
 use crate::domain::readiness::calculate_lead_time_factor;
 use crate::domain::visibility::{calculate_contextual_visibility, resolve_contextual_visibility};
 use crate::types::{
@@ -480,17 +482,19 @@ fn has_pending_descendants(
     children_index: &ChildrenLookup,
     tasks: &[EnrichedTask],
 ) -> bool {
-    let child_indices = match children_index.get(&Some(tasks[task_idx].id.clone())) {
-        Some(indices) => indices,
-        None => return false,
-    };
+    let mut to_visit: Vec<usize> = Vec::new();
+    if let Some(indices) = children_index.get(&Some(tasks[task_idx].id.clone())) {
+        to_visit.extend(indices.iter().copied());
+    } else {
+        return false;
+    }
 
-    for &child_idx in child_indices {
-        if tasks[child_idx].is_pending {
+    while let Some(current_idx) = to_visit.pop() {
+        if tasks[current_idx].is_pending {
             return true;
         }
-        if has_pending_descendants(child_idx, children_index, tasks) {
-            return true;
+        if let Some(grandchild_indices) = children_index.get(&Some(tasks[current_idx].id.clone())) {
+            to_visit.extend(grandchild_indices.iter().copied());
         }
     }
 
@@ -599,53 +603,19 @@ fn build_importance_chain(
 fn build_feedback_trace(root_idx: usize, tasks: &[EnrichedTask]) -> FeedbackTrace {
     let root = &tasks[root_idx];
 
-    let root_indices: Vec<usize> = tasks
-        .iter()
-        .enumerate()
-        .filter(|(_, task)| task.parent_id.is_none())
-        .map(|(idx, _)| idx)
-        .collect();
-
-    let total_desired_credits: f64 = root_indices
-        .iter()
-        .map(|&idx| tasks[idx].desired_credits)
-        .sum();
-    let total_effective_credits: f64 = root_indices
-        .iter()
-        .map(|&idx| tasks[idx].effective_credits)
-        .sum();
-
-    let target_percent = if total_desired_credits == 0.0 {
-        0.0
-    } else {
-        root.desired_credits / total_desired_credits
-    };
-
-    let effective_denominator =
-        total_effective_credits.max(FEEDBACK_EPSILON * total_desired_credits);
-    let actual_percent = if effective_denominator == 0.0 {
-        0.0
-    } else {
-        root.effective_credits / effective_denominator
-    };
-
-    let deviation_ratio = if target_percent == 0.0 {
-        1.0
-    } else {
-        target_percent / actual_percent.max(FEEDBACK_EPSILON)
-    };
-    let capped_deviation_ratio = deviation_ratio.min(FEEDBACK_DEVIATION_RATIO_CAP);
+    let totals = compute_feedback_totals(tasks);
+    let computation = compute_feedback_metrics(root, totals);
 
     FeedbackTrace {
         root_id: root.id.clone(),
         root_title: root.title.clone(),
         desired_credits: root.desired_credits,
         effective_credits: root.effective_credits,
-        total_desired_credits,
-        total_effective_credits,
-        target_percent,
-        actual_percent,
-        deviation_ratio: capped_deviation_ratio,
+        total_desired_credits: totals.total_desired_credits,
+        total_effective_credits: totals.total_effective_credits,
+        target_percent: computation.target_percent,
+        actual_percent: computation.actual_percent,
+        deviation_ratio: computation.deviation_ratio,
         sensitivity: FEEDBACK_SENSITIVITY,
         epsilon: FEEDBACK_EPSILON,
         feedback_factor: root.feedback_factor,
