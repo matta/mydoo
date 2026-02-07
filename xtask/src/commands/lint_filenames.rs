@@ -30,7 +30,6 @@ pub(crate) fn lint_filenames() -> Result<()> {
         anyhow::bail!("Found {} files with naming errors.", error_count);
     }
 
-    println!("Filename linting passed.");
     Ok(())
 }
 

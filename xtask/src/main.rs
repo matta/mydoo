@@ -5,7 +5,7 @@ use clap::{Parser, Subcommand};
 
 use commands::{
     check_biome_schema::check_biome_schema, check_catalog::check_catalog,
-    lint_context::lint_context, lint_filenames::lint_filenames,
+    lint_context::lint_context, lint_dark_mode::lint_dark_mode, lint_filenames::lint_filenames,
 };
 
 #[derive(Parser)]
@@ -26,6 +26,8 @@ enum Commands {
     LintFilenames,
     /// Lint context directory for unauthorized files
     LintContext,
+    /// Check for dark mode violations in UI components
+    LintDarkMode,
     /// Run all checks
     CheckAll,
 }
@@ -38,11 +40,13 @@ fn main() -> Result<()> {
         Commands::CheckBiomeSchema => check_biome_schema()?,
         Commands::LintFilenames => lint_filenames()?,
         Commands::LintContext => lint_context()?,
+        Commands::LintDarkMode => lint_dark_mode()?,
         Commands::CheckAll => {
             check_catalog()?;
             check_biome_schema()?;
             lint_filenames()?;
             lint_context()?;
+            lint_dark_mode()?;
         }
     }
 

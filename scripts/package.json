@@ -10,7 +10,6 @@
     "vitest": "catalog:"
   },
   "scripts": {
-    "check-dark-mode": "tsx lint-dark-mode.ts",
     "check-format": "prettier --check .",
     "check-types": "tsc --noEmit",
     "fix-format": "prettier --write .",

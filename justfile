@@ -67,7 +67,7 @@ check-format:
 
 # Check for dark mode violations in UI components
 check-dark-mode:
-    pnpm tsx scripts/lint-dark-mode.ts
+    cargo xtask lint-dark-mode
 
 
 
