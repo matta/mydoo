@@ -31,6 +31,7 @@ pub mod slider;
 pub mod task_editor;
 pub mod task_input;
 pub mod task_row;
+pub(crate) use back_button::BackButton;
 pub(crate) use date_picker::DatePicker;
 pub(crate) use doc_id_manager::DocIdManager;
 pub use load_error_view::LoadErrorView;

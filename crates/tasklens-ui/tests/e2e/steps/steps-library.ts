@@ -196,6 +196,11 @@ export class Steps {
       await this.page.getByRole("button", { name: "Add Child" }).click();
     },
 
+    /** Opens the score trace view for a task from the Do list. */
+    opensScoreTraceForTask: async (title: string) => {
+      await this.plan.openScoreTrace(title);
+    },
+
     setDueDate: async (taskTitle: string, dateStr: string) => {
       await this.plan.openTaskEditor(taskTitle);
       await this.plan.setTaskDueDate(dateStr);
@@ -456,6 +461,21 @@ export class Steps {
 
     accessibilityIsClean: async () => {
       await assertAccessibility(this.page, this.testInfo);
+    },
+
+    /** Verifies the Do list shows a score label for a task. */
+    doTaskShowsScore: async (title: string) => {
+      await this.plan.verifyDoTaskHasScore(title);
+    },
+
+    /** Verifies the score trace breakdown is visible for a task. */
+    scoreTraceShowsBreakdown: async (title: string) => {
+      await this.plan.verifyScoreTraceBreakdown(title);
+    },
+
+    /** Verifies the lead time stage label in the score trace. */
+    scoreTraceShowsLeadTimeStage: async (stage: string) => {
+      await this.plan.verifyScoreTraceLeadTimeStage(stage);
     },
   };
 }

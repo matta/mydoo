@@ -2,6 +2,7 @@ use crate::components::app_navbar::AppNavBar;
 use crate::views::balance_page::BalancePage;
 use crate::views::do_page::DoPage;
 use crate::views::plan_page::PlanPage;
+use crate::views::score_trace_page::ScoreTracePage;
 use crate::views::task_page::TaskPage;
 use dioxus::prelude::*;
 use tasklens_core::types::TaskID;
@@ -21,6 +22,9 @@ pub(crate) enum Route {
 
     #[route("/do")]
     DoPage {},
+
+    #[route("/do/trace/:task_id")]
+    ScoreTracePage { task_id: TaskID },
 
     #[route("/balance")]
     BalancePage {},

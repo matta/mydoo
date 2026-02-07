@@ -877,6 +877,158 @@ pub struct ComputedTask {
     pub urgency_status: UrgencyStatus,
 }
 
+/// A full breakdown of how a task's score was computed.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ScoreTrace {
+    /// Task identifier for the trace.
+    pub task_id: TaskID,
+    /// Task title at the time of calculation.
+    pub task_title: String,
+    /// Final score used for sorting.
+    pub score: f64,
+    /// Timestamp when the score was computed (ms since epoch).
+    pub computed_at: i64,
+    /// Top-level factor breakdown used by the scoring formula.
+    pub factors: ScoreFactors,
+    /// Importance propagation details from root to the task.
+    pub importance_chain: Vec<ImportanceTrace>,
+    /// Root-level balance feedback details.
+    pub feedback: FeedbackTrace,
+    /// Lead time readiness details.
+    pub lead_time: LeadTimeTrace,
+    /// Contextual and delegation visibility details.
+    pub visibility: VisibilityTrace,
+}
+
+/// The multiplicative factors used by the score formula.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ScoreFactors {
+    /// 1.0 when visible, 0.0 when hidden.
+    pub visibility_factor: f64,
+    /// Normalized importance derived from the task hierarchy.
+    pub normalized_importance: f64,
+    /// Root balance feedback factor.
+    pub feedback_factor: f64,
+    /// Lead time ramp factor.
+    pub lead_time_factor: f64,
+}
+
+/// A single step in the importance propagation chain.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportanceTrace {
+    /// Task identifier for this chain entry.
+    pub task_id: TaskID,
+    /// Task title for this chain entry.
+    pub task_title: String,
+    /// Raw importance value on the task.
+    pub importance: f64,
+    /// Sum of pending sibling importance values (if applicable).
+    pub sibling_importance_sum: Option<f64>,
+    /// Parent normalized importance (if applicable).
+    pub parent_normalized_importance: Option<f64>,
+    /// Normalized importance assigned to this task.
+    pub normalized_importance: f64,
+    /// Whether this task was blocked by sequential ordering.
+    pub sequential_blocked: bool,
+}
+
+/// Root balance feedback calculation details.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct FeedbackTrace {
+    /// Root task identifier used for feedback.
+    pub root_id: TaskID,
+    /// Root task title.
+    pub root_title: String,
+    /// Root desired credits.
+    pub desired_credits: f64,
+    /// Root effective credits after decay and aggregation.
+    pub effective_credits: f64,
+    /// Total desired credits across roots.
+    pub total_desired_credits: f64,
+    /// Total effective credits across roots.
+    pub total_effective_credits: f64,
+    /// Target percentage of desired credits.
+    pub target_percent: f64,
+    /// Actual percentage of effective credits.
+    pub actual_percent: f64,
+    /// Deviation ratio used for the feedback factor (after capping).
+    pub deviation_ratio: f64,
+    /// Sensitivity value used in the power calculation.
+    pub sensitivity: f64,
+    /// Epsilon used to protect against division by zero.
+    pub epsilon: f64,
+    /// Final feedback factor applied to the score.
+    pub feedback_factor: f64,
+}
+
+/// The stage of the lead time ramp used for readiness.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum LeadTimeStage {
+    /// The task is too early to be surfaced.
+    TooEarly,
+    /// The task is in the ramp-up window.
+    Ramping,
+    /// The task is ready (fully ramped).
+    Ready,
+    /// The task is past due.
+    Overdue,
+}
+
+/// Lead time details used to compute readiness.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct LeadTimeTrace {
+    /// Effective due date after inheritance (ms since epoch).
+    pub effective_due_date: Option<i64>,
+    /// Effective lead time in milliseconds.
+    pub effective_lead_time: i64,
+    /// Remaining time until due date (ms), if applicable.
+    pub time_remaining: Option<i64>,
+    /// Lead time stage used for the ramp calculation.
+    pub stage: LeadTimeStage,
+    /// Final lead time factor used in the score.
+    pub factor: f64,
+    /// Where the effective schedule was inherited from.
+    pub schedule_source: Option<ScheduleSource>,
+}
+
+/// Contextual visibility inputs that gate the score.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ContextualVisibilityTrace {
+    /// Effective place id used for contextual checks.
+    pub effective_place_id: PlaceID,
+    /// Whether the place is currently open.
+    pub is_open: bool,
+    /// Whether the task matches the active place filter.
+    pub filter_match: bool,
+    /// Whether the task is already acknowledged.
+    pub is_acknowledged: bool,
+    /// Final contextual visibility result.
+    pub passed: bool,
+    /// Raw view filter place id (if any).
+    pub view_filter_place_id: Option<String>,
+}
+
+/// Visibility details including delegation logic.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct VisibilityTrace {
+    /// Contextual visibility gate results.
+    pub contextual: ContextualVisibilityTrace,
+    /// Whether the task has pending descendants.
+    pub has_pending_descendants: bool,
+    /// Whether visibility was delegated to descendants.
+    pub delegated_to_descendants: bool,
+    /// Final visibility value used in scoring.
+    pub final_visibility: bool,
+}
+
 /// Runtime context for algorithm calculations.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[serde(rename_all = "camelCase")]

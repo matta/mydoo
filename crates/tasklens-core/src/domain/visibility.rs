@@ -1,8 +1,61 @@
 use crate::types::{
-    ANYWHERE_PLACE_ID, EnrichedTask, OpenHours, OpenHoursMode, Place, PlaceID, TunnelState,
-    ViewFilter,
+    ANYWHERE_PLACE_ID, ContextualVisibilityTrace, EnrichedTask, OpenHours, OpenHoursMode, Place,
+    PlaceID, TunnelState, ViewFilter,
 };
 use chrono::{DateTime, Datelike, Timelike};
+
+/// Resolves contextual visibility inputs for a task without applying delegation logic.
+pub fn resolve_contextual_visibility(
+    doc: &TunnelState,
+    task: &EnrichedTask,
+    view_filter: &ViewFilter,
+    current_time: i64,
+) -> ContextualVisibilityTrace {
+    // 1. Resolve Effective Place
+    let effective_place_id = task
+        .place_id
+        .clone()
+        .unwrap_or_else(|| PlaceID::from(ANYWHERE_PLACE_ID));
+
+    let effective_place = doc.places.get(&effective_place_id);
+
+    // 2. Hours Check (IsOpen)
+    let is_open = if effective_place_id.as_str() == ANYWHERE_PLACE_ID {
+        true
+    } else if let Some(place) = effective_place {
+        is_place_open(place, current_time)
+    } else {
+        false
+    };
+
+    // 3. Place Match
+    let filter_match = match &view_filter.place_id {
+        None => true, // Default to All
+        Some(p) if p == "All" => true,
+        Some(_) if effective_place_id.as_str() == ANYWHERE_PLACE_ID => true,
+        Some(p) if p == effective_place_id.as_str() => true,
+        Some(p) => {
+            // Check if the task's place is included in the filter's place
+            let filter_place_id = PlaceID::from(p.clone());
+            if let Some(filter_place) = doc.places.get(&filter_place_id) {
+                filter_place.included_places.contains(&effective_place_id)
+            } else {
+                false
+            }
+        }
+    };
+
+    let passed = is_open && filter_match && !task.is_acknowledged;
+
+    ContextualVisibilityTrace {
+        effective_place_id,
+        is_open,
+        filter_match,
+        is_acknowledged: task.is_acknowledged,
+        passed,
+        view_filter_place_id: view_filter.place_id.clone(),
+    }
+}
 
 /// Calculates the contextual visibility for a list of tasks.
 ///
@@ -15,44 +68,10 @@ pub fn calculate_contextual_visibility(
     current_time: i64,
 ) {
     for task in tasks {
-        // 1. Resolve Effective Place
-        let effective_place_id = task
-            .place_id
-            .clone()
-            .unwrap_or_else(|| PlaceID::from(ANYWHERE_PLACE_ID));
-
+        let trace = resolve_contextual_visibility(doc, task, view_filter, current_time);
         // Write back the resolved place (matching TS behavior)
-        task.place_id = Some(effective_place_id.clone());
-
-        let effective_place = doc.places.get(&effective_place_id);
-
-        // 2. Hours Check (IsOpen)
-        let is_open = if effective_place_id.as_str() == ANYWHERE_PLACE_ID {
-            true
-        } else if let Some(place) = effective_place {
-            is_place_open(place, current_time)
-        } else {
-            false
-        };
-
-        // 3. Place Match
-        let filter_match = match &view_filter.place_id {
-            None => true, // Default to All
-            Some(p) if p == "All" => true,
-            Some(_) if effective_place_id.as_str() == ANYWHERE_PLACE_ID => true,
-            Some(p) if p == effective_place_id.as_str() => true,
-            Some(p) => {
-                // Check if the task's place is included in the filter's place
-                let filter_place_id = PlaceID::from(p.clone());
-                if let Some(filter_place) = doc.places.get(&filter_place_id) {
-                    filter_place.included_places.contains(&effective_place_id)
-                } else {
-                    false
-                }
-            }
-        };
-
-        task.visibility = is_open && filter_match && !task.is_acknowledged;
+        task.place_id = Some(trace.effective_place_id.clone());
+        task.visibility = trace.passed;
     }
 }
 

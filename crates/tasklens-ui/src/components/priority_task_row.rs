@@ -1,4 +1,5 @@
 use crate::components::checkbox::Checkbox;
+use crate::router::Route;
 use dioxus::prelude::*;
 use tasklens_core::types::{ComputedTask, TaskID, TaskStatus, UrgencyStatus};
 
@@ -27,6 +28,7 @@ pub fn PriorityTaskRow(
         UrgencyStatus::Upcoming => "Upcoming",
         UrgencyStatus::None => "",
     };
+    let score_label = format!("{:.3}", task.score);
 
     rsx! {
         div {
@@ -47,6 +49,15 @@ pub fn PriorityTaskRow(
                 "data-testid": "task-title",
                 onclick: move |_| on_title_tap.call(task_id_tap.clone()),
                 "{task.title}"
+            }
+
+            Link {
+                class: "text-xs text-base-content/50 hover:text-base-content/80",
+                to: Route::ScoreTracePage {
+                    task_id: task.id.clone(),
+                },
+                "data-testid": "task-score",
+                "Score {score_label}"
             }
 
             if !is_done && !urgency_label.is_empty() {

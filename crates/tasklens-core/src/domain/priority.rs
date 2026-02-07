@@ -1,10 +1,14 @@
-use crate::domain::constants::{CREDITS_HALF_LIFE_MILLIS, DEFAULT_CREDIT_INCREMENT, MIN_PRIORITY};
+use crate::domain::constants::{
+    CREDITS_HALF_LIFE_MILLIS, DEFAULT_CREDIT_INCREMENT, FEEDBACK_DEVIATION_RATIO_CAP,
+    FEEDBACK_EPSILON, FEEDBACK_SENSITIVITY, MIN_PRIORITY,
+};
 use crate::domain::feedback::calculate_feedback_factors;
 use crate::domain::readiness::calculate_lead_time_factor;
-use crate::domain::visibility::calculate_contextual_visibility;
+use crate::domain::visibility::{calculate_contextual_visibility, resolve_contextual_visibility};
 use crate::types::{
-    ComputedTask, Context, EnrichedTask, PersistedTask, PriorityMode, PriorityOptions,
-    ScheduleSource, ScheduleType, TaskID, TaskStatus, TunnelState, ViewFilter,
+    ComputedTask, Context, EnrichedTask, FeedbackTrace, ImportanceTrace, LeadTimeStage,
+    LeadTimeTrace, PersistedTask, PriorityMode, PriorityOptions, ScheduleSource, ScheduleType,
+    ScoreFactors, ScoreTrace, TaskID, TaskStatus, TunnelState, ViewFilter, VisibilityTrace,
 };
 use crate::utils::time::{get_current_timestamp, get_interval_ms};
 
@@ -14,6 +18,18 @@ type TaskLookup = HashMap<TaskID, usize>;
 type ChildrenLookup = HashMap<Option<TaskID>, Vec<usize>>;
 
 const PRIORITY_EPSILON: f64 = 0.000001;
+
+/// Computed priority context for trace and list rendering.
+struct PriorityContext {
+    /// Enriched tasks with computed priority fields.
+    tasks: Vec<EnrichedTask>,
+    /// Lookup from task id to task index.
+    task_lookup: TaskLookup,
+    /// Parent -> children index for traversal.
+    children_index: ChildrenLookup,
+    /// Timestamp used for the calculation.
+    current_time: i64,
+}
 
 /// Builds lookup indexes for tasks and sorts children based on explicit order logic.
 fn build_indexes(
@@ -211,10 +227,26 @@ pub fn recalculate_priorities(
     let current_time = context
         .map(|c| c.current_time)
         .unwrap_or_else(get_current_timestamp);
-
-    // --- Phase 0: Build Indexes & Outline Order ---
     let (_, children_index) = build_indexes(state, enriched_tasks);
-    assign_outline_indexes(enriched_tasks, &children_index);
+    recalculate_priorities_with_time(
+        state,
+        enriched_tasks,
+        view_filter,
+        current_time,
+        &children_index,
+    );
+}
+
+/// Runs the prioritization algorithm using an explicit timestamp.
+fn recalculate_priorities_with_time(
+    state: &TunnelState,
+    enriched_tasks: &mut [EnrichedTask],
+    view_filter: &ViewFilter,
+    current_time: i64,
+    children_index: &ChildrenLookup,
+) {
+    // --- Phase 0: Outline Order ---
+    assign_outline_indexes(enriched_tasks, children_index);
     let root_indices = children_index.get(&None).cloned().unwrap_or_default();
 
     // --- Phase 1: Linear Local Computation ---
@@ -239,7 +271,7 @@ pub fn recalculate_priorities(
     }
 
     for &idx in &root_indices {
-        aggregate_effective_credits(idx, enriched_tasks, &children_index);
+        aggregate_effective_credits(idx, enriched_tasks, children_index);
     }
 
     calculate_feedback_factors(enriched_tasks);
@@ -254,7 +286,37 @@ pub fn recalculate_priorities(
             enriched_tasks[idx].credit_increment = Some(DEFAULT_CREDIT_INCREMENT);
         }
 
-        evaluate_task_recursive(idx, None, enriched_tasks, &children_index, current_time);
+        evaluate_task_recursive(idx, None, enriched_tasks, children_index, current_time);
+    }
+}
+
+/// Builds the enriched task context used for scoring and tracing.
+fn build_priority_context(
+    state: &TunnelState,
+    view_filter: &ViewFilter,
+    options: &PriorityOptions,
+) -> PriorityContext {
+    let mut tasks: Vec<EnrichedTask> = state.tasks.values().map(hydrate_task).collect();
+    let current_time = options
+        .context
+        .as_ref()
+        .map(|c| c.current_time)
+        .unwrap_or_else(get_current_timestamp);
+
+    let (task_lookup, children_index) = build_indexes(state, &tasks);
+    recalculate_priorities_with_time(
+        state,
+        &mut tasks,
+        view_filter,
+        current_time,
+        &children_index,
+    );
+
+    PriorityContext {
+        tasks,
+        task_lookup,
+        children_index,
+        current_time,
     }
 }
 
@@ -399,6 +461,250 @@ fn process_children(
     }
 }
 
+/// Finds the root index for a task by walking up its parent chain.
+fn find_root_index(task_idx: usize, tasks: &[EnrichedTask], task_lookup: &TaskLookup) -> usize {
+    let mut current_idx = task_idx;
+    while let Some(parent_id) = &tasks[current_idx].parent_id {
+        if let Some(parent_idx) = task_lookup.get(parent_id) {
+            current_idx = *parent_idx;
+        } else {
+            break;
+        }
+    }
+    current_idx
+}
+
+/// Computes whether a task has any pending descendants.
+fn has_pending_descendants(
+    task_idx: usize,
+    children_index: &ChildrenLookup,
+    tasks: &[EnrichedTask],
+) -> bool {
+    let child_indices = match children_index.get(&Some(tasks[task_idx].id.clone())) {
+        Some(indices) => indices,
+        None => return false,
+    };
+
+    for &child_idx in child_indices {
+        if tasks[child_idx].is_pending {
+            return true;
+        }
+        if has_pending_descendants(child_idx, children_index, tasks) {
+            return true;
+        }
+    }
+
+    false
+}
+
+/// Builds a map of tasks blocked by sequential ordering.
+fn build_sequential_blocked_map(
+    children_index: &ChildrenLookup,
+    tasks: &[EnrichedTask],
+    task_lookup: &TaskLookup,
+) -> HashMap<TaskID, bool> {
+    let mut blocked: HashMap<TaskID, bool> = HashMap::new();
+
+    for (parent_id, child_indices) in children_index {
+        let parent_id = match parent_id {
+            Some(id) => id,
+            None => continue,
+        };
+        let parent_idx = match task_lookup.get(parent_id) {
+            Some(idx) => *idx,
+            None => continue,
+        };
+
+        if !tasks[parent_idx].is_sequential {
+            continue;
+        }
+
+        let mut has_active_child = false;
+        for &child_idx in child_indices {
+            if tasks[child_idx].status == TaskStatus::Pending {
+                if has_active_child {
+                    blocked.insert(tasks[child_idx].id.clone(), true);
+                } else {
+                    has_active_child = true;
+                }
+            }
+        }
+    }
+
+    blocked
+}
+
+/// Builds the importance propagation chain from root to the task.
+fn build_importance_chain(
+    task_idx: usize,
+    tasks: &[EnrichedTask],
+    children_index: &ChildrenLookup,
+    task_lookup: &TaskLookup,
+    sequential_blocked: &HashMap<TaskID, bool>,
+) -> Vec<ImportanceTrace> {
+    let mut lineage: Vec<usize> = Vec::new();
+    let mut current_idx = Some(task_idx);
+
+    while let Some(idx) = current_idx {
+        lineage.push(idx);
+        current_idx = tasks[idx]
+            .parent_id
+            .as_ref()
+            .and_then(|pid| task_lookup.get(pid).copied());
+    }
+
+    lineage.reverse();
+
+    lineage
+        .into_iter()
+        .map(|idx| {
+            let parent_idx = tasks[idx]
+                .parent_id
+                .as_ref()
+                .and_then(|pid| task_lookup.get(pid).copied());
+
+            let sibling_importance_sum = parent_idx.and_then(|pidx| {
+                let parent_id = tasks[pidx].id.clone();
+                children_index.get(&Some(parent_id)).map(|sibling_indices| {
+                    sibling_indices
+                        .iter()
+                        .filter(|&sibling_idx| tasks[*sibling_idx].is_pending)
+                        .map(|&sibling_idx| tasks[sibling_idx].importance)
+                        .sum()
+                })
+            });
+
+            let parent_normalized_importance =
+                parent_idx.map(|pidx| tasks[pidx].normalized_importance);
+
+            let is_blocked = sequential_blocked
+                .get(&tasks[idx].id)
+                .copied()
+                .unwrap_or(false);
+
+            ImportanceTrace {
+                task_id: tasks[idx].id.clone(),
+                task_title: tasks[idx].title.clone(),
+                importance: tasks[idx].importance,
+                sibling_importance_sum,
+                parent_normalized_importance,
+                normalized_importance: tasks[idx].normalized_importance,
+                sequential_blocked: is_blocked,
+            }
+        })
+        .collect()
+}
+
+/// Builds the feedback trace for the provided root task.
+fn build_feedback_trace(root_idx: usize, tasks: &[EnrichedTask]) -> FeedbackTrace {
+    let root = &tasks[root_idx];
+
+    let root_indices: Vec<usize> = tasks
+        .iter()
+        .enumerate()
+        .filter(|(_, task)| task.parent_id.is_none())
+        .map(|(idx, _)| idx)
+        .collect();
+
+    let total_desired_credits: f64 = root_indices
+        .iter()
+        .map(|&idx| tasks[idx].desired_credits)
+        .sum();
+    let total_effective_credits: f64 = root_indices
+        .iter()
+        .map(|&idx| tasks[idx].effective_credits)
+        .sum();
+
+    let target_percent = if total_desired_credits == 0.0 {
+        0.0
+    } else {
+        root.desired_credits / total_desired_credits
+    };
+
+    let effective_denominator =
+        total_effective_credits.max(FEEDBACK_EPSILON * total_desired_credits);
+    let actual_percent = if effective_denominator == 0.0 {
+        0.0
+    } else {
+        root.effective_credits / effective_denominator
+    };
+
+    let deviation_ratio = if target_percent == 0.0 {
+        1.0
+    } else {
+        target_percent / actual_percent.max(FEEDBACK_EPSILON)
+    };
+    let capped_deviation_ratio = deviation_ratio.min(FEEDBACK_DEVIATION_RATIO_CAP);
+
+    FeedbackTrace {
+        root_id: root.id.clone(),
+        root_title: root.title.clone(),
+        desired_credits: root.desired_credits,
+        effective_credits: root.effective_credits,
+        total_desired_credits,
+        total_effective_credits,
+        target_percent,
+        actual_percent,
+        deviation_ratio: capped_deviation_ratio,
+        sensitivity: FEEDBACK_SENSITIVITY,
+        epsilon: FEEDBACK_EPSILON,
+        feedback_factor: root.feedback_factor,
+    }
+}
+
+/// Builds lead time trace details for a task.
+fn build_lead_time_trace(task: &EnrichedTask, current_time: i64) -> LeadTimeTrace {
+    let effective_due_date = task.effective_due_date;
+    let effective_lead_time = task.effective_lead_time.unwrap_or(task.schedule.lead_time);
+
+    let (stage, time_remaining) = match effective_due_date {
+        None => (LeadTimeStage::Ready, None),
+        Some(due_date) => {
+            if due_date <= current_time {
+                (LeadTimeStage::Overdue, Some(due_date - current_time))
+            } else {
+                let remaining = due_date - current_time;
+                if remaining > 2 * effective_lead_time {
+                    (LeadTimeStage::TooEarly, Some(remaining))
+                } else if remaining > effective_lead_time {
+                    (LeadTimeStage::Ramping, Some(remaining))
+                } else {
+                    (LeadTimeStage::Ready, Some(remaining))
+                }
+            }
+        }
+    };
+
+    LeadTimeTrace {
+        effective_due_date,
+        effective_lead_time,
+        time_remaining,
+        stage,
+        factor: task.lead_time_factor,
+        schedule_source: task.effective_schedule_source,
+    }
+}
+
+/// Builds visibility trace details for a task.
+fn build_visibility_trace(
+    state: &TunnelState,
+    task_idx: usize,
+    context: &PriorityContext,
+    view_filter: &ViewFilter,
+) -> VisibilityTrace {
+    let task = &context.tasks[task_idx];
+    let contextual = resolve_contextual_visibility(state, task, view_filter, context.current_time);
+    let has_pending_descendants =
+        has_pending_descendants(task_idx, &context.children_index, &context.tasks);
+
+    VisibilityTrace {
+        contextual,
+        has_pending_descendants,
+        delegated_to_descendants: has_pending_descendants,
+        final_visibility: task.visibility,
+    }
+}
+
 /// Derives the "Projected State" for the View Layer.
 pub fn get_prioritized_tasks(
     state: &TunnelState,
@@ -406,19 +712,11 @@ pub fn get_prioritized_tasks(
     options: &PriorityOptions,
 ) -> Vec<ComputedTask> {
     // --- Stage 1: Hydrate & Initialize ---
-    let mut enriched_tasks: Vec<EnrichedTask> = state.tasks.values().map(hydrate_task).collect();
-
-    // --- Stage 2: Core Algorithm ---
-    recalculate_priorities(
-        state,
-        &mut enriched_tasks,
-        view_filter,
-        options.context.as_ref(),
-    );
+    let PriorityContext { mut tasks, .. } = build_priority_context(state, view_filter, options);
 
     // --- Stage 3: Sorting ---
     // Sort by: Priority (desc) -> Importance (desc) -> Outline Index (asc)
-    enriched_tasks.sort_by(|a, b| {
+    tasks.sort_by(|a, b| {
         if (a.priority - b.priority).abs() > PRIORITY_EPSILON {
             b.priority.partial_cmp(&a.priority).unwrap()
         } else if (a.importance - b.importance).abs() > f64::EPSILON {
@@ -429,7 +727,7 @@ pub fn get_prioritized_tasks(
         }
     });
 
-    enriched_tasks
+    tasks
         .into_iter()
         .filter(|t| {
             // Visibility Check
@@ -504,4 +802,128 @@ pub fn get_prioritized_tasks(
             }
         })
         .collect()
+}
+
+/// Computes a detailed score trace for a single task.
+///
+/// This reuses the core priority pipeline so the trace stays in lockstep with
+/// the actual scoring behavior (no separate trace math).
+pub fn get_score_trace(
+    state: &TunnelState,
+    view_filter: &ViewFilter,
+    options: &PriorityOptions,
+    task_id: &TaskID,
+) -> Option<ScoreTrace> {
+    let context = build_priority_context(state, view_filter, options);
+    let task_idx = context.task_lookup.get(task_id).copied()?;
+    let root_idx = find_root_index(task_idx, &context.tasks, &context.task_lookup);
+
+    let sequential_blocked = build_sequential_blocked_map(
+        &context.children_index,
+        &context.tasks,
+        &context.task_lookup,
+    );
+    let importance_chain = build_importance_chain(
+        task_idx,
+        &context.tasks,
+        &context.children_index,
+        &context.task_lookup,
+        &sequential_blocked,
+    );
+
+    let feedback = build_feedback_trace(root_idx, &context.tasks);
+    let lead_time = build_lead_time_trace(&context.tasks[task_idx], context.current_time);
+    let visibility = build_visibility_trace(state, task_idx, &context, view_filter);
+
+    let task = &context.tasks[task_idx];
+    let root = &context.tasks[root_idx];
+    let factors = ScoreFactors {
+        visibility_factor: if task.visibility { 1.0 } else { 0.0 },
+        normalized_importance: task.normalized_importance,
+        feedback_factor: root.feedback_factor,
+        lead_time_factor: task.lead_time_factor,
+    };
+
+    Some(ScoreTrace {
+        task_id: task.id.clone(),
+        task_title: task.title.clone(),
+        score: task.priority,
+        computed_at: context.current_time,
+        factors,
+        importance_chain,
+        feedback,
+        lead_time,
+        visibility,
+    })
+}
+
+#[cfg(test)]
+mod score_trace_tests {
+    use super::*;
+    use crate::types::{Schedule, ScheduleType};
+    use std::collections::HashMap;
+
+    #[test]
+    fn score_trace_matches_factor_product() {
+        let task_id = TaskID::from("root");
+        let task = PersistedTask {
+            id: task_id.clone(),
+            title: "Root".to_string(),
+            notes: String::new(),
+            parent_id: None,
+            child_task_ids: vec![],
+            place_id: None,
+            status: TaskStatus::Pending,
+            importance: 1.0,
+            credit_increment: None,
+            credits: 10.0,
+            desired_credits: 10.0,
+            credits_timestamp: 0,
+            priority_timestamp: 0,
+            schedule: Schedule {
+                schedule_type: ScheduleType::Once,
+                due_date: None,
+                lead_time: 0,
+                last_done: None,
+            },
+            repeat_config: None,
+            is_sequential: false,
+            is_acknowledged: false,
+            last_completed_at: None,
+        };
+
+        let mut tasks = HashMap::new();
+        tasks.insert(task_id.clone(), task);
+
+        let state = TunnelState {
+            tasks,
+            root_task_ids: vec![task_id.clone()],
+            ..Default::default()
+        };
+
+        let view_filter = ViewFilter {
+            place_id: Some("All".to_string()),
+        };
+        let options = PriorityOptions {
+            include_hidden: true,
+            mode: Some(PriorityMode::DoList),
+            context: Some(Context {
+                current_place_id: None,
+                current_time: 0,
+            }),
+        };
+
+        let trace =
+            get_score_trace(&state, &view_filter, &options, &task_id).expect("trace missing");
+
+        let product = trace.factors.visibility_factor
+            * trace.factors.normalized_importance
+            * trace.factors.feedback_factor
+            * trace.factors.lead_time_factor;
+
+        assert!((trace.score - product).abs() < 1e-9);
+        assert_eq!(trace.importance_chain.len(), 1);
+        assert_eq!(trace.lead_time.stage, LeadTimeStage::Ready);
+        assert!(trace.visibility.final_visibility);
+    }
 }
