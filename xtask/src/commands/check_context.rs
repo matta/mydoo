@@ -47,7 +47,7 @@ pub(crate) fn check_context() -> Result<()> {
         if !is_whitelisted_file && !is_whitelisted_prefix {
             eprintln!("❌ ERROR: Untrusted file in context: {}", file);
             eprintln!(
-                "   If this file is intentional, add it to the whitelist in xtask/src/commands/lint_context.rs"
+                "   If this file is intentional, add it to the whitelist in xtask/src/commands/check_context.rs"
             );
             error_count += 1;
         }
