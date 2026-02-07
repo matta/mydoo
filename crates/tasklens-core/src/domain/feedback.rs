@@ -32,9 +32,10 @@ pub fn compute_feedback_totals(tasks: &[EnrichedTask]) -> FeedbackTotals {
             total_desired_credits: 0.0,
             total_effective_credits: 0.0,
         },
-        |acc, task| FeedbackTotals {
-            total_desired_credits: acc.total_desired_credits + task.desired_credits,
-            total_effective_credits: acc.total_effective_credits + task.effective_credits,
+        |mut acc, task| {
+            acc.total_desired_credits += task.desired_credits;
+            acc.total_effective_credits += task.effective_credits;
+            acc
         },
     )
 }
