@@ -194,11 +194,10 @@
         document.getElementById("__dx-toast-text").innerText = headerText;
         document.getElementById("__dx-toast-msg").innerText = message;
         document.getElementById("__dx-toast-inner").style.right = "0";
-        document.getElementById("__dx-toast").style.display = "";
-        document.getElementById("__dx-toast").removeAttribute("aria-hidden");
-        document
-          .getElementById("__dx-toast")
-          .addEventListener("click", closeDXToast);
+        const toastEl = document.getElementById("__dx-toast");
+        toastEl.style.display = "";
+        toastEl.removeAttribute("aria-hidden");
+        toastEl.addEventListener("click", closeDXToast);
 
         // Wait a bit of time so animation plays correctly.
         setTimeout(() => {
@@ -229,10 +228,10 @@
       // Close the current toast.
       function closeDXToast() {
         document.getElementById("__dx-toast-inner").style.right = "-1000px";
-        document.getElementById("__dx-toast").style.display = "none";
-        document
-          .getElementById("__dx-toast")
-          .setAttribute("aria-hidden", "true");
+        const toastEl = document.getElementById("__dx-toast");
+        toastEl.style.display = "none";
+        toastEl.setAttribute("aria-hidden", "true");
+
         clearTimeout(currentTimeout);
       }
 
