@@ -1,7 +1,0 @@
-{
-  "last_failure": "2026-02-08T12:51:26.439026-08:00",
-  "failure_count": 1,
-  "backoff_until": "2026-02-08T12:51:56.439026-08:00",
-  "needs_manual_sync": false,
-  "failure_reason": "git pull failed in worktree: exit status 128\nFrom https://github.com/matta/mydoo\n * branch            beads-sync -\u003e FETCH_HEAD\nfatal: Cannot fast-forward to multiple branches.\n"
-}
