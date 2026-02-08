@@ -25,7 +25,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "1. Initial Balanced State",
+          "description": "1. Initial Balanced State",
           "then": {
             "expected_order": [
               "Steady",
@@ -58,7 +58,7 @@
               }
             }
           ],
-          "legacy_description": "2. Make Task B Urgent",
+          "description": "2. Make Task B Urgent",
           "then": {
             "expected_order": [
               "Rushing",

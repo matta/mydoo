@@ -83,7 +83,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "Verify Ramp Boundaries and Capping",
+          "description": "Verify Ramp Boundaries and Capping",
           "then": {
             "expected_order": [
               "Standard",

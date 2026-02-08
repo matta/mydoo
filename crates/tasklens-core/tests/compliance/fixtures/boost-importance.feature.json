@@ -21,7 +21,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "1. Verify High Importance > Low Importance",
+          "description": "1. Verify High Importance > Low Importance",
           "then": {
             "expected_order": [
               "Major",

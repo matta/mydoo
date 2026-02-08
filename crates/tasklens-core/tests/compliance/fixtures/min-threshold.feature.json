@@ -29,7 +29,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "Check Filter",
+          "description": "Check Filter",
           "then": {
             "expected_order": [
               "BigSibling"

@@ -34,7 +34,7 @@
       "name": "Rename a Place",
       "steps": [
         {
-          "legacy_description": "Initial state: Office exists",
+          "description": "Initial state: Office exists",
           "then": {
             "expected_places": [
               {
@@ -53,7 +53,7 @@
               }
             }
           ],
-          "legacy_description": "Rename Office to Main Office",
+          "description": "Rename Office to Main Office",
           "then": {
             "expected_places": [
               {
@@ -84,7 +84,7 @@
               }
             }
           ],
-          "legacy_description": "Set custom hours and add DeskA as included",
+          "description": "Set custom hours and add DeskA as included",
           "then": {
             "expected_places": [
               {
@@ -115,7 +115,7 @@
               }
             }
           ],
-          "legacy_description": "Only update name, hours should remain",
+          "description": "Only update name, hours should remain",
           "then": {
             "expected_places": [
               {

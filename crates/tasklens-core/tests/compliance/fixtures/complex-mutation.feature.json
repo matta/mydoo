@@ -25,7 +25,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "Step 1: Initial Balanced State",
+          "description": "Step 1: Initial Balanced State",
           "then": {
             "expected_order": [
               "Task"
@@ -44,7 +44,7 @@
               "increment_current_time": 604800
             }
           ],
-          "legacy_description": "Step 2: Advance Time (Decay)",
+          "description": "Step 2: Advance Time (Decay)",
           "then": {
             "expected_order": [
               "Task"
@@ -66,7 +66,7 @@
               }
             }
           ],
-          "legacy_description": "Step 3: Add Credits (Simulate Work)",
+          "description": "Step 3: Add Credits (Simulate Work)",
           "then": {
             "expected_order": [
               "Task"
