@@ -3,7 +3,9 @@
 //! This module provides [`create_new_task`] which initializes new tasks with
 //! correct defaults and inherited properties from parents (place, effort).
 
-use crate::domain::constants::{DEFAULT_CREDIT_INCREMENT, DEFAULT_LEAD_TIME_MILLIS};
+use crate::domain::constants::{
+    DEFAULT_CREDIT_INCREMENT, DEFAULT_IMPORTANCE, DEFAULT_LEAD_TIME_MILLIS,
+};
 use crate::types::{PersistedTask, Schedule, ScheduleType, TaskID, TaskStatus};
 
 /// Creates a new task with default values and inheritance from parent.
@@ -27,7 +29,7 @@ pub fn create_new_task(id: TaskID, title: String, parent: Option<&PersistedTask>
         child_task_ids: Vec::new(),
         place_id,
         status: TaskStatus::Pending,
-        importance: 0.5,
+        importance: DEFAULT_IMPORTANCE,
         credit_increment,
         credits: 0.0,
         desired_credits: 1.0,

@@ -925,8 +925,6 @@ pub struct ImportanceTrace {
     pub task_title: String,
     /// Raw importance value on the task.
     pub importance: f64,
-    /// Sum of pending sibling importance values (if applicable).
-    pub sibling_importance_sum: Option<f64>,
     /// Parent normalized importance (if applicable).
     pub parent_normalized_importance: Option<f64>,
     /// Normalized importance assigned to this task.

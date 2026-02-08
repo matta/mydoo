@@ -1,6 +1,6 @@
 use crate::domain::constants::{
-    CREDITS_HALF_LIFE_MILLIS, DEFAULT_CREDIT_INCREMENT, FEEDBACK_EPSILON, FEEDBACK_SENSITIVITY,
-    MIN_PRIORITY,
+    CREDITS_HALF_LIFE_MILLIS, DEFAULT_CREDIT_INCREMENT, DEFAULT_IMPORTANCE, FEEDBACK_EPSILON,
+    FEEDBACK_SENSITIVITY, MIN_PRIORITY,
 };
 use crate::domain::feedback::{
     calculate_feedback_factors, compute_feedback_metrics, compute_feedback_totals,
@@ -400,12 +400,6 @@ fn process_children(
         return;
     }
 
-    let sibling_importance_sum: f64 = child_indices
-        .iter()
-        .filter(|&i| enriched_tasks[*i].is_pending)
-        .map(|&i| enriched_tasks[i].importance)
-        .sum();
-
     let is_sequential = enriched_tasks[parent_idx].is_sequential;
     let parent_importance = enriched_tasks[parent_idx].normalized_importance;
     let parent_due_date = enriched_tasks[parent_idx].effective_due_date;
@@ -436,15 +430,8 @@ fn process_children(
                 enriched_tasks[child_idx].normalized_importance = parent_importance;
             }
         } else {
-            // Proportional Distribution
-            if sibling_importance_sum == 0.0 {
-                enriched_tasks[child_idx].normalized_importance =
-                    parent_importance / child_indices.len() as f64;
-            } else {
-                enriched_tasks[child_idx].normalized_importance =
-                    (enriched_tasks[child_idx].importance / sibling_importance_sum)
-                        * parent_importance;
-            }
+            let importance_ratio = enriched_tasks[child_idx].importance / DEFAULT_IMPORTANCE;
+            enriched_tasks[child_idx].normalized_importance = parent_importance * importance_ratio;
         }
 
         // Re-compute lead time factor after inheritance
@@ -540,7 +527,6 @@ fn build_sequential_blocked_map(
 fn build_importance_chain(
     task_idx: usize,
     tasks: &[EnrichedTask],
-    children_index: &ChildrenLookup,
     task_lookup: &TaskLookup,
     sequential_blocked: &HashMap<TaskID, bool>,
 ) -> Vec<ImportanceTrace> {
@@ -565,17 +551,6 @@ fn build_importance_chain(
                 .as_ref()
                 .and_then(|pid| task_lookup.get(pid).copied());
 
-            let sibling_importance_sum = parent_idx.and_then(|pidx| {
-                let parent_id = tasks[pidx].id.clone();
-                children_index.get(&Some(parent_id)).map(|sibling_indices| {
-                    sibling_indices
-                        .iter()
-                        .filter(|&sibling_idx| tasks[*sibling_idx].is_pending)
-                        .map(|&sibling_idx| tasks[sibling_idx].importance)
-                        .sum()
-                })
-            });
-
             let parent_normalized_importance =
                 parent_idx.map(|pidx| tasks[pidx].normalized_importance);
 
@@ -588,7 +563,6 @@ fn build_importance_chain(
                 task_id: tasks[idx].id.clone(),
                 task_title: tasks[idx].title.clone(),
                 importance: tasks[idx].importance,
-                sibling_importance_sum,
                 parent_normalized_importance,
                 normalized_importance: tasks[idx].normalized_importance,
                 sequential_blocked: is_blocked,
@@ -794,7 +768,6 @@ pub fn get_score_trace(
     let importance_chain = build_importance_chain(
         task_idx,
         &context.tasks,
-        &context.children_index,
         &context.task_lookup,
         &sequential_blocked,
     );
