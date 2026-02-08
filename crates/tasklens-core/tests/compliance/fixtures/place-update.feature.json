@@ -1,0 +1,135 @@
+{
+  "feature": "Place Update",
+  "description": "Verifies that UpdatePlace correctly modifies place properties (name, hours, included_places).",
+  "background": {
+    "current_time": "2025-01-01T12:00:00Z",
+    "places": [
+      {
+        "id": "Office",
+        "hours": {
+          "mode": "always_open"
+        },
+        "included_places": []
+      },
+      {
+        "id": "DeskA",
+        "hours": {
+          "mode": "always_open"
+        },
+        "included_places": []
+      }
+    ],
+    "tasks": [
+      {
+        "id": "Task1",
+        "title": "Office Task",
+        "status": "Pending",
+        "importance": 1,
+        "place_id": "Office"
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Rename a Place",
+      "steps": [
+        {
+          "legacy_description": "Initial state: Office exists",
+          "then": {
+            "expected_places": [
+              {
+                "id": "Office",
+                "name": "Office"
+              }
+            ]
+          }
+        },
+        {
+          "when": [
+            {
+              "update_place": {
+                "id": "Office",
+                "name": "Main Office"
+              }
+            }
+          ],
+          "legacy_description": "Rename Office to Main Office",
+          "then": {
+            "expected_places": [
+              {
+                "id": "Office",
+                "name": "Main Office"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Update Hours and Included Places",
+      "steps": [
+        {
+          "when": [
+            {
+              "update_place": {
+                "id": "Office",
+                "hours": {
+                  "mode": "custom",
+                  "schedule": {
+                    "Mon": ["09:00-17:00"],
+                    "Tue": ["09:00-17:00"]
+                  }
+                },
+                "included_places": ["DeskA"]
+              }
+            }
+          ],
+          "legacy_description": "Set custom hours and add DeskA as included",
+          "then": {
+            "expected_places": [
+              {
+                "id": "Office",
+                "hours": {
+                  "mode": "custom",
+                  "schedule": {
+                    "Mon": ["09:00-17:00"],
+                    "Tue": ["09:00-17:00"]
+                  }
+                },
+                "included_places": ["DeskA"]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Partial Update Preserves Unchanged Fields",
+      "steps": [
+        {
+          "when": [
+            {
+              "update_place": {
+                "id": "Office",
+                "name": "HQ"
+              }
+            }
+          ],
+          "legacy_description": "Only update name, hours should remain",
+          "then": {
+            "expected_places": [
+              {
+                "id": "Office",
+                "name": "HQ",
+                "hours": {
+                  "mode": "always_open"
+                },
+                "included_places": []
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

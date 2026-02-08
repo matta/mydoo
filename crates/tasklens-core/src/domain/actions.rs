@@ -36,6 +36,23 @@ pub enum Action {
         hours: String,
         included_places: Vec<PlaceID>,
     },
+    UpdatePlace {
+        id: PlaceID,
+        updates: PlaceUpdates,
+    },
+    DeletePlace {
+        id: PlaceID,
+    },
+}
+
+/// Partial updates for a Place.
+///
+/// Each `Some` field overwrites the corresponding value; `None` fields are left unchanged.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct PlaceUpdates {
+    pub name: Option<String>,
+    pub hours: Option<String>,
+    pub included_places: Option<Vec<PlaceID>>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

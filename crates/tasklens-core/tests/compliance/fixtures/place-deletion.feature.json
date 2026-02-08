@@ -1,0 +1,133 @@
+{
+  "feature": "Place Deletion",
+  "description": "Verifies that DeletePlace removes a place and cleans up references from tasks and other places.",
+  "background": {
+    "current_time": "2025-01-01T12:00:00Z",
+    "places": [
+      {
+        "id": "Office",
+        "hours": {
+          "mode": "always_open"
+        },
+        "included_places": ["DeskA"]
+      },
+      {
+        "id": "DeskA",
+        "hours": {
+          "mode": "always_open"
+        },
+        "included_places": []
+      },
+      {
+        "id": "Home",
+        "hours": {
+          "mode": "always_open"
+        },
+        "included_places": []
+      }
+    ],
+    "tasks": [
+      {
+        "id": "OfficeTask",
+        "title": "Do office stuff",
+        "status": "Pending",
+        "importance": 1,
+        "place_id": "DeskA"
+      },
+      {
+        "id": "HomeTask",
+        "title": "Do home stuff",
+        "status": "Pending",
+        "importance": 1,
+        "place_id": "Home"
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Delete Place Removes It",
+      "steps": [
+        {
+          "legacy_description": "Initial state: DeskA exists",
+          "then": {
+            "expected_places": [
+              {
+                "id": "DeskA",
+                "exists": true
+              }
+            ]
+          }
+        },
+        {
+          "when": [
+            {
+              "delete_place": "DeskA"
+            }
+          ],
+          "legacy_description": "Delete DeskA",
+          "then": {
+            "expected_places": [
+              {
+                "id": "DeskA",
+                "exists": false
+              },
+              {
+                "id": "Office",
+                "included_places": []
+              },
+              {
+                "id": "Home",
+                "exists": true
+              }
+            ],
+            "expected_props": [
+              {
+                "id": "OfficeTask",
+                "place_id": "Anywhere"
+              },
+              {
+                "id": "HomeTask",
+                "place_id": "Home"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete Place Preserves Unrelated Tasks",
+      "steps": [
+        {
+          "when": [
+            {
+              "delete_place": "Home"
+            }
+          ],
+          "legacy_description": "Delete Home, DeskA task unaffected",
+          "then": {
+            "expected_places": [
+              {
+                "id": "Home",
+                "exists": false
+              },
+              {
+                "id": "DeskA",
+                "exists": true
+              }
+            ],
+            "expected_props": [
+              {
+                "id": "OfficeTask",
+                "place_id": "DeskA"
+              },
+              {
+                "id": "HomeTask",
+                "place_id": "Anywhere"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
