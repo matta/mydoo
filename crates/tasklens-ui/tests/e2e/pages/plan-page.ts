@@ -164,26 +164,16 @@ export class PlanPage implements PlanFixture {
   }
 
   async waitForAppReady(): Promise<void> {
-    // Wait for basic load
-    await this.page.waitForLoadState("load");
+    await this.page.waitForLoadState("domcontentloaded");
 
-    // If we're on the "rebuilt" screen, wait for it to go away
-    const rebuildHeading = this.page.getByRole("heading", {
-      name: "Your app is being rebuilt.",
-    });
-    if (await rebuildHeading.isVisible()) {
-      await expect(rebuildHeading).toBeHidden({ timeout: 30000 });
-    }
+    // Wait for the dev "rebuilt" screen to disappear (safe if it never appeared)
+    await this.page
+      .getByRole("heading", { name: "Your app is being rebuilt." })
+      .waitFor({ state: "hidden", timeout: 30_000 });
 
-    // Wait for the app to be attached
-    const main = this.page.locator("#main");
-    await expect(main).toBeAttached({ timeout: 10000 });
-
-    // Ensure store is initialized (memory heads should be non-empty)
-    const memoryHeads = this.page.locator("[data-memory-heads]");
-    await expect(memoryHeads).toBeAttached({ timeout: 30000 });
-    await expect(memoryHeads).toHaveAttribute("data-memory-heads", /.+/, {
-      timeout: 30000,
+    // Wait for the app to signal it is fully initialized
+    await expect(this.page.locator('[data-app-state="ready"]')).toBeAttached({
+      timeout: 30_000,
     });
   }
 
