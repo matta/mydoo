@@ -825,9 +825,10 @@ fn assert_expected_places(
         }
 
         if let Some(hours) = &expected.hours {
-            let actual_hours: serde_json::Value =
-                serde_json::from_str(&place.hours).expect("actual place.hours should be valid JSON");
-            let expected_hours: serde_json::Value = serde_json::to_value(hours).expect("expected hours should serialize to JSON");
+            let actual_hours: serde_json::Value = serde_json::from_str(&place.hours)
+                .expect("actual place.hours should be valid JSON");
+            let expected_hours: serde_json::Value =
+                serde_json::to_value(hours).expect("expected hours should serialize to JSON");
             assert_eq!(
                 actual_hours, expected_hours,
                 "Place {}, hours mismatch in scenario '{}'",

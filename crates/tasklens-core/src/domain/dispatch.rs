@@ -221,35 +221,51 @@ fn handle_delete_place(
         return Err(DispatchError::PlaceNotFound(id));
     }
 
+    // 1. Delete the place itself
     am_delete(doc, &places_obj_id, id.as_str())?;
 
+    // 2. Clear placeId from tasks
     let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
-    let state = hydrate_tunnel_state(doc)?;
-    for (task_id, task) in &state.tasks {
-        if task.place_id.as_ref() == Some(&id) {
-            let task_obj_id = match am_get(doc, &tasks_obj_id, task_id.as_str())? {
-                Some((automerge::Value::Object(automerge::ObjType::Map), obj_id)) => obj_id,
-                _ => continue,
-            };
-            am_delete(doc, &task_obj_id, "placeId")?;
+    let mut tasks_to_update = Vec::new();
+
+    for item in automerge::ReadDoc::map_range(doc, &tasks_obj_id, ..) {
+        if let automerge::ValueRef::Object(automerge::ObjType::Map) = item.value {
+            let place_id: Option<crate::types::PlaceID> = hydrate_option_maybe_missing(
+                doc,
+                &item.id(),
+                autosurgeon::Prop::Key("placeId".into()),
+            )?;
+            if place_id.as_ref() == Some(&id) {
+                tasks_to_update.push(item.id());
+            }
         }
     }
 
-    for place in state.places.values() {
-        if place.included_places.contains(&id) {
-            let place_obj_id = match am_get(doc, &places_obj_id, place.id.as_str())? {
-                Some((automerge::Value::Object(automerge::ObjType::Map), obj_id)) => obj_id,
-                _ => continue,
-            };
-            let cleaned: Vec<crate::types::PlaceID> = place
-                .included_places
-                .iter()
-                .filter(|p| *p != &id)
-                .cloned()
-                .collect();
-            autosurgeon::reconcile_prop(doc, &place_obj_id, "includedPlaces", &cleaned)
-                .map_err(DispatchError::from)?;
+    for task_obj_id in tasks_to_update {
+        am_delete(doc, &task_obj_id, "placeId")?;
+    }
+
+    // 3. Remove from includedPlaces in other places
+    let mut places_to_update = Vec::new();
+    for item in automerge::ReadDoc::map_range(doc, &places_obj_id, ..) {
+        if let automerge::ValueRef::Object(automerge::ObjType::Map) = item.value {
+            let included_places: Vec<crate::types::PlaceID> =
+                match autosurgeon::hydrate_prop(doc, item.id(), "includedPlaces")? {
+                    MaybeMissing::Present(ids) => ids,
+                    MaybeMissing::Missing => Vec::new(),
+                };
+
+            if included_places.contains(&id) {
+                let cleaned: Vec<crate::types::PlaceID> =
+                    included_places.into_iter().filter(|p| p != &id).collect();
+                places_to_update.push((item.id(), cleaned));
+            }
         }
+    }
+
+    for (other_place_obj_id, cleaned) in places_to_update {
+        autosurgeon::reconcile_prop(doc, &other_place_obj_id, "includedPlaces", &cleaned)
+            .map_err(DispatchError::from)?;
     }
 
     Ok(())
