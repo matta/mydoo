@@ -784,6 +784,70 @@ fn assert_location_props(
     Ok(())
 }
 
+fn assert_expected_places(
+    state: &TunnelState,
+    props: &[ExpectedPlaceProps],
+    scenario: &Scenario,
+    legacy_description: &Option<String>,
+) -> Result<()> {
+    for expected in props {
+        let place_id = PlaceID::from(expected.id.clone());
+        let place = state.places.get(&place_id);
+
+        if let Some(exists) = &expected.exists
+            && !exists.to_bool()
+        {
+            assert!(
+                place.is_none(),
+                "Place {} should not exist in scenario '{}' at step '{:?}'",
+                expected.id,
+                scenario.name,
+                legacy_description
+            );
+            continue;
+        }
+
+        let place = place.ok_or_else(|| {
+            anyhow!(
+                "Place {} not found in scenario '{}' at step '{:?}'",
+                expected.id,
+                scenario.name,
+                legacy_description
+            )
+        })?;
+
+        if let Some(name) = &expected.name {
+            assert_eq!(
+                &place.name, name,
+                "Place {}, name mismatch in scenario '{}'",
+                expected.id, scenario.name
+            );
+        }
+
+        if let Some(hours) = &expected.hours {
+            let actual_hours: serde_json::Value =
+                serde_json::from_str(&place.hours).unwrap_or(serde_json::Value::Null);
+            let expected_hours: serde_json::Value = serde_json::to_value(hours).unwrap();
+            assert_eq!(
+                actual_hours, expected_hours,
+                "Place {}, hours mismatch in scenario '{}'",
+                expected.id, scenario.name
+            );
+        }
+
+        if let Some(included) = &expected.included_places {
+            let expected_ids: Vec<PlaceID> =
+                included.iter().map(|s| PlaceID::from(s.clone())).collect();
+            assert_eq!(
+                place.included_places, expected_ids,
+                "Place {}, included_places mismatch in scenario '{}'",
+                expected.id, scenario.name
+            );
+        }
+    }
+    Ok(())
+}
+
 fn apply_initial_state(
     store: &mut ComplianceStore,
     current_time: &mut i64,
@@ -1075,69 +1139,5 @@ fn apply_task_update_mutation(store: &mut ComplianceStore, u: &TaskUpdate) -> Re
         id: task_id,
         updates: action_updates,
     })?;
-    Ok(())
-}
-
-fn assert_expected_places(
-    state: &TunnelState,
-    props: &[ExpectedPlaceProps],
-    scenario: &Scenario,
-    legacy_description: &Option<String>,
-) -> Result<()> {
-    for expected in props {
-        let place_id = PlaceID::from(expected.id.clone());
-        let place = state.places.get(&place_id);
-
-        if let Some(exists) = &expected.exists
-            && !exists.to_bool()
-        {
-            assert!(
-                place.is_none(),
-                "Place {} should not exist in scenario '{}' at step '{:?}'",
-                expected.id,
-                scenario.name,
-                legacy_description
-            );
-            continue;
-        }
-
-        let place = place.ok_or_else(|| {
-            anyhow!(
-                "Place {} not found in scenario '{}' at step '{:?}'",
-                expected.id,
-                scenario.name,
-                legacy_description
-            )
-        })?;
-
-        if let Some(name) = &expected.name {
-            assert_eq!(
-                &place.name, name,
-                "Place {}, name mismatch in scenario '{}'",
-                expected.id, scenario.name
-            );
-        }
-
-        if let Some(hours) = &expected.hours {
-            let actual_hours: serde_json::Value =
-                serde_json::from_str(&place.hours).unwrap_or(serde_json::Value::Null);
-            let expected_hours: serde_json::Value = serde_json::to_value(hours).unwrap();
-            assert_eq!(
-                actual_hours, expected_hours,
-                "Place {}, hours mismatch in scenario '{}'",
-                expected.id, scenario.name
-            );
-        }
-
-        if let Some(included) = &expected.included_places {
-            let expected_ids: Vec<PlaceID> =
-                included.iter().map(|s| PlaceID::from(s.clone())).collect();
-            assert_eq!(
-                place.included_places, expected_ids,
-                "Place {}, included_places mismatch in scenario '{}'",
-                expected.id, scenario.name
-            );
-        }
-    }
     Ok(())
 }
