@@ -62,7 +62,7 @@
           }
         },
         {
-          "legacy_description": "Add pending sibling to B (score must remain unchanged)",
+          "description": "Add pending sibling to B (score must remain unchanged)",
           "when": [
             {
               "create_task": {
