@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use thiserror::Error;
 
 use crate::{
-    Action, TaskUpdates,
+    Action, PlaceUpdates, TaskUpdates,
     domain::{doc_bridge, lifecycle, routine_tasks},
     types::{
         PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_option_f64,
@@ -37,6 +37,12 @@ pub enum DispatchError {
 
     #[error("Task already exists: {0}")]
     TaskExists(TaskID),
+
+    #[error("Place not found: {0}")]
+    PlaceNotFound(crate::types::PlaceID),
+
+    #[error("Cannot delete the built-in Anywhere place")]
+    CannotDeleteAnywhere,
 
     #[error("Cycle detected moving task {0} to {1}")]
     CycleDetected(TaskID, TaskID),
@@ -129,6 +135,8 @@ pub fn run_action(doc: &mut (impl Transactable + Doc), action: Action) -> Result
             hours,
             included_places,
         } => handle_create_place(doc, id, name, hours, included_places),
+        Action::UpdatePlace { id, updates } => handle_update_place(doc, id, updates),
+        Action::DeletePlace { id } => handle_delete_place(doc, id),
     }
 }
 
@@ -167,6 +175,82 @@ fn handle_create_place(
 
     autosurgeon::reconcile_prop(doc, &places_obj_id, id.as_str(), &place)
         .map_err(DispatchError::from)?;
+
+    Ok(())
+}
+
+fn handle_update_place(
+    doc: &mut (impl Transactable + Doc),
+    id: crate::types::PlaceID,
+    updates: PlaceUpdates,
+) -> Result<()> {
+    let places_obj_id = ensure_path(doc, &automerge::ROOT, vec!["places"])?;
+
+    let place_obj_id = match am_get(doc, &places_obj_id, id.as_str())? {
+        Some((automerge::Value::Object(automerge::ObjType::Map), obj_id)) => obj_id,
+        _ => return Err(DispatchError::PlaceNotFound(id)),
+    };
+
+    if let Some(name) = updates.name {
+        autosurgeon::reconcile_prop(doc, &place_obj_id, "name", name)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(hours) = updates.hours {
+        autosurgeon::reconcile_prop(doc, &place_obj_id, "hours", hours)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(included_places) = updates.included_places {
+        autosurgeon::reconcile_prop(doc, &place_obj_id, "includedPlaces", &included_places)
+            .map_err(DispatchError::from)?;
+    }
+
+    Ok(())
+}
+
+fn handle_delete_place(
+    doc: &mut (impl Transactable + Doc),
+    id: crate::types::PlaceID,
+) -> Result<()> {
+    if id.as_str() == crate::types::ANYWHERE_PLACE_ID {
+        return Err(DispatchError::CannotDeleteAnywhere);
+    }
+
+    let places_obj_id = ensure_path(doc, &automerge::ROOT, vec!["places"])?;
+
+    if am_get(doc, &places_obj_id, id.as_str())?.is_none() {
+        return Err(DispatchError::PlaceNotFound(id));
+    }
+
+    am_delete(doc, &places_obj_id, id.as_str())?;
+
+    let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
+    let state = hydrate_tunnel_state(doc)?;
+    for (task_id, task) in &state.tasks {
+        if task.place_id.as_ref() == Some(&id) {
+            let task_obj_id = match am_get(doc, &tasks_obj_id, task_id.as_str())? {
+                Some((automerge::Value::Object(automerge::ObjType::Map), obj_id)) => obj_id,
+                _ => continue,
+            };
+            am_delete(doc, &task_obj_id, "placeId")?;
+        }
+    }
+
+    for place in state.places.values() {
+        if place.included_places.contains(&id) {
+            let place_obj_id = match am_get(doc, &places_obj_id, place.id.as_str())? {
+                Some((automerge::Value::Object(automerge::ObjType::Map), obj_id)) => obj_id,
+                _ => continue,
+            };
+            let cleaned: Vec<crate::types::PlaceID> = place
+                .included_places
+                .iter()
+                .filter(|p| *p != &id)
+                .cloned()
+                .collect();
+            autosurgeon::reconcile_prop(doc, &place_obj_id, "includedPlaces", &cleaned)
+                .map_err(DispatchError::from)?;
+        }
+    }
 
     Ok(())
 }
@@ -566,4 +650,219 @@ fn causes_cycle(
         current = tasks.get(curr).and_then(|t| t.parent_id.as_ref());
     }
     false
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::doc_bridge;
+    use crate::types::{ANYWHERE_PLACE_ID, PlaceID};
+    use automerge::AutoCommit;
+
+    /// Creates an initialized AutoCommit doc with empty TunnelState.
+    fn new_doc() -> AutoCommit {
+        let mut doc = AutoCommit::new();
+        let initial = TunnelState {
+            tasks: HashMap::new(),
+            places: HashMap::new(),
+            root_task_ids: Vec::new(),
+            metadata: None,
+        };
+        doc_bridge::reconcile_tunnel_state(&mut doc, &initial).unwrap();
+        doc
+    }
+
+    fn create_place(doc: &mut AutoCommit, id: &str) {
+        run_action(
+            doc,
+            Action::CreatePlace {
+                id: PlaceID::from(id),
+                name: id.to_string(),
+                hours: r#"{"mode":"always_open"}"#.to_string(),
+                included_places: vec![],
+            },
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn update_place_name() {
+        let mut doc = new_doc();
+        create_place(&mut doc, "office");
+
+        run_action(
+            &mut doc,
+            Action::UpdatePlace {
+                id: PlaceID::from("office"),
+                updates: PlaceUpdates {
+                    name: Some("Main Office".to_string()),
+                    ..Default::default()
+                },
+            },
+        )
+        .unwrap();
+
+        let state = hydrate_tunnel_state(&doc).unwrap();
+        let place = state.places.get(&PlaceID::from("office")).unwrap();
+        assert_eq!(place.name, "Main Office");
+    }
+
+    #[test]
+    fn update_place_hours_and_included() {
+        let mut doc = new_doc();
+        create_place(&mut doc, "office");
+        create_place(&mut doc, "desk-a");
+
+        run_action(
+            &mut doc,
+            Action::UpdatePlace {
+                id: PlaceID::from("office"),
+                updates: PlaceUpdates {
+                    hours: Some(r#"{"mode":"always_closed"}"#.to_string()),
+                    included_places: Some(vec![PlaceID::from("desk-a")]),
+                    ..Default::default()
+                },
+            },
+        )
+        .unwrap();
+
+        let state = hydrate_tunnel_state(&doc).unwrap();
+        let place = state.places.get(&PlaceID::from("office")).unwrap();
+        assert_eq!(place.hours, r#"{"mode":"always_closed"}"#);
+        assert_eq!(place.included_places, vec![PlaceID::from("desk-a")]);
+    }
+
+    #[test]
+    fn update_nonexistent_place_fails() {
+        let mut doc = new_doc();
+
+        let result = run_action(
+            &mut doc,
+            Action::UpdatePlace {
+                id: PlaceID::from("ghost"),
+                updates: PlaceUpdates {
+                    name: Some("nope".to_string()),
+                    ..Default::default()
+                },
+            },
+        );
+
+        assert!(matches!(result, Err(DispatchError::PlaceNotFound(_))));
+    }
+
+    #[test]
+    fn delete_place_removes_it() {
+        let mut doc = new_doc();
+        create_place(&mut doc, "office");
+
+        run_action(
+            &mut doc,
+            Action::DeletePlace {
+                id: PlaceID::from("office"),
+            },
+        )
+        .unwrap();
+
+        let state = hydrate_tunnel_state(&doc).unwrap();
+        assert!(!state.places.contains_key(&PlaceID::from("office")));
+    }
+
+    #[test]
+    fn delete_place_clears_task_place_ids() {
+        let mut doc = new_doc();
+        create_place(&mut doc, "office");
+
+        let task_id = TaskID::from("t1");
+        run_action(
+            &mut doc,
+            Action::CreateTask {
+                id: task_id.clone(),
+                parent_id: None,
+                title: "test task".to_string(),
+            },
+        )
+        .unwrap();
+        run_action(
+            &mut doc,
+            Action::UpdateTask {
+                id: task_id.clone(),
+                updates: TaskUpdates {
+                    place_id: Some(Some(PlaceID::from("office"))),
+                    ..Default::default()
+                },
+            },
+        )
+        .unwrap();
+
+        run_action(
+            &mut doc,
+            Action::DeletePlace {
+                id: PlaceID::from("office"),
+            },
+        )
+        .unwrap();
+
+        let state = hydrate_tunnel_state(&doc).unwrap();
+        let task = state.tasks.get(&task_id).unwrap();
+        assert_eq!(task.place_id, None);
+    }
+
+    #[test]
+    fn delete_place_cleans_included_places() {
+        let mut doc = new_doc();
+        create_place(&mut doc, "desk-a");
+        create_place(&mut doc, "building");
+
+        run_action(
+            &mut doc,
+            Action::UpdatePlace {
+                id: PlaceID::from("building"),
+                updates: PlaceUpdates {
+                    included_places: Some(vec![PlaceID::from("desk-a")]),
+                    ..Default::default()
+                },
+            },
+        )
+        .unwrap();
+
+        run_action(
+            &mut doc,
+            Action::DeletePlace {
+                id: PlaceID::from("desk-a"),
+            },
+        )
+        .unwrap();
+
+        let state = hydrate_tunnel_state(&doc).unwrap();
+        let building = state.places.get(&PlaceID::from("building")).unwrap();
+        assert!(building.included_places.is_empty());
+    }
+
+    #[test]
+    fn delete_nonexistent_place_fails() {
+        let mut doc = new_doc();
+
+        let result = run_action(
+            &mut doc,
+            Action::DeletePlace {
+                id: PlaceID::from("ghost"),
+            },
+        );
+
+        assert!(matches!(result, Err(DispatchError::PlaceNotFound(_))));
+    }
+
+    #[test]
+    fn delete_anywhere_place_fails() {
+        let mut doc = new_doc();
+
+        let result = run_action(
+            &mut doc,
+            Action::DeletePlace {
+                id: PlaceID::from(ANYWHERE_PLACE_ID),
+            },
+        );
+
+        assert!(matches!(result, Err(DispatchError::CannotDeleteAnywhere)));
+    }
 }

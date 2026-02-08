@@ -8,13 +8,13 @@ use std::path::PathBuf;
 use tasklens_core::PlaceID;
 
 use tasklens_core::Action;
-use tasklens_core::TaskUpdates;
 use tasklens_core::domain::doc_bridge;
 use tasklens_core::domain::priority::get_prioritized_tasks;
 use tasklens_core::types::{
     Context, Frequency, PriorityOptions, RepeatConfig, ScheduleType, TaskID, TaskStatus,
     TunnelState, UrgencyStatus, ViewFilter,
 };
+use tasklens_core::{PlaceUpdates, TaskUpdates};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(deny_unknown_fields)]
@@ -149,6 +149,10 @@ enum Mutation {
     DeleteTask(String),
     #[serde(rename = "complete_task")]
     CompleteTask(String),
+    #[serde(rename = "update_place")]
+    UpdatePlace(PlaceUpdate),
+    #[serde(rename = "delete_place")]
+    DeletePlace(String),
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -172,9 +176,19 @@ struct TaskUpdate {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(deny_unknown_fields)]
+struct PlaceUpdate {
+    id: String,
+    name: Option<String>,
+    hours: Option<OpenHoursInput>,
+    included_places: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(deny_unknown_fields)]
 struct Assertion {
     expected_order: Option<serde_json::Value>,
     expected_props: Option<Vec<ExpectedTaskProps>>,
+    expected_places: Option<Vec<ExpectedPlaceProps>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -197,6 +211,16 @@ struct ExpectedTaskProps {
     place_id: Option<String>,
     #[serde(alias = "credits_increment")]
     credit_increment: Option<F64OrString>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct ExpectedPlaceProps {
+    id: String,
+    name: Option<String>,
+    hours: Option<OpenHoursInput>,
+    included_places: Option<Vec<String>>,
+    exists: Option<BoolOrString>,
 }
 
 /// A shim to support compliance tests with in-memory Automerge documents.
@@ -263,6 +287,8 @@ fn test_compliance() -> Result<()> {
         "lead-time-inheritance.feature.json",
         "lead-time.feature.json",
         "min-threshold.feature.json",
+        "place-deletion.feature.json",
+        "place-update.feature.json",
         "repro-neutral-inheritance.feature.json",
         "repro-stale-leadtime.feature.json",
         "root-importance.feature.json",
@@ -474,6 +500,7 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
             let Assertion {
                 expected_order,
                 expected_props,
+                expected_places,
             } = assertion;
 
             if let Some(order) = expected_order {
@@ -683,6 +710,66 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
                         assert_eq!(
                             actual_place, pid,
                             "Task: {}, Scenario: {}, PlaceID",
+                            expected.id, scenario.name
+                        );
+                    }
+                }
+            }
+
+            if let Some(place_props) = expected_places {
+                let place_state = store.hydrate()?;
+                for expected in place_props {
+                    let place_id = PlaceID::from(expected.id.clone());
+                    let place = place_state.places.get(&place_id);
+
+                    if let Some(exists) = &expected.exists
+                        && !exists.to_bool()
+                    {
+                        assert!(
+                            place.is_none(),
+                            "Place {} should not exist in scenario '{}' at step '{:?}'",
+                            expected.id,
+                            scenario.name,
+                            legacy_description
+                        );
+                        continue;
+                    }
+
+                    let place = place.ok_or_else(|| {
+                        anyhow!(
+                            "Place {} not found in scenario '{}' at step '{:?}'",
+                            expected.id,
+                            scenario.name,
+                            legacy_description
+                        )
+                    })?;
+
+                    if let Some(name) = &expected.name {
+                        assert_eq!(
+                            &place.name, name,
+                            "Place {}, name mismatch in scenario '{}'",
+                            expected.id, scenario.name
+                        );
+                    }
+
+                    if let Some(hours) = &expected.hours {
+                        let actual_hours: serde_json::Value =
+                            serde_json::from_str(&place.hours).unwrap_or(serde_json::Value::Null);
+                        let expected_hours: serde_json::Value =
+                            serde_json::to_value(hours).unwrap();
+                        assert_eq!(
+                            actual_hours, expected_hours,
+                            "Place {}, hours mismatch in scenario '{}'",
+                            expected.id, scenario.name
+                        );
+                    }
+
+                    if let Some(included) = &expected.included_places {
+                        let expected_ids: Vec<PlaceID> =
+                            included.iter().map(|s| PlaceID::from(s.clone())).collect();
+                        assert_eq!(
+                            place.included_places, expected_ids,
+                            "Place {}, included_places mismatch in scenario '{}'",
                             expected.id, scenario.name
                         );
                     }
@@ -946,6 +1033,25 @@ fn apply_mutation(
                 id: task_id,
                 current_time: *current_time,
             })?;
+        }
+        Mutation::UpdatePlace(u) => {
+            let place_id = PlaceID::from(u.id.clone());
+            let updates = PlaceUpdates {
+                name: u.name.clone(),
+                hours: u.hours.as_ref().map(|h| serde_json::to_string(h).unwrap()),
+                included_places: u
+                    .included_places
+                    .as_ref()
+                    .map(|list| list.iter().map(|s| PlaceID::from(s.clone())).collect()),
+            };
+            store.dispatch(Action::UpdatePlace {
+                id: place_id,
+                updates,
+            })?;
+        }
+        Mutation::DeletePlace(id) => {
+            let place_id = PlaceID::from(id.clone());
+            store.dispatch(Action::DeletePlace { id: place_id })?;
         }
     }
 

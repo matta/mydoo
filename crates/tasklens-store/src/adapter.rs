@@ -42,6 +42,12 @@ pub enum AdapterError {
     #[error("Cannot move task {0} to itself: {1}")]
     MoveToSelf(TaskID, TaskID),
 
+    #[error("Place not found: {0}")]
+    PlaceNotFound(tasklens_core::types::PlaceID),
+
+    #[error("Cannot delete the built-in Anywhere place")]
+    CannotDeleteAnywhere,
+
     #[error("Inconsistency: {0}")]
     Inconsistency(String),
 
@@ -62,6 +68,8 @@ impl From<DispatchError> for AdapterError {
             DispatchError::TaskExists(id) => AdapterError::TaskExists(id),
             DispatchError::CycleDetected(id1, id2) => AdapterError::CycleDetected(id1, id2),
             DispatchError::MoveToSelf(id1, id2) => AdapterError::MoveToSelf(id1, id2),
+            DispatchError::PlaceNotFound(id) => AdapterError::PlaceNotFound(id),
+            DispatchError::CannotDeleteAnywhere => AdapterError::CannotDeleteAnywhere,
             DispatchError::Inconsistency(s) => AdapterError::Inconsistency(s),
             DispatchError::Internal(s) => AdapterError::Internal(s),
         }
