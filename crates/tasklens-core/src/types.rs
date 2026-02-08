@@ -1288,12 +1288,13 @@ impl TunnelState {
     ///    *Healing*: We detect unreachable tasks by walking from roots and break
     ///    cycles by promoting one task to root.
     pub fn heal_structural_inconsistencies(&mut self) {
+        let all_task_ids: std::collections::HashSet<TaskID> = self.tasks.keys().cloned().collect();
         self.deduplicate_task_lists();
-        self.prune_broken_links();
-        self.prune_broken_parent_links();
-        self.remove_tasks_from_incorrect_lists();
-        self.ensure_tasks_present_in_designated_lists();
-        self.detect_and_break_cycles();
+        self.prune_broken_links(&all_task_ids);
+        self.prune_broken_parent_links(&all_task_ids);
+        self.remove_tasks_from_incorrect_lists(&all_task_ids);
+        self.ensure_tasks_present_in_designated_lists(&all_task_ids);
+        self.detect_and_break_cycles(&all_task_ids);
     }
 
     fn deduplicate_task_lists(&mut self) {
@@ -1307,18 +1308,16 @@ impl TunnelState {
         }
     }
 
-    fn prune_broken_links(&mut self) {
+    fn prune_broken_links(&mut self, all_task_ids: &std::collections::HashSet<TaskID>) {
         // 1. Prune broken links (pointing to non-existent tasks)
-        let all_task_ids: std::collections::HashSet<_> = self.tasks.keys().cloned().collect();
         self.root_task_ids.retain(|id| all_task_ids.contains(id));
         for task in self.tasks.values_mut() {
             task.child_task_ids.retain(|id| all_task_ids.contains(id));
         }
     }
 
-    fn prune_broken_parent_links(&mut self) {
+    fn prune_broken_parent_links(&mut self, all_task_ids: &std::collections::HashSet<TaskID>) {
         // 2. Prune broken parent links (pointing to non-existent tasks)
-        let all_task_ids: std::collections::HashSet<_> = self.tasks.keys().cloned().collect();
         for task in self.tasks.values_mut() {
             if task
                 .parent_id
@@ -1330,33 +1329,38 @@ impl TunnelState {
         }
     }
 
-    fn remove_tasks_from_incorrect_lists(&mut self) {
+    fn remove_tasks_from_incorrect_lists(
+        &mut self,
+        all_task_ids: &std::collections::HashSet<TaskID>,
+    ) {
         // 3. Surgical Pruning: Remove tasks from "wrong" lists based on their parent_id
         self.root_task_ids
             .retain(|id| self.tasks.get(id).is_some_and(|t| t.parent_id.is_none()));
 
-        let parent_ids: Vec<TaskID> = self.tasks.keys().cloned().collect();
-        for pid in parent_ids {
+        for pid in all_task_ids {
             if let Some(mut child_ids) = self
                 .tasks
-                .get_mut(&pid)
+                .get_mut(pid)
                 .map(|t| std::mem::take(&mut t.child_task_ids))
             {
                 child_ids.retain(|cid| {
                     self.tasks
                         .get(cid)
-                        .is_some_and(|ct| ct.parent_id.as_ref() == Some(&pid))
+                        .is_some_and(|ct| ct.parent_id.as_ref() == Some(pid))
                 });
-                if let Some(t) = self.tasks.get_mut(&pid) {
+                if let Some(t) = self.tasks.get_mut(pid) {
                     t.child_task_ids = child_ids;
                 }
             }
         }
     }
 
-    fn ensure_tasks_present_in_designated_lists(&mut self) {
+    fn ensure_tasks_present_in_designated_lists(
+        &mut self,
+        all_task_ids: &std::collections::HashSet<TaskID>,
+    ) {
         // 4. Ensure Presence: Add tasks to their designated list if missing
-        let mut sorted_ids: Vec<_> = self.tasks.keys().cloned().collect();
+        let mut sorted_ids: Vec<_> = all_task_ids.iter().cloned().collect();
         sorted_ids.sort_by_key(|id| id.to_string());
 
         for id in sorted_ids {
@@ -1375,7 +1379,7 @@ impl TunnelState {
         }
     }
 
-    fn detect_and_break_cycles(&mut self) {
+    fn detect_and_break_cycles(&mut self, all_task_ids: &std::collections::HashSet<TaskID>) {
         // 5. Detect and break cycles by finding tasks unreachable from roots
         let mut reachable = std::collections::HashSet::with_capacity(self.tasks.len());
         let mut stack: Vec<TaskID> = self.root_task_ids.clone();
@@ -1387,9 +1391,8 @@ impl TunnelState {
             }
         }
 
-        let mut unreachable_ids: Vec<_> = self
-            .tasks
-            .keys()
+        let mut unreachable_ids: Vec<_> = all_task_ids
+            .iter()
             .filter(|id| !reachable.contains(*id))
             .cloned()
             .collect();
