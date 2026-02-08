@@ -335,66 +335,92 @@ fn handle_update_task(
         _ => return Err(DispatchError::TaskNotFound(id.clone())),
     };
 
-    if let Some(title) = updates.title {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "title", title)
+    apply_basic_updates(doc, &task_obj_id, &updates)?;
+    apply_credit_updates(doc, &task_obj_id, &updates)?;
+    apply_schedule_updates(doc, &task_obj_id, &updates)?;
+
+    Ok(())
+}
+
+fn apply_basic_updates(
+    doc: &mut (impl Transactable + Doc),
+    task_obj_id: &automerge::ObjId,
+    updates: &TaskUpdates,
+) -> Result<()> {
+    if let Some(title) = &updates.title {
+        autosurgeon::reconcile_prop(doc, task_obj_id, "title", title)
             .map_err(DispatchError::from)?;
     }
-    if let Some(notes) = updates.notes {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "notes", notes)
+    if let Some(notes) = &updates.notes {
+        autosurgeon::reconcile_prop(doc, task_obj_id, "notes", notes)
             .map_err(DispatchError::from)?;
     }
     if let Some(status) = updates.status {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "status", status)
+        autosurgeon::reconcile_prop(doc, task_obj_id, "status", status)
             .map_err(DispatchError::from)?;
     }
-    if let Some(place_id_update) = updates.place_id {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "placeId", place_id_update)
+    if let Some(place_id_update) = &updates.place_id {
+        autosurgeon::reconcile_prop(doc, task_obj_id, "placeId", place_id_update)
             .map_err(DispatchError::from)?;
     }
-
     if let Some(is_seq) = updates.is_sequential {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "isSequential", is_seq)
-            .map_err(DispatchError::from)?;
-    }
-    if let Some(val) = updates.credits {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "credits", val)
-            .map_err(DispatchError::from)?;
-    }
-    if let Some(val) = updates.desired_credits {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "desiredCredits", val)
-            .map_err(DispatchError::from)?;
-    }
-    if let Some(val) = updates.credit_increment {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "creditIncrement", val)
+        autosurgeon::reconcile_prop(doc, task_obj_id, "isSequential", is_seq)
             .map_err(DispatchError::from)?;
     }
     if let Some(val) = updates.importance {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "importance", val)
+        autosurgeon::reconcile_prop(doc, task_obj_id, "importance", val)
             .map_err(DispatchError::from)?;
     }
     if let Some(val) = updates.is_acknowledged {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "isAcknowledged", val)
+        autosurgeon::reconcile_prop(doc, task_obj_id, "isAcknowledged", val)
             .map_err(DispatchError::from)?;
     }
-    if let Some(repeat_config_update) = updates.repeat_config {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "repeatConfig", repeat_config_update)
+    if let Some(repeat_config_update) = &updates.repeat_config {
+        autosurgeon::reconcile_prop(doc, task_obj_id, "repeatConfig", repeat_config_update)
+            .map_err(DispatchError::from)?;
+    }
+    Ok(())
+}
+
+fn apply_credit_updates(
+    doc: &mut (impl Transactable + Doc),
+    task_obj_id: &automerge::ObjId,
+    updates: &TaskUpdates,
+) -> Result<()> {
+    if let Some(val) = updates.credits {
+        autosurgeon::reconcile_prop(doc, task_obj_id, "credits", val)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(val) = updates.desired_credits {
+        autosurgeon::reconcile_prop(doc, task_obj_id, "desiredCredits", val)
+            .map_err(DispatchError::from)?;
+    }
+    if let Some(val) = updates.credit_increment {
+        autosurgeon::reconcile_prop(doc, task_obj_id, "creditIncrement", val)
             .map_err(DispatchError::from)?;
     }
     if let Some(val) = updates.credits_timestamp {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "creditsTimestamp", val)
+        autosurgeon::reconcile_prop(doc, task_obj_id, "creditsTimestamp", val)
             .map_err(DispatchError::from)?;
     }
     if let Some(ts) = updates.priority_timestamp {
-        autosurgeon::reconcile_prop(doc, &task_obj_id, "priorityTimestamp", ts)
+        autosurgeon::reconcile_prop(doc, task_obj_id, "priorityTimestamp", ts)
             .map_err(DispatchError::from)?;
     }
+    Ok(())
+}
 
+fn apply_schedule_updates(
+    doc: &mut (impl Transactable + Doc),
+    task_obj_id: &automerge::ObjId,
+    updates: &TaskUpdates,
+) -> Result<()> {
     if updates.due_date.is_some()
         || updates.schedule_type.is_some()
         || updates.lead_time.is_some()
         || updates.last_done.is_some()
     {
-        let schedule_obj_id = ensure_path(doc, &task_obj_id, vec!["schedule"])?;
+        let schedule_obj_id = ensure_path(doc, task_obj_id, vec!["schedule"])?;
 
         if let Some(due_date_update) = updates.due_date {
             autosurgeon::reconcile_prop(doc, &schedule_obj_id, "dueDate", due_date_update)
@@ -413,7 +439,6 @@ fn handle_update_task(
                 .map_err(DispatchError::from)?;
         }
     }
-
     Ok(())
 }
 
