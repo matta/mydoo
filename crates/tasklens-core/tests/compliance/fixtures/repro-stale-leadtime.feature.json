@@ -27,7 +27,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "Verify Inheritance",
+          "description": "Verify Inheritance",
           "then": {
             "expected_order": [],
             "expected_props": [

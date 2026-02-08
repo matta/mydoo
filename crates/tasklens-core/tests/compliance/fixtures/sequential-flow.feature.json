@@ -36,7 +36,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "Initial State - Step A Active",
+          "description": "Initial State - Step A Active",
           "then": {
             "expected_order": [
               "Step_A"
@@ -72,7 +72,7 @@
               }
             }
           ],
-          "legacy_description": "Complete Step A",
+          "description": "Complete Step A",
           "then": {
             "expected_order": [
               "Step_B"
@@ -107,7 +107,7 @@
               }
             }
           ],
-          "legacy_description": "Complete Step B",
+          "description": "Complete Step B",
           "then": {
             "expected_order": [
               "Step_C"

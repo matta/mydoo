@@ -37,7 +37,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "1. Feedback uses aggregated child credits",
+          "description": "1. Feedback uses aggregated child credits",
           "then": {
             "expected_order": [
               "LifeTask",

@@ -23,7 +23,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "1. Initial State (Both Pending)",
+          "description": "1. Initial State (Both Pending)",
           "then": {
             "expected_order": [
               "Task_A",
@@ -41,7 +41,7 @@
               }
             }
           ],
-          "legacy_description": "2. Complete Task A (Unacknowledged)",
+          "description": "2. Complete Task A (Unacknowledged)",
           "then": {
             "expected_order": [
               "Task_A",
@@ -58,7 +58,7 @@
               }
             }
           ],
-          "legacy_description": "3. Acknowledge Task A",
+          "description": "3. Acknowledge Task A",
           "then": {
             "expected_order": [
               "Task_B"
@@ -75,7 +75,7 @@
               }
             }
           ],
-          "legacy_description": "4. Reopen Task A",
+          "description": "4. Reopen Task A",
           "then": {
             "expected_order": [
               "Task_A",

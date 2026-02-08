@@ -49,7 +49,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "Verify Reverse Alphabetical Sequence",
+          "description": "Verify Reverse Alphabetical Sequence",
           "then": {
             "expected_order": [
               "Task_Z",

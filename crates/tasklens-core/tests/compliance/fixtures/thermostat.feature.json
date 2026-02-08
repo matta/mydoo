@@ -23,7 +23,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "Step 1: Balanced",
+          "description": "Step 1: Balanced",
           "then": {
             "expected_order": [
               "work",
@@ -50,7 +50,7 @@
               }
             }
           ],
-          "legacy_description": "Step 2: Imbalance",
+          "description": "Step 2: Imbalance",
           "then": {
             "expected_order": [
               "life",
@@ -77,7 +77,7 @@
               }
             }
           ],
-          "legacy_description": "Step 3: Extreme",
+          "description": "Step 3: Extreme",
           "then": {
             "expected_order": [
               "life",

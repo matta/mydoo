@@ -48,7 +48,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "1. Verify DFS Pre-Order",
+          "description": "1. Verify DFS Pre-Order",
           "then": {
             "expected_order": [
               "LeafA1",

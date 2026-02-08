@@ -33,7 +33,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "1. Verify Inter-Tree Sorting",
+          "description": "1. Verify Inter-Tree Sorting",
           "then": {
             "expected_order": [
               "ChildOfB",
