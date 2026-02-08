@@ -15,7 +15,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "Step 1: 0 Days",
+          "description": "Step 1: 0 Days",
           "then": {
             "expected_order": [
               "FadingTask"
@@ -34,7 +34,7 @@
               "increment_current_time": 604800
             }
           ],
-          "legacy_description": "Step 2: 7 Days",
+          "description": "Step 2: 7 Days",
           "then": {
             "expected_order": [
               "FadingTask"
@@ -53,7 +53,7 @@
               "increment_current_time": 604800
             }
           ],
-          "legacy_description": "Step 3: 14 Days",
+          "description": "Step 3: 14 Days",
           "then": {
             "expected_order": [
               "FadingTask"

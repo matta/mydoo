@@ -38,7 +38,7 @@ struct Scenario {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(deny_unknown_fields)]
 struct Step {
-    legacy_description: Option<String>,
+    description: Option<String>,
     given: Option<InitialState>,
     #[serde(default)]
     when: Vec<Mutation>,
@@ -435,7 +435,7 @@ fn run_step(
     step: &Step,
 ) -> Result<()> {
     let Step {
-        legacy_description,
+        description,
         given,
         when,
         then,
@@ -483,11 +483,11 @@ fn run_step(
         let results_all = get_prioritized_tasks(&state, &view_filter_obj, &options_all);
 
         if let Some(order) = &assertion.expected_order {
-            assert_expected_order(results_filtered, order, scenario, legacy_description)?;
+            assert_expected_order(results_filtered, order, scenario, description)?;
         }
 
         if let Some(props) = &assertion.expected_props {
-            assert_expected_props(results_all, props, scenario, legacy_description)?;
+            assert_expected_props(results_all, props, scenario, description)?;
         }
     }
 
@@ -498,7 +498,7 @@ fn assert_expected_order(
     results: Vec<ComputedTask>,
     order: &serde_json::Value,
     scenario: &Scenario,
-    legacy_description: &Option<String>,
+    description: &Option<String>,
 ) -> Result<()> {
     let actual_order: Vec<String> = results.iter().map(|t| t.id.as_str().to_string()).collect();
     let expected_ids: Vec<String> = match order {
@@ -518,7 +518,7 @@ fn assert_expected_order(
     assert_eq!(
         actual_order, expected_ids,
         "Mismatch in expected order in scenario '{}' at step '{:?}'",
-        scenario.name, legacy_description
+        scenario.name, description
     );
     Ok(())
 }
@@ -527,7 +527,7 @@ fn assert_expected_props(
     results: Vec<ComputedTask>,
     props: &[ExpectedTaskProps],
     scenario: &Scenario,
-    legacy_description: &Option<String>,
+    description: &Option<String>,
 ) -> Result<()> {
     for expected in props {
         let actual = results
@@ -538,7 +538,7 @@ fn assert_expected_props(
                     "Task {} not found in results in scenario '{}' at step '{:?}'",
                     expected.id,
                     scenario.name,
-                    legacy_description
+                    description
                 )
             })?;
 

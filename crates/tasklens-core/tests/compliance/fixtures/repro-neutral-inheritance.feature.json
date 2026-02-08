@@ -26,7 +26,7 @@
       "name": "Verify Ranking Preservation",
       "steps": [
         {
-          "legacy_description": "Do list is in outline order",
+          "description": "Do list is in outline order",
           "then": {
             "expected_order": [
               "A",
@@ -36,7 +36,7 @@
           }
         },
         {
-          "legacy_description": "Add child to B",
+          "description": "Add child to B",
           "when": [
             {
               "create_task": {
@@ -94,7 +94,7 @@
       "name": "Verify Ranking Preservation with Done Sibling",
       "steps": [
         {
-          "legacy_description": "Add siblings to B (One Done, One Active) The ranking should be identical to that of the previous scenario.\n",
+          "description": "Add siblings to B (One Done, One Active) The ranking should be identical to that of the previous scenario.\n",
           "when": [
             {
               "create_task": {

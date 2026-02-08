@@ -18,7 +18,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "Step 1: 20 Days Remaining (Too Early)",
+          "description": "Step 1: 20 Days Remaining (Too Early)",
           "then": {
             "expected_order": [],
             "expected_props": [
@@ -37,7 +37,7 @@
               "increment_current_time": 518400
             }
           ],
-          "legacy_description": "Step 2: 14 Days Remaining (Just Appearing)",
+          "description": "Step 2: 14 Days Remaining (Just Appearing)",
           "then": {
             "expected_order": [],
             "expected_props": [
@@ -56,7 +56,7 @@
               "increment_current_time": 302400
             }
           ],
-          "legacy_description": "Step 3: 10.5 Days Remaining (Halfway)",
+          "description": "Step 3: 10.5 Days Remaining (Halfway)",
           "then": {
             "expected_order": [
               "Task"
@@ -75,7 +75,7 @@
               "increment_current_time": 302400
             }
           ],
-          "legacy_description": "Step 4: 7 Days Remaining (Max)",
+          "description": "Step 4: 7 Days Remaining (Max)",
           "then": {
             "expected_order": [
               "Task"
@@ -94,7 +94,7 @@
               "increment_current_time": 604800
             }
           ],
-          "legacy_description": "Step 5: 0 Days Remaining (Overdue)",
+          "description": "Step 5: 0 Days Remaining (Overdue)",
           "then": {
             "expected_order": [
               "Task"

@@ -21,7 +21,7 @@
       "name": "Cascade Deletion",
       "steps": [
         {
-          "legacy_description": "Initial state check",
+          "description": "Initial state check",
           "then": {
             "expected_order": [
               "Child"
@@ -34,7 +34,7 @@
               "delete_task": "Parent"
             }
           ],
-          "legacy_description": "Delete parent task",
+          "description": "Delete parent task",
           "then": {
             "expected_order": []
           }

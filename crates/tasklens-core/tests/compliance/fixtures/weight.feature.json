@@ -57,7 +57,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "Step 1: Check Propagation",
+          "description": "Step 1: Check Propagation",
           "then": {
             "expected_order": [
               "TaskOne",

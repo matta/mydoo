@@ -23,7 +23,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "1. Verify Sorting Logic",
+          "description": "1. Verify Sorting Logic",
           "then": {
             "expected_order": [
               "Major",

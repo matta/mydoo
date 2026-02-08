@@ -43,7 +43,7 @@
       "name": "Legacy Scenario",
       "steps": [
         {
-          "legacy_description": "1. Initial Tree Order",
+          "description": "1. Initial Tree Order",
           "then": {
             "expected_order": [
               "AlphaTaskOne",
@@ -68,7 +68,7 @@
               }
             }
           ],
-          "legacy_description": "2. Finish A1 (A Utilized)",
+          "description": "2. Finish A1 (A Utilized)",
           "then": {
             "expected_order": [
               "BetaTaskOne",
@@ -92,7 +92,7 @@
               }
             }
           ],
-          "legacy_description": "3. Finish B1 (B Catches Up)",
+          "description": "3. Finish B1 (B Catches Up)",
           "then": {
             "expected_order": [
               "AlphaTaskTwo",
