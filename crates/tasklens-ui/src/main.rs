@@ -14,6 +14,7 @@ pub mod seed;
 pub mod utils;
 pub mod views;
 
+use crate::components::LoadErrorView;
 use crate::router::Route;
 use tasklens_store::store::AppStore;
 
@@ -344,7 +345,12 @@ fn App() -> Element {
             "data-app-state": app_state,
             "data-memory-heads": "{memory_heads()}",
             "data-persisted-heads": "{persisted_heads()}",
-            if is_checking() {
+            if has_error {
+                LoadErrorView {
+                    error: load_error().unwrap_or_default(),
+                    help_text: None,
+                }
+            } else if is_checking() {
                 components::loading::Loading {}
             } else {
                 Router::<Route> {}
