@@ -48,7 +48,7 @@
       "name": "Delete Place Removes It",
       "steps": [
         {
-          "legacy_description": "Initial state: DeskA exists",
+          "description": "Initial state: DeskA exists",
           "then": {
             "expected_places": [
               {
@@ -64,7 +64,7 @@
               "delete_place": "DeskA"
             }
           ],
-          "legacy_description": "Delete DeskA",
+          "description": "Delete DeskA",
           "then": {
             "expected_places": [
               {
@@ -103,7 +103,7 @@
               "delete_place": "Home"
             }
           ],
-          "legacy_description": "Delete Home, DeskA task unaffected",
+          "description": "Delete Home, DeskA task unaffected",
           "then": {
             "expected_places": [
               {

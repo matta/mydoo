@@ -517,7 +517,7 @@ fn run_step(
         }
 
         if let Some(places) = &assertion.expected_places {
-            assert_expected_places(&state, places, scenario, legacy_description)?;
+            assert_expected_places(&state, places, scenario, description)?;
         }
     }
 
