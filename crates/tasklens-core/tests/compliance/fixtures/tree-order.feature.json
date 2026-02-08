@@ -51,9 +51,9 @@
           "legacy_description": "1. Verify DFS Pre-Order",
           "then": {
             "expected_order": [
-              "LeafB1",
               "LeafA1",
-              "LeafA2"
+              "LeafA2",
+              "LeafB1"
             ]
           }
         }

@@ -119,11 +119,6 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
                         div { class: "text-base-content/70",
                             "Importance {format_factor(entry.importance)} -> Normalized {format_factor(entry.normalized_importance)}"
                         }
-                        if let Some(sum) = entry.sibling_importance_sum {
-                            div { class: "text-base-content/50",
-                                "Pending sibling sum {format_factor(sum)}"
-                            }
-                        }
                         if let Some(parent_norm) = entry.parent_normalized_importance {
                             div { class: "text-base-content/50",
                                 "Parent normalized {format_factor(parent_norm)}"
