@@ -46,11 +46,11 @@
             "expected_props": [
               {
                 "id": "LifeTask",
-                "score": 25
+                "score": 50
               },
               {
                 "id": "WorkTask",
-                "score": 0.3086419
+                "score": 0.6172838
               }
             ]
           }

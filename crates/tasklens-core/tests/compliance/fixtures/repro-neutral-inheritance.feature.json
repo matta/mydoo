@@ -52,13 +52,46 @@
               "A",
               "B_Child",
               "C"
+            ],
+            "expected_props": [
+              {
+                "id": "B_Child",
+                "score": 55555.5556
+              }
+            ]
+          }
+        },
+        {
+          "legacy_description": "Add pending sibling to B (score must remain unchanged)",
+          "when": [
+            {
+              "create_task": {
+                "id": "B_Sibling",
+                "parent_id": "B",
+                "title": "B's Sibling",
+                "importance": 0.5
+              }
+            }
+          ],
+          "then": {
+            "expected_order": [
+              "A",
+              "B_Child",
+              "B_Sibling",
+              "C"
+            ],
+            "expected_props": [
+              {
+                "id": "B_Child",
+                "score": 55555.5556
+              }
             ]
           }
         }
       ]
     },
     {
-      "name": "Verify Ranking Preservation",
+      "name": "Verify Ranking Preservation with Done Sibling",
       "steps": [
         {
           "legacy_description": "Add siblings to B (One Done, One Active) The ranking should be identical to that of the previous scenario.\n",

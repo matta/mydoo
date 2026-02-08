@@ -86,7 +86,7 @@ inheritance and algorithm behavior:
 
 | Field (UI)            | Implementation Field  | Default Value                 | Notes                                                        |
 | :-------------------- | :-------------------- | :---------------------------- | :----------------------------------------------------------- |
-| `importance`          | `importance`          | `1.0`                         | Maximum value. Set at creation to 1.0.                       |
+| `importance`          | `importance`          | `0.5`                         | Neutral value. Set at creation to 0.5.                       |
 | `effort`              | `creditIncrement`     | Parent's value, or `0.5`      | Copied from parent at creation. Root defaults to `0.5`.      |
 | `leadTime`            | `schedule.leadTime`   | `28,800,000` (8 hours)        | Stored in milliseconds.                                      |
 | `notes`               | `notes`               | `undefined`                   | Optional.                                                    |
@@ -257,6 +257,10 @@ The application relies on the definition in [ALGORITHM.md](./algorithm.md) (The
 1.  **Credits**: Historical effort tracking.
 2.  **Staleness**: Auto-focus pressure ([STALENESS.md](./staleness.md)).
 3.  **Priority**: The final sorting order for the "Do" list.
+
+**Invariant**: Adding or removing a sibling MUST NOT change any existing task's
+priority in the Do list (except for sequential gating). Importance is absolute,
+not normalized across siblings.
 
 See also: [ALGORITHM_TEST_SUITE.md](./test-suite.md) for compliance test
 fixtures.

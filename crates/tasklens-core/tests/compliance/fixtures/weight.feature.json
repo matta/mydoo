@@ -1,6 +1,6 @@
 {
-  "feature": "Scenario 7.4: Weight Propagation",
-  "description": "Verifies that a Parent's Global Importance is distributed among its children based on their relative Importance, implementing the 'Weight' or 'Pie Slicing' logic.\n",
+  "feature": "Scenario 7.4: Importance Scaling",
+  "description": "Verifies that a parent's normalized importance scales children using the default importance as neutral, independent of sibling counts.\n",
   "background": {
     "current_time": "2025-01-01T00:00:00Z",
     "tasks": [
@@ -71,11 +71,11 @@
             "expected_props": [
               {
                 "id": "TaskOne",
-                "normalized_importance": 1
+                "normalized_importance": 2
               },
               {
                 "id": "SubTaskA",
-                "normalized_importance": 0.2
+                "normalized_importance": 0.4
               }
             ]
           }

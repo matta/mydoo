@@ -85,10 +85,13 @@ the task has children.
 `CurrentTime >= Task.DueDate - (2 * Task.LeadTime)`.
 
 **`Task.NormalizedImportance`** (`Float`) _Source: Tree_ : Normalized Tree
-Weight. The fraction of the Root Task's total weight allocated to this task.
-_Every Root Task starts with a `NormalizedImportance` of `1.0`. This value flows
-down the tree, divided among siblings based on their `Importance`._ Formula:
-`Task.Importance / Sum(Siblings.Importance) * Parent.NormalizedImportance`.
+Weight. A sibling-independent scaling of the parent weight. **Root tasks start
+with `NormalizedImportance = Root.Importance`.** For non-sequential parents:
+`Task.NormalizedImportance = Parent.NormalizedImportance * (Task.Importance / DefaultImportance)`,
+where `DefaultImportance = 0.5` is the neutral value. **Invariant**: adding or
+removing siblings MUST NOT change an existing task's `Priority` (only the
+added/removed task's own importance affects its score). Sequential lists remain
+an exception due to intentional blocking rules.
 
 **`Task.EffectiveCredits`** (`Float`) _Source: Algorithm_ : Decayed History. The
 current value of past credits after applying time decay. Formula:
@@ -305,7 +308,7 @@ When the algorithm requires the value of a property for Task $T$:
 | `Schedule`        | `'Once'`                  |                                                      |
 | `Due`             | `undefined` (No Due Date) | Uses Recursive Fallback if not defined locally.      |
 | `LeadTime`        | `28800000` (8 Hours)      | Participates in Recursive Fallback alongside `Due`.  |
-| `Importance`      | `1.0`                     | Fixed Default; never inherited.                      |
+| `Importance`      | `0.5`                     | Fixed Default; never inherited.                      |
 
 ## 5. Credit Data Management
 
@@ -412,15 +415,20 @@ Calculate how far each Root Goal is from its target allocation. **Constants**:
       zero. The logic ensures `ActualPercent` is never lower than `1 / 1000` for
       calculation purposes.
 
-### Pass 4: Weight Normalization
+### Pass 4: Importance Scaling
 
-Propagate importance down the tree.
+Propagate importance down the tree without sibling coupling.
 
-- **Root**: `NormalizedImportance = 1.0` (Root Goals compete via Feedback, not
-  Weight).
-- **Child**:
-  - `SumSiblings = Sum(Sibling.Importance)`
-  - `NormalizedImportance = (Importance / SumSiblings) * Parent.NormalizedImportance`
+- **Root**: `NormalizedImportance = Root.Importance`.
+- **Child (Non-Sequential)**:
+  - `NormalizedImportance = Parent.NormalizedImportance * (Importance / DefaultImportance)`
+  - `DefaultImportance = 0.5` (neutral; preserves parent weight when untouched)
+- **Child (Sequential)**: first pending child inherits parent weight; later
+  pending siblings are blocked (handled separately).
+
+**Invariant**: sibling count/status is not an input to this pass. Adding or
+removing siblings MUST NOT change an existing task's `NormalizedImportance` or
+`Priority` (except when sequential blocking applies).
 
 ### Pass 5: Lead Time Ramp
 
@@ -507,15 +515,15 @@ Roots: work (`Target=50%`) and life (`Target=50%`). `k=2.0`.
 | **14 Days**  | `100 * 0.5^2`   | **25.0**         |
 | **3.5 Days** | `100 * 0.5^0.5` | **70.71**        |
 
-### 8.4 Scenario: Weight Propagation
+### 8.4 Scenario: Importance Scaling
 
-**Goal**: Verify parent weight influence on children.
+**Goal**: Verify parent influence on children without sibling coupling.
 
-| Parent NormalizedImportance | Child Importance | Num Siblings (Equal Imp) | Child NormalizedImportance |
-| :-------------------------- | :--------------- | :----------------------- | :------------------------- |
-| **1.0**                     | 1.0              | 1                        | `1.0 / 1.0 * 1.0 = 1.0`    |
-| **0.5**                     | 1.0              | 1                        | `1.0 / 1.0 * 0.5 = 0.5`    |
-| **1.0**                     | 0.2              | 5 (Sum=1.0)              | `0.2 / 1.0 * 1.0 = 0.2`    |
+| Parent NormalizedImportance | Child Importance | Default Importance | Child NormalizedImportance |
+| :-------------------------- | :--------------- | :----------------- | :------------------------- |
+| **1.0**                     | 0.5              | 0.5                | `1.0 * (0.5 / 0.5) = 1.0`  |
+| **0.8**                     | 1.0              | 0.5                | `0.8 * (1.0 / 0.5) = 1.6`  |
+| **0.6**                     | 0.25             | 0.5                | `0.6 * (0.25 / 0.5) = 0.3` |
 
 ## Appendix A: Design Rationale
 

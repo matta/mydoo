@@ -4,6 +4,9 @@ pub const CREDITS_HALF_LIFE_MILLIS: f64 = 7.0 * 24.0 * 60.0 * 60.0 * 1000.0;
 /// Default credit increment for tasks without explicit assignment.
 pub const DEFAULT_CREDIT_INCREMENT: f64 = 0.5;
 
+/// Default importance assigned to new tasks.
+pub const DEFAULT_IMPORTANCE: f64 = 0.5;
+
 /// Sensitivity for feedback calculation.
 pub const FEEDBACK_SENSITIVITY: f64 = 2.0;
 
