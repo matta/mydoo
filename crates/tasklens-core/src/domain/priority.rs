@@ -430,11 +430,7 @@ fn process_children(
                 enriched_tasks[child_idx].normalized_importance = parent_importance;
             }
         } else {
-            let importance_ratio = if DEFAULT_IMPORTANCE > 0.0 {
-                enriched_tasks[child_idx].importance / DEFAULT_IMPORTANCE
-            } else {
-                0.0
-            };
+            let importance_ratio = enriched_tasks[child_idx].importance / DEFAULT_IMPORTANCE;
             enriched_tasks[child_idx].normalized_importance = parent_importance * importance_ratio;
         }
 
