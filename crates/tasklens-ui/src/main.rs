@@ -14,6 +14,7 @@ pub mod seed;
 pub mod utils;
 pub mod views;
 
+use crate::components::LoadErrorView;
 use crate::router::Route;
 use tasklens_store::store::AppStore;
 
@@ -318,11 +319,14 @@ fn App() -> Element {
         is_checking.set(false);
     });
 
-    if is_checking() {
-        return rsx! {
-            components::loading::Loading {}
-        };
-    }
+    let has_error = load_error().is_some();
+    let app_state = if has_error {
+        "error"
+    } else if is_checking() {
+        "loading"
+    } else {
+        "ready"
+    };
 
     rsx! {
         // Global Component Theme
@@ -338,9 +342,19 @@ fn App() -> Element {
 
         div {
             class: "min-h-screen",
+            "data-app-state": app_state,
             "data-memory-heads": "{memory_heads()}",
             "data-persisted-heads": "{persisted_heads()}",
-            Router::<Route> {}
+            if has_error {
+                LoadErrorView {
+                    error: load_error().unwrap_or_default(),
+                    help_text: None,
+                }
+            } else if is_checking() {
+                components::loading::Loading {}
+            } else {
+                Router::<Route> {}
+            }
         }
     }
 }
