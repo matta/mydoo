@@ -29,5 +29,6 @@
     "javascriptreact",
     "typescript",
     "typescriptreact"
-  ]
+  ],
+  "rust-analyzer.check.allTargets": false
 }

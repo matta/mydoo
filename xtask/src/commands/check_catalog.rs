@@ -8,6 +8,17 @@ use std::path::PathBuf;
 /// actually used by some `package.json` in the workspace. Fails if any
 /// entries are unused.
 pub(crate) fn check_catalog() -> Result<()> {
+    let defined_catalog_entries = get_defined_catalog_entries()?;
+    let package_json_paths = get_package_json_paths()?;
+
+    let catalog_names: HashSet<String> = defined_catalog_entries.keys().cloned().collect();
+    let used_catalog_entries =
+        get_used_catalog_entries_from_packages(package_json_paths, &catalog_names);
+
+    report_and_fail_on_unused(&defined_catalog_entries, &used_catalog_entries)
+}
+
+fn get_defined_catalog_entries() -> Result<HashMap<String, HashSet<String>>> {
     let root_dir = std::env::current_dir()?;
     let workspace_path = root_dir.join("pnpm-workspace.yaml");
 
@@ -18,7 +29,6 @@ pub(crate) fn check_catalog() -> Result<()> {
         );
     }
 
-    // 1. Parse pnpm-workspace.yaml to find DEFINED catalog entries
     let workspace_content =
         fs::read_to_string(&workspace_path).context("Failed to read pnpm-workspace.yaml")?;
 
@@ -30,16 +40,13 @@ pub(crate) fn check_catalog() -> Result<()> {
     }
 
     let workspace = &docs[0];
-
-    // Access "catalogs" field
     let catalogs = &workspace["catalogs"];
 
-    // Check if it's a hash map
     let catalogs_map = catalogs.as_hash().ok_or_else(|| {
         anyhow::anyhow!("No 'catalogs' section found in pnpm-workspace.yaml useable as a map")
     })?;
 
-    let mut defined_catalog_entries: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut defined_catalog_entries = HashMap::new();
 
     for (catalog_name_key, entries_val) in catalogs_map {
         let catalog_name_str = catalog_name_key
@@ -60,20 +67,19 @@ pub(crate) fn check_catalog() -> Result<()> {
         defined_catalog_entries.insert(catalog_name_str, entry_names);
     }
 
-    // 2. Find all package.json files
-    let pattern = "**/package.json";
+    Ok(defined_catalog_entries)
+}
 
-    let mut package_json_paths: Vec<PathBuf> = Vec::new();
+fn get_package_json_paths() -> Result<Vec<PathBuf>> {
+    let pattern = "**/package.json";
+    let mut package_json_paths = Vec::new();
 
     for entry in glob(pattern).context("Failed to read glob pattern")? {
         match entry {
             Ok(path) => {
-                // Filter out node_modules, dist, etc.
                 if path.components().any(|c| {
-                    c.as_os_str() == "node_modules"
-                        || c.as_os_str() == "dist"
-                        || c.as_os_str() == ".git"
-                        || c.as_os_str() == "target"
+                    let s = c.as_os_str();
+                    s == "node_modules" || s == "dist" || s == ".git" || s == "target"
                 }) {
                     continue;
                 }
@@ -83,15 +89,19 @@ pub(crate) fn check_catalog() -> Result<()> {
         }
     }
 
-    // 3. Scan package.json files for USED entries
-    let mut used_catalog_entries: HashMap<String, HashSet<String>> = HashMap::new();
-    // Initialize sets for all known catalogs
-    for name in defined_catalog_entries.keys() {
+    Ok(package_json_paths)
+}
+
+fn get_used_catalog_entries_from_packages(
+    paths: Vec<PathBuf>,
+    catalog_names: &HashSet<String>,
+) -> HashMap<String, HashSet<String>> {
+    let mut used_catalog_entries = HashMap::new();
+    for name in catalog_names {
         used_catalog_entries.insert(name.clone(), HashSet::new());
     }
 
-    for path in package_json_paths {
-        // Read and parse package.json
+    for path in paths {
         let content = match fs::read_to_string(&path) {
             Ok(c) => c,
             Err(e) => {
@@ -112,7 +122,6 @@ pub(crate) fn check_catalog() -> Result<()> {
             }
         };
 
-        // Check dependencies, devDependencies, etc.
         let dep_sections = [
             "dependencies",
             "devDependencies",
@@ -128,7 +137,6 @@ pub(crate) fn check_catalog() -> Result<()> {
                             continue;
                         }
 
-                        // Format is "catalog:" (default) or "catalog:name"
                         let parts: Vec<&str> = version.split(':').collect();
                         let catalog_name = if parts.len() > 1 && !parts[1].is_empty() {
                             parts[1]
@@ -145,10 +153,16 @@ pub(crate) fn check_catalog() -> Result<()> {
         }
     }
 
-    // 4. Compare and Report
+    used_catalog_entries
+}
+
+fn report_and_fail_on_unused(
+    defined: &HashMap<String, HashSet<String>>,
+    used: &HashMap<String, HashSet<String>>,
+) -> Result<()> {
     let mut has_unused = false;
-    for (catalog_name, defined_set) in &defined_catalog_entries {
-        if let Some(used_set) = used_catalog_entries.get(catalog_name) {
+    for (catalog_name, defined_set) in defined {
+        if let Some(used_set) = used.get(catalog_name) {
             let unused: Vec<&String> = defined_set.difference(used_set).collect();
 
             if !unused.is_empty() {

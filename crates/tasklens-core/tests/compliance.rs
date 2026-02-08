@@ -12,8 +12,8 @@ use tasklens_core::TaskUpdates;
 use tasklens_core::domain::doc_bridge;
 use tasklens_core::domain::priority::get_prioritized_tasks;
 use tasklens_core::types::{
-    Context, Frequency, PriorityOptions, RepeatConfig, ScheduleType, TaskID, TaskStatus,
-    TunnelState, UrgencyStatus, ViewFilter,
+    ComputedTask, Context, Frequency, PriorityOptions, RepeatConfig, ScheduleType, TaskID,
+    TaskStatus, TunnelState, UrgencyStatus, ViewFilter,
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -422,275 +422,335 @@ fn run_scenario(background: Option<&InitialState>, scenario: &Scenario) -> Resul
     let Scenario { steps, .. } = scenario;
 
     for step in steps {
-        let Step {
-            legacy_description,
-            given,
-            when,
-            then,
-            view_filter,
-        } = step;
+        run_step(&mut store, &mut current_time, scenario, step)?;
+    }
 
-        if let Some(given_state) = given {
-            apply_initial_state(&mut store, &mut current_time, given_state)?;
+    Ok(())
+}
+
+fn run_step(
+    store: &mut ComplianceStore,
+    current_time: &mut i64,
+    scenario: &Scenario,
+    step: &Step,
+) -> Result<()> {
+    let Step {
+        legacy_description,
+        given,
+        when,
+        then,
+        view_filter,
+    } = step;
+
+    if let Some(given_state) = given {
+        apply_initial_state(store, current_time, given_state)?;
+    }
+
+    for mutation in when {
+        apply_mutation(store, current_time, mutation)?;
+    }
+
+    if let Some(assertion) = then {
+        let state = store.hydrate()?;
+        let filter_str = view_filter.as_deref().unwrap_or("All Places");
+        let place_id_filter = if filter_str == "All Places" {
+            Some("All".to_string())
+        } else {
+            Some(filter_str.to_string())
+        };
+
+        let options_filtered = PriorityOptions {
+            include_hidden: false,
+            mode: None,
+            context: Some(Context {
+                current_place_id: None,
+                current_time: *current_time,
+            }),
+        };
+        let options_all = PriorityOptions {
+            include_hidden: true,
+            mode: None,
+            context: Some(Context {
+                current_place_id: None,
+                current_time: *current_time,
+            }),
+        };
+        let view_filter_obj = ViewFilter {
+            place_id: place_id_filter,
+        };
+
+        let results_filtered = get_prioritized_tasks(&state, &view_filter_obj, &options_filtered);
+        let results_all = get_prioritized_tasks(&state, &view_filter_obj, &options_all);
+
+        if let Some(order) = &assertion.expected_order {
+            assert_expected_order(results_filtered, order, scenario, legacy_description)?;
         }
 
-        for mutation in when {
-            apply_mutation(&mut store, &mut current_time, mutation)?;
-        }
-
-        if let Some(assertion) = then {
-            let state = store.hydrate()?;
-            let filter_str = view_filter.as_deref().unwrap_or("All Places");
-            let place_id_filter = if filter_str == "All Places" {
-                Some("All".to_string())
-            } else {
-                Some(filter_str.to_string())
-            };
-
-            let options_filtered = PriorityOptions {
-                include_hidden: false,
-                mode: None,
-                context: Some(Context {
-                    current_place_id: None,
-                    current_time,
-                }),
-            };
-            let options_all = PriorityOptions {
-                include_hidden: true,
-                mode: None,
-                context: Some(Context {
-                    current_place_id: None,
-                    current_time,
-                }),
-            };
-            let view_filter_obj = ViewFilter {
-                place_id: place_id_filter,
-            };
-
-            let results_filtered =
-                get_prioritized_tasks(&state, &view_filter_obj, &options_filtered);
-            let results_all = get_prioritized_tasks(&state, &view_filter_obj, &options_all);
-
-            let Assertion {
-                expected_order,
-                expected_props,
-            } = assertion;
-
-            if let Some(order) = expected_order {
-                let actual_order: Vec<String> = results_filtered
-                    .iter()
-                    .map(|t| t.id.as_str().to_string())
-                    .collect();
-                let expected_ids: Vec<String> = match order {
-                    serde_json::Value::Array(seq) => seq
-                        .iter()
-                        .map(|v| v.as_str().unwrap_or("").to_string())
-                        .collect(),
-                    serde_json::Value::String(s) => {
-                        if s.is_empty() {
-                            vec![]
-                        } else {
-                            vec![s.clone()]
-                        }
-                    }
-                    _ => Vec::new(),
-                };
-                assert_eq!(
-                    actual_order, expected_ids,
-                    "Mismatch in expected order in scenario '{}' at step '{:?}'",
-                    scenario.name, legacy_description
-                );
-            }
-
-            if let Some(props) = expected_props {
-                for expected in props {
-                    let actual = results_all
-                        .iter()
-                        .find(|t| t.id.as_str() == expected.id)
-                        .ok_or_else(|| {
-                            anyhow!(
-                                "Task {} not found in results in scenario '{}' at step '{:?}'",
-                                expected.id,
-                                scenario.name,
-                                legacy_description
-                            )
-                        })?;
-
-                    let ExpectedTaskProps {
-                        id: _,
-                        score,
-                        credits,
-                        effective_credits,
-                        effective_due_date,
-                        effective_lead_time,
-                        due_date,
-                        urgency_status,
-                        importance,
-                        normalized_importance,
-                        is_blocked,
-                        is_visible,
-                        is_ready,
-                        is_open,
-                        place_id,
-                        credit_increment,
-                    } = expected;
-
-                    if let Some(status) = urgency_status {
-                        assert_eq!(
-                            actual.urgency_status, *status,
-                            "Task: {}, Scenario: {}",
-                            expected.id, scenario.name
-                        );
-                    }
-
-                    if let Some(edd) = effective_due_date {
-                        let expected_ms = parse_json_date(edd)?;
-                        assert_eq!(
-                            actual.effective_due_date, expected_ms,
-                            "Task: {}, Scenario: {}",
-                            expected.id, scenario.name
-                        );
-                    }
-
-                    if let Some(dd) = due_date {
-                        let expected_ms = parse_json_date(dd)?;
-                        assert_eq!(
-                            actual.schedule.due_date, expected_ms,
-                            "Task: {}, Scenario: {}",
-                            expected.id, scenario.name
-                        );
-                    }
-
-                    if let Some(elt) = effective_lead_time {
-                        assert_eq!(
-                            actual.effective_lead_time,
-                            Some(elt.to_f64() as i64),
-                            "Task: {}, Scenario: {}",
-                            expected.id,
-                            scenario.name
-                        );
-                    }
-
-                    if let Some(ready) = is_ready {
-                        assert_eq!(
-                            actual.is_ready,
-                            ready.to_bool(),
-                            "Task: {}, Scenario: {}",
-                            expected.id,
-                            scenario.name
-                        );
-                    }
-
-                    if let Some(eff_credits) = effective_credits {
-                        assert_f64_near(
-                            actual.effective_credits,
-                            eff_credits.to_f64(),
-                            &format!(
-                                "Task: {}, Scenario: {}, Effective Credits",
-                                expected.id, scenario.name
-                            ),
-                        );
-                    }
-
-                    if let Some(c) = credits {
-                        assert_f64_near(
-                            actual.credits,
-                            c.to_f64(),
-                            &format!(
-                                "Task: {}, Scenario: {}, Credits (stored)",
-                                expected.id, scenario.name
-                            ),
-                        );
-                    }
-
-                    if let Some(ci) = credit_increment {
-                        assert_f64_near(
-                            actual.credit_increment.unwrap_or(0.0),
-                            ci.to_f64(),
-                            &format!(
-                                "Task: {}, Scenario: {}, Credit Increment",
-                                expected.id, scenario.name
-                            ),
-                        );
-                    }
-
-                    if let Some(imp) = importance {
-                        assert_f64_near(
-                            actual.importance,
-                            imp.to_f64(),
-                            &format!(
-                                "Task: {}, Scenario: {}, Importance",
-                                expected.id, scenario.name
-                            ),
-                        );
-                    }
-
-                    if let Some(s) = score {
-                        assert_f64_near(
-                            actual.score,
-                            s.to_f64(),
-                            &format!("Task: {}, Scenario: {}, Score", expected.id, scenario.name),
-                        );
-                    }
-
-                    if let Some(ni) = normalized_importance {
-                        assert_f64_near(
-                            actual.normalized_importance,
-                            ni.to_f64(),
-                            &format!(
-                                "Task: {}, Scenario: {}, Normalized Importance",
-                                expected.id, scenario.name
-                            ),
-                        );
-                    }
-
-                    if let Some(visible) = is_visible {
-                        assert_eq!(
-                            actual.is_visible,
-                            visible.to_bool(),
-                            "Task: {}, Scenario: {}, Visibility",
-                            expected.id,
-                            scenario.name
-                        );
-                    }
-
-                    if let Some(blocked) = is_blocked {
-                        assert_eq!(
-                            actual.is_blocked,
-                            blocked.to_bool(),
-                            "Task: {}, Scenario: {}, Blocked",
-                            expected.id,
-                            scenario.name
-                        );
-                    }
-
-                    if let Some(open) = is_open {
-                        assert_eq!(
-                            actual.is_open,
-                            open.to_bool(),
-                            "Task: {}, Scenario: {}, Open",
-                            expected.id,
-                            scenario.name
-                        );
-                    }
-
-                    if let Some(pid) = place_id {
-                        let actual_place = actual
-                            .place_id
-                            .as_ref()
-                            .map(|p| p.as_str())
-                            .unwrap_or("Anywhere");
-                        assert_eq!(
-                            actual_place, pid,
-                            "Task: {}, Scenario: {}, PlaceID",
-                            expected.id, scenario.name
-                        );
-                    }
-                }
-            }
+        if let Some(props) = &assertion.expected_props {
+            assert_expected_props(results_all, props, scenario, legacy_description)?;
         }
     }
 
+    Ok(())
+}
+
+fn assert_expected_order(
+    results: Vec<ComputedTask>,
+    order: &serde_json::Value,
+    scenario: &Scenario,
+    legacy_description: &Option<String>,
+) -> Result<()> {
+    let actual_order: Vec<String> = results.iter().map(|t| t.id.as_str().to_string()).collect();
+    let expected_ids: Vec<String> = match order {
+        serde_json::Value::Array(seq) => seq
+            .iter()
+            .map(|v| v.as_str().unwrap_or("").to_string())
+            .collect(),
+        serde_json::Value::String(s) => {
+            if s.is_empty() {
+                vec![]
+            } else {
+                vec![s.clone()]
+            }
+        }
+        _ => Vec::new(),
+    };
+    assert_eq!(
+        actual_order, expected_ids,
+        "Mismatch in expected order in scenario '{}' at step '{:?}'",
+        scenario.name, legacy_description
+    );
+    Ok(())
+}
+
+fn assert_expected_props(
+    results: Vec<ComputedTask>,
+    props: &[ExpectedTaskProps],
+    scenario: &Scenario,
+    legacy_description: &Option<String>,
+) -> Result<()> {
+    for expected in props {
+        let actual = results
+            .iter()
+            .find(|t| t.id.as_str() == expected.id)
+            .ok_or_else(|| {
+                anyhow!(
+                    "Task {} not found in results in scenario '{}' at step '{:?}'",
+                    expected.id,
+                    scenario.name,
+                    legacy_description
+                )
+            })?;
+
+        assert_task_props(actual, expected, scenario)?;
+    }
+    Ok(())
+}
+
+fn assert_task_props(
+    actual: &ComputedTask,
+    expected: &ExpectedTaskProps,
+    scenario: &Scenario,
+) -> Result<()> {
+    assert_basic_props(actual, expected, scenario)?;
+    assert_credit_props(actual, expected, scenario)?;
+    assert_schedule_props(actual, expected, scenario)?;
+    assert_importance_props(actual, expected, scenario)?;
+    assert_state_props(actual, expected, scenario)?;
+    assert_location_props(actual, expected, scenario)?;
+    Ok(())
+}
+
+fn assert_basic_props(
+    actual: &ComputedTask,
+    expected: &ExpectedTaskProps,
+    scenario: &Scenario,
+) -> Result<()> {
+    if let Some(status) = &expected.urgency_status {
+        assert_eq!(
+            actual.urgency_status, *status,
+            "Task: {}, Scenario: {}",
+            expected.id, scenario.name
+        );
+    }
+    if let Some(ready) = &expected.is_ready {
+        assert_eq!(
+            actual.is_ready,
+            ready.to_bool(),
+            "Task: {}, Scenario: {}",
+            expected.id,
+            scenario.name
+        );
+    }
+    Ok(())
+}
+
+fn assert_credit_props(
+    actual: &ComputedTask,
+    expected: &ExpectedTaskProps,
+    scenario: &Scenario,
+) -> Result<()> {
+    if let Some(eff_credits) = &expected.effective_credits {
+        assert_f64_near(
+            actual.effective_credits,
+            eff_credits.to_f64(),
+            &format!(
+                "Task: {}, Scenario: {}, Effective Credits",
+                expected.id, scenario.name
+            ),
+        );
+    }
+
+    if let Some(c) = &expected.credits {
+        assert_f64_near(
+            actual.credits,
+            c.to_f64(),
+            &format!(
+                "Task: {}, Scenario: {}, Credits (stored)",
+                expected.id, scenario.name
+            ),
+        );
+    }
+
+    if let Some(ci) = &expected.credit_increment {
+        assert_f64_near(
+            actual.credit_increment.unwrap_or(0.0),
+            ci.to_f64(),
+            &format!(
+                "Task: {}, Scenario: {}, Credit Increment",
+                expected.id, scenario.name
+            ),
+        );
+    }
+    Ok(())
+}
+
+fn assert_schedule_props(
+    actual: &ComputedTask,
+    expected: &ExpectedTaskProps,
+    scenario: &Scenario,
+) -> Result<()> {
+    if let Some(edd) = &expected.effective_due_date {
+        let expected_ms = parse_json_date(edd)?;
+        assert_eq!(
+            actual.effective_due_date, expected_ms,
+            "Task: {}, Scenario: {}",
+            expected.id, scenario.name
+        );
+    }
+
+    if let Some(dd) = &expected.due_date {
+        let expected_ms = parse_json_date(dd)?;
+        assert_eq!(
+            actual.schedule.due_date, expected_ms,
+            "Task: {}, Scenario: {}",
+            expected.id, scenario.name
+        );
+    }
+
+    if let Some(elt) = &expected.effective_lead_time {
+        assert_eq!(
+            actual.effective_lead_time,
+            Some(elt.to_f64() as i64),
+            "Task: {}, Scenario: {}",
+            expected.id,
+            scenario.name
+        );
+    }
+    Ok(())
+}
+
+fn assert_importance_props(
+    actual: &ComputedTask,
+    expected: &ExpectedTaskProps,
+    scenario: &Scenario,
+) -> Result<()> {
+    if let Some(imp) = &expected.importance {
+        assert_f64_near(
+            actual.importance,
+            imp.to_f64(),
+            &format!(
+                "Task: {}, Scenario: {}, Importance",
+                expected.id, scenario.name
+            ),
+        );
+    }
+
+    if let Some(s) = &expected.score {
+        assert_f64_near(
+            actual.score,
+            s.to_f64(),
+            &format!("Task: {}, Scenario: {}, Score", expected.id, scenario.name),
+        );
+    }
+
+    if let Some(ni) = &expected.normalized_importance {
+        assert_f64_near(
+            actual.normalized_importance,
+            ni.to_f64(),
+            &format!(
+                "Task: {}, Scenario: {}, Normalized Importance",
+                expected.id, scenario.name
+            ),
+        );
+    }
+    Ok(())
+}
+
+fn assert_state_props(
+    actual: &ComputedTask,
+    expected: &ExpectedTaskProps,
+    scenario: &Scenario,
+) -> Result<()> {
+    if let Some(visible) = &expected.is_visible {
+        assert_eq!(
+            actual.is_visible,
+            visible.to_bool(),
+            "Task: {}, Scenario: {}, Visibility",
+            expected.id,
+            scenario.name
+        );
+    }
+
+    if let Some(blocked) = &expected.is_blocked {
+        assert_eq!(
+            actual.is_blocked,
+            blocked.to_bool(),
+            "Task: {}, Scenario: {}, Blocked",
+            expected.id,
+            scenario.name
+        );
+    }
+
+    if let Some(open) = &expected.is_open {
+        assert_eq!(
+            actual.is_open,
+            open.to_bool(),
+            "Task: {}, Scenario: {}, Open",
+            expected.id,
+            scenario.name
+        );
+    }
+    Ok(())
+}
+
+fn assert_location_props(
+    actual: &ComputedTask,
+    expected: &ExpectedTaskProps,
+    scenario: &Scenario,
+) -> Result<()> {
+    if let Some(pid) = &expected.place_id {
+        let actual_place = actual
+            .place_id
+            .as_ref()
+            .map(|p| p.as_str())
+            .unwrap_or("Anywhere");
+        assert_eq!(
+            actual_place, pid,
+            "Task: {}, Scenario: {}, PlaceID",
+            expected.id, scenario.name
+        );
+    }
     Ok(())
 }
 
@@ -768,13 +828,37 @@ fn apply_task_input(
     })?;
 
     // 2. Build and Dispatch UpdateTask for all other fields
+    let updates = build_task_updates(t, current_time)?;
+
+    store.dispatch(Action::UpdateTask {
+        id: task_id.clone(),
+        updates,
+    })?;
+
+    // 3. Recurse into children
+    if let Some(children) = &t.children {
+        for child in children {
+            apply_task_input(store, child, Some(task_id.clone()), current_time)?;
+        }
+    }
+
+    Ok(())
+}
+
+fn build_task_updates(t: &TaskInput, current_time: i64) -> Result<TaskUpdates> {
     let mut updates = TaskUpdates {
-        // Compliance tests assume tasks are "born" at current_time for decay calculations
         credits_timestamp: Some(current_time),
         priority_timestamp: Some(current_time),
         ..Default::default()
     };
 
+    apply_credit_input_to_updates(t, &mut updates)?;
+    apply_schedule_input_to_updates(t, &mut updates)?;
+
+    Ok(updates)
+}
+
+fn apply_credit_input_to_updates(t: &TaskInput, updates: &mut TaskUpdates) -> Result<()> {
     if let Some(val) = t.status {
         updates.status = Some(val);
     }
@@ -793,7 +877,10 @@ fn apply_task_input(
     if let Some(ts) = &t.credits_timestamp {
         updates.credits_timestamp = Some(parse_date(ts)?);
     }
+    Ok(())
+}
 
+fn apply_schedule_input_to_updates(t: &TaskInput, updates: &mut TaskUpdates) -> Result<()> {
     if let Some(pid) = &t.place_id {
         updates.place_id = Some(if pid == "null" || pid.is_empty() {
             None
@@ -825,22 +912,8 @@ fn apply_task_input(
             interval: rc.interval as i64,
         }));
     }
-
-    store.dispatch(Action::UpdateTask {
-        id: task_id.clone(),
-        updates,
-    })?;
-
-    // 3. Recurse children
-    if let Some(children) = &t.children {
-        for child_input in children {
-            apply_task_input(store, child_input, Some(task_id.clone()), current_time)?;
-        }
-    }
-
     Ok(())
 }
-
 fn apply_mutation(
     store: &mut ComplianceStore,
     current_time: &mut i64,
@@ -867,74 +940,7 @@ fn apply_mutation(
             apply_task_input(store, t, None, *current_time)?;
         }
         Mutation::TaskUpdate(u) => {
-            let TaskUpdate {
-                id,
-                status,
-                credits,
-                credit_increment,
-                desired_credits,
-                importance,
-                due_date,
-                place_id,
-                is_acknowledged,
-                schedule_type,
-                repeat_config,
-                last_done,
-                lead_time_seconds,
-            } = u;
-
-            let task_id = TaskID::from(id.clone());
-            let mut action_updates = TaskUpdates::default();
-
-            if let Some(val) = status {
-                action_updates.status = Some(*val);
-            }
-            if let Some(val) = importance {
-                action_updates.importance = Some(val.to_f64());
-            }
-            if let Some(val) = credits {
-                action_updates.credits = Some(val.to_f64());
-            }
-            if let Some(val) = desired_credits {
-                action_updates.desired_credits = Some(val.to_f64());
-            }
-            if let Some(dd) = due_date {
-                action_updates.due_date = Some(parse_json_date(dd)?);
-            }
-            if let Some(ack) = is_acknowledged {
-                action_updates.is_acknowledged = Some(ack.to_bool());
-            }
-            if let Some(ci) = credit_increment {
-                action_updates.credit_increment = Some(ci.to_f64());
-            }
-            if let Some(pid) = place_id {
-                action_updates.place_id = if pid == "null" || pid.is_empty() {
-                    Some(None)
-                } else {
-                    Some(Some(PlaceID::from(pid.clone())))
-                };
-            }
-            if let Some(st) = schedule_type {
-                action_updates.schedule_type = Some(*st);
-            }
-            if let Some(rc) = repeat_config {
-                action_updates.repeat_config = Some(Some(RepeatConfig {
-                    frequency: rc.frequency,
-                    interval: rc.interval as i64,
-                }));
-            }
-            if let Some(ld) = last_done {
-                action_updates.last_done = Some(parse_json_date(ld)?);
-            }
-
-            if let Some(lt) = lead_time_seconds {
-                action_updates.lead_time = Some((lt.to_f64() * 1000.0) as i64);
-            }
-
-            store.dispatch(Action::UpdateTask {
-                id: task_id,
-                updates: action_updates,
-            })?;
+            apply_task_update_mutation(store, u)?;
         }
         Mutation::DeleteTask(id) => {
             let task_id = TaskID::from(id.clone());
@@ -949,5 +955,76 @@ fn apply_mutation(
         }
     }
 
+    Ok(())
+}
+
+fn apply_task_update_mutation(store: &mut ComplianceStore, u: &TaskUpdate) -> Result<()> {
+    let TaskUpdate {
+        id,
+        status,
+        credits,
+        credit_increment,
+        desired_credits,
+        importance,
+        due_date,
+        place_id,
+        is_acknowledged,
+        schedule_type,
+        repeat_config,
+        last_done,
+        lead_time_seconds,
+    } = u;
+
+    let task_id = TaskID::from(id.clone());
+    let mut action_updates = TaskUpdates::default();
+
+    if let Some(val) = status {
+        action_updates.status = Some(*val);
+    }
+    if let Some(val) = importance {
+        action_updates.importance = Some(val.to_f64());
+    }
+    if let Some(val) = credits {
+        action_updates.credits = Some(val.to_f64());
+    }
+    if let Some(val) = desired_credits {
+        action_updates.desired_credits = Some(val.to_f64());
+    }
+    if let Some(dd) = due_date {
+        action_updates.due_date = Some(parse_json_date(dd)?);
+    }
+    if let Some(ack) = is_acknowledged {
+        action_updates.is_acknowledged = Some(ack.to_bool());
+    }
+    if let Some(ci) = credit_increment {
+        action_updates.credit_increment = Some(ci.to_f64());
+    }
+    if let Some(pid) = place_id {
+        action_updates.place_id = if pid == "null" || pid.is_empty() {
+            Some(None)
+        } else {
+            Some(Some(PlaceID::from(pid.clone())))
+        };
+    }
+    if let Some(st) = schedule_type {
+        action_updates.schedule_type = Some(*st);
+    }
+    if let Some(rc) = repeat_config {
+        action_updates.repeat_config = Some(Some(RepeatConfig {
+            frequency: rc.frequency,
+            interval: rc.interval as i64,
+        }));
+    }
+    if let Some(ld) = last_done {
+        action_updates.last_done = Some(parse_json_date(ld)?);
+    }
+    if let Some(lt) = lead_time_seconds {
+        action_updates.lead_time = Some((lt.to_f64() * 1000.0) as i64);
+    }
+
+    store.dispatch(Action::UpdateTask {
+        id: task_id,
+        updates: action_updates,
+    })?;
     Ok(())
 }

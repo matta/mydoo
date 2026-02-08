@@ -8,7 +8,7 @@ use autosurgeon::{Hydrate, Reconcile};
 use serde::{Deserialize, Serialize};
 pub use serde_json::json;
 use std::borrow::Cow;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 pub fn hydrate_string_or_text<D: autosurgeon::ReadDoc>(
@@ -1288,8 +1288,17 @@ impl TunnelState {
     ///    *Healing*: We detect unreachable tasks by walking from roots and break
     ///    cycles by promoting one task to root.
     pub fn heal_structural_inconsistencies(&mut self) {
+        let all_task_ids: std::collections::HashSet<TaskID> = self.tasks.keys().cloned().collect();
+        self.deduplicate_task_lists();
+        self.prune_broken_links(&all_task_ids);
+        self.prune_broken_parent_links(&all_task_ids);
+        self.remove_tasks_from_incorrect_lists(&all_task_ids);
+        self.ensure_tasks_present_in_designated_lists(&all_task_ids);
+        self.detect_and_break_cycles(&all_task_ids);
+    }
+
+    fn deduplicate_task_lists(&mut self) {
         // 0. Deduplicate lists (keeping first occurrence) to fix duplicate ID regression
-        // This handles cases where concurrent merges might insert the same ID multiple times.
         let mut seen = std::collections::HashSet::new();
         self.root_task_ids.retain(|id| seen.insert(id.clone()));
 
@@ -1297,14 +1306,17 @@ impl TunnelState {
             seen.clear();
             task.child_task_ids.retain(|id| seen.insert(id.clone()));
         }
+    }
 
+    fn prune_broken_links(&mut self, all_task_ids: &std::collections::HashSet<TaskID>) {
         // 1. Prune broken links (pointing to non-existent tasks)
-        let all_task_ids: std::collections::HashSet<_> = self.tasks.keys().cloned().collect();
         self.root_task_ids.retain(|id| all_task_ids.contains(id));
         for task in self.tasks.values_mut() {
             task.child_task_ids.retain(|id| all_task_ids.contains(id));
         }
+    }
 
+    fn prune_broken_parent_links(&mut self, all_task_ids: &std::collections::HashSet<TaskID>) {
         // 2. Prune broken parent links (pointing to non-existent tasks)
         for task in self.tasks.values_mut() {
             if task
@@ -1315,35 +1327,40 @@ impl TunnelState {
                 task.parent_id = None;
             }
         }
+    }
 
+    fn remove_tasks_from_incorrect_lists(
+        &mut self,
+        all_task_ids: &std::collections::HashSet<TaskID>,
+    ) {
         // 3. Surgical Pruning: Remove tasks from "wrong" lists based on their parent_id
-        // Prune root_task_ids
         self.root_task_ids
             .retain(|id| self.tasks.get(id).is_some_and(|t| t.parent_id.is_none()));
 
-        // Prune child_task_ids in every task
-        // We use a temporary list of IDs to avoid borrowing issues during iteration
-        let parent_ids: Vec<TaskID> = self.tasks.keys().cloned().collect();
-        for pid in parent_ids {
+        for pid in all_task_ids {
             if let Some(mut child_ids) = self
                 .tasks
-                .get_mut(&pid)
+                .get_mut(pid)
                 .map(|t| std::mem::take(&mut t.child_task_ids))
             {
                 child_ids.retain(|cid| {
                     self.tasks
                         .get(cid)
-                        .is_some_and(|ct| ct.parent_id.as_ref() == Some(&pid))
+                        .is_some_and(|ct| ct.parent_id.as_ref() == Some(pid))
                 });
-                if let Some(t) = self.tasks.get_mut(&pid) {
+                if let Some(t) = self.tasks.get_mut(pid) {
                     t.child_task_ids = child_ids;
                 }
             }
         }
+    }
 
+    fn ensure_tasks_present_in_designated_lists(
+        &mut self,
+        all_task_ids: &std::collections::HashSet<TaskID>,
+    ) {
         // 4. Ensure Presence: Add tasks to their designated list if missing
-        // Re-sorting for determinism when adding missing items
-        let mut sorted_ids: Vec<_> = self.tasks.keys().cloned().collect();
+        let mut sorted_ids: Vec<_> = all_task_ids.iter().cloned().collect();
         sorted_ids.sort_by_key(|id| id.to_string());
 
         for id in sorted_ids {
@@ -1360,10 +1377,10 @@ impl TunnelState {
                 self.root_task_ids.push(id);
             }
         }
+    }
 
+    fn detect_and_break_cycles(&mut self, all_task_ids: &std::collections::HashSet<TaskID>) {
         // 5. Detect and break cycles by finding tasks unreachable from roots
-        // Concurrent moves (e.g., A→B on one replica, B→A on another) can create
-        // closed loops that are disconnected from the root hierarchy.
         let mut reachable = std::collections::HashSet::with_capacity(self.tasks.len());
         let mut stack: Vec<TaskID> = self.root_task_ids.clone();
         while let Some(id) = stack.pop() {
@@ -1374,30 +1391,26 @@ impl TunnelState {
             }
         }
 
-        // For any unreachable tasks, break the cycle by clearing parent_id
-        // and adding them to roots. Process in sorted order for determinism.
-        let mut unreachable: Vec<_> = self
-            .tasks
-            .keys()
+        let mut unreachable_ids: Vec<_> = all_task_ids
+            .iter()
             .filter(|id| !reachable.contains(*id))
             .cloned()
             .collect();
-        unreachable.sort_unstable_by(|a, b| a.as_str().cmp(b.as_str()));
+        unreachable_ids.sort_unstable_by(|a, b| a.as_str().cmp(b.as_str()));
 
-        if !unreachable.is_empty() {
-            let mut root_task_ids: HashSet<TaskID> = self.root_task_ids.iter().cloned().collect();
-            for id in unreachable {
-                // Remove from old parent's child list
+        if !unreachable_ids.is_empty() {
+            let mut root_task_ids_set: std::collections::HashSet<TaskID> =
+                self.root_task_ids.iter().cloned().collect();
+            for id in unreachable_ids {
                 if let Some(parent_id) = self.tasks.get(&id).and_then(|t| t.parent_id.clone())
                     && let Some(parent) = self.tasks.get_mut(&parent_id)
                 {
                     parent.child_task_ids.retain(|child_id| *child_id != id);
                 }
-                // Clear parent_id and add to roots
                 if let Some(task) = self.tasks.get_mut(&id) {
                     task.parent_id = None;
                 }
-                if root_task_ids.insert(id.clone()) {
+                if root_task_ids_set.insert(id.clone()) {
                     self.root_task_ids.push(id);
                 }
             }
