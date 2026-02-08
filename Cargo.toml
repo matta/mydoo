@@ -11,7 +11,7 @@ members = [
 unreachable_pub = "warn"
 
 [workspace.lints.clippy]
-# cognitive_complexity = "warn"
+cognitive_complexity = "warn"
 # Disabled: conflicts with unreachable_pub (both can't be satisfied in nested modules)
 # redundant_pub_crate = "warn"
 # too_many_arguments = "warn"
