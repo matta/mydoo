@@ -81,7 +81,7 @@
   body {
     /* Apply the theme-aware variable once */
     /* Also setting text color to ensure contrast in dark mode */
-    @apply bg-app-bg text-stone-900 dark:text-stone-50 transition-colors duration-300;
+    @apply bg-app-bg text-base-content transition-colors duration-300;
   }
 
   /*

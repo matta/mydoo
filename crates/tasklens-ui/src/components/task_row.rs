@@ -84,7 +84,7 @@ pub fn TaskRow(
     };
 
     let row_class = format!(
-        "flex items-center py-3 border-b border-base-200 hover:bg-base-200 group pr-2 {}",
+        "flex items-center py-3 border-b border-base-200 group pr-2 {}",
         if is_highlighted { "animate-flash" } else { "" }
     );
 

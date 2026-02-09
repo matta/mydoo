@@ -56,7 +56,7 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
     rsx! {
         div { class: "space-y-4",
             div {
-                class: "card card-compact bg-base-100 shadow border border-base-200 p-4",
+                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4",
                 "data-testid": "score-trace-summary",
                 h2 { class: "text-base font-medium text-base-content", "Task" }
                 p {
@@ -73,7 +73,7 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
             }
 
             div {
-                class: "card card-compact bg-base-100 shadow border border-base-200 p-4 space-y-2",
+                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4 space-y-2",
                 "data-testid": "score-trace-formula",
                 h3 { class: "text-sm font-medium text-base-content/80", "Formula" }
                 code { class: "text-xs text-base-content/70", "score = visibility * normalized_importance * feedback * lead_time" }
@@ -86,7 +86,7 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
             }
 
             div {
-                class: "card card-compact bg-base-100 shadow border border-base-200 p-4 space-y-2",
+                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4 space-y-2",
                 "data-testid": "score-trace-feedback",
                 h3 { class: "text-sm font-medium text-base-content/80", "Balance Feedback" }
                 p { class: "text-xs text-base-content/70",
@@ -103,7 +103,7 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
             }
 
             div {
-                class: "card card-compact bg-base-100 shadow border border-base-200 p-4 space-y-2",
+                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4 space-y-2",
                 "data-testid": "score-trace-importance",
                 h3 { class: "text-sm font-medium text-base-content/80", "Importance Chain" }
                 for entry in trace.importance_chain.iter() {
@@ -129,7 +129,7 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
             }
 
             div {
-                class: "card card-compact bg-base-100 shadow border border-base-200 p-4 space-y-2",
+                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4 space-y-2",
                 "data-testid": "score-trace-lead-time",
                 h3 { class: "text-sm font-medium text-base-content/80", "Lead Time" }
                 div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
@@ -143,7 +143,7 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
             }
 
             div {
-                class: "card card-compact bg-base-100 shadow border border-base-200 p-4 space-y-2",
+                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4 space-y-2",
                 "data-testid": "score-trace-visibility",
                 h3 { class: "text-sm font-medium text-base-content/80", "Visibility" }
                 div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",

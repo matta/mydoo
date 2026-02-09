@@ -190,7 +190,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                     }
                 }
 
-                div { class: "bg-base-100 shadow rounded-lg overflow-hidden mt-4 border border-base-200",
+                div { class: "shadow rounded-lg overflow-hidden mt-4 border border-base-200",
                     if flattened_tasks().is_empty() {
                         div { class: "p-8 text-center",
                             p { class: "text-base-content/60 mb-4",
