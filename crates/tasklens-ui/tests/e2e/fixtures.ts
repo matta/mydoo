@@ -84,7 +84,7 @@ export const test = baseTest.extend<MyFixtures, MyWorkerFixtures>({
     await use(user);
     await user.page.context().close();
   },
-  I: async ({ plan, page }, use, testInfo) => {
+  I: async ({ plan, page, syncServer }, use, testInfo) => {
     // plan fixture is typed as interface but at runtime it's PlanPage instance
     // We cast to PlanPage because Steps expects the concrete class or compatible interface
     // Setup logic moved from onHomePage
@@ -92,7 +92,7 @@ export const test = baseTest.extend<MyFixtures, MyWorkerFixtures>({
     await page.goto("/");
     await plan.waitForAppReady();
 
-    const steps = new Steps(plan as PlanPage, page, testInfo);
+    const steps = new Steps(plan as PlanPage, page, testInfo, syncServer);
 
     // Auto-wrap steps in test.step() for reporting
     const wrapStepGroup = (

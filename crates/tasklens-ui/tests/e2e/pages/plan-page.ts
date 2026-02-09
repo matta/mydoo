@@ -95,6 +95,7 @@ export interface PlanFixture {
   setSyncServerUrl: (url: string) => Promise<void>;
   saveSyncSettings: () => Promise<void>;
   verifySyncServerUrl: (url: string) => Promise<void>;
+  verifySyncStatus: (status: string) => Promise<void>;
 
   setImportance: (value: number) => Promise<void>;
   setEffort: (value: number) => Promise<void>;
@@ -876,6 +877,11 @@ export class PlanPage implements PlanFixture {
   async verifySyncServerUrl(url: string): Promise<void> {
     const input = this.page.getByTestId("sync-server-url-input");
     await expect(input).toHaveValue(url);
+  }
+
+  async verifySyncStatus(status: string): Promise<void> {
+    const button = this.page.getByTestId("sync-status-button");
+    await expect(button).toContainText(status, { timeout: 15000 });
   }
 
   async downloadDocument(): Promise<string> {
