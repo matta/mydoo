@@ -26,24 +26,22 @@ pub fn use_sync_client(#[allow(unused_variables)] store: Signal<AppStore>) -> Si
 
     #[cfg(target_arch = "wasm32")]
     use_effect(move || {
-        if let Some(window) = web_sys::window() {
-            if let Some(document) = window.document() {
-                let closure = Closure::wrap(Box::new(move || {
-                    if let Some(window) = web_sys::window() {
-                        if let Some(document) = window.document() {
-                            if !document.hidden() && status.read().is_disconnected() {
-                                tracing::info!("App became visible, triggering sync retry");
-                                retry_trigger.with_mut(|v| *v += 1);
-                            }
-                        }
+        if let Some(document) = web_sys::window().and_then(|w| w.document()) {
+            let closure = Closure::wrap(Box::new(move || {
+                if let Some(document) = web_sys::window().and_then(|w| w.document()) {
+                    if !document.hidden() && status.read().is_disconnected() {
+                        tracing::info!("App became visible, triggering sync retry");
+                        retry_trigger.with_mut(|v| *v += 1);
                     }
-                }) as Box<dyn FnMut()>);
+                }
+            }) as Box<dyn FnMut()>);
 
-                let _ = document.add_event_listener_with_callback(
-                    "visibilitychange",
-                    closure.as_ref().unchecked_ref(),
-                );
-                closure.forget();
+            match document.add_event_listener_with_callback(
+                "visibilitychange",
+                closure.as_ref().unchecked_ref(),
+            ) {
+                Ok(_) => closure.forget(),
+                Err(e) => tracing::warn!("Failed to add visibilitychange listener: {:?}", e),
             }
         }
     });
