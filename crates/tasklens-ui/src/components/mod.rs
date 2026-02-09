@@ -45,3 +45,4 @@ pub mod empty_state;
 pub(crate) use empty_state::EmptyState;
 pub mod page_header;
 pub(crate) use page_header::PageHeader;
+pub mod search_panel;
