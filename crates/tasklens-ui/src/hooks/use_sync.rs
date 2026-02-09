@@ -13,9 +13,38 @@ pub use tasklens_store::sync::SyncStatus;
 #[cfg(target_arch = "wasm32")]
 pub(crate) const SYNC_SERVER_URL_KEY: &str = "tasklens_sync_server_url";
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::Closure;
+
 pub fn use_sync_client(#[allow(unused_variables)] store: Signal<AppStore>) -> Signal<SyncStatus> {
     #[allow(unused_mut)]
     let mut status = use_signal(|| SyncStatus::Disconnected);
+    #[cfg(target_arch = "wasm32")]
+    let mut retry_trigger = use_signal(|| 0u64);
+
+    #[cfg(target_arch = "wasm32")]
+    use_effect(move || {
+        if let Some(document) = web_sys::window().and_then(|w| w.document()) {
+            let closure = Closure::wrap(Box::new(move || {
+                if let Some(document) = web_sys::window().and_then(|w| w.document()) {
+                    if !document.hidden() && status.read().is_disconnected() {
+                        tracing::info!("App became visible, triggering sync retry");
+                        retry_trigger.with_mut(|v| *v += 1);
+                    }
+                }
+            }) as Box<dyn FnMut()>);
+
+            match document.add_event_listener_with_callback(
+                "visibilitychange",
+                closure.as_ref().unchecked_ref(),
+            ) {
+                Ok(_) => closure.forget(),
+                Err(e) => tracing::warn!("Failed to add visibilitychange listener: {:?}", e),
+            }
+        }
+    });
 
     // Wrapper to satisfy Send bound on WASM (safe because single-threaded browser)
     #[cfg(target_arch = "wasm32")]
@@ -76,69 +105,90 @@ pub fn use_sync_client(#[allow(unused_variables)] store: Signal<AppStore>) -> Si
     use_future(move || async move {
         #[cfg(target_arch = "wasm32")]
         {
+            let _ = retry_trigger(); // Reactivity
+            let mut retry_delay = 1000;
+            const MAX_DELAY: u32 = 30000;
+
             // Wait for store to have a repo
-            loop {
+            let repo = loop {
                 let repo_opt = store.read().repo.clone();
                 if let Some(repo) = repo_opt {
-                    // Check for Sync URL
-                    if let Ok(url) = LocalStorage::get::<String>(SYNC_SERVER_URL_KEY)
-                        && !url.is_empty()
-                    {
-                        status.set(SyncStatus::Connecting);
+                    break repo;
+                }
+                gloo_timers::future::TimeoutFuture::new(100).await;
+            };
 
-                        match gloo_net::websocket::futures::WebSocket::open(&url) {
-                            Ok(ws) => {
-                                let (write, read) = ws.split();
+            // Reconnection Loop
+            loop {
+                // Check for Sync URL
+                let url_res = LocalStorage::get::<String>(SYNC_SERVER_URL_KEY);
+                let url = match url_res {
+                    Ok(u) if !u.is_empty() => u,
+                    _ => {
+                        status.set(SyncStatus::Disconnected);
+                        gloo_timers::future::TimeoutFuture::new(5000).await;
+                        continue;
+                    }
+                };
 
-                                // Map gloo_net messages to Vec<u8> for repo.connect
-                                let stream = read.filter_map(|res| async move {
-                                    match res {
-                                        Ok(gloo_net::websocket::Message::Bytes(b)) => Some(Ok(b)),
-                                        Ok(gloo_net::websocket::Message::Text(_)) => {
-                                            tracing::warn!(
-                                                "Received unexpected text message on sync websocket"
-                                            );
-                                            None
-                                        }
-                                        Err(e) => Some(Err(SyncError(e.to_string()))),
-                                    }
-                                });
+                status.set(SyncStatus::Connecting);
 
-                                let sink = write
-                                    .with(|b: Vec<u8>| async move {
-                                        Ok::<_, gloo_net::websocket::WebSocketError>(
-                                            gloo_net::websocket::Message::Bytes(b),
-                                        )
-                                    })
-                                    .sink_map_err(|e| SyncError(e.to_string()));
+                match gloo_net::websocket::futures::WebSocket::open(&url) {
+                    Ok(ws) => {
+                        let (write, read) = ws.split();
 
-                                // Wrap in UnsafeSend to satisfy samod's Send bound
-                                let stream = UnsafeSend(Box::pin(stream));
-                                let sink = UnsafeSend(Box::pin(sink));
-
-                                match repo.connect(stream, sink, samod::ConnDirection::Outgoing) {
-                                    Ok(conn) => {
-                                        status.set(SyncStatus::Connected);
-                                        // Wait for connection to finish (disconnect)
-                                        let reason = conn.finished().await;
-                                        tracing::warn!("Sync connection finished: {:?}", reason);
-                                        status.set(SyncStatus::Disconnected);
-                                    }
-                                    Err(e) => {
-                                        tracing::error!("Failed to connect: {:?}", e);
-                                        status.set(SyncStatus::Error(format!("{:?}", e)));
-                                    }
+                        // Map gloo_net messages to Vec<u8> for repo.connect
+                        let stream = read.filter_map(|res| async move {
+                            match res {
+                                Ok(gloo_net::websocket::Message::Bytes(b)) => Some(Ok(b)),
+                                Ok(gloo_net::websocket::Message::Text(_)) => {
+                                    tracing::warn!(
+                                        "Received unexpected text message on sync websocket"
+                                    );
+                                    None
                                 }
+                                Err(e) => Some(Err(SyncError(e.to_string()))),
+                            }
+                        });
+
+                        let sink = write
+                            .with(|b: Vec<u8>| async move {
+                                Ok::<_, gloo_net::websocket::WebSocketError>(
+                                    gloo_net::websocket::Message::Bytes(b),
+                                )
+                            })
+                            .sink_map_err(|e| SyncError(e.to_string()));
+
+                        // Wrap in UnsafeSend to satisfy samod's Send bound
+                        let stream = UnsafeSend(Box::pin(stream));
+                        let sink = UnsafeSend(Box::pin(sink));
+
+                        match repo.connect(stream, sink, samod::ConnDirection::Outgoing) {
+                            Ok(conn) => {
+                                status.set(SyncStatus::Connected);
+                                retry_delay = 1000; // Reset delay on successful connection
+
+                                // Wait for connection to finish (disconnect)
+                                let reason = conn.finished().await;
+                                tracing::warn!("Sync connection finished: {:?}", reason);
+                                status.set(SyncStatus::Disconnected);
                             }
                             Err(e) => {
-                                tracing::error!("Failed to open websocket: {:?}", e);
+                                tracing::error!("Failed to connect: {:?}", e);
                                 status.set(SyncStatus::Error(format!("{:?}", e)));
                             }
                         }
                     }
-                    break;
+                    Err(e) => {
+                        tracing::error!("Failed to open websocket: {:?}", e);
+                        status.set(SyncStatus::Error(format!("{:?}", e)));
+                    }
                 }
-                gloo_timers::future::TimeoutFuture::new(100).await;
+
+                // Wait before retrying with exponential backoff
+                tracing::info!("Sync: Reconnecting in {}ms", retry_delay);
+                gloo_timers::future::TimeoutFuture::new(retry_delay).await;
+                retry_delay = (retry_delay * 2).min(MAX_DELAY);
             }
         }
 

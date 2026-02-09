@@ -15,7 +15,7 @@ tracing = { workspace = true }
 wasm-bindgen = { workspace = true }
 wasm-bindgen-futures = { workspace = true }
 js-sys = { workspace = true }
-web-sys = { workspace = true, features = ["Window", "ServiceWorkerContainer", "ServiceWorker", "Navigator", "Location", "Storage", "IdbFactory"] }
+web-sys = { workspace = true, features = ["Window", "ServiceWorkerContainer", "ServiceWorker", "Navigator", "Location", "Storage", "IdbFactory", "Document", "HtmlDocument", "EventTarget", "Event"] }
 futures = { workspace = true }
 anyhow = { workspace = true }
 console_error_panic_hook = { workspace = true }

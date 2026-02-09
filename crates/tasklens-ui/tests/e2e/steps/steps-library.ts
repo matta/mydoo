@@ -2,6 +2,7 @@ import { expect, type Page, type TestInfo } from "@playwright/test";
 import type { PlanPage } from "../pages/plan-page";
 import { assertAccessibility } from "../utils/debug-utils";
 import { parseDuration } from "../utils/duration-parser";
+import type { SyncServerHelper } from "../utils/sync-server";
 
 export class Steps {
   private documentIds: Map<string, string> = new Map();
@@ -10,7 +11,13 @@ export class Steps {
     private plan: PlanPage,
     private page: Page,
     private testInfo: TestInfo,
+    private syncServer?: SyncServerHelper,
   ) {}
+
+  private getSyncUrl() {
+    if (!this.syncServer) throw new Error("Sync server helper not provided");
+    return `ws://localhost:${this.syncServer.getPort()}/sync`;
+  }
 
   public Given = {
     documentExists: async () => {
@@ -289,6 +296,23 @@ export class Steps {
     selectScheduleType: async (type: string) => {
       await this.page.selectOption("#schedule-type-select", { label: type });
     },
+
+    connectsToSyncServer: async () => {
+      const url = this.getSyncUrl();
+      await this.When.opensSyncSettings();
+      await this.When.changesSyncServerUrl(url);
+      await this.When.savesSyncSettings();
+    },
+
+    syncServerGoesDown: async () => {
+      if (!this.syncServer) throw new Error("Sync server helper not provided");
+      await this.syncServer.stop();
+    },
+
+    syncServerComesBackUp: async () => {
+      if (!this.syncServer) throw new Error("Sync server helper not provided");
+      await this.syncServer.start();
+    },
   };
 
   public Then = {
@@ -302,6 +326,16 @@ export class Steps {
 
     syncServerUrlShouldBe: async (url: string) => {
       await this.plan.verifySyncServerUrl(url);
+    },
+
+    syncStatusShouldBe: async (status: string) => {
+      await this.plan.verifySyncStatus(status);
+    },
+
+    syncStatusShouldNotBe: async (status: string) => {
+      await expect(
+        this.page.getByTestId("sync-status-button"),
+      ).not.toContainText(status, { timeout: 15000 });
     },
 
     documentIdShouldRemain: async (oldId: string | undefined) => {
