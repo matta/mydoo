@@ -109,7 +109,9 @@ pub fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
                             .flatten()
                         {
                             if let Some(html_el) = el.dyn_ref::<web_sys::HtmlElement>() {
-                                let _ = html_el.focus();
+                                if let Err(e) = html_el.focus() {
+                                    tracing::warn!("Failed to focus search input: {:?}", e);
+                                }
                             }
                         }
                     }
