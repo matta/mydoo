@@ -63,6 +63,19 @@ export interface PlanFixture {
   // Plan View Specific
   findInPlan: (title: string) => Promise<void>;
 
+  // Search Panel
+  openSearch: () => Promise<void>;
+  closeSearch: () => Promise<void>;
+  searchForTask: (query: string) => Promise<void>;
+  clickSearchResult: (title: string) => Promise<void>;
+  verifySearchResultVisible: (title: string) => Promise<void>;
+  verifySearchResultHidden: (title: string) => Promise<void>;
+  verifySearchResultCount: (count: number) => Promise<void>;
+  verifySearchPanelOpen: () => Promise<void>;
+  verifySearchPanelClosed: () => Promise<void>;
+  verifySearchResultShowsPath: (title: string, path: string) => Promise<void>;
+  verifyNoSearchResults: () => Promise<void>;
+
   // Navigation
   switchToPlanView: () => Promise<void>;
   switchToDoView: () => Promise<void>;
@@ -980,6 +993,81 @@ export class PlanPage implements PlanFixture {
 
   async evaluate<T>(fn: () => T): Promise<T> {
     return await this.page.evaluate(fn);
+  }
+
+  // --- Search Panel ---
+
+  async openSearch(): Promise<void> {
+    await this.page.getByTestId("search-button").click();
+    await expect(this.page.getByTestId("search-panel")).not.toHaveClass(
+      /pointer-events-none/,
+    );
+  }
+
+  async closeSearch(): Promise<void> {
+    await this.page.getByTestId("search-close").click();
+  }
+
+  async searchForTask(query: string): Promise<void> {
+    const input = this.page.getByTestId("search-input");
+    await expect(input).toBeVisible();
+    await input.fill(query);
+  }
+
+  async clickSearchResult(title: string): Promise<void> {
+    const result = this.page
+      .getByTestId("search-result")
+      .filter({ hasText: title })
+      .first();
+    await expect(result).toBeVisible();
+    await result.click();
+  }
+
+  async verifySearchResultVisible(title: string): Promise<void> {
+    const result = this.page
+      .getByTestId("search-result")
+      .filter({ hasText: title })
+      .first();
+    await expect(result).toBeVisible();
+  }
+
+  async verifySearchResultHidden(title: string): Promise<void> {
+    const results = this.page
+      .getByTestId("search-result")
+      .filter({ hasText: title });
+    await expect(results).toHaveCount(0);
+  }
+
+  async verifySearchResultCount(count: number): Promise<void> {
+    await expect(this.page.getByTestId("search-result")).toHaveCount(count);
+  }
+
+  async verifySearchPanelOpen(): Promise<void> {
+    await expect(this.page.getByTestId("search-panel")).not.toHaveClass(
+      /pointer-events-none/,
+    );
+  }
+
+  async verifySearchPanelClosed(): Promise<void> {
+    await expect(this.page.getByTestId("search-panel")).toHaveClass(
+      /pointer-events-none/,
+    );
+  }
+
+  async verifySearchResultShowsPath(
+    title: string,
+    path: string,
+  ): Promise<void> {
+    const result = this.page
+      .getByTestId("search-result")
+      .filter({ hasText: title })
+      .first();
+    await expect(result).toBeVisible();
+    await expect(result).toContainText(path);
+  }
+
+  async verifyNoSearchResults(): Promise<void> {
+    await expect(this.page.getByText("No tasks found")).toBeVisible();
   }
 
   // --- Mobile Specifics ---
