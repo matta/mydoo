@@ -313,6 +313,23 @@ export class Steps {
       if (!this.syncServer) throw new Error("Sync server helper not provided");
       await this.syncServer.start();
     },
+
+    opensSearch: async () => {
+      await this.plan.openSearch();
+    },
+
+    closesSearch: async () => {
+      await this.plan.closeSearch();
+    },
+
+    searchesForTask: async (query: string) => {
+      await this.plan.openSearch();
+      await this.plan.searchForTask(query);
+    },
+
+    clicksSearchResult: async (title: string) => {
+      await this.plan.clickSearchResult(title);
+    },
   };
 
   public Then = {
@@ -510,6 +527,38 @@ export class Steps {
     /** Verifies the lead time stage label in the score trace. */
     scoreTraceShowsLeadTimeStage: async (stage: string) => {
       await this.plan.verifyScoreTraceLeadTimeStage(stage);
+    },
+
+    searchResultIsVisible: async (title: string) => {
+      await this.plan.verifySearchResultVisible(title);
+    },
+
+    searchResultIsHidden: async (title: string) => {
+      await this.plan.verifySearchResultHidden(title);
+    },
+
+    searchResultCount: async (count: number) => {
+      await this.plan.verifySearchResultCount(count);
+    },
+
+    searchPanelIsOpen: async () => {
+      await this.plan.verifySearchPanelOpen();
+    },
+
+    searchPanelIsClosed: async () => {
+      await this.plan.verifySearchPanelClosed();
+    },
+
+    searchResultShowsPath: async (title: string, path: string) => {
+      await this.plan.verifySearchResultShowsPath(title, path);
+    },
+
+    noSearchResults: async () => {
+      await this.plan.verifyNoSearchResults();
+    },
+
+    searchInputIsFocused: async () => {
+      await this.plan.verifySearchInputFocused();
     },
   };
 }
