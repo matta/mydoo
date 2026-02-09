@@ -27,8 +27,9 @@ pub fn AppNavBar() -> Element {
         doc_controller::create_new_document(store, doc_id);
     };
 
-    // Global Ctrl+K / Cmd+K keyboard shortcut to toggle search
-    use_effect(move || {
+    // Global Ctrl+K / Cmd+K keyboard shortcut to toggle search.
+    // Registered once on mount via use_hook to avoid leaking duplicate listeners.
+    use_hook(move || {
         #[cfg(target_arch = "wasm32")]
         {
             use wasm_bindgen::prelude::*;
@@ -42,8 +43,11 @@ pub fn AppNavBar() -> Element {
             }) as Box<dyn FnMut(web_sys::KeyboardEvent)>);
 
             if let Some(window) = web_sys::window() {
-                let _ = window
-                    .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref());
+                if let Err(e) = window
+                    .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
+                {
+                    tracing::warn!("Failed to register Ctrl+K listener: {:?}", e);
+                }
             }
 
             // Leak the closure intentionally so the listener stays active.

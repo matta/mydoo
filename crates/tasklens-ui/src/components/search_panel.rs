@@ -175,7 +175,7 @@ pub fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
                     }
                 }
 
-                if !query.read().trim().is_empty() && query.read().trim().len() >= MIN_QUERY_LEN {
+                if query.read().trim().len() >= MIN_QUERY_LEN {
                     div {
                         class: "mt-2 max-h-64 overflow-y-auto",
                         "data-testid": "search-results",
