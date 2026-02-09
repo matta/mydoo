@@ -94,10 +94,10 @@ pub fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
     };
 
     // Focus the search input when the panel opens.
-    // A rAF delay is needed because the panel transitions from max-h-0 (hidden)
-    // to max-h-96 (visible). Browsers will not focus an element inside a
+    // Delayed by one animation frame because the panel transitions from
+    // zero height to visible. Browsers refuse to focus an element inside a
     // zero-height overflow-hidden container, so we wait one frame for the
-    // transition to start and the element to become focusable.
+    // CSS transition to start and the element to become focusable.
     use_effect(move || {
         if open() {
             #[cfg(target_arch = "wasm32")]
@@ -124,7 +124,7 @@ pub fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
 
                 if let Some(window) = web_sys::window() {
                     if let Err(e) = window.request_animation_frame(cb.as_ref().unchecked_ref()) {
-                        tracing::warn!("Failed to schedule focus rAF: {:?}", e);
+                        tracing::warn!("Failed to schedule focus callback: {:?}", e);
                     }
                 }
             }
