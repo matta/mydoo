@@ -13,6 +13,7 @@
 - [Dependency Strategy For Dioxus Primitives](#dependency-strategy-for-dioxus-primitives)
 - [CSS Strategy De Tailwind](#css-strategy-de-tailwind)
 - [Build And Asset Pipeline Changes](#build-and-asset-pipeline-changes)
+- [DX Installation Processing Implications](#dx-installation-processing-implications)
 - [Upstream Tracking Strategy](#upstream-tracking-strategy)
 - [Component Acquisition Workflow](#component-acquisition-workflow)
 - [Representative Diffs](#representative-diffs)
@@ -180,41 +181,66 @@ Guidelines:
 - Ensure upstream component `style.css` files are linked from each component (via `document::Link`).
 - Keep `dx-components-theme.css` as a single global import.
 
+## DX Installation Processing Implications
+
+`dx components add` is a light processing pipeline, not a plain file copy.
+
+- It resolves builtin and third-party component dependencies before install.
+- It copies component files while applying manifest `exclude` rules.
+- It copies declared global assets into the configured asset directory.
+- It runs `cargo add` for declared Rust dependencies.
+- It updates `src/components/mod.rs` with missing `pub mod ...` lines.
+- It can target configured paths from `Dioxus.toml` and can overwrite with `--force`.
+
+Impact on strategy:
+
+- Any strategy that bypasses `dx components add` must reimplement these transforms to get equivalent installed output.
+- The risk of drift is not only styling/API drift but also installer-behavior drift (dependencies, assets, module registration).
+
 ## Upstream Tracking Strategy
 
-We need a workflow that preserves upstream history, supports intelligent merges, and allows local patches.
+We need a workflow that supports intelligent merges, local patch maintenance, and high fidelity to `dx components add` output.
 
 Options:
 
-- Submodule
+- Submodule plus direct file vendoring
   - Pros: Preserves upstream history cleanly.
-  - Cons: Awkward local patch workflow, extra repo management, often inconvenient for app developers.
-- Subtree
-  - Pros: Preserves history in-tree, supports `git subtree pull` merges, local patches live in main history.
-  - Cons: Requires discipline with subtree commands and paths.
-- Pristine vendor branch
-  - Pros: Preserves a clean upstream snapshot, enables merges into main, compatible with `dx` imports.
-  - Cons: Requires careful merge practices to keep the vendor branch pristine.
+  - Cons: Still needs a separate install step; local patch flow is awkward; high operational friction for daily component work.
+- Subtree of upstream source with direct copy into `src/components`
+  - Pros: Best in-tree upstream history and straightforward upstream diffs.
+  - Cons: Lowest installer fidelity unless we reimplement `dx` processing; easy to miss assets/deps/module updates.
+- Pristine vendor branch driven by `dx components add`
+  - Pros: Highest fidelity to real installed output; dependency and asset handling stay aligned with `dx`; local patches can be maintained on top of vendor merges.
+  - Cons: Does not preserve line-level upstream history in the installed tree; requires disciplined vendor-branch updates.
+- Hybrid mirror plus installer branch
+  - Pros: Keeps upstream history in a mirror subtree while still producing installer-faithful output via `dx` on a vendor branch.
+  - Cons: More moving parts and branch management overhead.
 
 Pristine vendor branch approach (in prose):
 
-- Create an orphan branch that contains only the upstream component import.
-- Import components into `crates/tasklens-ui/src/components` using `dx` or direct copy.
-- Commit that exact state as the pristine vendor snapshot.
-- Merge the vendor branch into main (allow unrelated histories only the first time).
-- Update by re-importing on the vendor branch and merging forward.
+- Create an orphan vendor branch that contains only installer-produced component state.
+- Configure registry and revision in `Dioxus.toml` (or pass `--git`/`--rev`) so updates are reproducible.
+- Run `dx components add` for the selected components into `crates/tasklens-ui/src/components`.
+- Commit that exact output as the pristine vendor snapshot.
+- Merge vendor snapshots into the working branch; keep app patches as follow-on commits.
+- Update by repeating on the vendor branch and merging forward.
 
-Recommendation: Prefer subtree for the cleanest merge story and least friction. Use the pristine vendor branch if we want to keep using `dx components add` as the import mechanism.
+Recommendation: Prefer the pristine vendor branch driven by `dx components add`.
+
+- This best satisfies the new constraint that installer processing matters for correctness.
+- It still supports intelligent merges and local patch maintenance through repeatable vendor snapshots.
+- If preserving upstream source history is still required for audit, add a separate read-only upstream mirror branch and keep it out of the runtime install path.
 
 ## Component Acquisition Workflow
 
-- `dx components add` is fast, but it severs upstream history and makes diffing harder.
-- Direct vendoring from the upstream repo (subtree or vendor branch) keeps history intact and minimizes drift.
+- `dx components add` should be the source of truth for what lands in `src/components` because it applies installer processing (deps, assets, excludes, module updates).
+- Direct copying from upstream source is useful for audit and review, but not sufficient as the install mechanism.
 
 Recommendation:
 
-- Use direct vendoring as the primary workflow.
-- Use `dx components add` only within the pristine vendor branch workflow when needed.
+- Use `dx components add` as the primary acquisition step on the pristine vendor branch.
+- Pin registry `git` and `rev` so installs are deterministic.
+- Keep local patches on top of merged vendor snapshots.
 
 ## Representative Diffs
 
@@ -226,7 +252,7 @@ Recommendation:
 
 ## Migration Plan And Priorities
 
-- Pick and implement an upstream tracking strategy (subtree vs vendor branch).
+- Implement the recommended upstream tracking strategy: pristine vendor branch driven by `dx components add` and pinned registry revision.
 - Split modules: `components` for Dioxus Components, `app_components` for app UI.
 - De-tailwind: remove Tailwind and DaisyUI classes, add `app.css` for layout and typography.
 - Re-vendor core components first: Button, Input, Checkbox, Select, Dialog, Date Picker.

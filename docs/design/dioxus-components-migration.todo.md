@@ -2,7 +2,7 @@
 
 ## Foundations
 
-- [ ] Decide upstream tracking workflow (subtree vs pristine vendor branch) and record the decision in `dioxus-components-migration.md`.
+- [ ] Create and use a pristine vendor branch for `dx components add` output, with registry URL and `rev` pinned in `Dioxus.toml`.
 - [ ] Split modules: keep `crates/tasklens-ui/src/components` for Dioxus Components and create `crates/tasklens-ui/src/app_components` for app UI.
 - [ ] Move app-specific components into `app_components` (examples: `task_row`, `task_editor`, `app_navbar`, `sync_indicator`, `empty_state`).
 - [ ] Create `assets/app.css` and link it in `main.rs`.
