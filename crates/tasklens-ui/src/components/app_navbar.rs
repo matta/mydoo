@@ -39,6 +39,8 @@ pub fn AppNavBar() -> Element {
                 if is_mod && event.key() == "k" {
                     event.prevent_default();
                     show_search.set(!show_search());
+                } else if event.key() == "Escape" && show_search() {
+                    show_search.set(false);
                 }
             }) as Box<dyn FnMut(web_sys::KeyboardEvent)>);
 

@@ -101,6 +101,21 @@ test.describe("Task Search", () => {
   test("Escape key closes search panel", async ({ I, page }) => {
     // When
     await I.When.opensSearch();
+    await I.Then.searchInputIsFocused();
+    await page.keyboard.press("Escape");
+
+    // Then
+    await I.Then.searchPanelIsClosed();
+  });
+
+  test("Escape key closes search panel even if input is not focused", async ({
+    I,
+    page,
+  }) => {
+    // When
+    await I.When.opensSearch();
+    // Blur the input to ensure it's not focused
+    await page.getByTestId("search-input").blur();
     await page.keyboard.press("Escape");
 
     // Then
