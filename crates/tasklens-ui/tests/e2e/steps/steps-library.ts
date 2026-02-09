@@ -556,5 +556,9 @@ export class Steps {
     noSearchResults: async () => {
       await this.plan.verifyNoSearchResults();
     },
+
+    searchInputIsFocused: async () => {
+      await this.plan.verifySearchInputFocused();
+    },
   };
 }

@@ -1,9 +1,6 @@
 use crate::router::Route;
 use dioxus::prelude::*;
 use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::JsCast;
-
 const MAX_RESULTS: usize = 20;
 const MIN_QUERY_LEN: usize = 1;
 
@@ -97,23 +94,37 @@ pub fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
     };
 
     // Focus the search input when the panel opens.
+    // A rAF delay is needed because the panel transitions from max-h-0 (hidden)
+    // to max-h-96 (visible). Browsers will not focus an element inside a
+    // zero-height overflow-hidden container, so we wait one frame for the
+    // transition to start and the element to become focusable.
     use_effect(move || {
         if open() {
             #[cfg(target_arch = "wasm32")]
             {
-                if let Some(window) = web_sys::window() {
-                    if let Some(doc) = window.document() {
-                        if let Some(el) = doc
-                            .query_selector("[data-testid='search-input']")
-                            .ok()
-                            .flatten()
-                        {
-                            if let Some(html_el) = el.dyn_ref::<web_sys::HtmlElement>() {
-                                if let Err(e) = html_el.focus() {
-                                    tracing::warn!("Failed to focus search input: {:?}", e);
+                use wasm_bindgen::prelude::*;
+
+                let cb = Closure::once_into_js(move || {
+                    if let Some(window) = web_sys::window() {
+                        if let Some(doc) = window.document() {
+                            if let Some(el) = doc
+                                .query_selector("[data-testid='search-input']")
+                                .ok()
+                                .flatten()
+                            {
+                                if let Some(html_el) = el.dyn_ref::<web_sys::HtmlElement>() {
+                                    if let Err(e) = html_el.focus() {
+                                        tracing::warn!("Failed to focus search input: {:?}", e);
+                                    }
                                 }
                             }
                         }
+                    }
+                });
+
+                if let Some(window) = web_sys::window() {
+                    if let Err(e) = window.request_animation_frame(cb.as_ref().unchecked_ref()) {
+                        tracing::warn!("Failed to schedule focus rAF: {:?}", e);
                     }
                 }
             }

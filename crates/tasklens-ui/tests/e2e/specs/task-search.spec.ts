@@ -19,6 +19,14 @@ test.describe("Task Search", () => {
     await I.Then.searchPanelIsClosed();
   });
 
+  test("Search input is focused when panel opens", async ({ I }) => {
+    // When
+    await I.When.opensSearch();
+
+    // Then
+    await I.Then.searchInputIsFocused();
+  });
+
   test("Search finds tasks by title", async ({ I }) => {
     // When
     await I.When.searchesForTask("Project Alpha");

@@ -75,6 +75,7 @@ export interface PlanFixture {
   verifySearchPanelClosed: () => Promise<void>;
   verifySearchResultShowsPath: (title: string, path: string) => Promise<void>;
   verifyNoSearchResults: () => Promise<void>;
+  verifySearchInputFocused: () => Promise<void>;
 
   // Navigation
   switchToPlanView: () => Promise<void>;
@@ -1068,6 +1069,11 @@ export class PlanPage implements PlanFixture {
 
   async verifyNoSearchResults(): Promise<void> {
     await expect(this.page.getByText("No tasks found")).toBeVisible();
+  }
+
+  async verifySearchInputFocused(): Promise<void> {
+    const input = this.page.getByTestId("search-input");
+    await expect(input).toBeFocused();
   }
 
   // --- Mobile Specifics ---
