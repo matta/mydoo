@@ -61,6 +61,7 @@ impl LocalStorage for SamodStorage {
                 return None;
             }
         };
+        let db = scopeguard::guard(db, |db| db.close());
 
         let tx = match db.transaction(&[&self.store_name], TransactionMode::ReadOnly) {
             Ok(tx) => tx,

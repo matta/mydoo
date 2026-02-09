@@ -89,7 +89,7 @@ fn BalanceItemRow(
 
     rsx! {
         div {
-            class: "card card-compact bg-base-100 shadow border border-base-200 p-4",
+            class: "card card-compact shadow border border-base-200 p-4",
             "data-testid": "balance-item",
             "data-task-id": "{item.id}",
             "data-starving": "{item.is_starving}",

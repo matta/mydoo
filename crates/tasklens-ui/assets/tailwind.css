@@ -2570,11 +2570,20 @@
       border-color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
     }
   }
+  .bg-app-bg {
+    background-color: var(--color-app-bg);
+  }
   .bg-base-100 {
     background-color: var(--color-base-100);
   }
   .bg-base-200 {
     background-color: var(--color-base-200);
+  }
+  .bg-base-200\/20 {
+    background-color: var(--color-base-200);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-base-200) 20%, transparent);
+    }
   }
   .bg-base-200\/40 {
     background-color: var(--color-base-200);
@@ -2588,11 +2597,14 @@
       background-color: color-mix(in oklab, var(--color-base-200) 50%, transparent);
     }
   }
+  .bg-base-content\/20 {
+    background-color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
+    }
+  }
   .bg-error {
     background-color: var(--color-error);
-  }
-  .bg-neutral-content {
-    background-color: var(--color-neutral-content);
   }
   .bg-success {
     background-color: var(--color-success);
@@ -3042,16 +3054,6 @@
       }
     }
   }
-  .hover\:bg-base-200\/50 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-base-200);
-        @supports (color: color-mix(in lab, red, red)) {
-          background-color: color-mix(in oklab, var(--color-base-200) 50%, transparent);
-        }
-      }
-    }
-  }
   .hover\:bg-error\/10 {
     &:hover {
       @media (hover: hover) {
@@ -3143,15 +3145,12 @@
   }
   body {
     background-color: var(--color-app-bg);
-    color: var(--color-stone-900);
+    color: var(--color-base-content);
     transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
     transition-duration: var(--tw-duration, var(--default-transition-duration));
     --tw-duration: 300ms;
     transition-duration: 300ms;
-    @media (prefers-color-scheme: dark) {
-      color: var(--color-stone-50);
-    }
   }
   @media (pointer: coarse) {
     html, body {

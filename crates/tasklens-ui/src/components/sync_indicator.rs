@@ -44,7 +44,7 @@ pub fn SyncIndicator() -> Element {
     let mut url_input = use_signal(get_sync_url);
 
     let (color, text) = match sync_status() {
-        SyncStatus::Disconnected => ("bg-neutral-content", "Disconnected"),
+        SyncStatus::Disconnected => ("bg-base-content/20", "Disconnected"),
         SyncStatus::Connecting => ("bg-warning", "Connecting"),
         SyncStatus::Connected => ("bg-success", "Connected"),
         SyncStatus::Error(_e) => ("bg-error", "Error"),
@@ -70,7 +70,7 @@ pub fn SyncIndicator() -> Element {
 
             if show_settings() {
                 div {
-                    class: "dropdown-content menu bg-base-100 rounded-box shadow-lg border border-base-300 z-50 w-64 p-4",
+                    class: "dropdown-content menu rounded-box shadow-lg border border-base-300 z-50 w-64 p-4",
                     "data-testid": "sync-settings-popover",
                     h3 { class: "font-semibold text-base-content mb-3", "Sync Settings" }
                     div { class: "space-y-3",

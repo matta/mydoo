@@ -32,7 +32,7 @@ pub fn PriorityTaskRow(
 
     rsx! {
         div {
-            class: "flex items-center gap-2 p-3 bg-base-100 border border-base-200 rounded-lg shadow-sm hover:bg-base-200/50 transition-colors group",
+            class: "flex items-center gap-2 p-3 border border-base-200 rounded-lg shadow-sm transition-colors group",
             "data-testid": "task-item",
             "data-urgency": "{task.urgency_status:?}",
 
