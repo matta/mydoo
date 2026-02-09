@@ -1,6 +1,8 @@
 use crate::router::Route;
 use dioxus::prelude::*;
 use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsCast;
 
 const MAX_RESULTS: usize = 20;
 const MIN_QUERY_LEN: usize = 1;
@@ -94,6 +96,28 @@ pub fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
         }
     };
 
+    // Focus the search input when the panel opens.
+    use_effect(move || {
+        if open() {
+            #[cfg(target_arch = "wasm32")]
+            {
+                if let Some(window) = web_sys::window() {
+                    if let Some(doc) = window.document() {
+                        if let Some(el) = doc
+                            .query_selector("[data-testid='search-input']")
+                            .ok()
+                            .flatten()
+                        {
+                            if let Some(html_el) = el.dyn_ref::<web_sys::HtmlElement>() {
+                                let _ = html_el.focus();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+
     let panel_classes = if open() {
         "max-h-96 opacity-100 translate-y-0"
     } else {
@@ -111,7 +135,6 @@ pub fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
                         r#type: "text",
                         placeholder: "Search tasks...",
                         value: "{query}",
-                        autofocus: open(),
                         "data-testid": "search-input",
                         oninput: move |evt| query.set(evt.value()),
                         onkeydown: handle_keydown,
