@@ -129,10 +129,22 @@ This is a categorized summary intended to map usage into replacement workstreams
 
 ## Module Boundary And Naming
 
-- Keep `crates/tasklens-ui/src/components` as the Dioxus Components module because `dx` installs there.
+- Require `crates/tasklens-ui/src/dioxus_components` as the vendored Dioxus Components module.
 - Create `crates/tasklens-ui/src/app_components` for app-specific UI and layout components.
-- Move app-specific components out of `components` (examples: `task_row`, `task_editor`, `app_navbar`, `sync_indicator`, `empty_state`).
-- Reserve `components` for upstream-sourced components and minimal wrappers.
+- Move app-specific components out of the legacy `components` module (examples: `task_row`, `task_editor`, `app_navbar`, `sync_indicator`, `empty_state`).
+- Reserve `dioxus_components` for upstream-sourced components and minimal wrappers.
+- Prefer `dioxus_components` over `dioxus-components`: Rust module names are idiomatically `snake_case`, while hyphenated paths require non-idiomatic `#[path = "..."]` indirection.
+
+Required `dx` configuration (`dx components add` defaults to `src/components`):
+
+```toml
+[components]
+# Default is "src/components"; this repo must override it.
+components_dir = "src/dioxus_components"
+```
+
+- For one-off commands, pass `--module-path src/dioxus_components` so the CLI does not fall back to the default `components` module.
+- Because `dx components add` updates `<components_dir>/mod.rs`, this repo must keep generated module registration in `src/dioxus_components/mod.rs`.
 
 ## Dependency Strategy For Dioxus Primitives
 
@@ -189,8 +201,9 @@ Guidelines:
 - It copies component files while applying manifest `exclude` rules.
 - It copies declared global assets into the configured asset directory.
 - It runs `cargo add` for declared Rust dependencies.
-- It updates `src/components/mod.rs` with missing `pub mod ...` lines.
-- It can target configured paths from `Dioxus.toml` and can overwrite with `--force`.
+- It updates `<components_dir>/mod.rs` with missing `pub mod ...` lines (default: `src/components/mod.rs`).
+- It can target configured paths from `Dioxus.toml` or `--module-path`, and can overwrite with `--force`.
+- In this repo, `components_dir` must be `src/dioxus_components`, so generated module updates land in `src/dioxus_components/mod.rs`.
 
 Impact on strategy:
 
@@ -206,7 +219,7 @@ Options:
 - Submodule plus direct file vendoring
   - Pros: Preserves upstream history cleanly.
   - Cons: Still needs a separate install step; local patch flow is awkward; high operational friction for daily component work.
-- Subtree of upstream source with direct copy into `src/components`
+- Subtree of upstream source with direct copy into `src/dioxus_components`
   - Pros: Best in-tree upstream history and straightforward upstream diffs.
   - Cons: Lowest installer fidelity unless we reimplement `dx` processing; easy to miss assets/deps/module updates.
 - Pristine vendor branch driven by `dx components add`
@@ -220,7 +233,8 @@ Pristine vendor branch approach (in prose):
 
 - Create an orphan vendor branch that contains only installer-produced component state.
 - Configure registry and revision in `Dioxus.toml` (or pass `--git`/`--rev`) so updates are reproducible.
-- Run `dx components add` for the selected components into `crates/tasklens-ui/src/components`.
+- Configure `components_dir = "src/dioxus_components"` in `Dioxus.toml` (or pass `--module-path src/dioxus_components`) before any vendoring run.
+- Run `dx components add` for the selected components into `crates/tasklens-ui/src/dioxus_components`.
 - Commit that exact output as the pristine vendor snapshot.
 - Merge vendor snapshots into the working branch; keep app patches as follow-on commits.
 - Update by repeating on the vendor branch and merging forward.
@@ -233,13 +247,14 @@ Recommendation: Prefer the pristine vendor branch driven by `dx components add`.
 
 ## Component Acquisition Workflow
 
-- `dx components add` should be the source of truth for what lands in `src/components` because it applies installer processing (deps, assets, excludes, module updates).
+- `dx components add` should be the source of truth for what lands in `src/dioxus_components` because it applies installer processing (deps, assets, excludes, module updates).
 - Direct copying from upstream source is useful for audit and review, but not sufficient as the install mechanism.
 
 Recommendation:
 
 - Use `dx components add` as the primary acquisition step on the pristine vendor branch.
 - Pin registry `git` and `rev` so installs are deterministic.
+- Set `components_dir = "src/dioxus_components"` in `Dioxus.toml` and pass `--module-path src/dioxus_components` for manual/one-off runs.
 - Keep local patches on top of merged vendor snapshots.
 
 ## Representative Diffs
@@ -253,7 +268,7 @@ Recommendation:
 ## Migration Plan And Priorities
 
 - Implement the recommended upstream tracking strategy: pristine vendor branch driven by `dx components add` and pinned registry revision.
-- Split modules: `components` for Dioxus Components, `app_components` for app UI.
+- Split modules: `dioxus_components` for vendored Dioxus Components, `app_components` for app UI.
 - De-tailwind: remove Tailwind and DaisyUI classes, add `app.css` for layout and typography.
 - Re-vendor core components first: Button, Input, Checkbox, Select, Dialog, Date Picker.
 - Align existing wrappers: Calendar, Collapsible, Select, Dialog, Date Picker.

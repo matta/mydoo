@@ -2,7 +2,10 @@
 
 ## Task Tracking
 
-- **Use the CLI:** ALWAYS use the `bd` command line tool for reading, creating, and updating tasks.
+- **Use the CLI:** When task tracking is needed, ALWAYS use the `bd` command line tool for reading, creating, and updating tasks.
+- **No Direct File Editing:** If you need to inspect or change tracked task state, use `bd` commands only; do not manually read or edit `.beads` database/storage files.
+- **When Tracking Is Required:** Create or update `bd` tasks for deferred work, work expected to span sessions, or complex work with meaningful risk/scope.
+- **When Tracking Is Not Required:** Do not create/update `bd` tasks for simple, self-contained work expected to be completed in a single session, unless explicitly requested.
 - **Do Not Read Files:** NEVER attempt to parse or read files in the `.beads` directory directly. The file format is internal and subject to change.
 - **Listing Tasks:** Use `bd ready` to see tasks ready for work. Use `bd list` to see all tasks.
 - **Viewing Details:** Use `bd show <id>` to see task details.
@@ -11,7 +14,7 @@
 - **Deleting Tasks:** Use `bd delete <id>` to delete a task.
 - **Updating Task Details:** Use `bd update <id> <field> <value>` to update task details.
 
-While doing work, create or update beads tasks to accurately reflect the state of the project, and record newly discovered tasks.
+When working on tracked efforts, keep `bd` tasks accurate and record newly discovered deferred/complex follow-up work.
 
 ## Package Management
 
