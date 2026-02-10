@@ -1,4 +1,5 @@
 use crate::components::navbar::{Navbar, NavbarItem, NavbarNav};
+use crate::components::search_panel::SearchPanel;
 use crate::controllers::doc_controller;
 use crate::router::Route;
 use crate::views::auth::SettingsModal;
@@ -10,6 +11,7 @@ use tasklens_store::store::AppStore;
 pub fn AppNavBar() -> Element {
     let active_index = use_signal(|| 0);
     let mut show_settings = use_signal(|| false);
+    let mut show_search = use_signal(|| false);
     let store = use_context::<Signal<AppStore>>();
     let doc_id = use_context::<Signal<Option<DocumentId>>>();
 
@@ -24,6 +26,37 @@ pub fn AppNavBar() -> Element {
     let handle_create_doc = move |_| {
         doc_controller::create_new_document(store, doc_id);
     };
+
+    // Global Ctrl+K / Cmd+K keyboard shortcut to toggle search.
+    // Registered once on mount via use_hook to avoid leaking duplicate listeners.
+    use_hook(move || {
+        #[cfg(target_arch = "wasm32")]
+        {
+            use wasm_bindgen::prelude::*;
+
+            let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
+                let is_mod = event.meta_key() || event.ctrl_key();
+                if is_mod && event.key() == "k" {
+                    event.prevent_default();
+                    show_search.set(!show_search());
+                } else if event.key() == "Escape" && show_search() {
+                    show_search.set(false);
+                }
+            }) as Box<dyn FnMut(web_sys::KeyboardEvent)>);
+
+            if let Some(window) = web_sys::window() {
+                if let Err(e) = window
+                    .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
+                {
+                    tracing::warn!("Failed to register Ctrl+K listener: {:?}", e);
+                }
+            }
+
+            // Leak the closure intentionally so the listener stays active.
+            // This is a top-level app component that lives for the entire session.
+            closure.forget();
+        }
+    });
 
     rsx! {
         if show_settings() {
@@ -60,6 +93,25 @@ pub fn AppNavBar() -> Element {
 
                 button {
                     class: "btn btn-ghost btn-sm btn-square text-base-content/70 hover:text-base-content",
+                    onclick: move |_| show_search.set(!show_search()),
+                    aria_label: "Search tasks",
+                    "data-testid": "search-button",
+                    svg {
+                        class: "h-6 w-6",
+                        fill: "none",
+                        view_box: "0 0 24 24",
+                        stroke: "currentColor",
+                        path {
+                            stroke_linecap: "round",
+                            stroke_linejoin: "round",
+                            stroke_width: "2",
+                            d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",
+                        }
+                    }
+                }
+
+                button {
+                    class: "btn btn-ghost btn-sm btn-square text-base-content/70 hover:text-base-content",
                     onclick: move |_| show_settings.set(true),
                     aria_label: "Settings",
                     "data-testid": "settings-button",
@@ -83,6 +135,10 @@ pub fn AppNavBar() -> Element {
                     }
                 }
             }
+        }
+        SearchPanel {
+            open: show_search,
+            on_close: move |_| show_search.set(false),
         }
         Outlet::<Route> {}
     }
