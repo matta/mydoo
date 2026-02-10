@@ -9,6 +9,7 @@ const isCI = !!process.env.CI;
 const reporters: ReporterDescription[] = [
   ["html", { open: "never" }],
   ["list", undefined],
+  ["junit", { outputFile: "junit.xml" }],
 ];
 
 if (process.env.SHOW_STEPS) {
@@ -17,6 +18,7 @@ if (process.env.SHOW_STEPS) {
 
 export default defineConfig({
   workers: 1,
+  retries: 0,
   reporter: reporters,
   use: {
     baseURL: "http://localhost:5180",

@@ -26,6 +26,7 @@ dist-ssr
 # Test Artifacts
 playwright-report
 test-results
+junit.xml
 .last-run.json
 coverage
 **/__screenshots__

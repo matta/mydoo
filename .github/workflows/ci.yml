@@ -83,12 +83,23 @@ jobs:
       - name: E2E Tests
         run: just test-e2e
 
+      - name: Upload Test Results to Trunk.io
+        if: ${{ !cancelled() }} # Upload the results even if the tests fail
+        continue-on-error: true # don't fail this job if the upload fails
+        uses: trunk-io/analytics-uploader@main
+        with:
+          junit-paths: "**/*.xml"
+          org-slug: potapenko
+          token: ${{ secrets.TRUNK_API_TOKEN }}
+
       - name: Upload Playwright Report
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:
           name: playwright-report
-          path: crates/tasklens-ui/playwright-report/
+          path: |
+            crates/tasklens-ui/playwright-report/
+            crates/tasklens-ui/junit.xml
           retention-days: 30
 
   promote:
