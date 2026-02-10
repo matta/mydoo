@@ -82,10 +82,10 @@ While doing work, create or update beads tasks to accurately reflect the state o
 ## Testing Requirements
 
 - All new code must have tests.
-- **Strict Verification:** ALWAYS run `just verify` before certifying a change.
-  `just verify` is the source of truth; it runs auto-fixes (`just fix`),
-  all static analysis (`just check`), and all tests (`just test`, `just test-e2e`).
-  You MUST run the full `just verify` sequence before asking the user to commit.
+- **Verification Strategy:** While `just verify` is the gold standard for full verification, you MAY use your judgement to select the appropriate level of verification:
+  - **Full Verification:** Run `just verify` for complex logic changes, refactors, or when touching critical paths.
+  - **Standard Testing:** Run `just test` (or `just test-e2e`) for routine logic changes where static analysis is less likely to catch issues.
+  - **Presubmit Reliance:** For documentation, formatting, or trivial changes, you MAY rely on the `git push` presubmit hooks (which run `just check`) rather than running verification commands manually.
 
 ### Test Commands
 
