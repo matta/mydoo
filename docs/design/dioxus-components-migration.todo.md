@@ -2,9 +2,9 @@
 
 ## Foundations
 
-- [x] Create and use a pristine vendor branch for `dx components add` output, with registry URL and `rev` pinned in `Dioxus.toml`.
-- [ ] Set `Dioxus.toml` `[components].components_dir = "src/dioxus_components"` (default is `src/components`).
-- [ ] Require `dx components add --module-path src/dioxus_components` for ad-hoc/manual runs so vendoring cannot fall back to the default `components` module.
+- [x] Create and use a pristine vendor branch for `dx components add` output, with registry URL and `rev` pinned in `dioxus-vendor-components.toml`.
+- [x] Set `crates/tasklens-ui/dioxus-vendor-components.toml` `module_path = "src/dioxus_components"` (default is `src/components` when omitted from `dx` args).
+- [x] Require xtask-managed vendoring to pass `--module-path src/dioxus_components` from `dioxus-vendor-components.toml` so runs cannot fall back to the default `components` module.
 - [ ] Split modules: keep `crates/tasklens-ui/src/dioxus_components` for vendored Dioxus Components and create `crates/tasklens-ui/src/app_components` for app UI.
 - [ ] Move vendored Dioxus components from `crates/tasklens-ui/src/components` to `crates/tasklens-ui/src/dioxus_components`, then update module declarations/imports.
 - [ ] Move app-specific components into `app_components` (examples: `task_row`, `task_editor`, `app_navbar`, `sync_indicator`, `empty_state`).

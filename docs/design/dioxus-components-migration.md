@@ -135,16 +135,20 @@ This is a categorized summary intended to map usage into replacement workstreams
 - Reserve `dioxus_components` for upstream-sourced components and minimal wrappers.
 - Prefer `dioxus_components` over `dioxus-components`: Rust module names are idiomatically `snake_case`, while hyphenated paths require non-idiomatic `#[path = "..."]` indirection.
 
-Required `dx` configuration (`dx components add` defaults to `src/components`):
+Required vendor config (`dx components add` defaults to `src/components`):
 
 ```toml
-[components]
-# Default is "src/components"; this repo must override it.
-components_dir = "src/dioxus_components"
+# crates/tasklens-ui/dioxus-vendor-components.toml
+module_path = "src/dioxus_components"
+components = ["button"]
+
+[registry]
+git = "https://github.com/DioxusLabs/components"
+rev = "<pinned-upstream-rev>"
 ```
 
-- For one-off commands, pass `--module-path src/dioxus_components` so the CLI does not fall back to the default `components` module.
-- Because `dx components add` updates `<components_dir>/mod.rs`, this repo must keep generated module registration in `src/dioxus_components/mod.rs`.
+- `cargo xtask update-dioxus-components` reads `module_path` and `registry` from this file and passes them via `--module-path`, `--git`, and `--rev`.
+- Because `dx components add` updates `<module_path>/mod.rs`, this repo must keep generated module registration in `src/dioxus_components/mod.rs`.
 
 ## Dependency Strategy For Dioxus Primitives
 
@@ -203,7 +207,7 @@ Guidelines:
 - It runs `cargo add` for declared Rust dependencies.
 - It updates `<components_dir>/mod.rs` with missing `pub mod ...` lines (default: `src/components/mod.rs`).
 - It can target configured paths from `Dioxus.toml` or `--module-path`, and can overwrite with `--force`.
-- In this repo, `components_dir` must be `src/dioxus_components`, so generated module updates land in `src/dioxus_components/mod.rs`.
+- In this repo, xtask must pass `--module-path`, `--git`, and `--rev` from `dioxus-vendor-components.toml` so installs remain deterministic and generated module updates land in `src/dioxus_components/mod.rs`.
 
 Impact on strategy:
 
@@ -232,8 +236,7 @@ Options:
 Pristine vendor branch approach (in prose):
 
 - Create an orphan vendor branch that contains only installer-produced component state.
-- Configure registry and revision in `Dioxus.toml` (or pass `--git`/`--rev`) so updates are reproducible.
-- Configure `components_dir = "src/dioxus_components"` in `Dioxus.toml` (or pass `--module-path src/dioxus_components`) before any vendoring run.
+- Configure registry `git`/`rev` and `module_path` in `dioxus-vendor-components.toml` so xtask passes `--module-path`, `--git`, and `--rev` before any vendoring run.
 - Run `dx components add` for the selected components into `crates/tasklens-ui/src/dioxus_components`.
 - Commit that exact output as the pristine vendor snapshot.
 - Merge vendor snapshots into the working branch; keep app patches as follow-on commits.
@@ -254,7 +257,7 @@ Recommendation:
 
 - Use `dx components add` as the primary acquisition step on the pristine vendor branch.
 - Pin registry `git` and `rev` so installs are deterministic.
-- Set `components_dir = "src/dioxus_components"` in `Dioxus.toml` and pass `--module-path src/dioxus_components` for manual/one-off runs.
+- Set `module_path = "src/dioxus_components"` and registry `git`/`rev` in `dioxus-vendor-components.toml`; xtask will pass matching installer arguments consistently.
 - Keep local patches on top of merged vendor snapshots.
 
 ## Representative Diffs
