@@ -7,12 +7,15 @@
     "glob": "catalog:"
   },
   "devDependencies": {
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "tsx": "catalog:",
+    "@types/node": "catalog:"
   },
   "scripts": {
     "check-format": "prettier --check .",
     "check-types": "tsc --noEmit",
     "fix-format": "prettier --write .",
+    "fix-junit": "tsx fix-junit.ts",
     "test": "vitest run"
   }
 }

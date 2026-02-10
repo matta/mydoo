@@ -117,21 +117,21 @@ test-rust:
 test-e2e *args: build-ui
     cd {{ui_pkg}} && pnpm exec playwright test {{args}}; \
     e=$?; \
-    node ../../{{scripts_pkg}}/fix-junit.js junit.xml {{ui_pkg}}; \
+    pnpm --filter @mydoo/scripts fix-junit $(pwd)/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for desktop
 test-e2e-desktop *args: build-ui
     cd {{ui_pkg}} && pnpm exec playwright test --project=e2e-desktop {{args}}; \
     e=$?; \
-    node ../../{{scripts_pkg}}/fix-junit.js junit.xml {{ui_pkg}}; \
+    pnpm --filter @mydoo/scripts fix-junit $(pwd)/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for mobile
 test-e2e-mobile *args: build-ui
     cd {{ui_pkg}} && pnpm exec playwright test --project=e2e-mobile {{args}}; \
     e=$?; \
-    node ../../{{scripts_pkg}}/fix-junit.js junit.xml {{ui_pkg}}; \
+    pnpm --filter @mydoo/scripts fix-junit $(pwd)/junit.xml {{ui_pkg}}; \
     exit $e
 
 # -----------------------------------------------------------------------------
