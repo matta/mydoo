@@ -161,7 +161,15 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
         &changed_assets,
     )?;
 
-    let snapshot_commit_created = commit_vendor_snapshot(&context.vendor_worktree, &effective_rev)?;
+    let commit_message = build_vendor_snapshot_commit_message(
+        args,
+        &context.current_branch,
+        &component_file_relative,
+        &components,
+        &effective_rev,
+    );
+    let snapshot_commit_created =
+        commit_vendor_snapshot(&context.vendor_worktree, &commit_message)?;
 
     attempt_final_merge(&context.repo_root, &args.vendor_branch)?;
 
@@ -640,16 +648,132 @@ fn sync_vendor_snapshot(
 }
 
 /// Stages and commits snapshot changes on the vendor branch.
-fn commit_vendor_snapshot(vendor_worktree: &Path, revision: &str) -> Result<bool> {
+fn commit_vendor_snapshot(
+    vendor_worktree: &Path,
+    commit_message: &VendorSnapshotCommitMessage,
+) -> Result<bool> {
     run_command_checked(vendor_worktree, "git", &["add", "-A"])?;
 
     if !has_staged_changes(vendor_worktree)? {
         return Ok(false);
     }
 
-    let message = format!("chore(dioxus): vendor components @ {revision}");
-    run_command_checked(vendor_worktree, "git", &["commit", "-m", &message])?;
+    run_command_checked(
+        vendor_worktree,
+        "git",
+        &[
+            "commit",
+            "-m",
+            &commit_message.subject,
+            "-m",
+            &commit_message.body,
+        ],
+    )?;
     Ok(true)
+}
+
+/// Multi-line commit message payload for vendor snapshot commits.
+struct VendorSnapshotCommitMessage {
+    subject: String,
+    body: String,
+}
+
+/// Builds a provenance-rich commit message so snapshot origin is reconstructible.
+fn build_vendor_snapshot_commit_message(
+    args: &UpdateDioxusComponentsArgs,
+    target_branch: &str,
+    component_file_relative: &Path,
+    components: &[String],
+    revision: &str,
+) -> VendorSnapshotCommitMessage {
+    let subject = format!("chore(vendor): update Dioxus Components source to {revision}");
+    let canonical_invocation = render_canonical_update_invocation(args, component_file_relative);
+    let observed_invocation = render_observed_invocation();
+    let installer_invocation = render_dx_components_add_invocation(components, revision);
+    let body = format!(
+        "Automated vendor snapshot created by xtask.
+
+Reason:
+- Capture pristine installer output from Dioxus Components at a pinned revision.
+
+Intended merge flow:
+- Commit branch: {vendor_branch}
+- Intended target branch: {target_branch}
+- Integration method: git merge --no-ff {vendor_branch}
+
+Automation provenance:
+- Tool: cargo xtask update-dioxus-components
+- Canonical invocation: {canonical_invocation}
+- Observed argv: {observed_invocation}
+- Installer invocation (in {UI_CRATE_DIR}): {installer_invocation}
+
+Snapshot inputs:
+- Registry: {DIOXUS_COMPONENTS_GIT}
+- Revision: {revision}
+- Components file: {}
+- Components: {}",
+        path_to_string(component_file_relative),
+        components.join(", "),
+        vendor_branch = args.vendor_branch,
+    );
+
+    VendorSnapshotCommitMessage { subject, body }
+}
+
+/// Renders the current process argv for provenance logging.
+fn render_observed_invocation() -> String {
+    std::env::args().collect::<Vec<_>>().join(" ")
+}
+
+/// Renders an equivalent cargo invocation from resolved xtask options.
+fn render_canonical_update_invocation(
+    args: &UpdateDioxusComponentsArgs,
+    component_file_relative: &Path,
+) -> String {
+    let mut command_args = vec!["xtask".to_string(), "update-dioxus-components".to_string()];
+
+    if args.vendor_branch != DEFAULT_VENDOR_BRANCH {
+        command_args.push("--vendor-branch".to_string());
+        command_args.push(args.vendor_branch.clone());
+    }
+
+    if component_file_relative != Path::new(DEFAULT_COMPONENTS_FILE) {
+        command_args.push("--components-file".to_string());
+        command_args.push(path_to_string(component_file_relative));
+    }
+
+    if let Some(revision) = args.upgrade_primitives.as_ref() {
+        command_args.push("--upgrade-primitives".to_string());
+        command_args.push(revision.clone());
+    }
+
+    if args.keep_temp {
+        command_args.push("--keep-temp".to_string());
+    }
+
+    if args.allow_non_orphan_vendor_branch {
+        command_args.push("--allow-non-orphan-vendor-branch".to_string());
+    }
+
+    render_command("cargo", &command_args)
+}
+
+/// Renders the `dx components add` command xtask executes in the source worktree.
+fn render_dx_components_add_invocation(components: &[String], revision: &str) -> String {
+    let mut args = vec![
+        "components".to_string(),
+        "add".to_string(),
+        "--module-path".to_string(),
+        "src/dioxus_components".to_string(),
+        "--git".to_string(),
+        DIOXUS_COMPONENTS_GIT.to_string(),
+        "--rev".to_string(),
+        revision.to_string(),
+        "--force".to_string(),
+    ];
+    args.extend(components.iter().cloned());
+
+    render_command("dx", &args)
 }
 
 /// Performs the terminal merge attempt into the caller's current branch.
@@ -1045,5 +1169,69 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "a
         assert!(!is_allowed_vendor_path(Path::new(
             "crates/tasklens-ui/src/main.rs"
         )));
+    }
+
+    #[test]
+    fn renders_canonical_update_invocation_with_overrides() {
+        let args = UpdateDioxusComponentsArgs {
+            vendor_branch: "vendor/custom".to_string(),
+            components_file: PathBuf::from("crates/tasklens-ui/custom-components.toml"),
+            upgrade_primitives: Some("deadbeef".to_string()),
+            keep_temp: true,
+            allow_non_orphan_vendor_branch: true,
+        };
+
+        let rendered = render_canonical_update_invocation(
+            &args,
+            Path::new("crates/tasklens-ui/custom-components.toml"),
+        );
+
+        assert!(rendered.contains("cargo xtask update-dioxus-components"));
+        assert!(rendered.contains("--vendor-branch vendor/custom"));
+        assert!(rendered.contains("--components-file crates/tasklens-ui/custom-components.toml"));
+        assert!(rendered.contains("--upgrade-primitives deadbeef"));
+        assert!(rendered.contains("--keep-temp"));
+        assert!(rendered.contains("--allow-non-orphan-vendor-branch"));
+    }
+
+    #[test]
+    fn builds_vendor_snapshot_commit_message_with_provenance_fields() {
+        let args = UpdateDioxusComponentsArgs {
+            vendor_branch: DEFAULT_VENDOR_BRANCH.to_string(),
+            components_file: PathBuf::from(DEFAULT_COMPONENTS_FILE),
+            upgrade_primitives: None,
+            keep_temp: false,
+            allow_non_orphan_vendor_branch: false,
+        };
+
+        let message = build_vendor_snapshot_commit_message(
+            &args,
+            "docs/dioxus-migration",
+            Path::new(DEFAULT_COMPONENTS_FILE),
+            &["button".to_string(), "dialog".to_string()],
+            "abc123",
+        );
+
+        assert_eq!(
+            message.subject,
+            "chore(vendor): update Dioxus Components source to abc123"
+        );
+        assert!(
+            message
+                .body
+                .contains("Intended target branch: docs/dioxus-migration")
+        );
+        assert!(
+            message
+                .body
+                .contains("Commit branch: vendor/dioxus-components-pristine")
+        );
+        assert!(
+            message
+                .body
+                .contains("Canonical invocation: cargo xtask update-dioxus-components")
+        );
+        assert!(message.body.contains("Observed argv: "));
+        assert!(message.body.contains("dx components add --module-path src/dioxus_components --git https://github.com/DioxusLabs/components --rev abc123 --force button dialog"));
     }
 }
