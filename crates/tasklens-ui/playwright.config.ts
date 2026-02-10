@@ -9,7 +9,10 @@ const isCI = !!process.env.CI;
 const reporters: ReporterDescription[] = [
   ["html", { open: "never" }],
   ["list", undefined],
-  ["junit", { outputFile: "junit.xml" }],
+  [
+    "junit",
+    { outputFile: "test-results/junit.xml", includeProjectInTestName: true },
+  ],
 ];
 
 if (process.env.SHOW_STEPS) {

@@ -10,6 +10,7 @@ use commands::{
     check_dark_mode::check_dark_mode,
     check_dioxus_lock_pin::check_dioxus_lock_pin,
     check_filenames::check_filenames,
+    fix_junit::{self, FixJunitArgs},
     update_dioxus_components::{UpdateDioxusComponentsArgs, update_dioxus_components},
 };
 
@@ -40,6 +41,8 @@ enum Commands {
     UpdateDioxusComponents(UpdateDioxusComponentsArgs),
     /// Run all checks
     CheckAll,
+    /// Fix JUnit XML report for Trunk.io compatibility
+    FixJunit(FixJunitArgs),
 }
 
 fn main() -> Result<()> {
@@ -60,6 +63,10 @@ fn main() -> Result<()> {
         Commands::CheckDarkMode => check_dark_mode()?,
         Commands::CheckDioxusLockPin => check_dioxus_lock_pin()?,
         Commands::CheckFilenames => check_filenames()?,
+        Commands::FixJunit(args) => fix_junit::run(FixJunitArgs {
+            junit_path: args.junit_path.clone(),
+            package_dir: args.package_dir.clone(),
+        })?,
         Commands::UpdateDioxusComponents(args) => update_dioxus_components(args)?,
     }
 
