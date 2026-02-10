@@ -152,14 +152,12 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
     )?;
 
     let changed_assets = changed_paths_in(&context.source_worktree, "crates/tasklens-ui/assets")?;
-    let cargo_lock_changed = path_changed_in_worktree(&context.source_worktree, "Cargo.lock")?;
 
     sync_vendor_snapshot(
         &context.source_worktree,
         &context.vendor_worktree,
         &component_file_relative,
         &changed_assets,
-        cargo_lock_changed,
     )?;
 
     let snapshot_commit_created = commit_vendor_snapshot(&context.vendor_worktree, &effective_rev)?;
@@ -546,23 +544,12 @@ fn changed_paths_in(source_worktree: &Path, pathspec: &str) -> Result<Vec<PathBu
         .collect())
 }
 
-/// Returns true if `pathspec` has changed in the source worktree.
-fn path_changed_in_worktree(source_worktree: &Path, pathspec: &str) -> Result<bool> {
-    let changed = run_command_checked(
-        source_worktree,
-        "git",
-        &["diff", "--name-only", "--", pathspec],
-    )?;
-    Ok(!changed.trim().is_empty())
-}
-
 /// Mirrors snapshot-managed paths from source into vendor worktree.
 fn sync_vendor_snapshot(
     source_worktree: &Path,
     vendor_worktree: &Path,
     component_file_relative: &Path,
     changed_assets: &[PathBuf],
-    include_lockfile: bool,
 ) -> Result<()> {
     mirror_directory(
         &source_worktree.join(VENDORED_COMPONENTS_DIR),
@@ -584,12 +571,10 @@ fn sync_vendor_snapshot(
         &vendor_worktree.join(component_file_relative),
     )?;
 
-    if include_lockfile {
-        sync_file(
-            &source_worktree.join("Cargo.lock"),
-            &vendor_worktree.join("Cargo.lock"),
-        )?;
-    }
+    sync_file(
+        &source_worktree.join("Cargo.lock"),
+        &vendor_worktree.join("Cargo.lock"),
+    )?;
 
     for relative_asset in changed_assets {
         let source_path = source_worktree.join(relative_asset);
