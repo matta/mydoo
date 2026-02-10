@@ -2,7 +2,10 @@
 
 ## Task Tracking
 
-- **Use the CLI:** ALWAYS use the `bd` command line tool for reading, creating, and updating tasks.
+- **Use the CLI:** When task tracking is needed, ALWAYS use the `bd` command line tool for reading, creating, and updating tasks.
+- **No Direct File Editing:** If you need to inspect or change tracked task state, use `bd` commands only; do not manually read or edit `.beads` database/storage files.
+- **When Tracking Is Required:** Create or update `bd` tasks for deferred work, work expected to span sessions, or complex work with meaningful risk/scope.
+- **When Tracking Is Not Required:** Do not create/update `bd` tasks for simple, self-contained work expected to be completed in a single session, unless explicitly requested.
 - **Do Not Read Files:** NEVER attempt to parse or read files in the `.beads` directory directly. The file format is internal and subject to change.
 - **Listing Tasks:** Use `bd ready` to see tasks ready for work. Use `bd list` to see all tasks.
 - **Viewing Details:** Use `bd show <id>` to see task details.
@@ -11,7 +14,7 @@
 - **Deleting Tasks:** Use `bd delete <id>` to delete a task.
 - **Updating Task Details:** Use `bd update <id> <field> <value>` to update task details.
 
-While doing work, create or update beads tasks to accurately reflect the state of the project, and record newly discovered tasks.
+When working on tracked efforts, keep `bd` tasks accurate and record newly discovered deferred/complex follow-up work.
 
 ## Package Management
 
@@ -82,10 +85,10 @@ While doing work, create or update beads tasks to accurately reflect the state o
 ## Testing Requirements
 
 - All new code must have tests.
-- **Strict Verification:** ALWAYS run `just verify` before certifying a change.
-  `just verify` is the source of truth; it runs auto-fixes (`just fix`),
-  all static analysis (`just check`), and all tests (`just test`, `just test-e2e`).
-  You MUST run the full `just verify` sequence before asking the user to commit.
+- **Verification Strategy:** While `just verify` is the gold standard for full verification, you MAY use your judgement to select the appropriate level of verification:
+  - **Full Verification:** Run `just verify` for complex logic changes, refactors, or when touching critical paths.
+  - **Standard Testing:** Run `just test` (or `just test-e2e`) for routine logic changes where static analysis is less likely to catch issues.
+  - **Presubmit Reliance:** For documentation, formatting, or trivial changes, you MAY rely on the `git push` presubmit hooks (which run `just check`) rather than running verification commands manually.
 
 ### Test Commands
 
