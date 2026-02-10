@@ -514,12 +514,11 @@ fn validate_vendor_branch_shape(
     )
 }
 
-/// Returns true when a path is managed by the vendor snapshot.
+/// Returns true when a path is allowed to exist on the vendor branch.
+///
+/// This allowlist is strict and matches snapshot-managed content only.
+/// `Cargo.lock` is intentionally excluded so vendor snapshots never track it.
 fn is_allowed_vendor_path(path: &Path) -> bool {
-    if path == Path::new("Cargo.lock") {
-        return true;
-    }
-
     if path == Path::new("crates/tasklens-ui/Cargo.toml") {
         return true;
     }
@@ -616,9 +615,9 @@ fn sync_vendor_snapshot(
         &vendor_worktree.join(component_file_relative),
     )?;
 
-    // Intentionally leave Cargo.lock untouched in vendor snapshots. This keeps
-    // lockfile ownership on the target branch while avoiding churn/deletions
-    // from vendor-branch commits.
+    // Intentionally do not mirror Cargo.lock in vendor snapshots (no copy,
+    // update, or deletion). Lockfile ownership stays with the target branch,
+    // and vendor branches are expected to never track Cargo.lock.
 
     for relative_asset in changed_assets {
         let source_path = source_worktree.join(relative_asset);
@@ -1035,8 +1034,8 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "a
     }
 
     #[test]
-    fn allows_only_vendor_paths() {
-        assert!(is_allowed_vendor_path(Path::new("Cargo.lock")));
+    fn allows_only_strict_vendor_paths() {
+        assert!(!is_allowed_vendor_path(Path::new("Cargo.lock")));
         assert!(is_allowed_vendor_path(Path::new(
             "crates/tasklens-ui/src/dioxus_components/button/component.rs"
         )));
