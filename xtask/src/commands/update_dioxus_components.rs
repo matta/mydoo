@@ -632,10 +632,9 @@ fn sync_vendor_snapshot(
         &vendor_worktree.join(component_file_relative),
     )?;
 
-    sync_file(
-        &source_worktree.join("Cargo.lock"),
-        &vendor_worktree.join("Cargo.lock"),
-    )?;
+    // Keep lockfile resolution on the target branch; vendor snapshots should
+    // only carry vendored source/config to minimize merge conflicts.
+    remove_path_if_exists(&vendor_worktree.join("Cargo.lock"))?;
 
     for relative_asset in changed_assets {
         let source_path = source_worktree.join(relative_asset);

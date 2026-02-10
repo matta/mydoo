@@ -8,6 +8,7 @@ use commands::{
     check_catalog::check_catalog,
     check_context::check_context,
     check_dark_mode::check_dark_mode,
+    check_dioxus_lock_pin::check_dioxus_lock_pin,
     check_filenames::check_filenames,
     update_dioxus_components::{UpdateDioxusComponentsArgs, update_dioxus_components},
 };
@@ -33,6 +34,8 @@ enum Commands {
     CheckContext,
     /// Check for dark mode violations in UI components
     CheckDarkMode,
+    /// Check that dioxus-primitives rev pin matches Cargo.lock resolution
+    CheckDioxusLockPin,
     /// Update vendored Dioxus components via a pristine vendor branch workflow
     UpdateDioxusComponents(UpdateDioxusComponentsArgs),
     /// Run all checks
@@ -49,11 +52,13 @@ fn main() -> Result<()> {
             check_filenames()?;
             check_context()?;
             check_dark_mode()?;
+            check_dioxus_lock_pin()?;
         }
         Commands::CheckBiomeSchema => check_biome_schema()?,
         Commands::CheckCatalog => check_catalog()?,
         Commands::CheckContext => check_context()?,
         Commands::CheckDarkMode => check_dark_mode()?,
+        Commands::CheckDioxusLockPin => check_dioxus_lock_pin()?,
         Commands::CheckFilenames => check_filenames()?,
         Commands::UpdateDioxusComponents(args) => update_dioxus_components(args)?,
     }
