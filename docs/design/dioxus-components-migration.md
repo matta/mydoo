@@ -98,8 +98,8 @@ Status legend:
 
 - Total upstream components: 38
 - Adopted: 3 (Navbar, Popover, Slider)
-- Wrapper/Modified: 5 (Calendar, Collapsible, Date Picker, Dialog, Select)
-- Diverged replacements: 3 (Button, Checkbox, Input)
+- Wrapper/Modified: 4 (Calendar, Collapsible, Dialog, Select)
+- Diverged replacements: 4 (Button, Checkbox, Date Picker, Input)
 - Missing: 27
 
 ## Tailwind And DaisyUI Usage Audit
