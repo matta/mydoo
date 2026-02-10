@@ -4,9 +4,12 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 use commands::{
-    check_biome_schema::check_biome_schema, check_catalog::check_catalog,
-    check_context::check_context, check_dark_mode::check_dark_mode,
+    check_biome_schema::check_biome_schema,
+    check_catalog::check_catalog,
+    check_context::check_context,
+    check_dark_mode::check_dark_mode,
     check_filenames::check_filenames,
+    fix_junit::{self, FixJunitArgs},
 };
 
 #[derive(Parser)]
@@ -32,6 +35,8 @@ enum Commands {
     CheckDarkMode,
     /// Run all checks
     CheckAll,
+    /// Fix JUnit XML report for Trunk compatibility
+    FixJunit(FixJunitArgs),
 }
 
 fn main() -> Result<()> {
@@ -50,6 +55,10 @@ fn main() -> Result<()> {
             check_context()?;
             check_dark_mode()?;
         }
+        Commands::FixJunit(args) => fix_junit::run(FixJunitArgs {
+            junit_path: args.junit_path.clone(),
+            package_dir: args.package_dir.clone(),
+        })?,
     }
 
     Ok(())
