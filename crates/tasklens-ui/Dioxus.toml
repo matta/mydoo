@@ -1,0 +1,27 @@
+[application]
+platform = "web"
+
+[components]
+components_dir = "src/dioxus_components"
+
+[components.registry]
+git = "https://github.com/DioxusLabs/components"
+rev = "7943bed2eb59ee43d713f935e0ba17989c02b992"
+
+[web.app]
+title = "TaskLens"
+
+# include `assets` in web platform
+[web.resource]
+
+# Additional CSS style files
+style = []
+
+# Additional JavaScript files
+script = []
+
+[web.resource.dev]
+
+# Javascript code file
+# serve: [dev-server] only
+script = []
