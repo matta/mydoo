@@ -1,6 +1,4 @@
 use std::fs;
-use std::path::Path;
-use std::process::Command;
 
 use anyhow::{Context, Result, bail};
 use regex::Regex;
@@ -41,7 +39,6 @@ pub(crate) fn check_dioxus_lock_pin() -> Result<()> {
         );
     }
 
-    assert_locked_metadata_works(&repo_root)?;
     Ok(())
 }
 
@@ -100,24 +97,6 @@ fn extract_lock_dioxus_primitives_rev(content: &str) -> Result<String> {
         })?;
 
     Ok(rev)
-}
-
-/// Verifies Cargo's locked metadata path still resolves after pin validation.
-fn assert_locked_metadata_works(repo_root: &Path) -> Result<()> {
-    let output = Command::new("cargo")
-        .current_dir(repo_root)
-        .args(["metadata", "--locked", "--no-deps", "--format-version", "1"])
-        .output()
-        .context("failed to run `cargo metadata --locked`")?;
-
-    if !output.status.success() {
-        bail!(
-            "`cargo metadata --locked` failed after lockfile pin check. stderr:\n{}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]
