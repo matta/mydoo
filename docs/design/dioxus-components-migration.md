@@ -152,7 +152,7 @@ Version compatibility note:
 - The upstream repo currently targets Dioxus `0.7.0`, while this workspace uses `0.7.3`.
 - We should verify compatibility when syncing upstream and prefer keeping versions aligned if issues arise.
 
-## CSS Strategy De Tailwind
+## CSS Strategy for Removing Tailwind
 
 Chosen approach: upstream per-component CSS + global upstream theme + minimal `app.css`.
 
