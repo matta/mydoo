@@ -461,14 +461,67 @@ fn parse_components_file_content(content: &str) -> Result<Vec<String>> {
     Ok(result)
 }
 
-/// Checks out an existing vendor branch or initializes a new orphan branch.
+/// Relationship between local and remote vendor branch history.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum BranchRelation {
+    Equal,
+    LocalAhead,
+    LocalBehind,
+    Diverged,
+}
+
+/// Checks out and synchronizes the vendor branch, or initializes a new orphan branch.
 fn checkout_or_init_vendor_branch(
     repo_root: &Path,
     vendor_worktree: &Path,
     vendor_branch: &str,
     allow_non_orphan_vendor_branch: bool,
 ) -> Result<()> {
-    if local_branch_exists(repo_root, vendor_branch)? {
+    fetch_origin(repo_root)?;
+
+    let local_exists = local_branch_exists(repo_root, vendor_branch)?;
+    let remote_exists = remote_tracking_branch_exists(repo_root, vendor_branch)?;
+    let remote_ref = format!("origin/{vendor_branch}");
+
+    if local_exists && remote_exists {
+        let relation = vendor_branch_relation_to_origin(repo_root, vendor_branch)?;
+        if relation == BranchRelation::Diverged {
+            let local_sha = git_stdout(repo_root, &["rev-parse", vendor_branch])?;
+            let remote_sha = git_stdout(repo_root, &["rev-parse", remote_ref.as_str()])?;
+            bail!(
+                "vendor branch '{vendor_branch}' has diverged from '{remote_ref}'. local={local_sha}, remote={remote_sha}. Reconcile history manually, then rerun update-dioxus-components."
+            );
+        }
+
+        run_command_checked(vendor_worktree, "git", &["checkout", vendor_branch])?;
+        if relation == BranchRelation::LocalBehind {
+            run_command_checked(
+                vendor_worktree,
+                "git",
+                &["merge", "--ff-only", remote_ref.as_str()],
+            )?;
+        }
+        validate_vendor_branch_shape(vendor_worktree, allow_non_orphan_vendor_branch)?;
+        return Ok(());
+    }
+
+    if !local_exists && remote_exists {
+        run_command_checked(
+            vendor_worktree,
+            "git",
+            &[
+                "checkout",
+                "--track",
+                "-b",
+                vendor_branch,
+                remote_ref.as_str(),
+            ],
+        )?;
+        validate_vendor_branch_shape(vendor_worktree, allow_non_orphan_vendor_branch)?;
+        return Ok(());
+    }
+
+    if local_exists {
         run_command_checked(vendor_worktree, "git", &["checkout", vendor_branch])?;
         validate_vendor_branch_shape(vendor_worktree, allow_non_orphan_vendor_branch)?;
         return Ok(());
@@ -675,9 +728,14 @@ fn commit_vendor_snapshot(
 
 /// Pushes the vendor branch to origin before merge so snapshots are durable.
 fn push_vendor_branch(repo_root: &Path, vendor_branch: &str) -> Result<()> {
-    run_command_checked(repo_root, "git", &["push", "origin", vendor_branch]).with_context(
-        || format!("failed to push vendor branch '{vendor_branch}' to origin before merge"),
-    )?;
+    run_command_checked(
+        repo_root,
+        "git",
+        &["push", "--set-upstream", "origin", vendor_branch],
+    )
+    .with_context(|| {
+        format!("failed to push vendor branch '{vendor_branch}' to origin before merge")
+    })?;
     Ok(())
 }
 
@@ -836,6 +894,71 @@ fn local_branch_exists(repo_root: &Path, branch: &str) -> Result<bool> {
         ],
     )?;
     Ok(status.success())
+}
+
+/// Returns true when `origin/<branch>` exists locally after a fetch.
+fn remote_tracking_branch_exists(repo_root: &Path, branch: &str) -> Result<bool> {
+    let status = run_command_status(
+        repo_root,
+        "git",
+        &[
+            "show-ref",
+            "--verify",
+            "--quiet",
+            &format!("refs/remotes/origin/{branch}"),
+        ],
+    )?;
+    Ok(status.success())
+}
+
+/// Fetches remote refs so vendor branch sync decisions are based on origin state.
+fn fetch_origin(repo_root: &Path) -> Result<()> {
+    run_command_checked(repo_root, "git", &["fetch", "origin", "--prune"])
+        .context("failed to fetch origin for vendor branch synchronization")
+        .map(|_| ())
+}
+
+/// Computes local-vs-remote relationship for `branch` and `origin/branch`.
+fn vendor_branch_relation_to_origin(repo_root: &Path, branch: &str) -> Result<BranchRelation> {
+    let remote_ref = format!("origin/{branch}");
+    let local_is_ancestor = is_ancestor(repo_root, branch, remote_ref.as_str())?;
+    let remote_is_ancestor = is_ancestor(repo_root, remote_ref.as_str(), branch)?;
+    Ok(classify_branch_relation(
+        local_is_ancestor,
+        remote_is_ancestor,
+    ))
+}
+
+/// Classifies ancestry flags into a high-level branch relation.
+fn classify_branch_relation(local_is_ancestor: bool, remote_is_ancestor: bool) -> BranchRelation {
+    match (local_is_ancestor, remote_is_ancestor) {
+        (true, true) => BranchRelation::Equal,
+        (false, true) => BranchRelation::LocalAhead,
+        (true, false) => BranchRelation::LocalBehind,
+        (false, false) => BranchRelation::Diverged,
+    }
+}
+
+/// Returns true when `ancestor_ref` is an ancestor of `descendant_ref`.
+fn is_ancestor(repo_root: &Path, ancestor_ref: &str, descendant_ref: &str) -> Result<bool> {
+    let status = run_command_status(
+        repo_root,
+        "git",
+        &["merge-base", "--is-ancestor", ancestor_ref, descendant_ref],
+    )?;
+
+    if status.success() {
+        return Ok(true);
+    }
+
+    if status.code() == Some(1) {
+        return Ok(false);
+    }
+
+    bail!(
+        "failed to compare ancestry between '{ancestor_ref}' and '{descendant_ref}' (exit code {:?})",
+        status.code()
+    )
 }
 
 /// Copies a file and ensures destination parent directories exist.
@@ -1178,6 +1301,23 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "a
         assert!(!is_allowed_vendor_path(Path::new(
             "crates/tasklens-ui/src/main.rs"
         )));
+    }
+
+    #[test]
+    fn classifies_branch_relation_states() {
+        assert_eq!(classify_branch_relation(true, true), BranchRelation::Equal);
+        assert_eq!(
+            classify_branch_relation(false, true),
+            BranchRelation::LocalAhead
+        );
+        assert_eq!(
+            classify_branch_relation(true, false),
+            BranchRelation::LocalBehind
+        );
+        assert_eq!(
+            classify_branch_relation(false, false),
+            BranchRelation::Diverged
+        );
     }
 
     #[test]
