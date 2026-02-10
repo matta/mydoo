@@ -68,22 +68,25 @@ fn transform_junit(content: &str, package_dir: &Path) -> Result<String> {
     let mut writer = Writer::new(Cursor::new(Vec::new()));
     let mut buf = Vec::new();
 
+    // Helper to process an element: check if it's a testcase and add the file attribute
+    let process_element = |e: &BytesStart| -> Result<BytesStart> {
+        let mut elem = e.clone().into_owned();
+        if elem.name().as_ref() == b"testcase" {
+            process_testcase(&mut elem, package_dir)?;
+        }
+        Ok(elem)
+    };
+
     loop {
         match reader.read_event_into(&mut buf) {
             Ok(Event::Eof) => break,
             // Handle both Empty (<tag />) and Start (<tag>...) events for testcases
             Ok(Event::Empty(e)) => {
-                let mut elem = e.clone();
-                if elem.name().as_ref() == b"testcase" {
-                    process_testcase(&mut elem, package_dir)?;
-                }
+                let elem = process_element(&e)?;
                 writer.write_event(Event::Empty(elem))?;
             }
             Ok(Event::Start(e)) => {
-                let mut elem = e.clone();
-                if elem.name().as_ref() == b"testcase" {
-                    process_testcase(&mut elem, package_dir)?;
-                }
+                let elem = process_element(&e)?;
                 writer.write_event(Event::Start(elem))?;
             }
             // Pass through all other events (End, Text, Comment, etc.) unchanged
