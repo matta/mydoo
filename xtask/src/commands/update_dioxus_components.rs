@@ -170,11 +170,12 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
     );
     let snapshot_commit_created =
         commit_vendor_snapshot(&context.vendor_worktree, &commit_message)?;
+    push_vendor_branch(&context.repo_root, &args.vendor_branch)?;
 
     attempt_final_merge(&context.repo_root, &args.vendor_branch)?;
 
     println!(
-        "update-dioxus-components completed: target_branch={current_branch}, vendor_branch={}, rev={}, components=[{}], snapshot_commit_created={snapshot_commit_created}",
+        "update-dioxus-components completed: target_branch={current_branch}, vendor_branch={}, rev={}, components=[{}], snapshot_commit_created={snapshot_commit_created}, vendor_branch_pushed=true",
         args.vendor_branch,
         effective_rev,
         components.join(", "),
@@ -670,6 +671,14 @@ fn commit_vendor_snapshot(
         ],
     )?;
     Ok(true)
+}
+
+/// Pushes the vendor branch to origin before merge so snapshots are durable.
+fn push_vendor_branch(repo_root: &Path, vendor_branch: &str) -> Result<()> {
+    run_command_checked(repo_root, "git", &["push", "origin", vendor_branch]).with_context(
+        || format!("failed to push vendor branch '{vendor_branch}' to origin before merge"),
+    )?;
+    Ok(())
 }
 
 /// Multi-line commit message payload for vendor snapshot commits.
