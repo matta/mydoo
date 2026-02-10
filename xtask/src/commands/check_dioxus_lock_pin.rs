@@ -1,8 +1,9 @@
 use std::fs;
 
 use anyhow::{Context, Result, bail};
-use regex::Regex;
 use toml_edit::{DocumentMut, Item, Value};
+
+use crate::commands::dioxus_lock::extract_dioxus_primitives_rev_from_lock_content;
 
 /// Dependency source URL expected for dioxus-primitives pinning.
 const DIOXUS_COMPONENTS_GIT: &str = "https://github.com/DioxusLabs/components";
@@ -25,7 +26,7 @@ pub(crate) fn check_dioxus_lock_pin() -> Result<()> {
         .with_context(|| format!("failed to read {CARGO_LOCK_PATH}"))?;
 
     let (manifest_git, manifest_rev) = extract_manifest_dioxus_primitives_pin(&manifest_content)?;
-    let lock_rev = extract_lock_dioxus_primitives_rev(&lock_content)?;
+    let lock_rev = extract_dioxus_primitives_rev_from_lock_content(&lock_content)?;
 
     if manifest_git != DIOXUS_COMPONENTS_GIT {
         bail!(
@@ -78,27 +79,6 @@ fn extract_manifest_dioxus_primitives_pin(content: &str) -> Result<(String, Stri
     Ok((git, rev))
 }
 
-/// Parses the dioxus-primitives resolved git revision from Cargo.lock content.
-fn extract_lock_dioxus_primitives_rev(content: &str) -> Result<String> {
-    let pattern = Regex::new(
-        r#"(?ms)name = \"dioxus-primitives\"\s+version = \"[^\"]+\"\s+source = \"git\+https://github\.com/DioxusLabs/components(?:\?[^\"]*)?#([0-9a-fA-F]+)\""#,
-    )
-    .expect("valid regex");
-
-    let captures = pattern.captures(content).ok_or_else(|| {
-        anyhow::anyhow!("could not find dioxus-primitives git source entry in Cargo.lock")
-    })?;
-
-    let rev = captures
-        .get(1)
-        .map(|capture| capture.as_str().to_string())
-        .ok_or_else(|| {
-            anyhow::anyhow!("missing dioxus-primitives revision capture in Cargo.lock")
-        })?;
-
-    Ok(rev)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -134,7 +114,7 @@ version = "0.0.1"
 source = "git+https://github.com/DioxusLabs/components#deadbeef"
 "#;
 
-        let rev = extract_lock_dioxus_primitives_rev(input).unwrap();
+        let rev = extract_dioxus_primitives_rev_from_lock_content(input).unwrap();
         assert_eq!(rev, "deadbeef");
     }
 
@@ -147,7 +127,7 @@ version = "0.0.1"
 source = "git+https://github.com/DioxusLabs/components?rev=deadbeef#deadbeef"
 "#;
 
-        let rev = extract_lock_dioxus_primitives_rev(input).unwrap();
+        let rev = extract_dioxus_primitives_rev_from_lock_content(input).unwrap();
         assert_eq!(rev, "deadbeef");
     }
 }

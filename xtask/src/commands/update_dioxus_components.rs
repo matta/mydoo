@@ -6,8 +6,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result, bail};
 use clap::Args;
-use regex::Regex;
 use toml_edit::{DocumentMut, InlineTable, Item, Value, value};
+
+use crate::commands::dioxus_lock::extract_dioxus_primitives_rev_from_lock_content;
 
 /// The default branch that stores pristine vendored component snapshots.
 const DEFAULT_VENDOR_BRANCH: &str = "vendor/dioxus-components-pristine";
@@ -259,28 +260,11 @@ fn normalize_repo_relative_path(repo_root: &Path, raw_path: &Path) -> Result<Pat
 fn extract_dioxus_primitives_rev_from_lockfile(lockfile_path: &Path) -> Result<String> {
     let content = fs::read_to_string(lockfile_path)
         .with_context(|| format!("failed to read {}", lockfile_path.display()))?;
-    extract_dioxus_primitives_rev_from_lock_content(&content)
-}
-
-/// Parses lockfile content and returns the git revision for `dioxus-primitives`.
-fn extract_dioxus_primitives_rev_from_lock_content(lock_content: &str) -> Result<String> {
-    let pattern = Regex::new(
-        r#"(?ms)name = \"dioxus-primitives\"\s+version = \"[^\"]+\"\s+source = \"git\+https://github\.com/DioxusLabs/components(?:\?[^\"]*)?#([0-9a-fA-F]+)\""#,
-    )
-    .expect("valid regex");
-
-    let captures = pattern.captures(lock_content).ok_or_else(|| {
+    extract_dioxus_primitives_rev_from_lock_content(&content).map_err(|_| {
         anyhow::anyhow!(
             "could not find git source for dioxus-primitives in Cargo.lock; pass --upgrade-primitives <rev> to re-pin explicitly"
         )
-    })?;
-
-    let revision = captures
-        .get(1)
-        .map(|capture| capture.as_str().to_string())
-        .ok_or_else(|| anyhow::anyhow!("missing revision capture for dioxus-primitives"))?;
-
-    Ok(revision)
+    })
 }
 
 /// Ensures `crates/tasklens-ui/Cargo.toml` pins `dioxus-primitives` with git+rev.
