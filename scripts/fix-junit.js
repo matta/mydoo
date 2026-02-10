@@ -25,13 +25,22 @@ const content = fs.readFileSync(absoluteJunitPath, "utf8");
 // We look for <testcase classname="path/to/test.ts" ...>
 // and change it to <testcase classname="path/to/test.ts" file="package-dir/path/to/test.ts" ...>
 
-const regex = /<testcase\s+name="([^"]*)"\s+classname="([^"]*)"/g;
-const fixedContent = content.replace(regex, (match, name, classname) => {
-  // Only add if file attribute isn't already there
-  if (match.includes(' file="')) return match;
+const regex = /<testcase[^>]*>/g;
+const fixedContent = content.replace(regex, (tag) => {
+  if (tag.includes(' file="')) {
+    return tag;
+  }
 
+  const classnameMatch = tag.match(/classname="([^"]*)"/);
+  if (!classnameMatch) {
+    return tag;
+  }
+
+  const classname = classnameMatch[1];
   const repoRelativePath = path.join(packageDir, classname);
-  return `<testcase name="${name}" classname="${classname}" file="${repoRelativePath}"`;
+
+  // Insert file attribute before the closing `>` or `/>`
+  return tag.replace(/(\/?)\/?>$/, ` file="${repoRelativePath}" $1>`);
 });
 
 fs.writeFileSync(absoluteJunitPath, fixedContent);
