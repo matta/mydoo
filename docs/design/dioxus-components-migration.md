@@ -255,8 +255,8 @@ Recommendation:
 - Implement the recommended upstream tracking strategy: pristine vendor branch driven by `dx components add` and pinned registry revision.
 - Split modules: `components` for Dioxus Components, `app_components` for app UI.
 - De-tailwind: remove Tailwind and DaisyUI classes, add `app.css` for layout and typography.
-- Re-vendor core components first: Button, Input, Checkbox, Select, Dialog, Date Picker.
-- Align existing wrappers: Calendar, Collapsible, Select, Dialog, Date Picker.
+- Re-vendor and replace diverged components first: Button, Input, Checkbox, Date Picker.
+- Align existing wrappers: Calendar, Collapsible, Select, Dialog.
 - Adopt missing upstream components as needed (Badge, Card, Progress, Textarea, Toggle, Tooltip, Toast, etc).
 - Migrate app-specific UI to `app_components` and style via `app.css` + upstream components.
 - Update the inventory and divergence summary as components are aligned.
