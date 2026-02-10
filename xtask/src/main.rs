@@ -4,9 +4,12 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 use commands::{
-    check_biome_schema::check_biome_schema, check_catalog::check_catalog,
-    check_context::check_context, check_dark_mode::check_dark_mode,
+    check_biome_schema::check_biome_schema,
+    check_catalog::check_catalog,
+    check_context::check_context,
+    check_dark_mode::check_dark_mode,
     check_filenames::check_filenames,
+    update_dioxus_components::{UpdateDioxusComponentsArgs, update_dioxus_components},
 };
 
 #[derive(Parser)]
@@ -30,6 +33,8 @@ enum Commands {
     CheckContext,
     /// Check for dark mode violations in UI components
     CheckDarkMode,
+    /// Update vendored Dioxus components via a pristine vendor branch workflow
+    UpdateDioxusComponents(UpdateDioxusComponentsArgs),
     /// Run all checks
     CheckAll,
 }
@@ -38,11 +43,6 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::CheckCatalog => check_catalog()?,
-        Commands::CheckBiomeSchema => check_biome_schema()?,
-        Commands::CheckFilenames => check_filenames()?,
-        Commands::CheckContext => check_context()?,
-        Commands::CheckDarkMode => check_dark_mode()?,
         Commands::CheckAll => {
             check_catalog()?;
             check_biome_schema()?;
@@ -50,6 +50,12 @@ fn main() -> Result<()> {
             check_context()?;
             check_dark_mode()?;
         }
+        Commands::CheckBiomeSchema => check_biome_schema()?,
+        Commands::CheckCatalog => check_catalog()?,
+        Commands::CheckContext => check_context()?,
+        Commands::CheckDarkMode => check_dark_mode()?,
+        Commands::CheckFilenames => check_filenames()?,
+        Commands::UpdateDioxusComponents(args) => update_dioxus_components(args)?,
     }
 
     Ok(())
