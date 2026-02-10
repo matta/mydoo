@@ -88,7 +88,7 @@ jobs:
         continue-on-error: true # don't fail this job if the upload fails
         uses: trunk-io/analytics-uploader@main
         with:
-          junit-paths: "**/*.xml"
+          junit-paths: "crates/tasklens-ui/test-results/junit.xml"
           org-slug: potapenko
           token: ${{ secrets.TRUNK_API_TOKEN }}
 
@@ -99,7 +99,7 @@ jobs:
           name: playwright-report
           path: |
             crates/tasklens-ui/playwright-report/
-            crates/tasklens-ui/junit.xml
+            crates/tasklens-ui/test-results/junit.xml
           retention-days: 30
 
   promote:
