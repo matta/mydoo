@@ -98,8 +98,8 @@ Status legend:
 
 - Total upstream components: 38
 - Adopted: 3 (Navbar, Popover, Slider)
-- Wrapper/Modified: 5 (Calendar, Collapsible, Date Picker, Dialog, Select)
-- Diverged replacements: 3 (Button, Checkbox, Input)
+- Wrapper/Modified: 4 (Calendar, Collapsible, Dialog, Select)
+- Diverged replacements: 4 (Button, Checkbox, Date Picker, Input)
 - Missing: 27
 
 ## Tailwind And DaisyUI Usage Audit
@@ -164,7 +164,7 @@ Version compatibility note:
 - The upstream repo currently targets Dioxus `0.7.0`, while this workspace uses `0.7.3`.
 - We should verify compatibility when syncing upstream and prefer keeping versions aligned if issues arise.
 
-## CSS Strategy De Tailwind
+## CSS Strategy for Removing Tailwind
 
 Chosen approach: upstream per-component CSS + global upstream theme + minimal `app.css`.
 
@@ -270,8 +270,8 @@ Recommendation:
 - Implement the recommended upstream tracking strategy: pristine vendor branch driven by `dx components add` and pinned registry revision.
 - Split modules: `dioxus_components` for vendored Dioxus Components, `app_components` for app UI.
 - De-tailwind: remove Tailwind and DaisyUI classes, add `app.css` for layout and typography.
-- Re-vendor core components first: Button, Input, Checkbox, Select, Dialog, Date Picker.
-- Align existing wrappers: Calendar, Collapsible, Select, Dialog, Date Picker.
+- Re-vendor and replace diverged components first: Button, Input, Checkbox, Date Picker.
+- Align existing wrappers: Calendar, Collapsible, Select, Dialog.
 - Adopt missing upstream components as needed (Badge, Card, Progress, Textarea, Toggle, Tooltip, Toast, etc).
 - Migrate app-specific UI to `app_components` and style via `app.css` + upstream components.
 - Update the inventory and divergence summary as components are aligned.
