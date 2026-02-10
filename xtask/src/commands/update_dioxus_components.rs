@@ -1,6 +1,6 @@
 use std::ffi::OsStr;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::process::{Command, ExitStatus, Output};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -18,8 +18,12 @@ const DEFAULT_COMPONENTS_FILE: &str = "crates/tasklens-ui/dioxus-vendor-componen
 const DIOXUS_COMPONENTS_GIT: &str = "https://github.com/DioxusLabs/components";
 /// Relative path to the UI crate root.
 const UI_CRATE_DIR: &str = "crates/tasklens-ui";
-/// Relative path to the vendored components module.
-const VENDORED_COMPONENTS_DIR: &str = "crates/tasklens-ui/src/dioxus_components";
+
+/// Parsed vendor components configuration loaded from TOML.
+struct VendorComponentsConfig {
+    module_path: String,
+    components: Vec<String>,
+}
 
 /// CLI options for updating vendored Dioxus components.
 #[derive(Args, Debug)]
@@ -130,22 +134,30 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
 
     ensure_dioxus_toml_pin(&source_dioxus_toml, &effective_rev)?;
 
-    let components = read_components_file(&source_components_file)?;
-    if components.is_empty() {
+    let components_config = read_components_file(&source_components_file)?;
+    if components_config.components.is_empty() {
         bail!(
             "components file '{}' does not contain any components",
             source_components_file.display()
         );
     }
+    let vendored_components_dir =
+        vendored_components_repo_dir_from_module_path(&components_config.module_path)?;
 
     checkout_or_init_vendor_branch(
         &context.repo_root,
         &context.vendor_worktree,
         &args.vendor_branch,
+        &vendored_components_dir,
         args.allow_non_orphan_vendor_branch,
     )?;
 
-    run_dx_components_add(&context.source_worktree, &components, &effective_rev)?;
+    run_dx_components_add(
+        &context.source_worktree,
+        &components_config.module_path,
+        &components_config.components,
+        &effective_rev,
+    )?;
     reapply_primitives_pin_after_dx(
         &context.source_worktree,
         &source_ui_cargo_toml,
@@ -158,6 +170,7 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
         &context.source_worktree,
         &context.vendor_worktree,
         &component_file_relative,
+        &vendored_components_dir,
         &changed_assets,
     )?;
 
@@ -165,7 +178,7 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
         args,
         &context.current_branch,
         &component_file_relative,
-        &components,
+        &components_config,
         &effective_rev,
     );
     let snapshot_commit_created =
@@ -178,7 +191,7 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
         "update-dioxus-components completed: target_branch={current_branch}, vendor_branch={}, rev={}, components=[{}], snapshot_commit_created={snapshot_commit_created}, vendor_branch_pushed=true",
         args.vendor_branch,
         effective_rev,
-        components.join(", "),
+        components_config.components.join(", "),
         current_branch = context.current_branch,
     );
 
@@ -379,7 +392,7 @@ fn ensure_cargo_toml_pin_content(content: &str, revision: &str) -> Result<String
     Ok(document.to_string())
 }
 
-/// Ensures `crates/tasklens-ui/Dioxus.toml` has pinned registry and components dir.
+/// Ensures `crates/tasklens-ui/Dioxus.toml` has pinned component registry metadata.
 fn ensure_dioxus_toml_pin(dioxus_toml_path: &Path, revision: &str) -> Result<()> {
     let original = fs::read_to_string(dioxus_toml_path)
         .with_context(|| format!("failed to read {}", dioxus_toml_path.display()))?;
@@ -391,7 +404,7 @@ fn ensure_dioxus_toml_pin(dioxus_toml_path: &Path, revision: &str) -> Result<()>
     Ok(())
 }
 
-/// Returns updated Dioxus.toml content with required component pin settings.
+/// Returns updated Dioxus.toml content with required component registry pin settings.
 fn ensure_dioxus_toml_pin_content(content: &str, revision: &str) -> Result<String> {
     let mut document = content
         .parse::<DocumentMut>()
@@ -404,7 +417,9 @@ fn ensure_dioxus_toml_pin_content(content: &str, revision: &str) -> Result<Strin
         .as_table_mut()
         .ok_or_else(|| anyhow::anyhow!("[components] must be a table in Dioxus.toml"))?;
 
-    components_table.insert("components_dir", value("src/dioxus_components"));
+    // `module_path` is owned by the vendor components config file; keep
+    // Dioxus.toml free of `components_dir` to avoid dual sources of truth.
+    let _ = components_table.remove("components_dir");
 
     let registry_item = components_table
         .entry("registry")
@@ -419,8 +434,14 @@ fn ensure_dioxus_toml_pin_content(content: &str, revision: &str) -> Result<Strin
     Ok(document.to_string())
 }
 
-/// Parses a component list TOML file and returns component names.
-fn read_components_file(components_file: &Path) -> Result<Vec<String>> {
+/// Converts a configured UI-relative module path to a repository-relative path.
+fn vendored_components_repo_dir_from_module_path(module_path: &str) -> Result<PathBuf> {
+    validate_module_path(module_path)?;
+    Ok(Path::new(UI_CRATE_DIR).join(module_path))
+}
+
+/// Parses a component list TOML file and returns vendor configuration.
+fn read_components_file(components_file: &Path) -> Result<VendorComponentsConfig> {
     let content = fs::read_to_string(components_file).with_context(|| {
         format!(
             "failed to read components file {}",
@@ -429,17 +450,53 @@ fn read_components_file(components_file: &Path) -> Result<Vec<String>> {
     })?;
     parse_components_file_content(&content).with_context(|| {
         format!(
-            "failed to parse components file {}; expected `components = [\"name\", ...]`",
+            "failed to parse components file {}; expected `module_path = \"src/...\"` and `components = [\"name\", ...]`",
             components_file.display()
         )
     })
 }
 
-/// Parses TOML content expected to contain a string array named `components`.
-fn parse_components_file_content(content: &str) -> Result<Vec<String>> {
+/// Validates that a module path is relative and safely scoped under `src/`.
+fn validate_module_path(module_path: &str) -> Result<()> {
+    if module_path.trim().is_empty() {
+        bail!("`module_path` cannot be empty");
+    }
+
+    let path = Path::new(module_path);
+    if path.is_absolute() {
+        bail!("`module_path` must be a relative path (example: `src/dioxus_components`)");
+    }
+
+    if !path.starts_with("src") || path == Path::new("src") {
+        bail!("`module_path` must point to a subdirectory under `src/`");
+    }
+
+    for component in path.components() {
+        match component {
+            Component::Normal(_) => {}
+            _ => bail!(
+                "`module_path` must contain only normal path segments (example: `src/dioxus_components`)"
+            ),
+        }
+    }
+
+    Ok(())
+}
+
+/// Parses TOML content expected to contain `module_path` and `components`.
+fn parse_components_file_content(content: &str) -> Result<VendorComponentsConfig> {
     let document = content
         .parse::<DocumentMut>()
         .context("components file is not valid TOML")?;
+
+    let module_path = document
+        .get("module_path")
+        .ok_or_else(|| anyhow::anyhow!("missing `module_path` string"))?
+        .as_str()
+        .ok_or_else(|| anyhow::anyhow!("`module_path` must be a string"))?
+        .trim()
+        .to_string();
+    validate_module_path(&module_path)?;
 
     let components = document
         .get("components")
@@ -458,7 +515,10 @@ fn parse_components_file_content(content: &str) -> Result<Vec<String>> {
         result.push(component.to_string());
     }
 
-    Ok(result)
+    Ok(VendorComponentsConfig {
+        module_path,
+        components: result,
+    })
 }
 
 /// Relationship between local and remote vendor branch history.
@@ -475,6 +535,7 @@ fn checkout_or_init_vendor_branch(
     repo_root: &Path,
     vendor_worktree: &Path,
     vendor_branch: &str,
+    vendored_components_dir: &Path,
     allow_non_orphan_vendor_branch: bool,
 ) -> Result<()> {
     fetch_origin(repo_root)?;
@@ -501,7 +562,11 @@ fn checkout_or_init_vendor_branch(
                 &["merge", "--ff-only", remote_ref.as_str()],
             )?;
         }
-        validate_vendor_branch_shape(vendor_worktree, allow_non_orphan_vendor_branch)?;
+        validate_vendor_branch_shape(
+            vendor_worktree,
+            vendored_components_dir,
+            allow_non_orphan_vendor_branch,
+        )?;
         return Ok(());
     }
 
@@ -517,13 +582,21 @@ fn checkout_or_init_vendor_branch(
                 remote_ref.as_str(),
             ],
         )?;
-        validate_vendor_branch_shape(vendor_worktree, allow_non_orphan_vendor_branch)?;
+        validate_vendor_branch_shape(
+            vendor_worktree,
+            vendored_components_dir,
+            allow_non_orphan_vendor_branch,
+        )?;
         return Ok(());
     }
 
     if local_exists {
         run_command_checked(vendor_worktree, "git", &["checkout", vendor_branch])?;
-        validate_vendor_branch_shape(vendor_worktree, allow_non_orphan_vendor_branch)?;
+        validate_vendor_branch_shape(
+            vendor_worktree,
+            vendored_components_dir,
+            allow_non_orphan_vendor_branch,
+        )?;
         return Ok(());
     }
 
@@ -543,6 +616,7 @@ fn checkout_or_init_vendor_branch(
 /// Validates that tracked files in the vendor branch remain within snapshot-managed paths.
 fn validate_vendor_branch_shape(
     vendor_worktree: &Path,
+    vendored_components_dir: &Path,
     allow_non_orphan_vendor_branch: bool,
 ) -> Result<()> {
     let tracked_files = run_command_checked(vendor_worktree, "git", &["ls-files"])?;
@@ -550,7 +624,7 @@ fn validate_vendor_branch_shape(
     let unexpected_files: Vec<String> = tracked_files
         .lines()
         .filter(|line| !line.trim().is_empty())
-        .filter(|line| !is_allowed_vendor_path(Path::new(line)))
+        .filter(|line| !is_allowed_vendor_path(Path::new(line), vendored_components_dir))
         .map(ToString::to_string)
         .collect();
 
@@ -580,7 +654,7 @@ fn validate_vendor_branch_shape(
 ///
 /// This allowlist is strict and matches snapshot-managed content only.
 /// `Cargo.lock` is intentionally excluded so vendor snapshots never track it.
-fn is_allowed_vendor_path(path: &Path) -> bool {
+fn is_allowed_vendor_path(path: &Path, vendored_components_dir: &Path) -> bool {
     if path == Path::new("crates/tasklens-ui/Cargo.toml") {
         return true;
     }
@@ -593,12 +667,13 @@ fn is_allowed_vendor_path(path: &Path) -> bool {
         return true;
     }
 
-    path.starts_with(VENDORED_COMPONENTS_DIR) || path.starts_with("crates/tasklens-ui/assets")
+    path.starts_with(vendored_components_dir) || path.starts_with("crates/tasklens-ui/assets")
 }
 
 /// Executes `dx components add` in the source worktree UI crate.
 fn run_dx_components_add(
     source_worktree: &Path,
+    module_path: &str,
     components: &[String],
     revision: &str,
 ) -> Result<()> {
@@ -608,7 +683,7 @@ fn run_dx_components_add(
         "components".to_string(),
         "add".to_string(),
         "--module-path".to_string(),
-        "src/dioxus_components".to_string(),
+        module_path.to_string(),
         "--git".to_string(),
         DIOXUS_COMPONENTS_GIT.to_string(),
         "--rev".to_string(),
@@ -655,11 +730,12 @@ fn sync_vendor_snapshot(
     source_worktree: &Path,
     vendor_worktree: &Path,
     component_file_relative: &Path,
+    vendored_components_dir: &Path,
     changed_assets: &[PathBuf],
 ) -> Result<()> {
     mirror_directory(
-        &source_worktree.join(VENDORED_COMPONENTS_DIR),
-        &vendor_worktree.join(VENDORED_COMPONENTS_DIR),
+        &source_worktree.join(vendored_components_dir),
+        &vendor_worktree.join(vendored_components_dir),
     )?;
 
     sync_file(
@@ -750,13 +826,17 @@ fn build_vendor_snapshot_commit_message(
     args: &UpdateDioxusComponentsArgs,
     target_branch: &str,
     component_file_relative: &Path,
-    components: &[String],
+    components_config: &VendorComponentsConfig,
     revision: &str,
 ) -> VendorSnapshotCommitMessage {
     let subject = format!("chore(vendor): update Dioxus Components source to {revision}");
     let canonical_invocation = render_canonical_update_invocation(args, component_file_relative);
     let observed_invocation = render_observed_invocation();
-    let installer_invocation = render_dx_components_add_invocation(components, revision);
+    let installer_invocation = render_dx_components_add_invocation(
+        &components_config.module_path,
+        &components_config.components,
+        revision,
+    );
     let body = format!(
         "Automated vendor snapshot created by xtask.
 
@@ -780,7 +860,7 @@ Snapshot inputs:
 - Components file: {}
 - Components: {}",
         path_to_string(component_file_relative),
-        components.join(", "),
+        components_config.components.join(", "),
         vendor_branch = args.vendor_branch,
     );
 
@@ -826,12 +906,16 @@ fn render_canonical_update_invocation(
 }
 
 /// Renders the `dx components add` command xtask executes in the source worktree.
-fn render_dx_components_add_invocation(components: &[String], revision: &str) -> String {
+fn render_dx_components_add_invocation(
+    module_path: &str,
+    components: &[String],
+    revision: &str,
+) -> String {
     let mut args = vec![
         "components".to_string(),
         "add".to_string(),
         "--module-path".to_string(),
-        "src/dioxus_components".to_string(),
+        module_path.to_string(),
         "--git".to_string(),
         DIOXUS_COMPONENTS_GIT.to_string(),
         "--rev".to_string(),
@@ -1228,14 +1312,36 @@ source = "git+https://github.com/DioxusLabs/components?rev=deadbeef#deadbeef"
 
     #[test]
     fn parses_components_file() {
-        let input = r#"components = ["button", "dialog"]"#;
-        let components = parse_components_file_content(input).unwrap();
-        assert_eq!(components, vec!["button", "dialog"]);
+        let input = r#"
+module_path = "src/dioxus_components"
+components = ["button", "dialog"]
+"#;
+        let config = parse_components_file_content(input).unwrap();
+        assert_eq!(config.module_path, "src/dioxus_components");
+        assert_eq!(config.components, vec!["button", "dialog"]);
     }
 
     #[test]
     fn rejects_missing_components_array() {
-        let input = r#"not_components = ["button"]"#;
+        let input = r#"
+module_path = "src/dioxus_components"
+not_components = ["button"]
+"#;
+        assert!(parse_components_file_content(input).is_err());
+    }
+
+    #[test]
+    fn rejects_missing_module_path() {
+        let input = r#"components = ["button"]"#;
+        assert!(parse_components_file_content(input).is_err());
+    }
+
+    #[test]
+    fn rejects_unsafe_module_path() {
+        let input = r#"
+module_path = "../outside"
+components = ["button"]
+"#;
         assert!(parse_components_file_content(input).is_err());
     }
 
@@ -1248,9 +1354,19 @@ platform = "web"
 
         let updated = ensure_dioxus_toml_pin_content(input, "abc123").unwrap();
         assert!(updated.contains("[components]"));
-        assert!(updated.contains("components_dir = \"src/dioxus_components\""));
+        assert!(!updated.contains("components_dir ="));
         assert!(updated.contains("git = \"https://github.com/DioxusLabs/components\""));
         assert!(updated.contains("rev = \"abc123\""));
+    }
+
+    #[test]
+    fn removes_components_dir_from_dioxus_toml_content() {
+        let input = r#"
+[components]
+components_dir = "src/dioxus_components"
+"#;
+        let updated = ensure_dioxus_toml_pin_content(input, "abc123").unwrap();
+        assert!(!updated.contains("components_dir ="));
     }
 
     #[test]
@@ -1291,16 +1407,25 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "a
 
     #[test]
     fn allows_only_strict_vendor_paths() {
-        assert!(!is_allowed_vendor_path(Path::new("Cargo.lock")));
-        assert!(is_allowed_vendor_path(Path::new(
-            "crates/tasklens-ui/src/dioxus_components/button/component.rs"
-        )));
-        assert!(is_allowed_vendor_path(Path::new(
-            "crates/tasklens-ui/assets/dx-components-theme.css"
-        )));
-        assert!(!is_allowed_vendor_path(Path::new(
-            "crates/tasklens-ui/src/main.rs"
-        )));
+        let vendored_components_dir =
+            vendored_components_repo_dir_from_module_path("src/dioxus_components").unwrap();
+
+        assert!(!is_allowed_vendor_path(
+            Path::new("Cargo.lock"),
+            &vendored_components_dir
+        ));
+        assert!(is_allowed_vendor_path(
+            Path::new("crates/tasklens-ui/src/dioxus_components/button/component.rs"),
+            &vendored_components_dir
+        ));
+        assert!(is_allowed_vendor_path(
+            Path::new("crates/tasklens-ui/assets/dx-components-theme.css"),
+            &vendored_components_dir
+        ));
+        assert!(!is_allowed_vendor_path(
+            Path::new("crates/tasklens-ui/src/main.rs"),
+            &vendored_components_dir
+        ));
     }
 
     #[test]
@@ -1352,12 +1477,16 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "a
             keep_temp: false,
             allow_non_orphan_vendor_branch: false,
         };
+        let components_config = VendorComponentsConfig {
+            module_path: "src/dioxus_components".to_string(),
+            components: vec!["button".to_string(), "dialog".to_string()],
+        };
 
         let message = build_vendor_snapshot_commit_message(
             &args,
             "docs/dioxus-migration",
             Path::new(DEFAULT_COMPONENTS_FILE),
-            &["button".to_string(), "dialog".to_string()],
+            &components_config,
             "abc123",
         );
 

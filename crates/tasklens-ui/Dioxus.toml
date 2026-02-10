@@ -2,7 +2,6 @@
 platform = "web"
 
 [components]
-components_dir = "src/dioxus_components"
 
 [components.registry]
 git = "https://github.com/DioxusLabs/components"

@@ -1,1 +1,2 @@
+module_path = "src/dioxus_components"
 components = ["button"]

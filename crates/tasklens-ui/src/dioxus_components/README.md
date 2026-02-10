@@ -30,9 +30,9 @@ There is currently no vendored `dioxus_primitives/` source directory in this rep
 - `crates/tasklens-ui/assets/dx-components-theme.css`
   - Upstream theme asset used with Dioxus Components.
 - `crates/tasklens-ui/Dioxus.toml`
-  - Pins the component registry URL/revision and `components_dir`.
+  - Pins the component registry URL/revision.
 - `crates/tasklens-ui/dioxus-vendor-components.toml`
-  - Source-of-truth component selection list for vendoring.
+  - Source-of-truth `module_path` and component selection list for vendoring.
 
 ### Upstream-derived but locally owned paths (not pristine snapshots)
 
