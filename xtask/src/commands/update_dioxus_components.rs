@@ -319,6 +319,23 @@ fn ensure_cargo_toml_pin_content(content: &str, revision: &str) -> Result<String
         )
     })?;
 
+    let git_is_pinned = dependency_table_like
+        .get("git")
+        .and_then(Item::as_value)
+        .and_then(Value::as_str)
+        .is_some_and(|current| current == DIOXUS_COMPONENTS_GIT);
+    let rev_is_pinned = dependency_table_like
+        .get("rev")
+        .and_then(Item::as_value)
+        .and_then(Value::as_str)
+        .is_some_and(|current| current == revision);
+
+    // Avoid rewriting when the pin already matches exactly; this prevents
+    // formatting-only churn that can cause avoidable merge conflicts.
+    if git_is_pinned && rev_is_pinned {
+        return Ok(content.to_string());
+    }
+
     dependency_table_like.insert("git", value(DIOXUS_COMPONENTS_GIT));
     dependency_table_like.insert("rev", value(revision));
 
@@ -964,6 +981,17 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version 
         let updated = ensure_cargo_toml_pin_content(input, "abc123").unwrap();
         assert!(updated.contains("git = \"https://github.com/DioxusLabs/components\""));
         assert!(updated.contains("rev = \"abc123\""));
+    }
+
+    #[test]
+    fn cargo_toml_pin_noop_when_already_pinned() {
+        let input = r#"
+[dependencies]
+dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "abc123", version = "0.0.1", default-features = false, features = ["router"] }
+"#;
+
+        let updated = ensure_cargo_toml_pin_content(input, "abc123").unwrap();
+        assert_eq!(updated, input);
     }
 
     #[test]
