@@ -2,7 +2,7 @@
 
 ## Foundations
 
-- [ ] Create and use a pristine vendor branch for `dx components add` output, with registry URL and `rev` pinned in `Dioxus.toml`.
+- [x] Create and use a pristine vendor branch for `dx components add` output, with registry URL and `rev` pinned in `Dioxus.toml`.
 - [ ] Set `Dioxus.toml` `[components].components_dir = "src/dioxus_components"` (default is `src/components`).
 - [ ] Require `dx components add --module-path src/dioxus_components` for ad-hoc/manual runs so vendoring cannot fall back to the default `components` module.
 - [ ] Split modules: keep `crates/tasklens-ui/src/dioxus_components` for vendored Dioxus Components and create `crates/tasklens-ui/src/app_components` for app UI.
