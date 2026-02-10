@@ -145,6 +145,11 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
     )?;
 
     run_dx_components_add(&context.source_worktree, &components, &effective_rev)?;
+    reapply_primitives_pin_after_dx(
+        &context.source_worktree,
+        &source_ui_cargo_toml,
+        &effective_rev,
+    )?;
 
     let changed_assets = changed_paths_in(&context.source_worktree, "crates/tasklens-ui/assets")?;
     let cargo_lock_changed = path_changed_in_worktree(&context.source_worktree, "Cargo.lock")?;
@@ -510,6 +515,21 @@ fn run_dx_components_add(
     args.extend(components.iter().cloned());
 
     run_command_checked_owned(&ui_dir, "dx", &args).map(|_| ())
+}
+
+/// Re-applies and locks the `dioxus-primitives` pin after `dx` mutates manifests.
+fn reapply_primitives_pin_after_dx(
+    source_worktree: &Path,
+    source_ui_cargo_toml: &Path,
+    revision: &str,
+) -> Result<()> {
+    ensure_cargo_toml_pin(source_ui_cargo_toml, revision)?;
+    run_command_checked(
+        source_worktree,
+        "cargo",
+        &["update", "-p", "dioxus-primitives", "--precise", revision],
+    )?;
+    Ok(())
 }
 
 /// Returns changed paths under `pathspec` in the source worktree.
