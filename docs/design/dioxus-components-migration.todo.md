@@ -13,7 +13,6 @@
 
 - [ ] Calendar: re-vendor upstream and restore upstream API (remove extra wrapper, restore CalendarView if needed).
 - [ ] Collapsible: re-vendor upstream, restore `as` support, remove Tailwind classes.
-- [ ] Date Picker: wire the upstream wrapper and remove the HTML `<input type="date">` implementation.
 - [ ] Dialog: re-vendor upstream, remove DaisyUI modal classes, restore upstream CSS.
 - [ ] Select: re-vendor upstream and remove DaisyUI class overrides.
 
@@ -22,6 +21,7 @@
 - [ ] Button: replace local DaisyUI `button.rs` with upstream `button` component + CSS.
 - [ ] Checkbox: replace local DaisyUI `checkbox.rs` with upstream `checkbox` component + CSS.
 - [ ] Input: replace local DaisyUI `input.rs` with upstream `input` component + CSS.
+- [ ] Date Picker: wire the upstream wrapper and remove the HTML `<input type="date">` implementation.
 
 ## Verify Adopted Components
 
