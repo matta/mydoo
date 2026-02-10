@@ -7,7 +7,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::{Context, Result, bail};
 use clap::Args;
 use regex::Regex;
-use toml_edit::{DocumentMut, Item, Value, value};
+use toml_edit::{DocumentMut, InlineTable, Item, Value, value};
 
 /// The default branch that stores pristine vendored component snapshots.
 const DEFAULT_VENDOR_BRANCH: &str = "vendor/dioxus-components-pristine";
@@ -319,6 +319,34 @@ fn ensure_cargo_toml_pin_content(content: &str, revision: &str) -> Result<String
         )
     })?;
 
+    let version_value = dependency_table_like
+        .get("version")
+        .and_then(Item::as_value)
+        .cloned();
+    let default_features_value = dependency_table_like
+        .get("default-features")
+        .and_then(Item::as_value)
+        .cloned();
+    let features_value = dependency_table_like
+        .get("features")
+        .and_then(Item::as_value)
+        .cloned();
+    let mut remaining_values: Vec<(String, Value)> = dependency_table_like
+        .iter()
+        .filter_map(|(key, item)| {
+            if matches!(
+                key,
+                "git" | "rev" | "version" | "default-features" | "features"
+            ) {
+                return None;
+            }
+            item.as_value()
+                .cloned()
+                .map(|value| (key.to_string(), value))
+        })
+        .collect();
+    remaining_values.sort_by(|(left_key, _), (right_key, _)| left_key.cmp(right_key));
+
     let git_is_pinned = dependency_table_like
         .get("git")
         .and_then(Item::as_value)
@@ -336,8 +364,24 @@ fn ensure_cargo_toml_pin_content(content: &str, revision: &str) -> Result<String
         return Ok(content.to_string());
     }
 
-    dependency_table_like.insert("git", value(DIOXUS_COMPONENTS_GIT));
-    dependency_table_like.insert("rev", value(revision));
+    let mut canonical_table = InlineTable::default();
+    canonical_table.insert("git", Value::from(DIOXUS_COMPONENTS_GIT));
+    canonical_table.insert("rev", Value::from(revision));
+
+    if let Some(version) = version_value {
+        canonical_table.insert("version", version);
+    }
+    if let Some(default_features) = default_features_value {
+        canonical_table.insert("default-features", default_features);
+    }
+    if let Some(features) = features_value {
+        canonical_table.insert("features", features);
+    }
+    for (key, value) in remaining_values {
+        canonical_table.insert(&key, value);
+    }
+
+    *dependency_item = Item::Value(Value::InlineTable(canonical_table));
 
     Ok(document.to_string())
 }
@@ -981,6 +1025,19 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version 
         let updated = ensure_cargo_toml_pin_content(input, "abc123").unwrap();
         assert!(updated.contains("git = \"https://github.com/DioxusLabs/components\""));
         assert!(updated.contains("rev = \"abc123\""));
+    }
+
+    #[test]
+    fn updates_cargo_toml_content_with_canonical_key_order() {
+        let input = r#"
+[dependencies]
+dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version = "0.0.1", default-features = false, features = ["router"] }
+"#;
+
+        let updated = ensure_cargo_toml_pin_content(input, "abc123").unwrap();
+        assert!(updated.contains(
+            "dioxus-primitives = { git = \"https://github.com/DioxusLabs/components\", rev = \"abc123\", version = \"0.0.1\", default-features = false, features = [\"router\"] }"
+        ));
     }
 
     #[test]
