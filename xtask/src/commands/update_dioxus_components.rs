@@ -262,7 +262,7 @@ fn extract_dioxus_primitives_rev_from_lockfile(lockfile_path: &Path) -> Result<S
 /// Parses lockfile content and returns the git revision for `dioxus-primitives`.
 fn extract_dioxus_primitives_rev_from_lock_content(lock_content: &str) -> Result<String> {
     let pattern = Regex::new(
-        r#"(?ms)name = \"dioxus-primitives\"\s+version = \"[^\"]+\"\s+source = \"git\+https://github\.com/DioxusLabs/components#([0-9a-fA-F]+)\""#,
+        r#"(?ms)name = \"dioxus-primitives\"\s+version = \"[^\"]+\"\s+source = \"git\+https://github\.com/DioxusLabs/components(?:\?[^\"]*)?#([0-9a-fA-F]+)\""#,
     )
     .expect("valid regex");
 
@@ -903,6 +903,19 @@ mod tests {
 name = "dioxus-primitives"
 version = "0.0.1"
 source = "git+https://github.com/DioxusLabs/components#deadbeef"
+"#;
+
+        let revision = extract_dioxus_primitives_rev_from_lock_content(input).unwrap();
+        assert_eq!(revision, "deadbeef");
+    }
+
+    #[test]
+    fn extracts_rev_from_lock_content_with_query_string() {
+        let input = r#"
+[[package]]
+name = "dioxus-primitives"
+version = "0.0.1"
+source = "git+https://github.com/DioxusLabs/components?rev=deadbeef#deadbeef"
 "#;
 
         let revision = extract_dioxus_primitives_rev_from_lock_content(input).unwrap();
