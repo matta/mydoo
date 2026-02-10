@@ -46,7 +46,7 @@ pub(crate) fn run(args: FixJunitArgs) -> Result<()> {
         fs::write(&args.junit_path, fixed_xml)
             .with_context(|| format!("Failed to write to {:?}", args.junit_path))?;
         println!(
-            "Successfully fixed {:?} for Trunk compatibility.",
+            "Successfully fixed {:?} for Trunk.io compatibility.",
             args.junit_path
         );
     } else {

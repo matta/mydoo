@@ -35,7 +35,7 @@ enum Commands {
     CheckDarkMode,
     /// Run all checks
     CheckAll,
-    /// Fix JUnit XML report for Trunk compatibility
+    /// Fix JUnit XML report for Trunk.io compatibility
     FixJunit(FixJunitArgs),
 }
 
