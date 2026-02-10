@@ -14,13 +14,18 @@ use crate::commands::dioxus_lock::extract_dioxus_primitives_rev_from_lock_conten
 const DEFAULT_VENDOR_BRANCH: &str = "vendor/dioxus-components-pristine";
 /// The default versioned source of truth for components selected for vendoring.
 const DEFAULT_COMPONENTS_FILE: &str = "crates/tasklens-ui/dioxus-vendor-components.toml";
-/// The component registry URL used for both `dx components add` and `dioxus-primitives`.
-const DIOXUS_COMPONENTS_GIT: &str = "https://github.com/DioxusLabs/components";
 /// Relative path to the UI crate root.
 const UI_CRATE_DIR: &str = "crates/tasklens-ui";
 
+/// Parsed vendor registry configuration loaded from TOML.
+struct VendorRegistryConfig {
+    git: String,
+    rev: String,
+}
+
 /// Parsed vendor components configuration loaded from TOML.
 struct VendorComponentsConfig {
+    registry: VendorRegistryConfig,
     module_path: String,
     components: Vec<String>,
 }
@@ -115,12 +120,18 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
         .join(UI_CRATE_DIR)
         .join("Dioxus.toml");
     let source_lockfile = context.source_worktree.join("Cargo.lock");
+    let mut components_config = read_components_file(&source_components_file)?;
 
     let requested_rev = args.upgrade_primitives.as_deref();
-    let rev_from_lock = extract_dioxus_primitives_rev_from_lockfile(&source_lockfile)?;
-    let mut effective_rev = requested_rev.unwrap_or(&rev_from_lock).to_string();
+    let mut effective_rev = requested_rev
+        .unwrap_or(&components_config.registry.rev)
+        .to_string();
 
-    ensure_cargo_toml_pin(&source_ui_cargo_toml, &effective_rev)?;
+    ensure_cargo_toml_pin(
+        &source_ui_cargo_toml,
+        &components_config.registry.git,
+        &effective_rev,
+    )?;
 
     if requested_rev.is_some() {
         run_command_checked(
@@ -129,12 +140,20 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
             &["update", "-p", "dioxus-primitives"],
         )?;
         effective_rev = extract_dioxus_primitives_rev_from_lockfile(&source_lockfile)?;
-        ensure_cargo_toml_pin(&source_ui_cargo_toml, &effective_rev)?;
+        ensure_cargo_toml_pin(
+            &source_ui_cargo_toml,
+            &components_config.registry.git,
+            &effective_rev,
+        )?;
     }
 
-    ensure_dioxus_toml_pin(&source_dioxus_toml, &effective_rev)?;
-
-    let components_config = read_components_file(&source_components_file)?;
+    clean_dioxus_toml_components_config(&source_dioxus_toml)?;
+    ensure_components_file_registry_pin(
+        &source_components_file,
+        &components_config.registry.git,
+        &effective_rev,
+    )?;
+    components_config.registry.rev = effective_rev.clone();
     if components_config.components.is_empty() {
         bail!(
             "components file '{}' does not contain any components",
@@ -154,6 +173,7 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
 
     run_dx_components_add(
         &context.source_worktree,
+        &components_config.registry.git,
         &components_config.module_path,
         &components_config.components,
         &effective_rev,
@@ -161,6 +181,7 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
     reapply_primitives_pin_after_dx(
         &context.source_worktree,
         &source_ui_cargo_toml,
+        &components_config.registry.git,
         &effective_rev,
     )?;
 
@@ -290,10 +311,10 @@ fn extract_dioxus_primitives_rev_from_lockfile(lockfile_path: &Path) -> Result<S
 }
 
 /// Ensures `crates/tasklens-ui/Cargo.toml` pins `dioxus-primitives` with git+rev.
-fn ensure_cargo_toml_pin(cargo_toml_path: &Path, revision: &str) -> Result<()> {
+fn ensure_cargo_toml_pin(cargo_toml_path: &Path, registry_git: &str, revision: &str) -> Result<()> {
     let original = fs::read_to_string(cargo_toml_path)
         .with_context(|| format!("failed to read {}", cargo_toml_path.display()))?;
-    let updated = ensure_cargo_toml_pin_content(&original, revision)?;
+    let updated = ensure_cargo_toml_pin_content(&original, registry_git, revision)?;
     if updated != original {
         fs::write(cargo_toml_path, updated)
             .with_context(|| format!("failed to write {}", cargo_toml_path.display()))?;
@@ -302,7 +323,11 @@ fn ensure_cargo_toml_pin(cargo_toml_path: &Path, revision: &str) -> Result<()> {
 }
 
 /// Returns updated Cargo.toml content with `dioxus-primitives` git/rev pins.
-fn ensure_cargo_toml_pin_content(content: &str, revision: &str) -> Result<String> {
+fn ensure_cargo_toml_pin_content(
+    content: &str,
+    registry_git: &str,
+    revision: &str,
+) -> Result<String> {
     let mut document = content
         .parse::<DocumentMut>()
         .context("failed to parse Cargo.toml as TOML")?;
@@ -357,7 +382,7 @@ fn ensure_cargo_toml_pin_content(content: &str, revision: &str) -> Result<String
         .get("git")
         .and_then(Item::as_value)
         .and_then(Value::as_str)
-        .is_some_and(|current| current == DIOXUS_COMPONENTS_GIT);
+        .is_some_and(|current| current == registry_git);
     let rev_is_pinned = dependency_table_like
         .get("rev")
         .and_then(Item::as_value)
@@ -371,7 +396,7 @@ fn ensure_cargo_toml_pin_content(content: &str, revision: &str) -> Result<String
     }
 
     let mut canonical_table = InlineTable::default();
-    canonical_table.insert("git", Value::from(DIOXUS_COMPONENTS_GIT));
+    canonical_table.insert("git", Value::from(registry_git));
     canonical_table.insert("rev", Value::from(revision));
 
     if let Some(version) = version_value {
@@ -392,11 +417,11 @@ fn ensure_cargo_toml_pin_content(content: &str, revision: &str) -> Result<String
     Ok(document.to_string())
 }
 
-/// Ensures `crates/tasklens-ui/Dioxus.toml` has pinned component registry metadata.
-fn ensure_dioxus_toml_pin(dioxus_toml_path: &Path, revision: &str) -> Result<()> {
+/// Removes Dioxus component installer config so xtask config is the only source of truth.
+fn clean_dioxus_toml_components_config(dioxus_toml_path: &Path) -> Result<()> {
     let original = fs::read_to_string(dioxus_toml_path)
         .with_context(|| format!("failed to read {}", dioxus_toml_path.display()))?;
-    let updated = ensure_dioxus_toml_pin_content(&original, revision)?;
+    let updated = clean_dioxus_toml_components_config_content(&original)?;
     if updated != original {
         fs::write(dioxus_toml_path, updated)
             .with_context(|| format!("failed to write {}", dioxus_toml_path.display()))?;
@@ -404,32 +429,53 @@ fn ensure_dioxus_toml_pin(dioxus_toml_path: &Path, revision: &str) -> Result<()>
     Ok(())
 }
 
-/// Returns updated Dioxus.toml content with required component registry pin settings.
-fn ensure_dioxus_toml_pin_content(content: &str, revision: &str) -> Result<String> {
+/// Returns Dioxus.toml content with `[components]` removed when present.
+fn clean_dioxus_toml_components_config_content(content: &str) -> Result<String> {
     let mut document = content
         .parse::<DocumentMut>()
         .context("failed to parse Dioxus.toml as TOML")?;
 
-    let components_item = document
-        .entry("components")
-        .or_insert(Item::Table(Default::default()));
-    let components_table = components_item
-        .as_table_mut()
-        .ok_or_else(|| anyhow::anyhow!("[components] must be a table in Dioxus.toml"))?;
+    let _ = document.remove("components");
 
-    // `module_path` is owned by the vendor components config file; keep
-    // Dioxus.toml free of `components_dir` to avoid dual sources of truth.
-    let _ = components_table.remove("components_dir");
+    Ok(document.to_string())
+}
 
-    let registry_item = components_table
+/// Ensures vendor config contains the selected registry pin.
+fn ensure_components_file_registry_pin(
+    components_file: &Path,
+    registry_git: &str,
+    registry_rev: &str,
+) -> Result<()> {
+    let original = fs::read_to_string(components_file)
+        .with_context(|| format!("failed to read {}", components_file.display()))?;
+    let updated =
+        ensure_components_file_registry_pin_content(&original, registry_git, registry_rev)?;
+    if updated != original {
+        fs::write(components_file, updated)
+            .with_context(|| format!("failed to write {}", components_file.display()))?;
+    }
+    Ok(())
+}
+
+/// Returns updated vendor config content with required registry pins.
+fn ensure_components_file_registry_pin_content(
+    content: &str,
+    registry_git: &str,
+    registry_rev: &str,
+) -> Result<String> {
+    let mut document = content
+        .parse::<DocumentMut>()
+        .context("failed to parse components file TOML")?;
+
+    let registry_item = document
         .entry("registry")
         .or_insert(Item::Table(Default::default()));
     let registry_table = registry_item
         .as_table_mut()
-        .ok_or_else(|| anyhow::anyhow!("[components.registry] must be a table in Dioxus.toml"))?;
+        .ok_or_else(|| anyhow::anyhow!("[registry] must be a table in components file"))?;
 
-    registry_table.insert("git", value(DIOXUS_COMPONENTS_GIT));
-    registry_table.insert("rev", value(revision));
+    registry_table.insert("git", value(registry_git));
+    registry_table.insert("rev", value(registry_rev));
 
     Ok(document.to_string())
 }
@@ -450,7 +496,7 @@ fn read_components_file(components_file: &Path) -> Result<VendorComponentsConfig
     })?;
     parse_components_file_content(&content).with_context(|| {
         format!(
-            "failed to parse components file {}; expected `module_path = \"src/...\"` and `components = [\"name\", ...]`",
+            "failed to parse components file {}; expected `module_path = \"src/...\"`, `[registry].git`, `[registry].rev`, and `components = [\"name\", ...]`",
             components_file.display()
         )
     })
@@ -483,7 +529,23 @@ fn validate_module_path(module_path: &str) -> Result<()> {
     Ok(())
 }
 
-/// Parses TOML content expected to contain `module_path` and `components`.
+/// Validates that a registry git URL is non-empty.
+fn validate_registry_git(registry_git: &str) -> Result<()> {
+    if registry_git.trim().is_empty() {
+        bail!("`registry.git` cannot be empty");
+    }
+    Ok(())
+}
+
+/// Validates that a registry revision string is non-empty.
+fn validate_registry_rev(registry_rev: &str) -> Result<()> {
+    if registry_rev.trim().is_empty() {
+        bail!("`registry.rev` cannot be empty");
+    }
+    Ok(())
+}
+
+/// Parses TOML content expected to contain `module_path`, `[registry]`, and `components`.
 fn parse_components_file_content(content: &str) -> Result<VendorComponentsConfig> {
     let document = content
         .parse::<DocumentMut>()
@@ -497,6 +559,28 @@ fn parse_components_file_content(content: &str) -> Result<VendorComponentsConfig
         .trim()
         .to_string();
     validate_module_path(&module_path)?;
+
+    let registry = document
+        .get("registry")
+        .ok_or_else(|| anyhow::anyhow!("missing `registry` table"))?
+        .as_table_like()
+        .ok_or_else(|| anyhow::anyhow!("`registry` must be a table"))?;
+    let registry_git = registry
+        .get("git")
+        .and_then(Item::as_value)
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow::anyhow!("`registry.git` must be a string"))?
+        .trim()
+        .to_string();
+    validate_registry_git(&registry_git)?;
+    let registry_rev = registry
+        .get("rev")
+        .and_then(Item::as_value)
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow::anyhow!("`registry.rev` must be a string"))?
+        .trim()
+        .to_string();
+    validate_registry_rev(&registry_rev)?;
 
     let components = document
         .get("components")
@@ -516,6 +600,10 @@ fn parse_components_file_content(content: &str) -> Result<VendorComponentsConfig
     }
 
     Ok(VendorComponentsConfig {
+        registry: VendorRegistryConfig {
+            git: registry_git,
+            rev: registry_rev,
+        },
         module_path,
         components: result,
     })
@@ -673,6 +761,7 @@ fn is_allowed_vendor_path(path: &Path, vendored_components_dir: &Path) -> bool {
 /// Executes `dx components add` in the source worktree UI crate.
 fn run_dx_components_add(
     source_worktree: &Path,
+    registry_git: &str,
     module_path: &str,
     components: &[String],
     revision: &str,
@@ -685,7 +774,7 @@ fn run_dx_components_add(
         "--module-path".to_string(),
         module_path.to_string(),
         "--git".to_string(),
-        DIOXUS_COMPONENTS_GIT.to_string(),
+        registry_git.to_string(),
         "--rev".to_string(),
         revision.to_string(),
         "--force".to_string(),
@@ -700,9 +789,10 @@ fn run_dx_components_add(
 fn reapply_primitives_pin_after_dx(
     source_worktree: &Path,
     source_ui_cargo_toml: &Path,
+    registry_git: &str,
     revision: &str,
 ) -> Result<()> {
-    ensure_cargo_toml_pin(source_ui_cargo_toml, revision)?;
+    ensure_cargo_toml_pin(source_ui_cargo_toml, registry_git, revision)?;
     run_command_checked(
         source_worktree,
         "cargo",
@@ -833,6 +923,7 @@ fn build_vendor_snapshot_commit_message(
     let canonical_invocation = render_canonical_update_invocation(args, component_file_relative);
     let observed_invocation = render_observed_invocation();
     let installer_invocation = render_dx_components_add_invocation(
+        &components_config.registry.git,
         &components_config.module_path,
         &components_config.components,
         revision,
@@ -855,12 +946,13 @@ Automation provenance:
 - Installer invocation (in {UI_CRATE_DIR}): {installer_invocation}
 
 Snapshot inputs:
-- Registry: {DIOXUS_COMPONENTS_GIT}
+- Registry: {registry_git}
 - Revision: {revision}
 - Components file: {}
 - Components: {}",
         path_to_string(component_file_relative),
         components_config.components.join(", "),
+        registry_git = components_config.registry.git,
         vendor_branch = args.vendor_branch,
     );
 
@@ -907,6 +999,7 @@ fn render_canonical_update_invocation(
 
 /// Renders the `dx components add` command xtask executes in the source worktree.
 fn render_dx_components_add_invocation(
+    registry_git: &str,
     module_path: &str,
     components: &[String],
     revision: &str,
@@ -917,7 +1010,7 @@ fn render_dx_components_add_invocation(
         "--module-path".to_string(),
         module_path.to_string(),
         "--git".to_string(),
-        DIOXUS_COMPONENTS_GIT.to_string(),
+        registry_git.to_string(),
         "--rev".to_string(),
         revision.to_string(),
         "--force".to_string(),
@@ -1315,8 +1408,16 @@ source = "git+https://github.com/DioxusLabs/components?rev=deadbeef#deadbeef"
         let input = r#"
 module_path = "src/dioxus_components"
 components = ["button", "dialog"]
+[registry]
+git = "https://github.com/DioxusLabs/components"
+rev = "abc123"
 "#;
         let config = parse_components_file_content(input).unwrap();
+        assert_eq!(
+            config.registry.git,
+            "https://github.com/DioxusLabs/components"
+        );
+        assert_eq!(config.registry.rev, "abc123");
         assert_eq!(config.module_path, "src/dioxus_components");
         assert_eq!(config.components, vec!["button", "dialog"]);
     }
@@ -1326,13 +1427,21 @@ components = ["button", "dialog"]
         let input = r#"
 module_path = "src/dioxus_components"
 not_components = ["button"]
+[registry]
+git = "https://github.com/DioxusLabs/components"
+rev = "abc123"
 "#;
         assert!(parse_components_file_content(input).is_err());
     }
 
     #[test]
     fn rejects_missing_module_path() {
-        let input = r#"components = ["button"]"#;
+        let input = r#"
+components = ["button"]
+[registry]
+git = "https://github.com/DioxusLabs/components"
+rev = "abc123"
+"#;
         assert!(parse_components_file_content(input).is_err());
     }
 
@@ -1341,32 +1450,68 @@ not_components = ["button"]
         let input = r#"
 module_path = "../outside"
 components = ["button"]
+[registry]
+git = "https://github.com/DioxusLabs/components"
+rev = "abc123"
 "#;
         assert!(parse_components_file_content(input).is_err());
     }
 
     #[test]
-    fn updates_dioxus_toml_content() {
+    fn rejects_missing_registry_table() {
+        let input = r#"
+module_path = "src/dioxus_components"
+components = ["button"]
+"#;
+        assert!(parse_components_file_content(input).is_err());
+    }
+
+    #[test]
+    fn cleans_dioxus_toml_components_config_content() {
+        let input = r#"
+[application]
+platform = "web"
+
+[components]
+
+[components.registry]
+git = "https://github.com/DioxusLabs/components"
+rev = "abc123"
+"#;
+
+        let updated = clean_dioxus_toml_components_config_content(input).unwrap();
+        assert!(!updated.contains("[components]"));
+        assert!(!updated.contains("[components.registry]"));
+    }
+
+    #[test]
+    fn clean_dioxus_toml_components_config_content_noop_when_missing() {
         let input = r#"
 [application]
 platform = "web"
 "#;
-
-        let updated = ensure_dioxus_toml_pin_content(input, "abc123").unwrap();
-        assert!(updated.contains("[components]"));
-        assert!(!updated.contains("components_dir ="));
-        assert!(updated.contains("git = \"https://github.com/DioxusLabs/components\""));
-        assert!(updated.contains("rev = \"abc123\""));
+        let updated = clean_dioxus_toml_components_config_content(input).unwrap();
+        assert_eq!(updated, input);
     }
 
     #[test]
-    fn removes_components_dir_from_dioxus_toml_content() {
+    fn updates_components_file_registry_pin_content() {
         let input = r#"
-[components]
-components_dir = "src/dioxus_components"
+module_path = "src/dioxus_components"
+components = ["button"]
+[registry]
+git = "https://github.com/example/components"
+rev = "old"
 "#;
-        let updated = ensure_dioxus_toml_pin_content(input, "abc123").unwrap();
-        assert!(!updated.contains("components_dir ="));
+
+        let updated = ensure_components_file_registry_pin_content(
+            input,
+            "https://github.com/DioxusLabs/components",
+            "abc123",
+        )
+        .unwrap();
+        assert!(updated.contains("git = \"https://github.com/DioxusLabs/components\""));
+        assert!(updated.contains("rev = \"abc123\""));
     }
 
     #[test]
@@ -1376,7 +1521,12 @@ components_dir = "src/dioxus_components"
 dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version = "0.0.1", default-features = false, features = ["router"] }
 "#;
 
-        let updated = ensure_cargo_toml_pin_content(input, "abc123").unwrap();
+        let updated = ensure_cargo_toml_pin_content(
+            input,
+            "https://github.com/DioxusLabs/components",
+            "abc123",
+        )
+        .unwrap();
         assert!(updated.contains("git = \"https://github.com/DioxusLabs/components\""));
         assert!(updated.contains("rev = \"abc123\""));
     }
@@ -1388,7 +1538,12 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version 
 dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version = "0.0.1", default-features = false, features = ["router"] }
 "#;
 
-        let updated = ensure_cargo_toml_pin_content(input, "abc123").unwrap();
+        let updated = ensure_cargo_toml_pin_content(
+            input,
+            "https://github.com/DioxusLabs/components",
+            "abc123",
+        )
+        .unwrap();
         assert!(updated.contains(
             "dioxus-primitives = { git = \"https://github.com/DioxusLabs/components\", rev = \"abc123\", version = \"0.0.1\", default-features = false, features = [\"router\"] }"
         ));
@@ -1401,7 +1556,12 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version 
 dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "abc123", version = "0.0.1", default-features = false, features = ["router"] }
 "#;
 
-        let updated = ensure_cargo_toml_pin_content(input, "abc123").unwrap();
+        let updated = ensure_cargo_toml_pin_content(
+            input,
+            "https://github.com/DioxusLabs/components",
+            "abc123",
+        )
+        .unwrap();
         assert_eq!(updated, input);
     }
 
@@ -1478,6 +1638,10 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "a
             allow_non_orphan_vendor_branch: false,
         };
         let components_config = VendorComponentsConfig {
+            registry: VendorRegistryConfig {
+                git: "https://github.com/DioxusLabs/components".to_string(),
+                rev: "abc123".to_string(),
+            },
             module_path: "src/dioxus_components".to_string(),
             components: vec!["button".to_string(), "dialog".to_string()],
         };

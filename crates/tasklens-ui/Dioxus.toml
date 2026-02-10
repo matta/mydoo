@@ -1,12 +1,6 @@
 [application]
 platform = "web"
 
-[components]
-
-[components.registry]
-git = "https://github.com/DioxusLabs/components"
-rev = "7943bed2eb59ee43d713f935e0ba17989c02b992"
-
 [web.app]
 title = "TaskLens"
 
