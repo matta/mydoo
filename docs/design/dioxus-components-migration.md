@@ -262,6 +262,16 @@ Recommendation:
 - Set `module_path = "src/dioxus_components"` and registry `git`/`rev` in `dioxus-vendor-components.toml`; xtask will pass matching installer arguments consistently.
 - Keep local patches on top of merged vendor snapshots.
 
+Incremental execution model:
+
+- Run migration as per-component vertical slices, not a bulk directory move.
+- For each component, do this sequence in order:
+  1. Vendor exactly one target component into `src/dioxus_components` using `dioxus-vendor-components.toml` + `cargo xtask update-dioxus-components`.
+  2. Integrate it in app code (either a temporary compatibility adapter or direct import/callsite migration).
+  3. Delete the legacy implementation from `src/components` once no callsites depend on it.
+  4. Update inventory/divergence status in this document and checklist.
+- Current next slice: Button (already vendored, integration and legacy removal pending).
+
 ## Representative Diffs
 
 - Button: local uses DaisyUI classes; upstream uses CSS variables and `style.css` with `data-style` variants.
@@ -275,7 +285,7 @@ Recommendation:
 - Implement the recommended upstream tracking strategy: pristine vendor branch driven by `dx components add` and pinned registry revision.
 - Split modules: `dioxus_components` for vendored Dioxus Components, `app_components` for app UI.
 - De-tailwind: remove Tailwind and DaisyUI classes, add `app.css` for layout and typography.
-- Re-vendor and replace diverged components first: Button, Input, Checkbox, Date Picker.
+- Re-vendor and replace diverged components first, one slice at a time: Button, then Input, Checkbox, Date Picker.
 - Align existing wrappers: Calendar, Collapsible, Select, Dialog.
 - Adopt missing upstream components as needed (Badge, Card, Progress, Textarea, Toggle, Tooltip, Toast, etc).
 - Migrate app-specific UI to `app_components` and style via `app.css` + upstream components.
