@@ -31,7 +31,7 @@
 
 ### Chunk A (Active): Button And Input Callsite De-Daisy
 
-- [ ] Remove remaining `btn*` classes from raw RSX buttons in:
+- [x] Remove remaining `btn*` classes from raw RSX buttons in:
   - `crates/tasklens-ui/src/views/plan_page.rs`
   - `crates/tasklens-ui/src/app_components/task_row.rs`
   - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
@@ -40,7 +40,6 @@
 - [ ] Remove DaisyUI-flavored Button class tokens (`btn-sm`, `btn-xs`, `btn-circle`, `btn-square`, `btn-primary`) and replace with app-owned/upstream-compatible classes in:
   - `crates/tasklens-ui/src/app_components/task_editor.rs`
   - `crates/tasklens-ui/src/views/do_page.rs`
-  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
   - any additional Button callsites found by audit.
 - [ ] Replace non-button `btn*` list affordances with upstream-compatible patterns in:
   - `crates/tasklens-ui/src/app_components/move_picker.rs`
@@ -114,11 +113,6 @@
 
 - [ ] `btn*` debt:
   - `crates/tasklens-ui/src/app_components/task_editor.rs`
-  - `crates/tasklens-ui/src/app_components/task_row.rs`
-  - `crates/tasklens-ui/src/app_components/app_navbar.rs`
-  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
-  - `crates/tasklens-ui/src/app_components/search_panel.rs`
-  - `crates/tasklens-ui/src/views/plan_page.rs`
   - `crates/tasklens-ui/src/views/do_page.rs`
   - `crates/tasklens-ui/src/app_components/move_picker.rs`
   - `crates/tasklens-ui/src/components/select/component.rs`
