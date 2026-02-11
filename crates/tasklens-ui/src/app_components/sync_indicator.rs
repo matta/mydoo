@@ -1,5 +1,4 @@
-use crate::components::Button;
-use crate::components::button::ButtonVariant;
+use crate::dioxus_components::button::{Button, ButtonVariant};
 #[cfg(target_arch = "wasm32")]
 use crate::hooks::use_sync::SYNC_SERVER_URL_KEY;
 use crate::hooks::use_sync::SyncStatus;

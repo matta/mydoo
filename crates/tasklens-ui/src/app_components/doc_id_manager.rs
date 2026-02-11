@@ -5,7 +5,9 @@
 //! - Generating a new document (new random ID)
 //! - Entering an existing document ID to switch documents
 
-use crate::{components::*, hooks::use_tunnel_state::use_tunnel_state};
+use crate::components::{Alert, AlertVariant, Input};
+use crate::dioxus_components::button::{Button, ButtonVariant};
+use crate::hooks::use_tunnel_state::use_tunnel_state;
 use dioxus::prelude::*;
 // use dioxus::events::FormEvent;
 
@@ -262,7 +264,7 @@ pub fn DocIdManager(
                     variant: ButtonVariant::Primary,
                     onclick: handle_new_document,
                     class: "flex-1 min-w-[120px]",
-                    data_testid: "new-document-button",
+                    "data-testid": "new-document-button",
                     "New Document"
                 }
                 Button {
@@ -272,7 +274,7 @@ pub fn DocIdManager(
                         error_msg.set(String::new());
                     },
                     class: "flex-1 min-w-[120px]",
-                    data_testid: "toggle-enter-id-button",
+                    "data-testid": "toggle-enter-id-button",
                     if show_input() {
                         "Cancel"
                     } else {
@@ -284,14 +286,14 @@ pub fn DocIdManager(
                     onclick: handle_download,
                     disabled: current_doc_id().is_none(),
                     class: "flex-1 min-w-[120px]",
-                    data_testid: "download-document-button",
+                    "data-testid": "download-document-button",
                     "Download"
                 }
                 div { class: "flex-1 min-w-[120px] relative",
                     Button {
                         variant: ButtonVariant::Secondary,
                         class: "w-full",
-                        data_testid: "upload-document-button",
+                        "data-testid": "upload-document-button",
                         "Upload"
                     }
                     input {
@@ -319,7 +321,7 @@ pub fn DocIdManager(
                         variant: ButtonVariant::Primary,
                         onclick: handle_enter_id,
                         class: "w-full",
-                        data_testid: "load-document-button",
+                        "data-testid": "load-document-button",
                         "Load Document"
                     }
                 }
