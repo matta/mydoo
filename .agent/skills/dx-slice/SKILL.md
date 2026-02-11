@@ -1,5 +1,5 @@
 ---
-name: dioxus-migration-slice-planner
+name: dx-slice
 description: Use when choosing the next chunk or vertical slice for the Dioxus Components migration. Read docs/design/dioxus-components-migration.todo.md and docs/design/dioxus-components-migration.md, then propose the next slice from those docs.
 ---
 
