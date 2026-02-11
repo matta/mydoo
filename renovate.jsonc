@@ -7,14 +7,12 @@
     {
       "matchManagers": ["npm", "cargo"],
       "matchUpdateTypes": ["patch"],
-      "groupName": "{{manager}} patch updates",
       // Wait for 7 days to ensure patch releases are stable before updating.
       "minimumReleaseAge": "7 days",
     },
     {
       "matchManagers": ["npm", "cargo"],
       "matchUpdateTypes": ["minor"],
-      "groupName": "{{manager}} minor updates",
       // Wait for 14 days for minor updates to allow more time for potential
       // regressions to be discovered in the wider ecosystem.
       "minimumReleaseAge": "14 days",
