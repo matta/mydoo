@@ -53,9 +53,7 @@
             }
           ],
           "then": {
-            "expected_order": [
-              "Project"
-            ],
+            "expected_order": ["Project"],
             "expected_props": [
               {
                 "id": "Project",

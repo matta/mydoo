@@ -10,12 +10,12 @@ This skill provides guidelines and common commands for interacting with the **Be
 ## 🚨 CRITICAL RULES
 
 1.  **NEVER MANUALLY EDIT JSONL FILES**.
-    -   The `.beads/*.jsonl` files are the storage layer, but you must NOT edit them directly.
-    -   ALWAYS use the `bd` CLI tool to read, create, or modify issues.
-    -   The `bd` tool is the single source of truth.
+    - The `.beads/*.jsonl` files are the storage layer, but you must NOT edit them directly.
+    - ALWAYS use the `bd` CLI tool to read, create, or modify issues.
+    - The `bd` tool is the single source of truth.
 
 2.  **Verify Creation**:
-    -   After creating issues, always verify they exist using `bd show <ID>` or `bd list`.
+    - After creating issues, always verify they exist using `bd show <ID>` or `bd list`.
 
 ## Common Commands
 
@@ -38,10 +38,11 @@ bd create --type task --title "Refactoring" --silent
 ```
 
 **Important Flags:**
--   `--type`: `task`, `bug`, `epic`, `chore`, etc. (Default: `task`)
--   `--priority`: `0` (Critical) to `4` (Low). (Default: `2`)
--   `--parent`: ID of the parent issue (e.g., `mydoo-123`).
--   `--dependencies`: explicit dependencies (e.g. `blocks:mydoo-123`).
+
+- `--type`: `task`, `bug`, `epic`, `chore`, etc. (Default: `task`)
+- `--priority`: `0` (Critical) to `4` (Low). (Default: `2`)
+- `--parent`: ID of the parent issue (e.g., `mydoo-123`).
+- `--dependencies`: explicit dependencies (e.g. `blocks:mydoo-123`).
 
 ### Viewing Issues
 
@@ -78,5 +79,5 @@ bd close <ISSUE_ID> --reason "Completed in PR #123"
 
 ## Troubleshooting
 
--   If a command fails, check `bd --help`.
--   If you cannot find an issue you just thought you created, check the exit codes of previous commands.
+- If a command fails, check `bd --help`.
+- If you cannot find an issue you just thought you created, check the exit codes of previous commands.
