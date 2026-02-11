@@ -38,9 +38,7 @@
         {
           "description": "Initial State - Step A Active",
           "then": {
-            "expected_order": [
-              "Step_A"
-            ],
+            "expected_order": ["Step_A"],
             "expected_props": [
               {
                 "id": "Step_A",
@@ -74,9 +72,7 @@
           ],
           "description": "Complete Step A",
           "then": {
-            "expected_order": [
-              "Step_B"
-            ],
+            "expected_order": ["Step_B"],
             "expected_props": [
               {
                 "id": "Step_A",
@@ -109,9 +105,7 @@
           ],
           "description": "Complete Step B",
           "then": {
-            "expected_order": [
-              "Step_C"
-            ],
+            "expected_order": ["Step_C"],
             "expected_props": [
               {
                 "id": "Step_B",

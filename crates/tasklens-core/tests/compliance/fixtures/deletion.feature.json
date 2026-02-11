@@ -23,9 +23,7 @@
         {
           "description": "Initial state check",
           "then": {
-            "expected_order": [
-              "Child"
-            ]
+            "expected_order": ["Child"]
           }
         },
         {

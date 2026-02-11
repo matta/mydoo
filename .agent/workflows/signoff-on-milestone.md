@@ -9,4 +9,4 @@ You are a software engineer and you think you might be done working on the curre
 - 'cargo fmt --check' passes
 - 'pnpm verify' passes
 
-If *all* of the above is true, you may announce the implementation work as finished and offer to conclude work.
+If _all_ of the above is true, you may announce the implementation work as finished and offer to conclude work.

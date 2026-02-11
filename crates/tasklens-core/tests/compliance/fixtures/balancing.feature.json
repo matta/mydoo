@@ -70,11 +70,7 @@
           ],
           "description": "2. Finish A1 (A Utilized)",
           "then": {
-            "expected_order": [
-              "BetaTaskOne",
-              "BetaTaskTwo",
-              "AlphaTaskTwo"
-            ]
+            "expected_order": ["BetaTaskOne", "BetaTaskTwo", "AlphaTaskTwo"]
           }
         },
         {
@@ -94,10 +90,7 @@
           ],
           "description": "3. Finish B1 (B Catches Up)",
           "then": {
-            "expected_order": [
-              "AlphaTaskTwo",
-              "BetaTaskTwo"
-            ]
+            "expected_order": ["AlphaTaskTwo", "BetaTaskTwo"]
           }
         }
       ]

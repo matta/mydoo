@@ -17,9 +17,7 @@
         {
           "description": "Step 1: 0 Days",
           "then": {
-            "expected_order": [
-              "FadingTask"
-            ],
+            "expected_order": ["FadingTask"],
             "expected_props": [
               {
                 "id": "FadingTask",
@@ -36,9 +34,7 @@
           ],
           "description": "Step 2: 7 Days",
           "then": {
-            "expected_order": [
-              "FadingTask"
-            ],
+            "expected_order": ["FadingTask"],
             "expected_props": [
               {
                 "id": "FadingTask",
@@ -55,9 +51,7 @@
           ],
           "description": "Step 3: 14 Days",
           "then": {
-            "expected_order": [
-              "FadingTask"
-            ],
+            "expected_order": ["FadingTask"],
             "expected_props": [
               {
                 "id": "FadingTask",

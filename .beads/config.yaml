@@ -37,7 +37,7 @@ auto-start-daemon: true
 # Since we use sync-branch we need to set auto-sync on the daemon so it
 # manages pushing and pulling the issues to/from the branch for us.
 daemon:
-    auto-sync: true
+  auto-sync: true
 
 # Debounce interval for auto-flush (can also use BEADS_FLUSH_DEBOUNCE)
 flush-debounce: "5s"

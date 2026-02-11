@@ -5,33 +5,33 @@
 
 version: 2
 updates:
-  - package-ecosystem: 'npm'
+  - package-ecosystem: "npm"
     # For pnpm workspaces, checking the root directory is sufficient.
     # Dependabot reads the root `pnpm-lock.yaml` and `pnpm-workspace.yaml` to discover
     # and update dependencies across all sub-packages (e.g. apps/*, packages/*),
     # even if they define explicit versions instead of using the catalog.
-    directory: '/'
+    directory: "/"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
     cooldown:
       semver-patch-days: 7
       semver-minor-days: 14
       semver-major-days: 28
-  - package-ecosystem: 'github-actions'
-    directory: '/'
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
     cooldown:
       default-days: 14 # GitHub Actions don't follow semver strictly
-  - package-ecosystem: 'cargo'
-    directory: '/'
+  - package-ecosystem: "cargo"
+    directory: "/"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
     cooldown:
       semver-patch-days: 7
       semver-minor-days: 14
       semver-major-days: 28
     ignore:
-      - dependency-name: 'sha2'
+      - dependency-name: "sha2"
         versions:
-          - '>= 0.11.0-a, < 0.11.0' # Ignore 0.11.0 pre-releases until stable is released
+          - ">= 0.11.0-a, < 0.11.0" # Ignore 0.11.0 pre-releases until stable is released
