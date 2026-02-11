@@ -1,4 +1,4 @@
-use crate::components::app_navbar::AppNavBar;
+use crate::app_components::app_navbar::AppNavBar;
 use crate::views::balance_page::BalancePage;
 use crate::views::do_page::DoPage;
 use crate::views::plan_page::PlanPage;

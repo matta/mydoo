@@ -1,5 +1,5 @@
-use crate::components::task_row::TaskRow;
-use crate::components::{LoadErrorView, PageHeader, TaskInput};
+use crate::app_components::task_row::TaskRow;
+use crate::app_components::{LoadErrorView, PageHeader, TaskEditor, TaskInput};
 use crate::controllers::task_controller;
 use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
@@ -235,7 +235,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
             if let Some(state) = editor_state() {
                 match state {
                     EditorState::Edit(id) => rsx! {
-                        crate::components::TaskEditor {
+                        TaskEditor {
                             key: "edit-{id}",
                             task_id: Some(id),
                             on_close: move |_| editor_state.set(None),
@@ -251,7 +251,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                         }
                     },
                     EditorState::Create { parent_id } => rsx! {
-                        crate::components::TaskEditor {
+                        TaskEditor {
                             key: "create-{parent_id:?}",
                             initial_parent_id: parent_id,
                             on_close: move |_| editor_state.set(None),
