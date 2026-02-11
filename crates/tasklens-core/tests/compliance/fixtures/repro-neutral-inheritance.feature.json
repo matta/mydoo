@@ -28,11 +28,7 @@
         {
           "description": "Do list is in outline order",
           "then": {
-            "expected_order": [
-              "A",
-              "B",
-              "C"
-            ]
+            "expected_order": ["A", "B", "C"]
           }
         },
         {
@@ -48,11 +44,7 @@
             }
           ],
           "then": {
-            "expected_order": [
-              "A",
-              "B_Child",
-              "C"
-            ],
+            "expected_order": ["A", "B_Child", "C"],
             "expected_props": [
               {
                 "id": "B_Child",
@@ -74,12 +66,7 @@
             }
           ],
           "then": {
-            "expected_order": [
-              "A",
-              "B_Child",
-              "B_Sibling",
-              "C"
-            ],
+            "expected_order": ["A", "B_Child", "B_Sibling", "C"],
             "expected_props": [
               {
                 "id": "B_Child",
@@ -116,11 +103,7 @@
             }
           ],
           "then": {
-            "expected_order": [
-              "A",
-              "B_Child",
-              "C"
-            ]
+            "expected_order": ["A", "B_Child", "C"]
           }
         }
       ]

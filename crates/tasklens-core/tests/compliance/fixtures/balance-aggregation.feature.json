@@ -39,10 +39,7 @@
         {
           "description": "1. Feedback uses aggregated child credits",
           "then": {
-            "expected_order": [
-              "LifeTask",
-              "WorkTask"
-            ],
+            "expected_order": ["LifeTask", "WorkTask"],
             "expected_props": [
               {
                 "id": "LifeTask",

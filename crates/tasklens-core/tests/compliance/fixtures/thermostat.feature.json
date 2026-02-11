@@ -25,10 +25,7 @@
         {
           "description": "Step 1: Balanced",
           "then": {
-            "expected_order": [
-              "work",
-              "life"
-            ],
+            "expected_order": ["work", "life"],
             "expected_props": [
               {
                 "id": "work",
@@ -52,10 +49,7 @@
           ],
           "description": "Step 2: Imbalance",
           "then": {
-            "expected_order": [
-              "life",
-              "work"
-            ],
+            "expected_order": ["life", "work"],
             "expected_props": [
               {
                 "id": "life",
@@ -79,10 +73,7 @@
           ],
           "description": "Step 3: Extreme",
           "then": {
-            "expected_order": [
-              "life",
-              "work"
-            ],
+            "expected_order": ["life", "work"],
             "expected_props": [
               {
                 "id": "life",

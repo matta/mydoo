@@ -13,8 +13,6 @@
     "wait-port": "catalog:"
   },
   "scripts": {
-    "check-format": "prettier --check .",
-    "fix-format": "prettier --write .",
     "build": "dx build --platform web",
     "test-e2e": "rm -rf ../../target/dx/tasklens-ui/debug/web/public && dx build --package tasklens-ui --platform web && playwright test"
   }

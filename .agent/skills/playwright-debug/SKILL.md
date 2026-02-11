@@ -6,11 +6,13 @@ description: Debugs failing Playwright tests by treating the browser as a remote
 # Playwright Debugging Protocol
 
 ## Context
+
 You are an expert Test Engineer. When debugging Playwright tests, you must shift your mental model. You cannot "see" the browser in real-time. You must treat the browser as a **remote sensor network** that produces text-based telemetry.
 
 **The Rule of Artifacts:** Screenshots and videos are dead data to you. You require symbolic representations: Accessibility Trees, Text Content, Logs, and Network Traffic.
 
 ## Core Directive
+
 **NEVER** attempt to fix a failing test by guessing. Your first move is always to **increase observability** by implementing the Failure State Contract.
 
 ---
@@ -20,35 +22,37 @@ You are an expert Test Engineer. When debugging Playwright tests, you must shift
 If a test is failing, do not re-run it without instrumentation. Inject the following hook to capture the "Ground Truth" of the UI state.
 
 ### Implementation Pattern
+
 Create or modify a `test.afterEach` hook to include:
 
 ```typescript
-import { test } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 test.afterEach(async ({ page }, testInfo) => {
-  if (testInfo.status !== 'passed' && testInfo.status !== 'skipped') {
-    const context: string[] = [
-      `URL: ${page.url()}`,
-      '\n--- ARIA SNAPSHOT ---',
-    ];
+  if (testInfo.status !== "passed" && testInfo.status !== "skipped") {
+    const context: string[] = [`URL: ${page.url()}`, "\n--- ARIA SNAPSHOT ---"];
 
     try {
-      const snapshot = await page.locator('body').ariaSnapshot();
+      const snapshot = await page.locator("body").ariaSnapshot();
       context.push(snapshot);
-} catch (e) { context.push(`ARIA snapshot failed: ${String(e)}`); }
+    } catch (e) {
+      context.push(`ARIA snapshot failed: ${String(e)}`);
+    }
 
     try {
       const results = await new AxeBuilder({ page }).analyze();
       if (results.violations.length > 0) {
-        context.push('\n--- ACCESSIBILITY VIOLATIONS ---');
+        context.push("\n--- ACCESSIBILITY VIOLATIONS ---");
         context.push(JSON.stringify(results.violations, null, 2));
       }
-} catch (e) { context.push(`Axe analysis failed: ${String(e)}`); }
+    } catch (e) {
+      context.push(`Axe analysis failed: ${String(e)}`);
+    }
 
-    await testInfo.attach('failure-context', {
-      body: context.join('\n'),
-      contentType: 'text/plain',
+    await testInfo.attach("failure-context", {
+      body: context.join("\n"),
+      contentType: "text/plain",
     });
   }
 });
@@ -70,7 +74,7 @@ console.log({
   targetSelector: 'button:has-text("Submit")',
   matchCount: await page.locator('button:has-text("Submit")').count(),
   // Dump all candidates to see what is actually there
-  candidateTexts: await page.locator('button').allTextContents()
+  candidateTexts: await page.locator("button").allTextContents(),
 });
 ```
 
@@ -85,11 +89,11 @@ console.log({
 When diagnosing a timeout, inspect the element's state explicitly:
 
 ```typescript
-const loc = page.getByRole('button', { name: 'Save' });
+const loc = page.getByRole("button", { name: "Save" });
 
-console.log('--- ELEMENT STATE DIAGNOSIS ---');
+console.log("--- ELEMENT STATE DIAGNOSIS ---");
 console.log({
-  exists: await loc.count() > 0,
+  exists: (await loc.count()) > 0,
   visible: await loc.isVisible().catch(() => false),
   enabled: await loc.isEnabled().catch(() => false),
   // If boundingBox is null or 0x0, it is not painted or hidden
