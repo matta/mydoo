@@ -1,5 +1,19 @@
 # Dioxus Components Migration Checklist
 
+## Tracking Policy
+
+- Track this migration in this checklist and `dioxus-components-migration.md`.
+- Do not create or update `bd` items for routine migration slices unless the user explicitly asks for `bd` tracking.
+- When slice status changes, update this file directly in the same change.
+
+## Working Agreement (Prevent Slice Drift)
+
+- Every component slice must include both:
+  - component adoption work (vendor/integrate/remove legacy), and
+  - callsite class cleanup work (or explicit deferred file list in this checklist).
+- The active chunk must always point to the highest-impact remaining class debt, not only the next component name.
+- `Replace Diverged Components` status and migration inventory status must be updated in the same commit as slice changes.
+
 ## Foundations
 
 - [x] Create and use a pristine vendor branch for `dx components add` output, with registry URL and `rev` pinned in `dioxus-vendor-components.toml`.
@@ -13,37 +27,81 @@
 - [ ] Remove Tailwind and DaisyUI build inputs (`tailwind.css`, `assets/tailwind.css`, DaisyUI plugin usage).
 - [ ] Replace local edits in `dx-components-theme.css` with a pristine upstream copy; move overrides to `app.css`.
 
-## Active Chunk: Button Vertical Slice
+## Current Critical Path (Execute Top To Bottom)
 
-- [x] Vendor upstream `button` into `crates/tasklens-ui/src/dioxus_components/button` via `dioxus-vendor-components.toml` + `cargo xtask update-dioxus-components`.
-- [x] Integrate vendored `dioxus_components::button` into app code using direct callsite migration to `crate::dioxus_components::button::{Button, ButtonVariant}`.
-- [x] Remove legacy `crates/tasklens-ui/src/components/button.rs` once no callsites depend on it.
-- [x] Update module declarations/re-exports so Button resolves from `dioxus_components` rather than legacy `components`.
-- [x] Update migration inventory/divergence notes after Button lands.
+### Chunk A (Active): Button And Input Callsite De-Daisy
 
-## Deferred After Button Slice: DaisyUI Button Markup Cleanup
-
-- [ ] Replace raw RSX `button` elements that still use DaisyUI `btn*` classes with Dioxus Button usage or app-owned CSS in:
+- [ ] Remove remaining `btn*` classes from raw RSX buttons in:
   - `crates/tasklens-ui/src/views/plan_page.rs`
   - `crates/tasklens-ui/src/app_components/task_row.rs`
   - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
   - `crates/tasklens-ui/src/app_components/search_panel.rs`
   - `crates/tasklens-ui/src/app_components/app_navbar.rs`
-- [ ] Remove remaining `btn*` styling assumptions passed to `Button { class: ... }` where they rely on DaisyUI tokens (for example: `btn-sm`, `btn-circle`, `btn-xs`) and replace with upstream-compatible/app CSS classes.
-- [ ] Replace non-button element DaisyUI `btn*` classes used for list-option affordances (for example in `move_picker` and `components/select/component.rs`) with upstream-compatible patterns.
+- [ ] Remove DaisyUI-flavored Button class tokens (`btn-sm`, `btn-xs`, `btn-circle`, `btn-square`, `btn-primary`) and replace with app-owned/upstream-compatible classes in:
+  - `crates/tasklens-ui/src/app_components/task_editor.rs`
+  - `crates/tasklens-ui/src/views/do_page.rs`
+  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+  - any additional Button callsites found by audit.
+- [ ] Replace non-button `btn*` list affordances with upstream-compatible patterns in:
+  - `crates/tasklens-ui/src/app_components/move_picker.rs`
+  - `crates/tasklens-ui/src/components/select/component.rs`
+- [ ] Remove DaisyUI/Tailwind-oriented input/select/textarea/toggle/join/fieldset classes from Input-adjacent callsites in:
+  - `crates/tasklens-ui/src/app_components/task_input.rs`
+  - `crates/tasklens-ui/src/app_components/task_editor.rs`
+  - `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
+  - `crates/tasklens-ui/src/app_components/search_panel.rs`
+  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+- [ ] After completing Chunk A, refresh the Class Debt Register section below with remaining file hotspots.
+
+### Chunk B: Checkbox Vertical Slice
+
+- [ ] Vendor upstream `checkbox` into `crates/tasklens-ui/src/dioxus_components/checkbox` via `dioxus-vendor-components.toml` + `cargo xtask update-dioxus-components`.
+- [ ] Migrate Checkbox usage and behavior in:
+  - `crates/tasklens-ui/src/app_components/task_row.rs`
+  - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
+  - `crates/tasklens-ui/src/views/task_page.rs`
+- [ ] Remove legacy `crates/tasklens-ui/src/components/checkbox.rs` and wire re-exports through `dioxus_components`.
+- [ ] Clear any remaining checkbox-related DaisyUI classes in migrated callsites.
+
+### Chunk C: Date Picker Vertical Slice
+
+- [ ] Wire upstream Date Picker wrapper and remove HTML `<input type="date">` fallback implementation.
+- [ ] Migrate DatePicker usage in `crates/tasklens-ui/src/app_components/task_editor.rs` to upstream-compatible styling.
+- [ ] Remove legacy date-picker-specific DaisyUI/Tailwind dropdown/menu classes.
+
+### Chunk D: Wrapper De-Daisy (Select, Dialog, Collapsible, Calendar)
+
+- [ ] Select: re-vendor upstream and remove DaisyUI dropdown/menu/btn assumptions.
+- [ ] Dialog: re-vendor upstream and remove DaisyUI modal classes.
+- [ ] Collapsible: re-vendor upstream, restore `as` support, remove Tailwind utilities.
+- [ ] Calendar: re-vendor upstream and restore upstream API (`CalendarView` if needed).
+
+### Chunk E: Replace High-Usage DaisyUI Skins With Upstream Components
+
+- [ ] Badge: adopt upstream badge and remove `badge*` usage.
+- [ ] Card: adopt upstream card and remove `card*` usage.
+- [ ] Progress: adopt upstream progress and remove `progress*` usage.
+- [ ] Textarea: adopt upstream textarea and remove `textarea*` usage.
+- [ ] Toggle/Switch: adopt upstream toggle primitives and remove `toggle*` usage.
+- [ ] Dropdown Menu + Label: adopt where needed to replace remaining `dropdown*`/`menu*` form-menu patterns.
+
+## Completed Vertical Slices
+
+- [x] Button: vendored to `dioxus_components`, integrated, legacy `components/button.rs` removed.
+- [x] Input: vendored to `dioxus_components`, integrated, legacy `components/input.rs` removed.
 
 ## Align Existing Dioxus Component Wrappers
 
-- [ ] Calendar: re-vendor upstream and restore upstream API (remove extra wrapper, restore CalendarView if needed).
-- [ ] Collapsible: re-vendor upstream, restore `as` support, remove Tailwind classes.
-- [ ] Dialog: re-vendor upstream, remove DaisyUI modal classes, restore upstream CSS.
+- [ ] Calendar: re-vendor upstream and restore upstream API.
+- [ ] Collapsible: re-vendor upstream and restore `as` support.
+- [ ] Dialog: re-vendor upstream and restore upstream CSS/API.
 - [ ] Select: re-vendor upstream and remove DaisyUI class overrides.
 
 ## Replace Diverged Components
 
 - [x] Button: replace local DaisyUI `button.rs` with upstream `button` component + CSS.
+- [x] Input: replace local DaisyUI `input.rs` with upstream `input` component + CSS.
 - [ ] Checkbox: replace local DaisyUI `checkbox.rs` with upstream `checkbox` component + CSS.
-- [ ] Input: replace local DaisyUI `input.rs` with upstream `input` component + CSS.
 - [ ] Date Picker: wire the upstream wrapper and remove the HTML `<input type="date">` implementation.
 
 ## Verify Adopted Components
@@ -52,43 +110,54 @@
 - [ ] Popover: re-sync with upstream formatting and ensure CSS matches upstream.
 - [ ] Slider: re-sync with upstream formatting and ensure CSS matches upstream.
 
-## Adopt Missing Upstream Components (Decide And Implement)
+## Class Debt Register (Source Of Truth For Deferred Cleanup)
 
-- [ ] Accordion: decide adopt or defer; if adopt, vendor upstream component and replace any ad-hoc collapse UI.
-- [ ] Alert Dialog: decide adopt or defer; if adopt, replace destructive confirmation dialogs.
-- [ ] Aspect Ratio: decide adopt or defer; if adopt, replace fixed-ratio media styles.
-- [ ] Avatar: decide adopt or defer; if adopt, replace custom avatar UI.
-- [ ] Badge: decide adopt or defer; if adopt, replace DaisyUI badges.
-- [ ] Card: decide adopt or defer; if adopt, replace DaisyUI cards.
-- [ ] Context Menu: decide adopt or defer; if adopt, replace context menu patterns.
-- [ ] Dropdown Menu: decide adopt or defer; if adopt, replace DaisyUI dropdown usage.
-- [ ] Form: decide adopt or defer; if adopt, standardize form layouts.
-- [ ] Hover Card: decide adopt or defer; if adopt, replace hover preview patterns.
-- [ ] Label: decide adopt or defer; if adopt, replace DaisyUI labels.
-- [ ] Menubar: decide adopt or defer; if adopt, standardize menu bars.
-- [ ] Progress: decide adopt or defer; if adopt, replace DaisyUI progress bars.
-- [ ] Radio Group: decide adopt or defer; if adopt, replace radio inputs.
-- [ ] Scroll Area: decide adopt or defer; if adopt, replace custom scroll containers.
-- [ ] Separator: decide adopt or defer; if adopt, replace separators in menus and cards.
-- [ ] Sheet: decide adopt or defer; if adopt, replace slide-over panels.
-- [ ] Sidebar: decide adopt or defer; if adopt, replace sidebar navigation.
-- [ ] Skeleton: decide adopt or defer; if adopt, replace loading placeholders.
-- [ ] Switch: decide adopt or defer; if adopt, replace DaisyUI toggles.
-- [ ] Tabs: decide adopt or defer; if adopt, replace tab UI.
-- [ ] Textarea: decide adopt or defer; if adopt, replace DaisyUI textareas.
-- [ ] Toast: decide adopt or defer; if adopt, replace notification patterns.
-- [ ] Toggle: decide adopt or defer; if adopt, replace DaisyUI toggle buttons.
-- [ ] Toggle Group: decide adopt or defer; if adopt, replace grouped toggle UI.
-- [ ] Toolbar: decide adopt or defer; if adopt, standardize toolbar layouts.
-- [ ] Tooltip: decide adopt or defer; if adopt, replace hover hints.
+- [ ] `btn*` debt:
+  - `crates/tasklens-ui/src/app_components/task_editor.rs`
+  - `crates/tasklens-ui/src/app_components/task_row.rs`
+  - `crates/tasklens-ui/src/app_components/app_navbar.rs`
+  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+  - `crates/tasklens-ui/src/app_components/search_panel.rs`
+  - `crates/tasklens-ui/src/views/plan_page.rs`
+  - `crates/tasklens-ui/src/views/do_page.rs`
+  - `crates/tasklens-ui/src/app_components/move_picker.rs`
+  - `crates/tasklens-ui/src/components/select/component.rs`
+- [ ] `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt:
+  - `crates/tasklens-ui/src/app_components/task_editor.rs`
+  - `crates/tasklens-ui/src/app_components/task_input.rs`
+  - `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
+  - `crates/tasklens-ui/src/app_components/search_panel.rs`
+  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+- [ ] `card*`/`badge*`/`progress*` debt:
+  - `crates/tasklens-ui/src/views/score_trace_page.rs`
+  - `crates/tasklens-ui/src/views/balance_page.rs`
+  - `crates/tasklens-ui/src/views/task_page.rs`
+  - `crates/tasklens-ui/src/app_components/task_row.rs`
+  - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
+  - `crates/tasklens-ui/src/app_components/empty_state.rs`
+- [ ] `dropdown*`/`menu*`/`modal*` debt:
+  - `crates/tasklens-ui/src/components/select/component.rs`
+  - `crates/tasklens-ui/src/components/dialog/component.rs`
+  - `crates/tasklens-ui/src/components/date_picker/component.rs`
+  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+  - `crates/tasklens-ui/src/app_components/move_picker.rs`
+- [ ] `loading*` debt:
+  - `crates/tasklens-ui/src/app_components/loading.rs`
+- [ ] DaisyUI theme utility debt (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.) remains broadly in app components and views; burn down alongside component-skin replacement.
 
-## Tailwind And DaisyUI Removal By Category
+Audit command (run after each chunk and refresh this register):
 
-- [ ] Layout and spacing: replace utility classes in `views/*` with `app.css` layout classes.
-- [ ] Typography: replace `text-*` and `font-*` utilities with `app.css` typography rules.
-- [ ] Color and theme: replace `bg-base-*` and `text-base-*` classes with CSS variables.
-- [ ] Interactive states: move hover/focus styling into component CSS or `app.css`.
-- [ ] Component skins: replace DaisyUI class usage with Dioxus components.
+```bash
+rg -n 'class:\s*(format!\(|format_args!\(|"[^"]*\b(btn|input|select|textarea|toggle|card|badge|progress|dropdown|menu|modal|loading|fieldset|join|bg-base-|text-base-|border-base-|text-primary)\b[^"]*")' crates/tasklens-ui/src --glob '*.rs'
+```
+
+## Tailwind And DaisyUI Removal Exit Gates
+
+- [ ] Gate 1: No DaisyUI component-skin tokens in app source (`btn*`, `input*`, `select*`, `textarea*`, `toggle*`, `card*`, `badge*`, `progress*`, `dropdown*`, `menu*`, `modal*`, `loading*`, `fieldset*`, `join*`).
+- [ ] Gate 2: No DaisyUI theme utility tokens in app source (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.).
+- [ ] Gate 3: Remove Tailwind/DaisyUI inputs and outputs (`tailwind.css`, `assets/tailwind.css`, DaisyUI plugin usage, stylesheet link in `src/main.rs`).
+- [ ] Gate 4: Restore pristine upstream `dx-components-theme.css`; keep app overrides in `assets/app.css`.
+- [ ] Gate 5: Run `just verify` successfully after Tailwind/DaisyUI removal.
 
 ## Tracking
 
