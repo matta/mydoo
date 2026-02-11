@@ -5,6 +5,11 @@ progression and safe AI-led iteration.
 
 ## The Testing Pyramid
 
+Use `just` as the canonical entrypoint for all test execution. The `justfile`
+wraps pnpm/cargo commands, applies required build steps, and supports argument
+pass-through for targeted runs. Avoid invoking `pnpm test` or
+`pnpm exec playwright test` directly.
+
 We adhere to a 3-tier testing approach tailored for our Local-First PWA
 architecture:
 
@@ -32,7 +37,7 @@ React dependencies.
 **How to Run:**
 
 ```bash
-pnpm --filter @mydoo/tasklens test
+just test
 ```
 
 ---
@@ -69,7 +74,7 @@ These tests verify React hooks, view models, and component interactions using
 **How to Run:**
 
 ```bash
-pnpm --filter @mydoo/client test
+just test
 ```
 
 ---
@@ -93,7 +98,7 @@ IndexedDB persistence.
 **How to Run:**
 
 ```bash
-pnpm --filter @mydoo/client test:e2e
+just test-e2e
 ```
 
 ### Running Individual Tests
@@ -102,16 +107,16 @@ For faster iteration, you can run specific tests or patterns:
 
 1.  **By Pattern (Grep)**:
     ```bash
-    pnpm --filter @mydoo/client exec playwright test -g "some scenario name"
+    just test-e2e -- -g "some scenario name"
     ```
 2.  **Specific Spec File**:
     - **Native Specs**:
-      `pnpm --filter @mydoo/client exec playwright test tests/e2e/interactions.spec.ts`
+      `just test-e2e -- tests/e2e/specs/due-dates.spec.ts`
     - **BDD Features**: First run `pnpm run generate`, then:
-      `pnpm --filter @mydoo/client exec playwright test tests/e2e/.features-gen/desktop/tests/e2e/features/due-dates.feature.spec.js`
+      `just test-e2e -- tests/e2e/.features-gen/desktop/tests/e2e/features/due-dates.feature.spec.js`
 3.  **UI Mode**:
     ```bash
-    pnpm --filter @mydoo/client exec playwright test --ui
+    just test-e2e -- --ui
     ```
 
 ---
