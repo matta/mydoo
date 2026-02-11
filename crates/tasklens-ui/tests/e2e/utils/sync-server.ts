@@ -2,10 +2,15 @@ import { type ChildProcess, spawn } from "node:child_process";
 import fs from "node:fs";
 import { createServer } from "node:net";
 import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
+import waitPort from "wait-port";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const STARTUP_TIMEOUT_MS = 10_000;
+const HEALTHCHECK_TIMEOUT_MS = 750;
+const EXIT_TIMEOUT_MS = 5_000;
 
 /**
  * Allocates a random available ephemeral TCP port from the OS.
@@ -37,35 +42,11 @@ export const getEphemeralPort = async (): Promise<number> => {
   });
 };
 
-/**
- * Waits until the child process exits.
- * Returns false when the timeout elapses before exit.
- */
-const waitForChildExit = async (
-  child: ChildProcess,
-  timeoutMs: number,
-): Promise<boolean> => {
-  if (child.exitCode !== null || child.signalCode !== null) {
-    return true;
-  }
-
-  return await new Promise((resolve) => {
-    const onExit = () => {
-      clearTimeout(timeoutHandle);
-      resolve(true);
-    };
-    const timeoutHandle = setTimeout(() => {
-      child.off("exit", onExit);
-      resolve(false);
-    }, timeoutMs);
-    child.once("exit", onExit);
-  });
-};
-
 export class SyncServerHelper {
   private serverProcess: ChildProcess | null = null;
-  private port: number;
-  private dbPath: string;
+  private readonly port: number;
+  private readonly dbPath: string;
+  private stopping = false;
 
   constructor(port: number = 3030) {
     this.port = port;
@@ -75,16 +56,54 @@ export class SyncServerHelper {
     );
   }
 
-  getPort() {
+  getPort(): number {
     return this.port;
   }
 
-  async start(): Promise<string> {
-    if (this.serverProcess) {
-      throw new Error("Sync server is already running");
+  getPid(): number | undefined {
+    return this.serverProcess?.pid;
+  }
+
+  isRunning(): boolean {
+    const process = this.serverProcess;
+    return process !== null && process.exitCode === null;
+  }
+
+  async restart(): Promise<string> {
+    await this.stop();
+    return this.start();
+  }
+
+  async ensureHealthy(): Promise<void> {
+    if (!this.isRunning()) {
+      console.warn(
+        `[sync-server:${this.port}] Server is not running. Restarting.`,
+      );
+      await this.start();
+      return;
     }
 
-    // Ensure clean state
+    const isPortOpen = await this.waitForPort(HEALTHCHECK_TIMEOUT_MS);
+    if (!isPortOpen) {
+      console.warn(
+        `[sync-server:${this.port}] Server process exists but port is unavailable. Restarting.`,
+      );
+      await this.restart();
+    }
+  }
+
+  async start(): Promise<string> {
+    if (this.isRunning()) {
+      const isPortOpen = await this.waitForPort(HEALTHCHECK_TIMEOUT_MS);
+      if (isPortOpen) {
+        return this.getBaseUrl();
+      }
+      console.warn(
+        `[sync-server:${this.port}] Found stale process without open port. Recycling.`,
+      );
+      await this.stop();
+    }
+
     if (fs.existsSync(this.dbPath)) {
       fs.rmSync(this.dbPath, { recursive: true, force: true });
     }
@@ -100,7 +119,7 @@ export class SyncServerHelper {
       `Starting sync server: node ${scriptPath} --port ${this.port} --database-path ${this.dbPath}`,
     );
 
-    this.serverProcess = spawn(
+    const child = spawn(
       "node",
       [
         scriptPath,
@@ -110,102 +129,93 @@ export class SyncServerHelper {
         this.dbPath,
       ],
       {
-        stdio: ["ignore", "pipe", "pipe"],
+        stdio: "inherit",
       },
     );
+    this.serverProcess = child;
+    this.stopping = false;
 
-    const startupMarker = `Sync server listening on port ${this.port}`;
-    let startupResolved = false;
-    let startupOutput = "";
-    let startupErrorOutput = "";
-
-    const startupPromise = new Promise<void>((resolve, reject) => {
-      const timeoutHandle = setTimeout(() => {
-        reject(
-          new Error(
-            `Timed out waiting for sync server startup on port ${this.port}. stdout: ${startupOutput.trim()} stderr: ${startupErrorOutput.trim()}`,
-          ),
+    // Record unexpected process exits so test logs clearly show server crashes.
+    child.on("exit", (code, signal) => {
+      const codeText = code === null ? "null" : String(code);
+      const signalText = signal ?? "none";
+      if (this.stopping) {
+        console.log(
+          `[sync-server:${this.port}] Exited (code=${codeText}, signal=${signalText}).`,
         );
-      }, 10000);
-
-      const cleanup = () => {
-        clearTimeout(timeoutHandle);
-        this.serverProcess?.stdout?.off("data", onStdout);
-        this.serverProcess?.stderr?.off("data", onStderr);
-        this.serverProcess?.off("exit", onExit);
-      };
-
-      const onStdout = (chunk: Buffer | string) => {
-        const text = chunk.toString();
-        startupOutput += text;
-        if (process.env.SHOW_CONSOLE) {
-          process.stdout.write(text);
-        }
-        if (!startupResolved && startupOutput.includes(startupMarker)) {
-          startupResolved = true;
-          cleanup();
-          resolve();
-        }
-      };
-
-      const onStderr = (chunk: Buffer | string) => {
-        const text = chunk.toString();
-        startupErrorOutput += text;
-        if (process.env.SHOW_CONSOLE) {
-          process.stderr.write(text);
-        }
-      };
-
-      const onExit = (code: number | null, signal: NodeJS.Signals | null) => {
-        if (startupResolved) {
-          return;
-        }
-        cleanup();
-        reject(
-          new Error(
-            `Sync server exited before startup (code=${code}, signal=${signal}). stderr: ${startupErrorOutput.trim()}`,
-          ),
+      } else {
+        console.error(
+          `[sync-server:${this.port}] Exited unexpectedly (code=${codeText}, signal=${signalText}).`,
         );
-      };
+      }
 
-      this.serverProcess?.stdout?.on("data", onStdout);
-      this.serverProcess?.stderr?.on("data", onStderr);
-      this.serverProcess?.once("exit", onExit);
+      if (this.serverProcess === child) {
+        this.serverProcess = null;
+      }
     });
 
-    try {
-      await startupPromise;
-      console.log(`Sync server running on ws://localhost:${this.port}`);
-    } catch (e) {
-      console.error("Failed to wait for sync server port", e);
+    const isOpen = await this.waitForPort(STARTUP_TIMEOUT_MS);
+    if (!isOpen) {
+      console.error("Failed to wait for sync server port.");
       await this.stop();
-      throw e;
+      throw new Error(`Sync server failed to start on port ${this.port}`);
     }
+    console.log(`Sync server running on ${this.getBaseUrl()}`);
 
-    return `ws://localhost:${this.port}`;
+    return this.getBaseUrl();
   }
 
-  async stop() {
-    const child = this.serverProcess;
-    this.serverProcess = null;
-
-    if (child) {
+  async stop(): Promise<void> {
+    if (this.serverProcess) {
       console.log("Stopping sync server...");
-      child.kill("SIGINT");
-      const stopped = await waitForChildExit(child, 5000);
-
-      if (!stopped) {
-        console.warn(
-          "Sync server did not exit after SIGINT; forcing SIGKILL on process",
-        );
-        child.kill("SIGKILL");
-        await waitForChildExit(child, 5000);
-      }
+      this.stopping = true;
+      this.serverProcess.kill("SIGINT");
+      await this.waitForExitOrForceKill(this.serverProcess);
+      this.stopping = false;
+      this.serverProcess = null;
     }
 
-    // Clean up
     if (fs.existsSync(this.dbPath)) {
       fs.rmSync(this.dbPath, { recursive: true, force: true });
     }
+  }
+
+  private getBaseUrl(): string {
+    return `ws://localhost:${this.port}`;
+  }
+
+  private async waitForPort(timeoutMs: number): Promise<boolean> {
+    const result = await waitPort({
+      host: "localhost",
+      port: this.port,
+      timeout: timeoutMs,
+      output: "silent",
+    });
+    return result.open;
+  }
+
+  private async waitForExitOrForceKill(process: ChildProcess): Promise<void> {
+    if (process.exitCode !== null) {
+      return;
+    }
+
+    const exited = await Promise.race<boolean>([
+      new Promise<boolean>((resolve) => {
+        process.once("exit", () => resolve(true));
+      }),
+      delay(EXIT_TIMEOUT_MS).then(() => false),
+    ]);
+
+    if (exited || process.exitCode !== null) {
+      return;
+    }
+
+    console.warn(
+      `[sync-server:${this.port}] SIGINT timed out after ${EXIT_TIMEOUT_MS}ms. Sending SIGKILL.`,
+    );
+    process.kill("SIGKILL");
+    await new Promise<void>((resolve) => {
+      process.once("exit", () => resolve());
+    });
   }
 }
