@@ -1,4 +1,5 @@
 use crate::dioxus_components::button::{Button, ButtonVariant};
+use crate::dioxus_components::input::Input;
 use crate::router::Route;
 use dioxus::prelude::*;
 use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
@@ -144,13 +145,12 @@ pub fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
             "data-testid": "search-panel",
             div { class: "px-4 py-3 container mx-auto max-w-2xl",
                 div { class: "flex items-center gap-2",
-                    input {
-                        class: "input input-bordered w-full text-base",
-                        r#type: "text",
+                    Input {
+                        class: "w-full text-base",
                         placeholder: "Search tasks...",
                         value: "{query}",
                         "data-testid": "search-input",
-                        oninput: move |evt| query.set(evt.value()),
+                        oninput: move |evt: FormEvent| query.set(evt.value()),
                         onkeydown: handle_keydown,
                     }
                     Button {
