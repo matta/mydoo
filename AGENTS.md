@@ -41,10 +41,20 @@ When working on tracked efforts, keep `bd` tasks accurate and record newly disco
 - **PR Isolation Rule:** Every PR MUST represent one cohesive concern. Reuse an
   existing branch/PR only for follow-up commits that are directly in scope for
   that PR (e.g., review feedback or missed tests for that same change).
-- **New Task Branch Workflow:** For new independent work, branch directly from
-  the upstream base branch to avoid mutating local base-branch history:
+- **Base Branch Divergence Paranoia Check:** Before creating a branch for a new
+  independent task, check whether local `<base-branch>` has commits not pushed
+  to `origin/<base-branch>`:
   ```bash
   git fetch origin
+  git rev-list --left-right --count <base-branch>...origin/<base-branch>
+  ```
+  If the first number (local-ahead count) is greater than `0`, STOP and alert
+  the user. Ask how to handle the local-only commits before continuing (for
+  example: preserve on a separate branch, push them, or intentionally branch
+  from local base).
+- **New Task Branch Workflow:** After the paranoia check passes (or after user
+  instruction), branch from upstream base to avoid mutating local base history:
+  ```bash
   git switch -c codex/<task-slug> --track origin/<base-branch>
   ```
 - **PR Creation Scope Check:** Before pushing or creating/updating a PR, check
