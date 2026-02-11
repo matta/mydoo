@@ -1,5 +1,6 @@
-use crate::components::priority_task_row::PriorityTaskRow;
-use crate::components::{Button, ButtonVariant, EmptyState, LoadErrorView, PageHeader, TaskInput};
+use crate::app_components::priority_task_row::PriorityTaskRow;
+use crate::app_components::{EmptyState, LoadErrorView, PageHeader, TaskEditor, TaskInput};
+use crate::components::{Button, ButtonVariant};
 use crate::controllers::task_controller;
 use crate::hooks::use_prioritized_tasks::use_do_list_tasks;
 use dioxus::prelude::*;
@@ -91,7 +92,7 @@ pub fn DoPage() -> Element {
             if let Some(state) = editor_state() {
                 match state {
                     EditorState::Edit(id) => rsx! {
-                        crate::components::TaskEditor {
+                        TaskEditor {
                             key: "edit-{id}",
                             task_id: Some(id),
                             on_close: move |_| editor_state.set(None),
@@ -107,7 +108,7 @@ pub fn DoPage() -> Element {
                         }
                     },
                     EditorState::Create { parent_id } => rsx! {
-                        crate::components::TaskEditor {
+                        TaskEditor {
                             key: "create-{parent_id:?}",
                             initial_parent_id: parent_id,
                             on_close: move |_| editor_state.set(None),

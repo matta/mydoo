@@ -6,15 +6,17 @@ include!(concat!(env!("OUT_DIR"), "/build_version.rs"));
 use dioxus::prelude::*;
 use tasklens_store::doc_id::DocumentId;
 
+pub mod app_components;
 pub mod components;
 pub mod controllers;
+pub mod dioxus_components;
 pub mod hooks;
 pub mod router;
 pub mod seed;
 pub mod utils;
 pub mod views;
 
-use crate::components::LoadErrorView;
+use crate::app_components::LoadErrorView;
 use crate::router::Route;
 use tasklens_store::store::AppStore;
 
@@ -339,6 +341,9 @@ fn App() -> Element {
             // Urls are relative to your Cargo.toml file
             href: asset!("/assets/tailwind.css"),
         }
+        document::Stylesheet {
+            href: asset!("/assets/app.css"),
+        }
 
         div {
             class: "min-h-screen",
@@ -351,7 +356,7 @@ fn App() -> Element {
                     help_text: None,
                 }
             } else if is_checking() {
-                components::loading::Loading {}
+                app_components::loading::Loading {}
             } else {
                 Router::<Route> {}
             }

@@ -29,9 +29,10 @@
 
 ## Current State
 
-- The app mixes upstream-inspired components with app-specific components in the same module.
+- The app now has `app_components` for app-specific UI, with `components` retained as a temporary compatibility shim for legacy imports.
 - Several components already wrap `dioxus-primitives` (Dialog, Collapsible, Calendar, Popover, Select, Slider), but with local styling and API drift.
 - Tailwind and DaisyUI classes are used broadly across components and views.
+- Tailwind is still loaded globally while migration work continues; `app.css` is now linked for additive app-level styling.
 - `dioxus-primitives` is a git dependency, not tied to a vendored upstream snapshot.
 - A local `dx-components-theme.css` is already loaded globally, but it diverges from upstream.
 
@@ -131,7 +132,8 @@ This is a categorized summary intended to map usage into replacement workstreams
 
 - Require `crates/tasklens-ui/src/dioxus_components` as the vendored Dioxus Components module.
 - Create `crates/tasklens-ui/src/app_components` for app-specific UI and layout components.
-- Move app-specific components out of the legacy `components` module (examples: `task_row`, `task_editor`, `app_navbar`, `sync_indicator`, `empty_state`).
+- App-specific components have been moved out of the legacy `components` module (examples: `task_row`, `task_editor`, `app_navbar`, `sync_indicator`, `empty_state`).
+- Keep `crates/tasklens-ui/src/components` as a temporary compatibility shim until imports are fully migrated.
 - Reserve `dioxus_components` for upstream-sourced components and minimal wrappers.
 - Prefer `dioxus_components` over `dioxus-components`: Rust module names are idiomatically `snake_case`, while hyphenated paths require non-idiomatic `#[path = "..."]` indirection.
 

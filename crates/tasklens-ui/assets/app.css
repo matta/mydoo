@@ -1,0 +1,16 @@
+/*
+ * App-level stylesheet bootstrap.
+ * Keep this file additive while Tailwind/DaisyUI is still active.
+ */
+
+:root {
+  --app-content-max-width: 42rem;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+[data-app-state] {
+  min-height: 100vh;
+}

@@ -1,6 +1,6 @@
 //! Score trace view for Do list tasks.
 
-use crate::components::{BackButton, EmptyState, LoadErrorView, PageHeader};
+use crate::app_components::{BackButton, EmptyState, LoadErrorView, PageHeader};
 use crate::hooks::use_score_trace::use_score_trace;
 use crate::router::Route;
 use chrono::DateTime;

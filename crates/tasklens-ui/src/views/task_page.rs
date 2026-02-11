@@ -3,7 +3,8 @@
 //! This module contains the core application logic and UI components for the Task list functionality.
 //! It handles state management, synchronization integration, and the composition of the main page.
 
-use crate::components::*;
+use crate::app_components::{LoadErrorView, PageHeader, TaskInput};
+use crate::components::Checkbox;
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskStatus};
 
