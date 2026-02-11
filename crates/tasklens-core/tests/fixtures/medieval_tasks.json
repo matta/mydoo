@@ -10,9 +10,7 @@
   ],
   "tasks": {
     "0347ad62-be6b-4a22-b63e-5e31009de4b4": {
-      "childTaskIds": [
-        "0b87cc9e-f3be-4b8a-abd5-7bef1b53c7d5"
-      ],
+      "childTaskIds": ["0b87cc9e-f3be-4b8a-abd5-7bef1b53c7d5"],
       "creditIncrement": 0.5,
       "credits": 0,
       "creditsTimestamp": 1767292091615,
@@ -98,9 +96,7 @@
       "title": "Debate the number of angels on a needle head"
     },
     "0f945949-0014-4589-99c9-348f1b091b70": {
-      "childTaskIds": [
-        "55ebccab-302c-481e-b001-a594df9c921d"
-      ],
+      "childTaskIds": ["55ebccab-302c-481e-b001-a594df9c921d"],
       "creditIncrement": 0.18,
       "credits": 0.5,
       "creditsTimestamp": 1767819881897,
@@ -972,9 +968,7 @@
       "title": "Try to survive until thirty"
     },
     "a7257a9d-a2be-4b98-a623-c461ff5bfc4f": {
-      "childTaskIds": [
-        "bf13b914-2535-493f-9a2a-7a20418f6b82"
-      ],
+      "childTaskIds": ["bf13b914-2535-493f-9a2a-7a20418f6b82"],
       "creditIncrement": 0.5,
       "credits": 0.5,
       "creditsTimestamp": 1767573543468,

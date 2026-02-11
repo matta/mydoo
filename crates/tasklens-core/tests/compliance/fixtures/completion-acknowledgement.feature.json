@@ -25,10 +25,7 @@
         {
           "description": "1. Initial State (Both Pending)",
           "then": {
-            "expected_order": [
-              "Task_A",
-              "Task_B"
-            ]
+            "expected_order": ["Task_A", "Task_B"]
           }
         },
         {
@@ -43,10 +40,7 @@
           ],
           "description": "2. Complete Task A (Unacknowledged)",
           "then": {
-            "expected_order": [
-              "Task_A",
-              "Task_B"
-            ]
+            "expected_order": ["Task_A", "Task_B"]
           }
         },
         {
@@ -60,9 +54,7 @@
           ],
           "description": "3. Acknowledge Task A",
           "then": {
-            "expected_order": [
-              "Task_B"
-            ]
+            "expected_order": ["Task_B"]
           }
         },
         {
@@ -77,10 +69,7 @@
           ],
           "description": "4. Reopen Task A",
           "then": {
-            "expected_order": [
-              "Task_A",
-              "Task_B"
-            ]
+            "expected_order": ["Task_A", "Task_B"]
           }
         }
       ]

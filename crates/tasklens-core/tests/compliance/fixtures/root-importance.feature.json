@@ -35,10 +35,7 @@
         {
           "description": "1. Verify Inter-Tree Sorting",
           "then": {
-            "expected_order": [
-              "ChildOfB",
-              "ChildOfA"
-            ]
+            "expected_order": ["ChildOfB", "ChildOfA"]
           }
         }
       ]

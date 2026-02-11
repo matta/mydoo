@@ -50,11 +50,7 @@
         {
           "description": "1. Verify DFS Pre-Order",
           "then": {
-            "expected_order": [
-              "LeafA1",
-              "LeafA2",
-              "LeafB1"
-            ]
+            "expected_order": ["LeafA1", "LeafA2", "LeafB1"]
           }
         }
       ]

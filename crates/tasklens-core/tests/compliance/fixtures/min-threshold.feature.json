@@ -31,9 +31,7 @@
         {
           "description": "Check Filter",
           "then": {
-            "expected_order": [
-              "BigSibling"
-            ],
+            "expected_order": ["BigSibling"],
             "expected_props": [
               {
                 "id": "Parent",
