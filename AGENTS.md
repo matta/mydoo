@@ -35,6 +35,36 @@ When working on tracked efforts, keep `bd` tasks accurate and record newly disco
 - **Clean Tree Rule:** Before starting unrelated work or a new development
   phase, run `git status`. If the working tree is not clean, STOP and notify the
   user.
+- **Feature Branch Isolation Rule:** Every semantically independent task MUST be
+  done on a different feature branch. If the current branch already contains
+  unrelated work, STOP and create a new branch for the new task.
+- **PR Isolation Rule:** Every PR MUST represent one cohesive concern. Reuse an
+  existing branch/PR only for follow-up commits that are directly in scope for
+  that PR (e.g., review feedback or missed tests for that same change).
+- **Base Branch Divergence Paranoia Check:** Before creating a branch for a new
+  independent task, check whether local `<base-branch>` has commits not pushed
+  to `origin/<base-branch>`:
+  ```bash
+  git fetch origin
+  git rev-list --left-right --count <base-branch>...origin/<base-branch>
+  ```
+  If the first number (local-ahead count) is greater than `0`, STOP and alert
+  the user. Ask how to handle the local-only commits before continuing (for
+  example: preserve on a separate branch, push them, or intentionally branch
+  from local base).
+- **New Task Branch Workflow:** After the paranoia check passes (or after user
+  instruction), branch from upstream base to avoid mutating local base history:
+  ```bash
+  git switch -c codex/<task-slug> --track origin/<base-branch>
+  ```
+- **PR Creation Scope Check:** Before pushing or creating/updating a PR, check
+  whether the current branch already has an open PR:
+  ```bash
+  gh pr list --head <current-branch>
+  ```
+  If an open PR exists and your changes are semantically independent from that
+  PR, DO NOT push to that branch. Create a new feature branch and open a new
+  PR.
 - **Git Commit Rule:** The Agent MAY commit changes autonomously when:
   1. Work is complete and all quality gates pass (`just verify` succeeds)
   2. Changes are logically cohesive and address a single concern
@@ -100,9 +130,14 @@ just test
 # All E2E tests (monorepo-wide)
 just test-e2e
 
-# All unit tests in a specific package
-cd <package> && pnpm test
-# e.g. cd scripts && pnpm test
+# Scripts package unit tests (via just wrapper around pnpm test)
+just test-scripts
+
+# Pass through vitest args to scripts tests (note the `--`)
+just test-scripts -- check-dependency-health.test.ts
+
+# Pass through Playwright args to e2e tests (note the `--`)
+just test-e2e -- tests/e2e/specs/due-dates.spec.ts --project=e2e-mobile
 
 # Fully build everything and re-run all tests including e2e (monorepo-wide)
 just verify
@@ -152,23 +187,25 @@ implementation-level terms in test narratives.
 
 ### Running Specific Tests
 
-To run only the algorithm BDD tests:
+Always run pnpm-backed tests through `just` recipes. Do not invoke `pnpm test`
+or `pnpm exec playwright test` directly.
+
+To run only a specific scripts Vitest file:
 
 ```bash
-pnpm test tests/unit/algorithm.test.ts
+just test-scripts -- check-dependency-health.test.ts
 ```
 
-To run a specific feature within the algorithm tests, use the `FEATURE_FILTER`
-environment variable:
+To run tests matching a Vitest name pattern:
 
 ```bash
-FEATURE_FILTER="Inheritance" pnpm test tests/unit/algorithm.test.ts
+just test-scripts -- check-dependency-health.test.ts -t "distribution"
 ```
 
-Or use the standard Vitest `-t` flag (which runs all but skips non-matching):
+To run a targeted Playwright spec/project:
 
 ```bash
-pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
+just test-e2e -- tests/e2e/specs/due-dates.spec.ts --project=e2e-mobile
 ```
 
 # Learnings
