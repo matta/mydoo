@@ -5,8 +5,9 @@
 //! - Generating a new document (new random ID)
 //! - Entering an existing document ID to switch documents
 
-use crate::components::{Alert, AlertVariant, Input};
+use crate::components::{Alert, AlertVariant};
 use crate::dioxus_components::button::{Button, ButtonVariant};
+use crate::dioxus_components::input::Input;
 use crate::hooks::use_tunnel_state::use_tunnel_state;
 use dioxus::prelude::*;
 // use dioxus::events::FormEvent;
@@ -311,11 +312,11 @@ pub fn DocIdManager(
                 div { class: "space-y-2",
                     label { class: "block text-base font-medium text-base-content/70", "Enter Document ID" }
                     Input {
-                        value: "{input_value}",
-                        oninput: move |val| input_value.set(val),
+                        value: input_value(),
+                        oninput: move |evt: FormEvent| input_value.set(evt.value()),
                         placeholder: "Enter Base58 document ID...",
-                        class: "w-full font-mono text-base",
-                        data_testid: "document-id-input",
+                        class: "input w-full font-mono text-base",
+                        "data-testid": "document-id-input",
                     }
                     Button {
                         variant: ButtonVariant::Primary,

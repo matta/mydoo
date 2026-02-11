@@ -27,6 +27,12 @@
 - Preserve upstream history and enable clean merges while keeping local patches.
 - Remove Tailwind and DaisyUI and replace them with upstream CSS plus minimal app CSS.
 
+## Tracking Policy For This Migration
+
+- For this Dioxus Components migration effort, the source of truth is this plan document plus `dioxus-components-migration.todo.md`.
+- Do not use `bd` for per-slice migration tracking in this effort unless the user explicitly requests `bd` tracking.
+- Keep progress current by updating chunk headings, checklist checkboxes, and status notes in these two migration documents.
+
 ## Current State
 
 - The app now has `app_components` for app-specific UI, with `components` retained as a temporary compatibility shim for legacy imports.

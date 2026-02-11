@@ -1,5 +1,11 @@
 # Dioxus Components Migration Checklist
 
+## Tracking Policy
+
+- Track this migration in this checklist and `dioxus-components-migration.md`.
+- Do not create or update `bd` items for routine migration slices unless the user explicitly asks for `bd` tracking.
+- When slice status changes, update this file directly in the same change.
+
 ## Foundations
 
 - [x] Create and use a pristine vendor branch for `dx components add` output, with registry URL and `rev` pinned in `dioxus-vendor-components.toml`.
@@ -31,6 +37,14 @@
   - `crates/tasklens-ui/src/app_components/app_navbar.rs`
 - [ ] Remove remaining `btn*` styling assumptions passed to `Button { class: ... }` where they rely on DaisyUI tokens (for example: `btn-sm`, `btn-circle`, `btn-xs`) and replace with upstream-compatible/app CSS classes.
 - [ ] Replace non-button element DaisyUI `btn*` classes used for list-option affordances (for example in `move_picker` and `components/select/component.rs`) with upstream-compatible patterns.
+
+## Deferred After Input Slice: DaisyUI And Tailwind Input Callsite Cleanup
+
+- [ ] Remove DaisyUI/Tailwind-oriented input class tokens from migrated `Input` callsites and replace with upstream-compatible/app-owned classes in:
+  - `crates/tasklens-ui/src/app_components/task_input.rs`
+  - `crates/tasklens-ui/src/app_components/task_editor.rs`
+  - `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
+- [ ] Ensure migrated Input callsites do not pass component-skin classes that shadow vendored defaults unless explicitly intended and documented.
 
 ## Align Existing Dioxus Component Wrappers
 
