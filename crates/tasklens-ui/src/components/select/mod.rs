@@ -17,7 +17,7 @@ pub fn Select(props: SelectProps) -> Element {
         select {
             id: props.id,
             class: format!(
-                "select select-bordered w-full text-base {}",
+                "w-full rounded-md border border-base-300 bg-base-100 px-3 py-2 text-base {}",
                 props.class.unwrap_or_default(),
             ),
             value: props.value,
