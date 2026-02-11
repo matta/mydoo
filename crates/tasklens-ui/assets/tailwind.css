@@ -2283,13 +2283,6 @@
       height: var(--size);
     }
   }
-  .btn-square {
-    @layer daisyui.l1.l2 {
-      padding-inline: calc(0.25rem * 0);
-      width: var(--size);
-      height: var(--size);
-    }
-  }
   .size-5 {
     width: calc(var(--spacing) * 5);
     height: calc(var(--spacing) * 5);
@@ -3042,12 +3035,6 @@
     @layer daisyui.l1.l2 {
       --badge-color: var(--color-warning);
       --badge-fg: var(--color-warning-content);
-    }
-  }
-  .btn-primary {
-    @layer daisyui.l1.l2.l3 {
-      --btn-color: var(--color-primary);
-      --btn-fg: var(--color-primary-content);
     }
   }
   .select-none {
