@@ -33,7 +33,7 @@ export default defineConfig({
   },
   webServer: {
     command:
-      "pnpm dlx serve ../../target/dx/tasklens-ui/debug/web/public -p 5180 -s",
+      "pnpm exec serve ../../target/dx/tasklens-ui/debug/web/public -l tcp://127.0.0.1:5180 -s",
     url: "http://localhost:5180",
     reuseExistingServer: !isCI,
   },

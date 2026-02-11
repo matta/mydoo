@@ -3,7 +3,7 @@
 //! Displays the Balance View showing effort distribution across root goals.
 //! Users can adjust target percentages via sliders to rebalance their focus.
 
-use crate::components::{EmptyState, LoadErrorView, PageHeader};
+use crate::app_components::{BalanceSlider, EmptyState, LoadErrorView, PageHeader};
 use crate::controllers::task_controller;
 use crate::hooks::use_balance_interaction::{BalanceItem, use_balance_interaction};
 use dioxus::prelude::*;
@@ -124,7 +124,7 @@ fn BalanceItemRow(
                 label { class: "block text-xs text-base-content/50 mb-1",
                     "Adjust Target"
                 }
-                crate::components::BalanceSlider {
+                BalanceSlider {
                     min: 0.01,
                     max: 1.0,
                     step: 0.01,

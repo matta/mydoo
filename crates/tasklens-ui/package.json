@@ -9,6 +9,7 @@
     "@types/node": "catalog:",
     "daisyui": "catalog:",
     "js-yaml": "catalog:",
+    "serve": "catalog:",
     "wait-port": "catalog:"
   },
   "scripts": {

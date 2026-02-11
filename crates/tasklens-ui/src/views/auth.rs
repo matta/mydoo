@@ -4,8 +4,9 @@
 //! It includes the [`SettingsModal`] which acts as the main container for
 //! managing documents (switching, creating, etc).
 
+use crate::app_components::DocIdManager;
 use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
-use crate::components::*;
+use crate::components::{Button, ButtonVariant};
 use dioxus::prelude::*;
 use tasklens_store::doc_id::DocumentId;
 
