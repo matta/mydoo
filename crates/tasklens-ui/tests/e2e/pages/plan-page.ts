@@ -327,7 +327,7 @@ export class PlanPage implements PlanFixture {
     const createModal = this.page.getByRole("dialog", { name: "Create Task" });
     await expect(createModal).toBeVisible({ timeout: 3000 });
 
-    await createModal.locator("#task-title-input").fill(title);
+    await createModal.getByLabel("Title").fill(title);
     await createModal.getByRole("button", { name: "Create Task" }).click();
     await expect(createModal).not.toBeVisible();
     await this.waitForAppReady();
