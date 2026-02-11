@@ -47,22 +47,17 @@ pub fn MovePicker(
 
     rsx! {
         DialogRoot {
-            // Already using DaisyUI 'modal' from component update.
             open: true,
             on_open_change: move |_| on_close.call(()),
             DialogContent {
-                // Tailwind: 'max-w-md'. Justification: Modal width.
                 class: "max-w-md",
                 DialogTitle { "Move \"{task_title}\"" }
 
-                // DaisyUI: 'menu' provides the list styling.
-                // Tailwind: 'max-h-[60vh] overflow-y-auto'. Justification: Scrollable area for list.
-                div { class: "mt-4 max-h-[60vh] overflow-y-auto border rounded-md menu bg-base-100 p-2",
+                div { class: "mt-4 max-h-[60vh] overflow-y-auto border rounded-md bg-base-100 p-2 space-y-1",
                     // Option for Root
-                    div {
-                        // DaisyUI: 'btn btn-ghost' for item styling.
-                        // Tailwind: 'w-full justify-start font-normal'. Justification: Align text left.
-                        class: "btn btn-ghost btn-sm w-full justify-start font-normal",
+                    button {
+                        r#type: "button",
+                        class: "w-full rounded-md px-3 py-2 text-left font-normal hover:bg-base-200",
                         onclick: move |_| on_select.call(None),
                         span { class: "font-medium", "(Root)" }
                     }
@@ -71,12 +66,10 @@ pub fn MovePicker(
                         div { class: "p-4 text-center text-base-content/60", "No other valid parents found." }
                     } else {
                         for (task, depth) in flattened_tasks() {
-                            div {
+                            button {
                                 key: "{task.id}",
-                                // DaisyUI: 'btn btn-ghost' for item styling.
-                                // Tailwind: 'w-full justify-start font-normal'.
-                                class: "btn btn-ghost btn-sm w-full justify-start font-normal",
-                                // Tailwind: Dynamic indentation via style.
+                                r#type: "button",
+                                class: "w-full rounded-md px-3 py-2 text-left font-normal hover:bg-base-200",
                                 style: "padding-left: {12 + depth * 16}px",
                                 onclick: {
                                     let id = task.id.clone();

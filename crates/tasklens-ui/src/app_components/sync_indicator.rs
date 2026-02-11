@@ -1,4 +1,5 @@
 use crate::dioxus_components::button::{Button, ButtonVariant};
+use crate::dioxus_components::input::Input;
 #[cfg(target_arch = "wasm32")]
 use crate::hooks::use_sync::SYNC_SERVER_URL_KEY;
 use crate::hooks::use_sync::SyncStatus;
@@ -51,7 +52,7 @@ pub fn SyncIndicator() -> Element {
 
     rsx! {
         div {
-            class: format!("dropdown dropdown-end {}", if show_settings() { "dropdown-open" } else { "" }),
+            class: "relative inline-block",
             "data-testid": "sync-indicator",
             Button {
                 variant: ButtonVariant::Ghost,
@@ -69,19 +70,19 @@ pub fn SyncIndicator() -> Element {
 
             if show_settings() {
                 div {
-                    class: "dropdown-content menu rounded-box shadow-lg border border-base-300 z-50 w-64 p-4",
+                    class: "absolute right-0 z-50 mt-2 w-64 rounded-md border border-base-300 bg-base-100 p-4 shadow-lg",
                     "data-testid": "sync-settings-popover",
                     h3 { class: "font-semibold text-base-content mb-3", "Sync Settings" }
                     div { class: "space-y-3",
-                        div { class: "form-control",
-                            label { class: "label py-1",
-                                span { class: "label-text text-xs", "Server URL" }
+                        div { class: "space-y-1",
+                            label { class: "py-1 text-xs",
+                                "Server URL"
                             }
-                            input {
-                                class: "input input-bordered input-sm w-full",
+                            Input {
+                                class: "w-full",
                                 "data-testid": "sync-server-url-input",
                                 value: "{url_input}",
-                                oninput: move |e| url_input.set(e.value()),
+                                oninput: move |e: FormEvent| url_input.set(e.value()),
                             }
                         }
                         Button {

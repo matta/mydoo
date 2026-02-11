@@ -222,7 +222,7 @@ pub fn TaskEditor(
                     if let Some(id) = task_id.clone() {
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: "btn-sm btn-circle hover:bg-base-200 transition-colors",
+                            class: "hover:bg-base-200 transition-colors",
                             onclick: move |_| {
                                 let nav = navigator();
                                 nav.push(crate::router::Route::PlanPage {
@@ -251,8 +251,8 @@ pub fn TaskEditor(
                 // Modal Body (Scrollable)
                 div { class: "px-6 py-6 overflow-y-auto max-h-[70vh] flex flex-col gap-10",
                     // Section: Core Details
-                    fieldset { class: "fieldset !p-0",
-                        legend { class: "fieldset-legend text-primary uppercase text-[10px] tracking-widest font-bold",
+                    fieldset { class: "!p-0",
+                        legend { class: "text-primary uppercase text-[10px] tracking-widest font-bold",
                             "Task Details"
                         }
                         div { class: "w-full space-y-4",
@@ -266,7 +266,7 @@ pub fn TaskEditor(
                                     id: "task-title-input",
                                     value: current_draft.title.clone(),
                                     "autofocus": true,
-                                    class: "input input-lg w-full",
+                                    class: "w-full text-lg",
                                     oninput: move |evt: FormEvent| {
                                         draft
                                             .with_mut(|d_opt| {
@@ -294,7 +294,7 @@ pub fn TaskEditor(
                                 }
                                 textarea {
                                     id: "notes-input",
-                                    class: "textarea textarea-bordered w-full h-32 text-base leading-relaxed p-4",
+                                    class: "w-full h-32 rounded-md border border-base-300 bg-base-100 p-4 text-base leading-relaxed",
                                     placeholder: "Add more context or details here...",
                                     value: current_draft.notes.clone(),
                                     oninput: move |e| {
@@ -312,8 +312,8 @@ pub fn TaskEditor(
 
                     // Section: Prioritization & Location (Grid)
                     div { class: "grid grid-cols-1 md:grid-cols-2 gap-8",
-                        fieldset { class: "fieldset bg-base-200/40 p-5 rounded-box",
-                            legend { class: "fieldset-legend text-primary uppercase text-[10px] tracking-widest font-bold",
+                        fieldset { class: "bg-base-200/40 p-5 rounded-lg",
+                            legend { class: "text-primary uppercase text-[10px] tracking-widest font-bold",
                                 "Prioritization"
                             }
                             div { class: "space-y-6 w-full",
@@ -383,8 +383,8 @@ pub fn TaskEditor(
                             }
                         }
 
-                        fieldset { class: "fieldset bg-base-200/40 p-5 rounded-box",
-                            legend { class: "fieldset-legend text-primary uppercase text-[10px] tracking-widest font-bold",
+                        fieldset { class: "bg-base-200/40 p-5 rounded-lg",
+                            legend { class: "text-primary uppercase text-[10px] tracking-widest font-bold",
                                 "Location"
                             }
                             div { class: "w-full",
@@ -425,8 +425,8 @@ pub fn TaskEditor(
                     }
 
                     // Section: Scheduling
-                    fieldset { class: "fieldset bg-base-200/40 p-5 rounded-box",
-                        legend { class: "fieldset-legend text-primary uppercase text-[10px] tracking-widest font-bold",
+                    fieldset { class: "bg-base-200/40 p-5 rounded-lg",
+                        legend { class: "text-primary uppercase text-[10px] tracking-widest font-bold",
                             "Scheduling"
                         }
                         div { class: "grid grid-cols-1 md:grid-cols-2 gap-6 w-full",
@@ -480,11 +480,11 @@ pub fn TaskEditor(
                                         r#for: "repetition-interval-input",
                                         span { class: "label-text font-medium", "Repeat Every" }
                                     }
-                                    div { class: "join w-full",
+                                    div { class: "flex w-full gap-2",
                                         input {
                                             r#type: "number",
                                             id: "repetition-interval-input",
-                                            class: "input input-bordered join-item w-24 px-4",
+                                            class: "w-24 rounded-md border border-base-300 bg-base-100 px-4 py-2",
                                             value: current_draft.repeat_config.as_ref().map(|r| r.interval).unwrap_or(1),
                                             oninput: move |e| {
                                                 if let Ok(val) = e.value().parse::<i64>() {
@@ -507,7 +507,7 @@ pub fn TaskEditor(
                                         }
                                         select {
                                             id: "repetition-frequency-select",
-                                            class: "select select-bordered join-item flex-grow",
+                                            class: "flex-grow rounded-md border border-base-300 bg-base-100 px-3 py-2",
                                             value: current_draft
                                                 .repeat_config
                                                 .as_ref()
@@ -604,7 +604,7 @@ pub fn TaskEditor(
                                         r#for: "lead-time-scalar-input",
                                         span { class: "label-text font-medium", "Lead Time" }
                                     }
-                                    div { class: "join w-full",
+                                    div { class: "flex w-full gap-2",
                                         {
                                             let (val, unit) = time_conversion::ms_to_period(
                                                 current_draft.schedule.lead_time,
@@ -614,7 +614,7 @@ pub fn TaskEditor(
                                                 input {
                                                     r#type: "number",
                                                     id: "lead-time-scalar-input",
-                                                    class: "input input-bordered join-item w-24 px-4",
+                                                    class: "w-24 rounded-md border border-base-300 bg-base-100 px-4 py-2",
                                                     value: "{val}",
                                                     oninput: move |e| {
                                                         if let Ok(v) = e.value().parse::<u32>() {
@@ -633,7 +633,7 @@ pub fn TaskEditor(
                                                 select {
                                                     id: "lead-time-unit-select",
                                                     aria_label: "Lead Time Unit",
-                                                    class: "select select-bordered join-item flex-grow",
+                                                    class: "flex-grow rounded-md border border-base-300 bg-base-100 px-3 py-2",
                                                     value: "{unit}",
                                                     onchange: move |e| {
                                                         draft
@@ -658,7 +658,7 @@ pub fn TaskEditor(
 
                     // Section: Additional Options
                     if task_id.is_some() {
-                        fieldset { class: "fieldset bg-base-200/40 p-5 rounded-box",
+                        fieldset { class: "bg-base-200/40 p-5 rounded-lg",
                             label {
                                 class: "flex items-center justify-between w-full cursor-pointer",
                                 r#for: "sequential-toggle",
@@ -671,7 +671,7 @@ pub fn TaskEditor(
                                 input {
                                     r#type: "checkbox",
                                     id: "sequential-toggle",
-                                    class: "toggle toggle-primary toggle-sm",
+                                    class: "h-4 w-4",
                                     checked: current_draft.is_sequential,
                                     onchange: move |e| {
                                         draft
@@ -689,17 +689,17 @@ pub fn TaskEditor(
                     // Hierarchy Controls (Compact)
                     if let Some(id) = task_id.clone() {
                         div { class: "flex items-center justify-center pt-2",
-                            div { class: "join border border-base-300 bg-base-100 shadow-sm",
+                            div { class: "flex items-center overflow-hidden rounded-md border border-base-300 bg-base-100 shadow-sm",
                                 Button {
                                     variant: ButtonVariant::Ghost,
-                                    class: "join-item btn-xs h-9 px-5",
+                                    class: "h-9 px-5 rounded-none",
                                     onclick: move |_| show_move_picker.set(true),
                                     "Move"
                                 }
                                 if can_outdent {
                                     Button {
                                         variant: ButtonVariant::Ghost,
-                                        class: "join-item btn-xs h-9 px-5 border-l border-base-300",
+                                        class: "h-9 px-5 rounded-none border-l border-base-300",
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -713,7 +713,7 @@ pub fn TaskEditor(
                                 if can_indent {
                                     Button {
                                         variant: ButtonVariant::Ghost,
-                                        class: "join-item btn-xs h-9 px-5 border-l border-base-300",
+                                        class: "h-9 px-5 rounded-none border-l border-base-300",
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -726,7 +726,7 @@ pub fn TaskEditor(
                                 }
                                 Button {
                                     variant: ButtonVariant::Ghost,
-                                    class: "join-item btn-xs h-9 px-5 border-l border-base-300",
+                                    class: "h-9 px-5 rounded-none border-l border-base-300",
                                     onclick: {
                                         let id = id.clone();
                                         move |_| {
@@ -748,7 +748,7 @@ pub fn TaskEditor(
                         if task_id.is_some() {
                             Button {
                                 variant: ButtonVariant::Ghost,
-                                class: "btn-sm text-error hover:bg-error/10 hover:text-error w-full sm:w-auto",
+                                class: "text-error hover:bg-error/10 hover:text-error w-full sm:w-auto",
                                 onclick: on_delete,
                                 "Delete Task"
                             }
@@ -757,13 +757,13 @@ pub fn TaskEditor(
                     div { class: "flex flex-col-reverse sm:flex-row items-center gap-3 w-full sm:w-auto",
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: "btn-sm px-6 w-full sm:w-auto",
+                            class: "px-6 w-full sm:w-auto",
                             onclick: move |_| on_close.call(()),
                             "Cancel"
                         }
                         Button {
                             variant: ButtonVariant::Primary,
-                            class: "btn-sm min-w-[140px] shadow-lg shadow-primary/20 w-full sm:w-auto",
+                            class: "min-w-[140px] shadow-lg shadow-primary/20 w-full sm:w-auto",
                             onclick: move |_| save_handler(),
                             if task_id.is_some() {
                                 "Save Changes"

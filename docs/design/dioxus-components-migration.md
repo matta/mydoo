@@ -53,6 +53,7 @@ To keep forward progress tied to the end goal (Tailwind and DaisyUI removal), ea
    - explicitly log remaining debt in `dioxus-components-migration.todo.md` with concrete file paths.
 4. Update inventory status and divergence counts in this document in the same change.
 5. Keep the active chunk in the checklist pointed at the highest-impact remaining class debt, not just the next component name.
+6. For callsite de-Daisy cleanup slices, do not introduce new `assets/app.css` styles or new Tailwind CSS styles/classes unless explicitly approved by the user; prefer removing DaisyUI/Tailwind class tokens so callsites fall back to native/upstream component styling.
 
 ## Current State
 
@@ -147,19 +148,10 @@ This is a categorized summary intended to map usage into replacement workstreams
 
 ## Current DaisyUI Debt Snapshot
 
-Snapshot basis: code audit on February 11, 2026 (`HEAD` at `dd43ec3`).
+Snapshot basis: code audit on February 11, 2026.
 
-- `btn*` debt remains in raw RSX and Button class overrides, with largest hotspots in:
-  - `crates/tasklens-ui/src/app_components/task_editor.rs`
-  - `crates/tasklens-ui/src/views/do_page.rs`
-  - `crates/tasklens-ui/src/app_components/move_picker.rs`
-  - `crates/tasklens-ui/src/components/select/component.rs`
-- `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt is concentrated in:
-  - `crates/tasklens-ui/src/app_components/task_editor.rs`
-  - `crates/tasklens-ui/src/app_components/task_input.rs`
-  - `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
-  - `crates/tasklens-ui/src/app_components/search_panel.rs`
-  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+- `btn*` debt in app callsites is cleared after the Chunk A callsite pass.
+- `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt in app callsites is cleared after the Chunk A callsite pass.
 - `card*`/`badge*`/`progress*` debt is concentrated in:
   - `crates/tasklens-ui/src/views/score_trace_page.rs`
   - `crates/tasklens-ui/src/views/balance_page.rs`
@@ -168,11 +160,8 @@ Snapshot basis: code audit on February 11, 2026 (`HEAD` at `dd43ec3`).
   - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
   - `crates/tasklens-ui/src/app_components/empty_state.rs`
 - `dropdown*`/`menu*`/`modal*` debt remains in:
-  - `crates/tasklens-ui/src/components/select/component.rs`
   - `crates/tasklens-ui/src/components/dialog/component.rs`
   - `crates/tasklens-ui/src/components/date_picker/component.rs`
-  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
-  - `crates/tasklens-ui/src/app_components/move_picker.rs`
 - Tailwind runtime dependency is still active:
   - `crates/tasklens-ui/src/main.rs` still links `assets/tailwind.css`
   - `crates/tasklens-ui/tailwind.css` still loads Tailwind + DaisyUI plugin
@@ -252,6 +241,7 @@ Guidelines:
 
 - Keep the upstream `dx-components-theme.css` pristine.
 - Put app-specific layout and typography in `app.css`.
+- During callsite de-Daisy cleanup, do not add new `app.css` rules or new Tailwind CSS styles/classes unless explicitly approved by the user.
 - Avoid adding Tailwind or DaisyUI classes in components or views.
 
 ## Build And Asset Pipeline Changes
@@ -334,7 +324,7 @@ Incremental execution model:
   4. Remove related DaisyUI/Tailwind class tokens in touched callsites, or log exact deferred file paths in the checklist.
   5. Update inventory/divergence status in this document and checklist.
   6. Repoint the active chunk to the highest-impact remaining class debt.
-- Current next slice: Checkbox, while running Button/Input debt burn-down in parallel until `btn*` and `input*` cleanup is no longer deferred.
+- Current next slice: Checkbox (Chunk A callsite de-Daisy is complete in the checklist).
 
 ## Representative Diffs
 
@@ -362,7 +352,7 @@ Tailwind/DaisyUI removal should only happen when all gates below are true:
 
 - Implement the recommended upstream tracking strategy: pristine vendor branch driven by `dx components add` and pinned registry revision.
 - Split modules: `dioxus_components` for vendored Dioxus Components, `app_components` for app UI.
-- Burn down deferred class debt from already-migrated Button/Input slices before adding more deferred cleanup.
+- Start the Checkbox vertical slice now that the Chunk A Button/Input callsite debt burn-down is complete.
 - Re-vendor and replace remaining diverged components next: Checkbox, then Date Picker.
 - Align wrapper components that still embed DaisyUI/Tailwind assumptions: Select, Dialog, Collapsible, Calendar.
 - Adopt missing upstream components in usage-driven order (Badge, Card, Progress, Textarea, Toggle, Dropdown Menu, Label, then lower-usage items).
