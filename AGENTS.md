@@ -22,6 +22,7 @@ When working on tracked efforts, keep `bd` tasks accurate and record newly disco
 - Use `pnpm dlx` for running scripts.
 - Use `cargo` for Rust.
 - Use `just` for running commands.
+- **Dioxus Components Vendoring:** NEVER run `dx components add` directly in this repository. Always use `cargo xtask update-dioxus-components` so vendoring, pins, and branch/worktree workflow stay consistent.
 
 ## Environment Initialization
 

@@ -1,8 +1,8 @@
 use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
-use crate::components::input::Input;
 use crate::components::loading::Loading;
 use crate::components::{DatePicker, Select};
 use crate::dioxus_components::button::{Button, ButtonVariant};
+use crate::dioxus_components::input::Input;
 use crate::utils::time_conversion;
 use dioxus::prelude::*;
 use tasklens_core::TaskUpdates;
@@ -265,13 +265,13 @@ pub fn TaskEditor(
                                 Input {
                                     id: "task-title-input",
                                     value: current_draft.title.clone(),
-                                    autofocus: true,
-                                    class: "input-lg w-full",
-                                    oninput: move |v| {
+                                    "autofocus": true,
+                                    class: "input input-lg w-full",
+                                    oninput: move |evt: FormEvent| {
                                         draft
                                             .with_mut(|d_opt| {
                                                 if let Some(d) = d_opt.as_mut() {
-                                                    d.title = v;
+                                                    d.title = evt.value();
                                                 }
                                             });
                                     },
