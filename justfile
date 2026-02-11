@@ -105,9 +105,9 @@ check-wasm:
 # Run all unit tests
 test: test-scripts test-rust
 
-# Run unit tests for scripts
-test-scripts:
-    cd {{scripts_pkg}} && pnpm test
+# Run unit tests for scripts (pass through vitest args after `--`)
+test-scripts *args:
+    cd {{scripts_pkg}} && pnpm test {{args}}
 
 # Run unit tests for rust crates
 test-rust:
