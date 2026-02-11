@@ -247,7 +247,7 @@ export class PlanPage implements PlanFixture {
 
     if (usedModal) {
       const modal = this.page.getByRole("dialog");
-      const titleInput = modal.locator("#task-title-input");
+      const titleInput = modal.getByLabel("Title");
       await titleInput.fill(title);
       await this.waitForPersistence(async () => {
         await modal
