@@ -29,10 +29,8 @@ There is currently no vendored `dioxus_primitives/` source directory in this rep
   - Installer-produced component modules and per-component CSS.
 - `crates/tasklens-ui/assets/dx-components-theme.css`
   - Upstream theme asset used with Dioxus Components.
-- `crates/tasklens-ui/Dioxus.toml`
-  - Pins the component registry URL/revision and `components_dir`.
 - `crates/tasklens-ui/dioxus-vendor-components.toml`
-  - Source-of-truth component selection list for vendoring.
+  - Source-of-truth `module_path`, registry `git`/`rev`, and component selection for vendoring.
 
 ### Upstream-derived but locally owned paths (not pristine snapshots)
 
@@ -43,7 +41,6 @@ There is currently no vendored `dioxus_primitives/` source directory in this rep
 - `crates/tasklens-ui/src/components/collapsible/**` (wrapper/modified)
 - `crates/tasklens-ui/src/components/dialog/**` (wrapper/modified)
 - `crates/tasklens-ui/src/components/select/**` (wrapper/modified)
-- `crates/tasklens-ui/src/components/button.rs` (diverged replacement)
 - `crates/tasklens-ui/src/components/checkbox.rs` (diverged replacement)
 - `crates/tasklens-ui/src/components/input.rs` (diverged replacement)
 - `crates/tasklens-ui/src/components/date_picker/**` (diverged replacement)
