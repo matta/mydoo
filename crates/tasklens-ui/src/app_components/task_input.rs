@@ -17,7 +17,7 @@ pub fn TaskInput(
                 value: value(),
                 oninput: move |evt: FormEvent| value.set(evt.value()),
                 placeholder: "Add a new task...",
-                class: "input flex-grow mr-2",
+                class: "flex-grow mr-2",
                 onkeypress: move |evt: KeyboardEvent| {
                     if evt.key() == Key::Enter {
                         on_add.call(());
