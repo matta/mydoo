@@ -1,11 +1,4 @@
-# Root Prettier Ignore
-# Restrict Prettier to the root directory only.
-
-# Ignore all subdirectories
-*/*
-!/.vscode/settings.json
-
-# Standard ignores (restored)
+# Build artifacts and generated files
 **/dist
 **/dev-dist
 **/build
@@ -16,10 +9,44 @@
 **/node_modules
 **/pnpm-lock.yaml
 **/.features-gen/**
-.features-gen/**
 **/playwright-report/**
 **/test-results/**
 **/*.d.ts
+
 # Conductor archive
 conductor/archive/
 tempcontext
+
+# Docs
+docs/.turbo/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Rust
+target/
+**/*.rs.bk
+
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Test artifacts
+.last-run.json
+**/__screenshots__
+.ralph-state/
+.gemini/commands/my
+ROLLING_CONTEXT.md
+
+# Generated build artifacts (tasklens-ui specific)
+crates/tasklens-ui/public/version.js
+crates/tasklens-ui/assets/tailwind.css

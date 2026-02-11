@@ -55,10 +55,8 @@ pub struct EnrichedTask {
 
 /// Indicates where the effective schedule came from.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
 pub enum ScheduleSource {
     /// The schedule is defined on the task itself.
-    #[serde(rename = "self")]
     Myself,
     /// The schedule is inherited from an ancestor.
     Ancestor,
@@ -313,7 +311,6 @@ pub struct PriorityOptions {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "kebab-case")]
 pub enum PriorityMode {
     DoList,
     PlanOutline,
