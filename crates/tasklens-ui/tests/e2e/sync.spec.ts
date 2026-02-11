@@ -1,16 +1,29 @@
 import { expect, test } from "./fixtures";
+import { dumpFailureContext } from "./utils/debug-utils";
 
 test.describe("End-to-End Synchronization", () => {
+  test.afterEach(async ({ alice, bob }, testInfo) => {
+    if (testInfo.status === "passed" || testInfo.status === "skipped") {
+      return;
+    }
+
+    // Multi-user failures are hard to diagnose from a single page snapshot.
+    await dumpFailureContext(alice.page, testInfo, "alice-synthetic-dom.md");
+    await dumpFailureContext(bob.page, testInfo, "bob-synthetic-dom.md");
+  });
+
   test("Alice and Bob can sync changes", async ({ alice, bob, syncServer }) => {
+    // Sync tests run late in the suite; force a fresh server in case prior tests crashed it.
+    await syncServer.restart();
     const syncUrl = `ws://localhost:${syncServer.getPort()}/sync`;
 
     // 1. Setup Alice
     let aliceDocId: string;
     await test.step("Setup Alice", async () => {
+      // This test validates synchronization behavior, not settings UX.
+      // Configure sync URL before first load to avoid reload timing races.
+      await alice.plan.setSyncServerUrlForNextLoad(syncUrl);
       await alice.plan.goto("/");
-      await alice.plan.openSyncSettings();
-      await alice.plan.setSyncServerUrl(syncUrl);
-      await alice.plan.saveSyncSettings();
       await expect(alice.page.getByTestId("sync-status-button")).toContainText(
         "Connected",
         { timeout: 15000 },
@@ -25,10 +38,8 @@ test.describe("End-to-End Synchronization", () => {
 
     // 2. Setup Bob (Join Alice's Document)
     await test.step("Setup Bob", async () => {
+      await bob.plan.setSyncServerUrlForNextLoad(syncUrl);
       await bob.plan.goto("/");
-      await bob.plan.openSyncSettings();
-      await bob.plan.setSyncServerUrl(syncUrl);
-      await bob.plan.saveSyncSettings();
       await expect(bob.page.getByTestId("sync-status-button")).toContainText(
         "Connected",
         { timeout: 15000 },

@@ -34,7 +34,11 @@ export async function formatConsoleMessage(
  * The output is a YAML tree optimized for AI agent debugging, prioritizing
  * semantic elements (data-testid, role, aria-*) while stripping layout noise.
  */
-export async function dumpFailureContext(page: Page, testInfo: TestInfo) {
+export async function dumpFailureContext(
+  page: Page,
+  testInfo: TestInfo,
+  attachmentName = "synthetic-dom.md",
+) {
   try {
     const syntheticTree = await page.evaluate(() => {
       // CONFIG: Attributes we trust for unique identification
@@ -258,9 +262,10 @@ ${yamlContent}
 `;
 
     // Write to disk and attach to test report (mirrors Playwright's error-context.md pattern)
-    const filePath = testInfo.outputPath("synthetic-dom.md");
+    const safeAttachmentName = attachmentName.replace(/[^a-zA-Z0-9._-]/g, "-");
+    const filePath = testInfo.outputPath(safeAttachmentName);
     await writeFile(filePath, markdownContent, "utf-8");
-    await testInfo.attach("synthetic-dom.md", {
+    await testInfo.attach(attachmentName, {
       path: filePath,
       contentType: "text/markdown",
     });
