@@ -1,0 +1,31 @@
+name: Block Bad Source Branches
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  check-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Source Branch
+        # Trigger if ANY of the following conditions are met:
+        # 1. Branch name starts with 'backup-' (manual backups)
+        # 2. Branch name contains 'do-not-merge' (explicitly forbidden)
+        # 3. Branch is exactly 'staging' (protected workflow branch)
+        # 4. Branch is exactly 'beads-sync' (automated import branch)
+        # 5. Branch is exactly 'vendor/dioxus-components-pristine' (automated vendor branch)
+        if: |
+          startsWith(github.head_ref, 'backup-') ||
+          contains(github.head_ref, 'do-not-merge') ||
+          github.head_ref == 'staging' ||
+          github.head_ref == 'beads-sync' ||
+          github.head_ref == 'vendor/dioxus-components-pristine'
+        run: |
+          gh pr close ${{ github.event.pull_request.number }} \
+            --comment "🚫 **Invalid Source Branch**: Merging *from* '${{ github.head_ref }}' is not allowed."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
