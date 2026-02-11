@@ -459,7 +459,7 @@ export class PlanPage implements PlanFixture {
     await this.openTaskEditor(title);
     const modal = this.page.getByRole("dialog", { name: "Edit Task" });
     // Focus might be stolen by Dialog focus trap
-    await modal.locator("#task-title-input").fill(newTitle);
+    await modal.getByLabel("Title").fill(newTitle);
     await this.waitForPersistence(async () => {
       await modal.getByRole("button", { name: "Save Changes" }).click();
     });
