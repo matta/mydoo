@@ -76,7 +76,9 @@ export class SyncServerHelper {
 
   async ensureHealthy(): Promise<void> {
     if (!this.isRunning()) {
-      console.warn(`[sync-server:${this.port}] Server is not running. Restarting.`);
+      console.warn(
+        `[sync-server:${this.port}] Server is not running. Restarting.`,
+      );
       await this.start();
       return;
     }
