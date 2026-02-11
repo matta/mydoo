@@ -41,13 +41,11 @@ When working on tracked efforts, keep `bd` tasks accurate and record newly disco
 - **PR Isolation Rule:** Every PR MUST represent one cohesive concern. Reuse an
   existing branch/PR only for follow-up commits that are directly in scope for
   that PR (e.g., review feedback or missed tests for that same change).
-- **New Task Branch Workflow:** For new independent work, start from an updated
-  base branch and create a fresh feature branch:
+- **New Task Branch Workflow:** For new independent work, branch directly from
+  the upstream base branch to avoid mutating local base-branch history:
   ```bash
   git fetch origin
-  git switch <base-branch>
-  git pull --no-rebase
-  git switch -c codex/<task-slug>
+  git switch -c codex/<task-slug> --track origin/<base-branch>
   ```
 - **PR Creation Scope Check:** Before pushing or creating/updating a PR, check
   whether the current branch already has an open PR:
