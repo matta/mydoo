@@ -16,12 +16,21 @@
 ## Active Chunk: Button Vertical Slice
 
 - [x] Vendor upstream `button` into `crates/tasklens-ui/src/dioxus_components/button` via `dioxus-vendor-components.toml` + `cargo xtask update-dioxus-components`.
-- [ ] Integrate vendored `dioxus_components::button` into app code by deciding and applying one strategy:
-  - temporary compatibility adapter in `components/button.rs`, or
-  - direct callsite migration to `crate::dioxus_components::button::Button`.
-- [ ] Remove legacy `crates/tasklens-ui/src/components/button.rs` once no callsites depend on it.
-- [ ] Update module declarations/re-exports so Button resolves from `dioxus_components` rather than legacy `components`.
-- [ ] Update migration inventory/divergence notes after Button lands.
+- [x] Integrate vendored `dioxus_components::button` into app code using direct callsite migration to `crate::dioxus_components::button::{Button, ButtonVariant}`.
+- [x] Remove legacy `crates/tasklens-ui/src/components/button.rs` once no callsites depend on it.
+- [x] Update module declarations/re-exports so Button resolves from `dioxus_components` rather than legacy `components`.
+- [x] Update migration inventory/divergence notes after Button lands.
+
+## Deferred After Button Slice: DaisyUI Button Markup Cleanup
+
+- [ ] Replace raw RSX `button` elements that still use DaisyUI `btn*` classes with Dioxus Button usage or app-owned CSS in:
+  - `crates/tasklens-ui/src/views/plan_page.rs`
+  - `crates/tasklens-ui/src/app_components/task_row.rs`
+  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+  - `crates/tasklens-ui/src/app_components/search_panel.rs`
+  - `crates/tasklens-ui/src/app_components/app_navbar.rs`
+- [ ] Remove remaining `btn*` styling assumptions passed to `Button { class: ... }` where they rely on DaisyUI tokens (for example: `btn-sm`, `btn-circle`, `btn-xs`) and replace with upstream-compatible/app CSS classes.
+- [ ] Replace non-button element DaisyUI `btn*` classes used for list-option affordances (for example in `move_picker` and `components/select/component.rs`) with upstream-compatible patterns.
 
 ## Align Existing Dioxus Component Wrappers
 
@@ -32,7 +41,7 @@
 
 ## Replace Diverged Components
 
-- [ ] Button: replace local DaisyUI `button.rs` with upstream `button` component + CSS.
+- [x] Button: replace local DaisyUI `button.rs` with upstream `button` component + CSS.
 - [ ] Checkbox: replace local DaisyUI `checkbox.rs` with upstream `checkbox` component + CSS.
 - [ ] Input: replace local DaisyUI `input.rs` with upstream `input` component + CSS.
 - [ ] Date Picker: wire the upstream wrapper and remove the HTML `<input type="date">` implementation.

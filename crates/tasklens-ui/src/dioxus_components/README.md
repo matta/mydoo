@@ -41,7 +41,6 @@ There is currently no vendored `dioxus_primitives/` source directory in this rep
 - `crates/tasklens-ui/src/components/collapsible/**` (wrapper/modified)
 - `crates/tasklens-ui/src/components/dialog/**` (wrapper/modified)
 - `crates/tasklens-ui/src/components/select/**` (wrapper/modified)
-- `crates/tasklens-ui/src/components/button.rs` (diverged replacement)
 - `crates/tasklens-ui/src/components/checkbox.rs` (diverged replacement)
 - `crates/tasklens-ui/src/components/input.rs` (diverged replacement)
 - `crates/tasklens-ui/src/components/date_picker/**` (diverged replacement)

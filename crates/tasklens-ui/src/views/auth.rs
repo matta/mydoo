@@ -6,7 +6,7 @@
 
 use crate::app_components::DocIdManager;
 use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
-use crate::components::{Button, ButtonVariant};
+use crate::dioxus_components::button::{Button, ButtonVariant};
 use dioxus::prelude::*;
 use tasklens_store::doc_id::DocumentId;
 
@@ -43,7 +43,7 @@ pub fn SettingsModal(
                     Button {
                         variant: ButtonVariant::Secondary,
                         onclick: move |_| on_close.call(()),
-                        data_testid: "close-settings",
+                        "data-testid": "close-settings",
                         "Close"
                     }
                 }
