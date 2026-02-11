@@ -327,7 +327,7 @@ export class PlanPage implements PlanFixture {
     const createModal = this.page.getByRole("dialog", { name: "Create Task" });
     await expect(createModal).toBeVisible({ timeout: 3000 });
 
-    await createModal.getByRole("textbox", { name: "Title" }).fill(title);
+    await createModal.getByLabel("Title").fill(title);
     await createModal.getByRole("button", { name: "Create Task" }).click();
     await expect(createModal).not.toBeVisible();
     await this.waitForAppReady();
@@ -374,7 +374,7 @@ export class PlanPage implements PlanFixture {
     const modal = this.page.getByRole("dialog", { name: "Edit Task" });
 
     if (await modal.isVisible()) {
-      const titleInput = modal.getByRole("textbox", { name: "Title" });
+      const titleInput = modal.locator("#task-title-input");
       const currentTitle = await titleInput.inputValue();
       if (currentTitle === title) {
         return; // Already open
@@ -397,7 +397,9 @@ export class PlanPage implements PlanFixture {
       .locator(`[data-testid="task-item"]`, { hasText: title })
       .first();
     await finalRow.waitFor({ state: "visible" });
-    await finalRow.click();
+    const titleCell = finalRow.getByTestId("task-title").first();
+    await expect(titleCell).toBeVisible();
+    await titleCell.click();
     await expect(modal).toBeVisible();
   }
 
@@ -459,7 +461,7 @@ export class PlanPage implements PlanFixture {
     await this.openTaskEditor(title);
     const modal = this.page.getByRole("dialog", { name: "Edit Task" });
     // Focus might be stolen by Dialog focus trap
-    await modal.getByRole("textbox", { name: "Title" }).fill(newTitle);
+    await modal.getByLabel("Title").fill(newTitle);
     await this.waitForPersistence(async () => {
       await modal.getByRole("button", { name: "Save Changes" }).click();
     });

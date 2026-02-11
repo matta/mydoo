@@ -4,17 +4,17 @@
 //! This module keeps old import paths working during migration.
 
 pub mod alert;
-pub mod button;
 pub mod calendar;
 pub mod checkbox;
 pub mod collapsible;
 pub mod date_picker;
 pub mod dialog;
-pub mod input;
 pub mod navbar;
 pub mod popover;
 pub mod select;
 pub mod slider;
+pub use crate::dioxus_components::button;
+pub use crate::dioxus_components::input;
 
 pub use crate::app_components::app_navbar;
 pub use crate::app_components::back_button;
@@ -32,10 +32,10 @@ pub use crate::app_components::task_editor;
 pub use crate::app_components::task_input;
 pub use crate::app_components::task_row;
 
+pub use crate::dioxus_components::button::{Button, ButtonVariant};
+pub use crate::dioxus_components::input::Input;
 pub(crate) use alert::{Alert, AlertVariant};
-pub(crate) use button::{Button, ButtonVariant};
 pub(crate) use checkbox::Checkbox;
-pub(crate) use input::Input;
 
 #[allow(unused_imports)]
 pub(crate) use crate::app_components::back_button::BackButton;

@@ -22,6 +22,7 @@ When working on tracked efforts, keep `bd` tasks accurate and record newly disco
 - Use `pnpm dlx` for running scripts.
 - Use `cargo` for Rust.
 - Use `just` for running commands.
+- **Dioxus Components Vendoring:** NEVER run `dx components add` directly in this repository. Always use `cargo xtask update-dioxus-components` so vendoring, pins, and branch/worktree workflow stay consistent.
 
 ## Environment Initialization
 
@@ -99,9 +100,14 @@ just test
 # All E2E tests (monorepo-wide)
 just test-e2e
 
-# All unit tests in a specific package
-cd <package> && pnpm test
-# e.g. cd scripts && pnpm test
+# Scripts package unit tests (via just wrapper around pnpm test)
+just test-scripts
+
+# Pass through vitest args to scripts tests (note the `--`)
+just test-scripts -- check-dependency-health.test.ts
+
+# Pass through Playwright args to e2e tests (note the `--`)
+just test-e2e -- tests/e2e/specs/due-dates.spec.ts --project=e2e-mobile
 
 # Fully build everything and re-run all tests including e2e (monorepo-wide)
 just verify
@@ -151,23 +157,25 @@ implementation-level terms in test narratives.
 
 ### Running Specific Tests
 
-To run only the algorithm BDD tests:
+Always run pnpm-backed tests through `just` recipes. Do not invoke `pnpm test`
+or `pnpm exec playwright test` directly.
+
+To run only a specific scripts Vitest file:
 
 ```bash
-pnpm test tests/unit/algorithm.test.ts
+just test-scripts -- check-dependency-health.test.ts
 ```
 
-To run a specific feature within the algorithm tests, use the `FEATURE_FILTER`
-environment variable:
+To run tests matching a Vitest name pattern:
 
 ```bash
-FEATURE_FILTER="Inheritance" pnpm test tests/unit/algorithm.test.ts
+just test-scripts -- check-dependency-health.test.ts -t "distribution"
 ```
 
-Or use the standard Vitest `-t` flag (which runs all but skips non-matching):
+To run a targeted Playwright spec/project:
 
 ```bash
-pnpm test tests/unit/algorithm.test.ts -t "Inheritance"
+just test-e2e -- tests/e2e/specs/due-dates.spec.ts --project=e2e-mobile
 ```
 
 # Learnings

@@ -1,5 +1,4 @@
-use crate::components::Button;
-use crate::components::button::ButtonVariant;
+use crate::dioxus_components::button::{Button, ButtonVariant};
 #[cfg(target_arch = "wasm32")]
 use crate::hooks::use_sync::SYNC_SERVER_URL_KEY;
 use crate::hooks::use_sync::SyncStatus;
@@ -54,8 +53,8 @@ pub fn SyncIndicator() -> Element {
         div {
             class: format!("dropdown dropdown-end {}", if show_settings() { "dropdown-open" } else { "" }),
             "data-testid": "sync-indicator",
-            button {
-                class: "btn btn-ghost btn-sm gap-2",
+            Button {
+                variant: ButtonVariant::Ghost,
                 "data-testid": "sync-status-button",
                 onclick: move |_| {
                     let new_state = !show_settings();
@@ -87,7 +86,6 @@ pub fn SyncIndicator() -> Element {
                         }
                         Button {
                             variant: ButtonVariant::Primary,
-                            class: "btn-sm w-full",
                             onclick: move |_| {
                                 set_sync_url(&url_input());
                                 show_settings.set(false);

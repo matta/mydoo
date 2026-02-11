@@ -3,11 +3,14 @@
 ## Contents
 
 - [Goals](#goals)
+- [Tracking Policy For This Migration](#tracking-policy-for-this-migration)
+- [Slice Execution Guardrails](#slice-execution-guardrails)
 - [Current State](#current-state)
 - [Upstream Architecture](#upstream-architecture)
 - [Component Inventory And Divergence](#component-inventory-and-divergence)
 - [Divergence Summary](#divergence-summary)
 - [Tailwind And DaisyUI Usage Audit](#tailwind-and-daisyui-usage-audit)
+- [Current DaisyUI Debt Snapshot](#current-daisyui-debt-snapshot)
 - [Gap Analysis Against Dioxus Components](#gap-analysis-against-dioxus-components)
 - [Module Boundary And Naming](#module-boundary-and-naming)
 - [Dependency Strategy For Dioxus Primitives](#dependency-strategy-for-dioxus-primitives)
@@ -17,6 +20,7 @@
 - [Upstream Tracking Strategy](#upstream-tracking-strategy)
 - [Component Acquisition Workflow](#component-acquisition-workflow)
 - [Representative Diffs](#representative-diffs)
+- [Tailwind Removal Exit Criteria](#tailwind-removal-exit-criteria)
 - [Migration Plan And Priorities](#migration-plan-and-priorities)
 - [Checklist](#checklist)
 
@@ -27,9 +31,33 @@
 - Preserve upstream history and enable clean merges while keeping local patches.
 - Remove Tailwind and DaisyUI and replace them with upstream CSS plus minimal app CSS.
 
+## Tracking Policy For This Migration
+
+- For this Dioxus Components migration effort, the source of truth is this plan document plus `dioxus-components-migration.todo.md`.
+- Do not use `bd` for per-slice migration tracking in this effort unless the user explicitly requests `bd` tracking.
+- Keep progress current by updating chunk headings, checklist checkboxes, and status notes in these two migration documents.
+
+## Slice Execution Guardrails
+
+Recent history exposed a repeatable drift risk:
+
+- `refactor(tasklens-ui): complete button vertical slice migration` migrated the component implementation, but left substantial `btn*` class debt in callsites.
+- `feat(ui): migrate input to vendored dioxus component` migrated the implementation, but callsite class debt remained and inventory/checklist status drifted.
+
+To keep forward progress tied to the end goal (Tailwind and DaisyUI removal), each slice must follow this definition of done:
+
+1. Vendor one upstream component and integrate callsites.
+2. Remove the legacy implementation from `src/components`.
+3. Audit and either:
+   - remove related DaisyUI/Tailwind class tokens in the touched callsites, or
+   - explicitly log remaining debt in `dioxus-components-migration.todo.md` with concrete file paths.
+4. Update inventory status and divergence counts in this document in the same change.
+5. Keep the active chunk in the checklist pointed at the highest-impact remaining class debt, not just the next component name.
+
 ## Current State
 
 - The app now has `app_components` for app-specific UI, with `components` retained as a temporary compatibility shim for legacy imports.
+- Button and Input are now vendored from upstream in `dioxus_components`, but many callsites still apply DaisyUI/Tailwind class tokens.
 - Several components already wrap `dioxus-primitives` (Dialog, Collapsible, Calendar, Popover, Select, Slider), but with local styling and API drift.
 - Tailwind and DaisyUI classes are used broadly across components and views.
 - Tailwind is still loaded globally while migration work continues; `app.css` is now linked for additive app-level styling.
@@ -54,53 +82,53 @@ Status legend:
 - Diverged: app-specific replacement that does not follow upstream.
 - Missing: no local equivalent.
 
-| Component     | Upstream Path                                                                                                                   | Local Path                                             | Status                                                           | Recommended Action                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------- | ---------------------------------------------------------- |
-| Accordion     | [preview/src/components/accordion](https://github.com/DioxusLabs/components/tree/main/preview/src/components/accordion)         | —                                                      | Missing                                                          | Adopt if needed (likely for collapsible content in views). |
-| Alert Dialog  | [preview/src/components/alert_dialog](https://github.com/DioxusLabs/components/tree/main/preview/src/components/alert_dialog)   | —                                                      | Missing                                                          | Adopt for destructive confirmations and modal alerts.      |
-| Aspect Ratio  | [preview/src/components/aspect_ratio](https://github.com/DioxusLabs/components/tree/main/preview/src/components/aspect_ratio)   | —                                                      | Missing                                                          | Adopt if media thumbnails need consistent sizing.          |
-| Avatar        | [preview/src/components/avatar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/avatar)               | —                                                      | Missing                                                          | Adopt if user/profile UI is needed.                        |
-| Badge         | [preview/src/components/badge](https://github.com/DioxusLabs/components/tree/main/preview/src/components/badge)                 | —                                                      | Missing                                                          | Adopt to replace DaisyUI `badge` usage.                    |
-| Button        | [preview/src/components/button](https://github.com/DioxusLabs/components/tree/main/preview/src/components/button)               | `crates/tasklens-ui/src/components/button.rs`          | Diverged (DaisyUI classes)                                       | Replace with upstream component and CSS.                   |
-| Calendar      | [preview/src/components/calendar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/calendar)           | `crates/tasklens-ui/src/components/calendar/`          | Wrapper/Modified (extra wrapper, missing CalendarView)           | Re-vendor and restore upstream API.                        |
-| Card          | [preview/src/components/card](https://github.com/DioxusLabs/components/tree/main/preview/src/components/card)                   | —                                                      | Missing                                                          | Adopt to replace DaisyUI `card` usage.                     |
-| Checkbox      | [preview/src/components/checkbox](https://github.com/DioxusLabs/components/tree/main/preview/src/components/checkbox)           | `crates/tasklens-ui/src/components/checkbox.rs`        | Diverged (DaisyUI classes)                                       | Replace with upstream component and CSS.                   |
-| Collapsible   | [preview/src/components/collapsible](https://github.com/DioxusLabs/components/tree/main/preview/src/components/collapsible)     | `crates/tasklens-ui/src/components/collapsible/`       | Wrapper/Modified (missing `as` support, Tailwind classes)        | Re-vendor and restore upstream API.                        |
-| Context Menu  | [preview/src/components/context_menu](https://github.com/DioxusLabs/components/tree/main/preview/src/components/context_menu)   | —                                                      | Missing                                                          | Adopt if context menus are needed.                         |
-| Date Picker   | [preview/src/components/date_picker](https://github.com/DioxusLabs/components/tree/main/preview/src/components/date_picker)     | `crates/tasklens-ui/src/components/date_picker/mod.rs` | Diverged (simple HTML input; upstream wrapper exists but unused) | Replace with upstream component and wire `component.rs`.   |
-| Dialog        | [preview/src/components/dialog](https://github.com/DioxusLabs/components/tree/main/preview/src/components/dialog)               | `crates/tasklens-ui/src/components/dialog/`            | Wrapper/Modified (DaisyUI classes, no upstream CSS)              | Re-vendor and restore upstream styling.                    |
-| Dropdown Menu | [preview/src/components/dropdown_menu](https://github.com/DioxusLabs/components/tree/main/preview/src/components/dropdown_menu) | —                                                      | Missing                                                          | Adopt to replace DaisyUI `dropdown` usage.                 |
-| Form          | [preview/src/components/form](https://github.com/DioxusLabs/components/tree/main/preview/src/components/form)                   | —                                                      | Missing                                                          | Adopt if form layouts need standardization.                |
-| Hover Card    | [preview/src/components/hover_card](https://github.com/DioxusLabs/components/tree/main/preview/src/components/hover_card)       | —                                                      | Missing                                                          | Adopt if hover previews are needed.                        |
-| Input         | [preview/src/components/input](https://github.com/DioxusLabs/components/tree/main/preview/src/components/input)                 | `crates/tasklens-ui/src/components/input.rs`           | Diverged (DaisyUI classes, reduced API surface)                  | Replace with upstream component and CSS.                   |
-| Label         | [preview/src/components/label](https://github.com/DioxusLabs/components/tree/main/preview/src/components/label)                 | —                                                      | Missing                                                          | Adopt to replace DaisyUI `label` usage.                    |
-| Menubar       | [preview/src/components/menubar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/menubar)             | —                                                      | Missing                                                          | Adopt if menu bars are needed.                             |
-| Navbar        | [preview/src/components/navbar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/navbar)               | `crates/tasklens-ui/src/components/navbar/`            | Adopted (minor formatting diffs)                                 | Keep and re-sync to upstream formatting.                   |
-| Popover       | [preview/src/components/popover](https://github.com/DioxusLabs/components/tree/main/preview/src/components/popover)             | `crates/tasklens-ui/src/components/popover/`           | Adopted (minor formatting diffs)                                 | Keep and re-sync to upstream formatting.                   |
-| Progress      | [preview/src/components/progress](https://github.com/DioxusLabs/components/tree/main/preview/src/components/progress)           | —                                                      | Missing                                                          | Adopt to replace DaisyUI `progress` usage.                 |
-| Radio Group   | [preview/src/components/radio_group](https://github.com/DioxusLabs/components/tree/main/preview/src/components/radio_group)     | —                                                      | Missing                                                          | Adopt to replace DaisyUI radio usage.                      |
-| Scroll Area   | [preview/src/components/scroll_area](https://github.com/DioxusLabs/components/tree/main/preview/src/components/scroll_area)     | —                                                      | Missing                                                          | Adopt for scrollable panes with consistent styling.        |
-| Select        | [preview/src/components/select](https://github.com/DioxusLabs/components/tree/main/preview/src/components/select)               | `crates/tasklens-ui/src/components/select/`            | Wrapper/Modified (DaisyUI classes)                               | Re-vendor and restore upstream styling.                    |
-| Separator     | [preview/src/components/separator](https://github.com/DioxusLabs/components/tree/main/preview/src/components/separator)         | —                                                      | Missing                                                          | Adopt where separators are used in menus or cards.         |
-| Sheet         | [preview/src/components/sheet](https://github.com/DioxusLabs/components/tree/main/preview/src/components/sheet)                 | —                                                      | Missing                                                          | Adopt for slide-over panels if needed.                     |
-| Sidebar       | [preview/src/components/sidebar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/sidebar)             | —                                                      | Missing                                                          | Adopt if sidebar navigation is added.                      |
-| Skeleton      | [preview/src/components/skeleton](https://github.com/DioxusLabs/components/tree/main/preview/src/components/skeleton)           | —                                                      | Missing                                                          | Adopt to replace custom loading skeletons.                 |
-| Slider        | [preview/src/components/slider](https://github.com/DioxusLabs/components/tree/main/preview/src/components/slider)               | `crates/tasklens-ui/src/components/slider/`            | Adopted (minor formatting diffs)                                 | Keep and re-sync to upstream formatting.                   |
-| Switch        | [preview/src/components/switch](https://github.com/DioxusLabs/components/tree/main/preview/src/components/switch)               | —                                                      | Missing                                                          | Adopt to replace DaisyUI `toggle` usage.                   |
-| Tabs          | [preview/src/components/tabs](https://github.com/DioxusLabs/components/tree/main/preview/src/components/tabs)                   | —                                                      | Missing                                                          | Adopt if tabbed navigation is needed.                      |
-| Textarea      | [preview/src/components/textarea](https://github.com/DioxusLabs/components/tree/main/preview/src/components/textarea)           | —                                                      | Missing                                                          | Adopt to replace DaisyUI `textarea` usage.                 |
-| Toast         | [preview/src/components/toast](https://github.com/DioxusLabs/components/tree/main/preview/src/components/toast)                 | —                                                      | Missing                                                          | Adopt to replace custom notifications.                     |
-| Toggle        | [preview/src/components/toggle](https://github.com/DioxusLabs/components/tree/main/preview/src/components/toggle)               | —                                                      | Missing                                                          | Adopt for on/off UI instead of DaisyUI `toggle`.           |
-| Toggle Group  | [preview/src/components/toggle_group](https://github.com/DioxusLabs/components/tree/main/preview/src/components/toggle_group)   | —                                                      | Missing                                                          | Adopt for multi-toggle controls.                           |
-| Toolbar       | [preview/src/components/toolbar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/toolbar)             | —                                                      | Missing                                                          | Adopt if toolbar patterns are introduced.                  |
-| Tooltip       | [preview/src/components/tooltip](https://github.com/DioxusLabs/components/tree/main/preview/src/components/tooltip)             | —                                                      | Missing                                                          | Adopt to replace custom hover hints.                       |
+| Component     | Upstream Path                                                                                                                   | Local Path                                             | Status                                                            | Recommended Action                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------- |
+| Accordion     | [preview/src/components/accordion](https://github.com/DioxusLabs/components/tree/main/preview/src/components/accordion)         | —                                                      | Missing                                                           | Adopt if needed (likely for collapsible content in views).    |
+| Alert Dialog  | [preview/src/components/alert_dialog](https://github.com/DioxusLabs/components/tree/main/preview/src/components/alert_dialog)   | —                                                      | Missing                                                           | Adopt for destructive confirmations and modal alerts.         |
+| Aspect Ratio  | [preview/src/components/aspect_ratio](https://github.com/DioxusLabs/components/tree/main/preview/src/components/aspect_ratio)   | —                                                      | Missing                                                           | Adopt if media thumbnails need consistent sizing.             |
+| Avatar        | [preview/src/components/avatar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/avatar)               | —                                                      | Missing                                                           | Adopt if user/profile UI is needed.                           |
+| Badge         | [preview/src/components/badge](https://github.com/DioxusLabs/components/tree/main/preview/src/components/badge)                 | —                                                      | Missing                                                           | Adopt to replace DaisyUI `badge` usage.                       |
+| Button        | [preview/src/components/button](https://github.com/DioxusLabs/components/tree/main/preview/src/components/button)               | `crates/tasklens-ui/src/dioxus_components/button/`     | Adopted (vendored upstream component integrated in app callsites) | Keep vendored source and remove legacy compatibility usage.   |
+| Calendar      | [preview/src/components/calendar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/calendar)           | `crates/tasklens-ui/src/components/calendar/`          | Wrapper/Modified (extra wrapper, missing CalendarView)            | Re-vendor and restore upstream API.                           |
+| Card          | [preview/src/components/card](https://github.com/DioxusLabs/components/tree/main/preview/src/components/card)                   | —                                                      | Missing                                                           | Adopt to replace DaisyUI `card` usage.                        |
+| Checkbox      | [preview/src/components/checkbox](https://github.com/DioxusLabs/components/tree/main/preview/src/components/checkbox)           | `crates/tasklens-ui/src/components/checkbox.rs`        | Diverged (DaisyUI classes)                                        | Replace with upstream component and CSS.                      |
+| Collapsible   | [preview/src/components/collapsible](https://github.com/DioxusLabs/components/tree/main/preview/src/components/collapsible)     | `crates/tasklens-ui/src/components/collapsible/`       | Wrapper/Modified (missing `as` support, Tailwind classes)         | Re-vendor and restore upstream API.                           |
+| Context Menu  | [preview/src/components/context_menu](https://github.com/DioxusLabs/components/tree/main/preview/src/components/context_menu)   | —                                                      | Missing                                                           | Adopt if context menus are needed.                            |
+| Date Picker   | [preview/src/components/date_picker](https://github.com/DioxusLabs/components/tree/main/preview/src/components/date_picker)     | `crates/tasklens-ui/src/components/date_picker/mod.rs` | Diverged (simple HTML input; upstream wrapper exists but unused)  | Replace with upstream component and wire `component.rs`.      |
+| Dialog        | [preview/src/components/dialog](https://github.com/DioxusLabs/components/tree/main/preview/src/components/dialog)               | `crates/tasklens-ui/src/components/dialog/`            | Wrapper/Modified (DaisyUI classes, no upstream CSS)               | Re-vendor and restore upstream styling.                       |
+| Dropdown Menu | [preview/src/components/dropdown_menu](https://github.com/DioxusLabs/components/tree/main/preview/src/components/dropdown_menu) | —                                                      | Missing                                                           | Adopt to replace DaisyUI `dropdown` usage.                    |
+| Form          | [preview/src/components/form](https://github.com/DioxusLabs/components/tree/main/preview/src/components/form)                   | —                                                      | Missing                                                           | Adopt if form layouts need standardization.                   |
+| Hover Card    | [preview/src/components/hover_card](https://github.com/DioxusLabs/components/tree/main/preview/src/components/hover_card)       | —                                                      | Missing                                                           | Adopt if hover previews are needed.                           |
+| Input         | [preview/src/components/input](https://github.com/DioxusLabs/components/tree/main/preview/src/components/input)                 | `crates/tasklens-ui/src/dioxus_components/input/`      | Adopted (vendored upstream component integrated in app callsites) | Remove remaining DaisyUI/Tailwind input classes in callsites. |
+| Label         | [preview/src/components/label](https://github.com/DioxusLabs/components/tree/main/preview/src/components/label)                 | —                                                      | Missing                                                           | Adopt to replace DaisyUI `label` usage.                       |
+| Menubar       | [preview/src/components/menubar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/menubar)             | —                                                      | Missing                                                           | Adopt if menu bars are needed.                                |
+| Navbar        | [preview/src/components/navbar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/navbar)               | `crates/tasklens-ui/src/components/navbar/`            | Adopted (minor formatting diffs)                                  | Keep and re-sync to upstream formatting.                      |
+| Popover       | [preview/src/components/popover](https://github.com/DioxusLabs/components/tree/main/preview/src/components/popover)             | `crates/tasklens-ui/src/components/popover/`           | Adopted (minor formatting diffs)                                  | Keep and re-sync to upstream formatting.                      |
+| Progress      | [preview/src/components/progress](https://github.com/DioxusLabs/components/tree/main/preview/src/components/progress)           | —                                                      | Missing                                                           | Adopt to replace DaisyUI `progress` usage.                    |
+| Radio Group   | [preview/src/components/radio_group](https://github.com/DioxusLabs/components/tree/main/preview/src/components/radio_group)     | —                                                      | Missing                                                           | Adopt to replace DaisyUI radio usage.                         |
+| Scroll Area   | [preview/src/components/scroll_area](https://github.com/DioxusLabs/components/tree/main/preview/src/components/scroll_area)     | —                                                      | Missing                                                           | Adopt for scrollable panes with consistent styling.           |
+| Select        | [preview/src/components/select](https://github.com/DioxusLabs/components/tree/main/preview/src/components/select)               | `crates/tasklens-ui/src/components/select/`            | Wrapper/Modified (DaisyUI classes)                                | Re-vendor and restore upstream styling.                       |
+| Separator     | [preview/src/components/separator](https://github.com/DioxusLabs/components/tree/main/preview/src/components/separator)         | —                                                      | Missing                                                           | Adopt where separators are used in menus or cards.            |
+| Sheet         | [preview/src/components/sheet](https://github.com/DioxusLabs/components/tree/main/preview/src/components/sheet)                 | —                                                      | Missing                                                           | Adopt for slide-over panels if needed.                        |
+| Sidebar       | [preview/src/components/sidebar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/sidebar)             | —                                                      | Missing                                                           | Adopt if sidebar navigation is added.                         |
+| Skeleton      | [preview/src/components/skeleton](https://github.com/DioxusLabs/components/tree/main/preview/src/components/skeleton)           | —                                                      | Missing                                                           | Adopt to replace custom loading skeletons.                    |
+| Slider        | [preview/src/components/slider](https://github.com/DioxusLabs/components/tree/main/preview/src/components/slider)               | `crates/tasklens-ui/src/components/slider/`            | Adopted (minor formatting diffs)                                  | Keep and re-sync to upstream formatting.                      |
+| Switch        | [preview/src/components/switch](https://github.com/DioxusLabs/components/tree/main/preview/src/components/switch)               | —                                                      | Missing                                                           | Adopt to replace DaisyUI `toggle` usage.                      |
+| Tabs          | [preview/src/components/tabs](https://github.com/DioxusLabs/components/tree/main/preview/src/components/tabs)                   | —                                                      | Missing                                                           | Adopt if tabbed navigation is needed.                         |
+| Textarea      | [preview/src/components/textarea](https://github.com/DioxusLabs/components/tree/main/preview/src/components/textarea)           | —                                                      | Missing                                                           | Adopt to replace DaisyUI `textarea` usage.                    |
+| Toast         | [preview/src/components/toast](https://github.com/DioxusLabs/components/tree/main/preview/src/components/toast)                 | —                                                      | Missing                                                           | Adopt to replace custom notifications.                        |
+| Toggle        | [preview/src/components/toggle](https://github.com/DioxusLabs/components/tree/main/preview/src/components/toggle)               | —                                                      | Missing                                                           | Adopt for on/off UI instead of DaisyUI `toggle`.              |
+| Toggle Group  | [preview/src/components/toggle_group](https://github.com/DioxusLabs/components/tree/main/preview/src/components/toggle_group)   | —                                                      | Missing                                                           | Adopt for multi-toggle controls.                              |
+| Toolbar       | [preview/src/components/toolbar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/toolbar)             | —                                                      | Missing                                                           | Adopt if toolbar patterns are introduced.                     |
+| Tooltip       | [preview/src/components/tooltip](https://github.com/DioxusLabs/components/tree/main/preview/src/components/tooltip)             | —                                                      | Missing                                                           | Adopt to replace custom hover hints.                          |
 
 ## Divergence Summary
 
 - Total upstream components: 38
-- Adopted: 3 (Navbar, Popover, Slider)
+- Adopted: 5 (Button, Input, Navbar, Popover, Slider)
 - Wrapper/Modified: 4 (Calendar, Collapsible, Dialog, Select)
-- Diverged replacements: 4 (Button, Checkbox, Date Picker, Input)
+- Diverged replacements: 2 (Checkbox, Date Picker)
 - Missing: 27
 
 ## Tailwind And DaisyUI Usage Audit
@@ -116,6 +144,40 @@ This is a categorized summary intended to map usage into replacement workstreams
 | Interactive States | `hover:*`, `focus:*`, `group-hover:*` sprinkled in views                                                                     | Many upstream components include hover/focus styles                                                     | Keep in component CSS where possible, add app CSS for app-specific interactions.          |
 | Component Skins    | `btn`, `card`, `badge`, `input`, `select`, `textarea`, `toggle`, `range`, `progress`, `dropdown`, `modal`, `menu`, `loading` | Buttons, Inputs, Select, Textarea, Toggle, Progress, Dialog, Dropdown Menu, Toast, Tooltip, Card, Badge | Replace DaisyUI class usage with upstream components and styles.                          |
 | App-Specific UI    | Task rows, task editor layout, navbar controls, score trace cards                                                            | Partial (Navbar, Card, Badge)                                                                           | Move app UI to `app_components` and style via `app.css` + upstream components.            |
+
+## Current DaisyUI Debt Snapshot
+
+Snapshot basis: code audit on February 11, 2026 (`HEAD` at `dd43ec3`).
+
+- `btn*` debt remains in raw RSX and Button class overrides, with largest hotspots in:
+  - `crates/tasklens-ui/src/app_components/task_editor.rs`
+  - `crates/tasklens-ui/src/views/do_page.rs`
+  - `crates/tasklens-ui/src/app_components/move_picker.rs`
+  - `crates/tasklens-ui/src/components/select/component.rs`
+- `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt is concentrated in:
+  - `crates/tasklens-ui/src/app_components/task_editor.rs`
+  - `crates/tasklens-ui/src/app_components/task_input.rs`
+  - `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
+  - `crates/tasklens-ui/src/app_components/search_panel.rs`
+  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+- `card*`/`badge*`/`progress*` debt is concentrated in:
+  - `crates/tasklens-ui/src/views/score_trace_page.rs`
+  - `crates/tasklens-ui/src/views/balance_page.rs`
+  - `crates/tasklens-ui/src/views/task_page.rs`
+  - `crates/tasklens-ui/src/app_components/task_row.rs`
+  - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
+  - `crates/tasklens-ui/src/app_components/empty_state.rs`
+- `dropdown*`/`menu*`/`modal*` debt remains in:
+  - `crates/tasklens-ui/src/components/select/component.rs`
+  - `crates/tasklens-ui/src/components/dialog/component.rs`
+  - `crates/tasklens-ui/src/components/date_picker/component.rs`
+  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+  - `crates/tasklens-ui/src/app_components/move_picker.rs`
+- Tailwind runtime dependency is still active:
+  - `crates/tasklens-ui/src/main.rs` still links `assets/tailwind.css`
+  - `crates/tasklens-ui/tailwind.css` still loads Tailwind + DaisyUI plugin
+
+All deferred cleanup is tracked in `dioxus-components-migration.todo.md` under the class debt and active chunk sections.
 
 ## Gap Analysis Against Dioxus Components
 
@@ -262,6 +324,18 @@ Recommendation:
 - Set `module_path = "src/dioxus_components"` and registry `git`/`rev` in `dioxus-vendor-components.toml`; xtask will pass matching installer arguments consistently.
 - Keep local patches on top of merged vendor snapshots.
 
+Incremental execution model:
+
+- Run migration as per-component vertical slices, not a bulk directory move.
+- For each component, do this sequence in order:
+  1. Vendor exactly one target component into `src/dioxus_components` using `dioxus-vendor-components.toml` + `cargo xtask update-dioxus-components`.
+  2. Integrate it in app code (either a temporary compatibility adapter or direct import/callsite migration).
+  3. Delete the legacy implementation from `src/components` once no callsites depend on it.
+  4. Remove related DaisyUI/Tailwind class tokens in touched callsites, or log exact deferred file paths in the checklist.
+  5. Update inventory/divergence status in this document and checklist.
+  6. Repoint the active chunk to the highest-impact remaining class debt.
+- Current next slice: Checkbox, while running Button/Input debt burn-down in parallel until `btn*` and `input*` cleanup is no longer deferred.
+
 ## Representative Diffs
 
 - Button: local uses DaisyUI classes; upstream uses CSS variables and `style.css` with `data-style` variants.
@@ -270,14 +344,29 @@ Recommendation:
 - Dialog: local is styled as a DaisyUI modal; upstream uses dedicated dialog CSS and attributes for accessibility.
 - Date Picker: local exports an HTML `<input type="date">`; upstream provides a full picker with calendar and range support.
 
+## Tailwind Removal Exit Criteria
+
+Tailwind/DaisyUI removal should only happen when all gates below are true:
+
+1. No remaining DaisyUI component-skin classes in RSX/class attributes (`btn*`, `input*`, `select*`, `textarea*`, `toggle*`, `card*`, `badge*`, `progress*`, `dropdown*`, `menu*`, `modal*`, `loading*`, `fieldset*`, `join*`).
+2. No remaining DaisyUI theme utility tokens in app code (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, and similar).
+3. Tailwind build/runtime assets removed:
+   - remove `crates/tasklens-ui/tailwind.css`
+   - remove `crates/tasklens-ui/assets/tailwind.css`
+   - remove DaisyUI plugin usage
+   - remove tailwind stylesheet link from `crates/tasklens-ui/src/main.rs`
+4. `dx-components-theme.css` is pristine upstream; app overrides are moved to `assets/app.css`.
+5. Verification passes after removal (`just verify`).
+
 ## Migration Plan And Priorities
 
 - Implement the recommended upstream tracking strategy: pristine vendor branch driven by `dx components add` and pinned registry revision.
 - Split modules: `dioxus_components` for vendored Dioxus Components, `app_components` for app UI.
-- De-tailwind: remove Tailwind and DaisyUI classes, add `app.css` for layout and typography.
-- Re-vendor and replace diverged components first: Button, Input, Checkbox, Date Picker.
-- Align existing wrappers: Calendar, Collapsible, Select, Dialog.
-- Adopt missing upstream components as needed (Badge, Card, Progress, Textarea, Toggle, Tooltip, Toast, etc).
+- Burn down deferred class debt from already-migrated Button/Input slices before adding more deferred cleanup.
+- Re-vendor and replace remaining diverged components next: Checkbox, then Date Picker.
+- Align wrapper components that still embed DaisyUI/Tailwind assumptions: Select, Dialog, Collapsible, Calendar.
+- Adopt missing upstream components in usage-driven order (Badge, Card, Progress, Textarea, Toggle, Dropdown Menu, Label, then lower-usage items).
+- De-tailwind only after exit criteria are met: remove Tailwind/DaisyUI classes, then remove Tailwind build/runtime inputs.
 - Migrate app-specific UI to `app_components` and style via `app.css` + upstream components.
 - Update the inventory and divergence summary as components are aligned.
 
