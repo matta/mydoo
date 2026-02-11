@@ -160,7 +160,6 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                 if !flattened_tasks().is_empty() && load_error().is_none() {
                     Button {
                         variant: ButtonVariant::Primary,
-                        class: "app-button-sm",
                         aria_label: "Add Task at Top",
                         onclick: move |_| {
                             editor_state

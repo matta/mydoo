@@ -94,7 +94,6 @@ pub fn AppNavBar() -> Element {
 
                 Button {
                     variant: ButtonVariant::Ghost,
-                    class: "app-icon-button",
                     onclick: move |_| show_search.set(!show_search()),
                     aria_label: "Search tasks",
                     "data-testid": "search-button",
@@ -114,7 +113,6 @@ pub fn AppNavBar() -> Element {
 
                 Button {
                     variant: ButtonVariant::Ghost,
-                    class: "app-icon-button",
                     onclick: move |_| show_settings.set(true),
                     aria_label: "Settings",
                     "data-testid": "settings-button",

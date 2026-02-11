@@ -102,7 +102,6 @@ pub fn TaskRow(
                 if has_children {
                     Button {
                         variant: ButtonVariant::Ghost,
-                        class: "app-task-row-icon-button",
                         onclick: move |evt: MouseEvent| {
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
@@ -183,7 +182,6 @@ pub fn TaskRow(
             div { class: "flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2",
                 Button {
                     variant: ButtonVariant::Ghost,
-                    class: "app-task-row-icon-button",
                     title: "Add Subtask",
                     onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
                     svg {
@@ -202,7 +200,6 @@ pub fn TaskRow(
                 }
                 Button {
                     variant: ButtonVariant::Ghost,
-                    class: "app-task-row-icon-button app-task-row-icon-button-destructive",
                     title: "Delete",
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
                     svg {

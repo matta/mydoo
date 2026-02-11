@@ -55,7 +55,6 @@ pub fn SyncIndicator() -> Element {
             "data-testid": "sync-indicator",
             Button {
                 variant: ButtonVariant::Ghost,
-                class: "app-button-sm app-sync-status-button",
                 "data-testid": "sync-status-button",
                 onclick: move |_| {
                     let new_state = !show_settings();
@@ -87,7 +86,6 @@ pub fn SyncIndicator() -> Element {
                         }
                         Button {
                             variant: ButtonVariant::Primary,
-                            class: "app-button-sm app-button-block",
                             onclick: move |_| {
                                 set_sync_url(&url_input());
                                 show_settings.set(false);

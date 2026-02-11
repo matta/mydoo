@@ -155,7 +155,6 @@ pub fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
                     }
                     Button {
                         variant: ButtonVariant::Ghost,
-                        class: "app-icon-button",
                         onclick: move |_| {
                             query.set(String::new());
                             on_close.call(());
