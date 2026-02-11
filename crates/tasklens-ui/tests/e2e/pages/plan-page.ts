@@ -397,7 +397,9 @@ export class PlanPage implements PlanFixture {
       .locator(`[data-testid="task-item"]`, { hasText: title })
       .first();
     await finalRow.waitFor({ state: "visible" });
-    await finalRow.click();
+    const titleCell = finalRow.getByTestId("task-title").first();
+    await expect(titleCell).toBeVisible();
+    await titleCell.click();
     await expect(modal).toBeVisible();
   }
 
