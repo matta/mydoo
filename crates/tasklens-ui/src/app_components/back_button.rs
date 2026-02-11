@@ -1,4 +1,4 @@
-use crate::components::button::{Button, ButtonVariant};
+use crate::dioxus_components::button::{Button, ButtonVariant};
 use dioxus::prelude::*;
 
 /// A specialized button for navigation, featuring a "Back" label and a left-pointing arrow icon.

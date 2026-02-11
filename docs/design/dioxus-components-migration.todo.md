@@ -6,12 +6,31 @@
 - [x] Set `crates/tasklens-ui/dioxus-vendor-components.toml` `module_path = "src/dioxus_components"` (default is `src/components` when omitted from `dx` args).
 - [x] Require xtask-managed vendoring to pass `--module-path src/dioxus_components` from `dioxus-vendor-components.toml` so runs cannot fall back to the default `components` module.
 - [x] Split modules: keep `crates/tasklens-ui/src/dioxus_components` for vendored Dioxus Components and create `crates/tasklens-ui/src/app_components` for app UI.
-- [ ] Move vendored Dioxus components from `crates/tasklens-ui/src/components` to `crates/tasklens-ui/src/dioxus_components`, then update module declarations/imports.
+- [ ] Migrate legacy Dioxus component implementations out of `crates/tasklens-ui/src/components` incrementally, one component at a time, by vendoring into `crates/tasklens-ui/src/dioxus_components` and then migrating imports/callsites.
 - [x] Move app-specific components into `app_components` (examples: `task_row`, `task_editor`, `app_navbar`, `sync_indicator`, `empty_state`).
 - [x] Create `assets/app.css` and link it in `main.rs`.
 - [ ] Keep `crates/tasklens-ui/src/components` as a temporary compatibility shim until all imports are migrated.
 - [ ] Remove Tailwind and DaisyUI build inputs (`tailwind.css`, `assets/tailwind.css`, DaisyUI plugin usage).
 - [ ] Replace local edits in `dx-components-theme.css` with a pristine upstream copy; move overrides to `app.css`.
+
+## Active Chunk: Button Vertical Slice
+
+- [x] Vendor upstream `button` into `crates/tasklens-ui/src/dioxus_components/button` via `dioxus-vendor-components.toml` + `cargo xtask update-dioxus-components`.
+- [x] Integrate vendored `dioxus_components::button` into app code using direct callsite migration to `crate::dioxus_components::button::{Button, ButtonVariant}`.
+- [x] Remove legacy `crates/tasklens-ui/src/components/button.rs` once no callsites depend on it.
+- [x] Update module declarations/re-exports so Button resolves from `dioxus_components` rather than legacy `components`.
+- [x] Update migration inventory/divergence notes after Button lands.
+
+## Deferred After Button Slice: DaisyUI Button Markup Cleanup
+
+- [ ] Replace raw RSX `button` elements that still use DaisyUI `btn*` classes with Dioxus Button usage or app-owned CSS in:
+  - `crates/tasklens-ui/src/views/plan_page.rs`
+  - `crates/tasklens-ui/src/app_components/task_row.rs`
+  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+  - `crates/tasklens-ui/src/app_components/search_panel.rs`
+  - `crates/tasklens-ui/src/app_components/app_navbar.rs`
+- [ ] Remove remaining `btn*` styling assumptions passed to `Button { class: ... }` where they rely on DaisyUI tokens (for example: `btn-sm`, `btn-circle`, `btn-xs`) and replace with upstream-compatible/app CSS classes.
+- [ ] Replace non-button element DaisyUI `btn*` classes used for list-option affordances (for example in `move_picker` and `components/select/component.rs`) with upstream-compatible patterns.
 
 ## Align Existing Dioxus Component Wrappers
 
@@ -22,7 +41,7 @@
 
 ## Replace Diverged Components
 
-- [ ] Button: replace local DaisyUI `button.rs` with upstream `button` component + CSS.
+- [x] Button: replace local DaisyUI `button.rs` with upstream `button` component + CSS.
 - [ ] Checkbox: replace local DaisyUI `checkbox.rs` with upstream `checkbox` component + CSS.
 - [ ] Input: replace local DaisyUI `input.rs` with upstream `input` component + CSS.
 - [ ] Date Picker: wire the upstream wrapper and remove the HTML `<input type="date">` implementation.
