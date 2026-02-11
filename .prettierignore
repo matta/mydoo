@@ -12,6 +12,7 @@
 **/playwright-report/**
 **/test-results/**
 **/*.d.ts
+**/.mypy_cache/
 
 # Conductor archive
 conductor/archive/
