@@ -9,7 +9,7 @@ import {
 import { type PlanFixture, PlanPage } from "./pages/plan-page";
 import { Steps } from "./steps/steps-library";
 import { dumpFailureContext, formatConsoleMessage } from "./utils/debug-utils";
-import { SyncServerHelper } from "./utils/sync-server";
+import { getEphemeralPort, SyncServerHelper } from "./utils/sync-server";
 
 export { expect };
 
@@ -149,9 +149,8 @@ export const test = baseTest.extend<MyFixtures, MyWorkerFixtures>({
       // biome-ignore lint/correctness/noEmptyPattern: playwright fixture requirement
       {},
       use,
-      workerInfo,
     ) => {
-      const port = 3010 + workerInfo.workerIndex;
+      const port = await getEphemeralPort();
       const server = new SyncServerHelper(port);
       await server.start();
       await use(server);
