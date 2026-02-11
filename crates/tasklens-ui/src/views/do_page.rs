@@ -1,7 +1,7 @@
 use crate::app_components::priority_task_row::PriorityTaskRow;
 use crate::app_components::{EmptyState, LoadErrorView, PageHeader, TaskEditor, TaskInput};
-use crate::components::{Button, ButtonVariant};
 use crate::controllers::task_controller;
+use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::hooks::use_prioritized_tasks::use_do_list_tasks;
 use dioxus::prelude::*;
 use tasklens_core::types::TaskID;
