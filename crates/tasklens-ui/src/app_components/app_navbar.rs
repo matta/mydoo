@@ -1,6 +1,7 @@
 use crate::components::navbar::{Navbar, NavbarItem, NavbarNav};
 use crate::components::search_panel::SearchPanel;
 use crate::controllers::doc_controller;
+use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::router::Route;
 use crate::views::auth::SettingsModal;
 use dioxus::prelude::*;
@@ -91,8 +92,9 @@ pub fn AppNavBar() -> Element {
             div { class: "flex items-center space-x-2 pr-4",
                 crate::components::SyncIndicator {}
 
-                button {
-                    class: "btn btn-ghost btn-sm btn-square text-base-content/70 hover:text-base-content",
+                Button {
+                    variant: ButtonVariant::Ghost,
+                    class: "app-icon-button",
                     onclick: move |_| show_search.set(!show_search()),
                     aria_label: "Search tasks",
                     "data-testid": "search-button",
@@ -110,8 +112,9 @@ pub fn AppNavBar() -> Element {
                     }
                 }
 
-                button {
-                    class: "btn btn-ghost btn-sm btn-square text-base-content/70 hover:text-base-content",
+                Button {
+                    variant: ButtonVariant::Ghost,
+                    class: "app-icon-button",
                     onclick: move |_| show_settings.set(true),
                     aria_label: "Settings",
                     "data-testid": "settings-button",

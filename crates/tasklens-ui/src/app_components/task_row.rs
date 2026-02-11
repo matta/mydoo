@@ -1,4 +1,5 @@
 use crate::components::checkbox::Checkbox;
+use crate::dioxus_components::button::{Button, ButtonVariant};
 use chrono::{Datelike, TimeZone};
 use dioxus::prelude::*;
 use tasklens_core::domain::dates::{UrgencyStatus, get_urgency_status};
@@ -99,9 +100,10 @@ pub fn TaskRow(
             // Expand/Collapse Chevron
             div { class: "w-10 flex justify-center flex-shrink-0",
                 if has_children {
-                    button {
-                        class: "btn btn-ghost btn-xs btn-circle text-base-content/70",
-                        onclick: move |evt| {
+                    Button {
+                        variant: ButtonVariant::Ghost,
+                        class: "app-task-row-icon-button",
+                        onclick: move |evt: MouseEvent| {
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
                         },
@@ -179,8 +181,9 @@ pub fn TaskRow(
 
             // Actions
             div { class: "flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2",
-                button {
-                    class: "btn btn-ghost btn-xs btn-circle text-base-content/70",
+                Button {
+                    variant: ButtonVariant::Ghost,
+                    class: "app-task-row-icon-button",
                     title: "Add Subtask",
                     onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
                     svg {
@@ -197,8 +200,9 @@ pub fn TaskRow(
                         }
                     }
                 }
-                button {
-                    class: "btn btn-ghost btn-xs btn-circle text-error hover:bg-error/10",
+                Button {
+                    variant: ButtonVariant::Ghost,
+                    class: "app-task-row-icon-button app-task-row-icon-button-destructive",
                     title: "Delete",
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
                     svg {

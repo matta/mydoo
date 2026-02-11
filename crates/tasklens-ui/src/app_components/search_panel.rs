@@ -1,3 +1,4 @@
+use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::router::Route;
 use dioxus::prelude::*;
 use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
@@ -152,8 +153,9 @@ pub fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
                         oninput: move |evt| query.set(evt.value()),
                         onkeydown: handle_keydown,
                     }
-                    button {
-                        class: "btn btn-ghost btn-sm btn-square text-base-content/70 hover:text-base-content",
+                    Button {
+                        variant: ButtonVariant::Ghost,
+                        class: "app-icon-button",
                         onclick: move |_| {
                             query.set(String::new());
                             on_close.call(());

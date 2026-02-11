@@ -14,3 +14,61 @@
 [data-app-state] {
   min-height: 100vh;
 }
+
+.button.app-button-sm {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.875rem;
+}
+
+.button.app-button-block {
+  display: inline-flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.button.app-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0.25rem;
+  color: var(--secondary-color-5);
+}
+
+.button.app-icon-button:hover {
+  color: var(--secondary-color-2);
+}
+
+.button.app-sync-status-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.button.app-task-row-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border-radius: 9999px;
+  color: var(--secondary-color-5);
+}
+
+.button.app-task-row-icon-button:hover {
+  color: var(--secondary-color-2);
+}
+
+.button.app-task-row-icon-button-destructive {
+  color: var(--primary-error-color);
+}
+
+.button.app-task-row-icon-button-destructive:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--primary-error-color) 12%,
+    transparent
+  );
+}

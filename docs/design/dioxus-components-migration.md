@@ -147,15 +147,10 @@ This is a categorized summary intended to map usage into replacement workstreams
 
 ## Current DaisyUI Debt Snapshot
 
-Snapshot basis: code audit on February 11, 2026 (`HEAD` at `61ac33d`).
+Snapshot basis: code audit on February 11, 2026 (`HEAD` at `6a282c7`).
 
 - `btn*` debt remains in raw RSX and Button class overrides, with largest hotspots in:
   - `crates/tasklens-ui/src/app_components/task_editor.rs`
-  - `crates/tasklens-ui/src/app_components/task_row.rs`
-  - `crates/tasklens-ui/src/app_components/app_navbar.rs`
-  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
-  - `crates/tasklens-ui/src/app_components/search_panel.rs`
-  - `crates/tasklens-ui/src/views/plan_page.rs`
   - `crates/tasklens-ui/src/views/do_page.rs`
   - `crates/tasklens-ui/src/app_components/move_picker.rs`
   - `crates/tasklens-ui/src/components/select/component.rs`

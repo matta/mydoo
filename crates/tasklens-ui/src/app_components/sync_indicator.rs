@@ -53,8 +53,9 @@ pub fn SyncIndicator() -> Element {
         div {
             class: format!("dropdown dropdown-end {}", if show_settings() { "dropdown-open" } else { "" }),
             "data-testid": "sync-indicator",
-            button {
-                class: "btn btn-ghost btn-sm gap-2",
+            Button {
+                variant: ButtonVariant::Ghost,
+                class: "app-button-sm app-sync-status-button",
                 "data-testid": "sync-status-button",
                 onclick: move |_| {
                     let new_state = !show_settings();
@@ -86,7 +87,7 @@ pub fn SyncIndicator() -> Element {
                         }
                         Button {
                             variant: ButtonVariant::Primary,
-                            class: "btn-sm w-full",
+                            class: "app-button-sm app-button-block",
                             onclick: move |_| {
                                 set_sync_url(&url_input());
                                 show_settings.set(false);

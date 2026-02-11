@@ -1,6 +1,7 @@
 use crate::app_components::task_row::TaskRow;
 use crate::app_components::{LoadErrorView, PageHeader, TaskEditor, TaskInput};
 use crate::controllers::task_controller;
+use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
@@ -157,8 +158,9 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
 
             PageHeader { title: "Plan",
                 if !flattened_tasks().is_empty() && load_error().is_none() {
-                    button {
-                        class: "btn btn-primary btn-sm",
+                    Button {
+                        variant: ButtonVariant::Primary,
+                        class: "app-button-sm",
                         aria_label: "Add Task at Top",
                         onclick: move |_| {
                             editor_state
@@ -196,8 +198,8 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                             p { class: "text-base-content/60 mb-4",
                                 "No tasks found. Try adding seed data? (?seed=true)"
                             }
-                            button {
-                                class: "btn btn-primary",
+                            Button {
+                                variant: ButtonVariant::Primary,
                                 onclick: move |_| {
                                     editor_state
                                         .set(
