@@ -315,7 +315,7 @@ pub fn DocIdManager(
                         value: input_value(),
                         oninput: move |evt: FormEvent| input_value.set(evt.value()),
                         placeholder: "Enter Base58 document ID...",
-                        class: "input w-full font-mono text-base",
+                        class: "w-full font-mono text-base",
                         "data-testid": "document-id-input",
                     }
                     Button {

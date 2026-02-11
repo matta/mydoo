@@ -13,6 +13,7 @@
   - callsite class cleanup work (or explicit deferred file list in this checklist).
 - The active chunk must always point to the highest-impact remaining class debt, not only the next component name.
 - `Replace Diverged Components` status and migration inventory status must be updated in the same commit as slice changes.
+- For callsite de-Daisy cleanup slices, do not add new `assets/app.css` styles or new Tailwind CSS styles/classes unless the user explicitly approves them.
 
 ## Foundations
 
@@ -29,7 +30,7 @@
 
 ## Current Critical Path (Execute Top To Bottom)
 
-### Chunk A (Active): Button And Input Callsite De-Daisy
+### Chunk A (Completed): Button And Input Callsite De-Daisy
 
 - [x] Remove remaining `btn*` classes from raw RSX buttons in:
   - `crates/tasklens-ui/src/views/plan_page.rs`
@@ -37,22 +38,22 @@
   - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
   - `crates/tasklens-ui/src/app_components/search_panel.rs`
   - `crates/tasklens-ui/src/app_components/app_navbar.rs`
-- [ ] Remove DaisyUI-flavored Button class tokens (`btn-sm`, `btn-xs`, `btn-circle`, `btn-square`, `btn-primary`) and replace with app-owned/upstream-compatible classes in:
+- [x] Remove DaisyUI-flavored Button class tokens (`btn-sm`, `btn-xs`, `btn-circle`, `btn-square`, `btn-primary`) and replace with app-owned/upstream-compatible classes in:
   - `crates/tasklens-ui/src/app_components/task_editor.rs`
   - `crates/tasklens-ui/src/views/do_page.rs`
   - any additional Button callsites found by audit.
-- [ ] Replace non-button `btn*` list affordances with upstream-compatible patterns in:
+- [x] Replace non-button `btn*` list affordances with upstream-compatible patterns in:
   - `crates/tasklens-ui/src/app_components/move_picker.rs`
   - `crates/tasklens-ui/src/components/select/component.rs`
-- [ ] Remove DaisyUI/Tailwind-oriented input/select/textarea/toggle/join/fieldset classes from Input-adjacent callsites in:
+- [x] Remove DaisyUI/Tailwind-oriented input/select/textarea/toggle/join/fieldset classes from Input-adjacent callsites in:
   - `crates/tasklens-ui/src/app_components/task_input.rs`
   - `crates/tasklens-ui/src/app_components/task_editor.rs`
   - `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
   - `crates/tasklens-ui/src/app_components/search_panel.rs`
   - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
-- [ ] After completing Chunk A, refresh the Class Debt Register section below with remaining file hotspots.
+- [x] After completing Chunk A, refresh the Class Debt Register section below with remaining file hotspots.
 
-### Chunk B: Checkbox Vertical Slice
+### Chunk B (Active): Checkbox Vertical Slice
 
 - [ ] Vendor upstream `checkbox` into `crates/tasklens-ui/src/dioxus_components/checkbox` via `dioxus-vendor-components.toml` + `cargo xtask update-dioxus-components`.
 - [ ] Migrate Checkbox usage and behavior in:
@@ -111,17 +112,8 @@
 
 ## Class Debt Register (Source Of Truth For Deferred Cleanup)
 
-- [ ] `btn*` debt:
-  - `crates/tasklens-ui/src/app_components/task_editor.rs`
-  - `crates/tasklens-ui/src/views/do_page.rs`
-  - `crates/tasklens-ui/src/app_components/move_picker.rs`
-  - `crates/tasklens-ui/src/components/select/component.rs`
-- [ ] `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt:
-  - `crates/tasklens-ui/src/app_components/task_editor.rs`
-  - `crates/tasklens-ui/src/app_components/task_input.rs`
-  - `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
-  - `crates/tasklens-ui/src/app_components/search_panel.rs`
-  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+- [x] `btn*` debt in app callsites is cleared (audit found no remaining `btn*` class tokens in `crates/tasklens-ui/src/app_components` and `crates/tasklens-ui/src/views`).
+- [x] `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt in app callsites is cleared.
 - [ ] `card*`/`badge*`/`progress*` debt:
   - `crates/tasklens-ui/src/views/score_trace_page.rs`
   - `crates/tasklens-ui/src/views/balance_page.rs`
@@ -130,11 +122,8 @@
   - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
   - `crates/tasklens-ui/src/app_components/empty_state.rs`
 - [ ] `dropdown*`/`menu*`/`modal*` debt:
-  - `crates/tasklens-ui/src/components/select/component.rs`
   - `crates/tasklens-ui/src/components/dialog/component.rs`
   - `crates/tasklens-ui/src/components/date_picker/component.rs`
-  - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
-  - `crates/tasklens-ui/src/app_components/move_picker.rs`
 - [ ] `loading*` debt:
   - `crates/tasklens-ui/src/app_components/loading.rs`
 - [ ] DaisyUI theme utility debt (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.) remains broadly in app components and views; burn down alongside component-skin replacement.
