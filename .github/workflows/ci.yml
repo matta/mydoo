@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: ['main', 'dioxus']
+    branches: ["main", "dioxus"]
   pull_request:
-    branches: ['main', 'dioxus']
+    branches: ["main", "dioxus"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -34,7 +34,7 @@ jobs:
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable

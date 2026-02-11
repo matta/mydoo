@@ -27,10 +27,7 @@
         {
           "description": "1. Initial Balanced State",
           "then": {
-            "expected_order": [
-              "Steady",
-              "Rushing"
-            ],
+            "expected_order": ["Steady", "Rushing"],
             "expected_props": [
               {
                 "id": "Steady",
@@ -60,10 +57,7 @@
           ],
           "description": "2. Make Task B Urgent",
           "then": {
-            "expected_order": [
-              "Rushing",
-              "Steady"
-            ],
+            "expected_order": ["Rushing", "Steady"],
             "expected_props": [
               {
                 "id": "Rushing",

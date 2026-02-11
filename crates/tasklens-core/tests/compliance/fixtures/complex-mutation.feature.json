@@ -27,9 +27,7 @@
         {
           "description": "Step 1: Initial Balanced State",
           "then": {
-            "expected_order": [
-              "Task"
-            ],
+            "expected_order": ["Task"],
             "expected_props": [
               {
                 "id": "Project",
@@ -46,9 +44,7 @@
           ],
           "description": "Step 2: Advance Time (Decay)",
           "then": {
-            "expected_order": [
-              "Task"
-            ],
+            "expected_order": ["Task"],
             "expected_props": [
               {
                 "id": "Project",
@@ -68,9 +64,7 @@
           ],
           "description": "Step 3: Add Credits (Simulate Work)",
           "then": {
-            "expected_order": [
-              "Task"
-            ],
+            "expected_order": ["Task"],
             "expected_props": [
               {
                 "id": "Project",

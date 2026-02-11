@@ -7,9 +7,10 @@ You are an expert Rust, Dioxus, Typescript, and React engineer planning the next
 STRICT REQUIREMENT: the milestone must be focused and minimal, targeting one achievable goal that is, ideally, indivisible into smaller work items.
 
 COMPLETION GATE:
- - the plan is expressed as an outline
- - the plan uses markdown checkboxes `[ ]` for ALL actionable steps.
- - ❌ NEGATIVE CONSTRAINT: Do NOT use standard bullet points (`-`) for implementation details.
- - ✅ CORRECT FORMAT: `- [ ] Create file foo.rs`
- - ❌ WRONG FORMAT:   `- Create file foo.rs`
- - DO NOT IMPLEMENT THE PLAN (Do not write code files, only update the plan doc)
+
+- the plan is expressed as an outline
+- the plan uses markdown checkboxes `[ ]` for ALL actionable steps.
+- ❌ NEGATIVE CONSTRAINT: Do NOT use standard bullet points (`-`) for implementation details.
+- ✅ CORRECT FORMAT: `- [ ] Create file foo.rs`
+- ❌ WRONG FORMAT: `- Create file foo.rs`
+- DO NOT IMPLEMENT THE PLAN (Do not write code files, only update the plan doc)
