@@ -35,6 +35,36 @@ When working on tracked efforts, keep `bd` tasks accurate and record newly disco
 - **Clean Tree Rule:** Before starting unrelated work or a new development
   phase, run `git status`. If the working tree is not clean, STOP and notify the
   user.
+- **Feature Branch Isolation Rule:** Every semantically independent task MUST be
+  done on a different feature branch. If the current branch already contains
+  unrelated work, STOP and create a new branch for the new task.
+- **PR Isolation Rule:** Every PR MUST represent one cohesive concern. Reuse an
+  existing branch/PR only for follow-up commits that are directly in scope for
+  that PR (e.g., review feedback or missed tests for that same change).
+- **Base Branch Divergence Paranoia Check:** Before creating a branch for a new
+  independent task, check whether local `<base-branch>` has commits not pushed
+  to `origin/<base-branch>`:
+  ```bash
+  git fetch origin
+  git rev-list --left-right --count <base-branch>...origin/<base-branch>
+  ```
+  If the first number (local-ahead count) is greater than `0`, STOP and alert
+  the user. Ask how to handle the local-only commits before continuing (for
+  example: preserve on a separate branch, push them, or intentionally branch
+  from local base).
+- **New Task Branch Workflow:** After the paranoia check passes (or after user
+  instruction), branch from upstream base to avoid mutating local base history:
+  ```bash
+  git switch -c codex/<task-slug> --track origin/<base-branch>
+  ```
+- **PR Creation Scope Check:** Before pushing or creating/updating a PR, check
+  whether the current branch already has an open PR:
+  ```bash
+  gh pr list --head <current-branch>
+  ```
+  If an open PR exists and your changes are semantically independent from that
+  PR, DO NOT push to that branch. Create a new feature branch and open a new
+  PR.
 - **Git Commit Rule:** The Agent MAY commit changes autonomously when:
   1. Work is complete and all quality gates pass (`just verify` succeeds)
   2. Changes are logically cohesive and address a single concern
@@ -241,7 +271,7 @@ just test-e2e -- tests/e2e/specs/due-dates.spec.ts --project=e2e-mobile
 3. **Update issue status** - Close finished work, update in-progress items
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
-   git pull --rebase
+   git pull --no-rebase
    bd sync
    git push
    git status  # MUST show "up to date with origin"

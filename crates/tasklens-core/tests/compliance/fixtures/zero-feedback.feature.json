@@ -28,9 +28,7 @@
         {
           "description": "Verify Feedback Cap",
           "then": {
-            "expected_order": [
-              "Child"
-            ],
+            "expected_order": ["Child"],
             "expected_props": [
               {
                 "id": "Child",

@@ -107,6 +107,7 @@ export interface PlanFixture {
   openSyncSettings: () => Promise<void>;
   closeSyncSettings: () => Promise<void>;
   setSyncServerUrl: (url: string) => Promise<void>;
+  setSyncServerUrlForNextLoad: (url: string) => Promise<void>;
   saveSyncSettings: () => Promise<void>;
   verifySyncServerUrl: (url: string) => Promise<void>;
   verifySyncStatus: (status: string) => Promise<void>;
@@ -882,6 +883,19 @@ export class PlanPage implements PlanFixture {
   async setSyncServerUrl(url: string): Promise<void> {
     const input = this.page.getByTestId("sync-server-url-input");
     await input.fill(url);
+  }
+
+  /**
+   * Sets the sync URL directly in localStorage before the next navigation.
+   * This avoids UI-triggered reload timing in tests that are not validating settings UX.
+   */
+  async setSyncServerUrlForNextLoad(url: string): Promise<void> {
+    await this.page.addInitScript((value: string) => {
+      window.localStorage.setItem(
+        "tasklens_sync_server_url",
+        JSON.stringify(value),
+      );
+    }, url);
   }
 
   async saveSyncSettings(): Promise<void> {
