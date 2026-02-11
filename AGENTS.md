@@ -35,6 +35,28 @@ When working on tracked efforts, keep `bd` tasks accurate and record newly disco
 - **Clean Tree Rule:** Before starting unrelated work or a new development
   phase, run `git status`. If the working tree is not clean, STOP and notify the
   user.
+- **Feature Branch Isolation Rule:** Every semantically independent task MUST be
+  done on a different feature branch. If the current branch already contains
+  unrelated work, STOP and create a new branch for the new task.
+- **PR Isolation Rule:** Every PR MUST represent one cohesive concern. Reuse an
+  existing branch/PR only for follow-up commits that are directly in scope for
+  that PR (e.g., review feedback or missed tests for that same change).
+- **New Task Branch Workflow:** For new independent work, start from an updated
+  base branch and create a fresh feature branch:
+  ```bash
+  git fetch origin
+  git switch <base-branch>
+  git pull --no-rebase
+  git switch -c codex/<task-slug>
+  ```
+- **PR Creation Scope Check:** Before pushing or creating/updating a PR, check
+  whether the current branch already has an open PR:
+  ```bash
+  gh pr list --head <current-branch>
+  ```
+  If an open PR exists and your changes are semantically independent from that
+  PR, DO NOT push to that branch. Create a new feature branch and open a new
+  PR.
 - **Git Commit Rule:** The Agent MAY commit changes autonomously when:
   1. Work is complete and all quality gates pass (`just verify` succeeds)
   2. Changes are logically cohesive and address a single concern
