@@ -199,7 +199,7 @@ pub fn TaskRow(
                     }
                 }
                 Button {
-                    variant: ButtonVariant::Ghost,
+                    variant: ButtonVariant::Destructive,
                     title: "Delete",
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
                     svg {
