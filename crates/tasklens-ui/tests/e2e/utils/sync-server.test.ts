@@ -1,20 +1,6 @@
-import { type AddressInfo, createServer, Socket } from "node:net";
+import { createServer, Socket } from "node:net";
 import { expect, test } from "@playwright/test";
-import { SyncServerHelper } from "./sync-server";
-
-const getFreePort = async (): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    const srv = createServer();
-    srv.listen(0, () => {
-      const port = (srv.address() as AddressInfo).port;
-      srv.close((err) => {
-        if (err) reject(err);
-        else resolve(port);
-      });
-    });
-    srv.on("error", reject);
-  });
-};
+import { getEphemeralPort, SyncServerHelper } from "./sync-server";
 
 test.describe("SyncServerHelper", () => {
   test.describe.configure({ mode: "serial" });
@@ -22,7 +8,7 @@ test.describe("SyncServerHelper", () => {
   let server: SyncServerHelper;
 
   test.beforeEach(async () => {
-    const port = await getFreePort();
+    const port = await getEphemeralPort();
     server = new SyncServerHelper(port);
   });
 
@@ -57,6 +43,54 @@ test.describe("SyncServerHelper", () => {
         },
         { timeout: 10000 },
       )
+      .toBeTruthy();
+  });
+
+  test("getEphemeralPort returns a bindable TCP port", async () => {
+    const port = await getEphemeralPort();
+    const blocker = createServer();
+
+    await new Promise<void>((resolve, reject) => {
+      blocker.once("error", reject);
+      blocker.listen(port, () => resolve());
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      blocker.close((err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve();
+      });
+    });
+  });
+
+  test("stop waits for process exit so server can restart on the same port", async () => {
+    await server.start();
+    await server.stop();
+    await server.start();
+
+    await expect
+      .poll(async () => {
+        return new Promise<boolean>((resolve) => {
+          const socket = new Socket();
+          socket.setTimeout(1000);
+          socket.on("connect", () => {
+            socket.destroy();
+            resolve(true);
+          });
+          socket.on("error", () => {
+            socket.destroy();
+            resolve(false);
+          });
+          socket.on("timeout", () => {
+            socket.destroy();
+            resolve(false);
+          });
+          socket.connect(server.getPort(), "127.0.0.1");
+        });
+      })
       .toBeTruthy();
   });
 });
