@@ -192,6 +192,17 @@ unexpected failure.
 
 ## General
 
+### PR Scope Hygiene
+
+Before creating or updating a PR, confirm branch and PR scope:
+
+1. Each semantically independent task should have its own feature branch.
+2. Each PR should contain one cohesive concern.
+3. If the branch already has an open PR, only add commits that are in scope for
+   that PR.
+4. If the new work is independent, create a new branch and a new PR instead of
+   reusing the existing one.
+
 ### Verification Before Commit
 
 Before submitting a PR, run:
