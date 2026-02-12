@@ -31,6 +31,10 @@ build-ui:
 build-ui-release:
     cd {{ui_pkg}} && dx build --platform web --release --debug-symbols=false
 
+# Build tasklens-ui for e2e in release mode with explicit test hooks enabled.
+build-ui-release-e2e:
+    cd {{ui_pkg}} && dx build --platform web --release --debug-symbols=false --features e2e-test-hooks
+
 # Build tasklens-ui for e2e in debug mode
 build-ui-debug:
     cd {{ui_pkg}} && dx build --platform web
@@ -116,21 +120,21 @@ test-rust:
     cargo test --workspace
 
 # Run all e2e tests
-test-e2e *args: build-ui-release
+test-e2e *args: build-ui-release-e2e
     cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public pnpm exec playwright test {{args}}; \
     e=$?; \
     cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for desktop
-test-e2e-desktop *args: build-ui-release
+test-e2e-desktop *args: build-ui-release-e2e
     cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public pnpm exec playwright test --project=e2e-desktop {{args}}; \
     e=$?; \
     cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for mobile
-test-e2e-mobile *args: build-ui-release
+test-e2e-mobile *args: build-ui-release-e2e
     cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public pnpm exec playwright test --project=e2e-mobile {{args}}; \
     e=$?; \
     cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \

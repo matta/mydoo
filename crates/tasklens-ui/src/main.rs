@@ -29,7 +29,10 @@ use tasklens_store::storage::ActiveDocStorage;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(
+    target_arch = "wasm32",
+    any(debug_assertions, feature = "e2e-test-hooks")
+))]
 pub async fn tasklensReset() -> Result<(), String> {
     tracing::info!("E2E Reset Triggered: Clearing storage...");
 
@@ -56,7 +59,10 @@ pub async fn tasklensReset() -> Result<(), String> {
 ///
 /// This is exposed to browser-based tests through `window.tasklensSeedSampleData`
 /// so tests can prepare seeded state without a full page navigation.
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(
+    target_arch = "wasm32",
+    any(debug_assertions, feature = "e2e-test-hooks")
+))]
 pub fn tasklens_seed_sample_data(mut store: Signal<AppStore>) -> Result<(), String> {
     let mut app_store = store.write();
 
@@ -91,7 +97,10 @@ fn main() {
 
     init_service_worker();
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(
+        target_arch = "wasm32",
+        any(debug_assertions, feature = "e2e-test-hooks")
+    ))]
     {
         // Expose the reset function to the global window for E2E tests
         let window = web_sys::window().expect("global window must exist");
@@ -304,7 +313,10 @@ fn App() -> Element {
             }
         }
 
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(all(
+            target_arch = "wasm32",
+            any(debug_assertions, feature = "e2e-test-hooks")
+        ))]
         {
             // Handle seed query param
             thread_local! {
@@ -338,7 +350,10 @@ fn App() -> Element {
         is_checking.set(false);
     });
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(
+        target_arch = "wasm32",
+        any(debug_assertions, feature = "e2e-test-hooks")
+    ))]
     {
         let seed_store = store;
         use_effect(move || {

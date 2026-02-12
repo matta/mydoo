@@ -195,7 +195,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                     if flattened_tasks().is_empty() {
                         div { class: "p-8 text-center",
                             p { class: "text-base-content/60 mb-4",
-                                "No tasks found. Try adding seed data? (?seed=true)"
+                                "No tasks found yet."
                             }
                             Button {
                                 variant: ButtonVariant::Primary,
