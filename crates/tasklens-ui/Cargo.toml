@@ -34,7 +34,7 @@ samod = { workspace = true }
 tokio = { version = "1", features = ["time"], optional = true }
 
 [dev-dependencies]
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "=1.49.0", features = ["full"] }
 pollster = "=0.4.0"
 automerge-test = "=0.6.0"
 proptest-derive = "=0.7.0"
