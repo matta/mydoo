@@ -28,7 +28,7 @@ hex = "0.4"
 sha2 = "0.10.9"
 gloo-timers = { version = "0.3", features = ["futures"] }
 chrono = { version = "0.4", features = ["serde", "wasmbind"] }
-dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "70433b0706827c79616d7a5804f607ed08d8bef9", default-features = false, features = ["router"] }
+dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "cc61648268e2d5a7291fb74276e1e7f6a12ae84e", default-features = false, features = ["router"] }
 automerge.workspace = true
 samod = { workspace = true }
 tokio = { version = "1", features = ["time"], optional = true }
