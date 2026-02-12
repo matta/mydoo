@@ -51,7 +51,7 @@ proptest-derive = "=0.7.0"
 tasklens-core = { path = "../tasklens-core", features = ["test-utils"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-criterion = { version = "=0.8.1", features = ["async_tokio"] }
+criterion = { version = "=0.8.2", features = ["async_tokio"] }
 tokio = { version = "=1.49.0", features = ["full"] }
 tempfile = "=3.24.0"
 proptest = "=1.9.0"
