@@ -21,7 +21,10 @@ pub(crate) fn check_biome_schema() -> Result<()> {
     if !biome_config_path.exists() {
         // If biome.json doesn't exist, we might not be using biome or it's not at the root.
         // For now, let's assume it should exist if we are running this check.
-        anyhow::bail!("biome.json not found at {}", biome_config_path.display());
+        anyhow::bail!(
+            "[check-biome-schema] ERROR: biome.json not found at {}",
+            biome_config_path.display()
+        );
     }
 
     let configured_req = get_configured_biome_requirement(&root_dir)?;
@@ -83,7 +86,7 @@ fn get_configured_biome_requirement(root_dir: &Path) -> Result<VersionReq> {
 fn parse_workspace_requirement(content: &str) -> Result<VersionReq> {
     let docs = YamlLoader::load_from_str(content)?;
     if docs.is_empty() {
-        anyhow::bail!("pnpm-workspace.yaml is empty");
+        anyhow::bail!("[check-biome-schema] ERROR: pnpm-workspace.yaml is empty");
     }
     let doc = &docs[0];
 
@@ -100,16 +103,21 @@ fn parse_workspace_requirement(content: &str) -> Result<VersionReq> {
     ))
 }
 
-fn get_installed_biome_version(root_dir: &Path) -> Result<Version> {
+fn get_biome_version_from_pnpm(
+    root_dir: &Path,
+    args: &[&str],
+    command_desc: &str,
+) -> Result<Version> {
     let output = Command::new("pnpm")
-        .args(["list", "@biomejs/biome", "--json"])
+        .args(args)
         .current_dir(root_dir)
         .output()
-        .context("Failed to execute pnpm list")?;
+        .context(format!("Failed to execute pnpm {}", command_desc))?;
 
     if !output.status.success() {
         anyhow::bail!(
-            "pnpm list failed: {}",
+            "[check-biome-schema] ERROR: pnpm {} failed: {}",
+            command_desc,
             String::from_utf8_lossy(&output.stderr)
         );
     }
@@ -118,22 +126,16 @@ fn get_installed_biome_version(root_dir: &Path) -> Result<Version> {
     parse_pnpm_list_output(&stdout)
 }
 
+fn get_installed_biome_version(root_dir: &Path) -> Result<Version> {
+    get_biome_version_from_pnpm(root_dir, &["list", "@biomejs/biome", "--json"], "list")
+}
+
 fn get_locked_biome_version(root_dir: &Path) -> Result<Version> {
-    let output = Command::new("pnpm")
-        .args(["list", "@biomejs/biome", "--json", "--lockfile-only"])
-        .current_dir(root_dir)
-        .output()
-        .context("Failed to execute pnpm list --lockfile-only")?;
-
-    if !output.status.success() {
-        anyhow::bail!(
-            "pnpm list --lockfile-only failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-    }
-
-    let stdout = String::from_utf8(output.stdout)?;
-    parse_pnpm_list_output(&stdout)
+    get_biome_version_from_pnpm(
+        root_dir,
+        &["list", "@biomejs/biome", "--json", "--lockfile-only"],
+        "list --lockfile-only",
+    )
 }
 
 fn parse_pnpm_list_output(stdout: &str) -> Result<Version> {
