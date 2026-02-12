@@ -52,6 +52,23 @@ pub async fn tasklensReset() -> Result<(), String> {
     Ok(())
 }
 
+/// Seed the active document with the default sample data set for E2E scenarios.
+///
+/// This is exposed to browser-based tests through `window.tasklensSeedSampleData`
+/// so tests can prepare seeded state without a full page navigation.
+#[cfg(target_arch = "wasm32")]
+pub fn tasklens_seed_sample_data(mut store: Signal<AppStore>) -> Result<(), String> {
+    let mut app_store = store.write();
+
+    if app_store.handle.is_none() {
+        return Err("Cannot seed sample data before active document is ready".to_string());
+    }
+
+    tracing::info!("E2E Seed Triggered: injecting sample data into active document");
+    crate::seed::prime_store_with_sample_data(&mut app_store);
+    Ok(())
+}
+
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 extern "C" {
@@ -77,7 +94,7 @@ fn main() {
     #[cfg(target_arch = "wasm32")]
     {
         // Expose the reset function to the global window for E2E tests
-        let window = web_sys::window().expect("no global window");
+        let window = web_sys::window().expect("global window must exist");
         let closure = Closure::wrap(Box::new(|| {
             wasm_bindgen_futures::future_to_promise(async move {
                 match tasklensReset().await {
@@ -320,6 +337,30 @@ fn App() -> Element {
 
         is_checking.set(false);
     });
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        let seed_store = store;
+        use_effect(move || {
+            let window = web_sys::window().expect("global window must exist");
+            let closure = Closure::wrap(Box::new(move || {
+                let seed_store = seed_store;
+                wasm_bindgen_futures::future_to_promise(async move {
+                    match tasklens_seed_sample_data(seed_store) {
+                        Ok(()) => Ok(JsValue::UNDEFINED),
+                        Err(e) => Err(JsValue::from_str(&e)),
+                    }
+                })
+            }) as Box<dyn FnMut() -> js_sys::Promise>);
+
+            let _ = js_sys::Reflect::set(
+                &window,
+                &JsValue::from_str("tasklensSeedSampleData"),
+                closure.as_ref().unchecked_ref(),
+            );
+            closure.forget();
+        });
+    }
 
     let has_error = load_error().is_some();
     let app_state = if has_error {
