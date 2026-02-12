@@ -18,15 +18,15 @@ catalogs:
     '@axe-core/playwright':
       specifier: ^4.11.0
       version: 4.11.1
+    '@biomejs/biome':
+      specifier: ^2.3.13
+      version: 2.3.14
     '@commitlint/cli':
       specifier: ^20.3.0
       version: 20.3.1
     '@commitlint/types':
       specifier: ^20.3.1
       version: 20.3.1
-    '@playwright/test':
-      specifier: ^1.57.0
-      version: 1.57.0
     '@types/js-yaml':
       specifier: ^4.0.9
       version: 4.0.9
@@ -36,6 +36,9 @@ catalogs:
     daisyui:
       specifier: ^5.5.17
       version: 5.5.17
+    glob:
+      specifier: ^13.0.0
+      version: 13.0.1
     husky:
       specifier: ^9.1.7
       version: 9.1.7
@@ -112,10 +115,10 @@ importers:
     devDependencies:
       '@axe-core/playwright':
         specifier: 'catalog:'
-        version: 4.11.1(playwright-core@1.57.0)
+        version: 4.11.1(playwright-core@1.58.0)
       '@playwright/test':
         specifier: 'catalog:'
-        version: 1.57.0
+        version: 1.58.0
       '@types/js-yaml':
         specifier: 'catalog:'
         version: 4.0.9
@@ -809,8 +812,8 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@playwright/test@1.57.0':
-    resolution: {integrity: sha512-6TyEnHgd6SArQO8UO2OMTxshln3QMWBtPGrOCgs3wVEmQmwyuNtB10IZMfmYDE0riwNR1cu4q+pPcxMVtaG3TA==}
+  '@playwright/test@1.58.0':
+    resolution: {integrity: sha512-fWza+Lpbj6SkQKCrU6si4iu+fD2dD3gxNHFhUPxsfXBPhnv3rRSQVd0NtBUT9Z/RhF/boCBcuUaMUSTRTopjZg==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -1755,13 +1758,13 @@ packages:
     resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
     engines: {node: '>=12'}
 
-  playwright-core@1.57.0:
-    resolution: {integrity: sha512-agTcKlMw/mjBWOnD6kFZttAAGHgi/Nw0CZ2o6JqWSbMlI219lAFLZZCyqByTsvVAJq5XA5H8cA6PrvBRpBWEuQ==}
+  playwright-core@1.58.0:
+    resolution: {integrity: sha512-aaoB1RWrdNi3//rOeKuMiS65UCcgOVljU46At6eFcOFPFHWtd2weHRRow6z/n+Lec0Lvu0k9ZPKJSjPugikirw==}
     engines: {node: '>=18'}
     hasBin: true
 
-  playwright@1.57.0:
-    resolution: {integrity: sha512-ilYQj1s8sr2ppEJ2YVadYBN0Mb3mdo9J0wQ+UuDhzYqURwSoW4n1Xs5vs7ORwgDGmyEh33tRMeS8KhdkMoLXQw==}
+  playwright@1.58.0:
+    resolution: {integrity: sha512-2SVA0sbPktiIY/MCOPX8e86ehA/e+tDNq+e5Y8qjKYti2Z/JG7xnronT/TXTIkKbYGWlCbuucZ6dziEgkoEjQQ==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -2236,10 +2239,10 @@ snapshots:
 
   '@automerge/automerge@3.2.2': {}
 
-  '@axe-core/playwright@4.11.1(playwright-core@1.57.0)':
+  '@axe-core/playwright@4.11.1(playwright-core@1.58.0)':
     dependencies:
       axe-core: 4.11.1
-      playwright-core: 1.57.0
+      playwright-core: 1.58.0
 
   '@babel/code-frame@7.28.6':
     dependencies:
@@ -2703,9 +2706,9 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@playwright/test@1.57.0':
+  '@playwright/test@1.58.0':
     dependencies:
-      playwright: 1.57.0
+      playwright: 1.58.0
 
   '@rollup/rollup-android-arm-eabi@4.54.0':
     optional: true
@@ -3598,11 +3601,11 @@ snapshots:
 
   picomatch@4.0.3: {}
 
-  playwright-core@1.57.0: {}
+  playwright-core@1.58.0: {}
 
-  playwright@1.57.0:
+  playwright@1.58.0:
     dependencies:
-      playwright-core: 1.57.0
+      playwright-core: 1.58.0
     optionalDependencies:
       fsevents: 2.3.2
 
