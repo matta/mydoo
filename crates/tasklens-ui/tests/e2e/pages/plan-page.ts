@@ -715,8 +715,20 @@ export class PlanPage implements PlanFixture {
   }
 
   async primeWithSampleData(): Promise<void> {
-    // Navigate to seed URL which triggers internal seeding logic
-    await this.page.goto("/plan?seed=true");
+    await this.waitForAppReady();
+    await this.page.waitForFunction(() => {
+      const seedSampleData = Reflect.get(window, "tasklensSeedSampleData");
+      return typeof seedSampleData === "function";
+    });
+    await this.waitForPersistence(async () => {
+      await this.page.evaluate(async () => {
+        const seedSampleData = Reflect.get(window, "tasklensSeedSampleData");
+        if (typeof seedSampleData !== "function") {
+          throw new Error("tasklensSeedSampleData is not available on window");
+        }
+        await seedSampleData();
+      });
+    });
     await this.waitForAppReady();
     // Ensure the app is loaded by waiting for the Plan heading
     await expect(
