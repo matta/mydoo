@@ -2,10 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { expect, test as setup } from "@playwright/test";
 
-const snapshotDir = path.join(
-  import.meta.dirname,
-  "../../playwright/.snapshots",
-);
+import { snapshotDir } from "./snapshot-paths";
 
 setup.describe.configure({ mode: "serial" });
 

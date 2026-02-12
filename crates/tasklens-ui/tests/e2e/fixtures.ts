@@ -10,16 +10,12 @@ import {
 } from "@playwright/test";
 
 import { type PlanFixture, PlanPage } from "./pages/plan-page";
+import { snapshotDir } from "./snapshot-paths";
 import { Steps } from "./steps/steps-library";
 import { dumpFailureContext, formatConsoleMessage } from "./utils/debug-utils";
 import { getEphemeralPort, SyncServerHelper } from "./utils/sync-server";
 
 export { expect };
-
-const snapshotDir = path.join(
-  import.meta.dirname,
-  "../../playwright/.snapshots",
-);
 
 type DbProfile = "empty" | "sample";
 
