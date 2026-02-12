@@ -28,13 +28,13 @@ hex = "0.4"
 sha2 = "0.10.9"
 gloo-timers = { version = "0.3", features = ["futures"] }
 chrono = { version = "0.4", features = ["serde", "wasmbind"] }
-dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "7943bed2eb59ee43d713f935e0ba17989c02b992", version = "0.0.1", default-features = false, features = ["router"] }
+dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "70433b0706827c79616d7a5804f607ed08d8bef9", version = "0.0.1" , default-features = false, features = ["router"]}
 automerge.workspace = true
 samod = { workspace = true }
 tokio = { version = "1", features = ["time"], optional = true }
 
 [dev-dependencies]
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "=1.49.0", features = ["full"] }
 pollster = "=0.4.0"
 automerge-test = "=0.6.0"
 proptest-derive = "=0.7.0"
@@ -51,6 +51,8 @@ desktop = ["dioxus/desktop", "tokio"]
 mobile = ["dioxus/mobile"]
 pwa = []
 tokio = ["dep:tokio"]
+# Enables destructive E2E-only web hooks in optimized builds.
+e2e-test-hooks = []
 
 [build-dependencies]
 chrono = { version = "0.4", features = ["now"] }
