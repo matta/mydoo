@@ -1,6 +1,7 @@
-use crate::components::checkbox::Checkbox;
+use crate::dioxus_components::checkbox::Checkbox;
 use crate::router::Route;
 use dioxus::prelude::*;
+use dioxus_primitives::checkbox::CheckboxState;
 use tasklens_core::types::{ComputedTask, TaskID, TaskStatus, UrgencyStatus};
 
 #[component]
@@ -37,8 +38,12 @@ pub fn PriorityTaskRow(
             "data-urgency": "{task.urgency_status:?}",
 
             Checkbox {
-                checked: is_done,
-                onchange: move |_| on_toggle.call(task_id_toggle.clone()),
+                checked: Some(if is_done {
+                    CheckboxState::Checked
+                } else {
+                    CheckboxState::Unchecked
+                }),
+                on_checked_change: move |_| on_toggle.call(task_id_toggle.clone()),
             }
 
             span {

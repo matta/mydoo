@@ -58,7 +58,7 @@ To keep forward progress tied to the end goal (Tailwind and DaisyUI removal), ea
 ## Current State
 
 - The app now has `app_components` for app-specific UI, with `components` retained as a temporary compatibility shim for legacy imports.
-- Button and Input are now vendored from upstream in `dioxus_components`, but many callsites still apply DaisyUI/Tailwind class tokens.
+- Button, Input, and Checkbox are now vendored from upstream in `dioxus_components`, but many callsites still apply DaisyUI/Tailwind class tokens.
 - Several components already wrap `dioxus-primitives` (Dialog, Collapsible, Calendar, Popover, Select, Slider), but with local styling and API drift.
 - Tailwind and DaisyUI classes are used broadly across components and views.
 - Tailwind is still loaded globally while migration work continues; `app.css` is now linked for additive app-level styling.
@@ -93,7 +93,7 @@ Status legend:
 | Button        | [preview/src/components/button](https://github.com/DioxusLabs/components/tree/main/preview/src/components/button)               | `crates/tasklens-ui/src/dioxus_components/button/`     | Adopted (vendored upstream component integrated in app callsites) | Keep vendored source and remove legacy compatibility usage.   |
 | Calendar      | [preview/src/components/calendar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/calendar)           | `crates/tasklens-ui/src/components/calendar/`          | Wrapper/Modified (extra wrapper, missing CalendarView)            | Re-vendor and restore upstream API.                           |
 | Card          | [preview/src/components/card](https://github.com/DioxusLabs/components/tree/main/preview/src/components/card)                   | —                                                      | Missing                                                           | Adopt to replace DaisyUI `card` usage.                        |
-| Checkbox      | [preview/src/components/checkbox](https://github.com/DioxusLabs/components/tree/main/preview/src/components/checkbox)           | `crates/tasklens-ui/src/components/checkbox.rs`        | Diverged (DaisyUI classes)                                        | Replace with upstream component and CSS.                      |
+| Checkbox      | [preview/src/components/checkbox](https://github.com/DioxusLabs/components/tree/main/preview/src/components/checkbox)           | `crates/tasklens-ui/src/dioxus_components/checkbox/`   | Adopted (vendored upstream component integrated in app callsites) | Keep vendored source and remove legacy compatibility usage.   |
 | Collapsible   | [preview/src/components/collapsible](https://github.com/DioxusLabs/components/tree/main/preview/src/components/collapsible)     | `crates/tasklens-ui/src/components/collapsible/`       | Wrapper/Modified (missing `as` support, Tailwind classes)         | Re-vendor and restore upstream API.                           |
 | Context Menu  | [preview/src/components/context_menu](https://github.com/DioxusLabs/components/tree/main/preview/src/components/context_menu)   | —                                                      | Missing                                                           | Adopt if context menus are needed.                            |
 | Date Picker   | [preview/src/components/date_picker](https://github.com/DioxusLabs/components/tree/main/preview/src/components/date_picker)     | `crates/tasklens-ui/src/components/date_picker/mod.rs` | Diverged (simple HTML input; upstream wrapper exists but unused)  | Replace with upstream component and wire `component.rs`.      |
@@ -127,9 +127,9 @@ Status legend:
 ## Divergence Summary
 
 - Total upstream components: 38
-- Adopted: 5 (Button, Input, Navbar, Popover, Slider)
+- Adopted: 6 (Button, Checkbox, Input, Navbar, Popover, Slider)
 - Wrapper/Modified: 4 (Calendar, Collapsible, Dialog, Select)
-- Diverged replacements: 2 (Checkbox, Date Picker)
+- Diverged replacements: 1 (Date Picker)
 - Missing: 27
 
 ## Tailwind And DaisyUI Usage Audit
@@ -324,12 +324,12 @@ Incremental execution model:
   4. Remove related DaisyUI/Tailwind class tokens in touched callsites, or log exact deferred file paths in the checklist.
   5. Update inventory/divergence status in this document and checklist.
   6. Repoint the active chunk to the highest-impact remaining class debt.
-- Current next slice: Checkbox (Chunk A callsite de-Daisy is complete in the checklist).
+- Current next slice: Date Picker (Chunk B Checkbox slice is complete in the checklist).
 
 ## Representative Diffs
 
 - Button: local uses DaisyUI classes; upstream uses CSS variables and `style.css` with `data-style` variants.
-- Checkbox: local is a plain input with DaisyUI classes; upstream wraps `dioxus-primitives::checkbox` and renders an indicator SVG.
+- Checkbox: now vendored from upstream and integrated in app callsites, replacing the legacy DaisyUI implementation.
 - Input: local API is trimmed and DaisyUI-based; upstream supports a broader attribute surface and uses `style.css`.
 - Dialog: local is styled as a DaisyUI modal; upstream uses dedicated dialog CSS and attributes for accessibility.
 - Date Picker: local exports an HTML `<input type="date">`; upstream provides a full picker with calendar and range support.
@@ -352,8 +352,8 @@ Tailwind/DaisyUI removal should only happen when all gates below are true:
 
 - Implement the recommended upstream tracking strategy: pristine vendor branch driven by `dx components add` and pinned registry revision.
 - Split modules: `dioxus_components` for vendored Dioxus Components, `app_components` for app UI.
-- Start the Checkbox vertical slice now that the Chunk A Button/Input callsite debt burn-down is complete.
-- Re-vendor and replace remaining diverged components next: Checkbox, then Date Picker.
+- Start the Date Picker vertical slice now that the Chunk B Checkbox slice is complete.
+- Re-vendor and replace the remaining diverged component next: Date Picker.
 - Align wrapper components that still embed DaisyUI/Tailwind assumptions: Select, Dialog, Collapsible, Calendar.
 - Adopt missing upstream components in usage-driven order (Badge, Card, Progress, Textarea, Toggle, Dropdown Menu, Label, then lower-usage items).
 - De-tailwind only after exit criteria are met: remove Tailwind/DaisyUI classes, then remove Tailwind build/runtime inputs.
