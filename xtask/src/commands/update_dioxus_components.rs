@@ -838,10 +838,6 @@ fn ensure_cargo_toml_pin_content(
         )
     })?;
 
-    let version_value = dependency_table_like
-        .get("version")
-        .and_then(Item::as_value)
-        .cloned();
     let default_features_value = dependency_table_like
         .get("default-features")
         .and_then(Item::as_value)
@@ -876,10 +872,12 @@ fn ensure_cargo_toml_pin_content(
         .and_then(Item::as_value)
         .and_then(Value::as_str)
         .is_some_and(|current| current == revision);
+    let has_version = dependency_table_like.get("version").is_some();
 
-    // Avoid rewriting when the pin already matches exactly; this prevents
-    // formatting-only churn that can cause avoidable merge conflicts.
-    if git_is_pinned && rev_is_pinned {
+    // Avoid rewriting when the pin already matches exactly and no version
+    // attribute is present; this prevents formatting-only churn that can
+    // cause avoidable merge conflicts.
+    if git_is_pinned && rev_is_pinned && !has_version {
         return Ok(content.to_string());
     }
 
@@ -887,9 +885,6 @@ fn ensure_cargo_toml_pin_content(
     canonical_table.insert("git", Value::from(registry_git));
     canonical_table.insert("rev", Value::from(revision));
 
-    if let Some(version) = version_value {
-        canonical_table.insert("version", version);
-    }
     if let Some(default_features) = default_features_value {
         canonical_table.insert("default-features", default_features);
     }
@@ -1824,6 +1819,7 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version 
         .unwrap();
         assert!(updated.contains("git = \"https://github.com/DioxusLabs/components\""));
         assert!(updated.contains("rev = \"abc123\""));
+        assert!(!updated.contains("version = \"0.0.1\""));
     }
 
     #[test]
@@ -1840,7 +1836,7 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version 
         )
         .unwrap();
         assert!(updated.contains(
-            "dioxus-primitives = { git = \"https://github.com/DioxusLabs/components\", rev = \"abc123\", version = \"0.0.1\", default-features = false, features = [\"router\"] }"
+            "dioxus-primitives = { git = \"https://github.com/DioxusLabs/components\", rev = \"abc123\", default-features = false, features = [\"router\"] }"
         ));
     }
 
@@ -1848,7 +1844,7 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version 
     fn cargo_toml_pin_noop_when_already_pinned() {
         let input = r#"
 [dependencies]
-dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "abc123", version = "0.0.1", default-features = false, features = ["router"] }
+dioxus-primitives = { git = "https://github.com/DioxusLabs/components", rev = "abc123", default-features = false, features = ["router"] }
 "#;
 
         let updated = ensure_cargo_toml_pin_content(
