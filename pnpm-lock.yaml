@@ -27,15 +27,15 @@ catalogs:
     '@commitlint/types':
       specifier: ^20.3.1
       version: 20.3.1
+    '@playwright/test':
+      specifier: ^1.57.0
+      version: 1.58.0
     '@types/js-yaml':
       specifier: ^4.0.9
       version: 4.0.9
     '@types/node':
       specifier: 25.1.0
       version: 25.1.0
-    daisyui:
-      specifier: ^5.5.17
-      version: 5.5.17
     glob:
       specifier: ^13.0.0
       version: 13.0.1
@@ -127,7 +127,7 @@ importers:
         version: 25.1.0
       daisyui:
         specifier: 'catalog:'
-        version: 5.5.17
+        version: 5.5.18
       js-yaml:
         specifier: 'catalog:'
         version: 4.1.1
@@ -1221,8 +1221,8 @@ packages:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
 
-  daisyui@5.5.17:
-    resolution: {integrity: sha512-Y8QWps/990Epp0Gn+7ReeALSXgwrd3W36waokJvHgqUdYx6t2sj0e1krW3+YqviBa57XTJqHJNTt8HMvcODL2Q==}
+  daisyui@5.5.18:
+    resolution: {integrity: sha512-VVzjpOitMGB6DWIBeRSapbjdOevFqyzpk9u5Um6a4tyId3JFrU5pbtF0vgjXDth76mJZbueN/j9Ok03SPrh/og==}
 
   dargs@8.1.0:
     resolution: {integrity: sha512-wAV9QHOsNbwnWdNW2FYvE1P56wtgSbM+3SZcdGiWQILwVjACCXDCI3Ai8QlCjMDB8YK5zySiXZYBiwGmNY3lnw==}
@@ -3076,7 +3076,7 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
-  daisyui@5.5.17: {}
+  daisyui@5.5.18: {}
 
   dargs@8.1.0: {}
 
