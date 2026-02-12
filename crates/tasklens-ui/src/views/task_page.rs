@@ -4,8 +4,9 @@
 //! It handles state management, synchronization integration, and the composition of the main page.
 
 use crate::app_components::{LoadErrorView, PageHeader, TaskInput};
-use crate::components::Checkbox;
+use crate::dioxus_components::checkbox::Checkbox;
 use dioxus::prelude::*;
+use dioxus_primitives::checkbox::CheckboxState;
 use tasklens_core::types::{PersistedTask, TaskStatus};
 
 /// The main application page component.
@@ -115,10 +116,16 @@ fn TaskItem(task: PersistedTask, on_toggle: EventHandler<PersistedTask>) -> Elem
         li {
             class: "flex items-center gap-2 p-3 border border-base-200 rounded cursor-pointer hover:bg-base-200",
             onclick: move |_| on_toggle.call(task_toggle.clone()),
-            Checkbox {
-                checked: is_done,
-                onchange: move |_| on_toggle.call(task_check.clone()),
-                class: "cursor-pointer",
+            div { onclick: move |evt: MouseEvent| evt.stop_propagation(),
+                Checkbox {
+                    checked: Some(if is_done {
+                        CheckboxState::Checked
+                    } else {
+                        CheckboxState::Unchecked
+                    }),
+                    on_checked_change: move |_| on_toggle.call(task_check.clone()),
+                    class: "cursor-pointer",
+                }
             }
             span { class: if is_done { "line-through text-base-content/50" } else { "" }, "{task.title}" }
         }

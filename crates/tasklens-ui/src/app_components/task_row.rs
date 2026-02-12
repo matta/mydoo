@@ -1,7 +1,8 @@
-use crate::components::checkbox::Checkbox;
 use crate::dioxus_components::button::{Button, ButtonVariant};
+use crate::dioxus_components::checkbox::Checkbox;
 use chrono::{Datelike, TimeZone};
 use dioxus::prelude::*;
+use dioxus_primitives::checkbox::CheckboxState;
 use tasklens_core::domain::dates::{UrgencyStatus, get_urgency_status};
 use tasklens_core::types::{PersistedTask, TaskID, TaskStatus};
 
@@ -144,8 +145,12 @@ pub fn TaskRow(
             }
 
             Checkbox {
-                checked: is_done,
-                onchange: move |_| {
+                checked: Some(if is_done {
+                    CheckboxState::Checked
+                } else {
+                    CheckboxState::Unchecked
+                }),
+                on_checked_change: move |_| {
                     on_toggle.call(task_toggle.clone());
                 },
                 class: "cursor-pointer mr-2 flex-shrink-0",

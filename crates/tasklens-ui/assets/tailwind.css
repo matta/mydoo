@@ -2586,12 +2586,6 @@
   .stroke-current {
     stroke: currentcolor;
   }
-  .checkbox-sm {
-    @layer daisyui.l1.l2 {
-      padding: 0.1875rem;
-      --size: calc(var(--size-selector, 0.25rem) * 5);
-    }
-  }
   .\!p-0 {
     padding: calc(var(--spacing) * 0) !important;
   }
@@ -2757,12 +2751,6 @@
       color: var(--color-success-content);
       --alert-border-color: var(--color-success);
       --alert-color: var(--color-success);
-    }
-  }
-  .checkbox-primary {
-    @layer daisyui.l1.l2 {
-      color: var(--color-primary-content);
-      --input-color: var(--color-primary);
     }
   }
   .range-primary {

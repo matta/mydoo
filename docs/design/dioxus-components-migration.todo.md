@@ -53,17 +53,17 @@
   - `crates/tasklens-ui/src/app_components/sync_indicator.rs`
 - [x] After completing Chunk A, refresh the Class Debt Register section below with remaining file hotspots.
 
-### Chunk B (Active): Checkbox Vertical Slice
+### Chunk B (Completed): Checkbox Vertical Slice
 
-- [ ] Vendor upstream `checkbox` into `crates/tasklens-ui/src/dioxus_components/checkbox` via `dioxus-vendor-components.toml` + `cargo xtask update-dioxus-components`.
-- [ ] Migrate Checkbox usage and behavior in:
+- [x] Vendor upstream `checkbox` into `crates/tasklens-ui/src/dioxus_components/checkbox` via `dioxus-vendor-components.toml` + `cargo xtask update-dioxus-components`.
+- [x] Migrate Checkbox usage and behavior in:
   - `crates/tasklens-ui/src/app_components/task_row.rs`
   - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
   - `crates/tasklens-ui/src/views/task_page.rs`
-- [ ] Remove legacy `crates/tasklens-ui/src/components/checkbox.rs` and wire re-exports through `dioxus_components`.
-- [ ] Clear any remaining checkbox-related DaisyUI classes in migrated callsites.
+- [x] Remove legacy `crates/tasklens-ui/src/components/checkbox.rs` and wire re-exports through `dioxus_components`.
+- [x] Clear any remaining checkbox-related DaisyUI classes in migrated callsites.
 
-### Chunk C: Date Picker Vertical Slice
+### Chunk C (Active): Date Picker Vertical Slice
 
 - [ ] Wire upstream Date Picker wrapper and remove HTML `<input type="date">` fallback implementation.
 - [ ] Migrate DatePicker usage in `crates/tasklens-ui/src/app_components/task_editor.rs` to upstream-compatible styling.
@@ -89,6 +89,7 @@
 
 - [x] Button: vendored to `dioxus_components`, integrated, legacy `components/button.rs` removed.
 - [x] Input: vendored to `dioxus_components`, integrated, legacy `components/input.rs` removed.
+- [x] Checkbox: vendored to `dioxus_components`, integrated, legacy `components/checkbox.rs` removed.
 
 ## Align Existing Dioxus Component Wrappers
 
@@ -101,7 +102,7 @@
 
 - [x] Button: replace local DaisyUI `button.rs` with upstream `button` component + CSS.
 - [x] Input: replace local DaisyUI `input.rs` with upstream `input` component + CSS.
-- [ ] Checkbox: replace local DaisyUI `checkbox.rs` with upstream `checkbox` component + CSS.
+- [x] Checkbox: replace local DaisyUI `checkbox.rs` with upstream `checkbox` component + CSS.
 - [ ] Date Picker: wire the upstream wrapper and remove the HTML `<input type="date">` implementation.
 
 ## Verify Adopted Components
