@@ -1,5 +1,7 @@
 import { test } from "../fixtures";
 
+test.use({ db: "sample" });
+
 test.describe("Task Moving", () => {
   test.beforeEach(async ({ I }) => {
     await I.Given.seededWithSampleData();

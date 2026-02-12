@@ -51,3 +51,4 @@ ROLLING_CONTEXT.md
 # Generated build artifacts (tasklens-ui specific)
 crates/tasklens-ui/public/version.js
 crates/tasklens-ui/assets/tailwind.css
+crates/tasklens-ui/playwright/.snapshots/

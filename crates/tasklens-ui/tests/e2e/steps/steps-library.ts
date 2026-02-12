@@ -12,6 +12,7 @@ export class Steps {
     private page: Page,
     private testInfo: TestInfo,
     private syncServer?: SyncServerHelper,
+    private samplePreloaded: boolean = false,
   ) {}
 
   private getSyncUrl() {
@@ -50,6 +51,7 @@ export class Steps {
     },
 
     seededWithSampleData: async () => {
+      if (this.samplePreloaded) return;
       await this.plan.primeWithSampleData();
     },
 

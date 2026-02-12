@@ -64,14 +64,22 @@ export default defineConfig({
   },
   projects: [
     {
+      name: "snapshot-setup",
+      testDir: "tests/e2e",
+      testMatch: /global\.setup\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
       name: "e2e-desktop",
       testDir: "tests/e2e",
       use: { ...devices["Desktop Chrome"] },
+      dependencies: ["snapshot-setup"],
     },
     {
       name: "e2e-mobile",
       testDir: "tests/e2e",
       use: { ...devices["Pixel 7"] },
+      dependencies: ["snapshot-setup"],
     },
   ],
 });

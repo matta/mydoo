@@ -1,5 +1,7 @@
 import { test } from "../fixtures";
 
+test.use({ db: "sample" });
+
 test.describe("Mobile Journeys", () => {
   // Mobile tests should be tagged or run with a mobile project config
   // For now, we rely on the project config to set the viewport

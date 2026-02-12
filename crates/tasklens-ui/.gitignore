@@ -1,3 +1,4 @@
 # Generated build artifacts
 public/version.js
 test-scratch/
+playwright/.snapshots/

@@ -1,5 +1,8 @@
+import fs from "node:fs";
+import path from "node:path";
 import {
   type Browser,
+  type BrowserContext,
   test as baseTest,
   expect,
   type Page,
@@ -13,13 +16,20 @@ import { getEphemeralPort, SyncServerHelper } from "./utils/sync-server";
 
 export { expect };
 
+const snapshotDir = path.join(
+  import.meta.dirname,
+  "../../playwright/.snapshots",
+);
+
+type DbProfile = "empty" | "sample";
+
 type UserContext = {
   page: Page;
   plan: PlanPage;
 };
 
-// Combine all fixtures
 type MyFixtures = {
+  db: DbProfile;
   plan: PlanFixture;
   debugFailure: null;
   I: Steps;
@@ -31,14 +41,30 @@ type MyWorkerFixtures = {
   syncServer: SyncServerHelper;
 };
 
-const createUserFixture = async (
-  browser: Browser,
-  name: string,
-): Promise<UserContext> => {
-  const context = await browser.newContext({ serviceWorkers: "block" });
-  const page = await context.newPage();
-  const plan = new PlanPage(page);
+function snapshotPath(name: string): string {
+  return path.join(snapshotDir, name);
+}
 
+function harPath(): string {
+  return snapshotPath("app-assets.har");
+}
+
+function snapshotsExist(): boolean {
+  return (
+    fs.existsSync(snapshotPath("empty-db.json")) &&
+    fs.existsSync(snapshotPath("sample-db.json")) &&
+    fs.existsSync(harPath())
+  );
+}
+
+async function applyHarReplay(context: BrowserContext): Promise<void> {
+  const har = harPath();
+  if (fs.existsSync(har)) {
+    await context.routeFromHAR(har, { notFound: "fallback" });
+  }
+}
+
+function attachConsoleLogger(page: Page, name: string): void {
   if (process.env.SHOW_CONSOLE) {
     page.on("console", async (msg) => {
       const type = msg.type();
@@ -46,15 +72,38 @@ const createUserFixture = async (
       console.log(`[${name}] PAGE ${type}: ${text}`);
     });
   }
+}
+
+const createUserFixture = async (
+  browser: Browser,
+  name: string,
+): Promise<UserContext> => {
+  const context = await browser.newContext({ serviceWorkers: "block" });
+  await applyHarReplay(context);
+  const page = await context.newPage();
+  const plan = new PlanPage(page);
+
+  attachConsoleLogger(page, name);
 
   return { page, plan };
 };
 
 export const test = baseTest.extend<MyFixtures, MyWorkerFixtures>({
+  db: ["empty", { option: true }],
+
+  storageState: async ({ db }, use) => {
+    if (snapshotsExist()) {
+      await use(snapshotPath(`${db}-db.json`));
+    } else {
+      await use({ cookies: [], origins: [] });
+    }
+  },
+
   plan: async (
-    { page }: { page: Page },
+    { page, context }: { page: Page; context: BrowserContext },
     use: (r: PlanPage) => Promise<void>,
   ) => {
+    await applyHarReplay(context);
     const planPage = new PlanPage(page);
     if (process.env.SHOW_CONSOLE) {
       page.on("console", async (msg) => {
@@ -84,17 +133,19 @@ export const test = baseTest.extend<MyFixtures, MyWorkerFixtures>({
     await use(user);
     await user.page.context().close();
   },
-  I: async ({ plan, page, syncServer }, use, testInfo) => {
-    // plan fixture is typed as interface but at runtime it's PlanPage instance
-    // We cast to PlanPage because Steps expects the concrete class or compatible interface
-    // Setup logic moved from onHomePage
+  I: async ({ plan, page, syncServer, db }, use, testInfo) => {
     await plan.setupClock();
     await page.goto("/");
     await plan.waitForAppReady();
 
-    const steps = new Steps(plan as PlanPage, page, testInfo, syncServer);
+    const steps = new Steps(
+      plan as PlanPage,
+      page,
+      testInfo,
+      syncServer,
+      db === "sample",
+    );
 
-    // Auto-wrap steps in test.step() for reporting
     const wrapStepGroup = (
       groupName: string,
       group: Record<string, unknown>,
@@ -103,12 +154,10 @@ export const test = baseTest.extend<MyFixtures, MyWorkerFixtures>({
         const original = group[key];
         if (typeof original === "function") {
           group[key] = async (...args: unknown[]) => {
-            // Convert camelCase to Title Case (e.g. "cleanWorkspace" -> "Clean Workspace")
             const title = key
               .replace(/([A-Z])/g, " $1")
               .replace(/^./, (str) => str.toUpperCase());
 
-            // Format args for display if simple
             const argsStr = args.length
               ? ` ${args.map((a) => (typeof a === "string" ? `"${a}"` : JSON.stringify(a))).join(", ")}`
               : "";
