@@ -60,14 +60,23 @@ async function applyHarReplay(context: BrowserContext): Promise<void> {
   }
 }
 
-function attachConsoleLogger(page: Page, name: string): void {
-  if (process.env.SHOW_CONSOLE) {
-    page.on("console", async (msg) => {
-      const type = msg.type();
-      const text = await formatConsoleMessage(msg);
-      console.log(`[${name}] PAGE ${type}: ${text}`);
-    });
-  }
+function attachConsoleLogger(page: Page, prefix?: string): void {
+  if (!process.env.SHOW_CONSOLE) return;
+  page.on("console", async (msg) => {
+    const type = msg.type();
+    const cleanText = await formatConsoleMessage(msg);
+    const label = prefix ? `[${prefix}] ` : "";
+    const text = `${label}PAGE ${type}: ${cleanText}`;
+    if (type === "error") {
+      console.error(text);
+    } else if (type === "warning") {
+      console.warn(text);
+    } else if (type === "debug") {
+      console.debug(text);
+    } else {
+      console.log(text);
+    }
+  });
 }
 
 const createUserFixture = async (
@@ -101,22 +110,7 @@ export const test = baseTest.extend<MyFixtures, MyWorkerFixtures>({
   ) => {
     await applyHarReplay(context);
     const planPage = new PlanPage(page);
-    if (process.env.SHOW_CONSOLE) {
-      page.on("console", async (msg) => {
-        const type = msg.type();
-        const cleanText = await formatConsoleMessage(msg);
-        const text = `PAGE ${type}: ${cleanText}`;
-        if (type === "error") {
-          console.error(text);
-        } else if (type === "warning") {
-          console.warn(text);
-        } else if (type === "debug") {
-          console.debug(text);
-        } else {
-          console.log(text);
-        }
-      });
-    }
+    attachConsoleLogger(page);
     await use(planPage);
   },
   alice: async ({ browser }, use) => {
