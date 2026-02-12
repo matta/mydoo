@@ -118,6 +118,8 @@ fn check_revisions_only(args: &UpdateDioxusComponentsArgs) -> Result<()> {
     }
 
     let repo_root = find_repo_root()?;
+    fetch_origin(&repo_root)?;
+
     let component_file_relative = normalize_repo_relative_path(&repo_root, &args.components_file)?;
     let components_file = repo_root.join(component_file_relative);
     let ui_cargo_toml = repo_root.join(UI_CRATE_DIR).join("Cargo.toml");
@@ -125,7 +127,14 @@ fn check_revisions_only(args: &UpdateDioxusComponentsArgs) -> Result<()> {
     let components_config = read_dioxus_vendor_components_config(&components_file)?;
     let primitives_pin = read_manifest_dioxus_primitives_pin(&ui_cargo_toml)?;
 
-    check_upstream_revisions(&components_config.registry, &primitives_pin)?;
+    check_upstream_revisions(
+        &components_config.registry,
+        &primitives_pin,
+        RevisionReportContext {
+            repo_root: Some(&repo_root),
+            vendor_branch: Some(&args.vendor_branch),
+        },
+    )?;
 
     println!(
         "check-revisions completed: components_rev={}, primitives_rev={}",
@@ -204,6 +213,10 @@ fn run_update_workflow(args: &UpdateDioxusComponentsArgs, context: &WorkflowCont
     ensure_components_registry_is_compatible_with_primitives_pin(
         &components_config.registry,
         &primitives_pin,
+        RevisionReportContext {
+            repo_root: Some(&context.repo_root),
+            vendor_branch: Some(&args.vendor_branch),
+        },
     )?;
 
     checkout_or_init_vendor_branch(
@@ -375,6 +388,7 @@ fn read_manifest_dioxus_primitives_pin(
 fn ensure_components_registry_is_compatible_with_primitives_pin(
     components_registry: &DioxusVendorRegistryConfig,
     primitives_pin: &DioxusVendorRegistryConfig,
+    report_context: RevisionReportContext,
 ) -> Result<()> {
     if components_registry.git != primitives_pin.git {
         bail!(
@@ -388,6 +402,7 @@ fn ensure_components_registry_is_compatible_with_primitives_pin(
         &components_registry.git,
         &components_registry.rev,
         &primitives_pin.rev,
+        report_context,
     )
 }
 
@@ -395,6 +410,7 @@ fn ensure_components_registry_is_compatible_with_primitives_pin(
 fn check_upstream_revisions(
     components_registry: &DioxusVendorRegistryConfig,
     primitives_pin: &DioxusVendorRegistryConfig,
+    report_context: RevisionReportContext,
 ) -> Result<()> {
     if components_registry.git != primitives_pin.git {
         eprintln!(
@@ -418,6 +434,7 @@ fn check_upstream_revisions(
         &components_registry.git,
         &components_registry.rev,
         &primitives_pin.rev,
+        report_context,
     );
 
     if let Err(cleanup_error) = remove_path_if_exists(&comparison_repo) {
@@ -438,6 +455,7 @@ fn ensure_components_revision_not_ahead_of_primitives_revision(
     registry_git: &str,
     components_revision: &str,
     primitives_revision: &str,
+    report_context: RevisionReportContext,
 ) -> Result<()> {
     if components_revision == primitives_revision {
         return Ok(());
@@ -476,6 +494,7 @@ fn ensure_components_revision_not_ahead_of_primitives_revision(
             registry_git,
             components_revision,
             primitives_revision,
+            report_context,
         )?;
 
         let components_is_ancestor =
@@ -514,12 +533,27 @@ enum RevisionHeadStatus {
     Diverged,
 }
 
+/// Integration status of a vendor snapshot in the current branch.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum IntegrationStatus {
+    Integrated,
+    NotIntegrated,
+}
+
+/// Optional integration context for revision reports.
+#[derive(Debug, Clone, Copy, Default)]
+struct RevisionReportContext<'a> {
+    repo_root: Option<&'a Path>,
+    vendor_branch: Option<&'a str>,
+}
+
 /// Prints revision status and actionable guidance when newer head pins exist.
 fn emit_registry_revision_report(
     comparison_repo: &Path,
     registry_git: &str,
     components_revision: &str,
     primitives_revision: &str,
+    report_context: RevisionReportContext,
 ) -> Result<()> {
     let Some(head_revision) = resolve_remote_head_revision(comparison_repo, registry_git)? else {
         eprintln!(
@@ -545,17 +579,41 @@ fn emit_registry_revision_report(
 
     let components_status =
         classify_revision_against_head(comparison_repo, components_revision, &head_revision)?;
+
     let primitives_status =
         classify_revision_against_head(comparison_repo, primitives_revision, &head_revision)?;
 
+    let components_integration = if let (Some(root), Some(branch)) =
+        (report_context.repo_root, report_context.vendor_branch)
+    {
+        if let Some(snapshot_commit) =
+            find_vendor_snapshot_commit(root, branch, components_revision)?
+        {
+            if is_ancestor(root, &snapshot_commit, "HEAD")? {
+                Some(IntegrationStatus::Integrated)
+            } else {
+                Some(IntegrationStatus::NotIntegrated)
+            }
+        } else {
+            Some(IntegrationStatus::NotIntegrated)
+        }
+    } else {
+        None
+    };
+
     eprintln!("Dioxus Components revision report:");
+
     eprintln!(
         "  components pin : {}",
-        render_revision_status(components_revision, components_status),
+        render_revision_status(
+            components_revision,
+            components_status,
+            components_integration
+        ),
     );
     eprintln!(
         "  primitives pin : {}",
-        render_revision_status(primitives_revision, primitives_status),
+        render_revision_status(primitives_revision, primitives_status, None),
     );
     eprintln!("  upstream head  : {head_revision}");
 
@@ -577,7 +635,53 @@ fn emit_registry_revision_report(
         );
     }
 
+    if components_integration == Some(IntegrationStatus::NotIntegrated) {
+        emit_loud_warning(
+            "Vendored components are not integrated",
+            &format_unintegrated_components_guidance(components_revision),
+        );
+    }
+
     Ok(())
+}
+
+/// Resolves the latest snapshot commit for a revision on the vendor branch.
+fn find_vendor_snapshot_commit(
+    repo_root: &Path,
+    vendor_branch: &str,
+    revision: &str,
+) -> Result<Option<String>> {
+    let remote_ref = format!("origin/{vendor_branch}");
+    if !remote_tracking_branch_exists(repo_root, vendor_branch)? {
+        return Ok(None);
+    }
+
+    let subject = format!("chore(vendor): update Dioxus Components source to {revision}");
+    let output = run_command(
+        repo_root,
+        "git",
+        &[
+            "log",
+            &remote_ref,
+            "--oneline",
+            "-n",
+            "1",
+            "--grep",
+            &subject,
+            "--format=%H",
+        ],
+    )?;
+
+    if !output.status.success() {
+        return Ok(None);
+    }
+
+    let sha = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if sha.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(sha))
+    }
 }
 
 /// Resolves the commit hash for upstream HEAD using `git ls-remote`.
@@ -628,14 +732,25 @@ fn classify_revision_head_status(
 }
 
 /// Renders a compact status marker for revision report output.
-fn render_revision_status(revision: &str, status: RevisionHeadStatus) -> String {
+fn render_revision_status(
+    revision: &str,
+    status: RevisionHeadStatus,
+    integration: Option<IntegrationStatus>,
+) -> String {
     let status_suffix = match status {
         RevisionHeadStatus::At => "at-head",
         RevisionHeadStatus::Behind => "behind-head",
         RevisionHeadStatus::Ahead => "ahead-of-head",
         RevisionHeadStatus::Diverged => "diverged-from-head",
     };
-    format!("{revision} ({status_suffix})")
+
+    let integration_suffix = match integration {
+        Some(IntegrationStatus::Integrated) => ", integrated",
+        Some(IntegrationStatus::NotIntegrated) => ", NOT INTEGRATED",
+        None => "",
+    };
+
+    format!("{revision} ({status_suffix}{integration_suffix})")
 }
 
 /// Emits a high-contrast warning header followed by actionable guidance.
@@ -673,6 +788,13 @@ fn format_components_head_upgrade_guidance(
 
     format!(
         "  current pin: {components_revision}\n  upstream HEAD: {head_revision}\n  to vendor at upstream HEAD while preserving `components_rev <= dioxus-primitives_rev`:\n  1. Edit crates/tasklens-ui/Cargo.toml and set `dependencies.dioxus-primitives.rev = \"{head_revision}\"`.\n  2. Run `cargo update -p dioxus-primitives` to sync Cargo.lock to the manifest pin.\n  3. Edit crates/tasklens-ui/dioxus-vendor-components.toml and set `[registry].rev = \"{head_revision}\"`.\n  4. Run `cargo xtask update-dioxus-components`."
+    )
+}
+
+/// Explains that the pinned components revision has not been merged into HEAD.
+fn format_unintegrated_components_guidance(revision: &str) -> String {
+    format!(
+        "  current pin: {revision}\n  the vendored source for this revision is not integrated into HEAD history.\n  run `cargo xtask update-dioxus-components` to complete the integration."
     )
 }
 
@@ -1640,6 +1762,7 @@ source = "git+https://github.com/DioxusLabs/components?rev=deadbeef#deadbeef"
             ensure_components_registry_is_compatible_with_primitives_pin(
                 &components_registry,
                 &primitives_pin,
+                RevisionReportContext::default(),
             )
             .is_err()
         );
@@ -1652,6 +1775,7 @@ source = "git+https://github.com/DioxusLabs/components?rev=deadbeef#deadbeef"
                 "https://github.com/DioxusLabs/components",
                 "abc123",
                 "abc123",
+                RevisionReportContext::default(),
             )
             .is_ok()
         );
