@@ -13,7 +13,7 @@ catalogs:
     "@commitlint/cli": 20.3.1
     "@commitlint/types": 20.3.1
     "@axe-core/playwright": ^4.11.0
-    "@playwright/test": ^1.57.0
+    "@playwright/test": 1.58.0
     "@types/node": 25.1.0
 
     daisyui: ^5.5.17
