@@ -67,8 +67,7 @@
 
 **Status: Completed February 2026.** Browser-native date/datetime controls are the short-term direction while de-Daisy work continues.
 
-- [x] Replace legacy `DatePicker` wrapper (DaisyUI/Tailwind classes) with app-owned `DateInput` in `crates/tasklens-ui/src/app_components/date_input.rs` using CSS modules.
-- [x] Add app-owned `DateTimeInput` wrapper using `input[type="datetime-local"]` in `crates/tasklens-ui/src/app_components/date_time_input.rs` using CSS modules.
+- [x] Replace legacy `DatePicker` wrapper (DaisyUI/Tailwind classes) with app-owned `DateInput` and `DateTimeInput` in `crates/tasklens-ui/src/app_components/date_time_inputs/` using CSS modules.
 - [x] Migrate callsite in `crates/tasklens-ui/src/app_components/task_editor.rs` from `DatePicker` to `DateInput`.
 - [x] Remove legacy `crates/tasklens-ui/src/components/date_picker/` directory (both `mod.rs` and `component.rs`).
 - [x] Pilot Dioxus `#[css_module(...)]` on app-owned date/datetime wrappers — verified production build produces hashed, scoped class names.

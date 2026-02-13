@@ -1,4 +1,5 @@
-.date-input {
+.date-input,
+.datetime-input {
   display: block;
   width: 100%;
   padding: 0.5rem 0.75rem;
@@ -13,13 +14,15 @@
     box-shadow 0.15s ease-in-out;
 }
 
-.date-input:focus {
+.date-input:focus,
+.datetime-input:focus {
   outline: none;
   border-color: var(--dx-ring);
   box-shadow: 0 0 0 2px var(--dx-ring);
 }
 
-.date-input:disabled {
+.date-input:disabled,
+.datetime-input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

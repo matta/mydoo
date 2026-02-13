@@ -1,4 +1,4 @@
-use crate::app_components::date_input::DateInput;
+use crate::app_components::DateInput;
 use crate::components::Select;
 use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use crate::components::loading::Loading;
