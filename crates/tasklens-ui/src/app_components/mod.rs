@@ -7,6 +7,8 @@
 pub mod app_navbar;
 pub mod back_button;
 pub mod balance_slider;
+pub mod date_input;
+pub mod date_time_input;
 pub mod doc_id_manager;
 pub mod empty_state;
 pub mod load_error_view;

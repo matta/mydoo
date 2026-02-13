@@ -253,6 +253,7 @@ just test-e2e -- tests/e2e/specs/due-dates.spec.ts --project=e2e-mobile
   - Prefer `expect("message")` over `unwrap()` for better trace context in WASM logs.
 - **Numeric Interop**: Use `f64` for ALL numeric fields crossing the FFI/Automerge boundary to ensure IEEE 754 compatibility with JavaScript.
 - **Dioxus Router**: Custom URL parameter types must implement `Display` and `FromStr`.
+- **Dioxus CSS Modules**: Use `#[css_module("/src/path/to/file.css")] struct Styles;` inside a component function. The path is absolute from the crate root. Class names become snake_case const fields (e.g., `.date-input` → `Styles::date_input`). The stylesheet is auto-injected on first `Deref` access — no manual `document::Link` needed. Keep vendored `dioxus_components` on upstream `style.css` + `document::Link`; only use CSS modules for app-owned components.
 
 ## Project Management
 

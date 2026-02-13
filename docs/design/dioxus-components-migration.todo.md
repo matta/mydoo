@@ -63,7 +63,16 @@
 - [x] Remove legacy `crates/tasklens-ui/src/components/checkbox.rs` and wire re-exports through `dioxus_components`.
 - [x] Clear any remaining checkbox-related DaisyUI classes in migrated callsites.
 
-### Chunk C (Blocked): Date Picker Vertical Slice
+### Chunk C (Completed): Native Date/Datetime Vertical Slice + CSS Modules Pilot
+
+- [x] Replace legacy `DatePicker` wrapper (DaisyUI/Tailwind classes) with app-owned `DateInput` in `crates/tasklens-ui/src/app_components/date_input.rs` using CSS modules.
+- [x] Add app-owned `DateTimeInput` wrapper using `input[type="datetime-local"]` in `crates/tasklens-ui/src/app_components/date_time_input.rs` using CSS modules.
+- [x] Migrate callsite in `crates/tasklens-ui/src/app_components/task_editor.rs` from `DatePicker` to `DateInput`.
+- [x] Remove legacy `crates/tasklens-ui/src/components/date_picker/` directory (both `mod.rs` and `component.rs`).
+- [x] Pilot Dioxus `#[css_module(...)]` on app-owned date/datetime wrappers — verified production build produces hashed, scoped class names.
+- [x] Add or refresh tests covering native date input behavior and value conversion.
+
+### Deferred: Upstream Date Picker Vertical Slice (Blocked)
 
 **Status: Blocked.** Attempted and fully reverted February 2026. Two issues must be resolved first.
 
@@ -74,8 +83,7 @@ Prerequisites (resolve before re-attempting):
 
 Slice tasks (do not start until prerequisites are resolved):
 
-- [ ] Wire upstream Date Picker wrapper and remove HTML `<input type="date">` fallback implementation.
-- [ ] Migrate DatePicker usage in `crates/tasklens-ui/src/app_components/task_editor.rs` to upstream-compatible styling.
+- [ ] Wire upstream Date Picker wrapper and remove native `DateInput` fallback implementation.
 - [ ] Remove legacy date-picker-specific DaisyUI/Tailwind dropdown/menu classes.
 
 ### Chunk D: Wrapper De-Daisy (Select, Dialog, Collapsible, Calendar)
@@ -99,6 +107,15 @@ Slice tasks (do not start until prerequisites are resolved):
 - [x] Button: vendored to `dioxus_components`, integrated, legacy `components/button.rs` removed.
 - [x] Input: vendored to `dioxus_components`, integrated, legacy `components/input.rs` removed.
 - [x] Checkbox: vendored to `dioxus_components`, integrated, legacy `components/checkbox.rs` removed.
+- [x] Date/Datetime Inputs: app-owned `DateInput` and `DateTimeInput` with CSS modules, legacy `components/date_picker/` removed.
+
+## Cross-Cutting Gate: CSS Modules Feasibility
+
+- [x] Pilot Dioxus `#[css_module(...)]` on one app-owned component (date/datetime wrappers in Chunk C).
+- [x] Verify production build behavior for the pilot (asset output produces hashed, scoped, minified CSS).
+- [x] Verify test stability for the pilot flow (unit/E2E coverage for the touched date path).
+- [x] Only after pilot success: update `dioxus-components-migration.md` guidance to recommend CSS modules for app-owned components.
+- [ ] Keep vendored `dioxus_components` on upstream `style.css` + `document::Link` regardless of pilot outcome.
 
 ## Align Existing Dioxus Component Wrappers
 
@@ -112,7 +129,7 @@ Slice tasks (do not start until prerequisites are resolved):
 - [x] Button: replace local DaisyUI `button.rs` with upstream `button` component + CSS.
 - [x] Input: replace local DaisyUI `input.rs` with upstream `input` component + CSS.
 - [x] Checkbox: replace local DaisyUI `checkbox.rs` with upstream `checkbox` component + CSS.
-- [ ] Date Picker: wire the upstream wrapper and remove the HTML `<input type="date">` implementation.
+- [x] Date/Datetime Inputs: replaced with app-owned CSS-module-scoped wrappers; upstream Date Picker deferred.
 
 ## Verify Adopted Components
 
@@ -133,7 +150,7 @@ Slice tasks (do not start until prerequisites are resolved):
   - `crates/tasklens-ui/src/app_components/empty_state.rs`
 - [ ] `dropdown*`/`menu*`/`modal*` debt:
   - `crates/tasklens-ui/src/components/dialog/component.rs`
-  - `crates/tasklens-ui/src/components/date_picker/component.rs`
+- [x] Native date/datetime wrapper utility-class debt: cleared (legacy `date_picker` removed, new wrappers use CSS modules).
 - [ ] `loading*` debt:
   - `crates/tasklens-ui/src/app_components/loading.rs`
 - [ ] DaisyUI theme utility debt (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.) remains broadly in app components and views; burn down alongside component-skin replacement.
@@ -154,4 +171,4 @@ rg -n 'class:\s*(format!\(|format_args!\(|"[^"]*\b(btn|input|select|textarea|tog
 
 ## Tracking
 
-- [ ] Keep `dioxus-components-migration.md` inventory and divergence summary up to date as components are migrated.
+- [x] Keep `dioxus-components-migration.md` inventory and divergence summary up to date as components are migrated.

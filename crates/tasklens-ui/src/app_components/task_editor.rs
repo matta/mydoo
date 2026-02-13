@@ -1,6 +1,7 @@
+use crate::app_components::date_input::DateInput;
+use crate::components::Select;
 use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use crate::components::loading::Loading;
-use crate::components::{DatePicker, Select};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::input::Input;
 use crate::utils::time_conversion;
@@ -565,7 +566,7 @@ pub fn TaskEditor(
                                         r#for: "date-input",
                                         span { class: "label-text font-medium", "Due Date" }
                                     }
-                                    DatePicker {
+                                    DateInput {
                                         id: "date-input",
                                         data_testid: "date-input",
                                         value: current_draft

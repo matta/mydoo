@@ -6,7 +6,6 @@
 pub mod alert;
 pub mod calendar;
 pub mod collapsible;
-pub mod date_picker;
 pub mod dialog;
 pub mod navbar;
 pub mod popover;
@@ -56,5 +55,4 @@ pub(crate) use crate::app_components::task_editor::TaskEditor;
 #[allow(unused_imports)]
 pub(crate) use crate::app_components::task_input::TaskInput;
 
-pub(crate) use date_picker::DatePicker;
 pub(crate) use select::Select;
