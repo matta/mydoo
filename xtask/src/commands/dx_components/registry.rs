@@ -1,3 +1,11 @@
+// Derived in part from Dioxus upstream registry/cache resolution code:
+// - context/dioxus/packages/cli/src/cli/component.rs
+// - context/dioxus/packages/cli/src/workspace.rs
+// Upstream package metadata:
+// - authors = ["Jonathan Kelley"]
+// - license = "MIT OR Apache-2.0"
+// See `UPSTREAM_ATTRIBUTION.md` in this directory for provenance and licensing details.
+
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
 use std::hash::{Hash, Hasher};

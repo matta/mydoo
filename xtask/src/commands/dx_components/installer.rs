@@ -1,3 +1,11 @@
+// Derived in part from Dioxus upstream `dioxus-cli` installer code:
+// - context/dioxus/packages/cli/src/cli/component.rs
+// - context/dioxus/packages/cli/src/workspace.rs
+// Upstream package metadata:
+// - authors = ["Jonathan Kelley"]
+// - license = "MIT OR Apache-2.0"
+// See `UPSTREAM_ATTRIBUTION.md` in this directory for provenance and licensing details.
+
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs;
 use std::path::{Path, PathBuf};

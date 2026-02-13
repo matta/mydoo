@@ -1,3 +1,10 @@
+// Derived in part from Dioxus upstream `dioxus-component-manifest` crate:
+// - context/dioxus/packages/component-manifest/src/lib.rs
+// Upstream package metadata:
+// - authors = ["Evan Almloff"]
+// - license = "MIT OR Apache-2.0"
+// See `UPSTREAM_ATTRIBUTION.md` in this directory for provenance and licensing details.
+
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
