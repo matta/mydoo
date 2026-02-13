@@ -7,6 +7,7 @@
 pub mod app_navbar;
 pub mod back_button;
 pub mod balance_slider;
+mod date_time_inputs;
 pub mod doc_id_manager;
 pub mod empty_state;
 pub mod load_error_view;
@@ -22,6 +23,9 @@ pub mod task_row;
 
 pub(crate) use back_button::BackButton;
 pub(crate) use balance_slider::BalanceSlider;
+pub(crate) use date_time_inputs::DateInput;
+#[allow(unused_imports)]
+pub(crate) use date_time_inputs::DateTimeInput;
 pub(crate) use doc_id_manager::DocIdManager;
 pub(crate) use empty_state::EmptyState;
 pub use load_error_view::LoadErrorView;
