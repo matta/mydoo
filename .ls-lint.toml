@@ -4,7 +4,7 @@
 ".ts" = "kebab-case"
 ".tsx" = "kebab-case"
 ".html" = "kebab-case"
-".css" = "kebab-case"
+".css" = "kebab-case | snake_case"
 ".scss" = "kebab-case"
 ".sh" = "kebab-case"
 ".svg" = "kebab-case"

@@ -7,12 +7,9 @@
     'Noto Color Emoji';
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;
-    --color-gray-700: oklch(37.3% 0.034 259.733);
-    --color-gray-800: oklch(27.8% 0.033 256.848);
     --color-stone-50: oklch(98.5% 0.001 106.423);
     --color-stone-900: oklch(21.6% 0.006 56.043);
     --color-black: #000;
-    --color-white: #fff;
     --spacing: 0.25rem;
     --container-xs: 20rem;
     --container-md: 28rem;
@@ -504,95 +501,6 @@
         padding: calc(0.25rem * 2);
         &:before {
           display: none;
-        }
-      }
-    }
-  }
-  .dropdown {
-    @layer daisyui.l1.l2.l3 {
-      position: relative;
-      display: inline-block;
-      position-area: var(--anchor-v, bottom) var(--anchor-h, span-right);
-      & > *:not(:has(~ [class*="dropdown-content"])):focus {
-        --tw-outline-style: none;
-        outline-style: none;
-        @media (forced-colors: active) {
-          outline: 2px solid transparent;
-          outline-offset: 2px;
-        }
-      }
-      .dropdown-content {
-        position: absolute;
-      }
-      &.dropdown-close .dropdown-content, &:not(details, .dropdown-open, .dropdown-hover:hover, :focus-within) .dropdown-content, &.dropdown-hover:not(:hover) [tabindex]:first-child:focus:not(:focus-visible) ~ .dropdown-content {
-        display: none;
-        transform-origin: top;
-        opacity: 0%;
-        scale: 95%;
-      }
-      &[popover], .dropdown-content {
-        z-index: 999;
-        @media (prefers-reduced-motion: no-preference) {
-          animation: dropdown 0.2s;
-          transition-property: opacity, scale, display;
-          transition-behavior: allow-discrete;
-          transition-duration: 0.2s;
-          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        }
-      }
-      @starting-style {
-        &[popover], .dropdown-content {
-          scale: 95%;
-          opacity: 0;
-        }
-      }
-      &:not(.dropdown-close) {
-        &.dropdown-open, &:not(.dropdown-hover):focus, &:focus-within {
-          > [tabindex]:first-child {
-            pointer-events: none;
-          }
-          .dropdown-content {
-            opacity: 100%;
-            scale: 100%;
-          }
-        }
-        &.dropdown-hover:hover {
-          .dropdown-content {
-            opacity: 100%;
-            scale: 100%;
-          }
-        }
-      }
-      &:is(details) {
-        summary {
-          &::-webkit-details-marker {
-            display: none;
-          }
-        }
-      }
-      &:where([popover]) {
-        background: #0000;
-      }
-      &[popover] {
-        position: fixed;
-        color: inherit;
-        @supports not (position-area: bottom) {
-          margin: auto;
-          &.dropdown-close, &.dropdown-open:not(:popover-open) {
-            display: none;
-            transform-origin: top;
-            opacity: 0%;
-            scale: 95%;
-          }
-          &::backdrop {
-            background-color: color-mix(in oklab, #000 30%, #0000);
-          }
-        }
-        &.dropdown-close, &:not(.dropdown-open, :popover-open) {
-          display: none;
-          transform-origin: top;
-          opacity: 0%;
-          scale: 95%;
         }
       }
     }
@@ -2218,9 +2126,6 @@
   .inline-block {
     display: inline-block;
   }
-  .inline-flex {
-    display: inline-flex;
-  }
   .table {
     display: table;
   }
@@ -2289,9 +2194,6 @@
   }
   .w-64 {
     width: calc(var(--spacing) * 64);
-  }
-  .w-auto {
-    width: auto;
   }
   .w-full {
     width: 100%;
@@ -2475,12 +2377,6 @@
   .rounded {
     border-radius: 0.25rem;
   }
-  .rounded-box {
-    border-radius: var(--radius-box);
-  }
-  .rounded-box {
-    border-radius: var(--radius-box);
-  }
   .rounded-full {
     border-radius: calc(infinity * 1px);
   }
@@ -2574,9 +2470,6 @@
   }
   .bg-warning {
     background-color: var(--color-warning);
-  }
-  .bg-white {
-    background-color: var(--color-white);
   }
   .loading-spinner {
     @layer daisyui.l1.l2 {
@@ -2996,16 +2889,6 @@
   .md\:grid-cols-2 {
     @media (width >= 48rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-  .dark\:border-gray-700 {
-    @media (prefers-color-scheme: dark) {
-      border-color: var(--color-gray-700);
-    }
-  }
-  .dark\:bg-gray-800 {
-    @media (prefers-color-scheme: dark) {
-      background-color: var(--color-gray-800);
     }
   }
 }
