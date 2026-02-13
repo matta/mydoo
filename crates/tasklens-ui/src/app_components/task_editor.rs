@@ -270,9 +270,9 @@ pub fn TaskEditor(
                                     class: "w-full text-lg",
                                     oninput: move |evt: FormEvent| {
                                         draft
-                                            .with_mut(|d_opt| {
-                                                if let Some(d) = d_opt.as_mut() {
-                                                    d.title = evt.value();
+                                            .with_mut(|task| {
+                                                if let Some(task) = task.as_mut() {
+                                                    task.title = evt.value();
                                                 }
                                             });
                                     },
@@ -300,9 +300,9 @@ pub fn TaskEditor(
                                     value: current_draft.notes.clone(),
                                     oninput: move |e| {
                                         draft
-                                            .with_mut(|d_opt| {
-                                                if let Some(d) = d_opt.as_mut() {
-                                                    d.notes = e.value();
+                                            .with_mut(|task| {
+                                                if let Some(task) = task.as_mut() {
+                                                    task.notes = e.value();
                                                 }
                                             });
                                     },
@@ -340,9 +340,9 @@ pub fn TaskEditor(
                                         oninput: move |v| {
                                             if let Ok(val) = v.value().parse::<f64>() {
                                                 draft
-                                                    .with_mut(|d_opt| {
-                                                        if let Some(d) = d_opt.as_mut() {
-                                                            d.importance = val;
+                                                    .with_mut(|task| {
+                                                        if let Some(task) = task.as_mut() {
+                                                            task.importance = val;
                                                         }
                                                     });
                                             }
@@ -372,9 +372,9 @@ pub fn TaskEditor(
                                         oninput: move |v| {
                                             if let Ok(val) = v.value().parse::<f64>() {
                                                 draft
-                                                    .with_mut(|d_opt| {
-                                                        if let Some(d) = d_opt.as_mut() {
-                                                            d.credit_increment = Some(val);
+                                                    .with_mut(|task| {
+                                                        if let Some(task) = task.as_mut() {
+                                                            task.credit_increment = Some(val);
                                                         }
                                                     });
                                             }
@@ -404,9 +404,9 @@ pub fn TaskEditor(
                                             value: current_draft.place_id.clone().map(|id| id.to_string()).unwrap_or_default(),
                                             onchange: move |v: String| {
                                                 draft
-                                                    .with_mut(|d_opt| {
-                                                        if let Some(d) = d_opt.as_mut() {
-                                                            d.place_id = if v.is_empty() {
+                                                    .with_mut(|task| {
+                                                        if let Some(task) = task.as_mut() {
+                                                            task.place_id = if v.is_empty() {
                                                                 None
                                                             } else {
                                                                 Some(PlaceID::from(v))
@@ -452,18 +452,18 @@ pub fn TaskEditor(
                                             _ => ScheduleType::Once,
                                         };
                                         draft
-                                            .with_mut(|d_opt| {
-                                                if let Some(d) = d_opt.as_mut() {
-                                                    d.schedule.schedule_type = new_type;
+                                            .with_mut(|task| {
+                                                if let Some(task) = task.as_mut() {
+                                                    task.schedule.schedule_type = new_type;
                                                     if matches!(new_type, ScheduleType::Routinely) {
-                                                        if d.repeat_config.is_none() {
-                                                            d.repeat_config = Some(RepeatConfig {
+                                                        if task.repeat_config.is_none() {
+                                                            task.repeat_config = Some(RepeatConfig {
                                                                 frequency: Frequency::Daily,
                                                                 interval: 1,
                                                             });
                                                         }
                                                     } else {
-                                                        d.repeat_config = None;
+                                                        task.repeat_config = None;
                                                     }
                                                 }
                                             });
@@ -490,9 +490,9 @@ pub fn TaskEditor(
                                             oninput: move |e| {
                                                 if let Ok(val) = e.value().parse::<i64>() {
                                                     draft
-                                                        .with_mut(|d_opt| {
-                                                            if let Some(d) = d_opt.as_mut() {
-                                                                let mut config = d
+                                                        .with_mut(|task| {
+                                                            if let Some(task) = task.as_mut() {
+                                                                let mut config = task
                                                                     .repeat_config
                                                                     .clone()
                                                                     .unwrap_or(RepeatConfig {
@@ -500,7 +500,7 @@ pub fn TaskEditor(
                                                                         interval: 1,
                                                                     });
                                                                 config.interval = val;
-                                                                d.repeat_config = Some(config);
+                                                                task.repeat_config = Some(config);
                                                             }
                                                         });
                                                 }
@@ -523,9 +523,9 @@ pub fn TaskEditor(
                                                 .unwrap_or("Daily"),
                                             onchange: move |e| {
                                                 draft
-                                                    .with_mut(|d_opt| {
-                                                        if let Some(d) = d_opt.as_mut() {
-                                                            let mut config = d
+                                                    .with_mut(|task| {
+                                                        if let Some(task) = task.as_mut() {
+                                                            let mut config = task
                                                                 .repeat_config
                                                                 .clone()
                                                                 .unwrap_or(RepeatConfig {
@@ -540,7 +540,7 @@ pub fn TaskEditor(
                                                                 "Yearly" => Frequency::Yearly,
                                                                 _ => Frequency::Daily,
                                                             };
-                                                            d.repeat_config = Some(config);
+                                                            task.repeat_config = Some(config);
                                                         }
                                                     });
                                             },
@@ -582,17 +582,21 @@ pub fn TaskEditor(
                                                     .unwrap_or_default()
                                             }),
                                         onchange: move |v: String| {
-                                            if let Ok(date) = chrono::NaiveDate::parse_from_str(&v, "%Y-%m-%d")
-                                                && let Some(dt) = date.and_hms_opt(0, 0, 0)
-                                            {
-                                                let ts = dt.and_utc().timestamp_millis();
-                                                draft
-                                                    .with_mut(|d_opt| {
-                                                        if let Some(d) = d_opt.as_mut() {
-                                                            d.schedule.due_date = Some(ts);
-                                                        }
-                                                    });
-                                            }
+                                            draft.with_mut(|task| {
+                                                if let Some(task) = task.as_mut() {
+                                                    if v.is_empty() {
+                                                        task.schedule.due_date = None;
+                                                    } else if let Ok(date) =
+                                                        chrono::NaiveDate::parse_from_str(&v, "%Y-%m-%d")
+                                                        && let Some(dt) = date.and_hms_opt(0, 0, 0)
+                                                    {
+                                                        let ts = dt.and_utc().timestamp_millis();
+                                                        task.schedule.due_date = Some(ts);
+                                                    } else {
+                                                        task.schedule.due_date = None;
+                                                    }
+                                                }
+                                            });
                                         },
                                     }
                                 }
@@ -620,9 +624,9 @@ pub fn TaskEditor(
                                                     oninput: move |e| {
                                                         if let Ok(v) = e.value().parse::<u32>() {
                                                             draft
-                                                                .with_mut(|d_opt| {
-                                                                    if let Some(d) = d_opt.as_mut() {
-                                                                        d.schedule.lead_time = time_conversion::period_to_ms(
+                                                                .with_mut(|task| {
+                                                                    if let Some(task) = task.as_mut() {
+                                                                        task.schedule.lead_time = time_conversion::period_to_ms(
                                                                             v,
                                                                             &unit_clone,
                                                                         );
@@ -638,10 +642,10 @@ pub fn TaskEditor(
                                                     value: "{unit}",
                                                     onchange: move |e| {
                                                         draft
-                                                            .with_mut(|d_opt| {
-                                                                if let Some(d) = d_opt.as_mut() {
-                                                                    let (v, _) = time_conversion::ms_to_period(d.schedule.lead_time);
-                                                                    d.schedule.lead_time = time_conversion::period_to_ms(v, &e.value());
+                                                            .with_mut(|task| {
+                                                                if let Some(task) = task.as_mut() {
+                                                                    let (v, _) = time_conversion::ms_to_period(task.schedule.lead_time);
+                                                                    task.schedule.lead_time = time_conversion::period_to_ms(v, &e.value());
                                                                 }
                                                             });
                                                     },
@@ -676,9 +680,9 @@ pub fn TaskEditor(
                                     checked: current_draft.is_sequential,
                                     onchange: move |e| {
                                         draft
-                                            .with_mut(|d_opt| {
-                                                if let Some(d) = d_opt.as_mut() {
-                                                    d.is_sequential = e.checked();
+                                            .with_mut(|task| {
+                                                if let Some(task) = task.as_mut() {
+                                                    task.is_sequential = e.checked();
                                                 }
                                             });
                                     },
