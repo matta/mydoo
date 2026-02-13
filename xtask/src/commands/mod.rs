@@ -5,5 +5,6 @@ pub(crate) mod check_dark_mode;
 pub(crate) mod check_dioxus_lock_pin;
 pub(crate) mod check_filenames;
 pub(crate) mod dioxus_info;
+pub(crate) mod dx_components;
 pub(crate) mod fix_junit;
 pub(crate) mod update_dioxus_components;
