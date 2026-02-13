@@ -1,0 +1,6 @@
+module_path = "src/dioxus_components"
+components = ["button", "input", "checkbox", "date_picker"]
+
+[registry]
+git = "https://github.com/DioxusLabs/components"
+rev = "cc61648268e2d5a7291fb74276e1e7f6a12ae84e"
