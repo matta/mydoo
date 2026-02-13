@@ -3,4 +3,4 @@ components = ["button", "input", "checkbox"]
 
 [registry]
 git = "https://github.com/DioxusLabs/components"
-rev = "7943bed2eb59ee43d713f935e0ba17989c02b992"
+rev = "cc61648268e2d5a7291fb74276e1e7f6a12ae84e"
