@@ -22,8 +22,8 @@ catalogs:
       specifier: 2.3.15
       version: 2.3.15
     '@commitlint/cli':
-      specifier: 20.4.0
-      version: 20.4.0
+      specifier: 20.4.1
+      version: 20.4.1
     '@commitlint/types':
       specifier: 20.4.0
       version: 20.4.0
@@ -91,7 +91,7 @@ importers:
         version: 2.3.15
       '@commitlint/cli':
         specifier: 'catalog:'
-        version: 20.4.0(@types/node@25.1.0)(typescript@5.9.3)
+        version: 20.4.1(@types/node@25.1.0)(typescript@5.9.3)
       '@commitlint/types':
         specifier: 'catalog:'
         version: 20.4.0
@@ -270,8 +270,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@commitlint/cli@20.4.0':
-    resolution: {integrity: sha512-2lqrFrYNxjKxgMqeYiO3zNM14XN9v72/5xIJyvdLw7sHEGlfg6sweW01PGNWiqZa6/AuZwsb0uzkgWJy6F4N2w==}
+  '@commitlint/cli@20.4.1':
+    resolution: {integrity: sha512-uuFKKpc7OtQM+6SRqT+a4kV818o1pS+uvv/gsRhyX7g4x495jg+Q7P0+O9VNGyLXBYP0syksS7gMRDJKcekr6A==}
     engines: {node: '>=v18'}
     hasBin: true
 
@@ -2257,7 +2257,7 @@ snapshots:
   '@cbor-extract/cbor-extract-win32-x64@2.2.0':
     optional: true
 
-  '@commitlint/cli@20.4.0(@types/node@25.1.0)(typescript@5.9.3)':
+  '@commitlint/cli@20.4.1(@types/node@25.1.0)(typescript@5.9.3)':
     dependencies:
       '@commitlint/format': 20.4.0
       '@commitlint/lint': 20.4.1
