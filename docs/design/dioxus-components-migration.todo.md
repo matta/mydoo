@@ -13,7 +13,7 @@
   - callsite class cleanup work (or explicit deferred file list in this checklist).
 - The active chunk must always point to the highest-impact remaining class debt, not only the next component name.
 - `Replace Diverged Components` status and migration inventory status must be updated in the same commit as slice changes.
-- For callsite de-Daisy cleanup slices, do not add new `assets/app.css` styles or new Tailwind CSS styles/classes unless the user explicitly approves them.
+- For callsite de-Daisy cleanup slices, do not add new `assets/app.css` styles or new Tailwind CSS styles/classes unless explicitly approved by the user.
 
 ## Foundations
 
@@ -65,6 +65,8 @@
 
 ### Chunk C (Completed): Native Date/Datetime Vertical Slice + CSS Modules Pilot
 
+**Status: Completed February 2026.** Browser-native date/datetime controls are the short-term direction while de-Daisy work continues.
+
 - [x] Replace legacy `DatePicker` wrapper (DaisyUI/Tailwind classes) with app-owned `DateInput` in `crates/tasklens-ui/src/app_components/date_input.rs` using CSS modules.
 - [x] Add app-owned `DateTimeInput` wrapper using `input[type="datetime-local"]` in `crates/tasklens-ui/src/app_components/date_time_input.rs` using CSS modules.
 - [x] Migrate callsite in `crates/tasklens-ui/src/app_components/task_editor.rs` from `DatePicker` to `DateInput`.
@@ -72,7 +74,7 @@
 - [x] Pilot Dioxus `#[css_module(...)]` on app-owned date/datetime wrappers — verified production build produces hashed, scoped class names.
 - [x] Add or refresh tests covering native date input behavior and value conversion.
 
-### Deferred: Upstream Date Picker Vertical Slice (Blocked)
+### Deferred Work: Upstream Date Picker Revisit
 
 **Status: Blocked.** Attempted and fully reverted February 2026. Two issues must be resolved first.
 
@@ -81,10 +83,11 @@ Prerequisites (resolve before re-attempting):
 - [ ] Fix `dx components add` registry root bug so builtin dependencies (`calendar`, `popover`) are vendored from the pinned `--rev`. Options: (a) patch `dx` CLI from `context/dioxus` submodule and rebuild, or (b) file upstream issue and wait for fix.
 - [ ] Resolve WASM panic in `dioxus-primitives` caused by `time::OffsetDateTime::now_local()` defaulting in `CalendarProps`. Options: (a) enable `web` feature on `dioxus-primitives`, (b) provide explicit `today` prop at callsites, or (c) patch `context/components`.
 
-Slice tasks (do not start until prerequisites are resolved):
+Deferred tasks:
 
 - [ ] Wire upstream Date Picker wrapper and remove native `DateInput` fallback implementation.
 - [ ] Remove legacy date-picker-specific DaisyUI/Tailwind dropdown/menu classes.
+- [ ] Re-evaluate the Date Picker vendoring only if native wrappers no longer satisfy UX/product needs.
 
 ### Chunk D: Wrapper De-Daisy (Select, Dialog, Collapsible, Calendar)
 

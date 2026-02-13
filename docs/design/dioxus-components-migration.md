@@ -161,7 +161,6 @@ Snapshot basis: code audit on February 11, 2026.
   - `crates/tasklens-ui/src/app_components/empty_state.rs`
 - `dropdown*`/`menu*`/`modal*` debt remains in:
   - `crates/tasklens-ui/src/components/dialog/component.rs`
-  - `crates/tasklens-ui/src/components/date_picker/component.rs`
 - Tailwind runtime dependency is still active:
   - `crates/tasklens-ui/src/main.rs` still links `assets/tailwind.css`
   - `crates/tasklens-ui/tailwind.css` still loads Tailwind + DaisyUI plugin
@@ -235,6 +234,7 @@ Alternatives considered:
 
 - Bundled `components.css`: fewer link tags, but harder diffing and more merge noise.
 - Scoped styles via Dioxus CSS Modules (`#[css_module]`) for app-owned components to reduce global leak and enable safe naming.
+- Inline styles: simple tooling, but farthest from upstream and hard to maintain.
 
 Guidelines:
 
@@ -254,6 +254,44 @@ After a successful pilot on `DateInput` and `DateTimeInput` (February 2026), CSS
 - **Build integration**: `dx build` produces minified, scoped CSS in the asset output directory.
 - **No extra dependencies**: No extra Cargo.toml dependencies needed; `#[css_module]` is re-exported through `dioxus::prelude`.
 - **Variable support**: CSS variable references (e.g., `var(--dx-text)`) work normally inside module CSS.
+
+## CSS Modules Feasibility Study (February 2026)
+
+Study question: should project-owned Dioxus components adopt CSS modules, while vendored `dioxus_components` keep upstream styling patterns?
+
+Primary-source evidence:
+
+- Dioxus `0.7.3` release notes include: "Scoped css and CSS modules". Source: [dioxus/releases/tag/v0.7.3](https://github.com/DioxusLabs/dioxus/releases/tag/v0.7.3).
+- Dioxus exposes a first-class `#[css_module(...)]` macro via Manganis; docs describe scoped class generation, `:global(...)` support, and optional `AssetOptions::css_module()`. Source: [docs.rs/manganis/latest/manganis/attr.css_module.html](https://docs.rs/manganis/latest/manganis/attr.css_module.html).
+- Dioxus CLI asset processing handles `CssModule` assets directly (`AssetVariant::CssModule`, transform + optional minification). Source: `context/dioxus/packages/cli/src/build/assets.rs` and `context/dioxus/packages/cli-opt/src/css.rs`.
+- Public Dioxus styling docs still emphasize stylesheet loading (`document::Stylesheet`/`asset!`) and do not yet describe CSS-module workflow in detail. Source: [dioxuslabs.com/learn/0.7/essentials/ui/styling](https://dioxuslabs.com/learn/0.7/essentials/ui/styling).
+
+Feasibility in this repo:
+
+- Feasible now on current versions (`dioxus = 0.7.3` in workspace).
+- Compatible with current asset pipeline (`asset!`/Manganis already used broadly).
+- Low risk for app-owned components because there is no upstream merge constraint there.
+- High churn risk if applied to vendored components because hashed class generation would diverge from upstream `style.css` conventions and increase vendor merge noise.
+
+Current recommendation:
+
+- Pilot successful (February 2026) on `DateInput` and `DateTimeInput`.
+- Prefer CSS modules for new app-owned components where class-collision risk is real.
+- Keep vendored `dioxus_components` on the upstream stylesheet pattern for update-friendliness.
+
+## Date And DateTime Direction (Native First)
+
+Decision for near-term migration work:
+
+- Use browser-native controls for date and datetime entry (`input[type="date"]`, `input[type="datetime-local"]`) in project-owned wrappers.
+- Remove DaisyUI/Tailwind classes from those wrappers and callsites.
+- Keep conversion/parsing logic in app code explicit and test-covered.
+
+Rationale:
+
+- Unblocks date/datetime UX cleanup immediately without waiting on upstream Date Picker vendoring blockers.
+- Aligns with the de-Daisy goal while minimizing operational risk.
+- Keeps the upstream Date Picker adoption path available later, after toolchain/runtime blockers are resolved.
 
 ## Build And Asset Pipeline Changes
 
