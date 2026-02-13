@@ -19,7 +19,7 @@ catalogs:
       specifier: ^4.11.0
       version: 4.11.1
     '@biomejs/biome':
-      specifier: ^2.3.13
+      specifier: 2.3.14
       version: 2.3.14
     '@commitlint/cli':
       specifier: ^20.3.0
@@ -27,6 +27,9 @@ catalogs:
     '@commitlint/types':
       specifier: ^20.3.1
       version: 20.3.1
+    '@playwright/test':
+      specifier: ^1.57.0
+      version: 1.58.0
     '@types/js-yaml':
       specifier: ^4.0.9
       version: 4.0.9
