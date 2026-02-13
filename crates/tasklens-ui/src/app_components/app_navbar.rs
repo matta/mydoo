@@ -1,3 +1,4 @@
+use crate::app_components::sync_indicator::SyncIndicator;
 use crate::components::navbar::{Navbar, NavbarItem, NavbarNav};
 use crate::components::search_panel::SearchPanel;
 use crate::controllers::doc_controller;
@@ -90,7 +91,7 @@ pub fn AppNavBar() -> Element {
                 }
             }
             div { class: "flex items-center space-x-2 pr-4",
-                crate::components::SyncIndicator {}
+                SyncIndicator {}
 
                 Button {
                     variant: ButtonVariant::Ghost,

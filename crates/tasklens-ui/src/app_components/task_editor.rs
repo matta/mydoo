@@ -1,9 +1,12 @@
 use crate::app_components::DateInput;
-use crate::components::Select;
+use crate::app_components::move_picker::MovePicker;
 use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use crate::components::loading::Loading;
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::input::Input;
+use crate::dioxus_components::select::{
+    Select, SelectList, SelectOption, SelectTrigger, SelectValue,
+};
 use crate::utils::time_conversion;
 use dioxus::prelude::*;
 use tasklens_core::TaskUpdates;
@@ -400,23 +403,28 @@ pub fn TaskEditor(
 
                                     rsx! {
                                         Select {
-                                            id: "place-select",
-                                            value: current_draft.place_id.clone().map(|id| id.to_string()).unwrap_or_default(),
-                                            onchange: move |v: String| {
+                                            value: current_draft.place_id.clone().map(|id| Some(id.to_string())),
+                                            on_value_change: move |v: Option<String>| {
                                                 draft
                                                     .with_mut(|task| {
                                                         if let Some(task) = task.as_mut() {
-                                                            task.place_id = if v.is_empty() {
-                                                                None
-                                                            } else {
-                                                                Some(PlaceID::from(v))
-                                                            };
+                                                            task.place_id = v.filter(|s| !s.is_empty()).map(PlaceID::from);
                                                         }
                                                     });
                                             },
-                                            option { value: "", "Anywhere" }
-                                            for place in places {
-                                                option { value: "{place.id}", "{place.name}" }
+                                            SelectTrigger {
+                                                id: "place-select",
+                                                SelectValue { aria_placeholder: "Anywhere" }
+                                            }
+                                            SelectList {
+                                                SelectOption::<String> { value: "".to_string(), index: 0_usize, "Anywhere" }
+                                                for (i, place) in places.iter().enumerate() {
+                                                    SelectOption::<String> {
+                                                        value: place.id.to_string(),
+                                                        index: i + 1_usize,
+                                                        "{place.name}"
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -438,17 +446,16 @@ pub fn TaskEditor(
                                     span { class: "label-text font-medium", "Schedule Type" }
                                 }
                                 Select {
-                                    id: "schedule-type-select",
-                                    value: match current_draft.schedule.schedule_type {
+                                    value: Some(match current_draft.schedule.schedule_type {
                                         ScheduleType::Once => "Once".to_string(),
                                         ScheduleType::Routinely => "Routinely".to_string(),
                                         ScheduleType::DueDate | ScheduleType::Calendar => "DueDate".to_string(),
-                                    },
-                                    onchange: move |v: String| {
-                                        let new_type = match v.as_str() {
-                                            "Once" => ScheduleType::Once,
-                                            "Routinely" => ScheduleType::Routinely,
-                                            "DueDate" => ScheduleType::DueDate,
+                                    }),
+                                    on_value_change: move |v: Option<String>| {
+                                        let new_type = match v.as_deref() {
+                                            Some("Once") => ScheduleType::Once,
+                                            Some("Routinely") => ScheduleType::Routinely,
+                                            Some("DueDate") => ScheduleType::DueDate,
                                             _ => ScheduleType::Once,
                                         };
                                         draft
@@ -468,9 +475,15 @@ pub fn TaskEditor(
                                                 }
                                             });
                                     },
-                                    option { value: "Once", "Once" }
-                                    option { value: "Routinely", "Routinely" }
-                                    option { value: "DueDate", "Due Date" }
+                                    SelectTrigger {
+                                        id: "schedule-type-select",
+                                        SelectValue {}
+                                    }
+                                    SelectList {
+                                        SelectOption::<String> { value: "Once".to_string(), index: 0_usize, "Once" }
+                                        SelectOption::<String> { value: "Routinely".to_string(), index: 1_usize, "Routinely" }
+                                        SelectOption::<String> { value: "DueDate".to_string(), index: 2_usize, "Due Date" }
+                                    }
                                 }
                             }
 
@@ -506,10 +519,8 @@ pub fn TaskEditor(
                                                 }
                                             },
                                         }
-                                        select {
-                                            id: "repetition-frequency-select",
-                                            class: "flex-grow rounded-md border border-base-300 bg-base-100 px-3 py-2",
-                                            value: current_draft
+                                        Select {
+                                            value: Some(current_draft
                                                 .repeat_config
                                                 .as_ref()
                                                 .map(|r| match r.frequency {
@@ -520,8 +531,8 @@ pub fn TaskEditor(
                                                     Frequency::Yearly => "Yearly",
                                                     _ => "Daily",
                                                 })
-                                                .unwrap_or("Daily"),
-                                            onchange: move |e| {
+                                                .unwrap_or("Daily").to_string()),
+                                            on_value_change: move |v: Option<String>| {
                                                 draft
                                                     .with_mut(|task| {
                                                         if let Some(task) = task.as_mut() {
@@ -532,24 +543,30 @@ pub fn TaskEditor(
                                                                     frequency: Frequency::Daily,
                                                                     interval: 1,
                                                                 });
-                                                            config.frequency = match e.value().as_str() {
-                                                                "Minutes" => Frequency::Minutes,
-                                                                "Hours" => Frequency::Hours,
-                                                                "Weekly" => Frequency::Weekly,
-                                                                "Monthly" => Frequency::Monthly,
-                                                                "Yearly" => Frequency::Yearly,
+                                                            config.frequency = match v.as_deref() {
+                                                                Some("Minutes") => Frequency::Minutes,
+                                                                Some("Hours") => Frequency::Hours,
+                                                                Some("Weekly") => Frequency::Weekly,
+                                                                Some("Monthly") => Frequency::Monthly,
+                                                                Some("Yearly") => Frequency::Yearly,
                                                                 _ => Frequency::Daily,
                                                             };
                                                             task.repeat_config = Some(config);
                                                         }
                                                     });
                                             },
-                                            option { value: "Minutes", "Minutes" }
-                                            option { value: "Hours", "Hours" }
-                                            option { value: "Daily", "Daily" }
-                                            option { value: "Weekly", "Weekly" }
-                                            option { value: "Monthly", "Monthly" }
-                                            option { value: "Yearly", "Yearly" }
+                                            SelectTrigger {
+                                                id: "repetition-frequency-select",
+                                                SelectValue {}
+                                            }
+                                            SelectList {
+                                                SelectOption::<String> { value: "Minutes".to_string(), index: 0_usize, "Minutes" }
+                                                SelectOption::<String> { value: "Hours".to_string(), index: 1_usize, "Hours" }
+                                                SelectOption::<String> { value: "Daily".to_string(), index: 2_usize, "Daily" }
+                                                SelectOption::<String> { value: "Weekly".to_string(), index: 3_usize, "Weekly" }
+                                                SelectOption::<String> { value: "Monthly".to_string(), index: 4_usize, "Monthly" }
+                                                SelectOption::<String> { value: "Yearly".to_string(), index: 5_usize, "Yearly" }
+                                            }
                                         }
                                     }
                                 }
@@ -635,23 +652,29 @@ pub fn TaskEditor(
                                                         }
                                                     },
                                                 }
-                                                select {
-                                                    id: "lead-time-unit-select",
-                                                    aria_label: "Lead Time Unit",
-                                                    class: "flex-grow rounded-md border border-base-300 bg-base-100 px-3 py-2",
-                                                    value: "{unit}",
-                                                    onchange: move |e| {
-                                                        draft
-                                                            .with_mut(|task| {
-                                                                if let Some(task) = task.as_mut() {
-                                                                    let (v, _) = time_conversion::ms_to_period(task.schedule.lead_time);
-                                                                    task.schedule.lead_time = time_conversion::period_to_ms(v, &e.value());
-                                                                }
-                                                            });
+                                                Select {
+                                                    value: Some(unit.to_string()),
+                                                    on_value_change: move |v: Option<String>| {
+                                                        if let Some(u) = v {
+                                                            draft
+                                                                .with_mut(|task| {
+                                                                    if let Some(task) = task.as_mut() {
+                                                                        let (v, _) = time_conversion::ms_to_period(task.schedule.lead_time);
+                                                                        task.schedule.lead_time = time_conversion::period_to_ms(v, &u);
+                                                                    }
+                                                                });
+                                                        }
                                                     },
-                                                    option { value: "Hours", "Hours" }
-                                                    option { value: "Days", "Days" }
-                                                    option { value: "Weeks", "Weeks" }
+                                                    SelectTrigger {
+                                                        id: "lead-time-unit-select",
+                                                        aria_label: "Lead Time Unit",
+                                                        SelectValue {}
+                                                    }
+                                                    SelectList {
+                                                        SelectOption::<String> { value: "Hours".to_string(), index: 0_usize, "Hours" }
+                                                        SelectOption::<String> { value: "Days".to_string(), index: 1_usize, "Days" }
+                                                        SelectOption::<String> { value: "Weeks".to_string(), index: 2_usize, "Weeks" }
+                                                    }
                                                 }
                                             }
                                         }
@@ -783,7 +806,7 @@ pub fn TaskEditor(
         // Render MovePicker as a sibling dialog outside TaskEditor's DialogRoot
         if show_move_picker() {
             if let Some(id) = task_id.clone() {
-                crate::components::MovePicker {
+                MovePicker {
                     task_id: id.clone(),
                     on_select: move |new_parent_id| {
                         task_controller.move_item(id.clone(), new_parent_id);

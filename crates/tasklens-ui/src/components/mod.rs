@@ -9,11 +9,11 @@ pub mod collapsible;
 pub mod dialog;
 pub mod navbar;
 pub mod popover;
-pub mod select;
 pub mod slider;
 pub use crate::dioxus_components::button;
 pub use crate::dioxus_components::checkbox;
 pub use crate::dioxus_components::input;
+pub use crate::dioxus_components::select;
 
 pub use crate::app_components::app_navbar;
 pub use crate::app_components::back_button;
@@ -34,25 +34,7 @@ pub use crate::app_components::task_row;
 pub use crate::dioxus_components::button::{Button, ButtonVariant};
 pub use crate::dioxus_components::checkbox::Checkbox;
 pub use crate::dioxus_components::input::Input;
+pub use crate::dioxus_components::select::{
+    Select, SelectList, SelectOption, SelectTrigger, SelectValue,
+};
 pub(crate) use alert::{Alert, AlertVariant};
-
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::back_button::BackButton;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::balance_slider::BalanceSlider;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::doc_id_manager::DocIdManager;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::empty_state::EmptyState;
-pub use crate::app_components::load_error_view::LoadErrorView;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::move_picker::MovePicker;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::page_header::PageHeader;
-pub(crate) use crate::app_components::sync_indicator::SyncIndicator;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::task_editor::TaskEditor;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::task_input::TaskInput;
-
-pub(crate) use select::Select;
