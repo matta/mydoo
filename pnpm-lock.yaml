@@ -40,7 +40,7 @@ catalogs:
       specifier: ^5.5.17
       version: 5.5.17
     glob:
-      specifier: ^13.0.0
+      specifier: 13.0.1
       version: 13.0.1
     husky:
       specifier: ^9.1.7
@@ -49,7 +49,7 @@ catalogs:
       specifier: ^4.1.1
       version: 4.1.1
     knip:
-      specifier: ^5.80.2
+      specifier: 5.82.1
       version: 5.82.1
     prettier:
       specifier: ^3.4.2
