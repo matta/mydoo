@@ -18,9 +18,9 @@ catalogs:
 
     daisyui: ^5.5.17
 
-    glob: ^13.0.0
+    glob: 13.0.1
     husky: ^9.1.7
-    knip: ^5.80.2
+    knip: 5.82.1
     prettier: ^3.4.2
     serve: ^14.2.4
     syncpack: ^13.0.2
