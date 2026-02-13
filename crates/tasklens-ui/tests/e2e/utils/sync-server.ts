@@ -48,11 +48,16 @@ export class SyncServerHelper {
   private readonly dbPath: string;
   private stopping = false;
 
+  private readonly showLogs: boolean;
+
   constructor(port: number = 3030) {
     this.port = port;
     const randomSuffix = Math.random().toString(36).substring(2, 6);
     this.dbPath = path.resolve(
       `./test-scratch/test-sync-db-${port}-${randomSuffix}`,
+    );
+    this.showLogs = !!(
+      process.env.SHOW_SYNC_SERVER || process.env.SHOW_CONSOLE
     );
   }
 
@@ -76,18 +81,22 @@ export class SyncServerHelper {
 
   async ensureHealthy(): Promise<void> {
     if (!this.isRunning()) {
-      console.warn(
-        `[sync-server:${this.port}] Server is not running. Restarting.`,
-      );
+      if (this.showLogs) {
+        console.warn(
+          `[sync-server:${this.port}] Server is not running. Restarting.`,
+        );
+      }
       await this.start();
       return;
     }
 
     const isPortOpen = await this.waitForPort(HEALTHCHECK_TIMEOUT_MS);
     if (!isPortOpen) {
-      console.warn(
-        `[sync-server:${this.port}] Server process exists but port is unavailable. Restarting.`,
-      );
+      if (this.showLogs) {
+        console.warn(
+          `[sync-server:${this.port}] Server process exists but port is unavailable. Restarting.`,
+        );
+      }
       await this.restart();
     }
   }
@@ -98,9 +107,11 @@ export class SyncServerHelper {
       if (isPortOpen) {
         return this.getBaseUrl();
       }
-      console.warn(
-        `[sync-server:${this.port}] Found stale process without open port. Recycling.`,
-      );
+      if (this.showLogs) {
+        console.warn(
+          `[sync-server:${this.port}] Found stale process without open port. Recycling.`,
+        );
+      }
       await this.stop();
     }
 
@@ -115,9 +126,11 @@ export class SyncServerHelper {
       __dirname,
       "../../../../../scripts/sync-server.js",
     );
-    console.log(
-      `Starting sync server: node ${scriptPath} --port ${this.port} --database-path ${this.dbPath}`,
-    );
+    if (this.showLogs) {
+      console.log(
+        `Starting sync server: node ${scriptPath} --port ${this.port} --database-path ${this.dbPath}`,
+      );
+    }
 
     const child = spawn(
       "node",
@@ -129,7 +142,7 @@ export class SyncServerHelper {
         this.dbPath,
       ],
       {
-        stdio: "inherit",
+        stdio: this.showLogs ? "inherit" : "ignore",
       },
     );
     this.serverProcess = child;
@@ -140,9 +153,11 @@ export class SyncServerHelper {
       const codeText = code === null ? "null" : String(code);
       const signalText = signal ?? "none";
       if (this.stopping) {
-        console.log(
-          `[sync-server:${this.port}] Exited (code=${codeText}, signal=${signalText}).`,
-        );
+        if (this.showLogs) {
+          console.log(
+            `[sync-server:${this.port}] Exited (code=${codeText}, signal=${signalText}).`,
+          );
+        }
       } else {
         console.error(
           `[sync-server:${this.port}] Exited unexpectedly (code=${codeText}, signal=${signalText}).`,
@@ -160,14 +175,18 @@ export class SyncServerHelper {
       await this.stop();
       throw new Error(`Sync server failed to start on port ${this.port}`);
     }
-    console.log(`Sync server running on ${this.getBaseUrl()}`);
+    if (this.showLogs) {
+      console.log(`Sync server running on ${this.getBaseUrl()}`);
+    }
 
     return this.getBaseUrl();
   }
 
   async stop(): Promise<void> {
     if (this.serverProcess) {
-      console.log("Stopping sync server...");
+      if (this.showLogs) {
+        console.log("Stopping sync server...");
+      }
       this.stopping = true;
       this.serverProcess.kill("SIGINT");
       await this.waitForExitOrForceKill(this.serverProcess);
