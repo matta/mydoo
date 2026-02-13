@@ -207,7 +207,7 @@ fix-style: fix-format fix-biome-root
 
 # Fix formatting (all files from root)
 fix-format:
-    pnpm prettier --write . | sed '/(unchanged)$/d'
+    pnpm prettier --write . | grep -v "(unchanged)$" || true
 
 # Fix biome for root
 fix-biome-root:
