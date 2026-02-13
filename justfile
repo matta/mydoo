@@ -207,20 +207,20 @@ fix-style: fix-format fix-biome-root
 
 # Fix formatting (all files from root)
 fix-format:
-    chronic pnpm prettier --write .
+    pnpm prettier --write . | sed '/(unchanged)$/d'
 
 # Fix biome for root
 fix-biome-root:
-    chronic pnpm biome check --write .
+    pnpm biome check --write .
 
 # Fix syncpack
 fix-syncpack-root:
-    chronic pnpm syncpack fix-mismatches
+    pnpm syncpack fix-mismatches
 
 # Fix rust (standard cargo fix)
 fix-rust:
     cargo fmt
-    chronic cargo fix --workspace --allow-dirty --allow-staged
+    cargo fix --workspace --allow-dirty --allow-staged
 
 # -----------------------------------------------------------------------------
 # Setup & Maintenance
