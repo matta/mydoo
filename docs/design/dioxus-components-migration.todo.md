@@ -63,7 +63,16 @@
 - [x] Remove legacy `crates/tasklens-ui/src/components/checkbox.rs` and wire re-exports through `dioxus_components`.
 - [x] Clear any remaining checkbox-related DaisyUI classes in migrated callsites.
 
-### Chunk C (Active): Date Picker Vertical Slice
+### Chunk C (Blocked): Date Picker Vertical Slice
+
+**Status: Blocked.** Attempted and fully reverted February 2026. Two issues must be resolved first.
+
+Prerequisites (resolve before re-attempting):
+
+- [ ] Fix `dx components add` registry root bug so builtin dependencies (`calendar`, `popover`) are vendored from the pinned `--rev`. Options: (a) patch `dx` CLI from `context/dioxus` submodule and rebuild, or (b) file upstream issue and wait for fix.
+- [ ] Resolve WASM panic in `dioxus-primitives` caused by `time::OffsetDateTime::now_local()` defaulting in `CalendarProps`. Options: (a) enable `web` feature on `dioxus-primitives`, (b) provide explicit `today` prop at callsites, or (c) patch `context/components`.
+
+Slice tasks (do not start until prerequisites are resolved):
 
 - [ ] Wire upstream Date Picker wrapper and remove HTML `<input type="date">` fallback implementation.
 - [ ] Migrate DatePicker usage in `crates/tasklens-ui/src/app_components/task_editor.rs` to upstream-compatible styling.

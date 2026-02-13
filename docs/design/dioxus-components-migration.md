@@ -268,6 +268,22 @@ Impact on strategy:
 - Any strategy that bypasses `dx components add` must reimplement these transforms to get equivalent installed output.
 - The risk of drift is not only styling/API drift but also installer-behavior drift (dependencies, assets, module registration).
 
+### Known Bug: Registry Root Mismatch For Builtin Dependencies
+
+Discovered February 2026 during the Date Picker vendoring attempt.
+
+When `dx components add` is invoked with `--git` and `--rev` to pin a custom registry, the tool correctly fetches the target component from that revision. However, any **builtin** dependencies of the target component (declared via `"Builtin"` in the component manifest) are resolved from the **default** Dioxus component registry, not from the pinned revision. This is by design in the dependency resolver.
+
+The problem: `copy_global_assets` validates all asset paths against a single `registry_root` (the one passed to the command). Since builtin dependencies come from a different registry checkout, their global assets (e.g., `dx-components-theme.css`) are located in a different directory. The validation fails, and asset copying is silently skipped.
+
+Consequences:
+
+- Components with builtin dependencies cannot be reliably vendored with `--git`/`--rev` using the stock `dx` CLI.
+- The `date_picker` component depends on `calendar` and `popover` (both builtin), making it the first component to hit this bug.
+- A fix requires either: (a) patching `dx` to carry each component's `registry_root` individually, or (b) vendoring our own patched `dx` binary.
+
+Upstream issue: https://github.com/DioxusLabs/dioxus/issues/5310
+
 ## Upstream Tracking Strategy
 
 We need a workflow that supports intelligent merges, local patch maintenance, and high fidelity to `dx components add` output.
@@ -325,6 +341,7 @@ Incremental execution model:
   5. Update inventory/divergence status in this document and checklist.
   6. Repoint the active chunk to the highest-impact remaining class debt.
 - Current next slice: Date Picker (Chunk B Checkbox slice is complete in the checklist).
+- **Date Picker slice is blocked.** See "Known Blockers For Date Picker Slice" below.
 
 ## Representative Diffs
 
@@ -332,7 +349,7 @@ Incremental execution model:
 - Checkbox: now vendored from upstream and integrated in app callsites, replacing the legacy DaisyUI implementation.
 - Input: local API is trimmed and DaisyUI-based; upstream supports a broader attribute surface and uses `style.css`.
 - Dialog: local is styled as a DaisyUI modal; upstream uses dedicated dialog CSS and attributes for accessibility.
-- Date Picker: local exports an HTML `<input type="date">`; upstream provides a full picker with calendar and range support.
+- Date Picker: local exports an HTML `<input type="date">`; upstream provides a full picker with calendar and range support. **Blocked** by two issues; see below.
 
 ## Tailwind Removal Exit Criteria
 
@@ -348,12 +365,41 @@ Tailwind/DaisyUI removal should only happen when all gates below are true:
 4. `dx-components-theme.css` is pristine upstream; app overrides are moved to `assets/app.css`.
 5. Verification passes after removal (`just verify`).
 
+## Known Blockers For Date Picker Slice
+
+The Date Picker vertical slice (Chunk C) was attempted and reverted in February 2026. Two blocking issues were discovered:
+
+### 1. `dx components add` Registry Bug
+
+The `dx` CLI cannot reliably vendor `date_picker` because its builtin dependencies (`calendar`, `popover`) resolve from the default registry rather than the pinned `--rev`. See "Known Bug: Registry Root Mismatch For Builtin Dependencies" above.
+
+To unblock:
+
+- Option A: Patch the `dx` CLI to carry per-component `registry_root` and rebuild from source. A patched Dioxus submodule with the fix exists in `context/dioxus`.
+- Option B: Manually vendor the date picker, but this violates the project rule that `dx components add` is the sole acquisition mechanism. The failed attempt in February 2026 took this path and produced ~1000 lines of manually copied code with no guarantee of installer fidelity.
+
+Recommendation: Pursue Option A. Vendor and build a patched `dx` binary before re-attempting the Date Picker slice.
+
+### 2. WASM Panic In `dioxus-primitives`
+
+The upstream `dioxus-primitives` library uses `time::OffsetDateTime::now_local()` as the default value for `today` and `view_date` props in `CalendarProps`. This function panics on `wasm32-unknown-unknown` with: `time not implemented on this platform`.
+
+The library declares a `web` feature that enables `time/wasm-bindgen`, but it is not enabled by default. The `Cargo.toml` dependency in this project does not enable it either.
+
+To unblock:
+
+- Option A: Enable the `web` feature on the `dioxus-primitives` dependency in `Cargo.toml` and verify the `time` crate's wasm-bindgen shim resolves the panic.
+- Option B: Provide an explicit `today` prop from `chrono::Local::now().date_naive()` at every callsite, avoiding the default.
+- Option C: Patch `dioxus-primitives` locally (in `context/components`) to use a WASM-safe fallback in `LocalDateExt`.
+
+Recommendation: Try Option A first (simplest). If `time/wasm-bindgen` does not resolve the panic fully, fall back to Option B or C.
+
 ## Migration Plan And Priorities
 
+- **Resolve Date Picker blockers** before re-attempting Chunk C. See "Known Blockers For Date Picker Slice" above.
 - Implement the recommended upstream tracking strategy: pristine vendor branch driven by `dx components add` and pinned registry revision.
 - Split modules: `dioxus_components` for vendored Dioxus Components, `app_components` for app UI.
-- Start the Date Picker vertical slice now that the Chunk B Checkbox slice is complete.
-- Re-vendor and replace the remaining diverged component next: Date Picker.
+- Re-vendor and replace the remaining diverged component next: Date Picker (once blockers are cleared).
 - Align wrapper components that still embed DaisyUI/Tailwind assumptions: Select, Dialog, Collapsible, Calendar.
 - Adopt missing upstream components in usage-driven order (Badge, Card, Progress, Textarea, Toggle, Dropdown Menu, Label, then lower-usage items).
 - De-tailwind only after exit criteria are met: remove Tailwind/DaisyUI classes, then remove Tailwind build/runtime inputs.
