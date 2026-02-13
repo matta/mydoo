@@ -200,7 +200,7 @@ git = "https://github.com/DioxusLabs/components"
 rev = "<pinned-upstream-rev>"
 ```
 
-- `cargo xtask update-dioxus-components` reads `module_path` and `registry` from this file and passes them via `--module-path`, `--git`, and `--rev`.
+- `cargo xtask dx-components vendor` reads `module_path` and `registry` from this file and passes them via `--module-path`, `--git`, and `--rev`.
 - Because `dx components add` updates `<module_path>/mod.rs`, this repo must keep generated module registration in `src/dioxus_components/mod.rs`.
 
 ## Dependency Strategy For Dioxus Primitives
@@ -334,7 +334,7 @@ Incremental execution model:
 
 - Run migration as per-component vertical slices, not a bulk directory move.
 - For each component, do this sequence in order:
-  1. Vendor exactly one target component into `src/dioxus_components` using `dioxus-vendor-components.toml` + `cargo xtask update-dioxus-components`.
+  1. Vendor exactly one target component into `src/dioxus_components` using `dioxus-vendor-components.toml` + `cargo xtask dx-components vendor`.
   2. Integrate it in app code (either a temporary compatibility adapter or direct import/callsite migration).
   3. Delete the legacy implementation from `src/components` once no callsites depend on it.
   4. Remove related DaisyUI/Tailwind class tokens in touched callsites, or log exact deferred file paths in the checklist.

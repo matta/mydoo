@@ -54,6 +54,7 @@ crates/tasklens-ui/assets/tailwind.css
 
 # Dioxus components (vendored)
 crates/tasklens-ui/src/dioxus_components/
+context/dioxus/
 
-# Managed by update-dioxus-components xtask to avoid merge conflicts
+# Managed by dx-components vendor xtask to avoid merge conflicts
 crates/tasklens-ui/assets/dx-components-theme.css

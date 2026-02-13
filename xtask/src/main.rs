@@ -10,6 +10,7 @@ use commands::{
     check_dark_mode::check_dark_mode,
     check_dioxus_lock_pin::check_dioxus_lock_pin,
     check_filenames::check_filenames,
+    dx_components,
     fix_junit::{self, FixJunitArgs},
     update_dioxus_components::{UpdateDioxusComponentsArgs, update_dioxus_components},
 };
@@ -37,7 +38,11 @@ enum Commands {
     CheckDarkMode,
     /// Check that dioxus-primitives rev pin matches Cargo.lock resolution
     CheckDioxusLockPin,
+    /// Manage vendored Dioxus Components and registry cache via in-repo installer
+    DxComponents(dx_components::DxComponentsArgs),
     /// Update vendored Dioxus components via a pristine vendor branch workflow
+    ///
+    /// Deprecated compatibility alias for `dx-components vendor`.
     UpdateDioxusComponents(UpdateDioxusComponentsArgs),
     /// Run all checks
     CheckAll,
@@ -63,6 +68,7 @@ fn main() -> Result<()> {
         Commands::CheckDarkMode => check_dark_mode()?,
         Commands::CheckDioxusLockPin => check_dioxus_lock_pin()?,
         Commands::CheckFilenames => check_filenames()?,
+        Commands::DxComponents(args) => dx_components::run(args)?,
         Commands::FixJunit(args) => fix_junit::run(FixJunitArgs {
             junit_path: args.junit_path.clone(),
             package_dir: args.package_dir.clone(),

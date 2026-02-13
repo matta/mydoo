@@ -8,7 +8,7 @@ Canonical migration context lives in `docs/design/dioxus-components-migration.md
 - Path: `crates/tasklens-ui/src/dioxus_components`
 - Source: `dx components add` from `https://github.com/DioxusLabs/components` at a pinned revision.
 - Branch model: pristine snapshots are created on `vendor/dioxus-components-pristine` and merged into working branches.
-- Update command: `cargo xtask update-dioxus-components`
+- Update command: `cargo xtask dx-components vendor`
 - Edit policy: treat files here as upstream/vendor material. Keep local edits to the minimum strictly required by product needs.
 
 In practice, manual edits in this tree should be rare because they increase future merge conflict risk when new vendor snapshots are merged.

@@ -55,7 +55,7 @@
 
 ### Chunk B (Completed): Checkbox Vertical Slice
 
-- [x] Vendor upstream `checkbox` into `crates/tasklens-ui/src/dioxus_components/checkbox` via `dioxus-vendor-components.toml` + `cargo xtask update-dioxus-components`.
+- [x] Vendor upstream `checkbox` into `crates/tasklens-ui/src/dioxus_components/checkbox` via `dioxus-vendor-components.toml` + `cargo xtask dx-components vendor`.
 - [x] Migrate Checkbox usage and behavior in:
   - `crates/tasklens-ui/src/app_components/task_row.rs`
   - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
