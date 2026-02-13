@@ -17,4 +17,4 @@ else
     fi
 fi
 
-just check
+chronic just check
