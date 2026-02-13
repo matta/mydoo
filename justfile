@@ -25,27 +25,27 @@ build: build-core build-store build-ui
 
 # Build tasklens-ui
 build-ui:
-    cd {{ui_pkg}} && dx build --platform web
+    cd {{ui_pkg}} && chronic dx build --platform web
 
 # Build tasklens-ui for e2e in release mode
 build-ui-release:
-    cd {{ui_pkg}} && dx build --platform web --release --debug-symbols=false
+    cd {{ui_pkg}} && chronic dx build --platform web --release --debug-symbols=false
 
 # Build tasklens-ui for e2e in release mode with explicit test hooks enabled.
 build-ui-release-e2e:
-    cd {{ui_pkg}} && dx build --platform web --release --debug-symbols=false --features e2e-test-hooks
+    cd {{ui_pkg}} && chronic dx build --platform web --release --debug-symbols=false --features e2e-test-hooks
 
 # Build tasklens-ui for e2e in debug mode
 build-ui-debug:
-    cd {{ui_pkg}} && dx build --platform web
+    cd {{ui_pkg}} && chronic dx build --platform web
 
 # Build tasklens-core
 build-core:
-    cargo build -p tasklens-core
+    chronic cargo build -p tasklens-core
 
 # Build tasklens-store
 build-store:
-    cargo build -p tasklens-store
+    chronic cargo build -p tasklens-store
 
 # -----------------------------------------------------------------------------
 # Style & Linting Commands
@@ -56,15 +56,15 @@ check-style: check-format check-xtask-all check-biome-root
 
 # Check formatting (all files from root)
 check-format:
-    pnpm prettier --check .
+    chronic pnpm prettier --check .
 
 # Check biome for root
 check-biome-root:
-    pnpm biome check .
+    chronic pnpm biome check .
 
 # Run all xtask checks
 check-xtask-all:
-    cargo xtask check-all
+    chronic cargo xtask check-all
 
 # -----------------------------------------------------------------------------
 # Type Checking Commands
@@ -113,52 +113,52 @@ test: test-scripts test-rust
 
 # Run unit tests for scripts (pass through vitest args after `--`)
 test-scripts *args:
-    cd {{scripts_pkg}} && pnpm test {{args}}
+    cd {{scripts_pkg}} && chronic pnpm test {{args}}
 
 # Run unit tests for rust crates
 test-rust:
-    cargo test --workspace
+    chronic cargo test --workspace
 
 # Run all e2e tests
 test-e2e *args: build-ui-release-e2e
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public pnpm exec playwright test {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public chronic pnpm exec playwright test {{args}}; \
     e=$?; \
-    cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
+    chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for desktop
 test-e2e-desktop *args: build-ui-release-e2e
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public pnpm exec playwright test --project=e2e-desktop {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public chronic pnpm exec playwright test --project=e2e-desktop {{args}}; \
     e=$?; \
-    cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
+    chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for mobile
 test-e2e-mobile *args: build-ui-release-e2e
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public pnpm exec playwright test --project=e2e-mobile {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public chronic pnpm exec playwright test --project=e2e-mobile {{args}}; \
     e=$?; \
-    cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
+    chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run all e2e tests in debug mode
 test-e2e-debug *args: build-ui-debug
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public pnpm exec playwright test {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public chronic pnpm exec playwright test {{args}}; \
     e=$?; \
-    cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
+    chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for desktop in debug mode
 test-e2e-desktop-debug *args: build-ui-debug
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public pnpm exec playwright test --project=e2e-desktop {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public chronic pnpm exec playwright test --project=e2e-desktop {{args}}; \
     e=$?; \
-    cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
+    chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for mobile in debug mode
 test-e2e-mobile-debug *args: build-ui-debug
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public pnpm exec playwright test --project=e2e-mobile {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public chronic pnpm exec playwright test --project=e2e-mobile {{args}}; \
     e=$?; \
-    cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
+    chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # -----------------------------------------------------------------------------
@@ -185,15 +185,15 @@ audit: check-clippy check-xtask-all check-deps-root udeps
 # Check for unused dependencies in Cargo.toml
 # Note: Requires nightly toolchain and cargo-udeps installed
 udeps:
-    cargo +nightly udeps --all-targets --all-features
+    chronic cargo +nightly udeps --all-targets --all-features
 
 # Check syncpack
 check-syncpack-root:
-    pnpm syncpack list-mismatches
+    chronic pnpm syncpack list-mismatches
 
 # Check dependencies
 check-deps-root:
-    pnpm knip
+    chronic pnpm knip
 
 # -----------------------------------------------------------------------------
 # Fix Commands
@@ -207,7 +207,7 @@ fix-style: fix-format fix-biome-root
 
 # Fix formatting (all files from root)
 fix-format:
-    pnpm prettier --write .
+    pnpm prettier --write . | grep -v "(unchanged)$" || true
 
 # Fix biome for root
 fix-biome-root:
