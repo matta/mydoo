@@ -586,17 +586,15 @@ fn emit_registry_revision_report(
     let components_integration = if let (Some(root), Some(branch)) =
         (report_context.repo_root, report_context.vendor_branch)
     {
-        if let Some(snapshot_commit) =
-            find_vendor_snapshot_commit(root, branch, components_revision)?
-        {
-            if is_ancestor(root, &snapshot_commit, "HEAD")? {
-                Some(IntegrationStatus::Integrated)
-            } else {
-                Some(IntegrationStatus::NotIntegrated)
-            }
+        let is_integrated = match find_vendor_snapshot_commit(root, branch, components_revision)? {
+            Some(commit) => is_ancestor(root, &commit, "HEAD")?,
+            None => false,
+        };
+        Some(if is_integrated {
+            IntegrationStatus::Integrated
         } else {
-            Some(IntegrationStatus::NotIntegrated)
-        }
+            IntegrationStatus::NotIntegrated
+        })
     } else {
         None
     };
@@ -673,7 +671,11 @@ fn find_vendor_snapshot_commit(
     )?;
 
     if !output.status.success() {
-        return Ok(None);
+        anyhow::bail!(
+            "git log failed while searching for vendor snapshot for revision {}:\n{}",
+            revision,
+            String::from_utf8_lossy(&output.stderr)
+        );
     }
 
     let sha = String::from_utf8_lossy(&output.stdout).trim().to_string();
