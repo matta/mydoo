@@ -1836,7 +1836,7 @@ dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version 
         )
         .unwrap();
         assert!(updated.contains(
-            "dioxus-primitives = { git = \"https://github.com/DioxusLabs/components\", rev = \"abc123\", default-features = false, features = [\"router\"]}"
+            "dioxus-primitives = { git = \"https://github.com/DioxusLabs/components\", rev = \"abc123\", default-features = false, features = [\"router\"] }"
         ));
     }
 
