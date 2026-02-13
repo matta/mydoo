@@ -2,6 +2,4 @@
 pub mod button;
 pub mod checkbox;
 pub mod input;
-pub mod popover;
-pub mod date_picker;
-pub mod calendar;
+pub mod select;
