@@ -63,20 +63,21 @@
 - [x] Remove legacy `crates/tasklens-ui/src/components/checkbox.rs` and wire re-exports through `dioxus_components`.
 - [x] Clear any remaining checkbox-related DaisyUI classes in migrated callsites.
 
-### Chunk C (Blocked): Date Picker Vertical Slice
+### Chunk C (Active): Native Date/Datetime Vertical Slice
 
-**Status: Blocked.** Attempted and fully reverted February 2026. Two issues must be resolved first.
+**Status: Active.** Browser-native date/datetime controls are the short-term direction while de-Daisy work continues.
 
-Prerequisites (resolve before re-attempting):
+- [ ] Replace DatePicker wrapper styling with app-owned classes (no DaisyUI/Tailwind) in `crates/tasklens-ui/src/components/date_picker/mod.rs`.
+- [ ] Add an app-owned `DateTimeInput` wrapper using `input[type="datetime-local"]` for datetime use cases.
+- [ ] Keep due-date parsing/serialization behavior stable in `crates/tasklens-ui/src/app_components/task_editor.rs` while migrating classes.
+- [ ] Remove or archive the unused upstream-style Date Picker wrapper in `crates/tasklens-ui/src/components/date_picker/component.rs` once native wrappers fully cover callsites.
+- [ ] Add or refresh tests covering native date input behavior and value conversion.
 
-- [ ] Fix `dx components add` registry root bug so builtin dependencies (`calendar`, `popover`) are vendored from the pinned `--rev`. Options: (a) patch `dx` CLI from `context/dioxus` submodule and rebuild, or (b) file upstream issue and wait for fix.
-- [ ] Resolve WASM panic in `dioxus-primitives` caused by `time::OffsetDateTime::now_local()` defaulting in `CalendarProps`. Options: (a) enable `web` feature on `dioxus-primitives`, (b) provide explicit `today` prop at callsites, or (c) patch `context/components`.
+### Deferred Work: Upstream Date Picker Revisit
 
-Slice tasks (do not start until prerequisites are resolved):
-
-- [ ] Wire upstream Date Picker wrapper and remove HTML `<input type="date">` fallback implementation.
-- [ ] Migrate DatePicker usage in `crates/tasklens-ui/src/app_components/task_editor.rs` to upstream-compatible styling.
-- [ ] Remove legacy date-picker-specific DaisyUI/Tailwind dropdown/menu classes.
+- [ ] Track and re-evaluate `dx components add` builtin dependency registry bug (`calendar`, `popover`) before any upstream Date Picker vendoring attempt.
+- [ ] Track and re-evaluate the WASM `time::OffsetDateTime::now_local()` panic path in `dioxus-primitives` before any upstream Date Picker vendoring attempt.
+- [ ] Re-open upstream Date Picker vendoring only if native wrappers no longer satisfy UX/product needs.
 
 ### Chunk D: Wrapper De-Daisy (Select, Dialog, Collapsible, Calendar)
 
@@ -93,6 +94,14 @@ Slice tasks (do not start until prerequisites are resolved):
 - [ ] Textarea: adopt upstream textarea and remove `textarea*` usage.
 - [ ] Toggle/Switch: adopt upstream toggle primitives and remove `toggle*` usage.
 - [ ] Dropdown Menu + Label: adopt where needed to replace remaining `dropdown*`/`menu*` form-menu patterns.
+
+### Cross-Cutting Gate: CSS Modules Feasibility
+
+- [ ] Pilot Dioxus `#[css_module(...)]` on one app-owned component (recommended first target: native date/datetime wrapper).
+- [ ] Verify production build behavior for the pilot (asset output, class mapping, and rendering).
+- [ ] Verify test stability for the pilot flow (unit/E2E coverage for the touched date path).
+- [ ] Only after pilot success: update `dioxus-components-migration.md` guidance to recommend CSS modules for app-owned components.
+- [ ] Keep vendored `dioxus_components` on upstream `style.css` + `document::Link` regardless of pilot outcome.
 
 ## Completed Vertical Slices
 
@@ -112,7 +121,7 @@ Slice tasks (do not start until prerequisites are resolved):
 - [x] Button: replace local DaisyUI `button.rs` with upstream `button` component + CSS.
 - [x] Input: replace local DaisyUI `input.rs` with upstream `input` component + CSS.
 - [x] Checkbox: replace local DaisyUI `checkbox.rs` with upstream `checkbox` component + CSS.
-- [ ] Date Picker: wire the upstream wrapper and remove the HTML `<input type="date">` implementation.
+- [ ] Date/Datetime Inputs: keep browser-native wrappers, remove DaisyUI/Tailwind classes, and defer upstream Date Picker vendoring.
 
 ## Verify Adopted Components
 
@@ -134,6 +143,8 @@ Slice tasks (do not start until prerequisites are resolved):
 - [ ] `dropdown*`/`menu*`/`modal*` debt:
   - `crates/tasklens-ui/src/components/dialog/component.rs`
   - `crates/tasklens-ui/src/components/date_picker/component.rs`
+- [ ] Native date/datetime wrapper utility-class debt:
+  - `crates/tasklens-ui/src/components/date_picker/mod.rs`
 - [ ] `loading*` debt:
   - `crates/tasklens-ui/src/app_components/loading.rs`
 - [ ] DaisyUI theme utility debt (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.) remains broadly in app components and views; burn down alongside component-skin replacement.
