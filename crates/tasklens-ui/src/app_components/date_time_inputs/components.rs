@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 struct Styles;
 
 #[derive(PartialEq, Clone, Props)]
-pub(crate) struct DateInputProps {
+pub struct DateInputProps {
     /// HTML `id` attribute for label association.
     #[props(optional)]
     pub id: Option<String>,
@@ -33,7 +33,7 @@ pub fn DateInput(props: DateInputProps) -> Element {
 }
 
 #[derive(PartialEq, Clone, Props)]
-pub(crate) struct DateTimeInputProps {
+pub struct DateTimeInputProps {
     /// HTML `id` attribute for label association.
     #[props(optional)]
     pub id: Option<String>,

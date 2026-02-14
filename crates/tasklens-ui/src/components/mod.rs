@@ -15,21 +15,11 @@ pub use crate::dioxus_components::checkbox;
 pub use crate::dioxus_components::input;
 pub use crate::dioxus_components::select;
 
-pub use crate::app_components::app_navbar;
-pub use crate::app_components::back_button;
-pub use crate::app_components::balance_slider;
-pub use crate::app_components::doc_id_manager;
-pub use crate::app_components::empty_state;
-pub use crate::app_components::load_error_view;
-pub use crate::app_components::loading;
-pub use crate::app_components::move_picker;
-pub use crate::app_components::page_header;
-pub use crate::app_components::priority_task_row;
-pub use crate::app_components::search_panel;
-pub use crate::app_components::sync_indicator;
-pub use crate::app_components::task_editor;
-pub use crate::app_components::task_input;
-pub use crate::app_components::task_row;
+pub use crate::app_components::{
+    AppNavBar, BackButton, BalanceSlider, DocIdManager, EmptyState, LoadErrorView, Loading,
+    MovePicker, PageHeader, PriorityTaskRow, SearchPanel, SyncIndicator, TaskEditor, TaskInput,
+    TaskRow,
+};
 
 pub use crate::dioxus_components::button::{Button, ButtonVariant};
 pub use crate::dioxus_components::checkbox::Checkbox;

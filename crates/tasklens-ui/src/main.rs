@@ -412,7 +412,7 @@ fn App() -> Element {
                     help_text: None,
                 }
             } else if is_checking() {
-                app_components::loading::Loading {}
+                app_components::Loading {}
             } else {
                 Router::<Route> {}
             }

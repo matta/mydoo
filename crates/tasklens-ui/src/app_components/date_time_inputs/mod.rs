@@ -1,5 +1,4 @@
 mod components;
 
-pub(crate) use components::{DateInput, DateTimeInput};
-#[allow(unused_imports)]
-pub(crate) use components::{DateInputProps, DateTimeInputProps};
+#[allow(unreachable_pub)]
+pub use components::{DateInput, DateTimeInput};

@@ -1,6 +1,6 @@
+use crate::app_components::SearchPanel;
 use crate::app_components::SyncIndicator;
 use crate::components::navbar::{Navbar, NavbarItem, NavbarNav};
-use crate::components::search_panel::SearchPanel;
 use crate::controllers::doc_controller;
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::router::Route;

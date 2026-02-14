@@ -1,4 +1,4 @@
-use crate::app_components::task_row::TaskRow;
+use crate::app_components::TaskRow;
 use crate::app_components::{LoadErrorView, PageHeader, TaskEditor, TaskInput};
 use crate::controllers::task_controller;
 use crate::dioxus_components::button::{Button, ButtonVariant};
