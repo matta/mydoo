@@ -7,6 +7,7 @@ use crate::dioxus_components::input::Input;
 use crate::dioxus_components::select::{
     Select, SelectList, SelectOption, SelectTrigger, SelectValue,
 };
+use crate::dioxus_components::switch::{Switch, SwitchThumb};
 use crate::dioxus_components::textarea::Textarea;
 use crate::utils::time_conversion;
 use dioxus::prelude::*;
@@ -697,19 +698,18 @@ pub(crate) fn TaskEditor(
                                         "Steps must be completed in order"
                                     }
                                 }
-                                input {
-                                    r#type: "checkbox",
+                                Switch {
                                     id: "sequential-toggle",
-                                    class: "h-4 w-4",
                                     checked: current_draft.is_sequential,
-                                    onchange: move |e| {
+                                    on_checked_change: move |checked| {
                                         draft
                                             .with_mut(|task| {
                                                 if let Some(task) = task.as_mut() {
-                                                    task.is_sequential = e.checked();
+                                                    task.is_sequential = checked;
                                                 }
                                             });
                                     },
+                                    SwitchThumb {}
                                 }
                             }
                         }

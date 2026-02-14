@@ -91,7 +91,7 @@
   - `crates/tasklens-ui/src/views/score_trace_page.rs`
 - [x] Progress: adopt upstream progress and remove `progress*` usage.
 - [x] Textarea: adopt upstream textarea and remove `textarea*` usage.
-- [ ] Toggle/Switch: adopt upstream toggle primitives and remove `toggle*` usage.
+- [x] Toggle/Switch: adopt upstream toggle primitives and remove `toggle*` usage.
 - [ ] Dropdown Menu + Label: adopt where needed to replace remaining `dropdown*`/`menu*` form-menu patterns.
 
 ## Completed Vertical Slices
