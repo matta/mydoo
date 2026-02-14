@@ -137,7 +137,7 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
 
     rsx! {
         div {
-            class: "transition-all duration-200 overflow-hidden bg-base-100 border-b border-base-200 {panel_classes}",
+            class: "transition-all duration-200 overflow-hidden bg-app-surface border-b border-app-border {panel_classes}",
             "data-testid": "search-panel",
             div { class: "px-4 py-3 container mx-auto max-w-2xl",
                 div { class: "flex items-center gap-2",
@@ -177,7 +177,7 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
                         class: "mt-2 max-h-64 overflow-y-auto",
                         "data-testid": "search-results",
                         if results().is_empty() {
-                            div { class: "py-4 text-center text-base-content/60", "No tasks found" }
+                            div { class: "py-4 text-center text-app-text/60", "No tasks found" }
                         } else {
                             for result in results() {
                                 {
@@ -185,14 +185,14 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
                                     rsx! {
                                         button {
                                             key: "{result.id}",
-                                            class: "w-full text-left px-3 py-2 rounded hover:bg-base-200 transition-colors flex flex-col",
+                                            class: "w-full text-left px-3 py-2 rounded hover:bg-app-surface-muted transition-colors flex flex-col",
                                             "data-testid": "search-result",
                                             onclick: move |_| navigate_to(id.clone()),
-                                            span { class: if result.is_done { "line-through text-base-content/50" } else { "text-base-content" },
+                                            span { class: if result.is_done { "line-through text-app-text/50" } else { "text-app-text" },
                                                 "{result.title}"
                                             }
                                             if !result.parent_path.is_empty() {
-                                                span { class: "text-xs text-base-content/40 mt-0.5", "{result.parent_path}" }
+                                                span { class: "text-xs text-app-text/40 mt-0.5", "{result.parent_path}" }
                                             }
                                         }
                                     }

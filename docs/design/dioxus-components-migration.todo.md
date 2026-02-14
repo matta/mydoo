@@ -149,7 +149,7 @@
   - `crates/tasklens-ui/src/dioxus_components/dialog/component.rs` (uses upstream `dialog-backdrop` and `dialog`)
 - [x] Native date/datetime wrapper utility-class debt: cleared (legacy `date_picker` removed, new wrappers use CSS modules).
 - [x] `loading*` debt: cleared (replaced with CSS-module-scoped spinner in `loading.rs`).
-- [ ] DaisyUI theme utility debt (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.) remains broadly in app components and views; burn down alongside component-skin replacement.
+- [x] DaisyUI theme utility debt (`bg-base-*`, `text-base-content`, `border-base-*`, `text-primary`) cleared from app components and views. Replaced with Tailwind `@theme` bridge colors (`app-surface`, `app-text`, `app-border`, `app-accent`) that reference upstream CSS variables.
 
 Audit command (run after each chunk and refresh this register):
 
@@ -161,8 +161,8 @@ rg -n 'class:\s*(format!\(|format_args!\(|"[^"]*\b(btn|input|select|textarea|tog
 
 Phase 1 (DaisyUI removal):
 
-- [ ] Gate 1: No DaisyUI component-skin tokens in app source (`btn*`, `input*`, `select*`, `textarea*`, `toggle*`, `card*`, `badge*`, `progress*`, `dropdown*`, `menu*`, `modal*`, `loading*`, `fieldset*`, `join*`).
-- [ ] Gate 2: No DaisyUI theme utility tokens in app source (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.).
+- [x] Gate 1: No DaisyUI component-skin tokens in app source (`btn*`, `input*`, `select*`, `textarea*`, `toggle*`, `card*`, `badge*`, `progress*`, `dropdown*`, `menu*`, `modal*`, `loading*`, `fieldset*`, `join*`).
+- [x] Gate 2: No DaisyUI theme utility tokens in app source (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.).
 - [ ] Gate 3: DaisyUI plugin usage removed from Tailwind configuration.
 - [ ] Gate 4: Run `just verify` successfully after DaisyUI removal (Tailwind runtime may remain temporarily).
 

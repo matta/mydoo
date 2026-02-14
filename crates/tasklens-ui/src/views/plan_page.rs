@@ -196,7 +196,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                     if flattened_tasks().is_empty() {
                                         CardContent {
                                             div { class: "p-8 text-center",
-                                                p { class: "text-base-content/60 mb-4",
+                                                p { class: "text-app-text/60 mb-4",
                                                     "No tasks found yet."
                                                 }
                                                 Button {

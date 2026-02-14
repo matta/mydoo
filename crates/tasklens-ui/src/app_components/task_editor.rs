@@ -213,7 +213,7 @@ pub(crate) fn TaskEditor(
 
     rsx! {
         DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
-            DialogContent { class: "w-full max-w-2xl bg-base-100",
+            DialogContent { class: "w-full max-w-2xl bg-app-surface",
                 // Header
                 div { class: "flex justify-between items-start",
                     div { class: "flex flex-col gap-1",
@@ -232,7 +232,7 @@ pub(crate) fn TaskEditor(
                     if let Some(id) = task_id.clone() {
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: "hover:bg-base-200 transition-colors -mt-1",
+                            class: "hover:bg-app-surface-muted transition-colors -mt-1",
                             onclick: move |_| {
                                 let nav = navigator();
                                 nav.push(crate::router::Route::PlanPage {
@@ -262,7 +262,7 @@ pub(crate) fn TaskEditor(
                 div { class: "flex-1 overflow-y-auto max-h-[60vh] flex flex-col gap-10 pr-2 -mr-2",
                     // Section: Core Details
                     fieldset { class: "!p-0",
-                        legend { class: "text-primary uppercase text-[10px] tracking-widest font-bold",
+                        legend { class: "text-app-accent uppercase text-[10px] tracking-widest font-bold",
                             "Task Details"
                         }
                         div { class: "w-full space-y-4",
@@ -322,8 +322,8 @@ pub(crate) fn TaskEditor(
 
                     // Section: Prioritization & Location (Grid)
                     div { class: "grid grid-cols-1 md:grid-cols-2 gap-8",
-                        fieldset { class: "bg-base-200/40 p-5 rounded-lg",
-                            legend { class: "text-primary uppercase text-[10px] tracking-widest font-bold",
+                        fieldset { class: "bg-app-surface-muted/40 p-5 rounded-lg",
+                            legend { class: "text-app-accent uppercase text-[10px] tracking-widest font-bold",
                                 "Prioritization"
                             }
                             div { class: "space-y-6 w-full",
@@ -399,8 +399,8 @@ pub(crate) fn TaskEditor(
                             }
                         }
 
-                        fieldset { class: "bg-base-200/40 p-5 rounded-lg",
-                            legend { class: "text-primary uppercase text-[10px] tracking-widest font-bold",
+                        fieldset { class: "bg-app-surface-muted/40 p-5 rounded-lg",
+                            legend { class: "text-app-accent uppercase text-[10px] tracking-widest font-bold",
                                 "Location"
                             }
                             div { class: "w-full",
@@ -446,8 +446,8 @@ pub(crate) fn TaskEditor(
                     }
 
                     // Section: Scheduling
-                    fieldset { class: "bg-base-200/40 p-5 rounded-lg",
-                        legend { class: "text-primary uppercase text-[10px] tracking-widest font-bold",
+                    fieldset { class: "bg-app-surface-muted/40 p-5 rounded-lg",
+                        legend { class: "text-app-accent uppercase text-[10px] tracking-widest font-bold",
                             "Scheduling"
                         }
                         div { class: "grid grid-cols-1 md:grid-cols-2 gap-6 w-full",
@@ -510,7 +510,7 @@ pub(crate) fn TaskEditor(
                                         input {
                                             r#type: "number",
                                             id: "repetition-interval-input",
-                                            class: "w-24 rounded-md border border-base-300 bg-base-100 px-4 py-2",
+                                            class: "w-24 rounded-md border border-app-border-strong bg-app-surface px-4 py-2",
                                             value: current_draft.repeat_config.as_ref().map(|r| r.interval).unwrap_or(1),
                                             oninput: move |e| {
                                                 if let Ok(val) = e.value().parse::<i64>() {
@@ -648,7 +648,7 @@ pub(crate) fn TaskEditor(
                                                 input {
                                                     r#type: "number",
                                                     id: "lead-time-scalar-input",
-                                                    class: "w-24 rounded-md border border-base-300 bg-base-100 px-4 py-2",
+                                                    class: "w-24 rounded-md border border-app-border-strong bg-app-surface px-4 py-2",
                                                     value: "{val}",
                                                     oninput: move |e| {
                                                         if let Ok(v) = e.value().parse::<u32>() {
@@ -698,7 +698,7 @@ pub(crate) fn TaskEditor(
 
                     // Section: Additional Options
                     if task_id.is_some() {
-                        fieldset { class: "bg-base-200/40 p-5 rounded-lg",
+                        fieldset { class: "bg-app-surface-muted/40 p-5 rounded-lg",
                             Label {
                                 class: "flex items-center justify-between w-full cursor-pointer",
                                 html_for: "sequential-toggle",
@@ -728,7 +728,7 @@ pub(crate) fn TaskEditor(
                     // Hierarchy Controls (Compact)
                     if let Some(id) = task_id.clone() {
                         div { class: "flex items-center justify-center pt-2",
-                            div { class: "flex items-center overflow-hidden rounded-md border border-base-300 bg-base-100 shadow-sm",
+                            div { class: "flex items-center overflow-hidden rounded-md border border-app-border-strong bg-app-surface shadow-sm",
                                 Button {
                                     variant: ButtonVariant::Ghost,
                                     class: "h-9 px-5 rounded-none",
@@ -738,7 +738,7 @@ pub(crate) fn TaskEditor(
                                 if can_outdent {
                                     Button {
                                         variant: ButtonVariant::Ghost,
-                                        class: "h-9 px-5 rounded-none border-l border-base-300",
+                                        class: "h-9 px-5 rounded-none border-l border-app-border-strong",
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -752,7 +752,7 @@ pub(crate) fn TaskEditor(
                                 if can_indent {
                                     Button {
                                         variant: ButtonVariant::Ghost,
-                                        class: "h-9 px-5 rounded-none border-l border-base-300",
+                                        class: "h-9 px-5 rounded-none border-l border-app-border-strong",
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -765,7 +765,7 @@ pub(crate) fn TaskEditor(
                                 }
                                 Button {
                                     variant: ButtonVariant::Ghost,
-                                    class: "h-9 px-5 rounded-none border-l border-base-300",
+                                    class: "h-9 px-5 rounded-none border-l border-app-border-strong",
                                     onclick: {
                                         let id = id.clone();
                                         move |_| {
@@ -782,7 +782,7 @@ pub(crate) fn TaskEditor(
                 }
 
                 // Footer
-                div { class: "flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-base-200",
+                div { class: "flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-app-border",
                     div { class: "flex-none w-full sm:w-auto",
                         if task_id.is_some() {
                             Button {
