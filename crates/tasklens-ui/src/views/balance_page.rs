@@ -7,6 +7,7 @@ use crate::app_components::{BalanceSlider, EmptyState, LoadErrorView, PageHeader
 use crate::controllers::task_controller;
 use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::card::{Card, CardContent};
+use crate::dioxus_components::progress::Progress;
 use crate::hooks::use_balance_interaction::{BalanceItem, use_balance_interaction};
 use dioxus::prelude::*;
 
@@ -154,10 +155,9 @@ fn BalanceBar(target_percent: f64, actual_percent: f64) -> Element {
 
     rsx! {
         div { class: "relative",
-            progress {
-                class: "progress progress-primary h-4 w-full",
-                value: "{actual_value}",
-                max: "100",
+            Progress {
+                value: actual_value as f64,
+                max: 100.0,
                 "data-testid": "actual-bar",
             }
             div {
