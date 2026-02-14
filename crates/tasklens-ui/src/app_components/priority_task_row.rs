@@ -19,7 +19,7 @@ pub(crate) fn PriorityTaskRow(
         UrgencyStatus::Overdue => Some(BadgeVariant::Destructive),
         UrgencyStatus::Urgent => Some(BadgeVariant::Secondary),
         UrgencyStatus::Active => Some(BadgeVariant::Primary),
-        UrgencyStatus::Upcoming => Some(BadgeVariant::Secondary), // success -> secondary? or primary?
+        UrgencyStatus::Upcoming => Some(BadgeVariant::Primary),
         UrgencyStatus::None => None,
     };
 
