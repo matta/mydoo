@@ -3,7 +3,7 @@ use tasklens_store::doc_id::DocumentId;
 use tasklens_store::store::AppStore;
 
 /// Switches the active document to the one specified by `new_doc_id`.
-pub fn switch_document(
+pub(crate) fn switch_document(
     mut store: Signal<AppStore>,
     mut doc_id: Signal<Option<DocumentId>>,
     new_doc_id: DocumentId,
@@ -31,7 +31,10 @@ pub fn switch_document(
 }
 
 /// Creates a new document and sets it as the active document.
-pub fn create_new_document(mut store: Signal<AppStore>, mut doc_id: Signal<Option<DocumentId>>) {
+pub(crate) fn create_new_document(
+    mut store: Signal<AppStore>,
+    mut doc_id: Signal<Option<DocumentId>>,
+) {
     spawn(async move {
         let repo = store.read().repo.clone();
 

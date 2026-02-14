@@ -37,7 +37,7 @@ fn build_parent_path(task_id: &TaskID, state: &TunnelState) -> String {
 /// Filters tasks by case-insensitive substring match on title.
 /// Clicking a result navigates to the Plan view with the task focused.
 #[component]
-pub fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
+pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
     let mut query = use_signal(String::new);
     let state = use_context::<Memo<TunnelState>>();
     let nav = use_navigator();

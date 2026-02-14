@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use tasklens_core::domain::balance_distribution::{
     apply_redistribution_to_credits, redistribute_percentages,
 };
-pub use tasklens_core::types::BalanceItem;
+pub(crate) use tasklens_core::types::BalanceItem;
 use tasklens_core::types::{BalanceData, TaskID};
 
 /// Manages the state and logic for interacting with the Balance View.
@@ -13,7 +13,7 @@ use tasklens_core::types::{BalanceData, TaskID};
 /// redistributed percentages—while the user is actively adjusting values.
 /// When the interaction is complete, it triggers a permanent update.
 #[derive(Clone, Copy)]
-pub struct BalanceInteraction {
+pub(crate) struct BalanceInteraction {
     /// Temporary storage for redistributed percentages during user interaction.
     /// Set to `None` when there is no active interaction.
     preview_state: Signal<Option<HashMap<TaskID, f64>>>,
@@ -28,7 +28,7 @@ impl BalanceInteraction {
     ///
     /// This updates the `preview_state` by redistributing the total percentage
     /// across all tasks based on the `new_value` for the given `target_id`.
-    pub fn handle_input(mut self, target_id: TaskID, new_value: f64) {
+    pub(crate) fn handle_input(mut self, target_id: TaskID, new_value: f64) {
         let base_map = {
             let current_data = self.get_balance_data.read();
             let preview = self.preview_state.read();
@@ -47,7 +47,7 @@ impl BalanceInteraction {
     /// This takes the current `preview_state`, calculates the new credit values
     /// for each task, and calls the `on_update` handler to persist the changes.
     /// Finally, it resets the `preview_state` to `None`.
-    pub fn handle_change(mut self) {
+    pub(crate) fn handle_change(mut self) {
         let preview_opt = { self.preview_state.read().clone() };
         if let Some(percentages) = preview_opt {
             let current_data = self.get_balance_data.read();
@@ -68,7 +68,7 @@ impl BalanceInteraction {
 /// # Arguments
 /// * `on_change` - An event handler that will be called with the final credit adjustments
 ///   when an interaction is committed.
-pub fn use_balance_interaction(
+pub(crate) fn use_balance_interaction(
     on_change: EventHandler<HashMap<TaskID, f64>>,
 ) -> (Vec<BalanceItem>, BalanceInteraction) {
     let balance_data = use_balance_data();

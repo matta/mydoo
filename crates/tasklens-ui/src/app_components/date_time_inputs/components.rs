@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 struct Styles;
 
 #[derive(PartialEq, Clone, Props)]
-pub struct DateInputProps {
+pub(crate) struct DateInputProps {
     /// HTML `id` attribute for label association.
     #[props(optional)]
     pub id: Option<String>,
@@ -19,7 +19,7 @@ pub struct DateInputProps {
 
 /// A thin wrapper around `<input type="date">` styled with a CSS module.
 #[component]
-pub fn DateInput(props: DateInputProps) -> Element {
+pub(crate) fn DateInput(props: DateInputProps) -> Element {
     rsx! {
         input {
             r#type: "date",
@@ -33,7 +33,7 @@ pub fn DateInput(props: DateInputProps) -> Element {
 }
 
 #[derive(PartialEq, Clone, Props)]
-pub struct DateTimeInputProps {
+pub(crate) struct DateTimeInputProps {
     /// HTML `id` attribute for label association.
     #[props(optional)]
     pub id: Option<String>,
@@ -48,7 +48,7 @@ pub struct DateTimeInputProps {
 
 /// A thin wrapper around `<input type="datetime-local">` styled with a CSS module.
 #[component]
-pub fn DateTimeInput(props: DateTimeInputProps) -> Element {
+pub(crate) fn DateTimeInput(props: DateTimeInputProps) -> Element {
     rsx! {
         input {
             r#type: "datetime-local",

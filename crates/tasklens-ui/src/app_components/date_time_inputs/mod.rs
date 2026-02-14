@@ -1,4 +1,3 @@
 mod components;
 
-#[allow(unreachable_pub)]
-pub use components::{DateInput, DateTimeInput};
+pub(crate) use components::DateInput;

@@ -6,15 +6,15 @@ include!(concat!(env!("OUT_DIR"), "/build_version.rs"));
 use dioxus::prelude::*;
 use tasklens_store::doc_id::DocumentId;
 
-pub mod app_components;
-pub mod components;
-pub mod controllers;
-pub mod dioxus_components;
-pub mod hooks;
-pub mod router;
-pub mod seed;
-pub mod utils;
-pub mod views;
+pub(crate) mod app_components;
+pub(crate) mod components;
+pub(crate) mod controllers;
+pub(crate) mod dioxus_components;
+pub(crate) mod hooks;
+pub(crate) mod router;
+pub(crate) mod seed;
+pub(crate) mod utils;
+pub(crate) mod views;
 
 use crate::app_components::LoadErrorView;
 use crate::router::Route;

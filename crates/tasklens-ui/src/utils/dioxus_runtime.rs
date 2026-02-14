@@ -3,7 +3,7 @@ use std::future::Future;
 use std::pin::Pin;
 
 #[derive(Clone, Copy, Debug)]
-pub struct DioxusRuntime;
+pub(crate) struct DioxusRuntime;
 
 impl LocalRuntimeHandle for DioxusRuntime {
     fn spawn(&self, future: Pin<Box<dyn Future<Output = ()> + 'static>>) {

@@ -45,7 +45,7 @@ impl From<PersistedTask> for DraftTask {
 }
 
 #[component]
-pub fn TaskEditor(
+pub(crate) fn TaskEditor(
     task_id: Option<TaskID>,
     initial_parent_id: Option<TaskID>,
     on_close: EventHandler<()>,

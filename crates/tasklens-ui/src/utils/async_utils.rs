@@ -1,7 +1,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::Duration;
 
-pub async fn sleep(millis: u64) {
+pub(crate) async fn sleep(millis: u64) {
     #[cfg(target_arch = "wasm32")]
     {
         gloo_timers::future::TimeoutFuture::new(millis as u32).await;

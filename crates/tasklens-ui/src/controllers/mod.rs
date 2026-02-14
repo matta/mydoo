@@ -1,2 +1,2 @@
-pub mod doc_controller;
-pub mod task_controller;
+pub(crate) mod doc_controller;
+pub(crate) mod task_controller;

@@ -19,7 +19,7 @@ use dioxus::prelude::*;
 /// * `current_doc_id` - Signal containing the current document ID.
 /// * `on_change` - Event handler called when the document ID changes.
 #[component]
-pub fn DocIdManager(
+pub(crate) fn DocIdManager(
     current_doc_id: Signal<Option<tasklens_store::doc_id::DocumentId>>,
     on_change: EventHandler<tasklens_store::doc_id::DocumentId>,
     on_create: EventHandler<()>,

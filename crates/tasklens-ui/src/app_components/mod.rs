@@ -21,37 +21,19 @@ mod task_editor;
 mod task_input;
 mod task_row;
 
-#[allow(unreachable_pub)]
-pub use app_navbar::AppNavBar;
-#[allow(unreachable_pub)]
-pub use back_button::BackButton;
-#[allow(unreachable_pub)]
-pub use balance_slider::BalanceSlider;
-#[allow(unreachable_pub)]
-pub use date_time_inputs::DateInput;
-#[allow(unreachable_pub)]
-pub use date_time_inputs::DateTimeInput;
-#[allow(unreachable_pub)]
-pub use doc_id_manager::DocIdManager;
-#[allow(unreachable_pub)]
-pub use empty_state::EmptyState;
-#[allow(unreachable_pub)]
-pub use load_error_view::LoadErrorView;
-#[allow(unreachable_pub)]
-pub use loading::Loading;
-#[allow(unreachable_pub)]
-pub use move_picker::MovePicker;
-#[allow(unreachable_pub)]
-pub use page_header::PageHeader;
-#[allow(unreachable_pub)]
-pub use priority_task_row::PriorityTaskRow;
-#[allow(unreachable_pub)]
-pub use search_panel::SearchPanel;
-#[allow(unreachable_pub)]
-pub use sync_indicator::SyncIndicator;
-#[allow(unreachable_pub)]
-pub use task_editor::TaskEditor;
-#[allow(unreachable_pub)]
-pub use task_input::TaskInput;
-#[allow(unreachable_pub)]
-pub use task_row::TaskRow;
+pub(crate) use app_navbar::AppNavBar;
+pub(crate) use back_button::BackButton;
+pub(crate) use balance_slider::BalanceSlider;
+pub(crate) use date_time_inputs::DateInput;
+pub(crate) use doc_id_manager::DocIdManager;
+pub(crate) use empty_state::EmptyState;
+pub(crate) use load_error_view::LoadErrorView;
+pub(crate) use loading::Loading;
+pub(crate) use move_picker::MovePicker;
+pub(crate) use page_header::PageHeader;
+pub(crate) use priority_task_row::PriorityTaskRow;
+pub(crate) use search_panel::SearchPanel;
+pub(crate) use sync_indicator::SyncIndicator;
+pub(crate) use task_editor::TaskEditor;
+pub(crate) use task_input::TaskInput;
+pub(crate) use task_row::TaskRow;

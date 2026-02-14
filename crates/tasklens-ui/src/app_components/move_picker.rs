@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
 
 #[component]
-pub fn MovePicker(
+pub(crate) fn MovePicker(
     task_id: TaskID,
     on_select: EventHandler<Option<TaskID>>,
     on_close: EventHandler<()>,

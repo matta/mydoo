@@ -10,7 +10,7 @@ use tasklens_store::doc_id::DocumentId;
 use tasklens_store::store::AppStore;
 
 #[component]
-pub fn AppNavBar() -> Element {
+pub(crate) fn AppNavBar() -> Element {
     let active_index = use_signal(|| 0);
     let mut show_settings = use_signal(|| false);
     let mut show_search = use_signal(|| false);

@@ -10,7 +10,7 @@ use dioxus::prelude::*;
 ///
 /// * `onclick` - Event handler called when the button is clicked.
 #[component]
-pub fn BackButton(onclick: EventHandler<MouseEvent>) -> Element {
+pub(crate) fn BackButton(onclick: EventHandler<MouseEvent>) -> Element {
     rsx! {
         Button {
             variant: ButtonVariant::Ghost,

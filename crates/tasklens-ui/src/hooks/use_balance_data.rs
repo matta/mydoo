@@ -17,7 +17,7 @@ use tasklens_core::types::BalanceData;
 /// - Target percent (user's desired allocation)
 /// - Actual percent (computed from effective credits)
 /// - Starving flag (true if under-served)
-pub fn use_balance_data() -> Memo<BalanceData> {
+pub(crate) fn use_balance_data() -> Memo<BalanceData> {
     let tunnel_state = crate::hooks::use_tunnel_state::use_tunnel_state();
 
     use_memo(move || {

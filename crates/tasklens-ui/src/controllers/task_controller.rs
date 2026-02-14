@@ -4,13 +4,13 @@ use tasklens_core::{Action, TaskUpdates};
 use tasklens_store::store::AppStore;
 
 #[derive(Clone, Copy, PartialEq)]
-pub struct TaskController {
+pub(crate) struct TaskController {
     store: Signal<AppStore>,
     load_error: Signal<Option<String>>,
     tunnel_state: Memo<TunnelState>,
 }
 
-pub fn use_task_controller() -> TaskController {
+pub(crate) fn use_task_controller() -> TaskController {
     let store = use_context::<Signal<AppStore>>();
     let load_error = use_context::<Signal<Option<String>>>();
     // We expect this to be provided by App
@@ -35,7 +35,7 @@ impl TaskController {
         result
     }
 
-    pub fn create(&self, parent_id: Option<TaskID>, title: String) -> Option<TaskID> {
+    pub(crate) fn create(&self, parent_id: Option<TaskID>, title: String) -> Option<TaskID> {
         let id = TaskID::new();
         let action = Action::CreateTask {
             id: id.clone(),
@@ -52,12 +52,12 @@ impl TaskController {
         }
     }
 
-    pub fn update(&self, id: TaskID, updates: TaskUpdates) {
+    pub(crate) fn update(&self, id: TaskID, updates: TaskUpdates) {
         let action = Action::UpdateTask { id, updates };
         let _ = self.dispatch_and_log_error(action, "Failed to update task");
     }
 
-    pub fn rename(&self, id: TaskID, new_title: String) {
+    pub(crate) fn rename(&self, id: TaskID, new_title: String) {
         self.update(
             id,
             TaskUpdates {
@@ -67,7 +67,8 @@ impl TaskController {
         );
     }
 
-    pub fn update_desired_credits(&self, id: TaskID, desired_credits: f64) {
+    #[allow(dead_code)]
+    pub(crate) fn update_desired_credits(&self, id: TaskID, desired_credits: f64) {
         self.update(
             id,
             TaskUpdates {
@@ -77,17 +78,17 @@ impl TaskController {
         );
     }
 
-    pub fn delete(&self, id: TaskID) {
+    pub(crate) fn delete(&self, id: TaskID) {
         let action = Action::DeleteTask { id };
         let _ = self.dispatch_and_log_error(action, "Failed to delete task");
     }
 
-    pub fn move_item(&self, id: TaskID, new_parent_id: Option<TaskID>) {
+    pub(crate) fn move_item(&self, id: TaskID, new_parent_id: Option<TaskID>) {
         let action = Action::MoveTask { id, new_parent_id };
         let _ = self.dispatch_and_log_error(action, "Failed to move task");
     }
 
-    pub fn toggle(&self, id: TaskID) {
+    pub(crate) fn toggle(&self, id: TaskID) {
         // Use memoized state to avoid hydration
         let state = self.tunnel_state.read();
         let current_status = state.tasks.get(&id).map(|t| t.status);
@@ -116,7 +117,7 @@ impl TaskController {
         }
     }
 
-    pub fn indent(&self, id: TaskID) {
+    pub(crate) fn indent(&self, id: TaskID) {
         let new_parent_opt = {
             let state = self.tunnel_state.read();
 
@@ -155,7 +156,7 @@ impl TaskController {
         }
     }
 
-    pub fn outdent(&self, id: TaskID) {
+    pub(crate) fn outdent(&self, id: TaskID) {
         let (should_move, new_parent_id) = {
             let state = self.tunnel_state.read();
             let task = match state.tasks.get(&id) {
@@ -179,13 +180,16 @@ impl TaskController {
         }
     }
 
-    pub fn refresh_lifecycle(&self) {
+    pub(crate) fn refresh_lifecycle(&self) {
         let current_time = chrono::Utc::now().timestamp_millis();
         let action = Action::RefreshLifecycle { current_time };
         let _ = self.dispatch_and_log_error(action, "Failed to refresh lifecycle");
     }
 
-    pub fn set_balance_distribution(&self, distribution: std::collections::HashMap<TaskID, f64>) {
+    pub(crate) fn set_balance_distribution(
+        &self,
+        distribution: std::collections::HashMap<TaskID, f64>,
+    ) {
         let action = Action::SetBalanceDistribution { distribution };
         let _ = self.dispatch_and_log_error(action, "Failed to set balance distribution");
     }

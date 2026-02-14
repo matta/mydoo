@@ -8,7 +8,7 @@ use tracing::warn;
 /// Computes the score trace for a task using Do view scoring rules.
 /// The trace is derived on demand to avoid persisting debug data.
 /// Uses the "All" place filter to match the Do list scoring default.
-pub fn use_score_trace(task_id: TaskID) -> Memo<Option<ScoreTrace>> {
+pub(crate) fn use_score_trace(task_id: TaskID) -> Memo<Option<ScoreTrace>> {
     let state = crate::hooks::use_tunnel_state::use_tunnel_state();
 
     use_memo(move || {
