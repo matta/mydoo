@@ -116,7 +116,7 @@ Status legend:
 | Slider        | [preview/src/components/slider](https://github.com/DioxusLabs/components/tree/main/preview/src/components/slider)               | `crates/tasklens-ui/src/components/slider/`               | Adopted (minor formatting diffs)                                  | Keep and re-sync to upstream formatting.                                  |
 | Switch        | [preview/src/components/switch](https://github.com/DioxusLabs/components/tree/main/preview/src/components/switch)               | —                                                         | Missing                                                           | Adopt to replace DaisyUI `toggle` usage.                                  |
 | Tabs          | [preview/src/components/tabs](https://github.com/DioxusLabs/components/tree/main/preview/src/components/tabs)                   | —                                                         | Missing                                                           | Adopt if tabbed navigation is needed.                                     |
-| Textarea      | [preview/src/components/textarea](https://github.com/DioxusLabs/components/tree/main/preview/src/components/textarea)           | —                                                         | Missing                                                           | Adopt to replace DaisyUI `textarea` usage.                                |
+| Textarea      | [preview/src/components/textarea](https://github.com/DioxusLabs/components/tree/main/preview/src/components/textarea)           | `crates/tasklens-ui/src/dioxus_components/textarea/`      | Adopted                                                           | Keep vendored source.                                                     |
 | Toast         | [preview/src/components/toast](https://github.com/DioxusLabs/components/tree/main/preview/src/components/toast)                 | —                                                         | Missing                                                           | Adopt to replace custom notifications.                                    |
 | Toggle        | [preview/src/components/toggle](https://github.com/DioxusLabs/components/tree/main/preview/src/components/toggle)               | —                                                         | Missing                                                           | Adopt for on/off UI instead of DaisyUI `toggle`.                          |
 | Toggle Group  | [preview/src/components/toggle_group](https://github.com/DioxusLabs/components/tree/main/preview/src/components/toggle_group)   | —                                                         | Missing                                                           | Adopt for multi-toggle controls.                                          |
@@ -126,10 +126,10 @@ Status legend:
 ## Divergence Summary
 
 - Total upstream components: 37
-- Adopted: 11 (Badge, Button, Card, Checkbox, Collapsible, Dialog, Input, Navbar, Popover, Select, Slider)
+- Adopted: 13 (Badge, Button, Card, Checkbox, Collapsible, Dialog, Input, Navbar, Popover, Progress, Select, Slider, Textarea)
 - App-owned replacements: 1 (Date/Datetime Inputs — CSS-module-scoped native wrappers)
 - Wrapper/Modified: 0
-- Missing: 25
+- Missing: 23
 
 ## Tailwind And DaisyUI Usage Audit
 
@@ -150,14 +150,8 @@ This is a categorized summary intended to map usage into replacement workstreams
 Snapshot basis: code audit on February 11, 2026.
 
 - `btn*` debt in app callsites is cleared after the Chunk A callsite pass.
-- `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt in app callsites is cleared after the Chunk A callsite pass.
-- `card*`/`badge*`/`progress*` debt is concentrated in:
-  - `crates/tasklens-ui/src/views/score_trace_page.rs`
-  - `crates/tasklens-ui/src/views/balance_page.rs`
-  - `crates/tasklens-ui/src/views/task_page.rs`
-  - `crates/tasklens-ui/src/app_components/task_row.rs`
-  - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
-  - `crates/tasklens-ui/src/app_components/empty_state.rs`
+- `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt in app callsites is cleared.
+- `card*`/`badge*`/`progress*` debt in app callsites is cleared.
 - `dropdown*`/`menu*` debt remains in app components and views. `modal*` debt is cleared.
 - Tailwind runtime dependency is still active:
   - `crates/tasklens-ui/src/main.rs` still links `assets/tailwind.css`
@@ -415,7 +409,7 @@ Tailwind/DaisyUI removal should only happen when all gates below are true:
 - Implement the recommended upstream tracking strategy: pristine vendor branch driven by `dx components add` and pinned registry revision.
 - Split modules: `dioxus_components` for vendored Dioxus Components, `app_components` for app UI.
 - Align wrapper components that still embed DaisyUI/Tailwind assumptions: Select, Dialog, Collapsible.
-- Adopt missing upstream components in usage-driven order (Badge, Card, Progress, Textarea, Toggle, Dropdown Menu, Label, then lower-usage items).
+- Adopt missing upstream components in usage-driven order (Toggle, Dropdown Menu, Label, then lower-usage items).
 - De-tailwind only after exit criteria are met: remove Tailwind/DaisyUI classes, then remove Tailwind build/runtime inputs.
 - Migrate app-specific UI to `app_components` and style via `app.css` + upstream components.
 - Update the inventory and divergence summary as components are aligned.

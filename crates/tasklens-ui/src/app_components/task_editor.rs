@@ -7,6 +7,7 @@ use crate::dioxus_components::input::Input;
 use crate::dioxus_components::select::{
     Select, SelectList, SelectOption, SelectTrigger, SelectValue,
 };
+use crate::dioxus_components::textarea::Textarea;
 use crate::utils::time_conversion;
 use dioxus::prelude::*;
 use tasklens_core::TaskUpdates;
@@ -296,12 +297,12 @@ pub(crate) fn TaskEditor(
                                     r#for: "notes-input",
                                     span { class: "label-text font-semibold", "Notes" }
                                 }
-                                textarea {
+                                Textarea {
                                     id: "notes-input",
-                                    class: "w-full h-32 rounded-md border border-base-300 bg-base-100 p-4 text-base leading-relaxed",
+                                    class: "w-full h-32",
                                     placeholder: "Add more context or details here...",
                                     value: current_draft.notes.clone(),
-                                    oninput: move |e| {
+                                    oninput: move |e: FormEvent| {
                                         draft
                                             .with_mut(|task| {
                                                 if let Some(task) = task.as_mut() {

@@ -10,3 +10,4 @@ pub mod dialog;
 pub mod input;
 pub mod progress;
 pub mod select;
+pub mod textarea;

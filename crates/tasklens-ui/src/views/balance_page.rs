@@ -158,6 +158,7 @@ fn BalanceBar(target_percent: f64, actual_percent: f64) -> Element {
             Progress {
                 value: actual_value as f64,
                 max: 100.0,
+                class: "h-4 w-full",
                 "data-testid": "actual-bar",
             }
             div {
