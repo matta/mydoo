@@ -20,7 +20,8 @@
       "!**/*.d.ts",
       "!**/.prettierignore",
       "!**/context",
-      "!crates/tasklens-ui/assets/tailwind.css"
+      "!crates/tasklens-ui/assets/tailwind.css",
+      "!crates/tasklens-ui/src/dioxus_components/"
     ]
   },
   "css": {
