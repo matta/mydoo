@@ -207,9 +207,9 @@ pub(crate) fn TaskEditor(
 
     rsx! {
         DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
-            DialogContent { class: "w-full max-w-2xl p-0 overflow-hidden bg-base-100",
-                // Modal Header (Sticky)
-                div { class: "px-6 py-4 border-b border-base-200 flex justify-between items-center bg-base-100 sticky top-0 z-20",
+            DialogContent { class: "w-full max-w-2xl bg-base-100",
+                // Header
+                div { class: "flex justify-between items-start",
                     div { class: "flex flex-col gap-1",
                         DialogTitle {
                             if task_id.is_some() {
@@ -226,7 +226,7 @@ pub(crate) fn TaskEditor(
                     if let Some(id) = task_id.clone() {
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: "hover:bg-base-200 transition-colors",
+                            class: "hover:bg-base-200 transition-colors -mt-1",
                             onclick: move |_| {
                                 let nav = navigator();
                                 nav.push(crate::router::Route::PlanPage {
@@ -252,8 +252,8 @@ pub(crate) fn TaskEditor(
                     }
                 }
 
-                // Modal Body (Scrollable)
-                div { class: "px-6 py-6 overflow-y-auto max-h-[70vh] flex flex-col gap-10",
+                // Main Content (Scrollable if needed)
+                div { class: "flex-1 overflow-y-auto max-h-[60vh] flex flex-col gap-10 pr-2 -mr-2",
                     // Section: Core Details
                     fieldset { class: "!p-0",
                         legend { class: "text-primary uppercase text-[10px] tracking-widest font-bold",
@@ -770,8 +770,8 @@ pub(crate) fn TaskEditor(
                     }
                 }
 
-                // Modal Footer (Fixed at bottom)
-                div { class: "px-6 py-4 bg-base-200/50 border-t border-base-200 sticky bottom-0 z-20 flex flex-col sm:flex-row justify-between items-center gap-4",
+                // Footer
+                div { class: "flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-base-200",
                     div { class: "flex-none w-full sm:w-auto",
                         if task_id.is_some() {
                             Button {

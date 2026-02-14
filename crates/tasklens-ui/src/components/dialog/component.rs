@@ -21,11 +21,15 @@ pub fn DialogRoot(props: DialogRootProps) -> Element {
 
 #[component]
 pub fn DialogContent(props: DialogContentProps) -> Element {
+    let class = match &props.class {
+        Some(c) => format!("dialog {}", c),
+        None => "dialog".to_string(),
+    };
     rsx! {
-        dioxus_dialog::DialogContent {
+        dioxus_primitives::dialog::DialogContent {
             id: props.id,
             attributes: props.attributes,
-            class: props.class,
+            class: "{class}",
             {props.children}
         }
     }
