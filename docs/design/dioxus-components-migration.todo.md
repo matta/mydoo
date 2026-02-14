@@ -73,27 +73,11 @@
 - [x] Pilot Dioxus `#[css_module(...)]` on app-owned date/datetime wrappers — verified production build produces hashed, scoped class names.
 - [x] Add or refresh tests covering native date input behavior and value conversion.
 
-### Deferred Work: Upstream Date Picker Revisit
-
-**Status: Blocked.** Attempted and fully reverted February 2026. Two issues must be resolved first.
-
-Prerequisites (resolve before re-attempting):
-
-- [ ] Fix `dx components add` registry root bug so builtin dependencies (`calendar`, `popover`) are vendored from the pinned `--rev`. Options: (a) patch `dx` CLI from `context/dioxus` submodule and rebuild, or (b) file upstream issue and wait for fix.
-- [ ] Resolve WASM panic in `dioxus-primitives` caused by `time::OffsetDateTime::now_local()` defaulting in `CalendarProps`. Options: (a) enable `web` feature on `dioxus-primitives`, (b) provide explicit `today` prop at callsites, or (c) patch `context/components`.
-
-Deferred tasks:
-
-- [ ] Wire upstream Date Picker wrapper and remove native `DateInput` fallback implementation.
-- [ ] Remove legacy date-picker-specific DaisyUI/Tailwind dropdown/menu classes.
-- [ ] Re-evaluate the Date Picker vendoring only if native wrappers no longer satisfy UX/product needs.
-
-### Chunk D: Wrapper De-Daisy (Select, Dialog, Collapsible, Calendar)
+### Chunk D: Wrapper De-Daisy (Select, Dialog, Collapsible)
 
 - [x] Select: re-vendor upstream and remove DaisyUI dropdown/menu/btn assumptions.
 - [x] Dialog: re-vendor upstream and remove DaisyUI modal classes.
 - [ ] Collapsible: re-vendor upstream, restore `as` support, remove Tailwind utilities.
-- [ ] Calendar: re-vendor upstream and restore upstream API (`CalendarView` if needed).
 
 ### Chunk E: Replace High-Usage DaisyUI Skins With Upstream Components
 
@@ -122,7 +106,6 @@ Deferred tasks:
 
 ## Align Existing Dioxus Component Wrappers
 
-- [ ] Calendar: re-vendor upstream and restore upstream API.
 - [ ] Collapsible: re-vendor upstream and restore `as` support.
 - [x] Dialog: re-vendor upstream and restore upstream CSS/API.
 - [x] Select: re-vendor upstream and remove DaisyUI class overrides.
@@ -132,7 +115,7 @@ Deferred tasks:
 - [x] Button: replace local DaisyUI `button.rs` with upstream `button` component + CSS.
 - [x] Input: replace local DaisyUI `input.rs` with upstream `input` component + CSS.
 - [x] Checkbox: replace local DaisyUI `checkbox.rs` with upstream `checkbox` component + CSS.
-- [x] Date/Datetime Inputs: replaced with app-owned CSS-module-scoped wrappers; upstream Date Picker deferred.
+- [x] Date/Datetime Inputs: replaced with app-owned CSS-module-scoped wrappers.
 - [x] Select: replaced local `select/mod.rs` with upstream `select` component + CSS.
 
 ## Verify Adopted Components
