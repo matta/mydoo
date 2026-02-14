@@ -2,6 +2,7 @@
 
 use crate::app_components::{BackButton, EmptyState, LoadErrorView, PageHeader};
 use crate::dioxus_components::badge::{Badge, BadgeVariant};
+use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_score_trace::use_score_trace;
 use crate::router::Route;
 use chrono::DateTime;
@@ -56,108 +57,114 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
 
     rsx! {
         div { class: "space-y-4",
-            div {
-                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4",
+            Card {
                 "data-testid": "score-trace-summary",
-                h2 { class: "text-base font-medium text-base-content", "Task" }
-                p {
-                    class: "text-lg font-semibold text-base-content",
-                    "data-testid": "score-trace-task-title",
-                    "{trace.task_title}"
+                CardContent {
+                    h2 { class: "text-base font-medium text-base-content", "Task" }
+                    p {
+                        class: "text-lg font-semibold text-base-content",
+                        "data-testid": "score-trace-task-title",
+                        "{trace.task_title}"
+                    }
+                    p {
+                        class: "text-sm text-base-content/70",
+                        "data-testid": "score-trace-score",
+                        "Score {score_label}"
+                    }
+                    p { class: "text-xs text-base-content/50", "Computed at {computed_at}" }
                 }
-                p {
-                    class: "text-sm text-base-content/70",
-                    "data-testid": "score-trace-score",
-                    "Score {score_label}"
-                }
-                p { class: "text-xs text-base-content/50", "Computed at {computed_at}" }
             }
 
-            div {
-                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4 space-y-2",
+            Card {
                 "data-testid": "score-trace-formula",
-                h3 { class: "text-sm font-medium text-base-content/80", "Formula" }
-                code { class: "text-xs text-base-content/70", "score = visibility * normalized_importance * feedback * lead_time" }
-                div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
-                    div { "Visibility: {format_factor(trace.factors.visibility_factor)}" }
-                    div { "Normalized Importance: {format_factor(trace.factors.normalized_importance)}" }
-                    div { "Feedback: {format_factor(trace.factors.feedback_factor)}" }
-                    div { "Lead Time: {format_factor(trace.factors.lead_time_factor)}" }
+                CardContent {
+                    h3 { class: "text-sm font-medium text-base-content/80", "Formula" }
+                    code { class: "text-xs text-base-content/70", "score = visibility * normalized_importance * feedback * lead_time" }
+                    div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
+                        div { "Visibility: {format_factor(trace.factors.visibility_factor)}" }
+                        div { "Normalized Importance: {format_factor(trace.factors.normalized_importance)}" }
+                        div { "Feedback: {format_factor(trace.factors.feedback_factor)}" }
+                        div { "Lead Time: {format_factor(trace.factors.lead_time_factor)}" }
+                    }
                 }
             }
 
-            div {
-                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4 space-y-2",
+            Card {
                 "data-testid": "score-trace-feedback",
-                h3 { class: "text-sm font-medium text-base-content/80", "Balance Feedback" }
-                p { class: "text-xs text-base-content/70",
-                    "Root: {trace.feedback.root_title}"
-                }
-                div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
-                    div { "Desired Credits: {format_factor(trace.feedback.desired_credits)}" }
-                    div { "Effective Credits: {format_factor(trace.feedback.effective_credits)}" }
-                    div { "Target %: {format_percent(trace.feedback.target_percent)}" }
-                    div { "Actual %: {format_percent(trace.feedback.actual_percent)}" }
-                    div { "Deviation Ratio: {format_factor(trace.feedback.deviation_ratio)}" }
-                    div { "Factor: {format_factor(trace.feedback.feedback_factor)}" }
+                CardContent {
+                    h3 { class: "text-sm font-medium text-base-content/80", "Balance Feedback" }
+                    p { class: "text-xs text-base-content/70",
+                        "Root: {trace.feedback.root_title}"
+                    }
+                    div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
+                        div { "Desired Credits: {format_factor(trace.feedback.desired_credits)}" }
+                        div { "Effective Credits: {format_factor(trace.feedback.effective_credits)}" }
+                        div { "Target %: {format_percent(trace.feedback.target_percent)}" }
+                        div { "Actual %: {format_percent(trace.feedback.actual_percent)}" }
+                        div { "Deviation Ratio: {format_factor(trace.feedback.deviation_ratio)}" }
+                        div { "Factor: {format_factor(trace.feedback.feedback_factor)}" }
+                    }
                 }
             }
 
-            div {
-                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4 space-y-2",
+            Card {
                 "data-testid": "score-trace-importance",
-                h3 { class: "text-sm font-medium text-base-content/80", "Importance Chain" }
-                for entry in trace.importance_chain.iter() {
-                    div {
-                        key: "{entry.task_id}",
-                        class: "border border-base-200 rounded p-2 text-xs space-y-1",
-                        div { class: "flex justify-between items-center",
-                            span { class: "font-medium text-base-content", "{entry.task_title}" }
-                            if entry.sequential_blocked {
-                                Badge {
-                                    variant: BadgeVariant::Secondary,
-                                    "Sequential Blocked"
+                CardContent {
+                    h3 { class: "text-sm font-medium text-base-content/80", "Importance Chain" }
+                    for entry in trace.importance_chain.iter() {
+                        div {
+                            key: "{entry.task_id}",
+                            class: "border border-base-200 rounded p-2 text-xs space-y-1",
+                            div { class: "flex justify-between items-center",
+                                span { class: "font-medium text-base-content", "{entry.task_title}" }
+                                if entry.sequential_blocked {
+                                    Badge {
+                                        variant: BadgeVariant::Secondary,
+                                        "Sequential Blocked"
+                                    }
                                 }
                             }
-                        }
-                        div { class: "text-base-content/70",
-                            "Importance {format_factor(entry.importance)} -> Normalized {format_factor(entry.normalized_importance)}"
-                        }
-                        if let Some(parent_norm) = entry.parent_normalized_importance {
-                            div { class: "text-base-content/50",
-                                "Parent normalized {format_factor(parent_norm)}"
+                            div { class: "text-base-content/70",
+                                "Importance {format_factor(entry.importance)} -> Normalized {format_factor(entry.normalized_importance)}"
+                            }
+                            if let Some(parent_norm) = entry.parent_normalized_importance {
+                                div { class: "text-base-content/50",
+                                    "Parent normalized {format_factor(parent_norm)}"
+                                }
                             }
                         }
                     }
                 }
             }
 
-            div {
-                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4 space-y-2",
+            Card {
                 "data-testid": "score-trace-lead-time",
-                h3 { class: "text-sm font-medium text-base-content/80", "Lead Time" }
-                div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
-                    div { "Due Date: {format_timestamp(trace.lead_time.effective_due_date)}" }
-                    div { "Lead Time: {format_millis(Some(trace.lead_time.effective_lead_time))}" }
-                    div { "Time Remaining: {format_millis(trace.lead_time.time_remaining)}" }
-                    div { "Stage: {lead_time_stage_label(trace.lead_time.stage)}" }
-                    div { "Factor: {format_factor(trace.lead_time.factor)}" }
-                    div { "Schedule Source: {schedule_source_label(trace.lead_time.schedule_source)}" }
+                CardContent {
+                    h3 { class: "text-sm font-medium text-base-content/80", "Lead Time" }
+                    div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
+                        div { "Due Date: {format_timestamp(trace.lead_time.effective_due_date)}" }
+                        div { "Lead Time: {format_millis(Some(trace.lead_time.effective_lead_time))}" }
+                        div { "Time Remaining: {format_millis(trace.lead_time.time_remaining)}" }
+                        div { "Stage: {lead_time_stage_label(trace.lead_time.stage)}" }
+                        div { "Factor: {format_factor(trace.lead_time.factor)}" }
+                        div { "Schedule Source: {schedule_source_label(trace.lead_time.schedule_source)}" }
+                    }
                 }
             }
 
-            div {
-                class: "card card-compact bg-base-200/20 shadow border border-base-200 p-4 space-y-2",
+            Card {
                 "data-testid": "score-trace-visibility",
-                h3 { class: "text-sm font-medium text-base-content/80", "Visibility" }
-                div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
-                    div { "Place: {trace.visibility.contextual.effective_place_id}" }
-                    div { "Place Open: {bool_label(trace.visibility.contextual.is_open)}" }
-                    div { "Filter Match: {bool_label(trace.visibility.contextual.filter_match)}" }
-                    div { "Acknowledged: {bool_label(trace.visibility.contextual.is_acknowledged)}" }
-                    div { "Has Pending Descendants: {bool_label(trace.visibility.has_pending_descendants)}" }
-                    div { "Delegated: {bool_label(trace.visibility.delegated_to_descendants)}" }
-                    div { "Final Visibility: {bool_label(trace.visibility.final_visibility)}" }
+                CardContent {
+                    h3 { class: "text-sm font-medium text-base-content/80", "Visibility" }
+                    div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
+                        div { "Place: {trace.visibility.contextual.effective_place_id}" }
+                        div { "Place Open: {bool_label(trace.visibility.contextual.is_open)}" }
+                        div { "Filter Match: {bool_label(trace.visibility.contextual.filter_match)}" }
+                        div { "Acknowledged: {bool_label(trace.visibility.contextual.is_acknowledged)}" }
+                        div { "Has Pending Descendants: {bool_label(trace.visibility.has_pending_descendants)}" }
+                        div { "Delegated: {bool_label(trace.visibility.delegated_to_descendants)}" }
+                        div { "Final Visibility: {bool_label(trace.visibility.final_visibility)}" }
+                    }
                 }
             }
         }

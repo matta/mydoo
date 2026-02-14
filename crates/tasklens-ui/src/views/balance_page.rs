@@ -6,6 +6,7 @@
 use crate::app_components::{BalanceSlider, EmptyState, LoadErrorView, PageHeader};
 use crate::controllers::task_controller;
 use crate::dioxus_components::badge::{Badge, BadgeVariant};
+use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_balance_interaction::{BalanceItem, use_balance_interaction};
 use dioxus::prelude::*;
 
@@ -89,52 +90,53 @@ fn BalanceItemRow(
     };
 
     rsx! {
-        div {
-            class: "card card-compact shadow border border-base-200 p-4",
+        Card {
             "data-testid": "balance-item",
             "data-task-id": "{item.id}",
             "data-starving": "{item.is_starving}",
 
-            div { class: "flex justify-between items-start mb-3",
-                div {
-                    h3 { class: "font-medium text-base-content", "{item.title}" }
-                    Badge {
-                        variant: status_variant,
-                        "data-testid": "balance-status",
-                        "{status_label}"
+            CardContent {
+                div { class: "flex justify-between items-start mb-3",
+                    div {
+                        h3 { class: "font-medium text-base-content", "{item.title}" }
+                        Badge {
+                            variant: status_variant,
+                            "data-testid": "balance-status",
+                            "{status_label}"
+                        }
+                    }
+                    div { class: "text-right text-sm",
+                        div { class: "text-base-content/70",
+                            "Target: "
+                            span { class: "font-medium text-base-content", "{display_target_pct}%" }
+                        }
+                        div { class: "text-base-content/70",
+                            "Actual: "
+                            span { class: "font-medium text-base-content", "{actual_pct}%" }
+                        }
                     }
                 }
-                div { class: "text-right text-sm",
-                    div { class: "text-base-content/70",
-                        "Target: "
-                        span { class: "font-medium text-base-content", "{display_target_pct}%" }
-                    }
-                    div { class: "text-base-content/70",
-                        "Actual: "
-                        span { class: "font-medium text-base-content", "{actual_pct}%" }
-                    }
-                }
-            }
 
-            BalanceBar {
-                target_percent: current_target_percent,
-                actual_percent: item.actual_percent,
-            }
-
-            div { class: "mt-3",
-                label { class: "block text-xs text-base-content/50 mb-1",
-                    "Adjust Target"
+                BalanceBar {
+                    target_percent: current_target_percent,
+                    actual_percent: item.actual_percent,
                 }
-                BalanceSlider {
-                    min: 0.01,
-                    max: 1.0,
-                    step: 0.01,
-                    value: current_target_percent,
-                    oninput: {
-                        let target_id = item.id.clone();
-                        move |new_value| on_input.call((target_id.clone(), new_value))
-                    },
-                    onchange: move |_| on_change.call(()),
+
+                div { class: "mt-3",
+                    label { class: "block text-xs text-base-content/50 mb-1",
+                        "Adjust Target"
+                    }
+                    BalanceSlider {
+                        min: 0.01,
+                        max: 1.0,
+                        step: 0.01,
+                        value: current_target_percent,
+                        oninput: {
+                            let target_id = item.id.clone();
+                            move |new_value| on_input.call((target_id.clone(), new_value))
+                        },
+                        onchange: move |_| on_change.call(()),
+                    }
                 }
             }
         }

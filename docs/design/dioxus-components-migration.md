@@ -91,7 +91,7 @@ Status legend:
 | Avatar        | [preview/src/components/avatar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/avatar)               | —                                                         | Missing                                                           | Adopt if user/profile UI is needed.                                       |
 | Badge         | [preview/src/components/badge](https://github.com/DioxusLabs/components/tree/main/preview/src/components/badge)                 | `crates/tasklens-ui/src/dioxus_components/badge/`         | Adopted                                                           | Keep vendored source.                                                     |
 | Button        | [preview/src/components/button](https://github.com/DioxusLabs/components/tree/main/preview/src/components/button)               | `crates/tasklens-ui/src/dioxus_components/button/`        | Adopted (vendored upstream component integrated in app callsites) | Keep vendored source and remove legacy compatibility usage.               |
-| Card          | [preview/src/components/card](https://github.com/DioxusLabs/components/tree/main/preview/src/components/card)                   | —                                                         | Missing                                                           | Adopt to replace DaisyUI `card` usage.                                    |
+| Card          | [preview/src/components/card](https://github.com/DioxusLabs/components/tree/main/preview/src/components/card)                   | `crates/tasklens-ui/src/dioxus_components/card/`          | Adopted                                                           | Keep vendored source.                                                     |
 | Checkbox      | [preview/src/components/checkbox](https://github.com/DioxusLabs/components/tree/main/preview/src/components/checkbox)           | `crates/tasklens-ui/src/dioxus_components/checkbox/`      | Adopted (vendored upstream component integrated in app callsites) | Keep vendored source and remove legacy compatibility usage.               |
 | Collapsible   | [preview/src/components/collapsible](https://github.com/DioxusLabs/components/tree/main/preview/src/components/collapsible)     | `crates/tasklens-ui/src/dioxus_components/collapsible/`   | Adopted (vendored upstream component)                             | Keep vendored source and remove legacy compatibility usage.               |
 | Context Menu  | [preview/src/components/context_menu](https://github.com/DioxusLabs/components/tree/main/preview/src/components/context_menu)   | —                                                         | Missing                                                           | Adopt if context menus are needed.                                        |
@@ -126,10 +126,10 @@ Status legend:
 ## Divergence Summary
 
 - Total upstream components: 37
-- Adopted: 10 (Badge, Button, Checkbox, Collapsible, Dialog, Input, Navbar, Popover, Select, Slider)
+- Adopted: 11 (Badge, Button, Card, Checkbox, Collapsible, Dialog, Input, Navbar, Popover, Select, Slider)
 - App-owned replacements: 1 (Date/Datetime Inputs — CSS-module-scoped native wrappers)
 - Wrapper/Modified: 0
-- Missing: 26
+- Missing: 25
 
 ## Tailwind And DaisyUI Usage Audit
 
