@@ -93,7 +93,7 @@ Status legend:
 | Button        | [preview/src/components/button](https://github.com/DioxusLabs/components/tree/main/preview/src/components/button)               | `crates/tasklens-ui/src/dioxus_components/button/`        | Adopted (vendored upstream component integrated in app callsites) | Keep vendored source and remove legacy compatibility usage.               |
 | Card          | [preview/src/components/card](https://github.com/DioxusLabs/components/tree/main/preview/src/components/card)                   | —                                                         | Missing                                                           | Adopt to replace DaisyUI `card` usage.                                    |
 | Checkbox      | [preview/src/components/checkbox](https://github.com/DioxusLabs/components/tree/main/preview/src/components/checkbox)           | `crates/tasklens-ui/src/dioxus_components/checkbox/`      | Adopted (vendored upstream component integrated in app callsites) | Keep vendored source and remove legacy compatibility usage.               |
-| Collapsible   | [preview/src/components/collapsible](https://github.com/DioxusLabs/components/tree/main/preview/src/components/collapsible)     | `crates/tasklens-ui/src/components/collapsible/`          | Wrapper/Modified (missing `as` support, Tailwind classes)         | Re-vendor and restore upstream API.                                       |
+| Collapsible   | [preview/src/components/collapsible](https://github.com/DioxusLabs/components/tree/main/preview/src/components/collapsible)     | `crates/tasklens-ui/src/dioxus_components/collapsible/`   | Adopted (vendored upstream component)                             | Keep vendored source and remove legacy compatibility usage.               |
 | Context Menu  | [preview/src/components/context_menu](https://github.com/DioxusLabs/components/tree/main/preview/src/components/context_menu)   | —                                                         | Missing                                                           | Adopt if context menus are needed.                                        |
 | Date Picker   | [preview/src/components/date_picker](https://github.com/DioxusLabs/components/tree/main/preview/src/components/date_picker)     | `crates/tasklens-ui/src/app_components/date_time_inputs/` | App-owned (CSS-module-scoped native wrappers)                     | Keep app-owned native wrappers; no plan to migrate to upstream component. |
 | Dialog        | [preview/src/components/dialog](https://github.com/DioxusLabs/components/tree/main/preview/src/components/dialog)               | `crates/tasklens-ui/src/dioxus_components/dialog/`        | Adopted (vendored upstream component integrated in app callsites) | Keep vendored source and remove legacy compatibility usage.               |
@@ -125,10 +125,10 @@ Status legend:
 
 ## Divergence Summary
 
-- Total upstream components: 38
-- Adopted: 8 (Button, Checkbox, Dialog, Input, Navbar, Popover, Select, Slider)
+- Total upstream components: 37
+- Adopted: 9 (Button, Checkbox, Collapsible, Dialog, Input, Navbar, Popover, Select, Slider)
 - App-owned replacements: 1 (Date/Datetime Inputs — CSS-module-scoped native wrappers)
-- Wrapper/Modified: 1 (Collapsible)
+- Wrapper/Modified: 0
 - Missing: 27
 
 ## Tailwind And DaisyUI Usage Audit

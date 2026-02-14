@@ -73,11 +73,11 @@
 - [x] Pilot Dioxus `#[css_module(...)]` on app-owned date/datetime wrappers — verified production build produces hashed, scoped class names.
 - [x] Add or refresh tests covering native date input behavior and value conversion.
 
-### Chunk D: Wrapper De-Daisy (Select, Dialog, Collapsible)
+### Chunk D (Completed): Wrapper De-Daisy (Select, Dialog, Collapsible)
 
 - [x] Select: re-vendor upstream and remove DaisyUI dropdown/menu/btn assumptions.
 - [x] Dialog: re-vendor upstream and remove DaisyUI modal classes.
-- [ ] Collapsible: re-vendor upstream, restore `as` support, remove Tailwind utilities.
+- [x] Collapsible: re-vendor upstream, restore `as` support, remove Tailwind utilities.
 
 ### Chunk E: Replace High-Usage DaisyUI Skins With Upstream Components
 
@@ -106,7 +106,7 @@
 
 ## Align Existing Dioxus Component Wrappers
 
-- [ ] Collapsible: re-vendor upstream and restore `as` support.
+- [x] Collapsible: re-vendor upstream and restore `as` support.
 - [x] Dialog: re-vendor upstream and restore upstream CSS/API.
 - [x] Select: re-vendor upstream and remove DaisyUI class overrides.
 
