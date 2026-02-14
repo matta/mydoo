@@ -99,7 +99,7 @@ fn BalanceItemRow(
             CardContent {
                 div { class: "flex justify-between items-start mb-3",
                     div {
-                        h3 { class: "font-medium text-base-content", "{item.title}" }
+                        h3 { class: "font-medium text-app-text", "{item.title}" }
                         Badge {
                             variant: status_variant,
                             "data-testid": "balance-status",
@@ -107,13 +107,13 @@ fn BalanceItemRow(
                         }
                     }
                     div { class: "text-right text-sm",
-                        div { class: "text-base-content/70",
+                        div { class: "text-app-text/70",
                             "Target: "
-                            span { class: "font-medium text-base-content", "{display_target_pct}%" }
+                            span { class: "font-medium text-app-text", "{display_target_pct}%" }
                         }
-                        div { class: "text-base-content/70",
+                        div { class: "text-app-text/70",
                             "Actual: "
-                            span { class: "font-medium text-base-content", "{actual_pct}%" }
+                            span { class: "font-medium text-app-text", "{actual_pct}%" }
                         }
                     }
                 }
@@ -124,7 +124,7 @@ fn BalanceItemRow(
                 }
 
                 div { class: "mt-3",
-                    label { class: "block text-xs text-base-content/50 mb-1",
+                    label { class: "block text-xs text-app-text/50 mb-1",
                         "Adjust Target"
                     }
                     BalanceSlider {
@@ -162,7 +162,7 @@ fn BalanceBar(target_percent: f64, actual_percent: f64) -> Element {
                 "data-testid": "actual-bar",
             }
             div {
-                class: "absolute top-0 left-0 h-4 border-r-2 border-base-content/30 transition-all duration-300",
+                class: "absolute top-0 left-0 h-4 border-r-2 border-app-text/30 transition-all duration-300",
                 style: "width: {target_value}%",
                 "data-testid": "target-bar",
             }

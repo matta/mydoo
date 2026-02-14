@@ -60,27 +60,27 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
             Card {
                 "data-testid": "score-trace-summary",
                 CardContent {
-                    h2 { class: "text-base font-medium text-base-content", "Task" }
+                    h2 { class: "text-base font-medium text-app-text", "Task" }
                     p {
-                        class: "text-lg font-semibold text-base-content",
+                        class: "text-lg font-semibold text-app-text",
                         "data-testid": "score-trace-task-title",
                         "{trace.task_title}"
                     }
                     p {
-                        class: "text-sm text-base-content/70",
+                        class: "text-sm text-app-text/70",
                         "data-testid": "score-trace-score",
                         "Score {score_label}"
                     }
-                    p { class: "text-xs text-base-content/50", "Computed at {computed_at}" }
+                    p { class: "text-xs text-app-text/50", "Computed at {computed_at}" }
                 }
             }
 
             Card {
                 "data-testid": "score-trace-formula",
                 CardContent {
-                    h3 { class: "text-sm font-medium text-base-content/80", "Formula" }
-                    code { class: "text-xs text-base-content/70", "score = visibility * normalized_importance * feedback * lead_time" }
-                    div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
+                    h3 { class: "text-sm font-medium text-app-text/80", "Formula" }
+                    code { class: "text-xs text-app-text/70", "score = visibility * normalized_importance * feedback * lead_time" }
+                    div { class: "grid grid-cols-2 gap-2 text-xs text-app-text/70",
                         div { "Visibility: {format_factor(trace.factors.visibility_factor)}" }
                         div { "Normalized Importance: {format_factor(trace.factors.normalized_importance)}" }
                         div { "Feedback: {format_factor(trace.factors.feedback_factor)}" }
@@ -92,11 +92,11 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
             Card {
                 "data-testid": "score-trace-feedback",
                 CardContent {
-                    h3 { class: "text-sm font-medium text-base-content/80", "Balance Feedback" }
-                    p { class: "text-xs text-base-content/70",
+                    h3 { class: "text-sm font-medium text-app-text/80", "Balance Feedback" }
+                    p { class: "text-xs text-app-text/70",
                         "Root: {trace.feedback.root_title}"
                     }
-                    div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
+                    div { class: "grid grid-cols-2 gap-2 text-xs text-app-text/70",
                         div { "Desired Credits: {format_factor(trace.feedback.desired_credits)}" }
                         div { "Effective Credits: {format_factor(trace.feedback.effective_credits)}" }
                         div { "Target %: {format_percent(trace.feedback.target_percent)}" }
@@ -110,13 +110,13 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
             Card {
                 "data-testid": "score-trace-importance",
                 CardContent {
-                    h3 { class: "text-sm font-medium text-base-content/80", "Importance Chain" }
+                    h3 { class: "text-sm font-medium text-app-text/80", "Importance Chain" }
                     for entry in trace.importance_chain.iter() {
                         div {
                             key: "{entry.task_id}",
-                            class: "border border-base-200 rounded p-2 text-xs space-y-1",
+                            class: "border border-app-border rounded p-2 text-xs space-y-1",
                             div { class: "flex justify-between items-center",
-                                span { class: "font-medium text-base-content", "{entry.task_title}" }
+                                span { class: "font-medium text-app-text", "{entry.task_title}" }
                                 if entry.sequential_blocked {
                                     Badge {
                                         variant: BadgeVariant::Secondary,
@@ -124,11 +124,11 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
                                     }
                                 }
                             }
-                            div { class: "text-base-content/70",
+                            div { class: "text-app-text/70",
                                 "Importance {format_factor(entry.importance)} -> Normalized {format_factor(entry.normalized_importance)}"
                             }
                             if let Some(parent_norm) = entry.parent_normalized_importance {
-                                div { class: "text-base-content/50",
+                                div { class: "text-app-text/50",
                                     "Parent normalized {format_factor(parent_norm)}"
                                 }
                             }
@@ -140,8 +140,8 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
             Card {
                 "data-testid": "score-trace-lead-time",
                 CardContent {
-                    h3 { class: "text-sm font-medium text-base-content/80", "Lead Time" }
-                    div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
+                    h3 { class: "text-sm font-medium text-app-text/80", "Lead Time" }
+                    div { class: "grid grid-cols-2 gap-2 text-xs text-app-text/70",
                         div { "Due Date: {format_timestamp(trace.lead_time.effective_due_date)}" }
                         div { "Lead Time: {format_millis(Some(trace.lead_time.effective_lead_time))}" }
                         div { "Time Remaining: {format_millis(trace.lead_time.time_remaining)}" }
@@ -155,8 +155,8 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
             Card {
                 "data-testid": "score-trace-visibility",
                 CardContent {
-                    h3 { class: "text-sm font-medium text-base-content/80", "Visibility" }
-                    div { class: "grid grid-cols-2 gap-2 text-xs text-base-content/70",
+                    h3 { class: "text-sm font-medium text-app-text/80", "Visibility" }
+                    div { class: "grid grid-cols-2 gap-2 text-xs text-app-text/70",
                         div { "Place: {trace.visibility.contextual.effective_place_id}" }
                         div { "Place Open: {bool_label(trace.visibility.contextual.is_open)}" }
                         div { "Filter Match: {bool_label(trace.visibility.contextual.filter_match)}" }

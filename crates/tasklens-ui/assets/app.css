@@ -9,6 +9,21 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
+
+  /* App semantic color tokens bridging upstream theme variables.
+   * These replace DaisyUI theme utilities (bg-base-*, text-base-content,
+   * border-base-*, text-primary) with upstream CSS variables from
+   * dx-components-theme.css.
+   */
+  --app-bg: var(--primary-color-2);
+  --app-bg-muted: var(--primary-color-4);
+  --app-bg-subtle: var(--primary-color-5);
+  --app-border: var(--primary-color-6);
+  --app-border-strong: var(--primary-color-7);
+  --app-text: var(--secondary-color-4);
+  --app-text-muted: var(--secondary-color-5);
+  --app-text-subtle: var(--secondary-color-6);
+  --app-accent: var(--focused-border-color);
 }
 
 [data-app-state] {

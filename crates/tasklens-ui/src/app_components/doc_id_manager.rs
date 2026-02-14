@@ -189,8 +189,8 @@ pub(crate) fn DocIdManager(
     };
 
     rsx! {
-        div { class: "space-y-4 border-t border-base-200 pt-4 mt-4",
-            h4 { class: "text-base font-medium text-base-content/70", "Document Management" }
+        div { class: "space-y-4 border-t border-app-border pt-4 mt-4",
+            h4 { class: "text-base font-medium text-app-text/70", "Document Management" }
 
             if !error_msg().is_empty() {
                 Alert { variant: AlertVariant::Error, title: "Error", "{error_msg}" }
@@ -198,10 +198,10 @@ pub(crate) fn DocIdManager(
 
             // Current Document Display
             div { class: "space-y-2",
-                label { class: "block text-base font-medium text-base-content/70", "Current Document" }
+                label { class: "block text-base font-medium text-app-text/70", "Current Document" }
                 div { class: "flex items-center space-x-2",
                     div {
-                        class: "flex-1 px-3 py-3 bg-base-200 border border-base-300 rounded text-base font-mono text-base-content/80",
+                        class: "flex-1 px-3 py-3 bg-app-surface-muted border border-app-border-strong rounded text-base font-mono text-app-text/80",
                         "data-testid": "document-id-display",
                         {truncated_id().unwrap_or_else(|| "No document loaded".to_string())}
                     }
@@ -221,12 +221,12 @@ pub(crate) fn DocIdManager(
                 }
 
                 if let Some(meta_id) = metadata_doc_id() {
-                    div { class: "mt-2 pt-2 border-t border-base-200",
-                        label { class: "block text-xs font-medium text-base-content/50 mb-1",
+                    div { class: "mt-2 pt-2 border-t border-app-border",
+                        label { class: "block text-xs font-medium text-app-text/50 mb-1",
                             "Metadata ID (Internal)"
                         }
                         div { class: "flex items-center space-x-2",
-                            div { class: "px-2 py-1 bg-base-200 border border-base-300 rounded text-xs font-mono text-base-content/80",
+                            div { class: "px-2 py-1 bg-app-surface-muted border border-app-border-strong rounded text-xs font-mono text-app-text/80",
                                 "{meta_id}"
                             }
                             if let Some(curr) = current_doc_id() {
@@ -310,7 +310,7 @@ pub(crate) fn DocIdManager(
             // Enter ID Input (conditional)
             if show_input() {
                 div { class: "space-y-2",
-                    label { class: "block text-base font-medium text-base-content/70", "Enter Document ID" }
+                    label { class: "block text-base font-medium text-app-text/70", "Enter Document ID" }
                     Input {
                         value: input_value(),
                         oninput: move |evt: FormEvent| input_value.set(evt.value()),

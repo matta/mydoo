@@ -91,7 +91,7 @@ pub fn TaskPage() -> Element {
                 TaskList { tasks, on_toggle: toggle_task }
             }
 
-            div { class: "mt-8 text-center text-base text-base-content/50", "Build: {crate::BUILD_VERSION}" }
+            div { class: "mt-8 text-center text-base text-app-text/50", "Build: {crate::BUILD_VERSION}" }
         }
     }
 }
@@ -116,7 +116,7 @@ fn TaskItem(task: PersistedTask, on_toggle: EventHandler<PersistedTask>) -> Elem
     let task_check = task.clone();
     rsx! {
         li {
-            class: "flex items-center gap-2 p-3 border border-base-200 rounded cursor-pointer hover:bg-base-200",
+            class: "flex items-center gap-2 p-3 border border-app-border rounded cursor-pointer hover:bg-app-surface-muted",
             onclick: move |_| on_toggle.call(task_toggle.clone()),
             div { onclick: move |evt: MouseEvent| evt.stop_propagation(),
                 Checkbox {
@@ -129,7 +129,7 @@ fn TaskItem(task: PersistedTask, on_toggle: EventHandler<PersistedTask>) -> Elem
                     class: "cursor-pointer",
                 }
             }
-            span { class: if is_done { "line-through text-base-content/50" } else { "" }, "{task.title}" }
+            span { class: if is_done { "line-through text-app-text/50" } else { "" }, "{task.title}" }
         }
     }
 }
