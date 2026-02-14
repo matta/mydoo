@@ -53,23 +53,23 @@ pub(crate) fn MovePicker(
                 class: "max-w-md",
                 DialogTitle { "Move \"{task_title}\"" }
 
-                div { class: "mt-4 max-h-[60vh] overflow-y-auto border rounded-md bg-base-100 p-2 space-y-1",
+                div { class: "mt-4 max-h-[60vh] overflow-y-auto border rounded-md bg-app-surface p-2 space-y-1",
                     // Option for Root
                     button {
                         r#type: "button",
-                        class: "w-full rounded-md px-3 py-2 text-left font-normal hover:bg-base-200",
+                        class: "w-full rounded-md px-3 py-2 text-left font-normal hover:bg-app-surface-muted",
                         onclick: move |_| on_select.call(None),
                         span { class: "font-medium", "(Root)" }
                     }
 
                     if flattened_tasks().is_empty() {
-                        div { class: "p-4 text-center text-base-content/60", "No other valid parents found." }
+                        div { class: "p-4 text-center text-app-text/60", "No other valid parents found." }
                     } else {
                         for (task, depth) in flattened_tasks() {
                             button {
                                 key: "{task.id}",
                                 r#type: "button",
-                                class: "w-full rounded-md px-3 py-2 text-left font-normal hover:bg-base-200",
+                                class: "w-full rounded-md px-3 py-2 text-left font-normal hover:bg-app-surface-muted",
                                 style: "padding-left: {12 + depth * 16}px",
                                 onclick: {
                                     let id = task.id.clone();

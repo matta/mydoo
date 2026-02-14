@@ -147,15 +147,13 @@ This is a categorized summary intended to map usage into replacement workstreams
 
 ## Current DaisyUI Debt Snapshot
 
-Snapshot basis: code audit on February 11, 2026.
+Snapshot basis: code audit on February 14, 2026.
 
-- `btn*` debt in app callsites is cleared after the Chunk A callsite pass.
-- `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt in app callsites is cleared.
-- `card*`/`badge*`/`progress*` debt in app callsites is cleared.
-- `dropdown*`/`menu*` debt remains in app components and views. `modal*` debt is cleared.
+- All DaisyUI component-skin tokens (`btn*`, `input*`, `select*`, `textarea*`, `toggle*`, `card*`, `badge*`, `progress*`, `dropdown*`, `menu*`, `modal*`, `loading*`, `fieldset*`, `join*`) are cleared from app callsites.
+- All DaisyUI theme utility tokens (`bg-base-*`, `text-base-content`, `border-base-*`, `text-primary`) are cleared from app callsites. Replaced with Tailwind `@theme` bridge colors referencing upstream CSS variables.
 - Tailwind runtime dependency is still active:
   - `crates/tasklens-ui/src/main.rs` still links `assets/tailwind.css`
-  - `crates/tasklens-ui/tailwind.css` still loads Tailwind + DaisyUI plugin
+  - `crates/tasklens-ui/tailwind.css` still loads Tailwind + DaisyUI plugin (Gate 3 pending)
 
 All deferred cleanup is tracked in `dioxus-components-migration.todo.md` under the class debt and active chunk sections.
 

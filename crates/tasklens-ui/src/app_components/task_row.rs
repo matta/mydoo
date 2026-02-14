@@ -72,8 +72,8 @@ pub(crate) fn TaskRow(
         ),
         UrgencyStatus::Urgent => ("text-warning", BadgeVariant::Secondary, "Urgent"),
         UrgencyStatus::Active => ("text-warning", BadgeVariant::Secondary, "Active"),
-        UrgencyStatus::Upcoming => ("text-base-content", BadgeVariant::Primary, "Upcoming"),
-        _ => ("text-base-content", BadgeVariant::Outline, ""),
+        UrgencyStatus::Upcoming => ("text-app-text", BadgeVariant::Primary, "Upcoming"),
+        _ => ("text-app-text", BadgeVariant::Outline, ""),
     };
 
     let data_urgency = if urgency_label.is_empty() {
@@ -85,13 +85,13 @@ pub(crate) fn TaskRow(
     let urgency_classes = format!("{} flex-grow cursor-pointer", urgency_text_class);
 
     let title_class = if is_done {
-        "line-through text-base-content/50 flex-grow cursor-pointer".to_string()
+        "line-through text-app-text/50 flex-grow cursor-pointer".to_string()
     } else {
         urgency_classes
     };
 
     let row_class = format!(
-        "flex items-center py-3 border-b border-base-200 group pr-2 {}",
+        "flex items-center py-3 border-b border-app-border group pr-2 {}",
         if is_highlighted { "animate-flash" } else { "" }
     );
 
@@ -182,7 +182,7 @@ pub(crate) fn TaskRow(
             if let Some(due_ts) = effective_due_date {
                 if !is_done {
                     span {
-                        class: "text-base text-base-content/50 ml-2",
+                        class: "text-base text-app-text/50 ml-2",
                         "data-testid": "due-date-text",
                         {format_relative_due_date(due_ts, now)}
                     }

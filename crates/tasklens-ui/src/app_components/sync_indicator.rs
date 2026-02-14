@@ -44,7 +44,7 @@ pub(crate) fn SyncIndicator() -> Element {
     let mut url_input = use_signal(get_sync_url);
 
     let (color, text) = match sync_status() {
-        SyncStatus::Disconnected => ("bg-base-content/20", "Disconnected"),
+        SyncStatus::Disconnected => ("bg-app-text/20", "Disconnected"),
         SyncStatus::Connecting => ("bg-warning", "Connecting"),
         SyncStatus::Connected => ("bg-success", "Connected"),
         SyncStatus::Error(_e) => ("bg-error", "Error"),
@@ -65,14 +65,14 @@ pub(crate) fn SyncIndicator() -> Element {
                     show_settings.set(new_state);
                 },
                 span { class: "h-2 w-2 rounded-full {color}" }
-                span { class: "text-base-content/80", "{text}" }
+                span { class: "text-app-text/80", "{text}" }
             }
 
             if show_settings() {
                 div {
-                    class: "absolute right-0 z-50 mt-2 w-64 rounded-md border border-base-300 bg-base-100 p-4 shadow-lg",
+                    class: "absolute right-0 z-50 mt-2 w-64 rounded-md border border-app-border-strong bg-app-surface p-4 shadow-lg",
                     "data-testid": "sync-settings-popover",
-                    h3 { class: "font-semibold text-base-content mb-3", "Sync Settings" }
+                    h3 { class: "font-semibold text-app-text mb-3", "Sync Settings" }
                     div { class: "space-y-3",
                         div { class: "space-y-1",
                             label { class: "py-1 text-xs",

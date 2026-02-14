@@ -34,7 +34,7 @@ pub(crate) fn PriorityTaskRow(
 
     rsx! {
         div {
-            class: "flex items-center gap-2 p-3 border border-base-200 rounded-lg shadow-sm transition-colors group",
+            class: "flex items-center gap-2 p-3 border border-app-border rounded-lg shadow-sm transition-colors group",
             "data-testid": "task-item",
             "data-urgency": "{task.urgency_status:?}",
 
@@ -50,7 +50,7 @@ pub(crate) fn PriorityTaskRow(
             span {
                 class: format_args!(
                     "flex-grow cursor-pointer select-none text-base font-medium {}",
-                    if is_done { "line-through text-base-content/50" } else { "text-base-content" },
+                    if is_done { "line-through text-app-text/50" } else { "text-app-text" },
                 ),
                 "data-testid": "task-title",
                 onclick: move |_| on_title_tap.call(task_id_tap.clone()),
@@ -58,7 +58,7 @@ pub(crate) fn PriorityTaskRow(
             }
 
             Link {
-                class: "text-xs text-base-content/50 hover:text-base-content/80",
+                class: "text-xs text-app-text/50 hover:text-app-text/80",
                 to: Route::ScoreTracePage {
                     task_id: task.id.clone(),
                 },

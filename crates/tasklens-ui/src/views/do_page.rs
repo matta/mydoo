@@ -51,7 +51,7 @@ pub fn DoPage() -> Element {
             PageHeader { title: "Work",
                 Button {
                     variant: ButtonVariant::Ghost,
-                    class: "text-base-content/70 hover:text-base-content",
+                    class: "text-app-text/70 hover:text-app-text",
                     onclick: move |_| task_controller.refresh_lifecycle(),
                     "Refresh"
                 }

@@ -48,6 +48,21 @@
 @theme {
   /* Set light mode to Stone 50 (Off-white/Cream) */
   --color-app-bg: var(--color-stone-50);
+
+  /* Bridge upstream dx-components-theme.css variables into Tailwind utilities.
+   * These replace DaisyUI theme tokens (bg-base-*, text-base-content,
+   * border-base-*, text-primary) while preserving Tailwind opacity modifiers.
+   * Phase 2 will remove these when Tailwind itself is removed.
+   */
+  --color-app-surface: var(--primary-color-2);
+  --color-app-surface-muted: var(--primary-color-4);
+  --color-app-surface-subtle: var(--primary-color-5);
+  --color-app-border: var(--primary-color-6);
+  --color-app-border-strong: var(--primary-color-7);
+  --color-app-text: var(--secondary-color-4);
+  --color-app-text-muted: var(--secondary-color-5);
+  --color-app-text-subtle: var(--secondary-color-6);
+  --color-app-accent: var(--focused-border-color);
 }
 
 /* System Dark Mode Preference */
@@ -81,7 +96,7 @@
   body {
     /* Apply the theme-aware variable once */
     /* Also setting text color to ensure contrast in dark mode */
-    @apply bg-app-bg text-base-content transition-colors duration-300;
+    @apply bg-app-bg text-app-text transition-colors duration-300;
   }
 
   /*
