@@ -14,6 +14,8 @@ use std::process::Command;
 
 use anyhow::{Context, Result, bail};
 
+const DX_COMPONENTS_CACHE_DIR: &str = "x-xtask-dx-components";
+
 use crate::commands::dioxus_info::{
     DioxusVendorRegistryConfig, read_dioxus_vendor_components_config,
 };
@@ -78,14 +80,14 @@ pub(crate) fn update_registry(components_file: &Path) -> Result<()> {
 pub(crate) fn clean_registry_cache() -> Result<()> {
     let repo_root = find_repo_root()?;
     let cache_root = registry_cache_root_for_repo(&repo_root)?;
-    let dx_components_root = cache_root
-        .parent()
-        .map(Path::to_path_buf)
-        .ok_or_else(|| anyhow::anyhow!("failed to resolve dx-components cache parent"))?;
+    let dx_components_root = cache_root.parent().map(Path::to_path_buf).ok_or_else(|| {
+        anyhow::anyhow!("failed to resolve {} cache parent", DX_COMPONENTS_CACHE_DIR)
+    })?;
 
     if !dx_components_root.exists() {
         println!(
-            "dx-components cache is already clean ({})",
+            "{} cache is already clean ({})",
+            DX_COMPONENTS_CACHE_DIR,
             dx_components_root.display()
         );
         return Ok(());
@@ -93,13 +95,15 @@ pub(crate) fn clean_registry_cache() -> Result<()> {
 
     fs::remove_dir_all(&dx_components_root).with_context(|| {
         format!(
-            "failed to remove dx-components cache root {}",
+            "failed to remove {} cache root {}",
+            DX_COMPONENTS_CACHE_DIR,
             dx_components_root.display()
         )
     })?;
 
     println!(
-        "removed dx-components cache root {}",
+        "removed {} cache root {}",
+        DX_COMPONENTS_CACHE_DIR,
         dx_components_root.display()
     );
     Ok(())
@@ -168,7 +172,9 @@ pub(crate) fn resolve_registry_checkout(
 /// Returns the cache root used for registry checkouts for this repository.
 pub(crate) fn registry_cache_root_for_repo(repo_root: &Path) -> Result<PathBuf> {
     let git_common_dir = git_common_dir(repo_root)?;
-    Ok(git_common_dir.join("dx-components").join("registries"))
+    Ok(git_common_dir
+        .join(DX_COMPONENTS_CACHE_DIR)
+        .join("registries"))
 }
 
 /// Returns the deterministic cache path for a specific registry pin.
