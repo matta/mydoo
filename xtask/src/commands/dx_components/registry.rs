@@ -74,18 +74,18 @@ pub(crate) fn update_registry(components_file: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Removes local dx-components cache under the repository git common-dir.
+/// Removes local x-xtask-dx-components cache under the repository git common-dir.
 pub(crate) fn clean_registry_cache() -> Result<()> {
     let repo_root = find_repo_root()?;
     let cache_root = registry_cache_root_for_repo(&repo_root)?;
     let dx_components_root = cache_root
         .parent()
         .map(Path::to_path_buf)
-        .ok_or_else(|| anyhow::anyhow!("failed to resolve dx-components cache parent"))?;
+        .ok_or_else(|| anyhow::anyhow!("failed to resolve x-xtask-dx-components cache parent"))?;
 
     if !dx_components_root.exists() {
         println!(
-            "dx-components cache is already clean ({})",
+            "x-xtask-dx-components cache is already clean ({})",
             dx_components_root.display()
         );
         return Ok(());
@@ -93,13 +93,13 @@ pub(crate) fn clean_registry_cache() -> Result<()> {
 
     fs::remove_dir_all(&dx_components_root).with_context(|| {
         format!(
-            "failed to remove dx-components cache root {}",
+            "failed to remove x-xtask-dx-components cache root {}",
             dx_components_root.display()
         )
     })?;
 
     println!(
-        "removed dx-components cache root {}",
+        "removed x-xtask-dx-components cache root {}",
         dx_components_root.display()
     );
     Ok(())
@@ -168,7 +168,9 @@ pub(crate) fn resolve_registry_checkout(
 /// Returns the cache root used for registry checkouts for this repository.
 pub(crate) fn registry_cache_root_for_repo(repo_root: &Path) -> Result<PathBuf> {
     let git_common_dir = git_common_dir(repo_root)?;
-    Ok(git_common_dir.join("dx-components").join("registries"))
+    Ok(git_common_dir
+        .join("x-xtask-dx-components")
+        .join("registries"))
 }
 
 /// Returns the deterministic cache path for a specific registry pin.
