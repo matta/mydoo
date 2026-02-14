@@ -2,12 +2,11 @@
 
 ## Scope to treat as merge-sensitive
 
-- Vendored component sources in `/Users/matt/src/mydoo/crates/tasklens-ui/src/dioxus_components/**`
-- Tasklens UI integration code that depends on `dioxus_primitives` (files with `use dioxus_primitives::...`)
+- Vendored component sources in `crates/tasklens-ui/src/dioxus_components/**`
 
 These areas are updated from upstream and are intentionally kept close to upstream layout and behavior.
 
-## Change policy for `dioxus_primitives` and vendored component work
+### Change policy for `crates/tasklens-ui/src/dioxus_components/**`
 
 - Prefer the smallest possible patch that fixes the concrete issue.
 - Avoid broad refactors, API redesign, renames, and file moves unless they are required for correctness or build/test failure.
