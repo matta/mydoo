@@ -92,7 +92,7 @@ pub(crate) fn AppNavBar() -> Element {
                     "Balance"
                 }
             }
-            div { class: "flex items-center space-x-2 pr-4",
+            div { class: "navbar-actions",
                 SyncIndicator {}
 
                 Button {
@@ -101,7 +101,7 @@ pub(crate) fn AppNavBar() -> Element {
                     aria_label: "Search tasks",
                     "data-testid": "search-button",
                     svg {
-                        class: "h-6 w-6",
+                        class: "icon-button-svg",
                         fill: "none",
                         view_box: "0 0 24 24",
                         stroke: "currentColor",
@@ -120,7 +120,7 @@ pub(crate) fn AppNavBar() -> Element {
                     aria_label: "Settings",
                     "data-testid": "settings-button",
                     svg {
-                        class: "h-6 w-6",
+                        class: "icon-button-svg",
                         fill: "none",
                         view_box: "0 0 24 24",
                         stroke: "currentColor",

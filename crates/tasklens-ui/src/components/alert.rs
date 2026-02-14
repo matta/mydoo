@@ -45,9 +45,9 @@ pub fn Alert(
             role: "alert",
             div {
                 if let Some(t) = title {
-                    h3 { class: "font-bold", "{t}" }
+                    h3 { class: "label-text-bold", "{t}" }
                 }
-                div { class: "text-base", {children} }
+                div { class: "app_text_base", {children} }
             }
         }
     }

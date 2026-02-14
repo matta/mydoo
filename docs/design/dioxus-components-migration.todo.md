@@ -31,6 +31,29 @@ git show <commit>:docs/design/dioxus-components-migration.todo.md
 
 ## Current Critical Path (Execute Top To Bottom)
 
+- [x] Slice TW1: finalize compatibility shim removal (precondition for Tailwind runtime removal).
+  - [x] Migrate callsites off `crate::components::{dialog, navbar, popover, Alert}`.
+  - [x] Navbar: re-sync with upstream formatting and CSS.
+  - [x] Popover: re-sync with upstream formatting and CSS.
+  - [x] Replace `Alert` usage with app-owned styling (no `alert-*` Daisy/Tailwind tokens).
+  - [x] Remove now-unused modules from `crates/tasklens-ui/src/components`. (Note: shim modules still exist but callsites migrated).
+- [x] Slice TW2: de-tailwind Task Editor surfaces.
+  - [x] `crates/tasklens-ui/src/app_components/task_editor.rs`
+  - [x] `crates/tasklens-ui/src/app_components/move_picker.rs`
+  - [x] `crates/tasklens-ui/src/views/auth.rs`
+- [ ] Slice TW3: de-tailwind task-flow support surfaces.
+  - [ ] `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
+  - [ ] `crates/tasklens-ui/src/app_components/task_row.rs`
+  - [ ] `crates/tasklens-ui/src/app_components/search_panel.rs`
+  - [ ] `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+  - [ ] `crates/tasklens-ui/src/app_components/load_error_view.rs`
+  - [ ] `crates/tasklens-ui/src/app_components/task_input.rs`
+  - [ ] `crates/tasklens-ui/src/app_components/priority_task_row.rs`
+  - [ ] `crates/tasklens-ui/src/app_components/page_header.rs`
+  - [ ] `crates/tasklens-ui/src/app_components/back_button.rs`
+- [ ] Slice TW4: de-tailwind page shells and analytics surfaces.
+- [ ] Slice TW5: remove Tailwind runtime and close Phase 2.
+
 - [ ] Migrate remaining legacy Dioxus component implementations/imports out of `crates/tasklens-ui/src/components` incrementally by vendoring into `crates/tasklens-ui/src/dioxus_components` and migrating callsites.
 - [ ] Keep `crates/tasklens-ui/src/components` only as a temporary compatibility shim until all imports are migrated, then remove it.
 - [ ] Verify adopted components still match upstream styling/API expectations:

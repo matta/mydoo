@@ -28,10 +28,10 @@ pub fn SettingsModal(
 ) -> Element {
     rsx! {
         DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
-            DialogContent { class: "max-w-lg",
+            DialogContent { class: "dialog-lg",
                 DialogTitle { "Document Management" }
 
-                div { class: "py-4",
+                div { class: "py_4",
                     DocIdManager {
                         current_doc_id: doc_id,
                         on_change: on_doc_change,
@@ -39,7 +39,7 @@ pub fn SettingsModal(
                     }
                 }
 
-                div { class: "mt-6 flex justify-end",
+                div { class: "mt_6 flex_end",
                     Button {
                         variant: ButtonVariant::Secondary,
                         onclick: move |_| on_close.call(()),

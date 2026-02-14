@@ -50,26 +50,26 @@ pub(crate) fn MovePicker(
             open: true,
             on_open_change: move |_| on_close.call(()),
             DialogContent {
-                class: "max-w-md",
+                class: "dialog-md",
                 DialogTitle { "Move \"{task_title}\"" }
 
-                div { class: "mt-4 max-h-[60vh] overflow-y-auto border rounded-md bg-app-surface p-2 space-y-1",
+                div { class: "item-picker-list",
                     // Option for Root
                     button {
                         r#type: "button",
-                        class: "w-full rounded-md px-3 py-2 text-left font-normal hover:bg-app-surface-muted",
+                        class: "item-picker-button",
                         onclick: move |_| on_select.call(None),
-                        span { class: "font-medium", "(Root)" }
+                        span { class: "app_font_medium", "(Root)" }
                     }
 
                     if flattened_tasks().is_empty() {
-                        div { class: "p-4 text-center text-app-text/60", "No other valid parents found." }
+                        div { class: "empty-state-muted", "No other valid parents found." }
                     } else {
                         for (task, depth) in flattened_tasks() {
                             button {
                                 key: "{task.id}",
                                 r#type: "button",
-                                class: "w-full rounded-md px-3 py-2 text-left font-normal hover:bg-app-surface-muted",
+                                class: "item-picker-button",
                                 style: "padding-left: {12 + depth * 16}px",
                                 onclick: {
                                     let id = task.id.clone();
@@ -81,7 +81,7 @@ pub(crate) fn MovePicker(
                     }
                 }
 
-                div { class: "mt-4 flex justify-end",
+                div { class: "mt_4 flex_end",
                     Button {
                         variant: ButtonVariant::Secondary,
                         onclick: move |_| on_close.call(()),
