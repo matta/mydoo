@@ -3,56 +3,12 @@
 //! App-specific modules now live in `crate::app_components`.
 //! This module keeps old import paths working during migration.
 
-pub mod alert;
-pub mod calendar;
-pub mod collapsible;
-pub mod dialog;
-pub mod navbar;
-pub mod popover;
-pub mod select;
-pub mod slider;
-pub use crate::dioxus_components::button;
-pub use crate::dioxus_components::checkbox;
-pub use crate::dioxus_components::input;
+pub(crate) mod alert;
+pub(crate) mod calendar;
+pub(crate) mod collapsible;
+pub(crate) mod dialog;
+pub(crate) mod navbar;
+pub(crate) mod popover;
+pub(crate) mod slider;
 
-pub use crate::app_components::app_navbar;
-pub use crate::app_components::back_button;
-pub use crate::app_components::balance_slider;
-pub use crate::app_components::doc_id_manager;
-pub use crate::app_components::empty_state;
-pub use crate::app_components::load_error_view;
-pub use crate::app_components::loading;
-pub use crate::app_components::move_picker;
-pub use crate::app_components::page_header;
-pub use crate::app_components::priority_task_row;
-pub use crate::app_components::search_panel;
-pub use crate::app_components::sync_indicator;
-pub use crate::app_components::task_editor;
-pub use crate::app_components::task_input;
-pub use crate::app_components::task_row;
-
-pub use crate::dioxus_components::button::{Button, ButtonVariant};
-pub use crate::dioxus_components::checkbox::Checkbox;
-pub use crate::dioxus_components::input::Input;
 pub(crate) use alert::{Alert, AlertVariant};
-
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::back_button::BackButton;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::balance_slider::BalanceSlider;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::doc_id_manager::DocIdManager;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::empty_state::EmptyState;
-pub use crate::app_components::load_error_view::LoadErrorView;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::move_picker::MovePicker;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::page_header::PageHeader;
-pub(crate) use crate::app_components::sync_indicator::SyncIndicator;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::task_editor::TaskEditor;
-#[allow(unused_imports)]
-pub(crate) use crate::app_components::task_input::TaskInput;
-
-pub(crate) use select::Select;

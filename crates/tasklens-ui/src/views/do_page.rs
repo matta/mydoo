@@ -1,4 +1,4 @@
-use crate::app_components::priority_task_row::PriorityTaskRow;
+use crate::app_components::PriorityTaskRow;
 use crate::app_components::{EmptyState, LoadErrorView, PageHeader, TaskEditor, TaskInput};
 use crate::controllers::task_controller;
 use crate::dioxus_components::button::{Button, ButtonVariant};

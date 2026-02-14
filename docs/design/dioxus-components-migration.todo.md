@@ -90,7 +90,7 @@ Deferred tasks:
 
 ### Chunk D: Wrapper De-Daisy (Select, Dialog, Collapsible, Calendar)
 
-- [ ] Select: re-vendor upstream and remove DaisyUI dropdown/menu/btn assumptions.
+- [x] Select: re-vendor upstream and remove DaisyUI dropdown/menu/btn assumptions.
 - [ ] Dialog: re-vendor upstream and remove DaisyUI modal classes.
 - [ ] Collapsible: re-vendor upstream, restore `as` support, remove Tailwind utilities.
 - [ ] Calendar: re-vendor upstream and restore upstream API (`CalendarView` if needed).
@@ -110,6 +110,7 @@ Deferred tasks:
 - [x] Input: vendored to `dioxus_components`, integrated, legacy `components/input.rs` removed.
 - [x] Checkbox: vendored to `dioxus_components`, integrated, legacy `components/checkbox.rs` removed.
 - [x] Date/Datetime Inputs: app-owned `DateInput` and `DateTimeInput` with CSS modules, legacy `components/date_picker/` removed.
+- [x] Select: vendored to `dioxus_components`, integrated, legacy `components/select/` removed.
 
 ## Cross-Cutting Gate: CSS Modules Feasibility
 
@@ -124,7 +125,7 @@ Deferred tasks:
 - [ ] Calendar: re-vendor upstream and restore upstream API.
 - [ ] Collapsible: re-vendor upstream and restore `as` support.
 - [ ] Dialog: re-vendor upstream and restore upstream CSS/API.
-- [ ] Select: re-vendor upstream and remove DaisyUI class overrides.
+- [x] Select: re-vendor upstream and remove DaisyUI class overrides.
 
 ## Replace Diverged Components
 
@@ -132,6 +133,7 @@ Deferred tasks:
 - [x] Input: replace local DaisyUI `input.rs` with upstream `input` component + CSS.
 - [x] Checkbox: replace local DaisyUI `checkbox.rs` with upstream `checkbox` component + CSS.
 - [x] Date/Datetime Inputs: replaced with app-owned CSS-module-scoped wrappers; upstream Date Picker deferred.
+- [x] Select: replaced local `select/mod.rs` with upstream `select` component + CSS.
 
 ## Verify Adopted Components
 
@@ -144,12 +146,12 @@ Deferred tasks:
 - [x] `btn*` debt in app callsites is cleared (audit found no remaining `btn*` class tokens in `crates/tasklens-ui/src/app_components` and `crates/tasklens-ui/src/views`).
 - [x] `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt in app callsites is cleared.
 - [ ] `card*`/`badge*`/`progress*` debt:
-  - `crates/tasklens-ui/src/views/score_trace_page.rs`
   - `crates/tasklens-ui/src/views/balance_page.rs`
   - `crates/tasklens-ui/src/views/task_page.rs`
   - `crates/tasklens-ui/src/app_components/task_row.rs`
   - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
   - `crates/tasklens-ui/src/app_components/empty_state.rs`
+  - `crates/tasklens-ui/src/views/score_trace_page.rs`
 - [ ] `dropdown*`/`menu*`/`modal*` debt:
   - `crates/tasklens-ui/src/components/dialog/component.rs`
 - [x] Native date/datetime wrapper utility-class debt: cleared (legacy `date_picker` removed, new wrappers use CSS modules).

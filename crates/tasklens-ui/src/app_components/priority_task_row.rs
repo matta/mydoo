@@ -5,7 +5,7 @@ use dioxus_primitives::checkbox::CheckboxState;
 use tasklens_core::types::{ComputedTask, TaskID, TaskStatus, UrgencyStatus};
 
 #[component]
-pub fn PriorityTaskRow(
+pub(crate) fn PriorityTaskRow(
     task: ComputedTask,
     on_toggle: EventHandler<TaskID>,
     on_title_tap: EventHandler<TaskID>,

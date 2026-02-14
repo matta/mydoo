@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 #[derive(Props, Clone, PartialEq)]
-pub struct BalanceSliderProps {
+pub(crate) struct BalanceSliderProps {
     min: f64,
     max: f64,
     step: f64,
@@ -11,7 +11,7 @@ pub struct BalanceSliderProps {
 }
 
 #[component]
-pub fn BalanceSlider(props: BalanceSliderProps) -> Element {
+pub(crate) fn BalanceSlider(props: BalanceSliderProps) -> Element {
     rsx! {
         input {
             r#type: "range",

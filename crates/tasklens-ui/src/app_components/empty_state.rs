@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 ///
 /// Used to display a placeholder message when a list or view has no content.
 #[component]
-pub fn EmptyState(
+pub(crate) fn EmptyState(
     title: String,
     #[props(default)] subtitle: Option<String>,
     children: Element,

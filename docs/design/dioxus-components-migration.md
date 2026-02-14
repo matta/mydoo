@@ -109,7 +109,7 @@ Status legend:
 | Progress      | [preview/src/components/progress](https://github.com/DioxusLabs/components/tree/main/preview/src/components/progress)           | —                                                         | Missing                                                           | Adopt to replace DaisyUI `progress` usage.                                           |
 | Radio Group   | [preview/src/components/radio_group](https://github.com/DioxusLabs/components/tree/main/preview/src/components/radio_group)     | —                                                         | Missing                                                           | Adopt to replace DaisyUI radio usage.                                                |
 | Scroll Area   | [preview/src/components/scroll_area](https://github.com/DioxusLabs/components/tree/main/preview/src/components/scroll_area)     | —                                                         | Missing                                                           | Adopt for scrollable panes with consistent styling.                                  |
-| Select        | [preview/src/components/select](https://github.com/DioxusLabs/components/tree/main/preview/src/components/select)               | `crates/tasklens-ui/src/components/select/`               | Wrapper/Modified (DaisyUI classes)                                | Re-vendor and restore upstream styling.                                              |
+| Select        | [preview/src/components/select](https://github.com/DioxusLabs/components/tree/main/preview/src/components/select)               | `crates/tasklens-ui/src/dioxus_components/select/`        | Adopted (vendored upstream component integrated in app callsites) | Remove DaisyUI dropdown/menu/btn assumptions.                                        |
 | Separator     | [preview/src/components/separator](https://github.com/DioxusLabs/components/tree/main/preview/src/components/separator)         | —                                                         | Missing                                                           | Adopt where separators are used in menus or cards.                                   |
 | Sheet         | [preview/src/components/sheet](https://github.com/DioxusLabs/components/tree/main/preview/src/components/sheet)                 | —                                                         | Missing                                                           | Adopt for slide-over panels if needed.                                               |
 | Sidebar       | [preview/src/components/sidebar](https://github.com/DioxusLabs/components/tree/main/preview/src/components/sidebar)             | —                                                         | Missing                                                           | Adopt if sidebar navigation is added.                                                |
@@ -127,9 +127,9 @@ Status legend:
 ## Divergence Summary
 
 - Total upstream components: 38
-- Adopted: 6 (Button, Checkbox, Input, Navbar, Popover, Slider)
+- Adopted: 7 (Button, Checkbox, Input, Navbar, Popover, Select, Slider)
 - App-owned replacements: 1 (Date/Datetime Inputs — CSS-module-scoped native wrappers)
-- Wrapper/Modified: 4 (Calendar, Collapsible, Dialog, Select)
+- Wrapper/Modified: 3 (Calendar, Collapsible, Dialog)
 - Missing: 27
 
 ## Tailwind And DaisyUI Usage Audit

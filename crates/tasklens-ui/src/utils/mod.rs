@@ -1,4 +1,4 @@
-pub mod async_utils;
-pub mod dioxus_runtime;
-pub mod profiling;
-pub mod time_conversion;
+pub(crate) mod async_utils;
+pub(crate) mod dioxus_runtime;
+pub(crate) mod profiling;
+pub(crate) mod time_conversion;

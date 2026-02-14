@@ -34,7 +34,7 @@ fn format_relative_due_date(due_ts: i64, now: i64) -> String {
 }
 
 #[component]
-pub fn TaskRow(
+pub(crate) fn TaskRow(
     task: PersistedTask,
     depth: usize,
     on_toggle: EventHandler<PersistedTask>,

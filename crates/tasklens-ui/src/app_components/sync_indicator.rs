@@ -38,7 +38,7 @@ fn reload_application() {
 }
 
 #[component]
-pub fn SyncIndicator() -> Element {
+pub(crate) fn SyncIndicator() -> Element {
     let sync_status = use_context::<Signal<SyncStatus>>();
     let mut show_settings = use_signal(|| false);
     let mut url_input = use_signal(get_sync_url);

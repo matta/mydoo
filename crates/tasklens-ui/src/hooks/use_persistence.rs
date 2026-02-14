@@ -38,7 +38,7 @@ fn format_heads(heads: &[automerge::ChangeHash]) -> String {
 /// spawns a background task that streams subsequent change and persisted
 /// events. If the active document switches, the previous listener is
 /// cancelled and a new one is started automatically.
-pub fn use_persistence(
+pub(crate) fn use_persistence(
     doc_id_signal: ReadSignal<Option<DocumentId>>,
     mut memory_heads: crate::MemoryHeads,
     mut persisted_heads: crate::PersistedHeads,

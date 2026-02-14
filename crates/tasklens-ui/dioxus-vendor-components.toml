@@ -1,5 +1,5 @@
 module_path = "src/dioxus_components"
-components = ["button", "input", "checkbox"]
+components = ["button", "input", "checkbox", "select"]
 
 [registry]
 git = "https://github.com/DioxusLabs/components"

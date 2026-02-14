@@ -3,7 +3,7 @@ use crate::dioxus_components::input::Input;
 use dioxus::prelude::*;
 
 #[component]
-pub fn TaskInput(
+pub(crate) fn TaskInput(
     value: Signal<String>,
     on_add: EventHandler<()>,
     #[props(default)] data_testid: Option<String>,

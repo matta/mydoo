@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use tasklens_store::store::AppStore;
-pub use tasklens_store::sync::SyncStatus;
+pub(crate) use tasklens_store::sync::SyncStatus;
 
 #[cfg(target_arch = "wasm32")]
 pub(crate) const SYNC_SERVER_URL_KEY: &str = "tasklens_sync_server_url";
@@ -18,7 +18,7 @@ mod platform;
 mod platform;
 
 /// Build and run the sync client for the active target platform.
-pub fn use_sync_client(store: Signal<AppStore>) -> Signal<SyncStatus> {
+pub(crate) fn use_sync_client(store: Signal<AppStore>) -> Signal<SyncStatus> {
     platform::use_sync_client_impl(store)
 }
 

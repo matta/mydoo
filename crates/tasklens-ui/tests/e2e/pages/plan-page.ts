@@ -500,7 +500,7 @@ export class PlanPage implements PlanFixture {
     await this.openTaskEditor(title);
 
     // Select "Routinely" first to reveal repetition fields
-    await this.page.selectOption("#schedule-type-select", "Routinely");
+    await this.selectCustomOption("#schedule-type-select", "Routinely");
 
     // Map frequency values to labels
     const freqLabels: Record<string, string> = {
@@ -511,7 +511,7 @@ export class PlanPage implements PlanFixture {
     const optionName = freqLabels[config.frequency] || "Daily";
 
     // Select the option
-    await this.page.selectOption("#repetition-frequency-select", optionName);
+    await this.selectCustomOption("#repetition-frequency-select", optionName);
 
     // Fill Interval "Every X units"
     await this.page
@@ -524,7 +524,10 @@ export class PlanPage implements PlanFixture {
       .fill(config.leadTimeVal.toString());
 
     // "Unit" Select for Lead Time
-    await this.page.selectOption("#lead-time-unit-select", config.leadTimeUnit);
+    await this.selectCustomOption(
+      "#lead-time-unit-select",
+      config.leadTimeUnit,
+    );
 
     // Save
     await this.page.getByRole("button", { name: "Save Changes" }).click();
@@ -551,17 +554,38 @@ export class PlanPage implements PlanFixture {
     await input.blur();
   }
 
+  async selectCustomOption(
+    selector: string,
+    optionLabel: string,
+  ): Promise<void> {
+    const trigger = this.page.locator(selector);
+    const listboxId = await trigger.getAttribute("aria-controls");
+    await trigger.click();
+
+    if (listboxId) {
+      await this.page
+        .locator(`#${listboxId}`)
+        .getByRole("option", { name: optionLabel })
+        .click();
+    } else {
+      // Fallback if aria-controls is missing
+      await this.page
+        .locator('[role="listbox"]:visible')
+        .getByRole("option", { name: optionLabel })
+        .last()
+        .click();
+    }
+  }
+
   async setLeadTime(value: number, unit: string): Promise<void> {
     // Assumes the Task Editor modal is already open
     await this.page.locator("#lead-time-scalar-input").fill(value.toString());
-    await this.page.selectOption("#lead-time-unit-select", { label: unit });
+    await this.selectCustomOption("#lead-time-unit-select", unit);
   }
 
   async setTaskDueDate(dateString: string): Promise<void> {
     // Ensure Schedule Type is set to "Due Date" so the field is visible
-    await this.page.selectOption("#schedule-type-select", {
-      label: "Due Date",
-    });
+    await this.selectCustomOption("#schedule-type-select", "Due Date");
     await this.setDueDate(dateString);
   }
 
@@ -639,9 +663,13 @@ export class PlanPage implements PlanFixture {
   }
 
   async verifyFieldValue(label: string, value: string): Promise<void> {
-    await expect(this.page.getByLabel(label, { exact: true })).toHaveValue(
-      value,
-    );
+    const locator = this.page.getByLabel(label, { exact: true });
+    const tagName = await locator.evaluate((el) => el.tagName.toLowerCase());
+    if (tagName === "button") {
+      await expect(locator).toHaveText(new RegExp(value));
+    } else {
+      await expect(locator).toHaveValue(value);
+    }
   }
 
   async verifyElementVisible(label: string): Promise<void> {

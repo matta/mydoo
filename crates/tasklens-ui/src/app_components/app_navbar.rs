@@ -1,5 +1,6 @@
+use crate::app_components::SearchPanel;
+use crate::app_components::SyncIndicator;
 use crate::components::navbar::{Navbar, NavbarItem, NavbarNav};
-use crate::components::search_panel::SearchPanel;
 use crate::controllers::doc_controller;
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::router::Route;
@@ -9,7 +10,7 @@ use tasklens_store::doc_id::DocumentId;
 use tasklens_store::store::AppStore;
 
 #[component]
-pub fn AppNavBar() -> Element {
+pub(crate) fn AppNavBar() -> Element {
     let active_index = use_signal(|| 0);
     let mut show_settings = use_signal(|| false);
     let mut show_search = use_signal(|| false);
@@ -90,7 +91,7 @@ pub fn AppNavBar() -> Element {
                 }
             }
             div { class: "flex items-center space-x-2 pr-4",
-                crate::components::SyncIndicator {}
+                SyncIndicator {}
 
                 Button {
                     variant: ButtonVariant::Ghost,

@@ -19,7 +19,7 @@ pub(crate) struct DateInputProps {
 
 /// A thin wrapper around `<input type="date">` styled with a CSS module.
 #[component]
-pub fn DateInput(props: DateInputProps) -> Element {
+pub(crate) fn DateInput(props: DateInputProps) -> Element {
     rsx! {
         input {
             r#type: "date",
@@ -48,7 +48,7 @@ pub(crate) struct DateTimeInputProps {
 
 /// A thin wrapper around `<input type="datetime-local">` styled with a CSS module.
 #[component]
-pub fn DateTimeInput(props: DateTimeInputProps) -> Element {
+pub(crate) fn DateTimeInput(props: DateTimeInputProps) -> Element {
     rsx! {
         input {
             r#type: "datetime-local",

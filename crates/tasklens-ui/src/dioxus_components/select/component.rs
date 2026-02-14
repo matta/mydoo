@@ -7,8 +7,9 @@ use dioxus_primitives::select::{
 #[component]
 pub fn Select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> Element {
     rsx! {
+        document::Link { rel: "stylesheet", href: asset!("./style.css") }
         select::Select {
-            class: "w-full",
+            class: "select",
             value: props.value,
             default_value: props.default_value,
             on_value_change: props.on_value_change,
@@ -26,13 +27,10 @@ pub fn Select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> Element 
 #[component]
 pub fn SelectTrigger(props: SelectTriggerProps) -> Element {
     rsx! {
-        select::SelectTrigger {
-            class: "w-full flex items-center justify-between rounded-md border border-base-300 bg-base-100 px-3 py-2 font-normal",
-            attributes: props.attributes,
+        select::SelectTrigger { class: "select-trigger", attributes: props.attributes,
             {props.children}
             svg {
-                // Tailwind: Sizing for the icon.
-                class: "h-4 w-4 opacity-50",
+                class: "select-expand-icon",
                 view_box: "0 0 24 24",
                 xmlns: "http://www.w3.org/2000/svg",
                 polyline { points: "6 9 12 15 18 9" }
@@ -52,7 +50,7 @@ pub fn SelectValue(props: SelectValueProps) -> Element {
 pub fn SelectList(props: SelectListProps) -> Element {
     rsx! {
         select::SelectList {
-            class: "w-full mt-1 z-50 rounded-md border border-base-300 bg-base-100 p-2 shadow",
+            class: "select-list",
             id: props.id,
             attributes: props.attributes,
             {props.children}
@@ -64,7 +62,7 @@ pub fn SelectList(props: SelectListProps) -> Element {
 pub fn SelectGroup(props: SelectGroupProps) -> Element {
     rsx! {
         select::SelectGroup {
-            class: "w-full",
+            class: "select-group",
             disabled: props.disabled,
             id: props.id,
             attributes: props.attributes,
@@ -77,7 +75,7 @@ pub fn SelectGroup(props: SelectGroupProps) -> Element {
 pub fn SelectGroupLabel(props: SelectGroupLabelProps) -> Element {
     rsx! {
         select::SelectGroupLabel {
-            class: "px-2 py-1 text-xs opacity-70",
+            class: "select-group-label",
             id: props.id,
             attributes: props.attributes,
             {props.children}
@@ -89,7 +87,7 @@ pub fn SelectGroupLabel(props: SelectGroupLabelProps) -> Element {
 pub fn SelectOption<T: Clone + PartialEq + 'static>(props: SelectOptionProps<T>) -> Element {
     rsx! {
         select::SelectOption::<T> {
-            class: "w-full justify-start rounded-md px-3 py-2 text-left font-normal hover:bg-base-200",
+            class: "select-option",
             value: props.value,
             text_value: props.text_value,
             disabled: props.disabled,
@@ -108,7 +106,7 @@ pub fn SelectItemIndicator() -> Element {
     rsx! {
         select::SelectItemIndicator {
             svg {
-                class: "h-4 w-4 ml-2",
+                class: "select-check-icon",
                 view_box: "0 0 24 24",
                 xmlns: "http://www.w3.org/2000/svg",
                 path { d: "M5 13l4 4L19 7" }
