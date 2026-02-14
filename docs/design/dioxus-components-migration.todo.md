@@ -101,6 +101,7 @@
 - [x] Checkbox: vendored to `dioxus_components`, integrated, legacy `components/checkbox.rs` removed.
 - [x] Badge: vendored to `dioxus_components`, integrated.
 - [x] Card: vendored to `dioxus_components`, integrated.
+- [x] Progress: vendored to `dioxus_components`, integrated.
 - [x] Date/Datetime Inputs: app-owned `DateInput` and `DateTimeInput` with CSS modules, legacy `components/date_picker/` removed.
 - [x] Select: vendored to `dioxus_components`, integrated, legacy `components/select/` removed.
 
