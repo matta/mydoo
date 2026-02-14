@@ -5,6 +5,7 @@
 
 use crate::app_components::{BalanceSlider, EmptyState, LoadErrorView, PageHeader};
 use crate::controllers::task_controller;
+use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::hooks::use_balance_interaction::{BalanceItem, use_balance_interaction};
 use dioxus::prelude::*;
 
@@ -75,10 +76,10 @@ fn BalanceItemRow(
     let display_target_pct = (current_target_percent * 100.0).round() as i32;
     let actual_pct = (item.actual_percent * 100.0).round() as i32;
 
-    let status_class = if item.is_starving {
-        "badge badge-error"
+    let status_variant = if item.is_starving {
+        BadgeVariant::Destructive
     } else {
-        "badge badge-success"
+        BadgeVariant::Primary
     };
 
     let status_label = if item.is_starving {
@@ -97,8 +98,8 @@ fn BalanceItemRow(
             div { class: "flex justify-between items-start mb-3",
                 div {
                     h3 { class: "font-medium text-base-content", "{item.title}" }
-                    span {
-                        class: "{status_class} badge-sm",
+                    Badge {
+                        variant: status_variant,
                         "data-testid": "balance-status",
                         "{status_label}"
                     }

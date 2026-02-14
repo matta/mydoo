@@ -81,7 +81,7 @@
 
 ### Chunk E: Replace High-Usage DaisyUI Skins With Upstream Components
 
-- [ ] Badge: adopt upstream badge and remove `badge*` usage.
+- [x] Badge: adopt upstream badge and remove `badge*` usage.
 - [ ] Card: adopt upstream card and remove `card*` usage.
 - [ ] Progress: adopt upstream progress and remove `progress*` usage.
 - [ ] Textarea: adopt upstream textarea and remove `textarea*` usage.
@@ -93,6 +93,7 @@
 - [x] Button: vendored to `dioxus_components`, integrated, legacy `components/button.rs` removed.
 - [x] Input: vendored to `dioxus_components`, integrated, legacy `components/input.rs` removed.
 - [x] Checkbox: vendored to `dioxus_components`, integrated, legacy `components/checkbox.rs` removed.
+- [x] Badge: vendored to `dioxus_components`, integrated.
 - [x] Date/Datetime Inputs: app-owned `DateInput` and `DateTimeInput` with CSS modules, legacy `components/date_picker/` removed.
 - [x] Select: vendored to `dioxus_components`, integrated, legacy `components/select/` removed.
 
@@ -128,13 +129,14 @@
 
 - [x] `btn*` debt in app callsites is cleared (audit found no remaining `btn*` class tokens in `crates/tasklens-ui/src/app_components` and `crates/tasklens-ui/src/views`).
 - [x] `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt in app callsites is cleared.
-- [ ] `card*`/`badge*`/`progress*` debt:
-  - `crates/tasklens-ui/src/views/balance_page.rs`
+- [x] `badge*` debt in app callsites is cleared.
+- [ ] `card*`/`progress*` debt:
+  - `crates/tasklens-ui/src/views/balance_page.rs` (card)
   - `crates/tasklens-ui/src/views/task_page.rs`
   - `crates/tasklens-ui/src/app_components/task_row.rs`
   - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
-  - `crates/tasklens-ui/src/app_components/empty_state.rs`
-  - `crates/tasklens-ui/src/views/score_trace_page.rs`
+  - `crates/tasklens-ui/src/app_components/empty_state.rs` (card)
+  - `crates/tasklens-ui/src/views/score_trace_page.rs` (card)
 - [x] `dropdown*`/`menu*`/`modal*` debt:
   - `crates/tasklens-ui/src/dioxus_components/dialog/component.rs` (uses upstream `dialog-backdrop` and `dialog`)
 - [x] Native date/datetime wrapper utility-class debt: cleared (legacy `date_picker` removed, new wrappers use CSS modules).

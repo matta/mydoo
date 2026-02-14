@@ -1,6 +1,7 @@
 //! Score trace view for Do list tasks.
 
 use crate::app_components::{BackButton, EmptyState, LoadErrorView, PageHeader};
+use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::hooks::use_score_trace::use_score_trace;
 use crate::router::Route;
 use chrono::DateTime;
@@ -113,7 +114,10 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
                         div { class: "flex justify-between items-center",
                             span { class: "font-medium text-base-content", "{entry.task_title}" }
                             if entry.sequential_blocked {
-                                span { class: "badge badge-warning badge-xs", "Sequential Blocked" }
+                                Badge {
+                                    variant: BadgeVariant::Secondary,
+                                    "Sequential Blocked"
+                                }
                             }
                         }
                         div { class: "text-base-content/70",
