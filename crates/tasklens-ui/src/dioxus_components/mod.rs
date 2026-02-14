@@ -3,6 +3,7 @@
 #![allow(dead_code)]
 pub mod badge;
 pub mod button;
+pub mod card;
 pub mod checkbox;
 pub mod collapsible;
 pub mod dialog;
