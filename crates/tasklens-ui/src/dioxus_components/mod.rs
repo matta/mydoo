@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 pub mod button;
 pub mod checkbox;
+pub mod collapsible;
 pub mod dialog;
 pub mod input;
 pub mod select;
-pub mod collapsible;
