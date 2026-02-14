@@ -10,4 +10,7 @@ pub mod dialog;
 pub mod input;
 pub mod progress;
 pub mod select;
+pub mod switch;
 pub mod textarea;
+pub mod toggle;
+pub mod toggle_group;
