@@ -123,7 +123,7 @@ test-rust:
 test-e2e *args: build-ui-release-e2e
     cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public chronic pnpm exec playwright test {{args}}; \
     e=$?; \
-    chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
+    cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for desktop

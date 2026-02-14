@@ -32,7 +32,7 @@ function buildWebServerCommand(): string {
 
 const reporters: ReporterDescription[] = [
   ["html", { open: "never" }],
-  ["list", undefined],
+  ["dot", undefined],
   [
     "junit",
     { outputFile: "test-results/junit.xml", includeProjectInTestName: true },
