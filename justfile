@@ -121,42 +121,42 @@ test-rust:
 
 # Run all e2e tests
 test-e2e *args: build-ui-release-e2e
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public chronic pnpm exec playwright test {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public pnpm exec playwright test {{args}}; \
     e=$?; \
     chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for desktop
 test-e2e-desktop *args: build-ui-release-e2e
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public chronic pnpm exec playwright test --project=e2e-desktop {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public pnpm exec playwright test --project=e2e-desktop {{args}}; \
     e=$?; \
     chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for mobile
 test-e2e-mobile *args: build-ui-release-e2e
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public chronic pnpm exec playwright test --project=e2e-mobile {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/release/web/public pnpm exec playwright test --project=e2e-mobile {{args}}; \
     e=$?; \
     chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run all e2e tests in debug mode
 test-e2e-debug *args: build-ui-debug
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public chronic pnpm exec playwright test {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public pnpm exec playwright test {{args}}; \
     e=$?; \
     chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for desktop in debug mode
 test-e2e-desktop-debug *args: build-ui-debug
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public chronic pnpm exec playwright test --project=e2e-desktop {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public pnpm exec playwright test --project=e2e-desktop {{args}}; \
     e=$?; \
     chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e
 
 # Run e2e tests for mobile in debug mode
 test-e2e-mobile-debug *args: build-ui-debug
-    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public chronic pnpm exec playwright test --project=e2e-mobile {{args}}; \
+    cd {{ui_pkg}} && WEB_DIST_DIR=../../target/dx/tasklens-ui/debug/web/public pnpm exec playwright test --project=e2e-mobile {{args}}; \
     e=$?; \
     chronic cargo xtask fix-junit test-results/junit.xml {{ui_pkg}}; \
     exit $e

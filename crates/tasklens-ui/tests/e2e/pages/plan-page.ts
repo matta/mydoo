@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * PlanFixture - The contract for E2E test helpers.
@@ -173,6 +173,10 @@ export interface PlanFixture {
  * - Click-through navigation works from test sites to these implementations
  */
 export class PlanPage implements PlanFixture {
+  private static readonly MAX_SLIDER_KEY_PRESSES = 300;
+  private static readonly MAX_SLIDER_STALL_READS = 3;
+  private static readonly MAX_SLIDER_OVERSHOOT_CORRECTIONS = 2;
+
   private readonly page: Page;
 
   constructor(page: Page) {
@@ -225,6 +229,162 @@ export class PlanPage implements PlanFixture {
 
       expect(persistedHeads).toBe(memoryHeads);
     }).toPass({ timeout: 15000 });
+  }
+
+  /**
+   * Drives a slider thumb to a target value via keyboard interaction.
+   * This avoids relying on removed range inputs or fragile pixel math.
+   */
+  private async setSliderValue(slider: Locator, target: number): Promise<void> {
+    await expect(slider).toBeVisible();
+    const epsilon = 0.0001;
+
+    const min = await this.getRequiredSliderNumber(slider, "aria-valuemin");
+    const max = await this.getRequiredSliderNumber(slider, "aria-valuemax");
+    if (min > max) {
+      throw new Error(
+        `Slider has invalid range: aria-valuemin (${min}) > aria-valuemax (${max}).`,
+      );
+    }
+    if (target < min - epsilon || target > max + epsilon) {
+      throw new Error(
+        `Requested slider target ${target} is outside range [${min}, ${max}].`,
+      );
+    }
+    const clampedTarget = Math.min(Math.max(target, min), max);
+
+    await slider.focus();
+    let current = await this.getRequiredSliderNumber(slider, "aria-valuenow");
+
+    if (Math.abs(max - min) <= epsilon) {
+      // Defensive check: a well-formed degenerate slider should already be at min/max.
+      if (Math.abs(current - clampedTarget) <= epsilon) {
+        return;
+      }
+      throw new Error(
+        `Slider has a degenerate range (min=max=${min}) and cannot move from ${current} to ${clampedTarget}.`,
+      );
+    }
+
+    if (Math.abs(current - clampedTarget) <= epsilon) {
+      return;
+    }
+
+    let stallReads = 0;
+    let overshootCorrections = 0;
+    for (
+      let attempts = 0;
+      attempts < PlanPage.MAX_SLIDER_KEY_PRESSES;
+      attempts += 1
+    ) {
+      // Direction is recomputed from live state each iteration so it can adapt after
+      // retries/corrections rather than assuming strictly monotonic movement.
+      const direction = clampedTarget > current ? "ArrowRight" : "ArrowLeft";
+      await slider.press(direction);
+      const next = await this.getSliderNumber(slider, "aria-valuenow");
+      if (next === null) {
+        stallReads += 1;
+        if (stallReads >= PlanPage.MAX_SLIDER_STALL_READS) {
+          throw new Error(
+            `Slider aria-valuenow became unreadable while targeting ${clampedTarget}. Last known value: ${current}.`,
+          );
+        }
+        continue;
+      }
+
+      if (Math.abs(next - clampedTarget) <= epsilon) {
+        return;
+      }
+
+      if (Math.abs(next - current) <= epsilon) {
+        stallReads += 1;
+        if (stallReads >= PlanPage.MAX_SLIDER_STALL_READS) {
+          throw new Error(
+            `Slider did not move while targeting ${clampedTarget}. Current value: ${current}.`,
+          );
+        }
+        continue;
+      }
+
+      stallReads = 0;
+
+      const movedAwayFromTarget =
+        Math.abs(next - clampedTarget) > Math.abs(current - clampedTarget);
+      if (movedAwayFromTarget) {
+        overshootCorrections += 1;
+        if (overshootCorrections > PlanPage.MAX_SLIDER_OVERSHOOT_CORRECTIONS) {
+          throw new Error(
+            `Slider target ${clampedTarget} is not reachable at this step granularity (oscillation detected between ${current} and ${next}).`,
+          );
+        }
+
+        // If we overshoot, move one step back so we settle on the nearest reachable value.
+        const reverseDirection =
+          direction === "ArrowRight" ? "ArrowLeft" : "ArrowRight";
+        await slider.press(reverseDirection);
+
+        const corrected = await this.getRequiredSliderNumber(
+          slider,
+          "aria-valuenow",
+        );
+        if (Math.abs(corrected - clampedTarget) <= epsilon) {
+          return;
+        }
+
+        const correctedDistance = Math.abs(corrected - clampedTarget);
+        const currentDistance = Math.abs(current - clampedTarget);
+        if (correctedDistance >= currentDistance - epsilon) {
+          if (
+            overshootCorrections >= PlanPage.MAX_SLIDER_OVERSHOOT_CORRECTIONS
+          ) {
+            throw new Error(
+              `Slider target ${clampedTarget} is not reachable at this step granularity (settles at ${corrected} from current ${current}).`,
+            );
+          }
+          current = corrected;
+          continue;
+        }
+
+        overshootCorrections = 0;
+        current = corrected;
+        continue;
+      }
+
+      overshootCorrections = 0;
+      current = next;
+    }
+
+    throw new Error(
+      `Slider did not reach ${clampedTarget} within ${PlanPage.MAX_SLIDER_KEY_PRESSES} key presses.`,
+    );
+  }
+
+  /** Reads a numeric ARIA slider attribute, returning null when absent or invalid. */
+  private async getSliderNumber(
+    slider: Locator,
+    attribute: "aria-valuemin" | "aria-valuemax" | "aria-valuenow",
+  ): Promise<number | null> {
+    const raw = await slider.getAttribute(attribute);
+    if (raw === null) {
+      return null;
+    }
+
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  /** Reads a required numeric ARIA slider attribute, throwing when absent or invalid. */
+  private async getRequiredSliderNumber(
+    slider: Locator,
+    attribute: "aria-valuemin" | "aria-valuemax" | "aria-valuenow",
+  ): Promise<number> {
+    const value = await this.getSliderNumber(slider, attribute);
+    if (value === null) {
+      throw new Error(
+        `Slider attribute ${attribute} is missing or non-numeric on ${await slider.evaluate((el) => el.outerHTML)}.`,
+      );
+    }
+    return value;
   }
 
   // --- Core Task Operations ---
@@ -1158,11 +1318,17 @@ export class PlanPage implements PlanFixture {
   }
 
   async setImportance(value: number): Promise<void> {
-    await this.page.locator("#importance-input").fill(value.toString());
+    await this.setSliderValue(
+      this.page.locator('#importance-input [role="slider"]').first(),
+      value,
+    );
   }
 
   async setEffort(value: number): Promise<void> {
-    await this.page.locator("#effort-input").fill(value.toString());
+    await this.setSliderValue(
+      this.page.locator('#effort-input [role="slider"]').first(),
+      value,
+    );
   }
 
   async setNotes(notes: string): Promise<void> {
@@ -1170,13 +1336,15 @@ export class PlanPage implements PlanFixture {
   }
 
   async verifyImportance(expectedValue: string): Promise<void> {
-    await expect(this.page.locator("#importance-input")).toHaveValue(
-      expectedValue,
-    );
+    await expect(
+      this.page.locator('#importance-input [role="slider"]').first(),
+    ).toHaveAttribute("aria-valuenow", expectedValue);
   }
 
   async verifyEffort(expectedValue: string): Promise<void> {
-    await expect(this.page.locator("#effort-input")).toHaveValue(expectedValue);
+    await expect(
+      this.page.locator('#effort-input [role="slider"]').first(),
+    ).toHaveAttribute("aria-valuenow", expectedValue);
   }
 
   async verifyNotes(expectedNotes: string): Promise<void> {
@@ -1227,10 +1395,10 @@ export class PlanPage implements PlanFixture {
     const targetPercent = parseInt(targetText?.match(/(\d+)%/)?.[1] || "0", 10);
     const actualPercent = parseInt(actualText?.match(/(\d+)%/)?.[1] || "0", 10);
 
-    // Get slider value for desired credits
-    const slider = item.locator('input[type="range"]');
-    const sliderValue = await slider.inputValue();
-    const desiredCredits = parseFloat(sliderValue);
+    const desiredCredits = await this.getRequiredSliderNumber(
+      item.getByRole("slider").first(),
+      "aria-valuenow",
+    );
 
     return {
       title,
@@ -1248,8 +1416,7 @@ export class PlanPage implements PlanFixture {
       .first();
     await expect(item).toBeVisible();
 
-    const slider = item.locator('input[type="range"]');
-    await slider.fill(value.toString());
+    await this.setSliderValue(item.getByRole("slider").first(), value);
   }
 
   async verifyBalanceItemVisible(title: string): Promise<void> {
