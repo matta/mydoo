@@ -107,27 +107,23 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
                 use wasm_bindgen::prelude::*;
 
                 let cb = Closure::once_into_js(move || {
-                    if let Some(window) = web_sys::window() {
-                        if let Some(doc) = window.document() {
-                            if let Some(el) = doc
-                                .query_selector("[data-testid='search-input']")
-                                .ok()
-                                .flatten()
-                            {
-                                if let Some(html_el) = el.dyn_ref::<web_sys::HtmlElement>() {
-                                    if let Err(e) = html_el.focus() {
-                                        tracing::warn!("Failed to focus search input: {:?}", e);
-                                    }
-                                }
-                            }
-                        }
+                    if let Some(window) = web_sys::window()
+                        && let Some(doc) = window.document()
+                        && let Some(el) = doc
+                            .query_selector("[data-testid='search-input']")
+                            .ok()
+                            .flatten()
+                        && let Some(html_el) = el.dyn_ref::<web_sys::HtmlElement>()
+                        && let Err(e) = html_el.focus()
+                    {
+                        tracing::warn!("Failed to focus search input: {:?}", e);
                     }
                 });
 
-                if let Some(window) = web_sys::window() {
-                    if let Err(e) = window.request_animation_frame(cb.as_ref().unchecked_ref()) {
-                        tracing::warn!("Failed to schedule focus callback: {:?}", e);
-                    }
+                if let Some(window) = web_sys::window()
+                    && let Err(e) = window.request_animation_frame(cb.as_ref().unchecked_ref())
+                {
+                    tracing::warn!("Failed to schedule focus callback: {:?}", e);
                 }
             }
         }
@@ -181,9 +177,7 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
                         class: "mt-2 max-h-64 overflow-y-auto",
                         "data-testid": "search-results",
                         if results().is_empty() {
-                            div { class: "py-4 text-center text-base-content/60",
-                                "No tasks found"
-                            }
+                            div { class: "py-4 text-center text-base-content/60", "No tasks found" }
                         } else {
                             for result in results() {
                                 {
@@ -194,14 +188,11 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
                                             class: "w-full text-left px-3 py-2 rounded hover:bg-base-200 transition-colors flex flex-col",
                                             "data-testid": "search-result",
                                             onclick: move |_| navigate_to(id.clone()),
-                                            span {
-                                                class: if result.is_done { "line-through text-base-content/50" } else { "text-base-content" },
+                                            span { class: if result.is_done { "line-through text-base-content/50" } else { "text-base-content" },
                                                 "{result.title}"
                                             }
                                             if !result.parent_path.is_empty() {
-                                                span { class: "text-xs text-base-content/40 mt-0.5",
-                                                    "{result.parent_path}"
-                                                }
+                                                span { class: "text-xs text-base-content/40 mt-0.5", "{result.parent_path}" }
                                             }
                                         }
                                     }
