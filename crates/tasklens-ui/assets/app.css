@@ -15,9 +15,9 @@
    * border-base-*, text-primary) with upstream CSS variables from
    * dx-components-theme.css.
    */
-  --app-bg: var(--primary-color-2);
-  --app-bg-muted: var(--primary-color-4);
-  --app-bg-subtle: var(--primary-color-5);
+  --app-surface: var(--primary-color-2);
+  --app-surface-muted: var(--primary-color-4);
+  --app-surface-subtle: var(--primary-color-5);
   --app-border: var(--primary-color-6);
   --app-border-strong: var(--primary-color-7);
   --app-text: var(--secondary-color-4);

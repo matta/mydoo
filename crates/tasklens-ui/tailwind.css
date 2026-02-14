@@ -10,11 +10,6 @@
  * system to silently ignore it.
  */
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes:
-    corporate --default,
-    business --prefersdark;
-}
 @source "./src/**/*.{rs,html,css}";
 
 /*

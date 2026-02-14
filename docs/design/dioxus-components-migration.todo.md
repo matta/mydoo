@@ -25,7 +25,7 @@
 - [x] Move app-specific components into `app_components` (examples: `task_row`, `task_editor`, `app_navbar`, `sync_indicator`, `empty_state`).
 - [x] Create `assets/app.css` and link it in `main.rs`.
 - [ ] Keep `crates/tasklens-ui/src/components` as a temporary compatibility shim until all imports are migrated.
-- [ ] Phase 1: Remove DaisyUI plugin usage from Tailwind configuration.
+- [x] Phase 1: Remove DaisyUI plugin usage from Tailwind configuration.
 - [ ] Phase 2: Remove Tailwind build inputs (`tailwind.css`, `assets/tailwind.css`) and stylesheet link in `src/main.rs`.
 - [ ] Replace local edits in `dx-components-theme.css` with a pristine upstream copy; move overrides to `app.css`.
 
@@ -163,8 +163,8 @@ Phase 1 (DaisyUI removal):
 
 - [x] Gate 1: No DaisyUI component-skin tokens in app source (`btn*`, `input*`, `select*`, `textarea*`, `toggle*`, `card*`, `badge*`, `progress*`, `dropdown*`, `menu*`, `modal*`, `loading*`, `fieldset*`, `join*`).
 - [x] Gate 2: No DaisyUI theme utility tokens in app source (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.).
-- [ ] Gate 3: DaisyUI plugin usage removed from Tailwind configuration.
-- [ ] Gate 4: Run `just verify` successfully after DaisyUI removal (Tailwind runtime may remain temporarily).
+- [x] Gate 3: DaisyUI plugin usage removed from Tailwind configuration.
+- [x] Gate 4: Run `just verify` successfully after DaisyUI removal (Tailwind runtime may remain temporarily).
 
 Phase 2 (Tailwind removal):
 

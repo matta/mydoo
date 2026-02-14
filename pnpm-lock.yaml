@@ -36,9 +36,6 @@ catalogs:
     '@types/node':
       specifier: 25.1.0
       version: 25.1.0
-    daisyui:
-      specifier: ^5.5.17
-      version: 5.5.18
     glob:
       specifier: 13.0.1
       version: 13.0.1
@@ -128,9 +125,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 25.1.0
-      daisyui:
-        specifier: 'catalog:'
-        version: 5.5.18
       js-yaml:
         specifier: 'catalog:'
         version: 4.1.1
@@ -1054,9 +1048,6 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
-
-  daisyui@5.5.18:
-    resolution: {integrity: sha512-VVzjpOitMGB6DWIBeRSapbjdOevFqyzpk9u5Um6a4tyId3JFrU5pbtF0vgjXDth76mJZbueN/j9Ok03SPrh/og==}
 
   dargs@8.1.0:
     resolution: {integrity: sha512-wAV9QHOsNbwnWdNW2FYvE1P56wtgSbM+3SZcdGiWQILwVjACCXDCI3Ai8QlCjMDB8YK5zySiXZYBiwGmNY3lnw==}
@@ -2718,8 +2709,6 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
-
-  daisyui@5.5.18: {}
 
   dargs@8.1.0: {}
 
