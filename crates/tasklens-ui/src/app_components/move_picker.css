@@ -34,13 +34,10 @@
   color: color-mix(in srgb, var(--app_text), transparent 40%);
 }
 
-.flex_end {
-  display: flex;
-  justify-content: flex_end;
-}
-
-.mt_4 {
+.picker_footer {
   margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .app_font_medium {

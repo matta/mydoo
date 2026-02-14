@@ -10,6 +10,8 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
 
+  --icon-size-md: 1.5rem;
+
   /* App semantic color tokens bridging upstream theme variables.
    * These replace DaisyUI theme utilities (bg-base-*, text-base-content,
    * border-base-*, text-primary) with upstream CSS variables from
@@ -198,6 +200,9 @@
 .app_text_base {
   font-size: 1rem;
 }
-.text-error {
+.app_text_error {
   color: var(--secondary-error-color);
+}
+.app_font_semibold {
+  font-weight: 600;
 }

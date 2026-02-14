@@ -6,6 +6,6 @@
 }
 
 .icon_button_svg {
-  height: 1.5rem;
-  width: 1.5rem;
+  height: var(--icon-size-md, 1.5rem);
+  width: var(--icon-size-md, 1.5rem);
 }

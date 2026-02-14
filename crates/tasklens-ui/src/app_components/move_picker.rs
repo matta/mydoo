@@ -62,7 +62,7 @@ pub(crate) fn MovePicker(
                         r#type: "button",
                         class: Styles::item_picker_button,
                         onclick: move |_| on_select.call(None),
-                        span { class: Styles::app_font_medium, "(Root)" }
+                        span { class: "app_font_medium", "(Root)" }
                     }
 
                     if flattened_tasks().is_empty() {
@@ -84,7 +84,7 @@ pub(crate) fn MovePicker(
                     }
                 }
 
-                div { class: format_args!("{} {}", Styles::mt_4, Styles::flex_end),
+                div { class: Styles::picker_footer,
                     Button {
                         variant: ButtonVariant::Secondary,
                         onclick: move |_| on_close.call(()),

@@ -26,12 +26,15 @@ pub fn SettingsModal(
     on_doc_change: EventHandler<DocumentId>,
     on_create_doc: EventHandler<()>,
 ) -> Element {
+    #[css_module("/src/views/auth.css")]
+    struct Styles;
+
     rsx! {
         DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
-            DialogContent { class: "dialog-lg",
+            DialogContent { class: format_args!("{}", "dialog-lg"),
                 DialogTitle { "Document Management" }
 
-                div { class: "py_4",
+                div { class: Styles::settings_body,
                     DocIdManager {
                         current_doc_id: doc_id,
                         on_change: on_doc_change,
@@ -39,7 +42,7 @@ pub fn SettingsModal(
                     }
                 }
 
-                div { class: "mt_6 flex_end",
+                div { class: Styles::settings_footer,
                     Button {
                         variant: ButtonVariant::Secondary,
                         onclick: move |_| on_close.call(()),
