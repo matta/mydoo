@@ -58,6 +58,9 @@ pub(crate) fn TaskEditor(
     on_add_child: Option<EventHandler<TaskID>>,
     on_task_created: Option<EventHandler<TaskID>>,
 ) -> Element {
+    #[css_module("/src/app_components/task_editor.css")]
+    struct Styles;
+
     let task_controller = crate::controllers::task_controller::use_task_controller();
     let mut draft = use_signal(|| None::<DraftTask>);
     let state = crate::hooks::use_tunnel_state::use_tunnel_state();
@@ -213,7 +216,7 @@ pub(crate) fn TaskEditor(
 
     rsx! {
         DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
-            DialogContent { class: "task-editor-dialog",
+            DialogContent { class: format_args!("{}", Styles::task_editor_dialog),
                 // Header
                 div { class: "dialog-header",
                     div { class: "dialog-title-group",
@@ -225,14 +228,14 @@ pub(crate) fn TaskEditor(
                             }
                         }
                         if let Some(ref title) = parent_title {
-                            span { class: "dialog-subtitle", "Subtask of {title}" }
+                            span { class: Styles::dialog_subtitle, "Subtask of {title}" }
                         }
                     }
 
                     if let Some(id) = task_id.clone() {
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: "app_ghost_hover app_transition",
+                            class: format_args!("{} {}", Styles::app_ghost_hover, Styles::app_transition),
                             onclick: move |_| {
                                 let nav = navigator();
                                 nav.push(crate::router::Route::PlanPage {
@@ -261,22 +264,22 @@ pub(crate) fn TaskEditor(
                 // Main Content (Scrollable if needed)
                 div { class: "dialog-body",
                     // Section: Core Details
-                    fieldset { class: "section-fieldset",
-                        legend { class: "section-legend",
+                    fieldset { class: Styles::section_fieldset,
+                        legend { class: Styles::section_legend,
                             "Task Details"
                         }
-                        div { class: "app_input-full app_stack_4",
+                        div { class: format_args!("{} {}", Styles::app_input_full, Styles::app_stack_4),
                             div {
                                 Label {
-                                    class: "field-label",
+                                    class: Styles::field_label,
                                     html_for: "task-title-input",
-                                    span { class: "label-text-bold", "Title" }
+                                    span { class: Styles::label_text_bold, "Title" }
                                 }
                                 Input {
                                     id: "task-title-input",
                                     value: current_draft.title.clone(),
                                     "autofocus": true,
-                                    class: "app_input-full app_text_lg",
+                                    class: format_args!("{} {}", Styles::app_input_full, Styles::app_text_lg),
                                     oninput: move |evt: FormEvent| {
                                         draft
                                             .with_mut(|task| {
@@ -298,13 +301,13 @@ pub(crate) fn TaskEditor(
 
                             div {
                                 Label {
-                                    class: "field-label",
+                                    class: Styles::field_label,
                                     html_for: "notes-input",
-                                    span { class: "label-text-bold", "Notes" }
+                                    span { class: Styles::label_text_bold, "Notes" }
                                 }
                                 Textarea {
                                     id: "notes-input",
-                                    class: "app_input-full notes_area",
+                                    class: format_args!("{} {}", Styles::app_input_full, Styles::notes_area),
                                     placeholder: "Add more context or details here...",
                                     value: current_draft.notes.clone(),
                                     oninput: move |e: FormEvent| {
@@ -321,19 +324,19 @@ pub(crate) fn TaskEditor(
                     }
 
                     // Section: Prioritization & Location (Grid)
-                    div { class: "settings-cells",
-                        fieldset { class: "settings-group",
-                            legend { class: "section-legend",
+                    div { class: Styles::settings_cells,
+                        fieldset { class: Styles::settings_group,
+                            legend { class: Styles::section_legend,
                                 "Prioritization"
                             }
-                            div { class: "app_stack_6 app_input-full",
+                            div { class: format_args!("{} {}", Styles::app_stack_6, Styles::app_input_full),
                                 div {
                                     Label {
-                                        class: "field-label",
+                                        class: Styles::field_label,
                                         html_for: "importance-input",
-                                        span { class: "label-text-medium",
+                                        span { class: Styles::label_text_medium,
                                             "Importance: "
-                                            span { class: "label-text-alt",
+                                            span { class: Styles::label_text_alt,
                                                 "{current_draft.importance:.2}"
                                             }
                                         }
@@ -364,11 +367,11 @@ pub(crate) fn TaskEditor(
 
                                 div {
                                     Label {
-                                        class: "field-label",
+                                        class: Styles::field_label,
                                         html_for: "effort-input",
-                                        span { class: "label-text-medium",
+                                        span { class: Styles::label_text_medium,
                                             "Effort: "
-                                            span { class: "label-text-alt",
+                                            span { class: Styles::label_text_alt,
                                                 "{current_draft.credit_increment.unwrap_or(0.5):.2}"
                                             }
                                         }
@@ -399,15 +402,15 @@ pub(crate) fn TaskEditor(
                             }
                         }
 
-                        fieldset { class: "settings-group",
-                            legend { class: "section-legend",
+                        fieldset { class: Styles::settings_group,
+                            legend { class: Styles::section_legend,
                                 "Location"
                             }
-                            div { class: "app_input-full",
+                            div { class: Styles::app_input_full,
                                 Label {
-                                    class: "field-label",
+                                    class: Styles::field_label,
                                     html_for: "place-select",
-                                    span { class: "label-text-medium", "Place" }
+                                    span { class: Styles::label_text_medium, "Place" }
                                 }
                                 {
                                     let state_val = state();
@@ -446,16 +449,16 @@ pub(crate) fn TaskEditor(
                     }
 
                     // Section: Scheduling
-                    fieldset { class: "settings-group",
-                        legend { class: "section-legend",
+                    fieldset { class: Styles::settings_group,
+                        legend { class: Styles::section_legend,
                             "Scheduling"
                         }
-                        div { class: "settings-cells app_input-full",
+                        div { class: format_args!("{} {}", Styles::settings_cells, Styles::app_input_full),
                             div {
                                 Label {
-                                    class: "field-label",
+                                    class: Styles::field_label,
                                     html_for: "schedule-type-select",
-                                    span { class: "label-text-medium", "Schedule Type" }
+                                    span { class: Styles::label_text_medium, "Schedule Type" }
                                 }
                                 Select {
                                     value: Some(match current_draft.schedule.schedule_type {
@@ -502,15 +505,15 @@ pub(crate) fn TaskEditor(
                             if matches!(current_draft.schedule.schedule_type, ScheduleType::Routinely) {
                                 div {
                                     Label {
-                                        class: "field-label",
+                                        class: Styles::field_label,
                                         html_for: "repetition-interval-input",
-                                        span { class: "label-text-medium", "Repeat Every" }
+                                        span { class: Styles::label_text_medium, "Repeat Every" }
                                     }
-                                    div { class: "app_row-cluster",
+                                    div { class: Styles::app_row_cluster,
                                         input {
                                             r#type: "number",
                                             id: "repetition-interval-input",
-                                            class: "input-number-small bg-app-surface",
+                                            class: format_args!("{} {}", Styles::input_number_small, "bg-app-surface"),
                                             value: current_draft.repeat_config.as_ref().map(|r| r.interval).unwrap_or(1),
                                             oninput: move |e| {
                                                 if let Ok(val) = e.value().parse::<i64>() {
@@ -591,9 +594,9 @@ pub(crate) fn TaskEditor(
                             {
                                 div {
                                     Label {
-                                        class: "field-label",
+                                        class: Styles::field_label,
                                         html_for: "date-input",
-                                        span { class: "label-text-medium", "Due Date" }
+                                        span { class: Styles::label_text_medium, "Due Date" }
                                     }
                                     DateInput {
                                         id: "date-input",
@@ -634,11 +637,11 @@ pub(crate) fn TaskEditor(
                             if !matches!(current_draft.schedule.schedule_type, ScheduleType::Once) {
                                 div {
                                     Label {
-                                        class: "field-label",
+                                        class: Styles::field_label,
                                         html_for: "lead-time-scalar-input",
-                                        span { class: "label-text-medium", "Lead Time" }
+                                        span { class: Styles::label_text_medium, "Lead Time" }
                                     }
-                                    div { class: "app_row-cluster",
+                                    div { class: Styles::app_row_cluster,
                                         {
                                             let (val, unit) = time_conversion::ms_to_period(
                                                 current_draft.schedule.lead_time,
@@ -648,7 +651,7 @@ pub(crate) fn TaskEditor(
                                                 input {
                                                     r#type: "number",
                                                     id: "lead-time-scalar-input",
-                                                    class: "input-number-small bg-app-surface",
+                                                    class: format_args!("{} {}", Styles::input_number_small, "bg-app-surface"),
                                                     value: "{val}",
                                                     oninput: move |e| {
                                                         if let Ok(v) = e.value().parse::<u32>() {
@@ -698,13 +701,13 @@ pub(crate) fn TaskEditor(
 
                     // Section: Additional Options
                     if task_id.is_some() {
-                        fieldset { class: "settings-group",
+                        fieldset { class: Styles::settings_group,
                             Label {
-                                class: "field-label app_cursor_pointer",
+                                class: format_args!("{} {}", Styles::field_label, Styles::app_cursor_pointer),
                                 html_for: "sequential-toggle",
-                                div { class: "sequential-label-group",
-                                    span { class: "label-text-bold app_text_sm", "Sequential Project" }
-                                    span { class: "sequential-label-description",
+                                div { class: Styles::sequential_label_group,
+                                    span { class: format_args!("{} {}", Styles::label_text_bold, Styles::app_text_sm), "Sequential Project" }
+                                    span { class: Styles::sequential_label_description,
                                         "Steps must be completed in order"
                                     }
                                 }
@@ -727,18 +730,18 @@ pub(crate) fn TaskEditor(
 
                     // Hierarchy Controls (Compact)
                     if let Some(id) = task_id.clone() {
-                        div { class: "app_center_pt",
-                            div { class: "hierarchy-controls-group",
+                        div { class: Styles::app_center_pt,
+                            div { class: Styles::hierarchy_controls_group,
                                 Button {
                                     variant: ButtonVariant::Ghost,
-                                    class: "hierarchy-button",
+                                    class: Styles::hierarchy_button,
                                     onclick: move |_| show_move_picker.set(true),
                                     "Move"
                                 }
                                 if can_outdent {
                                     Button {
                                         variant: ButtonVariant::Ghost,
-                                        class: "hierarchy-button hierarchy-button-sep",
+                                        class: format_args!("{} {}", Styles::hierarchy_button, Styles::hierarchy_button_sep),
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -752,7 +755,7 @@ pub(crate) fn TaskEditor(
                                 if can_indent {
                                     Button {
                                         variant: ButtonVariant::Ghost,
-                                        class: "hierarchy-button hierarchy-button-sep",
+                                        class: format_args!("{} {}", Styles::hierarchy_button, Styles::hierarchy_button_sep),
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -765,7 +768,7 @@ pub(crate) fn TaskEditor(
                                 }
                                 Button {
                                     variant: ButtonVariant::Ghost,
-                                    class: "hierarchy-button hierarchy-button-sep",
+                                    class: format_args!("{} {}", Styles::hierarchy_button, Styles::hierarchy_button_sep),
                                     onclick: {
                                         let id = id.clone();
                                         move |_| {
@@ -783,11 +786,11 @@ pub(crate) fn TaskEditor(
 
                 // Footer
                 div { class: "dialog-footer",
-                    div { class: "footer_delete_box",
+                    div { class: Styles::footer_delete_box,
                         if task_id.is_some() {
                             Button {
                                 variant: ButtonVariant::Ghost,
-                                class: "btn-delete footer_button_full",
+                                class: format_args!("{} {}", Styles::btn_delete, Styles::footer_button_full),
                                 onclick: on_delete,
                                 "Delete Task"
                             }
@@ -796,13 +799,13 @@ pub(crate) fn TaskEditor(
                     div { class: "dialog-footer-actions",
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: "footer_button_full footer_cancel_btn",
+                            class: format_args!("{} {}", Styles::footer_button_full, Styles::footer_cancel_btn),
                             onclick: move |_| on_close.call(()),
                             "Cancel"
                         }
                         Button {
                             variant: ButtonVariant::Primary,
-                            class: "btn-save footer_button_full",
+                            class: format_args!("{} {}", Styles::btn_save, Styles::footer_button_full),
                             onclick: move |_| save_handler(),
                             if task_id.is_some() {
                                 "Save Changes"

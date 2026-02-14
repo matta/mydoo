@@ -11,6 +11,9 @@ use tasklens_store::store::AppStore;
 
 #[component]
 pub(crate) fn AppNavBar() -> Element {
+    #[css_module("/src/app_components/app_navbar.css")]
+    struct Styles;
+
     let active_index = use_signal(|| 0);
     let mut show_settings = use_signal(|| false);
     let mut show_search = use_signal(|| false);
@@ -92,7 +95,7 @@ pub(crate) fn AppNavBar() -> Element {
                     "Balance"
                 }
             }
-            div { class: "navbar-actions",
+            div { class: Styles::navbar_actions,
                 SyncIndicator {}
 
                 Button {
@@ -101,7 +104,7 @@ pub(crate) fn AppNavBar() -> Element {
                     aria_label: "Search tasks",
                     "data-testid": "search-button",
                     svg {
-                        class: "icon-button-svg",
+                        class: Styles::icon_button_svg,
                         fill: "none",
                         view_box: "0 0 24 24",
                         stroke: "currentColor",
@@ -120,7 +123,7 @@ pub(crate) fn AppNavBar() -> Element {
                     aria_label: "Settings",
                     "data-testid": "settings-button",
                     svg {
-                        class: "icon-button-svg",
+                        class: Styles::icon_button_svg,
                         fill: "none",
                         view_box: "0 0 24 24",
                         stroke: "currentColor",

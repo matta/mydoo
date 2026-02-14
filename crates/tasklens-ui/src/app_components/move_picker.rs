@@ -10,6 +10,9 @@ pub(crate) fn MovePicker(
     on_select: EventHandler<Option<TaskID>>,
     on_close: EventHandler<()>,
 ) -> Element {
+    #[css_module("/src/app_components/move_picker.css")]
+    struct Styles;
+
     let state = crate::hooks::use_tunnel_state::use_tunnel_state();
 
     let task_id_clone = task_id.clone();
@@ -50,26 +53,26 @@ pub(crate) fn MovePicker(
             open: true,
             on_open_change: move |_| on_close.call(()),
             DialogContent {
-                class: "dialog-md",
+                class: format_args!("{}", "dialog-md"),
                 DialogTitle { "Move \"{task_title}\"" }
 
-                div { class: "item-picker-list",
+                div { class: Styles::item_picker_list,
                     // Option for Root
                     button {
                         r#type: "button",
-                        class: "item-picker-button",
+                        class: Styles::item_picker_button,
                         onclick: move |_| on_select.call(None),
-                        span { class: "app_font_medium", "(Root)" }
+                        span { class: Styles::app_font_medium, "(Root)" }
                     }
 
                     if flattened_tasks().is_empty() {
-                        div { class: "empty-state-muted", "No other valid parents found." }
+                        div { class: Styles::empty_state_muted, "No other valid parents found." }
                     } else {
                         for (task, depth) in flattened_tasks() {
                             button {
                                 key: "{task.id}",
                                 r#type: "button",
-                                class: "item-picker-button",
+                                class: Styles::item_picker_button,
                                 style: "padding-left: {12 + depth * 16}px",
                                 onclick: {
                                     let id = task.id.clone();
@@ -81,7 +84,7 @@ pub(crate) fn MovePicker(
                     }
                 }
 
-                div { class: "mt_4 flex_end",
+                div { class: format_args!("{} {}", Styles::mt_4, Styles::flex_end),
                     Button {
                         variant: ButtonVariant::Secondary,
                         onclick: move |_| on_close.call(()),

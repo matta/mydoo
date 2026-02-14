@@ -1,0 +1,199 @@
+.task_editor_dialog {
+  width: 100%;
+  max-width: 42rem;
+  background-color: var(--app_surface);
+}
+
+.section_fieldset {
+  padding: 0;
+  border: none;
+}
+
+.section_legend {
+  color: var(--app_accent);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.settings_group {
+  background-color: color-mix(
+    in srgb,
+    var(--app_surface-muted),
+    transparent 60%
+  );
+  padding: 1.25rem;
+  border-radius: 0.5rem;
+  border: none;
+}
+
+.settings_cells {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .settings_cells {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.field_label {
+  padding: 0;
+  margin-bottom: 0.375rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label_text_bold {
+  font-weight: 600;
+}
+
+.label_text_medium {
+  font-weight: 500;
+}
+
+.label_text_alt {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  opacity: 0.7;
+  font-size: 0.875rem;
+}
+
+.input_number_small {
+  width: 6rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--app_border);
+  padding: 0.5rem 1rem;
+}
+
+.dialog_subtitle {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  font-weight: 500;
+}
+
+.sequential_label_group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.sequential_label_description {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  font-weight: 500;
+}
+
+.hierarchy_controls_group {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border: 1px solid var(--app_border-strong);
+  background-color: var(--app_surface);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.hierarchy_button {
+  height: 2.25rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  border-radius: 0;
+}
+
+.hierarchy_button_sep {
+  border-left: 1px solid var(--app_border-strong);
+}
+
+.footer_delete_box {
+  flex: none;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .footer_delete_box {
+    width: auto;
+  }
+}
+
+.footer_cancel_btn {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.notes_area {
+  height: 8rem;
+}
+
+.btn_delete {
+  color: var(--secondary-error-color);
+}
+
+.btn_delete:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--primary-error-color),
+    transparent 90%
+  );
+  color: var(--secondary-error-color);
+}
+
+.btn_save {
+  min-width: 140px;
+  box-shadow: 0 10px 15px -3px rgba(43, 127, 255, 0.2);
+}
+
+/* --- Utilities --- */
+
+.app_input_full {
+  width: 100%;
+}
+.app_text_lg {
+  font-size: 1.125rem;
+}
+.app_text_sm {
+  font-size: 0.875rem;
+}
+.app_stack_4 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem;
+}
+.app_stack_6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.5rem;
+}
+.app_row_cluster {
+  display: flex;
+  width: 100%;
+  gap: 0.5rem;
+}
+.app_center_pt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0.5rem;
+}
+.app_ghost_hover:hover {
+  background-color: var(--app_surface-muted);
+}
+.app_transition {
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.app_cursor_pointer {
+  cursor: pointer;
+}
+.footer_button_full {
+  width: 100%;
+}
+@media (min-width: 640px) {
+  .footer_button_full {
+    width: auto;
+  }
+}
