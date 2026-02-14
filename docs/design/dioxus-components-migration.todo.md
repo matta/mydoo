@@ -91,7 +91,7 @@ Deferred tasks:
 ### Chunk D: Wrapper De-Daisy (Select, Dialog, Collapsible, Calendar)
 
 - [x] Select: re-vendor upstream and remove DaisyUI dropdown/menu/btn assumptions.
-- [ ] Dialog: re-vendor upstream and remove DaisyUI modal classes.
+- [x] Dialog: re-vendor upstream and remove DaisyUI modal classes.
 - [ ] Collapsible: re-vendor upstream, restore `as` support, remove Tailwind utilities.
 - [ ] Calendar: re-vendor upstream and restore upstream API (`CalendarView` if needed).
 
@@ -124,7 +124,7 @@ Deferred tasks:
 
 - [ ] Calendar: re-vendor upstream and restore upstream API.
 - [ ] Collapsible: re-vendor upstream and restore `as` support.
-- [ ] Dialog: re-vendor upstream and restore upstream CSS/API.
+- [x] Dialog: re-vendor upstream and restore upstream CSS/API.
 - [x] Select: re-vendor upstream and remove DaisyUI class overrides.
 
 ## Replace Diverged Components
@@ -152,8 +152,8 @@ Deferred tasks:
   - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
   - `crates/tasklens-ui/src/app_components/empty_state.rs`
   - `crates/tasklens-ui/src/views/score_trace_page.rs`
-- [ ] `dropdown*`/`menu*`/`modal*` debt:
-  - `crates/tasklens-ui/src/components/dialog/component.rs`
+- [x] `dropdown*`/`menu*`/`modal*` debt:
+  - `crates/tasklens-ui/src/dioxus_components/dialog/component.rs` (uses upstream `dialog-backdrop` and `dialog`)
 - [x] Native date/datetime wrapper utility-class debt: cleared (legacy `date_picker` removed, new wrappers use CSS modules).
 - [ ] `loading*` debt:
   - `crates/tasklens-ui/src/app_components/loading.rs`

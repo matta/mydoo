@@ -97,7 +97,7 @@ Status legend:
 | Collapsible   | [preview/src/components/collapsible](https://github.com/DioxusLabs/components/tree/main/preview/src/components/collapsible)     | `crates/tasklens-ui/src/components/collapsible/`          | Wrapper/Modified (missing `as` support, Tailwind classes)         | Re-vendor and restore upstream API.                                                  |
 | Context Menu  | [preview/src/components/context_menu](https://github.com/DioxusLabs/components/tree/main/preview/src/components/context_menu)   | —                                                         | Missing                                                           | Adopt if context menus are needed.                                                   |
 | Date Picker   | [preview/src/components/date_picker](https://github.com/DioxusLabs/components/tree/main/preview/src/components/date_picker)     | `crates/tasklens-ui/src/app_components/date_time_inputs/` | App-owned (CSS-module-scoped native wrappers)                     | Keep app-owned native wrappers; revisit upstream picker after blockers are resolved. |
-| Dialog        | [preview/src/components/dialog](https://github.com/DioxusLabs/components/tree/main/preview/src/components/dialog)               | `crates/tasklens-ui/src/components/dialog/`               | Wrapper/Modified (DaisyUI classes, no upstream CSS)               | Re-vendor and restore upstream styling.                                              |
+| Dialog        | [preview/src/components/dialog](https://github.com/DioxusLabs/components/tree/main/preview/src/components/dialog)               | `crates/tasklens-ui/src/dioxus_components/dialog/`        | Adopted (vendored upstream component integrated in app callsites) | Keep vendored source and remove legacy compatibility usage.                          |
 | Dropdown Menu | [preview/src/components/dropdown_menu](https://github.com/DioxusLabs/components/tree/main/preview/src/components/dropdown_menu) | —                                                         | Missing                                                           | Adopt to replace DaisyUI `dropdown` usage.                                           |
 | Form          | [preview/src/components/form](https://github.com/DioxusLabs/components/tree/main/preview/src/components/form)                   | —                                                         | Missing                                                           | Adopt if form layouts need standardization.                                          |
 | Hover Card    | [preview/src/components/hover_card](https://github.com/DioxusLabs/components/tree/main/preview/src/components/hover_card)       | —                                                         | Missing                                                           | Adopt if hover previews are needed.                                                  |
@@ -127,9 +127,9 @@ Status legend:
 ## Divergence Summary
 
 - Total upstream components: 38
-- Adopted: 7 (Button, Checkbox, Input, Navbar, Popover, Select, Slider)
+- Adopted: 8 (Button, Checkbox, Dialog, Input, Navbar, Popover, Select, Slider)
 - App-owned replacements: 1 (Date/Datetime Inputs — CSS-module-scoped native wrappers)
-- Wrapper/Modified: 3 (Calendar, Collapsible, Dialog)
+- Wrapper/Modified: 2 (Calendar, Collapsible)
 - Missing: 27
 
 ## Tailwind And DaisyUI Usage Audit
@@ -159,8 +159,7 @@ Snapshot basis: code audit on February 11, 2026.
   - `crates/tasklens-ui/src/app_components/task_row.rs`
   - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
   - `crates/tasklens-ui/src/app_components/empty_state.rs`
-- `dropdown*`/`menu*`/`modal*` debt remains in:
-  - `crates/tasklens-ui/src/components/dialog/component.rs`
+- `dropdown*`/`menu*` debt remains in app components and views. `modal*` debt is cleared.
 - Tailwind runtime dependency is still active:
   - `crates/tasklens-ui/src/main.rs` still links `assets/tailwind.css`
   - `crates/tasklens-ui/tailwind.css` still loads Tailwind + DaisyUI plugin
