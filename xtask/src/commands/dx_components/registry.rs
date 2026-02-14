@@ -14,6 +14,8 @@ use std::process::Command;
 
 use anyhow::{Context, Result, bail};
 
+const DX_COMPONENTS_CACHE_DIR: &str = "x-xtask-dx-components";
+
 use crate::commands::dioxus_info::{
     DioxusVendorRegistryConfig, read_dioxus_vendor_components_config,
 };
@@ -74,18 +76,18 @@ pub(crate) fn update_registry(components_file: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Removes local x-xtask-dx-components cache under the repository git common-dir.
+/// Removes local dx-components cache under the repository git common-dir.
 pub(crate) fn clean_registry_cache() -> Result<()> {
     let repo_root = find_repo_root()?;
     let cache_root = registry_cache_root_for_repo(&repo_root)?;
-    let dx_components_root = cache_root
-        .parent()
-        .map(Path::to_path_buf)
-        .ok_or_else(|| anyhow::anyhow!("failed to resolve x-xtask-dx-components cache parent"))?;
+    let dx_components_root = cache_root.parent().map(Path::to_path_buf).ok_or_else(|| {
+        anyhow::anyhow!("failed to resolve {} cache parent", DX_COMPONENTS_CACHE_DIR)
+    })?;
 
     if !dx_components_root.exists() {
         println!(
-            "x-xtask-dx-components cache is already clean ({})",
+            "{} cache is already clean ({})",
+            DX_COMPONENTS_CACHE_DIR,
             dx_components_root.display()
         );
         return Ok(());
@@ -93,13 +95,15 @@ pub(crate) fn clean_registry_cache() -> Result<()> {
 
     fs::remove_dir_all(&dx_components_root).with_context(|| {
         format!(
-            "failed to remove x-xtask-dx-components cache root {}",
+            "failed to remove {} cache root {}",
+            DX_COMPONENTS_CACHE_DIR,
             dx_components_root.display()
         )
     })?;
 
     println!(
-        "removed x-xtask-dx-components cache root {}",
+        "removed {} cache root {}",
+        DX_COMPONENTS_CACHE_DIR,
         dx_components_root.display()
     );
     Ok(())
@@ -169,7 +173,7 @@ pub(crate) fn resolve_registry_checkout(
 pub(crate) fn registry_cache_root_for_repo(repo_root: &Path) -> Result<PathBuf> {
     let git_common_dir = git_common_dir(repo_root)?;
     Ok(git_common_dir
-        .join("x-xtask-dx-components")
+        .join(DX_COMPONENTS_CACHE_DIR)
         .join("registries"))
 }
 
