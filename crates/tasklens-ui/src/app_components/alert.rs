@@ -2,11 +2,12 @@ use dioxus::prelude::*;
 
 /// Variants for the [`Alert`] component, determining its color scheme and semantic meaning.
 #[derive(PartialEq, Clone, Copy)]
-#[allow(dead_code)]
 pub(crate) enum AlertVariant {
     /// Blue-styled information alert.
+    #[allow(dead_code)]
     Info,
     /// Green-styled success alert.
+    #[allow(dead_code)]
     Success,
     /// Red-styled error alert.
     Error,
@@ -24,7 +25,7 @@ pub(crate) enum AlertVariant {
 /// * `children` - The content of the alert message.
 /// * `class` - Optional additional CSS classes.
 #[component]
-pub fn Alert(
+pub(crate) fn Alert(
     variant: Option<AlertVariant>,
     title: Option<String>,
     children: Element,

@@ -7,7 +7,6 @@ use dioxus::prelude::*;
 use tasklens_store::doc_id::DocumentId;
 
 pub(crate) mod app_components;
-pub(crate) mod components;
 pub(crate) mod controllers;
 pub(crate) mod dioxus_components;
 pub(crate) mod hooks;
