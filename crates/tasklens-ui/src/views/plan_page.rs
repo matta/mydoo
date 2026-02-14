@@ -152,9 +152,12 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         }
     };
 
+    #[css_module("/src/views/plan_page.css")]
+    struct Styles;
+
     rsx! {
         div {
-            class: "px-4 pt-4 pb-20 container mx-auto max-w-2xl",
+            class: Styles::page_container,
             style: "padding-top: var(--safe-top); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
 
             PageHeader { title: "Plan",
@@ -184,7 +187,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                     ),
                 }
             } else {
-                div { class: "mb-6",
+                div { class: Styles::input_section,
                     TaskInput {
                         data_testid: "plan-task-input",
                         value: input_text,
@@ -195,8 +198,8 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                 Card {
                                     if flattened_tasks().is_empty() {
                                         CardContent {
-                                            div { class: "p-8 text-center",
-                                                p { class: "text-app-text/60 mb-4",
+                                            div { class: Styles::empty_state_container,
+                                                p { class: Styles::empty_state_text,
                                                     "No tasks found yet."
                                                 }
                                                 Button {

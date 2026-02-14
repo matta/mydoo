@@ -1,0 +1,73 @@
+.page_container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 5rem;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 42rem;
+}
+
+.item_list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.item_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.item_title {
+  font-weight: 500;
+  color: var(--app-text);
+}
+
+.stats_container {
+  text-align: right;
+  font-size: 0.875rem;
+}
+
+.stat_label {
+  color: var(--app-text);
+  opacity: 0.7;
+}
+
+.stat_value {
+  font-weight: 500;
+  color: var(--app-text);
+}
+
+.slider_section {
+  margin-top: 0.75rem;
+}
+
+.slider_label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--app-text);
+  opacity: 0.5;
+  margin-bottom: 0.25rem;
+}
+
+.progress_container {
+  position: relative;
+}
+
+.progress_bar {
+  height: 1rem;
+  width: 100%;
+}
+
+.target_indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 1rem;
+  border-right: 2px solid var(--app-text);
+  border-right-color: rgba(var(--app-text-rgb), 0.3);
+  transition: all 0.3s;
+}

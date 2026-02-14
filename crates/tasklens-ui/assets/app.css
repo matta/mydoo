@@ -29,7 +29,7 @@
   --app-primary-shadow-color: rgba(43, 127, 255, 0.2);
 }
 
-[data-app_state] {
+[data-app-state] {
   min-height: 100vh;
 }
 

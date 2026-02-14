@@ -43,15 +43,18 @@ pub fn DoPage() -> Element {
         }
     };
 
+    #[css_module("/src/views/do_page.css")]
+    struct Styles;
+
     rsx! {
         div {
-            class: "px-4 pt-4 pb-20 container mx-auto max-w-2xl",
+            class: Styles::page_container,
             style: "padding-top: var(--safe-top); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
 
             PageHeader { title: "Work",
                 Button {
                     variant: ButtonVariant::Ghost,
-                    class: "text-app-text/70 hover:text-app-text",
+                    class: Styles::refresh_button,
                     onclick: move |_| task_controller.refresh_lifecycle(),
                     "Refresh"
                 }
@@ -77,7 +80,7 @@ pub fn DoPage() -> Element {
                     subtitle: "Check your Plan or wait for scheduled tasks.",
                 }
             } else {
-                div { class: "space-y-2",
+                div { class: Styles::task_list,
                     for task in prioritized_tasks() {
                         PriorityTaskRow {
                             key: "{task.id}",
