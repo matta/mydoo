@@ -148,8 +148,7 @@
 - [x] `dropdown*`/`menu*`/`modal*` debt:
   - `crates/tasklens-ui/src/dioxus_components/dialog/component.rs` (uses upstream `dialog-backdrop` and `dialog`)
 - [x] Native date/datetime wrapper utility-class debt: cleared (legacy `date_picker` removed, new wrappers use CSS modules).
-- [ ] `loading*` debt:
-  - `crates/tasklens-ui/src/app_components/loading.rs` (loading-spinner)
+- [x] `loading*` debt: cleared (replaced with CSS-module-scoped spinner in `loading.rs`).
 - [ ] DaisyUI theme utility debt (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.) remains broadly in app components and views; burn down alongside component-skin replacement.
 
 Audit command (run after each chunk and refresh this register):

@@ -1,12 +1,15 @@
 use dioxus::prelude::*;
 
+#[css_module("/src/app_components/loading_style.css")]
+struct Styles;
+
 /// A full-screen loading component with a spinner.
 #[component]
 pub(crate) fn Loading() -> Element {
     rsx! {
-        div { class: "fixed inset-0 flex flex-col items-center justify-center bg-app-bg z-50",
-            span { class: "loading loading-spinner loading-lg text-primary mb-4" }
-            p { class: "text-base-content font-medium animate-pulse", "Loading..." }
+        div { class: Styles::overlay,
+            span { class: Styles::spinner }
+            p { class: Styles::message, "Loading..." }
         }
     }
 }
