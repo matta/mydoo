@@ -15,6 +15,8 @@ components = [
     "toggle_group",
     "slider",
     "label",
+    "navbar",
+    "popover",
 ]
 
 [registry]
