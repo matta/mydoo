@@ -39,20 +39,25 @@ fn reload_application() {
 
 #[component]
 pub(crate) fn SyncIndicator() -> Element {
+    #[css_module("/src/app_components/sync_indicator.css")]
+    struct Styles;
+
     let sync_status = use_context::<Signal<SyncStatus>>();
     let mut show_settings = use_signal(|| false);
     let mut url_input = use_signal(get_sync_url);
 
-    let (color, text) = match sync_status() {
-        SyncStatus::Disconnected => ("bg-app-text/20", "Disconnected"),
-        SyncStatus::Connecting => ("bg-warning", "Connecting"),
-        SyncStatus::Connected => ("bg-success", "Connected"),
-        SyncStatus::Error(_e) => ("bg-error", "Error"),
+    let (color_class, text) = match sync_status() {
+        SyncStatus::Disconnected => (Styles::status_disconnected, "Disconnected"),
+        SyncStatus::Connecting => (Styles::status_connecting, "Connecting"),
+        SyncStatus::Connected => (Styles::status_connected, "Connected"),
+        SyncStatus::Error(_e) => (Styles::status_error, "Error"),
     };
+
+    let dot_class = format!("{} {}", Styles::status_dot, color_class);
 
     rsx! {
         div {
-            class: "relative inline-block",
+            class: Styles::indicator_container,
             "data-testid": "sync-indicator",
             Button {
                 variant: ButtonVariant::Ghost,
@@ -64,22 +69,22 @@ pub(crate) fn SyncIndicator() -> Element {
                     }
                     show_settings.set(new_state);
                 },
-                span { class: "h-2 w-2 rounded-full {color}" }
-                span { class: "text-app-text/80", "{text}" }
+                span { class: dot_class, }
+                span { class: Styles::text_muted, "{text}" }
             }
 
             if show_settings() {
                 div {
-                    class: "absolute right-0 z-50 mt-2 w-64 rounded-md border border-app-border-strong bg-app-surface p-4 shadow-lg",
+                    class: Styles::settings_popover,
                     "data-testid": "sync-settings-popover",
-                    h3 { class: "font-semibold text-app-text mb-3", "Sync Settings" }
-                    div { class: "space-y-3",
-                        div { class: "space-y-1",
-                            label { class: "py-1 text-xs",
+                    h3 { class: Styles::popover_title, "Sync Settings" }
+                    div { class: Styles::settings_stack,
+                        div { class: Styles::field_stack,
+                            label { class: Styles::field_label,
                                 "Server URL"
                             }
                             Input {
-                                class: "w-full",
+                                class: Styles::popover_input_full,
                                 "data-testid": "sync-server-url-input",
                                 value: "{url_input}",
                                 oninput: move |e: FormEvent| url_input.set(e.value()),

@@ -38,6 +38,9 @@ fn build_parent_path(task_id: &TaskID, state: &TunnelState) -> String {
 /// Clicking a result navigates to the Plan view with the task focused.
 #[component]
 pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element {
+    #[css_module("/src/app_components/search_panel.css")]
+    struct Styles;
+
     let mut query = use_signal(String::new);
     let state = use_context::<Memo<TunnelState>>();
     let nav = use_navigator();
@@ -129,20 +132,15 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
         }
     });
 
-    let panel_classes = if open() {
-        "max-h-96 opacity-100 translate-y-0"
-    } else {
-        "max-h-0 opacity-0 -translate-y-1 pointer-events-none"
-    };
-
     rsx! {
         div {
-            class: "transition-all duration-200 overflow-hidden bg-app-surface border-b border-app-border {panel_classes}",
+            class: Styles::panel_root,
+            "data-open": "{open()}",
             "data-testid": "search-panel",
-            div { class: "px-4 py-3 container mx-auto max-w-2xl",
-                div { class: "flex items-center gap-2",
+            div { class: Styles::content_container,
+                div { class: Styles::search_header,
                     Input {
-                        class: "w-full text-base",
+                        class: Styles::input_full,
                         placeholder: "Search tasks...",
                         value: "{query}",
                         "data-testid": "search-input",
@@ -158,7 +156,7 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
                         aria_label: "Close search",
                         "data-testid": "search-close",
                         svg {
-                            class: "h-5 w-5",
+                            class: Styles::close_icon,
                             fill: "none",
                             view_box: "0 0 24 24",
                             stroke: "currentColor",
@@ -174,10 +172,10 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
 
                 if query.read().trim().len() >= MIN_QUERY_LEN {
                     div {
-                        class: "mt-2 max-h-64 overflow-y-auto",
+                        class: Styles::results_area,
                         "data-testid": "search-results",
                         if results().is_empty() {
-                            div { class: "py-4 text-center text-app-text/60", "No tasks found" }
+                            div { class: Styles::empty_state, "No tasks found" }
                         } else {
                             for result in results() {
                                 {
@@ -185,14 +183,15 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
                                     rsx! {
                                         button {
                                             key: "{result.id}",
-                                            class: "w-full text-left px-3 py-2 rounded hover:bg-app-surface-muted transition-colors flex flex-col",
+                                            class: Styles::result_button,
                                             "data-testid": "search-result",
                                             onclick: move |_| navigate_to(id.clone()),
-                                            span { class: if result.is_done { "line-through text-app-text/50" } else { "text-app-text" },
+                                            span {
+                                                class: if result.is_done { Styles::result_title_done } else { Styles::result_title },
                                                 "{result.title}"
                                             }
                                             if !result.parent_path.is_empty() {
-                                                span { class: "text-xs text-app-text/40 mt-0.5", "{result.parent_path}" }
+                                                span { class: Styles::result_parent_path, "{result.parent_path}" }
                                             }
                                         }
                                     }

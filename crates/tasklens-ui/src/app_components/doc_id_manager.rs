@@ -24,6 +24,9 @@ pub(crate) fn DocIdManager(
     on_change: EventHandler<tasklens_store::doc_id::DocumentId>,
     on_create: EventHandler<()>,
 ) -> Element {
+    #[css_module("/src/app_components/doc_id_manager.css")]
+    struct Styles;
+
     let mut store = use_context::<Signal<tasklens_store::store::AppStore>>();
     let mut show_input = use_signal(|| false);
     let mut input_value = use_signal(String::new);
@@ -189,19 +192,19 @@ pub(crate) fn DocIdManager(
     };
 
     rsx! {
-        div { class: "space-y-4 border-t border-app-border pt-4 mt-4",
-            h4 { class: "text-base font-medium text-app-text/70", "Document Management" }
+        div { class: Styles::manager_root,
+            h4 { class: Styles::section_title, "Document Management" }
 
             if !error_msg().is_empty() {
                 Alert { variant: AlertVariant::Error, title: "Error", "{error_msg}" }
             }
 
             // Current Document Display
-            div { class: "space-y-2",
-                label { class: "block text-base font-medium text-app-text/70", "Current Document" }
-                div { class: "flex items-center space-x-2",
+            div { class: Styles::field_group,
+                label { class: Styles::field_label, "Current Document" }
+                div { class: Styles::row_layout,
                     div {
-                        class: "flex-1 px-3 py-3 bg-app-surface-muted border border-app-border-strong rounded text-base font-mono text-app-text/80",
+                        class: Styles::id_display_box,
                         "data-testid": "document-id-display",
                         {truncated_id().unwrap_or_else(|| "No document loaded".to_string())}
                     }
@@ -221,19 +224,19 @@ pub(crate) fn DocIdManager(
                 }
 
                 if let Some(meta_id) = metadata_doc_id() {
-                    div { class: "mt-2 pt-2 border-t border-app-border",
-                        label { class: "block text-xs font-medium text-app-text/50 mb-1",
+                    div { class: Styles::internal_meta_box,
+                        label { class: Styles::meta_label,
                             "Metadata ID (Internal)"
                         }
-                        div { class: "flex items-center space-x-2",
-                            div { class: "px-2 py-1 bg-app-surface-muted border border-app-border-strong rounded text-xs font-mono text-app-text/80",
+                        div { class: Styles::row_layout,
+                            div { class: Styles::id_display_small,
                                 "{meta_id}"
                             }
                             if let Some(curr) = current_doc_id() {
                                 if curr.to_string() != meta_id {
-                                    span { class: "text-error text-xs font-bold", "Mismatch!" }
+                                    span { class: Styles::status_error, "Mismatch!" }
                                 } else {
-                                    span { class: "text-success text-xs", "Matches" }
+                                    span { class: Styles::status_success, "Matches" }
                                 }
                             }
                         }
@@ -241,9 +244,9 @@ pub(crate) fn DocIdManager(
                 }
 
                 if show_copy_toast() {
-                    div { class: "text-base text-success flex items-center",
+                    div { class: Styles::copy_feedback,
                         svg {
-                            class: "h-4 w-4 mr-1",
+                            class: Styles::icon_small,
                             fill: "none",
                             view_box: "0 0 24 24",
                             stroke: "currentColor",
@@ -260,11 +263,11 @@ pub(crate) fn DocIdManager(
             }
 
             // Action Buttons
-            div { class: "flex flex-wrap gap-2",
+            div { class: Styles::button_grid,
                 Button {
                     variant: ButtonVariant::Primary,
                     onclick: handle_new_document,
-                    class: "flex-1 min-w-[120px]",
+                    class: Styles::flex_button,
                     "data-testid": "new-document-button",
                     "New Document"
                 }
@@ -274,7 +277,7 @@ pub(crate) fn DocIdManager(
                         show_input.set(!show_input());
                         error_msg.set(String::new());
                     },
-                    class: "flex-1 min-w-[120px]",
+                    class: Styles::flex_button,
                     "data-testid": "toggle-enter-id-button",
                     if show_input() {
                         "Cancel"
@@ -286,21 +289,21 @@ pub(crate) fn DocIdManager(
                     variant: ButtonVariant::Secondary,
                     onclick: handle_download,
                     disabled: current_doc_id().is_none(),
-                    class: "flex-1 min-w-[120px]",
+                    class: Styles::flex_button,
                     "data-testid": "download-document-button",
                     "Download"
                 }
-                div { class: "flex-1 min-w-[120px] relative",
+                div { class: Styles::upload_wrapper,
                     Button {
                         variant: ButtonVariant::Secondary,
-                        class: "w-full",
+                        class: Styles::button_full,
                         "data-testid": "upload-document-button",
                         "Upload"
                     }
                     input {
                         r#type: "file",
                         accept: ".automerge",
-                        class: "absolute inset-0 opacity-0 cursor-pointer",
+                        class: Styles::hidden_file_input,
                         onchange: handle_upload,
                         "data-testid": "document-upload-input",
                     }
@@ -309,19 +312,19 @@ pub(crate) fn DocIdManager(
 
             // Enter ID Input (conditional)
             if show_input() {
-                div { class: "space-y-2",
-                    label { class: "block text-base font-medium text-app-text/70", "Enter Document ID" }
+                div { class: Styles::field_group,
+                    label { class: Styles::field_label, "Enter Document ID" }
                     Input {
                         value: input_value(),
                         oninput: move |evt: FormEvent| input_value.set(evt.value()),
                         placeholder: "Enter Base58 document ID...",
-                        class: "w-full font-mono text-base",
+                        class: Styles::input_full_mono,
                         "data-testid": "document-id-input",
                     }
                     Button {
                         variant: ButtonVariant::Primary,
                         onclick: handle_enter_id,
-                        class: "w-full",
+                        class: Styles::button_full,
                         "data-testid": "load-document-button",
                         "Load Document"
                     }

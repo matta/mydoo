@@ -11,6 +11,9 @@ pub(crate) fn PriorityTaskRow(
     on_toggle: EventHandler<TaskID>,
     on_title_tap: EventHandler<TaskID>,
 ) -> Element {
+    #[css_module("/src/app_components/priority_task_row.css")]
+    struct Styles;
+
     let is_done = task.status == TaskStatus::Done;
     let task_id_toggle = task.id.clone();
     let task_id_tap = task.id.clone();
@@ -32,9 +35,15 @@ pub(crate) fn PriorityTaskRow(
     };
     let score_label = format!("{:.3}", task.score);
 
+    let title_class = if is_done {
+        format!("{} {}", Styles::title_container, Styles::title_done)
+    } else {
+        Styles::title_container.to_string()
+    };
+
     rsx! {
         div {
-            class: "flex items-center gap-2 p-3 border border-app-border rounded-lg shadow-sm transition-colors group",
+            class: Styles::row_root,
             "data-testid": "task-item",
             "data-urgency": "{task.urgency_status:?}",
 
@@ -48,17 +57,14 @@ pub(crate) fn PriorityTaskRow(
             }
 
             span {
-                class: format_args!(
-                    "flex-grow cursor-pointer select-none text-base font-medium {}",
-                    if is_done { "line-through text-app-text/50" } else { "text-app-text" },
-                ),
+                class: title_class,
                 "data-testid": "task-title",
                 onclick: move |_| on_title_tap.call(task_id_tap.clone()),
                 "{task.title}"
             }
 
             Link {
-                class: "text-xs text-app-text/50 hover:text-app-text/80",
+                class: Some(Styles::score_link.to_string()),
                 to: Route::ScoreTracePage {
                     task_id: task.id.clone(),
                 },
@@ -70,7 +76,7 @@ pub(crate) fn PriorityTaskRow(
                 if let Some(variant) = urgency_variant {
                     Badge {
                         variant,
-                        class: "ml-2",
+                        class: Styles::urgency_badge,
                         "data-testid": "urgency-badge",
                         "data-urgency": "{task.urgency_status:?}".to_lowercase(),
                         "{urgency_label}"
