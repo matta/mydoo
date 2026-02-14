@@ -3,6 +3,9 @@ use dioxus_primitives::slider::{
     self, SliderProps, SliderRangeProps, SliderThumbProps, SliderTrackProps,
 };
 
+// Re-export upstream types for props
+pub use dioxus_primitives::slider::SliderValue;
+
 #[component]
 pub fn Slider(props: SliderProps) -> Element {
     rsx! {
