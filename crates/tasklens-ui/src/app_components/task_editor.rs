@@ -345,13 +345,18 @@ pub(crate) fn TaskEditor(
                                         step: 0.1,
                                         value: Some(SliderValue::Single(current_draft.importance)),
                                         on_value_change: move |val| {
-                                            let SliderValue::Single(val) = val;
-                                            draft
-                                                .with_mut(|task| {
-                                                    if let Some(task) = task.as_mut() {
-                                                        task.importance = val;
-                                                    }
-                                                });
+                                            match val {
+                                                SliderValue::Single(val) => {
+                                                    draft
+                                                        .with_mut(|task| {
+                                                            if let Some(task) = task.as_mut() {
+                                                                task.importance = val;
+                                                            }
+                                                        });
+                                                }
+                                                #[allow(unreachable_patterns)]
+                                                _ => tracing::warn!("Unexpected SliderValue: {:?}", val),
+                                            }
                                         },
                                         SliderTrack { SliderRange {} SliderThumb {} }
                                     }
@@ -375,13 +380,18 @@ pub(crate) fn TaskEditor(
                                         step: 0.1,
                                         value: Some(SliderValue::Single(current_draft.credit_increment.unwrap_or(0.5))),
                                         on_value_change: move |val| {
-                                            let SliderValue::Single(val) = val;
-                                            draft
-                                                .with_mut(|task| {
-                                                    if let Some(task) = task.as_mut() {
-                                                        task.credit_increment = Some(val);
-                                                    }
-                                                });
+                                            match val {
+                                                SliderValue::Single(val) => {
+                                                    draft
+                                                        .with_mut(|task| {
+                                                            if let Some(task) = task.as_mut() {
+                                                                task.credit_increment = Some(val);
+                                                            }
+                                                        });
+                                                }
+                                                #[allow(unreachable_patterns)]
+                                                _ => tracing::warn!("Unexpected SliderValue: {:?}", val),
+                                            }
                                         },
                                         SliderTrack { SliderRange {} SliderThumb {} }
                                     }
