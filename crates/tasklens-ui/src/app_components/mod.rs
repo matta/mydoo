@@ -4,6 +4,7 @@
 //! Shared and vendored component primitives remain under `components` and
 //! `dioxus_components` during migration.
 
+mod alert;
 mod app_navbar;
 mod back_button;
 mod balance_slider;
@@ -21,6 +22,7 @@ mod task_editor;
 mod task_input;
 mod task_row;
 
+pub(crate) use alert::{Alert, AlertVariant};
 pub(crate) use app_navbar::AppNavBar;
 pub(crate) use back_button::BackButton;
 pub(crate) use balance_slider::BalanceSlider;

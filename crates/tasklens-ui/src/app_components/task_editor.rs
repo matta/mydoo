@@ -1,8 +1,8 @@
 use crate::app_components::DateInput;
 use crate::app_components::Loading;
 use crate::app_components::MovePicker;
-use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use crate::dioxus_components::button::{Button, ButtonVariant};
+use crate::dioxus_components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use crate::dioxus_components::input::Input;
 use crate::dioxus_components::label::Label;
 use crate::dioxus_components::select::{

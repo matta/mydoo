@@ -31,13 +31,13 @@ git show <commit>:docs/design/dioxus-components-migration.todo.md
 
 ## Current Critical Path (Execute Top To Bottom)
 
-- [ ] Slice TW1: finalize compatibility shim removal (precondition for Tailwind runtime removal).
-  - [ ] Migrate callsites off `crate::components::{dialog, navbar, popover, Alert}`.
-  - [ ] Navbar: re-sync with upstream formatting and CSS.
-  - [ ] Popover: re-sync with upstream formatting and CSS.
-  - [ ] Replace `Alert` usage with app-owned styling (no `alert-*` Daisy/Tailwind tokens).
-  - [ ] Remove now-unused modules from `crates/tasklens-ui/src/components`.
-  - [ ] Keep vendored `dioxus_components` on upstream `style.css` + `document::Link` patterns (no CSS-module conversion in vendored code).
+- [x] Slice TW1: finalize compatibility shim removal (precondition for Tailwind runtime removal).
+  - [x] Migrate callsites off `crate::components::{dialog, navbar, popover, Alert}`.
+  - [x] Navbar: re-sync with upstream formatting and CSS.
+  - [x] Popover: re-sync with upstream formatting and CSS.
+  - [x] Replace `Alert` usage with app-owned styling (no `alert-*` Daisy/Tailwind tokens).
+  - [x] Remove now-unused modules from `crates/tasklens-ui/src/components`.
+  - [x] Keep vendored `dioxus_components` on upstream `style.css` + `document::Link` patterns (no CSS-module conversion in vendored code).
 - [ ] Slice TW2: de-tailwind Task Editor surfaces.
   - [ ] `crates/tasklens-ui/src/app_components/task_editor.rs`
   - [ ] `crates/tasklens-ui/src/app_components/move_picker.rs`

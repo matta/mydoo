@@ -5,8 +5,8 @@
 //! managing documents (switching, creating, etc).
 
 use crate::app_components::DocIdManager;
-use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use crate::dioxus_components::button::{Button, ButtonVariant};
+use crate::dioxus_components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use dioxus::prelude::*;
 use tasklens_store::doc_id::DocumentId;
 

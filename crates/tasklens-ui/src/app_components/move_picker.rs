@@ -1,5 +1,5 @@
-use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use crate::dioxus_components::button::{Button, ButtonVariant};
+use crate::dioxus_components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use dioxus::prelude::*;
 use std::collections::HashSet;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
