@@ -34,16 +34,18 @@ git show <commit>:docs/design/dioxus-components-migration.md
 - `crates/tasklens-ui/src/components` still exists as a compatibility shim and should be removed after import migration completes.
 - Adopted components with remaining alignment checks: Navbar and Popover.
 - `dx-components-theme.css` still needs a pristine-upstream restore with app overrides isolated to `assets/app.css`.
+- `crates/tasklens-ui/assets/tailwind.css` is still large (currently ~1196 lines) and contains app utility selectors such as `.container`, `.max-w-2xl`, `.grid-cols-2`, and `.bg-app-surface`.
+- Tailwind utility usage is concentrated in a few high-risk surfaces (`task_editor.rs`, `doc_id_manager.rs`, `score_trace_page.rs`, `balance_page.rs`), which should drive slice order.
 
 ## Slice Execution Guardrails
 
 Each active slice must satisfy this definition of done:
 
-1. Vendor one upstream component and integrate callsites.
-2. Remove corresponding legacy implementation from `src/components` when no longer needed.
-3. Remove related Daisy/Tailwind debt in touched callsites, or explicitly log deferred paths in the checklist.
-4. Update migration docs in the same change.
-5. Keep the active chunk focused on the highest-impact remaining debt.
+1. Keep one coherent concern per PR (single migration slice with explicit in-scope files).
+2. For slices touching legacy imports, migrate callsites off `src/components` and remove the no-longer-needed shim module in the same or immediately following slice.
+3. Remove related Tailwind class debt in touched callsites, or explicitly log deferred paths in the checklist.
+4. Update migration docs in the same change, including any baseline/metric updates used by Phase 2 gates.
+5. Keep the active chunk focused on the highest-impact remaining debt and avoid broad cross-app rewrites.
 
 ## Module Boundary And Naming
 
@@ -84,20 +86,35 @@ Known risk to remember for future vendoring:
 
 Phase 1 (DaisyUI removal) is complete.
 
-Phase 2 (Tailwind removal) remaining work:
+Phase 2 (Tailwind removal) is split into reviewable slices:
 
-1. Remove Tailwind inputs/outputs and stylesheet link:
-   - `crates/tasklens-ui/tailwind.css`
-   - `crates/tasklens-ui/assets/tailwind.css`
-   - Tailwind link in `crates/tasklens-ui/src/main.rs`
-2. Restore pristine upstream `dx-components-theme.css` and move local overrides to `assets/app.css`.
-3. Run `just verify` successfully after Tailwind removal.
+1. **Slice TW1: Compatibility shim finalization (precondition).**
+   - Migrate remaining imports from `crate::components::{dialog, navbar, popover, Alert}`.
+   - Re-sync Navbar and Popover to upstream formatting/CSS parity.
+   - Remove obsolete `src/components` files as migrations land.
+2. **Slice TW2: Task editor surface de-tailwind.**
+   - Target `task_editor.rs` first (largest utility-class hotspot), plus related modal/move-picker files.
+   - Replace Tailwind utility strings with app-owned semantic classes.
+3. **Slice TW3: Task-flow support surfaces de-tailwind.**
+   - Migrate `doc_id_manager.rs`, `task_row.rs`, `search_panel.rs`, `sync_indicator.rs`, `load_error_view.rs`, and related small app components.
+4. **Slice TW4: Page shell and analytics surface de-tailwind.**
+   - Migrate `plan_page.rs`, `do_page.rs`, `task_page.rs`, `balance_page.rs`, `score_trace_page.rs`.
+5. **Slice TW5: Tailwind runtime removal and final CSS boundary cleanup.**
+   - Interim signal before deletion: generated `assets/tailwind.css` should be near-empty (no app utility selectors from the audit set and materially smaller than the current ~1196-line baseline).
+   - Remove Tailwind input/output and link:
+     - `crates/tasklens-ui/tailwind.css`
+     - `crates/tasklens-ui/assets/tailwind.css`
+     - Tailwind link in `crates/tasklens-ui/src/main.rs`
+   - Restore pristine upstream `dx-components-theme.css` and keep app overrides in `assets/app.css`.
+   - Run `just verify` successfully.
 
 ## Near-Term Priorities
 
-1. Finish migrating remaining imports/implementations out of `crates/tasklens-ui/src/components`.
-2. Re-sync Navbar and Popover to upstream formatting/CSS parity.
-3. Complete Phase 2 Tailwind removal gates and re-verify.
+1. Execute Slice TW1 (`src/components` shim removal and Navbar/Popover parity).
+2. Execute Slice TW2 (Task Editor hotspot cleanup).
+3. Execute Slice TW3 (task-flow support surfaces).
+4. Execute Slice TW4 (page-shell/analytics surfaces).
+5. Execute Slice TW5 (Tailwind runtime removal + final verify).
 
 ## Checklist
 
