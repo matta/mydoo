@@ -3,5 +3,6 @@
 #![allow(dead_code)]
 pub mod button;
 pub mod checkbox;
+pub mod dialog;
 pub mod input;
 pub mod select;
