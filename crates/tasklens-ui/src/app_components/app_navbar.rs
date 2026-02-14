@@ -46,12 +46,11 @@ pub(crate) fn AppNavBar() -> Element {
                 }
             }) as Box<dyn FnMut(web_sys::KeyboardEvent)>);
 
-            if let Some(window) = web_sys::window() {
-                if let Err(e) = window
+            if let Some(window) = web_sys::window()
+                && let Err(e) = window
                     .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
-                {
-                    tracing::warn!("Failed to register Ctrl+K listener: {:?}", e);
-                }
+            {
+                tracing::warn!("Failed to register Ctrl+K listener: {:?}", e);
             }
 
             // Leak the closure intentionally so the listener stays active.
@@ -74,7 +73,10 @@ pub(crate) fn AppNavBar() -> Element {
                 NavbarItem {
                     index: active_index,
                     value: 0usize,
-                    to: Route::PlanPage { focus_task: None, seed: None },
+                    to: Route::PlanPage {
+                        focus_task: None,
+                        seed: None,
+                    },
                     "Plan"
                 }
                 NavbarItem {
@@ -138,10 +140,7 @@ pub(crate) fn AppNavBar() -> Element {
                 }
             }
         }
-        SearchPanel {
-            open: show_search,
-            on_close: move |_| show_search.set(false),
-        }
+        SearchPanel { open: show_search, on_close: move |_| show_search.set(false) }
         Outlet::<Route> {}
     }
 }
