@@ -19,3 +19,11 @@ When asked to choose the next migration chunk/slice, do this:
 2. Always merge `origin/main` into the current working branch before starting: `git merge origin/main`.
 3. If currently on a feature branch (not `main`), create the next branch from that feature branch to support stacked PRs.
 4. Use repository-standard feature branch naming for new slice branches.
+
+## Analysis Baseline
+
+All slice analysis (reading migration docs, inspecting component code, identifying next work) MUST be performed against code that is up-to-date with `origin/main`. Before reading any source files or migration docs:
+
+1. Run `git fetch origin`.
+2. Ensure the current branch has been merged with `origin/main` (via `git merge origin/main`) so analysis reflects the latest landed state.
+3. Do NOT begin reading migration docs or proposing slices until steps 1–2 are confirmed successful.
