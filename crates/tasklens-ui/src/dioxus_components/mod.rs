@@ -9,6 +9,8 @@ pub mod collapsible;
 pub mod dialog;
 pub mod input;
 pub mod label;
+pub mod navbar;
+pub mod popover;
 pub mod progress;
 pub mod select;
 pub mod slider;
