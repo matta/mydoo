@@ -89,8 +89,8 @@
   - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
   - `crates/tasklens-ui/src/app_components/empty_state.rs`
   - `crates/tasklens-ui/src/views/score_trace_page.rs`
-- [ ] Progress: adopt upstream progress and remove `progress*` usage.
-- [ ] Textarea: adopt upstream textarea and remove `textarea*` usage.
+- [x] Progress: adopt upstream progress and remove `progress*` usage.
+- [x] Textarea: adopt upstream textarea and remove `textarea*` usage.
 - [ ] Toggle/Switch: adopt upstream toggle primitives and remove `toggle*` usage.
 - [ ] Dropdown Menu + Label: adopt where needed to replace remaining `dropdown*`/`menu*` form-menu patterns.
 
@@ -138,13 +138,15 @@
 - [x] `input*`/`select*`/`textarea*`/`toggle*`/`join*`/`fieldset*` debt in app callsites is cleared.
 - [x] `badge*` debt in app callsites is cleared.
 - [x] `card*` debt in app callsites is cleared.
-- [ ] `progress*` debt:
-  - `crates/tasklens-ui/src/views/balance_page.rs`
+- [x] `progress*` debt in app callsites is cleared.
+- [ ] `range*` debt:
+  - `crates/tasklens-ui/src/app_components/task_editor.rs`
+  - `crates/tasklens-ui/src/app_components/balance_slider.rs`
 - [x] `dropdown*`/`menu*`/`modal*` debt:
   - `crates/tasklens-ui/src/dioxus_components/dialog/component.rs` (uses upstream `dialog-backdrop` and `dialog`)
 - [x] Native date/datetime wrapper utility-class debt: cleared (legacy `date_picker` removed, new wrappers use CSS modules).
 - [ ] `loading*` debt:
-  - `crates/tasklens-ui/src/app_components/loading.rs`
+  - `crates/tasklens-ui/src/app_components/loading.rs` (loading-spinner)
 - [ ] DaisyUI theme utility debt (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.) remains broadly in app components and views; burn down alongside component-skin replacement.
 
 Audit command (run after each chunk and refresh this register):
