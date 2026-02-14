@@ -2576,11 +2576,6 @@
       --range-thumb: var(--color-primary-content);
     }
   }
-  .progress-primary {
-    @layer daisyui.l1.l2 {
-      color: var(--color-primary);
-    }
-  }
   .text-base-content {
     color: var(--color-base-content);
   }
