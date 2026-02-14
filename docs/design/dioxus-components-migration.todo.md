@@ -36,12 +36,12 @@ git show <commit>:docs/design/dioxus-components-migration.todo.md
   - [x] Navbar: re-sync with upstream formatting and CSS.
   - [x] Popover: re-sync with upstream formatting and CSS.
   - [x] Replace `Alert` usage with app-owned styling (no `alert-*` Daisy/Tailwind tokens).
-  - [x] Remove now-unused modules from `crates/tasklens-ui/src/components`.
+  - [x] Remove now-unused modules from `crates/tasklens-ui/src/components`. (Note: shim modules still exist but callsites migrated).
   - [x] Keep vendored `dioxus_components` on upstream `style.css` + `document::Link` patterns (no CSS-module conversion in vendored code).
-- [ ] Slice TW2: de-tailwind Task Editor surfaces.
-  - [ ] `crates/tasklens-ui/src/app_components/task_editor.rs`
-  - [ ] `crates/tasklens-ui/src/app_components/move_picker.rs`
-  - [ ] `crates/tasklens-ui/src/views/auth.rs`
+- [x] Slice TW2: de-tailwind Task Editor surfaces and migrate to CSS modules.
+  - [x] `crates/tasklens-ui/src/app_components/task_editor.rs`
+  - [x] `crates/tasklens-ui/src/app_components/move_picker.rs`
+  - [x] `crates/tasklens-ui/src/views/auth.rs`
 - [ ] Slice TW3: de-tailwind task-flow support surfaces.
   - [ ] `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
   - [ ] `crates/tasklens-ui/src/app_components/task_row.rs`

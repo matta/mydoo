@@ -1,0 +1,11 @@
+.navbar_actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-right: 1rem;
+}
+
+.icon_button_svg {
+  height: var(--icon-size-md, 1.5rem);
+  width: var(--icon-size-md, 1.5rem);
+}

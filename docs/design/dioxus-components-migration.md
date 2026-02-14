@@ -34,8 +34,8 @@ git show <commit>:docs/design/dioxus-components-migration.md
 - `crates/tasklens-ui/src/components` still exists as a compatibility shim and should be removed after import migration completes.
 - Adopted components with remaining alignment checks: Navbar and Popover.
 - `dx-components-theme.css` still needs a pristine-upstream restore with app overrides isolated to `assets/app.css`.
-- `crates/tasklens-ui/assets/tailwind.css` is still large (currently ~1196 lines) and contains app utility selectors such as `.container`, `.max-w-2xl`, `.grid-cols-2`, and `.bg-app-surface`.
-- Tailwind utility usage is concentrated in a few high-risk surfaces (`task_editor.rs`, `doc_id_manager.rs`, `score_trace_page.rs`, `balance_page.rs`), which should drive slice order.
+- Tailwind utility usage matches in app-owned source: reduced to ~115 (from ~180 baseline).
+- Highest remaining hotspots: `doc_id_manager.rs` (25), `score_trace_page.rs` (20), `balance_page.rs` (12).
 
 ## Slice Execution Guardrails
 

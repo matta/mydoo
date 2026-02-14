@@ -1,0 +1,10 @@
+.settings_body {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.settings_footer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
