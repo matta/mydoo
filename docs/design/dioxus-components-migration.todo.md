@@ -79,10 +79,16 @@
 - [x] Dialog: re-vendor upstream and remove DaisyUI modal classes.
 - [x] Collapsible: re-vendor upstream, restore `as` support, remove Tailwind utilities.
 
-### Chunk E: Replace High-Usage DaisyUI Skins With Upstream Components
+### Chunk E: Replace High-Usage DaisyUI Skins With Upstream Components (In Progress)
 
 - [x] Badge: adopt upstream badge and remove `badge*` usage.
-- [ ] Card: adopt upstream card and remove `card*` usage.
+- [ ] Card: adopt upstream card and remove `card*` usage in:
+  - `crates/tasklens-ui/src/views/balance_page.rs`
+  - `crates/tasklens-ui/src/views/task_page.rs`
+  - `crates/tasklens-ui/src/app_components/task_row.rs`
+  - `crates/tasklens-ui/src/app_components/priority_task_row.rs`
+  - `crates/tasklens-ui/src/app_components/empty_state.rs`
+  - `crates/tasklens-ui/src/views/score_trace_page.rs`
 - [ ] Progress: adopt upstream progress and remove `progress*` usage.
 - [ ] Textarea: adopt upstream textarea and remove `textarea*` usage.
 - [ ] Toggle/Switch: adopt upstream toggle primitives and remove `toggle*` usage.
