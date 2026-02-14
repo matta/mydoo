@@ -294,7 +294,7 @@ export class Steps {
     },
 
     selectScheduleType: async (type: string) => {
-      await this.page.selectOption("#schedule-type-select", { label: type });
+      await this.plan.selectCustomOption("#schedule-type-select", type);
     },
 
     connectsToSyncServer: async () => {
