@@ -20,7 +20,7 @@
 - [Upstream Tracking Strategy](#upstream-tracking-strategy)
 - [Component Acquisition Workflow](#component-acquisition-workflow)
 - [Representative Diffs](#representative-diffs)
-- [Tailwind Removal Exit Criteria](#tailwind-removal-exit-criteria)
+- [DaisyUI And Tailwind Removal Exit Criteria](#daisyui-and-tailwind-removal-exit-criteria)
 - [Migration Plan And Priorities](#migration-plan-and-priorities)
 - [Checklist](#checklist)
 
@@ -29,7 +29,7 @@
 - Use Dioxus Labs components more directly with minimal local edits.
 - Match the upstream component styling as closely as possible.
 - Preserve upstream history and enable clean merges while keeping local patches.
-- Remove Tailwind and DaisyUI and replace them with upstream CSS plus minimal app CSS.
+- Remove DaisyUI first, then Tailwind CSS, replacing both with upstream CSS plus minimal app CSS.
 
 ## Tracking Policy For This Migration
 
@@ -53,7 +53,7 @@ To keep forward progress tied to the end goal (Tailwind and DaisyUI removal), ea
    - explicitly log remaining debt in `dioxus-components-migration.todo.md` with concrete file paths.
 4. Update inventory status and divergence counts in this document in the same change.
 5. Keep the active chunk in the checklist pointed at the highest-impact remaining class debt, not just the next component name.
-6. For callsite de-Daisy cleanup slices, do not introduce new `assets/app.css` styles or new Tailwind CSS styles/classes unless explicitly approved by the user; prefer removing DaisyUI/Tailwind class tokens so callsites fall back to native/upstream component styling.
+6. For callsite de-Daisy cleanup slices (Phase 1), do not introduce new `assets/app.css` styles unless explicitly approved by the user; adding Tailwind CSS classes is acceptable when it helps replace DaisyUI classes in focused diffs and makes remaining Tailwind debt explicit for Phase 2.
 
 ## Current State
 
@@ -231,8 +231,8 @@ Guidelines:
 
 - Keep the upstream `dx-components-theme.css` pristine.
 - Put app-specific layout and typography in `app.css`.
-- During callsite de-Daisy cleanup, do not add new `app.css` rules or new Tailwind CSS styles/classes unless explicitly approved by the user.
-- Avoid adding Tailwind or DaisyUI classes in components or views.
+- During Phase 1 (remove DaisyUI), avoid adding new `app.css` rules unless explicitly approved by the user; adding Tailwind CSS classes is acceptable when it helps replace DaisyUI classes in focused diffs.
+- During Phase 2 (remove Tailwind), avoid introducing new Tailwind or DaisyUI classes in components or views.
 - Prefer CSS modules (`#[css_module]`) for new app-owned components; keep vendored `dioxus_components` on upstream `style.css` + `document::Link`.
 
 ### CSS Modules Strategy
@@ -285,7 +285,7 @@ Rationale:
 
 ## Build And Asset Pipeline Changes
 
-- Remove the special `tailwind.css` build path and the `document::Stylesheet` reference to `assets/tailwind.css`.
+- Phase 2: remove the special `tailwind.css` build path and the `document::Stylesheet` reference to `assets/tailwind.css`.
 - Add `assets/app.css` and link it in `main.rs` using `document::Stylesheet` or `document::Link`.
 - Ensure upstream component `style.css` files are linked from each component (via `document::Link`).
 - Keep `dx-components-theme.css` as a single global import.
@@ -376,7 +376,7 @@ Incremental execution model:
   1. Vendor exactly one target component into `src/dioxus_components` using `dioxus-vendor-components.toml` + `cargo xtask dx-components vendor`.
   2. Integrate it in app code (either a temporary compatibility adapter or direct import/callsite migration).
   3. Delete the legacy implementation from `src/components` once no callsites depend on it.
-  4. Remove related DaisyUI/Tailwind class tokens in touched callsites, or log exact deferred file paths in the checklist.
+  4. Remove related DaisyUI class tokens in touched callsites (Tailwind replacements are acceptable in Phase 1), or log exact deferred file paths in the checklist.
   5. Update inventory/divergence status in this document and checklist.
   6. Repoint the active chunk to the highest-impact remaining class debt.
 - Current next slice: Date Picker (Chunk B Checkbox slice is complete in the checklist).
@@ -390,19 +390,25 @@ Incremental execution model:
 - Dialog: local is styled as a DaisyUI modal; upstream uses dedicated dialog CSS and attributes for accessibility.
 - Date Picker: local exports an HTML `<input type="date">`.
 
-## Tailwind Removal Exit Criteria
+## DaisyUI And Tailwind Removal Exit Criteria
 
-Tailwind/DaisyUI removal should only happen when all gates below are true:
+This migration uses two phases with separate exit gates:
+
+Phase 1 (DaisyUI removal; Tailwind may remain temporarily):
 
 1. No remaining DaisyUI component-skin classes in RSX/class attributes (`btn*`, `input*`, `select*`, `textarea*`, `toggle*`, `card*`, `badge*`, `progress*`, `dropdown*`, `menu*`, `modal*`, `loading*`, `fieldset*`, `join*`).
 2. No remaining DaisyUI theme utility tokens in app code (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, and similar).
-3. Tailwind build/runtime assets removed:
+3. DaisyUI plugin usage removed from Tailwind configuration.
+4. Verification passes after DaisyUI removal (`just verify`), with Tailwind runtime still allowed for interim utility classes.
+
+Phase 2 (Tailwind removal):
+
+1. Tailwind build/runtime assets removed:
    - remove `crates/tasklens-ui/tailwind.css`
    - remove `crates/tasklens-ui/assets/tailwind.css`
-   - remove DaisyUI plugin usage
    - remove tailwind stylesheet link from `crates/tasklens-ui/src/main.rs`
-4. `dx-components-theme.css` is pristine upstream; app overrides are moved to `assets/app.css`.
-5. Verification passes after removal (`just verify`).
+2. `dx-components-theme.css` is pristine upstream; app overrides are moved to `assets/app.css`.
+3. Verification passes after Tailwind removal (`just verify`).
 
 ## Migration Plan And Priorities
 
@@ -410,7 +416,8 @@ Tailwind/DaisyUI removal should only happen when all gates below are true:
 - Split modules: `dioxus_components` for vendored Dioxus Components, `app_components` for app UI.
 - Align wrapper components that still embed DaisyUI/Tailwind assumptions: Select, Dialog, Collapsible.
 - Adopt missing upstream components in usage-driven order (Toggle, Dropdown Menu, Label, then lower-usage items).
-- De-tailwind only after exit criteria are met: remove Tailwind/DaisyUI classes, then remove Tailwind build/runtime inputs.
+- Prioritize DaisyUI removal first, allowing targeted Tailwind utility replacements where they keep diffs focused and clarify remaining Tailwind debt.
+- After DaisyUI exit gates are met, remove remaining Tailwind utility usage and then remove Tailwind build/runtime inputs.
 - Migrate app-specific UI to `app_components` and style via `app.css` + upstream components.
 - Update the inventory and divergence summary as components are aligned.
 

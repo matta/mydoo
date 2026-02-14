@@ -11,11 +11,11 @@ When asked to choose the next migration chunk/slice, do this:
 2. Read `docs/design/dioxus-components-migration.md`.
 3. Recommend the next slice based on those docs.
 4. Keep recommendations aligned with the active chunk, class debt register, and migration inventory in those docs.
-5. In callsite de-Daisy slices, recommend removing DaisyUI/Tailwind class tokens first and avoiding new `assets/app.css` rules or new Tailwind CSS styles/classes unless explicitly approved by the user.
+5. In callsite de-Daisy slices (Phase 1), recommend removing DaisyUI class tokens first; adding Tailwind CSS classes is acceptable when it keeps diffs focused and makes remaining Tailwind cleanup explicit. Avoid new `assets/app.css` rules unless explicitly approved by the user.
 
 ## Git Branch Rules
 
 1. Always fetch latest refs before starting slice work: `git fetch origin`.
 2. Always merge `origin/main` into the current working branch before starting: `git merge origin/main`.
 3. If currently on a feature branch (not `main`), create the next branch from that feature branch to support stacked PRs.
-4. Use `codex/` branch names for new slice branches.
+4. Use repository-standard feature branch naming for new slice branches.
