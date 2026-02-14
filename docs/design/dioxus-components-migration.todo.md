@@ -13,7 +13,7 @@
   - callsite class cleanup work (or explicit deferred file list in this checklist).
 - The active chunk must always point to the highest-impact remaining class debt, not only the next component name.
 - `Replace Diverged Components` status and migration inventory status must be updated in the same commit as slice changes.
-- For callsite de-Daisy cleanup slices, do not add new `assets/app.css` styles or new Tailwind CSS styles/classes unless explicitly approved by the user.
+- For callsite de-Daisy cleanup slices (Phase 1), do not add new `assets/app.css` styles unless explicitly approved by the user; adding Tailwind CSS classes is acceptable when it helps replace DaisyUI classes in focused diffs and keeps remaining Tailwind debt explicit.
 
 ## Foundations
 
@@ -25,7 +25,8 @@
 - [x] Move app-specific components into `app_components` (examples: `task_row`, `task_editor`, `app_navbar`, `sync_indicator`, `empty_state`).
 - [x] Create `assets/app.css` and link it in `main.rs`.
 - [ ] Keep `crates/tasklens-ui/src/components` as a temporary compatibility shim until all imports are migrated.
-- [ ] Remove Tailwind and DaisyUI build inputs (`tailwind.css`, `assets/tailwind.css`, DaisyUI plugin usage).
+- [ ] Phase 1: Remove DaisyUI plugin usage from Tailwind configuration.
+- [ ] Phase 2: Remove Tailwind build inputs (`tailwind.css`, `assets/tailwind.css`) and stylesheet link in `src/main.rs`.
 - [ ] Replace local edits in `dx-components-theme.css` with a pristine upstream copy; move overrides to `app.css`.
 
 ## Current Critical Path (Execute Top To Bottom)
@@ -157,13 +158,20 @@ Audit command (run after each chunk and refresh this register):
 rg -n 'class:\s*(format!\(|format_args!\(|"[^"]*\b(btn|input|select|textarea|toggle|card|badge|progress|dropdown|menu|modal|loading|fieldset|join|bg-base-|text-base-|border-base-|text-primary)\b[^"]*")' crates/tasklens-ui/src --glob '*.rs'
 ```
 
-## Tailwind And DaisyUI Removal Exit Gates
+## Two-Phase DaisyUI Then Tailwind Exit Gates
+
+Phase 1 (DaisyUI removal):
 
 - [ ] Gate 1: No DaisyUI component-skin tokens in app source (`btn*`, `input*`, `select*`, `textarea*`, `toggle*`, `card*`, `badge*`, `progress*`, `dropdown*`, `menu*`, `modal*`, `loading*`, `fieldset*`, `join*`).
 - [ ] Gate 2: No DaisyUI theme utility tokens in app source (`bg-base-*`, `text-base-*`, `border-base-*`, `text-primary`, etc.).
-- [ ] Gate 3: Remove Tailwind/DaisyUI inputs and outputs (`tailwind.css`, `assets/tailwind.css`, DaisyUI plugin usage, stylesheet link in `src/main.rs`).
-- [ ] Gate 4: Restore pristine upstream `dx-components-theme.css`; keep app overrides in `assets/app.css`.
-- [ ] Gate 5: Run `just verify` successfully after Tailwind/DaisyUI removal.
+- [ ] Gate 3: DaisyUI plugin usage removed from Tailwind configuration.
+- [ ] Gate 4: Run `just verify` successfully after DaisyUI removal (Tailwind runtime may remain temporarily).
+
+Phase 2 (Tailwind removal):
+
+- [ ] Gate 5: Remove Tailwind inputs/outputs (`tailwind.css`, `assets/tailwind.css`, stylesheet link in `src/main.rs`).
+- [ ] Gate 6: Restore pristine upstream `dx-components-theme.css`; keep app overrides in `assets/app.css`.
+- [ ] Gate 7: Run `just verify` successfully after Tailwind removal.
 
 ## Tracking
 

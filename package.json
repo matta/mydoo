@@ -26,32 +26,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "// Standard lifecycle scripts": "",
     "prepare": "husky",
-    "//": "Most build/validation logic moved to justfile",
-    "build": "just build",
-    "check-biome": "just check-biome-root",
-    "check-style": "just check-style",
-    "check-types": "just check-types",
-    "check": "just check",
-    "dev": "just dev",
-    "fix": "just fix",
-    "test-e2e": "just test-e2e",
-    "test": "just test",
-    "check-rust": "just check-rust",
-    "verify": "just verify",
-    "// Implementation scripts": "",
     "clean": "./scripts/smart-clean.py",
-    "check-biome-root": "just check-biome-root",
-    "check-deps-root": "just check-deps-root",
-    "check-filenames-root": "just check-filenames-root",
-    "check-context-root": "just check-context-root",
-    "check-format": "just check-format",
-    "fix-biome-root": "just fix-biome-root",
-    "fix-format": "just fix-format",
-    "check-staged": "./scripts/check-staged.sh",
-    "check-syncpack-root": "just check-syncpack-root",
-    "check-catalog-root": "just check-catalog-root",
-    "fix-syncpack-root": "just fix-syncpack-root"
+    "check-staged": "./scripts/check-staged.sh"
   }
 }
