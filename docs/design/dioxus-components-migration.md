@@ -153,7 +153,9 @@ Snapshot basis: code audit on February 14, 2026.
 - All DaisyUI theme utility tokens (`bg-base-*`, `text-base-content`, `border-base-*`, `text-primary`) are cleared from app callsites. Replaced with Tailwind `@theme` bridge colors referencing upstream CSS variables.
 - Tailwind runtime dependency is still active:
   - `crates/tasklens-ui/src/main.rs` still links `assets/tailwind.css`
-  - `crates/tasklens-ui/tailwind.css` still loads Tailwind + DaisyUI plugin (Gate 3 pending)
+  - `crates/tasklens-ui/tailwind.css` now loads Tailwind without the DaisyUI plugin (Gate 3 complete; Phase 2 removal still pending)
+- Verification status:
+  - `just verify` passes after DaisyUI plugin removal (Gate 4 complete)
 
 All deferred cleanup is tracked in `dioxus-components-migration.todo.md` under the class debt and active chunk sections.
 
