@@ -8,4 +8,5 @@ pub mod checkbox;
 pub mod collapsible;
 pub mod dialog;
 pub mod input;
+pub mod progress;
 pub mod select;
