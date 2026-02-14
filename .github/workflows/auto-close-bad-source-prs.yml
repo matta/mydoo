@@ -26,6 +26,7 @@ jobs:
           github.head_ref == 'vendor/dioxus-components-pristine'
         run: |
           gh pr close ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
             --comment "🚫 **Invalid Source Branch**: Merging *from* '$SOURCE_BRANCH' is not allowed."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
