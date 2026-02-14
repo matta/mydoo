@@ -92,7 +92,8 @@
 - [x] Progress: adopt upstream progress and remove `progress*` usage.
 - [x] Textarea: adopt upstream textarea and remove `textarea*` usage.
 - [x] Toggle/Switch: adopt upstream toggle primitives and remove `toggle*` usage.
-- [ ] Dropdown Menu + Label: adopt where needed to replace remaining `dropdown*`/`menu*` form-menu patterns.
+- [x] Dropdown Menu + Label: adopt where needed to replace remaining `dropdown*`/`menu*` form-menu patterns.
+- [x] Slider: adopt upstream slider and remove `range*` usage.
 
 ## Completed Vertical Slices
 
@@ -104,6 +105,8 @@
 - [x] Progress: vendored to `dioxus_components`, integrated.
 - [x] Date/Datetime Inputs: app-owned `DateInput` and `DateTimeInput` with CSS modules, legacy `components/date_picker/` removed.
 - [x] Select: vendored to `dioxus_components`, integrated, legacy `components/select/` removed.
+- [x] Slider: vendored to `dioxus_components`, integrated, legacy `components/slider/` removed.
+- [x] Label: vendored to `dioxus_components`, integrated.
 
 ## Cross-Cutting Gate: CSS Modules Feasibility
 
@@ -131,7 +134,7 @@
 
 - [ ] Navbar: re-sync with upstream formatting and ensure CSS matches upstream.
 - [ ] Popover: re-sync with upstream formatting and ensure CSS matches upstream.
-- [ ] Slider: re-sync with upstream formatting and ensure CSS matches upstream.
+- [x] Slider: re-vendored to `dioxus_components`, integrated, legacy implementation removed.
 
 ## Class Debt Register (Source Of Truth For Deferred Cleanup)
 
@@ -140,9 +143,7 @@
 - [x] `badge*` debt in app callsites is cleared.
 - [x] `card*` debt in app callsites is cleared.
 - [x] `progress*` debt in app callsites is cleared.
-- [ ] `range*` debt:
-  - `crates/tasklens-ui/src/app_components/task_editor.rs`
-  - `crates/tasklens-ui/src/app_components/balance_slider.rs`
+- [x] `range*` debt: cleared.
 - [x] `dropdown*`/`menu*`/`modal*` debt:
   - `crates/tasklens-ui/src/dioxus_components/dialog/component.rs` (uses upstream `dialog-backdrop` and `dialog`)
 - [x] Native date/datetime wrapper utility-class debt: cleared (legacy `date_picker` removed, new wrappers use CSS modules).

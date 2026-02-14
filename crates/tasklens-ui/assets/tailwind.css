@@ -2570,12 +2570,6 @@
       --alert-color: var(--color-success);
     }
   }
-  .range-primary {
-    @layer daisyui.l1.l2 {
-      color: var(--color-primary);
-      --range-thumb: var(--color-primary-content);
-    }
-  }
   .text-base-content {
     color: var(--color-base-content);
   }
@@ -2700,11 +2694,6 @@
   .select-none {
     -webkit-user-select: none;
     user-select: none;
-  }
-  .range-xs {
-    @layer daisyui.l1.l2 {
-      --range-thumb-size: calc(var(--size-selector, 0.25rem) * 4);
-    }
   }
   .group-hover\:opacity-100 {
     &:is(:where(.group):hover *) {

@@ -1,3 +1,6 @@
+use crate::dioxus_components::slider::{
+    Slider, SliderRange, SliderThumb, SliderTrack, SliderValue,
+};
 use dioxus::prelude::*;
 
 #[derive(Props, Clone, PartialEq)]
@@ -13,23 +16,17 @@ pub(crate) struct BalanceSliderProps {
 #[component]
 pub(crate) fn BalanceSlider(props: BalanceSliderProps) -> Element {
     rsx! {
-        input {
-            r#type: "range",
-            class: "range range-primary range-xs",
-            min: "{props.min}",
-            max: "{props.max}",
-            step: "{props.step}",
-            value: "{props.value}",
-            oninput: move |evt| {
-                if let Ok(new_value) = evt.value().parse::<f64>() {
-                    props.oninput.call(new_value);
-                }
+        Slider {
+            min: props.min,
+            max: props.max,
+            step: props.step,
+            value: Some(SliderValue::Single(props.value)),
+            on_value_change: move |new_value| {
+                let SliderValue::Single(val) = new_value;
+                props.oninput.call(val);
+                props.onchange.call(val);
             },
-            onchange: move |evt| {
-                if let Ok(new_value) = evt.value().parse::<f64>() {
-                    props.onchange.call(new_value);
-                }
-            }
+            SliderTrack { SliderRange {} SliderThumb {} }
         }
     }
 }

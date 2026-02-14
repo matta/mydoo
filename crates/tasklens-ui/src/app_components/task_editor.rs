@@ -4,8 +4,12 @@ use crate::app_components::MovePicker;
 use crate::components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::input::Input;
+use crate::dioxus_components::label::Label;
 use crate::dioxus_components::select::{
     Select, SelectList, SelectOption, SelectTrigger, SelectValue,
+};
+use crate::dioxus_components::slider::{
+    Slider, SliderRange, SliderThumb, SliderTrack, SliderValue,
 };
 use crate::dioxus_components::switch::{Switch, SwitchThumb};
 use crate::dioxus_components::textarea::Textarea;
@@ -263,9 +267,9 @@ pub(crate) fn TaskEditor(
                         }
                         div { class: "w-full space-y-4",
                             div {
-                                label {
+                                Label {
                                     class: "label p-0 mb-1.5",
-                                    r#for: "task-title-input",
+                                    html_for: "task-title-input",
                                     span { class: "label-text font-semibold", "Title" }
                                 }
                                 Input {
@@ -293,9 +297,9 @@ pub(crate) fn TaskEditor(
                             }
 
                             div {
-                                label {
+                                Label {
                                     class: "label p-0 mb-1.5",
-                                    r#for: "notes-input",
+                                    html_for: "notes-input",
                                     span { class: "label-text font-semibold", "Notes" }
                                 }
                                 Textarea {
@@ -324,9 +328,9 @@ pub(crate) fn TaskEditor(
                             }
                             div { class: "space-y-6 w-full",
                                 div {
-                                    label {
+                                    Label {
                                         class: "label p-0 mb-2 flex justify-between",
-                                        r#for: "importance-input",
+                                        html_for: "importance-input",
                                         span { class: "label-text font-medium",
                                             "Importance: "
                                             span { class: "label-text-alt font-mono opacity-70",
@@ -334,31 +338,29 @@ pub(crate) fn TaskEditor(
                                             }
                                         }
                                     }
-                                    input {
-                                        r#type: "range",
+                                    Slider {
                                         id: "importance-input",
-                                        class: "range range-primary range-xs",
                                         min: 0.0,
                                         max: 1.0,
                                         step: 0.1,
-                                        value: current_draft.importance,
-                                        oninput: move |v| {
-                                            if let Ok(val) = v.value().parse::<f64>() {
-                                                draft
-                                                    .with_mut(|task| {
-                                                        if let Some(task) = task.as_mut() {
-                                                            task.importance = val;
-                                                        }
-                                                    });
-                                            }
+                                        value: Some(SliderValue::Single(current_draft.importance)),
+                                        on_value_change: move |val| {
+                                            let SliderValue::Single(val) = val;
+                                            draft
+                                                .with_mut(|task| {
+                                                    if let Some(task) = task.as_mut() {
+                                                        task.importance = val;
+                                                    }
+                                                });
                                         },
+                                        SliderTrack { SliderRange {} SliderThumb {} }
                                     }
                                 }
 
                                 div {
-                                    label {
+                                    Label {
                                         class: "label p-0 mb-2 flex justify-between",
-                                        r#for: "effort-input",
+                                        html_for: "effort-input",
                                         span { class: "label-text font-medium",
                                             "Effort: "
                                             span { class: "label-text-alt font-mono opacity-70",
@@ -366,24 +368,22 @@ pub(crate) fn TaskEditor(
                                             }
                                         }
                                     }
-                                    input {
-                                        r#type: "range",
+                                    Slider {
                                         id: "effort-input",
-                                        class: "range range-primary range-xs",
                                         min: 0.0,
                                         max: 1.0,
                                         step: 0.1,
-                                        value: current_draft.credit_increment.unwrap_or(0.5),
-                                        oninput: move |v| {
-                                            if let Ok(val) = v.value().parse::<f64>() {
-                                                draft
-                                                    .with_mut(|task| {
-                                                        if let Some(task) = task.as_mut() {
-                                                            task.credit_increment = Some(val);
-                                                        }
-                                                    });
-                                            }
+                                        value: Some(SliderValue::Single(current_draft.credit_increment.unwrap_or(0.5))),
+                                        on_value_change: move |val| {
+                                            let SliderValue::Single(val) = val;
+                                            draft
+                                                .with_mut(|task| {
+                                                    if let Some(task) = task.as_mut() {
+                                                        task.credit_increment = Some(val);
+                                                    }
+                                                });
                                         },
+                                        SliderTrack { SliderRange {} SliderThumb {} }
                                     }
                                 }
                             }
@@ -394,9 +394,9 @@ pub(crate) fn TaskEditor(
                                 "Location"
                             }
                             div { class: "w-full",
-                                label {
+                                Label {
                                     class: "label p-0 mb-2",
-                                    r#for: "place-select",
+                                    html_for: "place-select",
                                     span { class: "label-text font-medium", "Place" }
                                 }
                                 {
@@ -442,9 +442,9 @@ pub(crate) fn TaskEditor(
                         }
                         div { class: "grid grid-cols-1 md:grid-cols-2 gap-6 w-full",
                             div {
-                                label {
+                                Label {
                                     class: "label p-0 mb-2",
-                                    r#for: "schedule-type-select",
+                                    html_for: "schedule-type-select",
                                     span { class: "label-text font-medium", "Schedule Type" }
                                 }
                                 Select {
@@ -491,9 +491,9 @@ pub(crate) fn TaskEditor(
 
                             if matches!(current_draft.schedule.schedule_type, ScheduleType::Routinely) {
                                 div {
-                                    label {
+                                    Label {
                                         class: "label p-0 mb-2",
-                                        r#for: "repetition-interval-input",
+                                        html_for: "repetition-interval-input",
                                         span { class: "label-text font-medium", "Repeat Every" }
                                     }
                                     div { class: "flex w-full gap-2",
@@ -580,9 +580,9 @@ pub(crate) fn TaskEditor(
                             )
                             {
                                 div {
-                                    label {
+                                    Label {
                                         class: "label p-0 mb-2",
-                                        r#for: "date-input",
+                                        html_for: "date-input",
                                         span { class: "label-text font-medium", "Due Date" }
                                     }
                                     DateInput {
@@ -623,9 +623,9 @@ pub(crate) fn TaskEditor(
 
                             if !matches!(current_draft.schedule.schedule_type, ScheduleType::Once) {
                                 div {
-                                    label {
+                                    Label {
                                         class: "label p-0 mb-2",
-                                        r#for: "lead-time-scalar-input",
+                                        html_for: "lead-time-scalar-input",
                                         span { class: "label-text font-medium", "Lead Time" }
                                     }
                                     div { class: "flex w-full gap-2",
@@ -689,9 +689,9 @@ pub(crate) fn TaskEditor(
                     // Section: Additional Options
                     if task_id.is_some() {
                         fieldset { class: "bg-base-200/40 p-5 rounded-lg",
-                            label {
+                            Label {
                                 class: "flex items-center justify-between w-full cursor-pointer",
-                                r#for: "sequential-toggle",
+                                html_for: "sequential-toggle",
                                 div { class: "flex flex-col gap-0.5",
                                     span { class: "text-sm font-bold", "Sequential Project" }
                                     span { class: "text-xs opacity-60 font-medium",

@@ -7,6 +7,5 @@ pub(crate) mod alert;
 pub(crate) mod dialog;
 pub(crate) mod navbar;
 pub(crate) mod popover;
-pub(crate) mod slider;
 
 pub(crate) use alert::{Alert, AlertVariant};
