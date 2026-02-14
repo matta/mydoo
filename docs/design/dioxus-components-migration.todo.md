@@ -37,6 +37,7 @@ git show <commit>:docs/design/dioxus-components-migration.todo.md
   - [x] Popover: re-sync with upstream formatting and CSS.
   - [x] Replace `Alert` usage with app-owned styling (no `alert-*` Daisy/Tailwind tokens).
   - [x] Remove now-unused modules from `crates/tasklens-ui/src/components`. (Note: shim modules still exist but callsites migrated).
+  - [x] Keep vendored `dioxus_components` on upstream `style.css` + `document::Link` patterns (no CSS-module conversion in vendored code).
 - [x] Slice TW2: de-tailwind Task Editor surfaces.
   - [x] `crates/tasklens-ui/src/app_components/task_editor.rs`
   - [x] `crates/tasklens-ui/src/app_components/move_picker.rs`
@@ -52,14 +53,19 @@ git show <commit>:docs/design/dioxus-components-migration.todo.md
   - [ ] `crates/tasklens-ui/src/app_components/page_header.rs`
   - [ ] `crates/tasklens-ui/src/app_components/back_button.rs`
 - [ ] Slice TW4: de-tailwind page shells and analytics surfaces.
+  - [ ] `crates/tasklens-ui/src/views/plan_page.rs`
+  - [ ] `crates/tasklens-ui/src/views/do_page.rs`
+  - [ ] `crates/tasklens-ui/src/views/task_page.rs`
+  - [ ] `crates/tasklens-ui/src/views/balance_page.rs`
+  - [ ] `crates/tasklens-ui/src/views/score_trace_page.rs`
 - [ ] Slice TW5: remove Tailwind runtime and close Phase 2.
-
-- [ ] Migrate remaining legacy Dioxus component implementations/imports out of `crates/tasklens-ui/src/components` incrementally by vendoring into `crates/tasklens-ui/src/dioxus_components` and migrating callsites.
-- [ ] Keep `crates/tasklens-ui/src/components` only as a temporary compatibility shim until all imports are migrated, then remove it.
-- [ ] Verify adopted components still match upstream styling/API expectations:
-  - [ ] Navbar: re-sync with upstream formatting and CSS.
-  - [ ] Popover: re-sync with upstream formatting and CSS.
-- [ ] Keep vendored `dioxus_components` on upstream `style.css` + `document::Link` patterns (no CSS-module conversion in vendored code).
+  - [ ] Interim signal: generated `crates/tasklens-ui/assets/tailwind.css` is near-empty/no-app-utility output and materially smaller than the current ~1196-line baseline.
+  - [ ] Remove `crates/tasklens-ui/tailwind.css`.
+  - [ ] Remove `crates/tasklens-ui/assets/tailwind.css`.
+  - [ ] Remove Tailwind stylesheet link from `crates/tasklens-ui/src/main.rs`.
+  - [ ] Restore pristine upstream `crates/tasklens-ui/assets/dx-components-theme.css`.
+  - [ ] Keep app overrides in `crates/tasklens-ui/assets/app.css`.
+  - [ ] `just verify` passes.
 
 ## Two-Phase DaisyUI Then Tailwind Exit Gates
 
@@ -72,12 +78,19 @@ Phase 1 (DaisyUI removal): complete.
 
 Phase 2 (Tailwind removal): remaining.
 
-- [ ] Gate 5: Remove Tailwind inputs/outputs (`tailwind.css`, `assets/tailwind.css`, stylesheet link in `src/main.rs`).
-- [ ] Gate 6: Restore pristine upstream `dx-components-theme.css`; keep app overrides in `assets/app.css`.
-- [ ] Gate 7: Run `just verify` successfully after Tailwind removal.
+- [ ] Gate 5: Remove Tailwind utility usage from app-owned Rust callsites (`src/app_components`, `src/views`, and app root wrappers).
+- [ ] Gate 6: Tailwind output proves no remaining utility dependency before removal (`assets/tailwind.css` near-empty/no app utility selectors), then remove Tailwind input/output and stylesheet link.
+- [ ] Gate 7: Restore pristine upstream `dx-components-theme.css`, keep app overrides in `assets/app.css`, and run `just verify`.
 
-## Audit Command
+## Audit Commands
 
 ```bash
 rg -n 'class:\s*(format!\(|format_args!\(|"[^"]*\b(btn|input|select|textarea|toggle|card|badge|progress|dropdown|menu|modal|loading|fieldset|join|bg-base-|text-base-|border-base-|text-primary)\b[^"]*")' crates/tasklens-ui/src --glob '*.rs'
+
+# Phase 2 utility-class debt inventory (app-owned callsites)
+rg -n 'class:\s*"[^"]*\b(container|mx-auto|max-w-|min-h-screen|flex|grid|gap-|space-|p[trblxy]?-[0-9]|m[trblxy]?-[0-9]|w-|h-|text-(xs|sm|base|lg|2xl)|font-(bold|medium|semibold)|rounded|border|shadow|overflow-|items-|justify-|cursor-|transition-|opacity-|hover:|absolute|relative|z-|top-|left-|right-|bottom-)\b[^"]*"' crates/tasklens-ui/src/{app_components,views,main.rs} --glob '*.rs'
+
+# Tailwind output health check (user-visible Phase 2 signal)
+wc -l crates/tasklens-ui/assets/tailwind.css
+rg -n '\.(container|max-w-2xl|grid-cols-2|bg-app-surface|border-app-border|text-xs|font-bold|rounded-md)\b' crates/tasklens-ui/assets/tailwind.css
 ```
