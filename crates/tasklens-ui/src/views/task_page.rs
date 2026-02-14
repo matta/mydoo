@@ -4,6 +4,7 @@
 //! It handles state management, synchronization integration, and the composition of the main page.
 
 use crate::app_components::{LoadErrorView, PageHeader, TaskInput};
+use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::checkbox::Checkbox;
 use dioxus::prelude::*;
 use dioxus_primitives::checkbox::CheckboxState;
@@ -68,8 +69,9 @@ pub fn TaskPage() -> Element {
             style: "padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
             PageHeader { title: "TaskLens",
                 if service_worker_active() {
-                    div {
-                        class: "badge badge-info mr-2",
+                    Badge {
+                        variant: BadgeVariant::Primary,
+                        class: "mr-2",
                         title: "Service Worker Active",
                         "Offline Ready"
                     }

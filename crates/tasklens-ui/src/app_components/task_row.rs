@@ -1,3 +1,4 @@
+use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::checkbox::Checkbox;
 use chrono::{Datelike, TimeZone};
@@ -63,12 +64,16 @@ pub(crate) fn TaskRow(
     let now = js_sys::Date::now() as i64;
     let urgency = get_urgency_status(effective_due_date, effective_lead_time, now);
 
-    let (urgency_text_class, badge_class, urgency_label) = match urgency {
-        UrgencyStatus::Overdue => ("text-error font-medium", "badge-error", "Overdue"),
-        UrgencyStatus::Urgent => ("text-warning", "badge-warning", "Urgent"),
-        UrgencyStatus::Active => ("text-warning", "badge-warning", "Active"),
-        UrgencyStatus::Upcoming => ("text-base-content", "badge-info", "Upcoming"),
-        _ => ("text-base-content", "badge-neutral", ""),
+    let (urgency_text_class, badge_variant, urgency_label) = match urgency {
+        UrgencyStatus::Overdue => (
+            "text-error font-medium",
+            BadgeVariant::Destructive,
+            "Overdue",
+        ),
+        UrgencyStatus::Urgent => ("text-warning", BadgeVariant::Secondary, "Urgent"),
+        UrgencyStatus::Active => ("text-warning", BadgeVariant::Secondary, "Active"),
+        UrgencyStatus::Upcoming => ("text-base-content", BadgeVariant::Primary, "Upcoming"),
+        _ => ("text-base-content", BadgeVariant::Outline, ""),
     };
 
     let data_urgency = if urgency_label.is_empty() {
@@ -158,10 +163,11 @@ pub(crate) fn TaskRow(
 
             // Urgency indicator badge
             if urgency != UrgencyStatus::None {
-                span {
+                Badge {
+                    variant: badge_variant,
                     "data-testid": "urgency-badge",
                     "data-urgency": "{data_urgency}",
-                    class: "badge badge-sm {badge_class} ml-2",
+                    class: "ml-2",
                     "{urgency_label}"
                 }
             }

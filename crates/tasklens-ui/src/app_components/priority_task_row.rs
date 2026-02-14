@@ -1,3 +1,4 @@
+use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::checkbox::Checkbox;
 use crate::router::Route;
 use dioxus::prelude::*;
@@ -14,12 +15,12 @@ pub(crate) fn PriorityTaskRow(
     let task_id_toggle = task.id.clone();
     let task_id_tap = task.id.clone();
 
-    let urgency_class = match task.urgency_status {
-        UrgencyStatus::Overdue => "badge-error",
-        UrgencyStatus::Urgent => "badge-warning",
-        UrgencyStatus::Active => "badge-info",
-        UrgencyStatus::Upcoming => "badge-success",
-        UrgencyStatus::None => "hidden",
+    let urgency_variant = match task.urgency_status {
+        UrgencyStatus::Overdue => Some(BadgeVariant::Destructive),
+        UrgencyStatus::Urgent => Some(BadgeVariant::Secondary),
+        UrgencyStatus::Active => Some(BadgeVariant::Primary),
+        UrgencyStatus::Upcoming => Some(BadgeVariant::Secondary), // success -> secondary? or primary?
+        UrgencyStatus::None => None,
     };
 
     let urgency_label = match task.urgency_status {
@@ -65,12 +66,15 @@ pub(crate) fn PriorityTaskRow(
                 "Score {score_label}"
             }
 
-            if !is_done && !urgency_label.is_empty() {
-                span {
-                    class: format_args!("badge badge-sm ml-2 {}", urgency_class),
-                    "data-testid": "urgency-badge",
-                    "data-urgency": "{task.urgency_status:?}".to_lowercase(),
-                    "{urgency_label}"
+            if !is_done {
+                if let Some(variant) = urgency_variant {
+                    Badge {
+                        variant,
+                        class: "ml-2",
+                        "data-testid": "urgency-badge",
+                        "data-urgency": "{task.urgency_status:?}".to_lowercase(),
+                        "{urgency_label}"
+                    }
                 }
             }
         }
