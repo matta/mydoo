@@ -244,13 +244,13 @@ pub(crate) fn TaskEditor(
                                 });
                                 on_close.call(());
                             },
-                            span { class: "sr-only", "Find in Plan" }
+                            span { class: Styles::screen_reader_only, "Find in Plan" }
                             svg {
                                 "fill": "none",
                                 "viewBox": "0 0 24 24",
                                 "stroke-width": "2",
                                 "stroke": "currentColor",
-                                class: "size-5",
+                                class: Styles::find_in_plan_icon,
                                 path {
                                     "stroke-linecap": "round",
                                     "stroke-linejoin": "round",
@@ -790,7 +790,7 @@ pub(crate) fn TaskEditor(
                         if task_id.is_some() {
                             Button {
                                 variant: ButtonVariant::Ghost,
-                                class: "{Styles::btn_delete} footer_button_full",
+                                class: "{Styles::btn_delete} {Styles::footer_button_full}",
                                 onclick: on_delete,
                                 "Delete Task"
                             }
@@ -799,13 +799,13 @@ pub(crate) fn TaskEditor(
                     div { class: "dialog-footer-actions",
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: "footer_button_full {Styles::footer_cancel_btn}",
+                            class: "{Styles::footer_button_full} {Styles::footer_cancel_btn}",
                             onclick: move |_| on_close.call(()),
                             "Cancel"
                         }
                         Button {
                             variant: ButtonVariant::Primary,
-                            class: "{Styles::btn_save} footer_button_full",
+                            class: "{Styles::btn_save} {Styles::footer_button_full}",
                             onclick: move |_| save_handler(),
                             if task_id.is_some() {
                                 "Save Changes"

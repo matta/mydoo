@@ -14,6 +14,7 @@
 - The active chunk must point to the highest-impact remaining debt, not only the next component name.
 - Keep migration inventory/status in `dioxus-components-migration.md` synced in the same change as checklist updates.
 - Do not introduce new DaisyUI classes.
+- For app-owned callsite utility replacements, prefer component-scoped CSS module classes over adding new shared utility helpers in `crates/tasklens-ui/assets/app.css`.
 
 ## Completed Work (Condensed)
 
@@ -28,6 +29,25 @@ For full historical detail on removed checklist items, inspect git history:
 git log -- docs/design/dioxus-components-migration.todo.md
 git show <commit>:docs/design/dioxus-components-migration.todo.md
 ```
+
+## Tailwind Audit Snapshot (2026-02-15)
+
+- Pre-removal baseline: generated `crates/tasklens-ui/assets/tailwind.css` was `394` lines (`wc -l`) after TW5a/TW5b.
+- TW5c removed Tailwind runtime files and stylesheet wiring:
+  - `crates/tasklens-ui/tailwind.css`
+  - `crates/tasklens-ui/assets/tailwind.css`
+  - Tailwind stylesheet link in `crates/tasklens-ui/src/main.rs`
+- Remaining app-owned Rust utility dependencies from the TW5a checklist (`sr-only`, `size-5`) are removed from app-owned callsites.
+- `crates/tasklens-ui/assets/dx-components-theme.css` remains pristine upstream (no local delta vs `origin/main`).
+- TW5b app-owned reset inventory now covered in `crates/tasklens-ui/assets/app.css`:
+  - Heading inheritance (`h1`-`h6` font-size/font-weight)
+  - List defaults (`ol`/`ul`/`menu` list-style + spacing reset)
+  - Media defaults (`img`/`svg`/`video`/`canvas` display behavior and responsive sizing for `img`/`video`)
+  - Form control inheritance (`button`/`input`/`select`/`textarea`/`::file-selector-button`)
+  - Hidden behavior (`[hidden]:where(:not([hidden="until-found"]))`)
+- TW5b canary validation with Tailwind stylesheet link temporarily removed from `src/main.rs`:
+  - `just test-e2e-desktop -- tests/e2e/specs/smoke.spec.ts tests/e2e/specs/task-search.spec.ts`
+  - Result: `13 passed` (desktop targeted canary set)
 
 ## Current Critical Path (Execute Top To Bottom)
 
@@ -58,14 +78,23 @@ git show <commit>:docs/design/dioxus-components-migration.todo.md
   - [x] `crates/tasklens-ui/src/views/task_page.rs`
   - [x] `crates/tasklens-ui/src/views/balance_page.rs`
   - [x] `crates/tasklens-ui/src/views/score_trace_page.rs`
-- [ ] Slice TW5: remove Tailwind runtime and close Phase 2.
-  - [ ] Interim signal: generated `crates/tasklens-ui/assets/tailwind.css` is near-empty/no-app-utility output and materially smaller than the current ~1196-line baseline.
-  - [ ] Remove `crates/tasklens-ui/tailwind.css`.
-  - [ ] Remove `crates/tasklens-ui/assets/tailwind.css`.
-  - [ ] Remove Tailwind stylesheet link from `crates/tasklens-ui/src/main.rs`.
-  - [ ] Restore pristine upstream `crates/tasklens-ui/assets/dx-components-theme.css`.
-  - [ ] Keep app overrides in `crates/tasklens-ui/assets/app.css`.
-  - [ ] `just verify` passes.
+- [x] Slice TW5a: harden utility signal before runtime removal.
+  - [x] Replace remaining utility-class dependencies in app-owned Rust callsites (`sr-only`, `size-5`) with app-owned semantic classes/CSS modules at point of use.
+  - [x] Remove `@apply` usage from `crates/tasklens-ui/tailwind.css` and use explicit CSS declarations.
+  - [x] Tighten Tailwind extraction scope (`@source`) to reduce false-positive utility generation and re-baseline output size.
+  - [x] Update this checklist and the active plan doc with the new baseline after re-generation.
+- [x] Slice TW5b: run reset-dependency canary and move required base behavior into app CSS.
+  - [x] Inventory app behavior currently supplied by Tailwind preflight/reset (form defaults, heading/list defaults, media defaults, hidden behavior).
+  - [x] Add only required base/reset rules to `crates/tasklens-ui/assets/app.css`.
+  - [x] Validate UI behavior with Tailwind stylesheet temporarily disabled before deleting Tailwind files.
+- [x] Slice TW5c: remove Tailwind runtime and close Phase 2.
+  - [x] Interim signal: generated `crates/tasklens-ui/assets/tailwind.css` showed no app-owned utility selectors and was dominated by intentional base/reset content (394-line baseline on 2026-02-15 after TW5a/TW5b).
+  - [x] Remove `crates/tasklens-ui/tailwind.css`.
+  - [x] Remove `crates/tasklens-ui/assets/tailwind.css`.
+  - [x] Remove Tailwind stylesheet link from `crates/tasklens-ui/src/main.rs`.
+  - [x] Restore pristine upstream `crates/tasklens-ui/assets/dx-components-theme.css`.
+  - [x] Keep app overrides in `crates/tasklens-ui/assets/app.css`.
+  - [x] `just verify` passes.
 
 ## Two-Phase DaisyUI Then Tailwind Exit Gates
 
@@ -76,11 +105,12 @@ Phase 1 (DaisyUI removal): complete.
 - [x] Gate 3: DaisyUI plugin usage removed from Tailwind configuration.
 - [x] Gate 4: `just verify` passed after DaisyUI removal.
 
-Phase 2 (Tailwind removal): remaining.
+Phase 2 (Tailwind removal): complete.
 
-- [x] Gate 5: Remove Tailwind utility usage from app-owned Rust callsites (`src/app_components`, `src/views`, and app root wrappers).
-- [ ] Gate 6: Tailwind output proves no remaining utility dependency before removal (`assets/tailwind.css` near-empty/no app utility selectors), then remove Tailwind input/output and stylesheet link.
-- [ ] Gate 7: Restore pristine upstream `dx-components-theme.css`, keep app overrides in `assets/app.css`, and run `just verify`.
+- [x] Gate 5: No app-owned Rust callsites depend on Tailwind utility selectors (`sr-only`, `size-5`, and similar).
+- [x] Gate 6: No Tailwind-only directives remain in app-owned Tailwind input (`@apply` removed; runtime dependency isolated to explicit reset decision).
+- [x] Gate 7: Reset-dependency canary passes after moving required base behavior into `assets/app.css`.
+- [x] Gate 8: Remove Tailwind input/output and stylesheet link, restore pristine upstream `dx-components-theme.css`, keep app overrides in `assets/app.css`, and run `just verify`.
 
 ## Audit Commands
 
@@ -90,7 +120,11 @@ rg -n 'class:\s*(format!\(|format_args!\(|"[^"]*\b(btn|input|select|textarea|tog
 # Phase 2 utility-class debt inventory (app-owned callsites)
 rg -n 'class:\s*"[^"]*\b(container|mx-auto|max-w-|min-h-screen|flex|grid|gap-|space-|p[trblxy]?-[0-9]|m[trblxy]?-[0-9]|w-|h-|text-(xs|sm|base|lg|2xl)|font-(bold|medium|semibold)|rounded|border|shadow|overflow-|items-|justify-|cursor-|transition-|opacity-|hover:|absolute|relative|z-|top-|left-|right-|bottom-)\b[^"]*"' crates/tasklens-ui/src/{app_components,views,main.rs} --glob '*.rs'
 
-# Tailwind output health check (user-visible Phase 2 signal)
-wc -l crates/tasklens-ui/assets/tailwind.css
-rg -n '\.(container|max-w-2xl|grid-cols-2|bg-app-surface|border-app-border|text-xs|font-bold|rounded-md)\b' crates/tasklens-ui/assets/tailwind.css
+# Phase 2 residual utility dependencies in app-owned Rust callsites
+rg -n 'class:\s*"[^"]*\b(sr-only|size-5)\b[^"]*"' crates/tasklens-ui/src/{app_components,views,main.rs} --glob '*.rs'
+
+# Tailwind runtime removal check (post-TW5c)
+test ! -f crates/tasklens-ui/tailwind.css
+test ! -f crates/tasklens-ui/assets/tailwind.css
+rg -n '/assets/tailwind.css|tailwind.css' crates/tasklens-ui/src --glob '*.rs'
 ```

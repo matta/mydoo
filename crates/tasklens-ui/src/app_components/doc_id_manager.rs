@@ -210,7 +210,7 @@ pub(crate) fn DocIdManager(
                     }
                     if let Some(id) = current_doc_id() {
                         span {
-                            class: "sr-only",
+                            class: Styles::screen_reader_only,
                             "data-testid": "full-document-id",
                             "{id}"
                         }

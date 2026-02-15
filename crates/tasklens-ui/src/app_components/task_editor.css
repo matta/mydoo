@@ -79,6 +79,23 @@
   font-weight: 500;
 }
 
+.screen_reader_only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.find_in_plan_icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 .sequential_label_group {
   display: flex;
   flex-direction: column;
@@ -126,6 +143,16 @@
 .footer_cancel_btn {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
+}
+
+.footer_button_full {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .footer_button_full {
+    width: auto;
+  }
 }
 
 .notes_area {
