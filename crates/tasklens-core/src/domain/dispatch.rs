@@ -5,7 +5,10 @@ use thiserror::Error;
 
 use crate::{
     Action, PlaceUpdates, TaskUpdates,
-    domain::{doc_bridge, lifecycle, routine_tasks},
+    domain::{
+        constants::{MAX_NOTES_LENGTH, MAX_PLACE_NAME_LENGTH, MAX_TITLE_LENGTH},
+        doc_bridge, lifecycle, routine_tasks,
+    },
     types::{
         PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_option_f64,
         hydrate_option_i64, hydrate_option_maybe_missing,
@@ -52,6 +55,9 @@ pub enum DispatchError {
 
     #[error("Inconsistency: {0}")]
     Inconsistency(String),
+
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
 
     #[error("Operation failed: {0}")]
     Internal(String),
@@ -164,6 +170,18 @@ fn handle_create_place(
     hours: String,
     included_places: Vec<crate::types::PlaceID>,
 ) -> Result<()> {
+    if name.trim().is_empty() {
+        return Err(DispatchError::InvalidInput(
+            "Place name cannot be empty".to_string(),
+        ));
+    }
+    if name.len() > MAX_PLACE_NAME_LENGTH {
+        return Err(DispatchError::InvalidInput(format!(
+            "Place name exceeds max length of {}",
+            MAX_PLACE_NAME_LENGTH
+        )));
+    }
+
     let places_obj_id = ensure_path(doc, &automerge::ROOT, vec!["places"])?;
 
     let place = crate::types::Place {
@@ -192,6 +210,17 @@ fn handle_update_place(
     };
 
     if let Some(name) = updates.name {
+        if name.trim().is_empty() {
+            return Err(DispatchError::InvalidInput(
+                "Place name cannot be empty".to_string(),
+            ));
+        }
+        if name.len() > MAX_PLACE_NAME_LENGTH {
+            return Err(DispatchError::InvalidInput(format!(
+                "Place name exceeds max length of {}",
+                MAX_PLACE_NAME_LENGTH
+            )));
+        }
         autosurgeon::reconcile_prop(doc, &place_obj_id, "name", name)
             .map_err(DispatchError::from)?;
     }
@@ -277,6 +306,18 @@ fn handle_create_task(
     parent_id: Option<TaskID>,
     title: String,
 ) -> Result<()> {
+    if title.trim().is_empty() {
+        return Err(DispatchError::InvalidInput(
+            "Title cannot be empty".to_string(),
+        ));
+    }
+    if title.len() > MAX_TITLE_LENGTH {
+        return Err(DispatchError::InvalidInput(format!(
+            "Title exceeds max length of {}",
+            MAX_TITLE_LENGTH
+        )));
+    }
+
     let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
 
     let parent = if let Some(pid) = &parent_id {
@@ -364,10 +405,27 @@ fn apply_basic_updates(
     updates: &TaskUpdates,
 ) -> Result<()> {
     if let Some(title) = &updates.title {
+        if title.trim().is_empty() {
+            return Err(DispatchError::InvalidInput(
+                "Title cannot be empty".to_string(),
+            ));
+        }
+        if title.len() > MAX_TITLE_LENGTH {
+            return Err(DispatchError::InvalidInput(format!(
+                "Title exceeds max length of {}",
+                MAX_TITLE_LENGTH
+            )));
+        }
         autosurgeon::reconcile_prop(doc, task_obj_id, "title", title)
             .map_err(DispatchError::from)?;
     }
     if let Some(notes) = &updates.notes {
+        if notes.len() > MAX_NOTES_LENGTH {
+            return Err(DispatchError::InvalidInput(format!(
+                "Notes exceeds max length of {}",
+                MAX_NOTES_LENGTH
+            )));
+        }
         autosurgeon::reconcile_prop(doc, task_obj_id, "notes", notes)
             .map_err(DispatchError::from)?;
     }
