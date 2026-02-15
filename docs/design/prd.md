@@ -64,9 +64,9 @@ tasks). The device is the source of truth.
 
 - **Language:** TypeScript (Strict `noImplicitAny`, `strictNullChecks`).
 - **Framework:** React + Vite (PWA).
-- **State:** Automerge (`@automerge/automerge-repo`).
-- **Persistence:** IndexedDB (`automerge-repo-storage-indexeddb`).
-- **Network:** WebSocket (`automerge-repo-network-websocket`).
+- **State:** Automerge (`tasklens-store`).
+- **Persistence:** IndexedDB (`rexie`).
+- **Network:** WebSocket (`samod`).
 
 ### 2.2 Data Schema
 

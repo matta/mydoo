@@ -8,8 +8,8 @@
 
 - **Frontend:** Dioxus (Rust) compiled to WASM.
 - **State Management:** `automerge` (CRDTs) wrapped in `tasklens-store`.
-- **Persistence:** IndexedDB via `rexie` (Dioxus) and `automerge-repo-storage-indexeddb`.
-- **Backend/Sync:** WebSocket via `automerge-repo-network-websocket`.
+- **Persistence:** IndexedDB via `rexie` (Dioxus).
+- **Backend/Sync:** WebSocket via custom Rust sync implementation.
 - **Core Logic:** Rust/WASM (shared via `tasklens-core`).
 
 ## 2. Key Documentation
