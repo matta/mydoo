@@ -5,7 +5,7 @@ use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
-use tasklens_core::types::{PersistedTask, TaskID, TaskStatus, TunnelState};
+use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
 
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
@@ -222,7 +222,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                                 key: "{id}",
                                                 id: id.clone(),
                                                 title: title.clone(),
-                                                status: status.clone(),
+                                                status,
                                                 depth,
                                                 on_toggle: toggle_task,
                                                 has_children,
