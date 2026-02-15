@@ -31,7 +31,7 @@ pub fn SettingsModal(
 
     rsx! {
         DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
-            DialogContent { class: format_args!("{}", "dialog-lg"),
+            DialogContent { class: Some("dialog-lg".to_string()),
                 DialogTitle { "Document Management" }
 
                 div { class: Styles::settings_body,

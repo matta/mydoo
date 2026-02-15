@@ -147,5 +147,5 @@
 
 .btn_save {
   min-width: 140px;
-  box-shadow: 0 10px 15px -3px var(--app-primary-shadow-color);
+  box-shadow: 0 10px 15px -3px var(--app_primary-shadow-color);
 }

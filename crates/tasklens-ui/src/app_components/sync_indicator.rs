@@ -53,7 +53,7 @@ pub(crate) fn SyncIndicator() -> Element {
         SyncStatus::Error(_e) => (Styles::status_error, "Error"),
     };
 
-    let dot_class = format!("{} {}", Styles::status_dot, color_class);
+    let dot_class = format_args!("{} {}", Styles::status_dot, color_class);
 
     rsx! {
         div {

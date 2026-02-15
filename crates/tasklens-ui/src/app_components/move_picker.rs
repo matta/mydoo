@@ -53,7 +53,7 @@ pub(crate) fn MovePicker(
             open: true,
             on_open_change: move |_| on_close.call(()),
             DialogContent {
-                class: format_args!("{}", "dialog-md"),
+                class: Some("dialog-md".to_string()),
                 DialogTitle { "Move \"{task_title}\"" }
 
                 div { class: Styles::item_picker_list,

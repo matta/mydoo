@@ -18,7 +18,7 @@
 }
 
 .empty_state_text {
-  color: var(--app-text);
+  color: var(--app_text);
   opacity: 0.6;
   margin-bottom: 1rem;
 }

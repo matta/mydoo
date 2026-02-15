@@ -33,12 +33,12 @@ pub(crate) fn PriorityTaskRow(
         UrgencyStatus::Upcoming => "Upcoming",
         UrgencyStatus::None => "",
     };
-    let score_label = format!("{:.3}", task.score);
+    let score_label = format_args!("{:.3}", task.score);
 
     let title_class = if is_done {
-        format!("{} {}", Styles::title_container, Styles::title_done)
+        format_args!("{} {}", Styles::title_container, Styles::title_done)
     } else {
-        Styles::title_container.to_string()
+        format_args!("{}", Styles::title_container)
     };
 
     rsx! {
