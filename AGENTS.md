@@ -47,8 +47,8 @@ Use these documents to understand the system architecture and requirements:
 
 ### Environment Initialization
 
-- **Install:** `pnpm install` and `pnpm preflight`.
-- **Clean:** `scripts/aggressive-git-clean.sh` followed by `pnpm install` and `pnpm preflight`.
+- **Install:** `pnpm install`.
+- **Clean:** `scripts/aggressive-git-clean.sh` followed by `pnpm install`.
 
 ### Git Workflow
 
