@@ -40,3 +40,72 @@ pub(crate) fn period_to_ms(value: u32, unit: &str) -> i64 {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ms_to_period() {
+        // Multiples of Days
+        assert_eq!(ms_to_period(DAY_MS), (1, "Days".to_string()));
+        assert_eq!(ms_to_period(2 * DAY_MS), (2, "Days".to_string()));
+        assert_eq!(ms_to_period(7 * DAY_MS), (7, "Days".to_string()));
+
+        // Multiples of Hours (but not Days)
+        assert_eq!(ms_to_period(HOUR_MS), (1, "Hours".to_string()));
+        assert_eq!(ms_to_period(2 * HOUR_MS), (2, "Hours".to_string()));
+        assert_eq!(ms_to_period(23 * HOUR_MS), (23, "Hours".to_string()));
+        assert_eq!(ms_to_period(25 * HOUR_MS), (25, "Hours".to_string()));
+
+        // Multiples of Minutes (but not Hours)
+        assert_eq!(ms_to_period(MINUTE_MS), (1, "Minutes".to_string()));
+        assert_eq!(ms_to_period(59 * MINUTE_MS), (59, "Minutes".to_string()));
+        assert_eq!(ms_to_period(61 * MINUTE_MS), (61, "Minutes".to_string()));
+
+        // Edge cases and non-multiples
+        assert_eq!(ms_to_period(0), (0, "Minutes".to_string()));
+        assert_eq!(ms_to_period(30 * 1000), (0, "Minutes".to_string())); // 30 seconds
+        assert_eq!(ms_to_period(MINUTE_MS + 1), (1, "Minutes".to_string()));
+        assert_eq!(ms_to_period(HOUR_MS + 1), (60, "Minutes".to_string()));
+        assert_eq!(ms_to_period(DAY_MS + 1), (1440, "Minutes".to_string()));
+    }
+
+    #[test]
+    fn test_period_to_ms() {
+        // Minutes
+        assert_eq!(period_to_ms(1, "minutes"), MINUTE_MS);
+        assert_eq!(period_to_ms(2, "minute"), 2 * MINUTE_MS);
+        assert_eq!(period_to_ms(3, "mins"), 3 * MINUTE_MS);
+        assert_eq!(period_to_ms(4, "min"), 4 * MINUTE_MS);
+
+        // Hours
+        assert_eq!(period_to_ms(1, "hours"), HOUR_MS);
+        assert_eq!(period_to_ms(2, "hour"), 2 * HOUR_MS);
+        assert_eq!(period_to_ms(3, "hrs"), 3 * HOUR_MS);
+        assert_eq!(period_to_ms(4, "hr"), 4 * HOUR_MS);
+
+        // Days
+        assert_eq!(period_to_ms(1, "days"), DAY_MS);
+        assert_eq!(period_to_ms(2, "day"), 2 * DAY_MS);
+
+        // Weeks
+        assert_eq!(period_to_ms(1, "weeks"), WEEK_MS);
+        assert_eq!(period_to_ms(2, "week"), 2 * WEEK_MS);
+
+        // Months
+        assert_eq!(period_to_ms(1, "months"), DAY_MS * 30);
+        assert_eq!(period_to_ms(2, "month"), 2 * DAY_MS * 30);
+
+        // Years
+        assert_eq!(period_to_ms(1, "years"), DAY_MS * 365);
+        assert_eq!(period_to_ms(2, "year"), 2 * DAY_MS * 365);
+
+        // Case insensitivity
+        assert_eq!(period_to_ms(1, "DAYS"), DAY_MS);
+        assert_eq!(period_to_ms(1, "MinUTes"), MINUTE_MS);
+
+        // Unknown unit defaults to days
+        assert_eq!(period_to_ms(5, "unknown"), 5 * DAY_MS);
+    }
+}
