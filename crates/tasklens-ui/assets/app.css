@@ -1,6 +1,6 @@
 /*
  * App-level stylesheet bootstrap.
- * Keep this file additive while Tailwind/DaisyUI is still active.
+ * Defines app-owned base rules, shared layouts, utilities, and semantic styles.
  */
 
 :root {
@@ -12,9 +12,7 @@
 
   --icon-size-md: 1.5rem;
 
-  /* App semantic color tokens bridging upstream theme variables.
-   * These replace DaisyUI theme utilities (bg-base-*, text-base-content,
-   * border-base-*, text-primary) with upstream CSS variables from
+  /* App semantic color tokens mapped to upstream theme variables from
    * dx-components-theme.css.
    */
   --app_surface: var(--primary-color-2);
@@ -33,10 +31,14 @@
   min-height: 100vh;
 }
 
-/* --- Base Reset Canary (TW5b) --- */
+/* --- Base Defaults --- */
 /*
- * These rules explicitly preserve behavior currently supplied by Tailwind
- * preflight so we can remove Tailwind runtime safely in TW5c.
+ * Normalize element defaults used by app components:
+ * - headings inherit surrounding typography
+ * - lists render unstyled by default
+ * - media elements use block flow and responsive sizing
+ * - form controls inherit text styles
+ * - hidden elements remain non-rendered
  */
 h1,
 h2,
@@ -85,6 +87,8 @@ textarea,
   font-variation-settings: inherit;
   letter-spacing: inherit;
   color: inherit;
+  background-color: transparent;
+  border-radius: 0;
 }
 
 [hidden]:where(:not([hidden="until-found"])) {
@@ -155,7 +159,7 @@ textarea,
   }
 }
 
-/* --- App Utilities (Audit Safe) --- */
+/* --- App Utilities --- */
 
 .app_input-full {
   width: 100%;
