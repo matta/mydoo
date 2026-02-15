@@ -21,3 +21,12 @@ pub const MIN_PRIORITY: f64 = 0.001;
 
 /// Default lead time in milliseconds (8 hours).
 pub const DEFAULT_LEAD_TIME_MILLIS: i64 = 8 * 60 * 60 * 1000;
+
+/// Maximum length for task titles.
+pub const MAX_TITLE_LENGTH: usize = 500;
+
+/// Maximum length for task notes.
+pub const MAX_NOTES_LENGTH: usize = 50_000;
+
+/// Maximum length for place names.
+pub const MAX_PLACE_NAME_LENGTH: usize = 100;
