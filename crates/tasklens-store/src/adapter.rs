@@ -51,6 +51,9 @@ pub enum AdapterError {
     #[error("Inconsistency: {0}")]
     Inconsistency(String),
 
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
+
     #[error("Operation failed: {0}")]
     Internal(String),
 }
@@ -71,6 +74,7 @@ impl From<DispatchError> for AdapterError {
             DispatchError::PlaceNotFound(id) => AdapterError::PlaceNotFound(id),
             DispatchError::CannotDeleteAnywhere => AdapterError::CannotDeleteAnywhere,
             DispatchError::Inconsistency(s) => AdapterError::Inconsistency(s),
+            DispatchError::InvalidInput(s) => AdapterError::InvalidInput(s),
             DispatchError::Internal(s) => AdapterError::Internal(s),
         }
     }

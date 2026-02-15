@@ -2,7 +2,7 @@
 mod tests {
     use crate::domain::dispatch::{DispatchError, run_action};
     use crate::domain::doc_bridge;
-    use crate::types::{TaskID, TaskStatus, TunnelState};
+    use crate::types::{TaskID, TunnelState};
     use crate::{Action, TaskUpdates};
     use automerge::AutoCommit;
     use std::collections::HashMap;
