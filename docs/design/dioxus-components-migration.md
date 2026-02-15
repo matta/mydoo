@@ -32,13 +32,15 @@ git show <commit>:docs/design/dioxus-components-migration.md
 
 - Tailwind runtime is still linked while Phase 2 remains open.
 - `crates/tasklens-ui/src/components` compatibility shim has been removed (TW1 complete).
-- Generated `crates/tasklens-ui/assets/tailwind.css` is `395` lines as of 2026-02-15 after TW5a `@source` narrowing.
+- Generated `crates/tasklens-ui/assets/tailwind.css` is `394` lines as of 2026-02-15 after TW5a `@source` narrowing and TW5b reset canary.
 - Output still contains Tailwind preflight/reset and properties layers because `crates/tasklens-ui/tailwind.css` imports the Tailwind runtime.
 - Remaining app-owned utility dependencies tracked for TW5a are now removed from app-owned Rust callsites; continue auditing new callsites for regressions.
 - `@apply` has been removed from `crates/tasklens-ui/tailwind.css`; runtime dependency is now isolated to explicit reset/theme/base decisions.
 - Compiled output includes likely extraction noise selectors (for example `.container` and `.table`) with no matching app-owned Rust callsites.
 - `dx-components-theme.css` still needs a pristine-upstream restore with app overrides isolated to `assets/app.css`.
 - Tailwind utility usage matches in app-owned source: materially reduced after page-shell migration.
+- TW5b moved required preflight/reset behavior into `assets/app.css` for headings, lists, media defaults, form-control inheritance, and `[hidden]` behavior.
+- TW5b canary passed with Tailwind stylesheet temporarily disabled in `src/main.rs` using targeted desktop specs (`smoke` + `task-search`, `13 passed`).
 
 ## Slice Execution Guardrails
 
@@ -88,9 +90,9 @@ Known risk to remember for future vendoring:
 
 ## Tailwind Findings (2026-02-15)
 
-- Tailwind output dropped from the earlier ~1196-line planning baseline to 395 lines after TW5a `@source` narrowing and `@apply` removal, but is not yet removable.
+- Tailwind output dropped from the earlier ~1196-line planning baseline to 394 lines after TW5a `@source` narrowing, `@apply` removal, and TW5b canary verification, but is not yet removable.
 - The largest remaining CSS bulk appears to be Tailwind preflight/reset and `@property` scaffolding, not app utility selectors.
-- Before final removal, we need a canary slice that proves app behavior does not implicitly rely on preflight defaults.
+- TW5b canary proved baseline behavior with Tailwind stylesheet disabled after moving required reset behavior to `assets/app.css`.
 - Runtime removal should follow only after:
   - utility dependencies (`sr-only`, `size-5`) are replaced with app-owned classes,
   - `@apply` is removed from Tailwind input,
@@ -106,7 +108,7 @@ Phase 2 (Tailwind removal) completed TW1-TW4 and now uses a three-slice finish:
    - Keep app-owned utility dependencies (`sr-only`, `size-5`) removed by using app-owned semantic classes/CSS module rules at callsites.
    - Remove `@apply` from `crates/tasklens-ui/tailwind.css` so utility expansion is no longer required.
    - Tighten Tailwind extraction scope and re-baseline output.
-2. **Slice TW5b: Reset-dependency canary.**
+2. **Slice TW5b: Reset-dependency canary (complete).**
    - Identify which behaviors currently come from Tailwind preflight/reset.
    - Move only required base/reset behaviors into `crates/tasklens-ui/assets/app.css`.
    - Validate app behavior with Tailwind stylesheet disabled before deleting Tailwind files.
@@ -120,8 +122,7 @@ Phase 2 (Tailwind removal) completed TW1-TW4 and now uses a three-slice finish:
 
 ## Near-Term Priorities
 
-1. Execute Slice TW5b (reset-dependency canary and base-rule ownership transfer).
-2. Execute Slice TW5c (Tailwind runtime removal + final verify).
+1. Execute Slice TW5c (Tailwind runtime removal + final verify).
 
 ## Checklist
 

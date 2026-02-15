@@ -33,6 +33,64 @@
   min-height: 100vh;
 }
 
+/* --- Base Reset Canary (TW5b) --- */
+/*
+ * These rules explicitly preserve behavior currently supplied by Tailwind
+ * preflight so we can remove Tailwind runtime safely in TW5c.
+ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+ol,
+ul,
+menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block;
+  vertical-align: middle;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select,
+optgroup,
+textarea,
+::file-selector-button {
+  font: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+[hidden]:where(:not([hidden="until-found"])) {
+  display: none !important;
+}
+
 /* --- Shared Dialog & Layout Layouts --- */
 
 .dialog-md {
