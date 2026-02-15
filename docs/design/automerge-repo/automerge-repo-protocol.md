@@ -1,3 +1,5 @@
+> **Note:** This document describes the design/protocol of the external `automerge-repo` package (Node.js) for reference purposes. It does not document the implementation within this repository.
+
 # Automerge Repo Network Protocol Specification
 
 This document specifies the network protocol used by `automerge-repo` (v1.0). It is derived from a reverse engineering analysis of the source code.

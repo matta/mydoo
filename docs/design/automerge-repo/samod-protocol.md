@@ -1,3 +1,5 @@
+> **Note:** This document describes the protocol of the external Rust `samod` crate (https://github.com/alexjg/samod) for reference purposes. It does not document the implementation within this repository.
+
 # SAMOD Sync Protocol Specification
 
 This document specifies the network synchronization protocol used by the SAMOD repository. The protocol is designed to synchronize Automerge documents between peers.

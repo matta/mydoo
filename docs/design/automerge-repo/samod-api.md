@@ -1,3 +1,5 @@
+> **Note:** This document describes the design of the external Rust `samod` crate (https://github.com/alexjg/samod) for reference purposes. It does not document the implementation within this repository.
+
 # Client API Reference
 
 ## Overview

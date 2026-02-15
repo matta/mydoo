@@ -10,7 +10,6 @@
 ## Tracking Policy
 
 - Source of truth for this effort is this plan plus `dioxus-components-migration.todo.md`.
-- Do not use `bd` for routine per-slice migration tracking unless explicitly requested.
 - Keep both docs updated together when status changes.
 
 ## Completed Work (Condensed)

@@ -1,3 +1,5 @@
+> **Note:** This document describes the design/protocol of the external `automerge-repo` package (Node.js) for reference purposes. It does not document the implementation within this repository.
+
 # Automerge Repo API Reference
 
 ## Overview
