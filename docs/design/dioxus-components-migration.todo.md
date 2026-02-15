@@ -32,12 +32,10 @@ git show <commit>:docs/design/dioxus-components-migration.todo.md
 
 ## Tailwind Audit Snapshot (2026-02-15)
 
-- Generated `crates/tasklens-ui/assets/tailwind.css` is currently `445` lines (`wc -l`).
+- Generated `crates/tasklens-ui/assets/tailwind.css` is currently `395` lines (`wc -l`) after TW5a scope narrowing.
 - Tailwind preflight/reset and properties layers are still present due to `@import "tailwindcss"` in `crates/tasklens-ui/tailwind.css`.
-- Remaining app-owned Rust utility dependencies:
-  - `sr-only` in `crates/tasklens-ui/src/app_components/task_editor.rs` and `crates/tasklens-ui/src/app_components/doc_id_manager.rs`.
-  - `size-5` in `crates/tasklens-ui/src/app_components/task_editor.rs`.
-- `@apply` is still present in `crates/tasklens-ui/tailwind.css` (`body` rule), so Tailwind runtime remains a functional dependency.
+- Remaining app-owned Rust utility dependencies from the TW5a checklist (`sr-only`, `size-5`) are removed from app-owned callsites.
+- `@apply` has been removed from `crates/tasklens-ui/tailwind.css`; Tailwind runtime dependency is now driven by reset/theme/base decisions.
 - Compiled output includes likely extraction noise selectors (for example `.container` and `.table`) without matching app-owned Rust callsites.
 
 ## Current Critical Path (Execute Top To Bottom)
@@ -69,17 +67,17 @@ git show <commit>:docs/design/dioxus-components-migration.todo.md
   - [x] `crates/tasklens-ui/src/views/task_page.rs`
   - [x] `crates/tasklens-ui/src/views/balance_page.rs`
   - [x] `crates/tasklens-ui/src/views/score_trace_page.rs`
-- [ ] Slice TW5a: harden utility signal before runtime removal.
+- [x] Slice TW5a: harden utility signal before runtime removal.
   - [x] Replace remaining utility-class dependencies in app-owned Rust callsites (`sr-only`, `size-5`) with app-owned semantic classes/CSS modules at point of use.
-  - [ ] Remove `@apply` usage from `crates/tasklens-ui/tailwind.css` and use explicit CSS declarations.
-  - [ ] Tighten Tailwind extraction scope (`@source`) to reduce false-positive utility generation and re-baseline output size.
-  - [ ] Update this checklist and the active plan doc with the new baseline after re-generation.
+  - [x] Remove `@apply` usage from `crates/tasklens-ui/tailwind.css` and use explicit CSS declarations.
+  - [x] Tighten Tailwind extraction scope (`@source`) to reduce false-positive utility generation and re-baseline output size.
+  - [x] Update this checklist and the active plan doc with the new baseline after re-generation.
 - [ ] Slice TW5b: run reset-dependency canary and move required base behavior into app CSS.
   - [ ] Inventory app behavior currently supplied by Tailwind preflight/reset (form defaults, heading/list defaults, media defaults, hidden behavior).
   - [ ] Add only required base/reset rules to `crates/tasklens-ui/assets/app.css`.
   - [ ] Validate UI behavior with Tailwind stylesheet temporarily disabled before deleting Tailwind files.
 - [ ] Slice TW5c: remove Tailwind runtime and close Phase 2.
-  - [ ] Interim signal: generated `crates/tasklens-ui/assets/tailwind.css` shows no app-owned utility selectors and is dominated by intentional base/reset content (baseline starts at 445 lines on 2026-02-15).
+  - [ ] Interim signal: generated `crates/tasklens-ui/assets/tailwind.css` shows no app-owned utility selectors and is dominated by intentional base/reset content (baseline is 395 lines on 2026-02-15 after TW5a).
   - [ ] Remove `crates/tasklens-ui/tailwind.css`.
   - [ ] Remove `crates/tasklens-ui/assets/tailwind.css`.
   - [ ] Remove Tailwind stylesheet link from `crates/tasklens-ui/src/main.rs`.
@@ -98,8 +96,8 @@ Phase 1 (DaisyUI removal): complete.
 
 Phase 2 (Tailwind removal): remaining.
 
-- [ ] Gate 5: No app-owned Rust callsites depend on Tailwind utility selectors (`sr-only`, `size-5`, and similar).
-- [ ] Gate 6: No Tailwind-only directives remain in app-owned Tailwind input (`@apply` removed; runtime dependency isolated to explicit reset decision).
+- [x] Gate 5: No app-owned Rust callsites depend on Tailwind utility selectors (`sr-only`, `size-5`, and similar).
+- [x] Gate 6: No Tailwind-only directives remain in app-owned Tailwind input (`@apply` removed; runtime dependency isolated to explicit reset decision).
 - [ ] Gate 7: Reset-dependency canary passes after moving required base behavior into `assets/app.css`.
 - [ ] Gate 8: Remove Tailwind input/output and stylesheet link, restore pristine upstream `dx-components-theme.css`, keep app overrides in `assets/app.css`, and run `just verify`.
 

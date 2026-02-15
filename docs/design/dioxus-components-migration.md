@@ -32,10 +32,10 @@ git show <commit>:docs/design/dioxus-components-migration.md
 
 - Tailwind runtime is still linked while Phase 2 remains open.
 - `crates/tasklens-ui/src/components` compatibility shim has been removed (TW1 complete).
-- Generated `crates/tasklens-ui/assets/tailwind.css` is `445` lines as of 2026-02-15.
+- Generated `crates/tasklens-ui/assets/tailwind.css` is `395` lines as of 2026-02-15 after TW5a `@source` narrowing.
 - Output still contains Tailwind preflight/reset and properties layers because `crates/tasklens-ui/tailwind.css` imports the Tailwind runtime.
 - Remaining app-owned utility dependencies tracked for TW5a are now removed from app-owned Rust callsites; continue auditing new callsites for regressions.
-- `@apply` in `crates/tasklens-ui/tailwind.css` keeps Tailwind as an active build/runtime dependency even after most callsite cleanup.
+- `@apply` has been removed from `crates/tasklens-ui/tailwind.css`; runtime dependency is now isolated to explicit reset/theme/base decisions.
 - Compiled output includes likely extraction noise selectors (for example `.container` and `.table`) with no matching app-owned Rust callsites.
 - `dx-components-theme.css` still needs a pristine-upstream restore with app overrides isolated to `assets/app.css`.
 - Tailwind utility usage matches in app-owned source: materially reduced after page-shell migration.
@@ -88,7 +88,7 @@ Known risk to remember for future vendoring:
 
 ## Tailwind Findings (2026-02-15)
 
-- Tailwind output dropped from the earlier ~1196-line planning baseline to 445 lines, but is not yet removable.
+- Tailwind output dropped from the earlier ~1196-line planning baseline to 395 lines after TW5a `@source` narrowing and `@apply` removal, but is not yet removable.
 - The largest remaining CSS bulk appears to be Tailwind preflight/reset and `@property` scaffolding, not app utility selectors.
 - Before final removal, we need a canary slice that proves app behavior does not implicitly rely on preflight defaults.
 - Runtime removal should follow only after:
@@ -102,7 +102,7 @@ Phase 1 (DaisyUI removal) is complete.
 
 Phase 2 (Tailwind removal) completed TW1-TW4 and now uses a three-slice finish:
 
-1. **Slice TW5a: Utility signal hardening.**
+1. **Slice TW5a: Utility signal hardening (complete).**
    - Keep app-owned utility dependencies (`sr-only`, `size-5`) removed by using app-owned semantic classes/CSS module rules at callsites.
    - Remove `@apply` from `crates/tasklens-ui/tailwind.css` so utility expansion is no longer required.
    - Tighten Tailwind extraction scope and re-baseline output.
@@ -120,9 +120,8 @@ Phase 2 (Tailwind removal) completed TW1-TW4 and now uses a three-slice finish:
 
 ## Near-Term Priorities
 
-1. Execute Slice TW5a (utility signal hardening and baseline refresh).
-2. Execute Slice TW5b (reset-dependency canary and base-rule ownership transfer).
-3. Execute Slice TW5c (Tailwind runtime removal + final verify).
+1. Execute Slice TW5b (reset-dependency canary and base-rule ownership transfer).
+2. Execute Slice TW5c (Tailwind runtime removal + final verify).
 
 ## Checklist
 

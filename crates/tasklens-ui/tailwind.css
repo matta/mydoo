@@ -10,7 +10,10 @@
  * system to silently ignore it.
  */
 @import "tailwindcss";
-@source "./src/**/*.{rs,html,css}";
+@source "./src/main.rs";
+@source "./src/router.rs";
+@source "./src/views/**/*.rs";
+@source "./src/app_components/**/*.rs";
 
 /*
  * Safe Area Insets and Mobile Resets
@@ -89,9 +92,16 @@
   }
 
   body {
-    /* Apply the theme-aware variable once */
-    /* Also setting text color to ensure contrast in dark mode */
-    @apply bg-app-bg text-app-text transition-colors duration-300;
+    /*
+     * Apply theme-aware background/text colors and explicit transition values
+     * without relying on Tailwind utility expansion.
+     */
+    background-color: var(--color-app-bg);
+    color: var(--color-app-text);
+    transition-property:
+      color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-duration: 300ms;
+    transition-timing-function: ease;
   }
 
   /*
