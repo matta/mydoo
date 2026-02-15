@@ -5,11 +5,12 @@
 **mydoo** is a local-first, synchronization-agnostic task management system. It eliminates "list rot" by dynamically promoting tasks based on a **"Life Balance" algorithm** (Target vs. Actual effort) and **"Autofocus" principles** (surfacing neglected tasks). The device is the source of truth.
 
 ### Key Technologies
-- **Frontend:** React + Vite (PWA) with TypeScript (Strict).
-- **State Management:** `@automerge/automerge-repo` (CRDTs).
-- **Persistence:** IndexedDB via `automerge-repo-storage-indexeddb`.
+
+- **Frontend:** Dioxus (Rust) compiled to WASM.
+- **State Management:** `automerge` (CRDTs) wrapped in `tasklens-store`.
+- **Persistence:** IndexedDB via `rexie` (Dioxus) and `automerge-repo-storage-indexeddb`.
 - **Backend/Sync:** WebSocket via `automerge-repo-network-websocket`.
-- **Rust/WASM:** Used for core logic and shared components (via Dioxus).
+- **Core Logic:** Rust/WASM (shared via `tasklens-core`).
 
 ## 2. Key Documentation
 
@@ -68,6 +69,7 @@ Use these documents to understand the system architecture and requirements:
 ## 4. Testing Requirements
 
 **Verification Strategy:**
+
 - **Full Verification:** `just verify` (Complex logic, refactors).
 - **Standard Testing:** `just test` or `just test-e2e` (Routine logic).
 - **Presubmit:** `git push` hooks (Documentation, formatting).
