@@ -10,6 +10,9 @@ use dioxus::prelude::*;
 use dioxus_primitives::checkbox::CheckboxState;
 use tasklens_core::types::{PersistedTask, TaskStatus};
 
+#[css_module("/src/views/task_page.css")]
+struct Styles;
+
 /// The main application page component.
 ///
 /// `TaskPage` allows the user to view, add, and toggle tasks. It also:
@@ -63,9 +66,6 @@ pub fn TaskPage() -> Element {
         t
     };
 
-    #[css_module("/src/views/task_page.css")]
-    struct Styles;
-
     rsx! {
         div {
             class: Styles::page_container,
@@ -101,9 +101,6 @@ pub fn TaskPage() -> Element {
 
 #[component]
 fn TaskList(tasks: Vec<PersistedTask>, on_toggle: EventHandler<PersistedTask>) -> Element {
-    #[css_module("/src/views/task_page.css")]
-    struct Styles;
-
     rsx! {
         ul { class: Styles::task_list,
             for task in tasks {
@@ -115,9 +112,6 @@ fn TaskList(tasks: Vec<PersistedTask>, on_toggle: EventHandler<PersistedTask>) -
 
 #[component]
 fn TaskItem(task: PersistedTask, on_toggle: EventHandler<PersistedTask>) -> Element {
-    #[css_module("/src/views/task_page.css")]
-    struct Styles;
-
     let is_done = task.status == TaskStatus::Done;
     // We can't move 'task' into multiple closures, so we clone.
     // Actually EventHandler takes a value, so we clone for the call.

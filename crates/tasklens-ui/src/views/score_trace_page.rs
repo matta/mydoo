@@ -9,6 +9,9 @@ use chrono::DateTime;
 use dioxus::prelude::*;
 use tasklens_core::types::{LeadTimeStage, ScheduleSource, ScoreTrace, TaskID};
 
+#[css_module("/src/views/score_trace_page.css")]
+struct Styles;
+
 /// Renders the score trace for a single task.
 #[component]
 pub fn ScoreTracePage(task_id: TaskID) -> Element {
@@ -19,9 +22,6 @@ pub fn ScoreTracePage(task_id: TaskID) -> Element {
     let on_back = move |_| {
         navigator.push(Route::DoPage {});
     };
-
-    #[css_module("/src/views/score_trace_page.css")]
-    struct Styles;
 
     rsx! {
         div {
@@ -55,9 +55,6 @@ pub fn ScoreTracePage(task_id: TaskID) -> Element {
 /// The main score trace content layout.
 #[component]
 fn ScoreTraceContent(trace: ScoreTrace) -> Element {
-    #[css_module("/src/views/score_trace_page.css")]
-    struct Styles;
-
     let score_label = format_factor(trace.score);
     let computed_at = format_timestamp(Some(trace.computed_at));
 

@@ -11,6 +11,9 @@ use crate::dioxus_components::progress::Progress;
 use crate::hooks::use_balance_interaction::{BalanceItem, use_balance_interaction};
 use dioxus::prelude::*;
 
+#[css_module("/src/views/balance_page.css")]
+struct Styles;
+
 /// The main page component for the Balance View.
 ///
 /// This view allows users to visualize and adjust the distribution of effort
@@ -25,9 +28,6 @@ pub fn BalancePage() -> Element {
             tracing::info!("set_balance_distribution: {:#?}", distribution);
             controller.set_balance_distribution(distribution);
         }));
-
-    #[css_module("/src/views/balance_page.css")]
-    struct Styles;
 
     rsx! {
         div {
@@ -75,9 +75,6 @@ fn BalanceItemRow(
     on_input: EventHandler<(tasklens_core::types::TaskID, f64)>,
     on_change: EventHandler<()>,
 ) -> Element {
-    #[css_module("/src/views/balance_page.css")]
-    struct Styles;
-
     // If we have a preview, use it. Otherwise use the item's target (which comes from store).
     let current_target_percent = item.preview_percent.unwrap_or(item.target_percent);
 
@@ -156,9 +153,6 @@ fn BalanceItemRow(
 /// The actual effort is shown as the primary progress bar, with target as a subtle overlay.
 #[component]
 fn BalanceBar(target_percent: f64, actual_percent: f64) -> Element {
-    #[css_module("/src/views/balance_page.css")]
-    struct Styles;
-
     let target_value = (target_percent * 100.0).clamp(0.0, 100.0) as i32;
     let actual_value = (actual_percent * 100.0).clamp(0.0, 100.0) as i32;
 
