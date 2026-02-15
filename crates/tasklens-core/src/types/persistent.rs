@@ -10,6 +10,9 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use uuid::Uuid;
 
+#[cfg(any(test, feature = "test-utils"))]
+use proptest::strategy::Strategy;
+
 pub fn hydrate_string_or_text<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,
@@ -248,10 +251,33 @@ pub fn reconcile_option_string_as_text_as_maybe_missing<R: autosurgeon::Reconcil
 macro_rules! define_id_type {
     ($doc:expr, $name:ident) => {
         #[doc = $doc]
-        #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone, PartialEq, Eq, Hash)]
         #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
-        #[serde(transparent)]
-        pub struct $name(String);
+        pub struct $name(
+            #[cfg_attr(
+                any(test, feature = "test-utils"),
+                proptest(strategy = "proptest::prelude::any::<String>().prop_map(std::sync::Arc::from)")
+            )]
+            std::sync::Arc<str>,
+        );
+
+        impl Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                serializer.serialize_str(&self.0)
+            }
+        }
+
+        impl<'de> Deserialize<'de> for $name {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                String::deserialize(deserializer).map(|s| Self(s.into()))
+            }
+        }
 
         impl Hydrate for $name {
             fn hydrate<D: autosurgeon::ReadDoc>(
@@ -259,7 +285,7 @@ macro_rules! define_id_type {
                 obj: &automerge::ObjId,
                 prop: autosurgeon::Prop<'_>,
             ) -> Result<Self, autosurgeon::HydrateError> {
-                hydrate_string_or_text(doc, obj, prop).map(Self)
+                hydrate_string_or_text(doc, obj, prop).map(|s| Self(s.into()))
             }
         }
 
@@ -272,7 +298,7 @@ macro_rules! define_id_type {
 
         impl $name {
             pub fn new() -> Self {
-                Self(Uuid::new_v4().to_string())
+                Self(Uuid::new_v4().to_string().into())
             }
 
             pub fn as_str(&self) -> &str {
@@ -294,20 +320,20 @@ macro_rules! define_id_type {
 
         impl From<String> for $name {
             fn from(s: String) -> Self {
-                Self(s)
+                Self(s.into())
             }
         }
 
         impl std::str::FromStr for $name {
             type Err = std::convert::Infallible;
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                Ok(Self(s.to_string()))
+                Ok(Self(s.into()))
             }
         }
 
         impl From<&str> for $name {
             fn from(s: &str) -> Self {
-                Self(s.to_string())
+                Self(s.into())
             }
         }
 
