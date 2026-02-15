@@ -256,7 +256,9 @@ macro_rules! define_id_type {
         pub struct $name(
             #[cfg_attr(
                 any(test, feature = "test-utils"),
-                proptest(strategy = "proptest::prelude::any::<String>().prop_map(std::sync::Arc::from)")
+                proptest(
+                    strategy = "proptest::prelude::any::<String>().prop_map(std::sync::Arc::from)"
+                )
             )]
             std::sync::Arc<str>,
         );
