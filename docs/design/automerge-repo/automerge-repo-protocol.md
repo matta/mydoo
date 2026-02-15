@@ -1,216 +1,195 @@
 > **Note:** This document describes the design/protocol of the external `automerge-repo` package (Node.js) for reference purposes. It does not document the implementation within this repository.
 
-# Automerge Repo Protocol Specification
+# Automerge Repo Network Protocol Specification
 
 This document specifies the network protocol used by `automerge-repo` (v1.0). It is derived from a reverse engineering analysis of the source code.
 
-## 1. Overview
+## 1. Wire-Level Format
 
-The protocol allows peers to discover, sync, and exchange documents. It runs over any duplex transport (WebSocket, MessageChannel, etc.). The protocol is message-oriented, with messages serialized as CBOR.
+- **Transport:** WebSocket (preferred default), potentially others (MessageChannel, BroadcastChannel) but this spec covers the WebSocket implementation.
+- **Framing:** WebSocket Framing. Each WebSocket message corresponds to one protocol message.
+- **Encoding:** [CBOR (Concise Binary Object Representation)](https://cbor.io/).
+  - Implementation uses `cbor-x`.
+- **Endianness:** CBOR handles endianness (Big Endian standard).
+- **Data Types:**
+  - **DocumentId:** String (Base58Check encoded UUID).
+  - **PeerId:** String.
+  - **StorageId:** String.
+  - **SessionId:** String.
+  - **SyncMessage Payload:** `Uint8Array` (Automerge binary sync message).
+  - **Heads:** Array of Strings (Base58Check encoded SHA-256 hashes).
 
-### 1.1 Key Concepts
+## 2. Message Catalog
 
-- **Peer ID**: A unique identifier for a peer (string).
-- **Document ID**: A unique identifier for a document (Base58 string, no prefix).
-- **Channel ID**: A unique identifier for a communication channel (Document ID is used as Channel ID for document sync).
-- **Session**: A connection between two peers.
+The protocol consists of two layers:
 
-## 2. Message Structure
+1.  **Transport Handshake** (WebSocket specific)
+2.  **Repo Protocol** (General synchronization messages)
 
-Every message is a CBOR-encoded object. The top-level structure varies by message type, but generally follows:
+### 2.1. Transport Handshake (WebSocket)
+
+These messages are exchanged immediately upon connection establishment.
+
+#### `join` (Client -> Server)
+
+Sent by the client to initiate the session.
+
+- **type**: `"join"`
+- **senderId**: `PeerId` (The client's Peer ID)
+- **peerMetadata**: `PeerMetadata` (see below)
+- **supportedProtocolVersions**: `["1"]`
+
+#### `peer` (Server -> Client)
+
+Sent by the server to accept the connection.
+
+- **type**: `"peer"`
+- **senderId**: `PeerId` (The server's Peer ID)
+- **targetId**: `PeerId` (The client's Peer ID)
+- **peerMetadata**: `PeerMetadata` (see below)
+- **selectedProtocolVersion**: `"1"`
+
+#### `error` (Server -> Client)
+
+Sent by the server if the connection cannot be established (e.g., unsupported protocol version).
+
+- **type**: `"error"`
+- **senderId**: `PeerId`
+- **targetId**: `PeerId`
+- **message**: `String` (Description of the error)
+
+#### **Data Structures**
+
+**PeerMetadata**
 
 ```typescript
-type Message =
-  | JoinMessage
-  | LeaveMessage
-  | PeerCandidateMessage
-  | SyncMessage
-  | EphemeralMessage
-  | RequestMessage
-  | UnavailableMessage
-  | RemoteSubscriptionControlMessage
-  | RemoteHeadsChangedMessage
-  | RemoteIssueMessage;
-```
-
-### 2.1 Common Fields
-
-Most messages (except some control messages) are wrapped or identified by a `type` field.
-
-### 2.2 Protocol Version
-
-The protocol negotiation happens via the `JoinMessage`.
-
-## 3. Message Types
-
-### 3.1 Handshake Messages
-
-These messages establish the session and capabilities.
-
-#### `join` (Type: `join`)
-
-Sent immediately upon connection to announce presence and supported protocol versions.
-
-```typescript
-interface JoinMessage {
-  type: "join";
-  senderId: PeerId;
-  supportedProtocolVersions: string[]; // e.g., ["1"]
-  metadata?: PeerMetadata; // Arbitrary JSON-serializable object
+{
+  storageId?: string;   // Unique ID of the peer's storage provider. If present, sync state is persisted.
+  isEphemeral?: boolean; // If true, the peer does not persist data (e.g., a client browser tab).
 }
 ```
 
-#### `peer-candidate` (Type: `peer-candidate`)
+### 2.2. Repo Protocol (General)
 
-Sent to introduce other known peers to the connected peer (for mesh building).
+These messages are sent after the handshake is complete. They form the core synchronization logic. All messages are disjoint tagged unions discriminated by the `type` field.
 
-```typescript
-interface PeerCandidateMessage {
-  type: "peer-candidate";
-  senderId: PeerId;
-  targetId: PeerId; // The peer being recommended
-  location: string; // Connection string / URL
-}
-```
+#### `sync`
 
-#### `leave` (Type: `leave`)
+Carries an Automerge sync message to update a document.
 
-Sent before disconnecting to allow graceful cleanup.
+- **type**: `"sync"`
+- **senderId**: `PeerId`
+- **targetId**: `PeerId`
+- **documentId**: `DocumentId` (The document being synced)
+- **data**: `Uint8Array` (The Automerge sync message payload)
 
-```typescript
-interface LeaveMessage {
-  type: "leave";
-  senderId: PeerId;
-}
-```
+#### `request`
 
-### 3.2 Sync Messages
+Sent when a peer wants a document it does not have. Functionally identical to `sync` but signals intent to load.
 
-These messages handle the actual synchronization of Automerge documents.
+- **type**: `"request"`
+- **senderId**: `PeerId`
+- **targetId**: `PeerId`
+- **documentId**: `DocumentId`
+- **data**: `Uint8Array` (Initial Automerge sync message, typically with no heads)
 
-#### `sync` (Type: `sync`)
+#### `ephemeral`
 
-Carries the Automerge binary sync protocol payload.
+Carries transient application data (e.g., cursor positions, presence). Not persisted.
 
-```typescript
-interface SyncMessage {
-  type: "sync";
-  senderId: PeerId;
-  targetId: PeerId; // Recipient
-  documentId: DocumentId;
-  data: Uint8Array; // The raw Automerge sync message
-}
-```
+- **type**: `"ephemeral"`
+- **senderId**: `PeerId`
+- **targetId**: `PeerId`
+- **documentId**: `DocumentId`
+- **sessionId**: `SessionId` (Random session ID generated at startup)
+- **count**: `number` (Sequence number)
+- **data**: `Uint8Array` (Application specific payload)
 
-### 3.3 Ephemeral Messages
+#### `doc-unavailable`
 
-Used for application-level broadcasting (e.g., cursors, presence) without persistence.
+Sent when a peer cannot satisfy a request for a document (it doesn't have it and thinks no one else does).
 
-#### `ephemeral` (Type: `ephemeral`)
+- **type**: `"doc-unavailable"`
+- **senderId**: `PeerId`
+- **targetId**: `PeerId`
+- **documentId**: `DocumentId`
 
-```typescript
-interface EphemeralMessage {
-  type: "ephemeral";
-  senderId: PeerId;
-  targetId: PeerId;
-  count: number; // Sequence number
-  channelId: ChannelId; // Usually DocumentId
-  data: Uint8Array; // CBOR-encoded application payload
-}
-```
+#### `remote-subscription-change` (Advanced)
 
-### 3.4 Document Availability & Control
+Used for gossiping interest in documents (when "Remote Heads Gossiping" is enabled).
 
-Messages to request documents or signal availability.
+- **type**: `"remote-subscription-change"`
+- **senderId**: `PeerId`
+- **targetId**: `PeerId`
+- **add**: `StorageId[]` (Optional: Storage IDs to add to subscription)
+- **remove**: `StorageId[]` (Optional: Storage IDs to remove from subscription)
 
-#### `request` (Type: `request`)
+#### `remote-heads-changed` (Advanced)
 
-Sent to request a document that the peer does not have.
+Notifies a peer that a document's heads have changed on another peer (without sending the full sync message yet).
 
-```typescript
-interface RequestMessage {
-  type: "request";
-  senderId: PeerId;
-  targetId: PeerId;
-  documentId: DocumentId;
-}
-```
+- **type**: `"remote-heads-changed"`
+- **senderId**: `PeerId`
+- **targetId**: `PeerId`
+- **documentId**: `DocumentId`
+- **newHeads**: `Map<StorageId, { heads: string[]; timestamp: number }>`
 
-#### `unavailable` (Type: `unavailable`)
+---
 
-Response to a `request` when the peer does not have the document.
+## 3. Protocol Grammar
 
-```typescript
-interface UnavailableMessage {
-  type: "unavailable";
-  senderId: PeerId;
-  targetId: PeerId;
-  documentId: DocumentId;
-}
-```
+### 3.1. Connection Establishment
 
-### 3.5 Remote Heads (Gossip)
+1.  **Client** opens WebSocket connection.
+2.  **Client** sends `join` message.
+3.  **Server** validates `supportedProtocolVersions`.
+    - If valid: Server sends `peer`. Connection is **Open**.
+    - If invalid: Server sends `error` and closes socket.
 
-Used to notify peers about document updates without sending the full sync state immediately.
+### 3.2. Synchronization Flow
 
-#### `remote-subscription-change` (Type: `remote-subscription-change`)
+1.  **Discovery**:
+    - When a document is opened or created, the `CollectionSynchronizer` determines which peers to share it with (based on `SharePolicy`).
+    - Currently, this is often "sync all documents with all connected peers" or "sync based on request".
 
-Updates the list of documents a peer is interested in.
+2.  **Initial Sync**:
+    - If Peer A has doc and Peer B connects: Peer A sends `sync` message (generated by `Automerge.generateSyncMessage`).
+    - If Peer A _wants_ doc from Peer B: Peer A sends `request` message.
 
-```typescript
-interface RemoteSubscriptionControlMessage {
-  type: "remote-subscription-change";
-  senderId: PeerId;
-  targetId: PeerId;
-  add: DocumentId[]; // Start listening to these
-  remove: DocumentId[]; // Stop listening to these
-}
-```
+3.  **Sync Loop**:
+    - Received `sync` or `request` -> `Automerge.receiveSyncMessage`.
+    - If result triggers a response (new heads or need): `Automerge.generateSyncMessage` -> Send `sync`.
+    - This continues until both peers are in sync (heads match).
 
-#### `remote-heads-changed` (Type: `remote-heads-changed`)
+4.  **Unavailable Handling**:
+    - If Peer A requests doc from Peer B.
+    - Peer B checks local storage. Use `request` to ask its _other_ peers.
+    - If Peer B finds it doesn't have it, and _all_ its connected peers return `doc-unavailable` or are also in "wants" state:
+      - Peer B sends `doc-unavailable` to Peer A.
 
-Notifies that a document has new heads (updates).
+## 4. Semantics & Timing
 
-```typescript
-interface RemoteHeadsChangedMessage {
-  type: "remote-heads-changed";
-  senderId: PeerId;
-  targetId: PeerId;
-  documentId: DocumentId;
-  newHeads: {
-    [documentId: DocumentId]: {
-      heads: string[]; // Base58 encoded heads
-      timestamp: number;
-    };
-  };
-}
-```
+- **Keep-Alive**:
+  - The implementation uses standard WebSocket PING/PONG frames.
+  - **Server**: Sends PINGs every `5000ms`.
+  - **Server**: Terminates connection if client is "dead" (missed PONGs) after `5000ms` check interval.
+  - **Client**: Relies on browser/OS WebSocket implementation for PING responses.
+- **Retries**:
+  - **Client**: If connection fails or closes, retries every `5000ms` (hardcoded).
+- **Sync Debounce**:
+  - Document changes are debounced by `100ms` before triggering sync messages.
+- **Message Size**:
+  - Zero-length messages are forbidden and will throw an error or close the connection.
 
-## 4. Connection Lifecycle
+## 5. Ambiguities & Inferences
 
-1.  **Transport Connection**: Transport (e.g., WebSocket) opens.
-2.  **Handshake**: Both peers send `join`.
-    - Peers validate `senderId`.
-    - Peers negotiate protocol version (currently "1").
-    - If negotiation fails, connection closes.
-3.  **Session Active**:
-    - Peers exchange `sync` messages for documents they both have.
-    - Peers exchange `request` / `unavailable` / `sync` for missing docs.
-    - Peers exchange `ephemeral` messages for presence.
-4.  **Termination**:
-    - Peer sends `leave`.
-    - Transport closes.
-
-## 5. Network Topologies
-
-The protocol supports arbitrary topologies:
-
-- **Client-Server**: Browser connects to a WebSocket server.
-- **P2P Mesh**: Browsers connect via WebRTC (via BroadcastChannel or specialized adapters).
-- **Gossip**: `peer-candidate` messages allow peers to discover others.
-
-## 6. Implementation Notes
-
-- **CBOR**: Use a standard CBOR encoder/decoder.
-- **Binary Format**: Automerge sync messages are opaque binary blobs to this protocol; they are passed directly to the Automerge backend.
-- **Error Handling**: Malformed messages should generally result in closing the connection to the offending peer.
+- **Peer Roles**:
+  - The protocol makes a distinction between "Client" and "Server" mainly for the **Handshake** phase (`join` vs `peer`).
+  - After the handshake, the protocol is **Symmetric**. Both sides can send `sync`, `request`, etc.
+  - However, `automerge-repo` implementation implies a topology where "Servers" often have `StorageAdapter`s and "Clients" (like browsers) might be `isEphemeral: true`.
+- **Implicit Versioning**:
+  - The code references `ProtocolV1 = "1"`. Usage of `supportedProtocolVersions` implies future negotiation capability, but currently only "1" is supported.
+- **Magic Numbers**:
+  - `retryInterval = 5000` (5s reconnect loop).
+  - `syncDebounceRate = 100` (100ms buffering of ops).
+  - `keepAliveInterval = 5000` (5s PING interval).

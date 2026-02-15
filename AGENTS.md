@@ -37,7 +37,6 @@ Use these documents to understand the system architecture and requirements:
 ### Environment Initialization
 
 - **Install:** `pnpm install`.
-- **Clean:** `scripts/aggressive-git-clean.sh` followed by `pnpm install`.
 
 ### Git Workflow
 
@@ -81,7 +80,7 @@ just test-e2e -- crates/tasklens-ui/tests/e2e/specs/my.spec.ts # Run specific fi
 
 ### AI Agent Instructions
 
-- **Prefer `userEvent`:** Use `@testing-library/user-event` over `fireEvent`.
+- **Avoid Fake Events:** Do not use synthetic events. Test through realistic user interactions (clicks, keyboard input) using Playwright locators.
 - **Ubiquitous Language:** ALWAYS use domain terms (`Inbox`, `Plan`, `Do`, `Balance`, `Context`) in tests.
 - **Code-First Gherkin:** Scenarios are written in TypeScript using strictly typed actor fixtures.
 
@@ -123,7 +122,8 @@ just test-e2e -- crates/tasklens-ui/tests/e2e/specs/my.spec.ts # Run specific fi
 1. **File issues** for follow-up work.
 2. **Run quality gates** (tests, linters).
 3. **PUSH TO REMOTE** (`git push`).
-   - `git pull --no-rebase`
+   - `git fetch origin`
+   - `git merge origin/main`
    - `git push`
    - `git status` (Must show "up to date")
 4. **Verify** all changes are pushed.
