@@ -1,289 +1,133 @@
-# Development Guidelines
+# AGENTS.md
 
-## Task Tracking
+## 1. Project Context
 
-- **Use the CLI:** When task tracking is needed, ALWAYS use the `bd` command line tool for reading, creating, and updating tasks.
-- **No Direct File Editing:** If you need to inspect or change tracked task state, use `bd` commands only; do not manually read or edit `.beads` database/storage files.
-- **When Tracking Is Required:** Create or update `bd` tasks for deferred work, work expected to span sessions, or complex work with meaningful risk/scope.
-- **When Tracking Is Not Required:** Do not create/update `bd` tasks for simple, self-contained work expected to be completed in a single session, unless explicitly requested.
-- **Do Not Read Files:** NEVER attempt to parse or read files in the `.beads` directory directly. The file format is internal and subject to change.
-- **Listing Tasks:** Use `bd ready` to see tasks ready for work. Use `bd list` to see all tasks.
-- **Viewing Details:** Use `bd show <id>` to see task details.
-- **Updating Tasks:** Use `bd update <id> <status>` to update task status.
-- **Creating Tasks:** Use `bd create <title>` to create a new task.
-- **Deleting Tasks:** Use `bd delete <id>` to delete a task.
-- **Updating Task Details:** Use `bd update <id> <field> <value>` to update task details.
+**mydoo** is a local-first, synchronization-agnostic task management system. It eliminates "list rot" by dynamically promoting tasks based on a **"Life Balance" algorithm** (Target vs. Actual effort) and **"Autofocus" principles** (surfacing neglected tasks). The device is the source of truth.
 
-When working on tracked efforts, keep `bd` tasks accurate and record newly discovered deferred/complex follow-up work.
+### Key Technologies
+- **Frontend:** React + Vite (PWA) with TypeScript (Strict).
+- **State Management:** `@automerge/automerge-repo` (CRDTs).
+- **Persistence:** IndexedDB via `automerge-repo-storage-indexeddb`.
+- **Backend/Sync:** WebSocket via `automerge-repo-network-websocket`.
+- **Rust/WASM:** Used for core logic and shared components (via Dioxus).
 
-## Package Management
+## 2. Key Documentation
+
+Use these documents to understand the system architecture and requirements:
+
+- **[Product Requirements (PRD)](docs/design/prd.md):** The source of truth for features and **Ubiquitous Language**.
+- **[System Architecture](docs/design/architecture.md):** Layering strategy (UI -> ViewModel -> Domain -> Store).
+- **[Code Review Guidance](docs/guidance/code-review.md):** Strict TypeScript rules and best practices.
+- **[Scoring Algorithm](docs/design/algorithm.md):** The core logic for task prioritization.
+- **[Testing Strategy](docs/design/testing.md):** The 3-tier testing pyramid (Unit, Integration, E2E).
+- **[Automerge Schema](docs/design/automerge-schema.md):** The exact structure of the CRDT document.
+- **[Dioxus Guide](AGENTS_DIOXUS.md):** Syntax cheat sheet for Dioxus 0.7 components.
+
+## 3. Development Guidelines
+
+### Task Tracking
+
+- **Use the CLI:** When task tracking is needed, ALWAYS use the `bd` command line tool.
+- **When Required:** Use `bd` for deferred work, multi-session tasks, or complex features.
+- **When Not Required:** Skip `bd` for simple, single-session work unless requested.
+- **Commands:**
+  - `bd ready`: List tasks ready for work.
+  - `bd create <title>`: Create a new task.
+  - `bd update <id> <status>`: Update task status.
+  - `bd show <id>`: View task details.
+
+### Package Management
 
 - Use `pnpm`, not `npm`.
 - Use `pnpm dlx` for running scripts.
 - Use `cargo` for Rust.
 - Use `just` for running commands.
-- **Dioxus Components Vendoring:** NEVER run `dx components add` directly in this repository. Always use `cargo xtask dx-components vendor` so vendoring, pins, and branch/worktree workflow stay consistent. (`cargo xtask update-dioxus-components` is a temporary compatibility alias.)
+- **Dioxus Components:** Use `cargo xtask dx-components vendor` (never run `dx components add` directly).
 
-## Environment Initialization
+### Environment Initialization
 
-- **Dependency Installation:** Run `pnpm install` and `pnpm preflight`.
-- **Clean Install:** If you need to clean the environment, use
-  `scripts/aggressive-git-clean.sh` followed by `pnpm install` and `pnpm preflight`.
+- **Install:** `pnpm install` and `pnpm preflight`.
+- **Clean:** `scripts/aggressive-git-clean.sh` followed by `pnpm install` and `pnpm preflight`.
 
-## Git Workflow
+### Git Workflow
 
-- **Clean Tree Rule:** Before starting unrelated work or a new development
-  phase, run `git status`. If the working tree is not clean, STOP and notify the
-  user.
-- **Feature Branch Isolation Rule:** Every semantically independent task MUST be
-  done on a different feature branch. If the current branch already contains
-  unrelated work, STOP and create a new branch for the new task.
-- **PR Isolation Rule:** Every PR MUST represent one cohesive concern. Reuse an
-  existing branch/PR only for follow-up commits that are directly in scope for
-  that PR (e.g., review feedback or missed tests for that same change).
-- **Base Branch Divergence Paranoia Check:** Before creating a branch for a new
-  independent task, check whether local `<base-branch>` has commits not pushed
-  to `origin/<base-branch>`:
-  ```bash
-  git fetch origin
-  git rev-list --left-right --count <base-branch>...origin/<base-branch>
-  ```
-  If the first number (local-ahead count) is greater than `0`, STOP and alert
-  the user. Ask how to handle the local-only commits before continuing (for
-  example: preserve on a separate branch, push them, or intentionally branch
-  from local base).
-- **New Task Branch Workflow:** After the paranoia check passes (or after user
-  instruction), branch from upstream base to avoid mutating local base history:
-  ```bash
-  git switch -c codex/<task-slug> --track origin/<base-branch>
-  ```
-- **PR Creation Scope Check:** Before pushing or creating/updating a PR, check
-  whether the current branch already has an open PR:
-  ```bash
-  gh pr list --head <current-branch>
-  ```
-  If an open PR exists and your changes are semantically independent from that
-  PR, DO NOT push to that branch. Create a new feature branch and open a new
-  PR.
-- **Git Commit Rule:** The Agent MAY commit changes autonomously when:
-  1. Work is complete and all quality gates pass (`just verify` succeeds)
-  2. Changes are logically cohesive and address a single concern
-  3. The Agent clearly communicates what is being committed and why
+- **Clean Tree Rule:** Ensure clean working tree before starting new work.
+- **Feature Branch Isolation:** Each task gets its own branch (`codex/<task-slug>`).
+- **PR Isolation:** One concern per PR.
+- **Commit Rule:** Commit autonomously when quality gates pass (`just verify`).
+  - **Do NOT commit if:** Tests/lints fail or changes are experimental.
+  - **Protocol:** Summarize changes, confirm gates passed, state commit message.
+- **Verification:** ALWAYS verify `Exit Code` is `0` before claiming success.
 
-  The Agent MUST NOT commit if:
-  - Quality gates fail (tests, lints, builds)
-  - Changes are incomplete or experimental
-  - The user explicitly asks to review before committing
+### Coding Guidelines
 
-  **Communication Protocol:** Before committing, the Agent MUST:
-  - Summarize what changed and why
-  - Confirm quality gates passed
-  - State the intended commit message
-  - Then proceed with the commit unless the user intervenes
+- **TypeScript Strictness:** No `any`, no unsafe casting (`as`/`!`), exhaust all unions.
+- **Documentation:** Document all new code and non-obvious logic.
+- **Testing:** All new code must have tests.
 
-- **Git Presubmit Rule:** NEVER use `--no-verify`. On presubmit failure: fix
-  trivial issues and retry; otherwise STOP AND WAIT.
-- **Foreground Commit Rule:** ALWAYS run `git commit` in the foreground
-  (synchronously). Presubmit hooks often fail or warn; immediate feedback is
-  required to retry or fix issues promptly.
-- **Verification Protocol:** The Agent must NEVER report a shell command as
-  successful based on log output alone. The Agent MUST verify that the process
-  `Exit Code` is `0` (via `command_status`) before claiming success.
+## 4. Testing Requirements
 
-## Coding Guidelines
-
-### TypeScript Strictness
-
-- **No `any`:** Use interfaces, generics, or utility types (`Pick`, `Omit`) instead.
-- **No unsafe casting:** `as` and `!` are prohibited unless bridging external data with runtime validation (Zod/type guards).
-- **Type errors = logic bugs:** Fix the implementation or data structures—never relax types to silence the compiler.
-- **Narrow `unknown` immediately:** Only use `unknown` for truly dynamic runtime values; narrow via control flow.
-- **Exhaust unions:** Handle all cases in `switch` statements; use `assertUnreachable` if needed.
-- **Stop if stuck:** If you cannot express a type without `any` or `as`, ask the user for help—do not bypass the type system.
-
-## Documentation
-
-- All new code must have documentation comments. Explain all non-obvious logic.
-- Do not remove comments from existing code unless asked to do so by the user.
-- Keep comments up to date.
-- **Code Review Guidance:** See
-  [docs/guidance/code-review.md](docs/guidance/code-review.md) for best
-  practices on TypeScript, React, Redux, and testing conventions.
-- **Testing Strategy:** See [docs/design/testing.md](docs/design/testing.md) for
-  the authoritative guide on unit, integration, and E2E testing execution.
-- **Markdown Style:** Use markdown bold and italics rarely.
-
-## Testing Requirements
-
-- All new code must have tests.
-- **Verification Strategy:** While `just verify` is the gold standard for full verification, you MAY use your judgement to select the appropriate level of verification:
-  - **Full Verification:** Run `just verify` for complex logic changes, refactors, or when touching critical paths.
-  - **Standard Testing:** Run `just test` (or `just test-e2e`) for routine logic changes where static analysis is less likely to catch issues.
-  - **Presubmit Reliance:** For documentation, formatting, or trivial changes, you MAY rely on the `git push` presubmit hooks (which run `just check`) rather than running verification commands manually.
+**Verification Strategy:**
+- **Full Verification:** `just verify` (Complex logic, refactors).
+- **Standard Testing:** `just test` or `just test-e2e` (Routine logic).
+- **Presubmit:** `git push` hooks (Documentation, formatting).
 
 ### Test Commands
 
 ```bash
-# All unit tests (monorepo-wide)
-just test
-
-# All E2E tests (monorepo-wide)
-just test-e2e
-
-# Scripts package unit tests (via just wrapper around pnpm test)
-just test-scripts
-
-# Pass through vitest args to scripts tests (note the `--`)
-just test-scripts -- check-dependency-health.test.ts
-
-# Pass through Playwright args to e2e tests (note the `--`)
-just test-e2e -- tests/e2e/specs/due-dates.spec.ts --project=e2e-mobile
-
-# Fully build everything and re-run all tests including e2e (monorepo-wide)
-just verify
+just test          # All unit tests
+just test-e2e      # All E2E tests
+just test-scripts  # Scripts package unit tests
+just verify        # Full build and test suite
+just check-rust    # Full Rust validation
 ```
-
-### Rust Validation
-
-The `just verify` command includes Rust checks via `just check-rust`. You
-can also run Rust checks independently:
-
-```bash
-# Full Rust validation (fmt, clippy, WASM build, dx build, tests)
-just check-rust
-
-# Individual checks during development
-cargo fmt --check                                    # Formatting
-cargo clippy --all-targets -- -D warnings           # Lints
-cargo build --target wasm32-unknown-unknown -p tasklens-store  # WASM build
-dx build -p tasklens-ui                             # Dioxus build
-cargo test                                          # Tests
-```
-
-## Testing Strategy
-
-For a detailed implementation guide, see
-[docs/design/testing.md](docs/design/testing.md).
 
 ### AI Agent Instructions
 
-- **Prefer `userEvent` over `fireEvent`**: Always use
-  `@testing-library/user-event`. Use of `fireEvent` from
-  `@testing-library/react` is strictly prohibited as it doesn't simulate real
-  browser interactions and often leads to flaky tests in async environments.
+- **Prefer `userEvent`:** Use `@testing-library/user-event` over `fireEvent`.
+- **Ubiquitous Language:** ALWAYS use domain terms (`Inbox`, `Plan`, `Do`, `Balance`, `Context`) in tests.
+- **Code-First Gherkin:** Scenarios are written in TypeScript using strictly typed actor fixtures.
 
-### Executable Specs & Style Guide (Code-First Gherkin)
+## 5. Technical Field Notes
 
-Tests are **Executable Specifications**. They should read as high-level
-narratives using the project's **Ubiquitous Language**. We use a **Code-First
-Gherkin** pattern where scenarios are written in TypeScript using a strictly
-typed actor fixture (`I`).
+### Playwright & E2E Strategies
 
-**Ubiquitous Language Rule:** ALWAYS use domain terms (`Inbox`, `Plan`, `Do`,
-`Balance`, `Context`). See `docs/design/prd.md` for the dictionary. Reject
-implementation-level terms in test narratives.
+- **Semantic Selectors:** Use `data-testid` or `data-urgency`, avoid CSS styles.
+- **Timezone Pitfalls:** `page.clock.setFixedTime()` sets system time (UTC), but `new Date()` uses browser timezone.
+- **WASM Init Race:** Use `page.waitForFunction` to ensure custom WASM APIs are attached.
+- **Focus Traps:** Avoid `expect(locator).toBeFocused()` in dialogs; interact with inputs directly.
+- **Dialog Stacking:** Ensure dialogs close/unmount to avoid occlusion.
+- **Dioxus Toast "Parking":** Toasts are parked off-screen (`right: -1000px`), appearing "visible" to Playwright.
+- **Worker Collision:** Disable `fullyParallel` if using stateful `IndexedDB`.
+- **Reload Race:** `repo.import()` then `location.reload()` needs a settle delay.
 
-## Testing Workflows
+### Automerge & Autosurgeon Patterns
 
-### Running Specific Tests
+- **Asymmetric Serialization:** Use `Hydrate` (broad) and `Reconcile` (strict) asymmetrically.
+- **`hydrate_prop` vs `MaybeMissing`:** Use `MaybeMissing<T>` for optional keys.
+- **Numeric Strictness:** Treat `ScalarValue::Int` and `F64` as equal if values match.
+- **Realized Text:** Use `am_text` helper to assert on `Text` objects.
 
-Always run pnpm-backed tests through `just` recipes. Do not invoke `pnpm test`
-or `pnpm exec playwright test` directly.
+### Rust & Dioxus Development
 
-To run only a specific scripts Vitest file:
+- **Workspace:** Isolate Rust crates in `crates/`, shared deps in `[workspace.dependencies]`.
+- **WASM Gating:** Use `[target.'cfg(target_arch = "wasm32")'.dependencies]` for web-only crates.
+- **Tree-Walking:** Use `FlattenContext` to avoid deep recursion warnings.
+- **Hydration Race:** Initialize store with default/empty state synchronously.
+- **Async Locking:** Never hold a `Signal` or `RefCell` write lock across an `.await`.
+- **WASM Debugging:** Use `console_error_panic_hook` and `expect("message")` over `unwrap()`.
+- **Numeric Interop:** Use `f64` for ALL numeric fields crossing FFI/Automerge.
+- **CSS Modules:** Use `#[css_module(...)]` struct Styles for scoped CSS.
 
-```bash
-just test-scripts -- check-dependency-health.test.ts
-```
-
-To run tests matching a Vitest name pattern:
-
-```bash
-just test-scripts -- check-dependency-health.test.ts -t "distribution"
-```
-
-To run a targeted Playwright spec/project:
-
-```bash
-just test-e2e -- tests/e2e/specs/due-dates.spec.ts --project=e2e-mobile
-```
-
-# Learnings
-
-## E2E & BDD Strategy (Playwright)
-
-- **Semantic Selectors**: Avoid checking CSS styles or fragile labels. Use stable data attributes (e.g., `data-testid`, `data-urgency`).
-- **Timezone Pitfalls**: `page.clock.setFixedTime()` sets system time (often UTC), but `new Date()` uses browser timezone. Align them or use ISO strings.
-- **Declarative Steps**: Prefer high-level domain actions (`I.Given.cleanWorkspace()`) over implementation details.
-- **Case-Sensitive BDD**: Steps often expect TitleCase for enums (e.g., `Urgent`). Check `STATUS_MAP` in `all.steps.ts`.
-- **WASM Init Race**: Use `page.waitForFunction` to ensure custom WASM APIs are attached to `window` before calling them.
-- **Focus Traps**: Avoid `expect(locator).toBeFocused()` in dialogs with focus traps; directly interact with inputs instead.
-- **Dialog Stacking**: Ensure dialogs explicitly close and unmount to avoid backdrop occlusion or focus theft.
-- **Debugging**:
-  - **Console Relays**: Use `page.on("console", ...)` in the Page Object to forward browser logs to the Node process.
-  - **Dioxus Toast "Parking"**: Dioxus parks toasts off-screen (`right: -1000px`) instead of `display: none`. They are "visible" to Playwright but may occlude interactions.
-- **Isolation & Persistence**:
-  - **Worker Collision**: Disable `fullyParallel` if using stateful `IndexedDB` to avoid origin collisions.
-  - **Fixture Isolation**: Use custom fixtures (`alice`, `bob`) instead of module-level variables to prevent state leakage between tests.
-  - **Reload Race**: `repo.import()` followed by `location.reload()` can race. Add a settle delay or await persistence confirmation.
-- **IndexedDB Cleanup**: `indexedDB.deleteDatabase()` is async; wrap in a Promise awaiting `onsuccess`.
-- **LocalStorage/Gloo**: `gloo-storage` JSON-encodes values (e.g., `"\"automerge:123\""`). `JSON.parse()` before asserting.
-
-## Automerge & Autosurgeon Patterns
-
-- **Asymmetric Serialization**: Use `Hydrate` (broad, accepts Text or Scalar) and `Reconcile` (strict, writes legacy format) asymmetrically when bridging old schemas. Use `reconciler.text()` to force `Text` type for IDs.
-- **`hydrate_prop` vs `MaybeMissing`**: `hydrate_prop::<Option<T>>` fails if a key is missing. Use `hydrate_prop::<MaybeMissing<T>>` for optional keys that might be absent from the Automerge map.
-- **Numeric Type Strictness**: Automerge documents fluctuate between `ScalarValue::Int` and `F64`. Treat them as equal if mathematical values match to avoid diff noise.
-- **Realized Text**: `assert_doc!` realizes `Text` as a list of character maps. Use an `am_text` helper to convert strings for cleaner assertions.
-
-## Rust & Dioxus Development
-
-- **Workspace Management**: Use a root `Cargo.toml` with `[workspace]`. Isolate Rust crates in `crates/`. Centralize shared dependencies in `[workspace.dependencies]`.
-- **WASM Gating**: Use `[target.'cfg(target_arch = "wasm32")'.dependencies]` for web-only crates. Provide mock/no-op implementations for native targets to keep `cargo check` passing on host.
-- **Tree-Walking & Clippy**: Deep recursion triggers clippy warnings. Use a `FlattenContext` struct to group stateful references and reduce function signature size.
-- **Inheritance vs. Aggregation**: Handle scheduling inheritance (due dates) during tree-walking in the view layer, passing "effective" values to keep leaf components stateless.
-- **Dioxus State & Context**:
-  - **Hydration Race**: Initialize store with default/empty state synchronously in `use_context_provider` to avoid "unexpected None" errors. Hydrate asynchronously from persistence later.
-  - **Async Locking**: Never hold a `Signal` or `RefCell` write lock across an `.await`.
-  - **Infinite Loops**: `AutoCommit::get_heads` requires `&mut self`, triggering signal writes. Avoid using it in reactive effects without explicit change checks.
-- **Async Testing**: Use `pool.run_until()` with `futures::executor::LocalPool`. `pollster::block_on` does not poll background tasks spawned on the spawner.
-- **WASM Debugging**:
-  - Use `console_error_panic_hook` for readable panics.
-  - Avoid `std::time` on `wasm32-unknown-unknown`; use `web-time` or enable `js` features on crates like `chrono`.
-  - Prefer `expect("message")` over `unwrap()` for better trace context in WASM logs.
-- **Numeric Interop**: Use `f64` for ALL numeric fields crossing the FFI/Automerge boundary to ensure IEEE 754 compatibility with JavaScript.
-- **Dioxus Router**: Custom URL parameter types must implement `Display` and `FromStr`.
-- **Dioxus CSS Modules**: Use `#[css_module("/src/path/to/file.css")] struct Styles;` inside a component function. The path is absolute from the crate root. Class names become snake_case const fields (e.g., `.date-input` → `Styles::date_input`). The stylesheet is auto-injected on first `Deref` access — no manual `document::Link` needed. Keep vendored `dioxus_components` on upstream `style.css` + `document::Link`; only use CSS modules for app-owned components.
-
-## Project Management
-
-- **Milestone Granularity**: Avoid "View"-based milestones which often hide complex mutation/component dependencies. Break by **Capability** (e.g., "Data Rendering", "Status Toggling") to keep changesets reviewable.
-- **Migration Source of Truth**: Port types from the **Persistence/Zod** layer, not the BDD/Test layer, to ensure storage compatibility.
-- **Workflow Authority**: `docs/plan/rust_migration.md` is the source of truth for the migration. Do not create ephemeral implementation plans.
-
-## Landing the Plane (Session Completion)
-
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+## 6. Session Completion
 
 **MANDATORY WORKFLOW:**
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --no-rebase
-   bd sync
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
-
-**CRITICAL RULES:**
-
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+1. **File issues** for follow-up work.
+2. **Run quality gates** (tests, linters).
+3. **PUSH TO REMOTE** (`git push`).
+   - `git pull --no-rebase`
+   - `bd sync`
+   - `git push`
+   - `git status` (Must show "up to date")
+4. **Verify** all changes are pushed.
