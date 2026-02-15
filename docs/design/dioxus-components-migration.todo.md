@@ -52,12 +52,12 @@ git show <commit>:docs/design/dioxus-components-migration.todo.md
   - [x] `crates/tasklens-ui/src/app_components/priority_task_row.rs`
   - [x] `crates/tasklens-ui/src/app_components/page_header.rs`
   - [x] `crates/tasklens-ui/src/app_components/back_button.rs`
-- [ ] Slice TW4: de-tailwind page shells and analytics surfaces.
-  - [ ] `crates/tasklens-ui/src/views/plan_page.rs`
-  - [ ] `crates/tasklens-ui/src/views/do_page.rs`
-  - [ ] `crates/tasklens-ui/src/views/task_page.rs`
-  - [ ] `crates/tasklens-ui/src/views/balance_page.rs`
-  - [ ] `crates/tasklens-ui/src/views/score_trace_page.rs`
+- [x] Slice TW4: de-tailwind page shells and analytics surfaces.
+  - [x] `crates/tasklens-ui/src/views/plan_page.rs`
+  - [x] `crates/tasklens-ui/src/views/do_page.rs`
+  - [x] `crates/tasklens-ui/src/views/task_page.rs`
+  - [x] `crates/tasklens-ui/src/views/balance_page.rs`
+  - [x] `crates/tasklens-ui/src/views/score_trace_page.rs`
 - [ ] Slice TW5: remove Tailwind runtime and close Phase 2.
   - [ ] Interim signal: generated `crates/tasklens-ui/assets/tailwind.css` is near-empty/no-app-utility output and materially smaller than the current ~1196-line baseline.
   - [ ] Remove `crates/tasklens-ui/tailwind.css`.
@@ -78,7 +78,7 @@ Phase 1 (DaisyUI removal): complete.
 
 Phase 2 (Tailwind removal): remaining.
 
-- [ ] Gate 5: Remove Tailwind utility usage from app-owned Rust callsites (`src/app_components`, `src/views`, and app root wrappers).
+- [x] Gate 5: Remove Tailwind utility usage from app-owned Rust callsites (`src/app_components`, `src/views`, and app root wrappers).
 - [ ] Gate 6: Tailwind output proves no remaining utility dependency before removal (`assets/tailwind.css` near-empty/no app utility selectors), then remove Tailwind input/output and stylesheet link.
 - [ ] Gate 7: Restore pristine upstream `dx-components-theme.css`, keep app overrides in `assets/app.css`, and run `just verify`.
 

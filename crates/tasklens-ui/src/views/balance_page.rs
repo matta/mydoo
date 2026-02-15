@@ -11,6 +11,9 @@ use crate::dioxus_components::progress::Progress;
 use crate::hooks::use_balance_interaction::{BalanceItem, use_balance_interaction};
 use dioxus::prelude::*;
 
+#[css_module("/src/views/balance_page.css")]
+struct Styles;
+
 /// The main page component for the Balance View.
 ///
 /// This view allows users to visualize and adjust the distribution of effort
@@ -28,7 +31,7 @@ pub fn BalancePage() -> Element {
 
     rsx! {
         div {
-            class: "px-4 pt-4 pb-20 container mx-auto max-w-2xl",
+            class: Styles::page_container,
             style: "padding-top: var(--safe-top); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
 
             PageHeader { title: "Balance" }
@@ -47,7 +50,7 @@ pub fn BalancePage() -> Element {
                     subtitle: "Create root-level tasks in the Plan view to see balance data.",
                 }
             } else {
-                div { class: "space-y-4",
+                div { class: Styles::item_list,
                     for item in render_items.iter().cloned() {
                         BalanceItemRow {
                             key: "{item.id}",
@@ -97,23 +100,23 @@ fn BalanceItemRow(
             "data-starving": "{item.is_starving}",
 
             CardContent {
-                div { class: "flex justify-between items-start mb-3",
+                div { class: Styles::item_header,
                     div {
-                        h3 { class: "font-medium text-app-text", "{item.title}" }
+                        h3 { class: Styles::item_title, "{item.title}" }
                         Badge {
                             variant: status_variant,
                             "data-testid": "balance-status",
                             "{status_label}"
                         }
                     }
-                    div { class: "text-right text-sm",
-                        div { class: "text-app-text/70",
+                    div { class: Styles::stats_container,
+                        div { class: Styles::stat_label,
                             "Target: "
-                            span { class: "font-medium text-app-text", "{display_target_pct}%" }
+                            span { class: Styles::stat_value, "{display_target_pct}%" }
                         }
-                        div { class: "text-app-text/70",
+                        div { class: Styles::stat_label,
                             "Actual: "
-                            span { class: "font-medium text-app-text", "{actual_pct}%" }
+                            span { class: Styles::stat_value, "{actual_pct}%" }
                         }
                     }
                 }
@@ -123,8 +126,8 @@ fn BalanceItemRow(
                     actual_percent: item.actual_percent,
                 }
 
-                div { class: "mt-3",
-                    label { class: "block text-xs text-app-text/50 mb-1",
+                div { class: Styles::slider_section,
+                    label { class: Styles::slider_label,
                         "Adjust Target"
                     }
                     BalanceSlider {
@@ -154,15 +157,15 @@ fn BalanceBar(target_percent: f64, actual_percent: f64) -> Element {
     let actual_value = (actual_percent * 100.0).clamp(0.0, 100.0) as i32;
 
     rsx! {
-        div { class: "relative",
+        div { class: Styles::progress_container,
             Progress {
                 value: actual_value as f64,
                 max: 100.0,
-                class: "h-4 w-full",
+                class: Styles::progress_bar,
                 "data-testid": "actual-bar",
             }
             div {
-                class: "absolute top-0 left-0 h-4 border-r-2 border-app-text/30 transition-all duration-300",
+                class: Styles::target_indicator,
                 style: "width: {target_value}%",
                 "data-testid": "target-bar",
             }

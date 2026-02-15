@@ -26,10 +26,10 @@
   --app_text-muted: var(--secondary-color-5);
   --app_text-subtle: var(--secondary-color-6);
   --app_accent: var(--focused-border-color);
-  --app-primary-shadow-color: rgba(43, 127, 255, 0.2);
+  --app_primary-shadow-color: rgba(43, 127, 255, 0.2);
 }
 
-[data-app_state] {
+[data-app-state] {
   min-height: 100vh;
 }
 

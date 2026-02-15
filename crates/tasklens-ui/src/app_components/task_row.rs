@@ -82,15 +82,15 @@ pub(crate) fn TaskRow(
     };
 
     let title_class = if is_done {
-        format!("{} {}", Styles::title_base, Styles::title_done)
+        format_args!("{} {}", Styles::title_base, Styles::title_done)
     } else {
-        format!("{} {}", Styles::title_base, urgency_text_class)
+        format_args!("{} {}", Styles::title_base, urgency_text_class)
     };
 
     let row_class = if is_highlighted {
-        format!("{} {}", Styles::row_root, Styles::row_highlighted)
+        format_args!("{} {}", Styles::row_root, Styles::row_highlighted)
     } else {
-        Styles::row_root.to_string()
+        format_args!("{}", Styles::row_root)
     };
 
     rsx! {

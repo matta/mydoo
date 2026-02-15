@@ -401,7 +401,6 @@ fn App() -> Element {
         }
 
         div {
-            class: "min-h-screen",
             "data-app-state": app_state,
             "data-memory-heads": "{memory_heads()}",
             "data-persisted-heads": "{persisted_heads()}",

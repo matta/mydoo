@@ -1,0 +1,24 @@
+.page_container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 5rem;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 42rem;
+}
+
+.refresh_button {
+  color: var(--app_text);
+  opacity: 0.7;
+}
+
+.refresh_button:hover {
+  opacity: 1;
+}
+
+.task_list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

@@ -216,7 +216,7 @@ pub(crate) fn TaskEditor(
 
     rsx! {
         DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
-            DialogContent { class: format_args!("{}", Styles::task_editor_dialog),
+            DialogContent { class: Some(Styles::task_editor_dialog.to_string()),
                 // Header
                 div { class: "dialog-header",
                     div { class: "dialog-title-group",
@@ -307,7 +307,7 @@ pub(crate) fn TaskEditor(
                                 }
                                 Textarea {
                                     id: "notes-input",
-                                    class: format_args!("{} {}", "app_input-full", Styles::notes_area),
+                                    class: "app_input-full {Styles::notes_area}",
                                     placeholder: "Add more context or details here...",
                                     value: current_draft.notes.clone(),
                                     oninput: move |e: FormEvent| {
@@ -453,7 +453,7 @@ pub(crate) fn TaskEditor(
                         legend { class: Styles::section_legend,
                             "Scheduling"
                         }
-                        div { class: format_args!("{} {}", Styles::settings_cells, "app_input-full"),
+                        div { class: "{Styles::settings_cells} app_input-full",
                             div {
                                 Label {
                                     class: Styles::field_label,
@@ -703,10 +703,10 @@ pub(crate) fn TaskEditor(
                     if task_id.is_some() {
                         fieldset { class: Styles::settings_group,
                             Label {
-                                class: format_args!("{} {}", Styles::field_label, "app_cursor_pointer"),
+                                class: "{Styles::field_label} app_cursor_pointer",
                                 html_for: "sequential-toggle",
                                 div { class: Styles::sequential_label_group,
-                                    span { class: format_args!("{} {}", Styles::label_text_bold, "app_text_sm"), "Sequential Project" }
+                                    span { class: "{Styles::label_text_bold} app_text_sm", "Sequential Project" }
                                     span { class: Styles::sequential_label_description,
                                         "Steps must be completed in order"
                                     }
@@ -741,7 +741,7 @@ pub(crate) fn TaskEditor(
                                 if can_outdent {
                                     Button {
                                         variant: ButtonVariant::Ghost,
-                                        class: format_args!("{} {}", Styles::hierarchy_button, Styles::hierarchy_button_sep),
+                                        class: "{Styles::hierarchy_button} {Styles::hierarchy_button_sep}",
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -755,7 +755,7 @@ pub(crate) fn TaskEditor(
                                 if can_indent {
                                     Button {
                                         variant: ButtonVariant::Ghost,
-                                        class: format_args!("{} {}", Styles::hierarchy_button, Styles::hierarchy_button_sep),
+                                        class: "{Styles::hierarchy_button} {Styles::hierarchy_button_sep}",
                                         onclick: {
                                             let id = id.clone();
                                             move |_| {
@@ -768,7 +768,7 @@ pub(crate) fn TaskEditor(
                                 }
                                 Button {
                                     variant: ButtonVariant::Ghost,
-                                    class: format_args!("{} {}", Styles::hierarchy_button, Styles::hierarchy_button_sep),
+                                    class: "{Styles::hierarchy_button} {Styles::hierarchy_button_sep}",
                                     onclick: {
                                         let id = id.clone();
                                         move |_| {
@@ -790,7 +790,7 @@ pub(crate) fn TaskEditor(
                         if task_id.is_some() {
                             Button {
                                 variant: ButtonVariant::Ghost,
-                                class: format_args!("{} {}", Styles::btn_delete, "footer_button_full"),
+                                class: "{Styles::btn_delete} footer_button_full",
                                 onclick: on_delete,
                                 "Delete Task"
                             }
@@ -799,13 +799,13 @@ pub(crate) fn TaskEditor(
                     div { class: "dialog-footer-actions",
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: format_args!("{} {}", "footer_button_full", Styles::footer_cancel_btn),
+                            class: "footer_button_full {Styles::footer_cancel_btn}",
                             onclick: move |_| on_close.call(()),
                             "Cancel"
                         }
                         Button {
                             variant: ButtonVariant::Primary,
-                            class: format_args!("{} {}", Styles::btn_save, "footer_button_full"),
+                            class: "{Styles::btn_save} footer_button_full",
                             onclick: move |_| save_handler(),
                             if task_id.is_some() {
                                 "Save Changes"
