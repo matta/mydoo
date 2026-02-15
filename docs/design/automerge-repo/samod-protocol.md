@@ -1,4 +1,4 @@
-> **Note:** This document describes the design/protocol of the external `automerge-repo` package (Node.js) for reference purposes. It does not document the implementation within this repository.
+> **Note:** This document describes the protocol of the external Rust `samod` crate (https://github.com/alexjg/samod) for reference purposes. It does not document the implementation within this repository.
 
 # SAMOD Sync Protocol Specification
 
