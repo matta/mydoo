@@ -46,7 +46,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_ms_to_period() {
+    fn test_ms_to_period_multiples() {
         // Multiples of Days
         assert_eq!(ms_to_period(DAY_MS), (1, "Days".to_string()));
         assert_eq!(ms_to_period(2 * DAY_MS), (2, "Days".to_string()));
@@ -62,7 +62,10 @@ mod tests {
         assert_eq!(ms_to_period(MINUTE_MS), (1, "Minutes".to_string()));
         assert_eq!(ms_to_period(59 * MINUTE_MS), (59, "Minutes".to_string()));
         assert_eq!(ms_to_period(61 * MINUTE_MS), (61, "Minutes".to_string()));
+    }
 
+    #[test]
+    fn test_ms_to_period_edge_cases() {
         // Edge cases and non-multiples
         assert_eq!(ms_to_period(0), (0, "Minutes".to_string()));
         assert_eq!(ms_to_period(30 * 1000), (0, "Minutes".to_string())); // 30 seconds
@@ -72,7 +75,7 @@ mod tests {
     }
 
     #[test]
-    fn test_period_to_ms() {
+    fn test_period_to_ms_minutes_hours() {
         // Minutes
         assert_eq!(period_to_ms(1, "minutes"), MINUTE_MS);
         assert_eq!(period_to_ms(2, "minute"), 2 * MINUTE_MS);
@@ -84,7 +87,10 @@ mod tests {
         assert_eq!(period_to_ms(2, "hour"), 2 * HOUR_MS);
         assert_eq!(period_to_ms(3, "hrs"), 3 * HOUR_MS);
         assert_eq!(period_to_ms(4, "hr"), 4 * HOUR_MS);
+    }
 
+    #[test]
+    fn test_period_to_ms_days_weeks_months_years() {
         // Days
         assert_eq!(period_to_ms(1, "days"), DAY_MS);
         assert_eq!(period_to_ms(2, "day"), 2 * DAY_MS);
@@ -100,7 +106,10 @@ mod tests {
         // Years
         assert_eq!(period_to_ms(1, "years"), DAY_MS * 365);
         assert_eq!(period_to_ms(2, "year"), 2 * DAY_MS * 365);
+    }
 
+    #[test]
+    fn test_period_to_ms_misc() {
         // Case insensitivity
         assert_eq!(period_to_ms(1, "DAYS"), DAY_MS);
         assert_eq!(period_to_ms(1, "MinUTes"), MINUTE_MS);
