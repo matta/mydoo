@@ -3,7 +3,6 @@
 ## Tracking Policy
 
 - Track this migration in this checklist and `dioxus-components-migration.md`.
-- Do not create or update `bd` items for routine migration slices unless the user explicitly asks for `bd` tracking.
 - When slice status changes, update this file directly in the same change.
 
 ## Working Agreement (Prevent Slice Drift)

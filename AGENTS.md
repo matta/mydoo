@@ -26,17 +26,6 @@ Use these documents to understand the system architecture and requirements:
 
 ## 3. Development Guidelines
 
-### Task Tracking
-
-- **Use the CLI:** When task tracking is needed, ALWAYS use the `bd` command line tool.
-- **When Required:** Use `bd` for deferred work, multi-session tasks, or complex features.
-- **When Not Required:** Skip `bd` for simple, single-session work unless requested.
-- **Commands:**
-  - `bd ready`: List tasks ready for work.
-  - `bd create <title>`: Create a new task.
-  - `bd update <id> <status>`: Update task status.
-  - `bd show <id>`: View task details.
-
 ### Package Management
 
 - Use `pnpm`, not `npm`.
@@ -135,7 +124,6 @@ just test-e2e -- crates/tasklens-ui/tests/e2e/specs/my.spec.ts # Run specific fi
 2. **Run quality gates** (tests, linters).
 3. **PUSH TO REMOTE** (`git push`).
    - `git pull --no-rebase`
-   - `bd sync`
    - `git push`
    - `git status` (Must show "up to date")
 4. **Verify** all changes are pushed.
