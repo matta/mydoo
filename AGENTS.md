@@ -29,7 +29,7 @@ Use these documents to understand the system architecture and requirements:
 ### Package Management
 
 - Use `pnpm`, not `npm`.
-- Use `pnpm dlx` for running scripts.
+- Avoid `pnpm dlx`. Favor deterministic alternatives (install + exec) for reproducibility.
 - Use `cargo` for Rust.
 - Use `just` for running commands.
 - **Dioxus Components:** Use `cargo xtask dx-components vendor` (never run `dx components add` directly).
