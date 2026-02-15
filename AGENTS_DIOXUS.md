@@ -94,13 +94,8 @@ rsx! {
 }
 ```
 
-> [!WARNING] When using Tailwind CSS, `assets/tailwind.css` is an
-> **auto-generated file** created by the `dx serve` or `tailwind` CLI command.
-> Do NOT edit it directly. Instead, edit `input.css` (or your configured input
-> source) and let the CLI handle the rebuild.
->
-> In many Dioxus projects, `assets/tailwind.css` is treated as a generated
-> artifact. Always verify before editing.
+> [!WARNING] Some Dioxus build pipelines emit generated assets under `assets/`.
+> Verify whether a file is generated before editing it directly.
 
 # Components
 

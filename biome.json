@@ -19,8 +19,7 @@
       "!**/pnpm-lock.yaml",
       "!**/*.d.ts",
       "!**/.prettierignore",
-      "!**/context",
-      "!crates/tasklens-ui/assets/tailwind.css"
+      "!**/context"
     ]
   },
   "css": {
@@ -77,11 +76,5 @@
       }
     }
   },
-  "overrides": [
-    {
-      "includes": ["crates/tasklens-ui/assets/tailwind.css"],
-      "linter": { "enabled": false },
-      "formatter": { "enabled": false }
-    }
-  ]
+  "overrides": []
 }
