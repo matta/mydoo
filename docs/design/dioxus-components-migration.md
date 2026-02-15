@@ -31,8 +31,12 @@ git show <commit>:docs/design/dioxus-components-migration.md
 ## Current State (Active)
 
 - Tailwind runtime is still linked while Phase 2 remains open.
-- `crates/tasklens-ui/src/components` still exists as a compatibility shim and should be removed after import migration completes.
-- Adopted components with remaining alignment checks: Navbar and Popover.
+- `crates/tasklens-ui/src/components` compatibility shim has been removed (TW1 complete).
+- Generated `crates/tasklens-ui/assets/tailwind.css` is `445` lines as of 2026-02-15.
+- Output still contains Tailwind preflight/reset and properties layers because `crates/tasklens-ui/tailwind.css` imports the Tailwind runtime.
+- Remaining app-owned utility dependencies are `sr-only` and `size-5` in `task_editor.rs` and `doc_id_manager.rs`.
+- `@apply` in `crates/tasklens-ui/tailwind.css` keeps Tailwind as an active build/runtime dependency even after most callsite cleanup.
+- Compiled output includes likely extraction noise selectors (for example `.container` and `.table`) with no matching app-owned Rust callsites.
 - `dx-components-theme.css` still needs a pristine-upstream restore with app overrides isolated to `assets/app.css`.
 - Tailwind utility usage matches in app-owned source: materially reduced after page-shell migration.
 
@@ -81,25 +85,31 @@ Known risk to remember for future vendoring:
 - Keep `dx-components-theme.css` pristine upstream.
 - Put app-specific layout/overrides in `assets/app.css`.
 
+## Tailwind Findings (2026-02-15)
+
+- Tailwind output dropped from the earlier ~1196-line planning baseline to 445 lines, but is not yet removable.
+- The largest remaining CSS bulk appears to be Tailwind preflight/reset and `@property` scaffolding, not app utility selectors.
+- Before final removal, we need a canary slice that proves app behavior does not implicitly rely on preflight defaults.
+- Runtime removal should follow only after:
+  - utility dependencies (`sr-only`, `size-5`) are replaced with app-owned classes,
+  - `@apply` is removed from Tailwind input,
+  - required reset behavior is explicitly owned in `assets/app.css`.
+
 ## Remaining Exit Criteria
 
 Phase 1 (DaisyUI removal) is complete.
 
-Phase 2 (Tailwind removal) is split into reviewable slices:
+Phase 2 (Tailwind removal) completed TW1-TW4 and now uses a three-slice finish:
 
-1. **Slice TW1: Compatibility shim finalization (precondition).**
-   - Migrate remaining imports from `crate::components::{dialog, navbar, popover, Alert}`.
-   - Re-sync Navbar and Popover to upstream formatting/CSS parity.
-   - Remove obsolete `src/components` files as migrations land.
-2. **Slice TW2: Task editor surface de-tailwind.**
-   - Target `task_editor.rs` first (largest utility-class hotspot), plus related modal/move-picker files.
-   - Replace Tailwind utility strings with app-owned semantic classes.
-3. **Slice TW3: Task-flow support surfaces de-tailwind.**
-   - Migrate `doc_id_manager.rs`, `task_row.rs`, `search_panel.rs`, `sync_indicator.rs`, `load_error_view.rs`, and related small app components.
-4. **Slice TW4: Page shell and analytics surface de-tailwind.**
-   - Migrate `plan_page.rs`, `do_page.rs`, `task_page.rs`, `balance_page.rs`, `score_trace_page.rs`.
-5. **Slice TW5: Tailwind runtime removal and final CSS boundary cleanup.**
-   - Interim signal before deletion: generated `assets/tailwind.css` should be near-empty (no app utility selectors from the audit set and materially smaller than the current ~1196-line baseline).
+1. **Slice TW5a: Utility signal hardening.**
+   - Replace remaining app-owned utility dependencies (`sr-only`, `size-5`) with app-owned semantic classes/CSS module rules.
+   - Remove `@apply` from `crates/tasklens-ui/tailwind.css` so utility expansion is no longer required.
+   - Tighten Tailwind extraction scope and re-baseline output.
+2. **Slice TW5b: Reset-dependency canary.**
+   - Identify which behaviors currently come from Tailwind preflight/reset.
+   - Move only required base/reset behaviors into `crates/tasklens-ui/assets/app.css`.
+   - Validate app behavior with Tailwind stylesheet disabled before deleting Tailwind files.
+3. **Slice TW5c: Runtime removal and final boundary cleanup.**
    - Remove Tailwind input/output and link:
      - `crates/tasklens-ui/tailwind.css`
      - `crates/tasklens-ui/assets/tailwind.css`
@@ -109,11 +119,9 @@ Phase 2 (Tailwind removal) is split into reviewable slices:
 
 ## Near-Term Priorities
 
-1. Execute Slice TW1 (`src/components` shim removal and Navbar/Popover parity).
-2. Execute Slice TW2 (Task Editor hotspot cleanup).
-3. Execute Slice TW3 (task-flow support surfaces).
-4. Execute Slice TW4 (page-shell/analytics surfaces).
-5. Execute Slice TW5 (Tailwind runtime removal + final verify).
+1. Execute Slice TW5a (utility signal hardening and baseline refresh).
+2. Execute Slice TW5b (reset-dependency canary and base-rule ownership transfer).
+3. Execute Slice TW5c (Tailwind runtime removal + final verify).
 
 ## Checklist
 
