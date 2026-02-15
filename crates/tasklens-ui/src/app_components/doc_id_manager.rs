@@ -10,7 +10,6 @@ use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::input::Input;
 use crate::hooks::use_tunnel_state::use_tunnel_state;
 use dioxus::prelude::*;
-// use dioxus::events::FormEvent;
 
 /// Document ID Manager component for switching between documents.
 ///
