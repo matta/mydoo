@@ -110,7 +110,7 @@ pub(crate) fn TaskRow(
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
                         },
-                        "aria-label": if is_expanded { format!("Collapse {}", task.title) } else { format!("Expand {}", task.title) },
+                        "aria-label": "Toggle expansion",
                         "data-expanded": "{is_expanded}",
                         if is_expanded {
                             svg {
@@ -192,7 +192,6 @@ pub(crate) fn TaskRow(
                 Button {
                     variant: ButtonVariant::Ghost,
                     title: "Add Subtask",
-                    "aria-label": format!("Add subtask to {}", task.title),
                     onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
                     svg {
                         class: Styles::icon_sm,
@@ -211,7 +210,6 @@ pub(crate) fn TaskRow(
                 Button {
                     variant: ButtonVariant::Destructive,
                     title: "Delete",
-                    "aria-label": format!("Delete {}", task.title),
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
                     svg {
                         class: Styles::icon_sm,
