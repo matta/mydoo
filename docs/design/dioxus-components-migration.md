@@ -34,7 +34,7 @@ git show <commit>:docs/design/dioxus-components-migration.md
 - `crates/tasklens-ui/src/components` compatibility shim has been removed (TW1 complete).
 - Generated `crates/tasklens-ui/assets/tailwind.css` is `445` lines as of 2026-02-15.
 - Output still contains Tailwind preflight/reset and properties layers because `crates/tasklens-ui/tailwind.css` imports the Tailwind runtime.
-- Remaining app-owned utility dependencies are `sr-only` and `size-5` in `task_editor.rs` and `doc_id_manager.rs`.
+- Remaining app-owned utility dependencies tracked for TW5a are now removed from app-owned Rust callsites; continue auditing new callsites for regressions.
 - `@apply` in `crates/tasklens-ui/tailwind.css` keeps Tailwind as an active build/runtime dependency even after most callsite cleanup.
 - Compiled output includes likely extraction noise selectors (for example `.container` and `.table`) with no matching app-owned Rust callsites.
 - `dx-components-theme.css` still needs a pristine-upstream restore with app overrides isolated to `assets/app.css`.
@@ -82,6 +82,7 @@ Known risk to remember for future vendoring:
 
 - Keep vendored `dioxus_components` on upstream `style.css` + `document::Link` patterns.
 - Use CSS modules for app-owned components where scoping helps.
+- For utility-class replacements in app-owned Rust callsites, prefer point-of-use classes in each component's scoped CSS module instead of adding new shared utility helpers to `crates/tasklens-ui/assets/app.css`.
 - Keep `dx-components-theme.css` pristine upstream.
 - Put app-specific layout/overrides in `assets/app.css`.
 
@@ -102,7 +103,7 @@ Phase 1 (DaisyUI removal) is complete.
 Phase 2 (Tailwind removal) completed TW1-TW4 and now uses a three-slice finish:
 
 1. **Slice TW5a: Utility signal hardening.**
-   - Replace remaining app-owned utility dependencies (`sr-only`, `size-5`) with app-owned semantic classes/CSS module rules.
+   - Keep app-owned utility dependencies (`sr-only`, `size-5`) removed by using app-owned semantic classes/CSS module rules at callsites.
    - Remove `@apply` from `crates/tasklens-ui/tailwind.css` so utility expansion is no longer required.
    - Tighten Tailwind extraction scope and re-baseline output.
 2. **Slice TW5b: Reset-dependency canary.**

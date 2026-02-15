@@ -14,6 +14,7 @@
 - The active chunk must point to the highest-impact remaining debt, not only the next component name.
 - Keep migration inventory/status in `dioxus-components-migration.md` synced in the same change as checklist updates.
 - Do not introduce new DaisyUI classes.
+- For app-owned callsite utility replacements, prefer component-scoped CSS module classes over adding new shared utility helpers in `crates/tasklens-ui/assets/app.css`.
 
 ## Completed Work (Condensed)
 
@@ -69,7 +70,7 @@ git show <commit>:docs/design/dioxus-components-migration.todo.md
   - [x] `crates/tasklens-ui/src/views/balance_page.rs`
   - [x] `crates/tasklens-ui/src/views/score_trace_page.rs`
 - [ ] Slice TW5a: harden utility signal before runtime removal.
-  - [ ] Replace remaining utility-class dependencies in app-owned Rust callsites (`sr-only`, `size-5`) with app-owned semantic classes/CSS modules.
+  - [x] Replace remaining utility-class dependencies in app-owned Rust callsites (`sr-only`, `size-5`) with app-owned semantic classes/CSS modules at point of use.
   - [ ] Remove `@apply` usage from `crates/tasklens-ui/tailwind.css` and use explicit CSS declarations.
   - [ ] Tighten Tailwind extraction scope (`@source`) to reduce false-positive utility generation and re-baseline output size.
   - [ ] Update this checklist and the active plan doc with the new baseline after re-generation.

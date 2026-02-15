@@ -150,28 +150,6 @@
   padding-top: 0.5rem;
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
-.footer_button_full {
-  width: 100%;
-}
-
-@media (min-width: 640px) {
-  .footer_button_full {
-    width: auto;
-  }
-}
-
 /* --- Alerts --- */
 
 .alert {
