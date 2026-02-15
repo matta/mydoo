@@ -11,13 +11,16 @@ use dioxus::prelude::*;
 /// * `onclick` - Event handler called when the button is clicked.
 #[component]
 pub(crate) fn BackButton(onclick: EventHandler<MouseEvent>) -> Element {
+    #[css_module("/src/app_components/back_button.css")]
+    struct Styles;
+
     rsx! {
         Button {
             variant: ButtonVariant::Ghost,
-            class: "mb-4 pl-0 hover:bg-transparent",
+            class: Styles::back_button,
             onclick: move |evt| onclick.call(evt),
             svg {
-                class: "h-4 w-4 mr-1",
+                class: Styles::back_icon,
                 fill: "none",
                 view_box: "0 0 24 24",
                 stroke: "currentColor",

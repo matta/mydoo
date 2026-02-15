@@ -412,6 +412,9 @@
   .flex-none {
     flex: none;
   }
+  .flex-shrink {
+    flex-shrink: 1;
+  }
   .flex-shrink-0 {
     flex-shrink: 0;
   }
@@ -420,6 +423,9 @@
   }
   .flex-grow {
     flex-grow: 1;
+  }
+  .border-collapse {
+    border-collapse: collapse;
   }
   .-translate-y-1 {
     --tw-translate-y: calc(var(--spacing) * -1);
@@ -583,6 +589,9 @@
   }
   .border-app-border-strong {
     border-color: var(--color-app-border-strong);
+  }
+  .border-app-text {
+    border-color: var(--color-app-text);
   }
   .border-app-text\/30 {
     border-color: var(--color-app-text);
@@ -783,6 +792,9 @@
   }
   .line-through {
     text-decoration-line: line-through;
+  }
+  .underline {
+    text-decoration-line: underline;
   }
   .opacity-0 {
     opacity: 0%;

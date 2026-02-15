@@ -4,6 +4,9 @@ use dioxus::prelude::*;
 /// A shared component for displaying document load or hydration errors.
 #[component]
 pub fn LoadErrorView(error: String, help_text: Option<String>) -> Element {
+    #[css_module("/src/app_components/load_error_view.css")]
+    struct Styles;
+
     let help_text = help_text.unwrap_or_else(|| {
         "Access the settings menu to switch documents or change sync servers.".to_string()
     });
@@ -12,12 +15,12 @@ pub fn LoadErrorView(error: String, help_text: Option<String>) -> Element {
         Alert {
             variant: AlertVariant::Error,
             title: "Loading Error",
-            class: "shadow-sm items-start flex-col gap-4",
-            div { class: "font-mono text-sm break-words leading-relaxed w-full",
+            class: Some(Styles::error_alert.to_string()),
+            div { class: Styles::error_details,
                 "{error}"
             }
-            div { class: "divider my-0 opacity-20" }
-            p { class: "text-sm opacity-90", "{help_text}" }
+            div { class: Styles::divider }
+            p { class: Styles::help_text, "{help_text}" }
         }
     }
 }

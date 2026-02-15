@@ -1216,8 +1216,9 @@ export class PlanPage implements PlanFixture {
 
   async openSearch(): Promise<void> {
     await this.page.getByTestId("search-button").click();
-    await expect(this.page.getByTestId("search-panel")).not.toHaveClass(
-      /pointer-events-none/,
+    await expect(this.page.getByTestId("search-panel")).toHaveAttribute(
+      "data-open",
+      "true",
     );
   }
 
@@ -1260,14 +1261,16 @@ export class PlanPage implements PlanFixture {
   }
 
   async verifySearchPanelOpen(): Promise<void> {
-    await expect(this.page.getByTestId("search-panel")).not.toHaveClass(
-      /pointer-events-none/,
+    await expect(this.page.getByTestId("search-panel")).toHaveAttribute(
+      "data-open",
+      "true",
     );
   }
 
   async verifySearchPanelClosed(): Promise<void> {
-    await expect(this.page.getByTestId("search-panel")).toHaveClass(
-      /pointer-events-none/,
+    await expect(this.page.getByTestId("search-panel")).toHaveAttribute(
+      "data-open",
+      "false",
     );
   }
 

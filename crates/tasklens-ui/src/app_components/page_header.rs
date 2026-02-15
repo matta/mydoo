@@ -2,10 +2,13 @@ use dioxus::prelude::*;
 
 #[component]
 pub(crate) fn PageHeader(title: String, children: Element) -> Element {
+    #[css_module("/src/app_components/page_header.css")]
+    struct Styles;
+
     rsx! {
-        div { class: "flex justify-between items-center mb-6",
-            h1 { class: "text-2xl font-bold text-app-text", "{title}" }
-            div { class: "flex items-center space-x-2",
+        div { class: Styles::header_root,
+            h1 { class: Styles::header_title, "{title}" }
+            div { class: Styles::header_actions,
                 {children}
             }
         }

@@ -50,6 +50,9 @@ pub(crate) fn TaskRow(
     effective_due_date: Option<i64>,
     effective_lead_time: Option<i64>,
 ) -> Element {
+    #[css_module("/src/app_components/task_row.css")]
+    struct Styles;
+
     let indentation = depth * 20;
     let is_done = task.status == TaskStatus::Done;
 
@@ -65,15 +68,11 @@ pub(crate) fn TaskRow(
     let urgency = get_urgency_status(effective_due_date, effective_lead_time, now);
 
     let (urgency_text_class, badge_variant, urgency_label) = match urgency {
-        UrgencyStatus::Overdue => (
-            "text-error font-medium",
-            BadgeVariant::Destructive,
-            "Overdue",
-        ),
-        UrgencyStatus::Urgent => ("text-warning", BadgeVariant::Secondary, "Urgent"),
-        UrgencyStatus::Active => ("text-warning", BadgeVariant::Secondary, "Active"),
-        UrgencyStatus::Upcoming => ("text-app-text", BadgeVariant::Primary, "Upcoming"),
-        _ => ("text-app-text", BadgeVariant::Outline, ""),
+        UrgencyStatus::Overdue => (Styles::text_error, BadgeVariant::Destructive, "Overdue"),
+        UrgencyStatus::Urgent => (Styles::text_warning, BadgeVariant::Secondary, "Urgent"),
+        UrgencyStatus::Active => (Styles::text_warning, BadgeVariant::Secondary, "Active"),
+        UrgencyStatus::Upcoming => (Styles::text_normal, BadgeVariant::Primary, "Upcoming"),
+        _ => (Styles::text_normal, BadgeVariant::Outline, ""),
     };
 
     let data_urgency = if urgency_label.is_empty() {
@@ -82,29 +81,28 @@ pub(crate) fn TaskRow(
         urgency_label
     };
 
-    let urgency_classes = format!("{} flex-grow cursor-pointer", urgency_text_class);
-
     let title_class = if is_done {
-        "line-through text-app-text/50 flex-grow cursor-pointer".to_string()
+        format!("{} {}", Styles::title_base, Styles::title_done)
     } else {
-        urgency_classes
+        format!("{} {}", Styles::title_base, urgency_text_class)
     };
 
-    let row_class = format!(
-        "flex items-center py-3 border-b border-app-border group pr-2 {}",
-        if is_highlighted { "animate-flash" } else { "" }
-    );
+    let row_class = if is_highlighted {
+        format!("{} {}", Styles::row_root, Styles::row_highlighted)
+    } else {
+        Styles::row_root.to_string()
+    };
 
     rsx! {
         div {
-            class: "{row_class}",
+            class: row_class,
             style: "--indent: {indentation}px; padding-left: var(--indent);",
             "data-testid": "task-item",
             "data-depth": "{depth}",
             "data-urgency": "{data_urgency}",
 
             // Expand/Collapse Chevron
-            div { class: "w-10 flex justify-center flex-shrink-0",
+            div { class: Styles::chevron_container,
                 if has_children {
                     Button {
                         variant: ButtonVariant::Ghost,
@@ -116,7 +114,7 @@ pub(crate) fn TaskRow(
                         "data-expanded": "{is_expanded}",
                         if is_expanded {
                             svg {
-                                class: "w-4 h-4",
+                                class: Styles::icon_sm,
                                 xmlns: "http://www.w3.org/2000/svg",
                                 fill: "none",
                                 view_box: "0 0 24 24",
@@ -130,7 +128,7 @@ pub(crate) fn TaskRow(
                             }
                         } else {
                             svg {
-                                class: "w-4 h-4",
+                                class: Styles::icon_sm,
                                 xmlns: "http://www.w3.org/2000/svg",
                                 fill: "none",
                                 view_box: "0 0 24 24",
@@ -145,7 +143,7 @@ pub(crate) fn TaskRow(
                         }
                     }
                 } else {
-                    div { class: "w-10" } // Spacer
+                    div { class: Styles::spacer_w10 } // Spacer
                 }
             }
 
@@ -158,7 +156,7 @@ pub(crate) fn TaskRow(
                 on_checked_change: move |_| {
                     on_toggle.call(task_toggle.clone());
                 },
-                class: "cursor-pointer mr-2 flex-shrink-0",
+                class: Styles::checkbox_custom,
             }
 
             // Urgency indicator badge
@@ -167,13 +165,13 @@ pub(crate) fn TaskRow(
                     variant: badge_variant,
                     "data-testid": "urgency-badge",
                     "data-urgency": "{data_urgency}",
-                    class: "ml-2",
+                    class: Styles::urgency_badge,
                     "{urgency_label}"
                 }
             }
 
             span {
-                class: "{title_class}",
+                class: title_class,
                 "data-testid": "task-title",
                 onclick: move |_| on_title_tap.call(task_id_title_tap.clone()),
                 "{task.title}"
@@ -182,7 +180,7 @@ pub(crate) fn TaskRow(
             if let Some(due_ts) = effective_due_date {
                 if !is_done {
                     span {
-                        class: "text-base text-app-text/50 ml-2",
+                        class: Styles::due_date,
                         "data-testid": "due-date-text",
                         {format_relative_due_date(due_ts, now)}
                     }
@@ -190,13 +188,13 @@ pub(crate) fn TaskRow(
             }
 
             // Actions
-            div { class: "flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2",
+            div { class: Styles::actions_container,
                 Button {
                     variant: ButtonVariant::Ghost,
                     title: "Add Subtask",
                     onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
                     svg {
-                        class: "w-4 h-4",
+                        class: Styles::icon_sm,
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
                         view_box: "0 0 24 24",
@@ -214,7 +212,7 @@ pub(crate) fn TaskRow(
                     title: "Delete",
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
                     svg {
-                        class: "w-4 h-4",
+                        class: Styles::icon_sm,
                         xmlns: "http://www.w3.org/2000/svg",
                         fill: "none",
                         view_box: "0 0 24 24",

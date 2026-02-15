@@ -1,0 +1,14 @@
+.back_button {
+  margin-bottom: 1rem;
+  padding-left: 0;
+}
+
+.back_button:hover {
+  background-color: transparent;
+}
+
+.back_icon {
+  height: 1rem;
+  width: 1rem;
+  margin-right: 0.25rem;
+}

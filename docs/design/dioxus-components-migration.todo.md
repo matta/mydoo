@@ -42,16 +42,16 @@ git show <commit>:docs/design/dioxus-components-migration.todo.md
   - [x] `crates/tasklens-ui/src/app_components/task_editor.rs`
   - [x] `crates/tasklens-ui/src/app_components/move_picker.rs`
   - [x] `crates/tasklens-ui/src/views/auth.rs`
-- [ ] Slice TW3: de-tailwind task-flow support surfaces.
-  - [ ] `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
-  - [ ] `crates/tasklens-ui/src/app_components/task_row.rs`
-  - [ ] `crates/tasklens-ui/src/app_components/search_panel.rs`
-  - [ ] `crates/tasklens-ui/src/app_components/sync_indicator.rs`
-  - [ ] `crates/tasklens-ui/src/app_components/load_error_view.rs`
-  - [ ] `crates/tasklens-ui/src/app_components/task_input.rs`
-  - [ ] `crates/tasklens-ui/src/app_components/priority_task_row.rs`
-  - [ ] `crates/tasklens-ui/src/app_components/page_header.rs`
-  - [ ] `crates/tasklens-ui/src/app_components/back_button.rs`
+- [x] Slice TW3: de-tailwind task-flow support surfaces.
+  - [x] `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
+  - [x] `crates/tasklens-ui/src/app_components/task_row.rs`
+  - [x] `crates/tasklens-ui/src/app_components/search_panel.rs`
+  - [x] `crates/tasklens-ui/src/app_components/sync_indicator.rs`
+  - [x] `crates/tasklens-ui/src/app_components/load_error_view.rs`
+  - [x] `crates/tasklens-ui/src/app_components/task_input.rs`
+  - [x] `crates/tasklens-ui/src/app_components/priority_task_row.rs`
+  - [x] `crates/tasklens-ui/src/app_components/page_header.rs`
+  - [x] `crates/tasklens-ui/src/app_components/back_button.rs`
 - [ ] Slice TW4: de-tailwind page shells and analytics surfaces.
   - [ ] `crates/tasklens-ui/src/views/plan_page.rs`
   - [ ] `crates/tasklens-ui/src/views/do_page.rs`

@@ -1,0 +1,10 @@
+.input_container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.input_field {
+  flex-grow: 1;
+  margin-right: 0.5rem;
+}
