@@ -78,10 +78,16 @@ Use these documents to understand the system architecture and requirements:
 
 ```bash
 just test          # All unit tests
-just test-e2e      # All E2E tests
 just test-scripts  # Scripts package unit tests
 just verify        # Full build and test suite
 just check-rust    # Full Rust validation
+
+# E2E Tests
+# NOTE: these commands automatically rebuild the Dioxus app before running tests.
+just test-e2e      # All E2E tests
+just test-e2e -- --ui  # Open Playwright UI mode
+just test-e2e -- -g "my test name" # Run specific test by name
+just test-e2e -- crates/tasklens-ui/tests/e2e/specs/my.spec.ts # Run specific file
 ```
 
 ### AI Agent Instructions
