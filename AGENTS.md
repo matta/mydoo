@@ -43,7 +43,9 @@ Use these documents to understand the system architecture and requirements:
 - **Clean Tree Rule:** Ensure clean working tree before starting new work.
 - **Feature Branch Isolation:** Each task gets its own branch (`codex/<task-slug>`).
 - **PR Isolation:** One concern per PR.
-- **Commit Rule:** Commit autonomously when quality gates pass (`just verify`).
+- **Commit Rule:** Commit autonomously when quality gates pass.
+  - **Code changes:** Run `just verify`.
+  - **Docs-only changes:** Do **not** run `just verify` by default; run doc-format checks only (for example `pnpm prettier --check` on changed docs) and rely on commit hooks.
   - **Do NOT commit if:** Tests/lints fail or changes are experimental.
   - **Protocol:** Summarize changes, confirm gates passed, state commit message.
 - **Verification:** ALWAYS verify `Exit Code` is `0` before claiming success.
@@ -60,6 +62,7 @@ Use these documents to understand the system architecture and requirements:
 
 - **Full Verification:** `just verify` (Complex logic, refactors).
 - **Standard Testing:** `just test` or `just test-e2e` (Routine logic).
+- **Docs-Only Exception:** For docs-only changes, skip `just verify`; run doc-format checks only.
 - **Presubmit:** `git push` hooks (Documentation, formatting).
 
 ### Test Commands
@@ -123,7 +126,9 @@ just test-e2e -- crates/tasklens-ui/tests/e2e/specs/my.spec.ts # Run specific fi
 2. **Run quality gates** (tests, linters).
 3. **PUSH TO REMOTE** (`git push`).
    - `git fetch origin`
+   - wait for fetch to finish successfully (`Exit Code 0`)
    - `git merge origin/main`
    - `git push`
    - `git status` (Must show "up to date")
+   - These commands are sequential. Do **not** run fetch/merge in parallel.
 4. **Verify** all changes are pushed.
