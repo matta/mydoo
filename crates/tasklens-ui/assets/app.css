@@ -194,6 +194,9 @@ textarea,
 .app_stack_6 > :not([hidden]) ~ :not([hidden]) {
   margin-top: 1.5rem;
 }
+.app-w-full {
+  width: 100%;
+}
 
 .app_ghost_hover:hover {
   background-color: var(--app_surface-muted);
