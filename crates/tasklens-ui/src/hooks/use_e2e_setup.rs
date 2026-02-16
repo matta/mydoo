@@ -7,10 +7,14 @@ use wasm_bindgen::prelude::*;
 use web_sys::UrlSearchParams;
 
 #[cfg(all(target_arch = "wasm32", feature = "e2e-test-hooks"))]
-pub(crate) fn use_e2e_setup(store: Signal<AppStore>) {
+pub(crate) fn use_e2e_setup(mut store: Signal<AppStore>) {
     use tracing::warn;
 
+    let mut registered = use_signal(|| false);
+    let mut seeded = use_signal(|| false);
+
     use_effect(move || {
+        let mut store = store;
         let window = web_sys::window().expect("global window must exist");
         let search = window.location().search().unwrap_or_default();
 
@@ -21,70 +25,72 @@ pub(crate) fn use_e2e_setup(store: Signal<AppStore>) {
         });
 
         if params.get("e2e_hooks").as_deref() == Some("true") {
-            tracing::info!("E2E Hooks Enabled");
+            if !registered() {
+                tracing::info!("E2E Hooks Registration Enabled");
 
-            // 1. Expose tasklensReset to the global window for E2E tests
-            let reset_closure = Closure::wrap(Box::new(|| {
-                wasm_bindgen_futures::future_to_promise(async move {
-                    match tasklens_reset_impl().await {
-                        Ok(_) => Ok(JsValue::UNDEFINED),
-                        Err(e) => Err(JsValue::from_str(&e)),
-                    }
+                // 1. Expose tasklensReset to the global window for E2E tests
+                let reset_closure = Closure::wrap(Box::new(|| {
+                    wasm_bindgen_futures::future_to_promise(async move {
+                        match tasklens_reset_impl().await {
+                            Ok(_) => Ok(JsValue::UNDEFINED),
+                            Err(e) => Err(JsValue::from_str(&e)),
+                        }
+                    })
                 })
-            })
-                as Box<dyn FnMut() -> js_sys::Promise>);
+                    as Box<dyn FnMut() -> js_sys::Promise>);
 
-            let _ = js_sys::Reflect::set(
-                &window,
-                &JsValue::from_str("tasklensReset"),
-                reset_closure.as_ref().unchecked_ref(),
-            );
-            reset_closure.forget();
+                let _ = js_sys::Reflect::set(
+                    &window,
+                    &JsValue::from_str("tasklensReset"),
+                    reset_closure.as_ref().unchecked_ref(),
+                );
+                reset_closure.forget();
 
-            // 2. Expose tasklensSeedSampleData to the global window for E2E tests
-            let seed_store = store;
-            let seed_closure = Closure::wrap(Box::new(move || {
-                let seed_store = seed_store;
-                wasm_bindgen_futures::future_to_promise(async move {
-                    match tasklens_seed_sample_data_impl(seed_store) {
-                        Ok(()) => Ok(JsValue::UNDEFINED),
-                        Err(e) => Err(JsValue::from_str(&e)),
-                    }
+                // 2. Expose tasklensSeedSampleData to the global window for E2E tests
+                let mut seed_store = store;
+                let seed_closure = Closure::wrap(Box::new(move || {
+                    let mut seed_store = seed_store;
+                    wasm_bindgen_futures::future_to_promise(async move {
+                        match tasklens_seed_sample_data_impl(seed_store) {
+                            Ok(()) => Ok(JsValue::UNDEFINED),
+                            Err(e) => Err(JsValue::from_str(&e)),
+                        }
+                    })
                 })
-            }) as Box<dyn FnMut() -> js_sys::Promise>);
+                    as Box<dyn FnMut() -> js_sys::Promise>);
 
-            let _ = js_sys::Reflect::set(
-                &window,
-                &JsValue::from_str("tasklensSeedSampleData"),
-                seed_closure.as_ref().unchecked_ref(),
-            );
-            seed_closure.forget();
+                let _ = js_sys::Reflect::set(
+                    &window,
+                    &JsValue::from_str("tasklensSeedSampleData"),
+                    seed_closure.as_ref().unchecked_ref(),
+                );
+                seed_closure.forget();
+
+                registered.set(true);
+            }
 
             // 3. Handle initial seed query param
             // We wait until the store has a handle before seeding.
             // Reading store.read() makes this effect re-run when the store is updated.
-            if params.get("seed").as_deref() == Some("true") && store.read().handle.is_some() {
-                thread_local! {
-                    static INITIAL_LOAD_SEED_CHECKED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+            if !seeded()
+                && params.get("seed").as_deref() == Some("true")
+                && store.read().handle.is_some()
+            {
+                seeded.set(true);
+
+                tracing::info!("Applying seed data from URL parameter...");
+                {
+                    let mut s = store.write();
+                    crate::seed::prime_store_with_sample_data(&mut s);
                 }
 
-                if !INITIAL_LOAD_SEED_CHECKED.get() {
-                    INITIAL_LOAD_SEED_CHECKED.set(true);
-
-                    tracing::info!("Applying seed data from URL parameter...");
-                    {
-                        let mut s = store.write();
-                        crate::seed::prime_store_with_sample_data(&mut s);
-                    }
-
-                    // Clean up URL
-                    if let Ok(history) = window.history() {
-                        let _ = history.replace_state_with_url(
-                            &wasm_bindgen::JsValue::NULL,
-                            "",
-                            Some("/plan"),
-                        );
-                    }
+                // Clean up URL
+                if let Ok(history) = window.history() {
+                    let _ = history.replace_state_with_url(
+                        &wasm_bindgen::JsValue::NULL,
+                        "",
+                        Some("/plan"),
+                    );
                 }
             }
         }
@@ -129,4 +135,4 @@ fn tasklens_seed_sample_data_impl(mut store: Signal<AppStore>) -> Result<(), Str
 
 // Fallback for non-wasm32 or when feature is disabled
 #[cfg(not(all(target_arch = "wasm32", feature = "e2e-test-hooks")))]
-pub(crate) fn use_e2e_setup(_store: Signal<AppStore>) {}
+pub(crate) fn use_e2e_setup(mut _store: Signal<AppStore>) {}
