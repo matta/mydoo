@@ -14,11 +14,17 @@ pub(crate) const WEEK_MS: i64 = 7 * DAY_MS;
 /// Returns (value, unit). Automatically chooses best unit (Days, Hours, or Minutes).
 pub(crate) fn ms_to_period(ms: i64) -> (u32, String) {
     if ms >= DAY_MS && ms % DAY_MS == 0 {
-        ((ms / DAY_MS) as u32, "Days".to_string())
+        let val = (ms / DAY_MS) as u32;
+        let unit = if val == 1 { "Day" } else { "Days" };
+        (val, unit.to_string())
     } else if ms >= HOUR_MS && ms % HOUR_MS == 0 {
-        ((ms / HOUR_MS) as u32, "Hours".to_string())
+        let val = (ms / HOUR_MS) as u32;
+        let unit = if val == 1 { "Hour" } else { "Hours" };
+        (val, unit.to_string())
     } else {
-        ((ms / MINUTE_MS) as u32, "Minutes".to_string())
+        let val = (ms / MINUTE_MS) as u32;
+        let unit = if val == 1 { "Minute" } else { "Minutes" };
+        (val, unit.to_string())
     }
 }
 
@@ -48,18 +54,18 @@ mod tests {
     #[test]
     fn test_ms_to_period_multiples() {
         // Multiples of Days
-        assert_eq!(ms_to_period(DAY_MS), (1, "Days".to_string()));
+        assert_eq!(ms_to_period(DAY_MS), (1, "Day".to_string()));
         assert_eq!(ms_to_period(2 * DAY_MS), (2, "Days".to_string()));
         assert_eq!(ms_to_period(7 * DAY_MS), (7, "Days".to_string()));
 
         // Multiples of Hours (but not Days)
-        assert_eq!(ms_to_period(HOUR_MS), (1, "Hours".to_string()));
+        assert_eq!(ms_to_period(HOUR_MS), (1, "Hour".to_string()));
         assert_eq!(ms_to_period(2 * HOUR_MS), (2, "Hours".to_string()));
         assert_eq!(ms_to_period(23 * HOUR_MS), (23, "Hours".to_string()));
         assert_eq!(ms_to_period(25 * HOUR_MS), (25, "Hours".to_string()));
 
         // Multiples of Minutes (but not Hours)
-        assert_eq!(ms_to_period(MINUTE_MS), (1, "Minutes".to_string()));
+        assert_eq!(ms_to_period(MINUTE_MS), (1, "Minute".to_string()));
         assert_eq!(ms_to_period(59 * MINUTE_MS), (59, "Minutes".to_string()));
         assert_eq!(ms_to_period(61 * MINUTE_MS), (61, "Minutes".to_string()));
     }
@@ -69,7 +75,7 @@ mod tests {
         // Edge cases and non-multiples
         assert_eq!(ms_to_period(0), (0, "Minutes".to_string()));
         assert_eq!(ms_to_period(30 * 1000), (0, "Minutes".to_string())); // 30 seconds
-        assert_eq!(ms_to_period(MINUTE_MS + 1), (1, "Minutes".to_string()));
+        assert_eq!(ms_to_period(MINUTE_MS + 1), (1, "Minute".to_string()));
         assert_eq!(ms_to_period(HOUR_MS + 1), (60, "Minutes".to_string()));
         assert_eq!(ms_to_period(DAY_MS + 1), (1440, "Minutes".to_string()));
     }
