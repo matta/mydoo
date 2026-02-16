@@ -14,7 +14,7 @@ pub(crate) enum AppInputStyle {
 }
 
 impl AppInputStyle {
-    fn class_name(self, large: String, monospace: String) -> Option<String> {
+    fn class_name<'a>(self, large: &'a str, monospace: &'a str) -> Option<&'a str> {
         match self {
             Self::Default => None,
             Self::Large => Some(large),
@@ -31,10 +31,10 @@ fn strip_class_attr(attributes: Vec<Attribute>) -> Vec<Attribute> {
 }
 
 struct InputClassTokens {
-    base: String,
-    full_width: String,
-    large: String,
-    monospace: String,
+    base: &'static str,
+    full_width: &'static str,
+    large: &'static str,
+    monospace: &'static str,
 }
 
 fn compose_input_wrapper_class(
@@ -42,14 +42,16 @@ fn compose_input_wrapper_class(
     style: AppInputStyle,
     tokens: InputClassTokens,
 ) -> String {
-    let mut classes = vec![tokens.base];
+    let mut classes = String::from(tokens.base);
     if full_width {
-        classes.push(tokens.full_width);
+        classes.push(' ');
+        classes.push_str(tokens.full_width);
     }
     if let Some(style_class) = style.class_name(tokens.large, tokens.monospace) {
-        classes.push(style_class);
+        classes.push(' ');
+        classes.push_str(style_class);
     }
-    classes.join(" ")
+    classes
 }
 
 fn input_wrapper_class(full_width: bool, style: AppInputStyle) -> String {
@@ -57,31 +59,32 @@ fn input_wrapper_class(full_width: bool, style: AppInputStyle) -> String {
         full_width,
         style,
         InputClassTokens {
-            base: Styles::input_wrapper.to_string(),
-            full_width: Styles::input_full_width.to_string(),
-            large: Styles::input_large.to_string(),
-            monospace: Styles::input_monospace.to_string(),
+            base: Styles::input_wrapper.inner,
+            full_width: Styles::input_full_width.inner,
+            large: Styles::input_large.inner,
+            monospace: Styles::input_monospace.inner,
         },
     )
 }
 
 fn compose_textarea_wrapper_class(
     full_width: bool,
-    base: String,
-    full_width_class: String,
+    base: &'static str,
+    full_width_class: &'static str,
 ) -> String {
-    let mut classes = vec![base];
+    let mut classes = String::from(base);
     if full_width {
-        classes.push(full_width_class);
+        classes.push(' ');
+        classes.push_str(full_width_class);
     }
-    classes.join(" ")
+    classes
 }
 
 fn textarea_wrapper_class(full_width: bool) -> String {
     compose_textarea_wrapper_class(
         full_width,
-        Styles::textarea_wrapper.to_string(),
-        Styles::textarea_full_width.to_string(),
+        Styles::textarea_wrapper.inner,
+        Styles::textarea_full_width.inner,
     )
 }
 
@@ -212,10 +215,10 @@ mod tests {
             true,
             AppInputStyle::Large,
             InputClassTokens {
-                base: "base".to_string(),
-                full_width: "full".to_string(),
-                large: "lg".to_string(),
-                monospace: "mono".to_string(),
+                base: "base",
+                full_width: "full",
+                large: "lg",
+                monospace: "mono",
             },
         );
         assert!(class_name.contains("base"));
@@ -230,10 +233,10 @@ mod tests {
             true,
             AppInputStyle::Monospace,
             InputClassTokens {
-                base: "base".to_string(),
-                full_width: "full".to_string(),
-                large: "lg".to_string(),
-                monospace: "mono".to_string(),
+                base: "base",
+                full_width: "full",
+                large: "lg",
+                monospace: "mono",
             },
         );
         assert!(class_name.contains("base"));
@@ -244,8 +247,7 @@ mod tests {
 
     #[test]
     fn textarea_wrapper_defaults_to_base_class() {
-        let class_name =
-            compose_textarea_wrapper_class(false, "base".to_string(), "full".to_string());
+        let class_name = compose_textarea_wrapper_class(false, "base", "full");
         assert_eq!(class_name, "base");
     }
 }
