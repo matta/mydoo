@@ -6,7 +6,6 @@ use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
 use dioxus_core::Task;
-use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
 use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
 
 #[component]
@@ -16,13 +15,13 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     let load_error = use_context::<Signal<Option<String>>>();
 
     // Track expanded task IDs.
-    let expanded_tasks: Signal<std::collections::HashSet<TaskID>> =
+    let mut expanded_tasks: Signal<std::collections::HashSet<TaskID>> =
         use_signal(std::collections::HashSet::<TaskID>::new);
-    let input_text = use_signal(String::new);
-    let highlighted_task_id = use_signal(|| None::<TaskID>);
+    let mut input_text = use_signal(String::new);
+    let mut highlighted_task_id = use_signal(|| None::<TaskID>);
 
     // Track the highlight timer task to allow cancellation (debouncing).
-    let timer_task: Signal<Option<Task>> = use_signal(|| None);
+    let mut timer_task: Signal<Option<Task>> = use_signal(|| None);
     use_effect(move || {
         if let Some(prev) = timer_task.write().take() {
             prev.cancel();
