@@ -83,11 +83,13 @@ pub(crate) fn SyncIndicator() -> Element {
                             label { class: Styles::field_label,
                                 "Server URL"
                             }
-                            Input {
-                                class: Styles::popover_input_full,
-                                "data-testid": "sync-server-url-input",
-                                value: "{url_input}",
-                                oninput: move |e: FormEvent| url_input.set(e.value()),
+                            div { class: Styles::popover_input_full,
+                                Input {
+                                    style: "width: 100%",
+                                    "data-testid": "sync-server-url-input",
+                                    value: "{url_input}",
+                                    oninput: move |e: FormEvent| url_input.set(e.value()),
+                                }
                             }
                         }
                         Button {
