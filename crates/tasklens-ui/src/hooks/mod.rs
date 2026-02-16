@@ -1,5 +1,6 @@
 pub(crate) mod use_balance_data;
 pub(crate) mod use_balance_interaction;
+pub(crate) mod use_e2e_setup;
 pub(crate) mod use_persistence;
 pub(crate) mod use_prioritized_tasks;
 pub(crate) mod use_score_trace;

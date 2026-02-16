@@ -89,7 +89,8 @@ export const test = baseTest.extend<MyFixtures, MyWorkerFixtures>({
     // We cast to PlanPage because Steps expects the concrete class or compatible interface
     // Setup logic moved from onHomePage
     await plan.setupClock();
-    await page.goto("/");
+    // Enable E2E hooks for testing
+    await page.goto("/?e2e_hooks=true");
     await plan.waitForAppReady();
 
     const steps = new Steps(plan as PlanPage, page, testInfo, syncServer);

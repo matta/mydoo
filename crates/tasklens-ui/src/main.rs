@@ -28,52 +28,6 @@ use tasklens_store::storage::ActiveDocStorage;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-#[cfg(all(
-    target_arch = "wasm32",
-    any(debug_assertions, feature = "e2e-test-hooks")
-))]
-pub async fn tasklensReset() -> Result<(), String> {
-    tracing::info!("E2E Reset Triggered: Clearing storage...");
-
-    if let Some(window) = web_sys::window() {
-        // 1. Clear Local/Session Storage
-        if let Ok(Some(ls)) = window.local_storage() {
-            let _ = ls.clear();
-        }
-        if let Ok(Some(ss)) = window.session_storage() {
-            let _ = ss.clear();
-        }
-
-        // 2. Delete IndexedDB database "tasklens_samod"
-        if let Err(e) = rexie::Rexie::delete("tasklens_samod").await {
-            let msg = format!("Failed to delete database: {:?}", e);
-            tracing::error!("{}", msg);
-            return Err(msg);
-        }
-    }
-    Ok(())
-}
-
-/// Seed the active document with the default sample data set for E2E scenarios.
-///
-/// This is exposed to browser-based tests through `window.tasklensSeedSampleData`
-/// so tests can prepare seeded state without a full page navigation.
-#[cfg(all(
-    target_arch = "wasm32",
-    any(debug_assertions, feature = "e2e-test-hooks")
-))]
-pub fn tasklens_seed_sample_data(mut store: Signal<AppStore>) -> Result<(), String> {
-    let mut app_store = store.write();
-
-    if app_store.handle.is_none() {
-        return Err("Cannot seed sample data before active document is ready".to_string());
-    }
-
-    tracing::info!("E2E Seed Triggered: injecting sample data into active document");
-    crate::seed::prime_store_with_sample_data(&mut app_store);
-    Ok(())
-}
-
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 extern "C" {
@@ -95,29 +49,6 @@ fn main() {
     console_error_panic_hook::set_once();
 
     init_service_worker();
-
-    #[cfg(all(
-        target_arch = "wasm32",
-        any(debug_assertions, feature = "e2e-test-hooks")
-    ))]
-    {
-        // Expose the reset function to the global window for E2E tests
-        let window = web_sys::window().expect("global window must exist");
-        let closure = Closure::wrap(Box::new(|| {
-            wasm_bindgen_futures::future_to_promise(async move {
-                match tasklensReset().await {
-                    Ok(_) => Ok(JsValue::UNDEFINED),
-                    Err(e) => Err(JsValue::from_str(&e)),
-                }
-            })
-        }) as Box<dyn FnMut() -> js_sys::Promise>);
-        let _ = js_sys::Reflect::set(
-            &window,
-            &JsValue::from_str("tasklensReset"),
-            closure.as_ref().unchecked_ref(),
-        );
-        closure.forget();
-    }
 
     dioxus::launch(App);
 }
@@ -205,6 +136,9 @@ fn App() -> Element {
     use_context_provider(|| tunnel_state);
 
     use_context_provider(|| sync_status);
+
+    // Centralized E2E setup hook
+    hooks::use_e2e_setup::use_e2e_setup(store);
 
     // Unified Reactive Initialization
     use_future(move || async move {
@@ -312,69 +246,8 @@ fn App() -> Element {
             }
         }
 
-        #[cfg(all(
-            target_arch = "wasm32",
-            any(debug_assertions, feature = "e2e-test-hooks")
-        ))]
-        {
-            // Handle seed query param
-            thread_local! {
-                static INITIAL_LOAD_SEED_CHECKED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
-            }
-            if let Some(window) = web_sys::window() {
-                let search = window.location().search().unwrap_or_default();
-                let trigger = search.contains("seed=true") && !INITIAL_LOAD_SEED_CHECKED.get();
-                INITIAL_LOAD_SEED_CHECKED.set(true);
-
-                if trigger {
-                    tracing::info!("Applying seed data...");
-                    {
-                        let mut s = store.write();
-                        crate::seed::prime_store_with_sample_data(&mut s);
-                    }
-                    // Samod auto-saves, no need to forcing save.
-
-                    // Clean up URL
-                    if let Ok(history) = window.history() {
-                        let _ = history.replace_state_with_url(
-                            &wasm_bindgen::JsValue::NULL,
-                            "",
-                            Some("/plan"),
-                        );
-                    }
-                }
-            }
-        }
-
         is_checking.set(false);
     });
-
-    #[cfg(all(
-        target_arch = "wasm32",
-        any(debug_assertions, feature = "e2e-test-hooks")
-    ))]
-    {
-        let seed_store = store;
-        use_effect(move || {
-            let window = web_sys::window().expect("global window must exist");
-            let closure = Closure::wrap(Box::new(move || {
-                let seed_store = seed_store;
-                wasm_bindgen_futures::future_to_promise(async move {
-                    match tasklens_seed_sample_data(seed_store) {
-                        Ok(()) => Ok(JsValue::UNDEFINED),
-                        Err(e) => Err(JsValue::from_str(&e)),
-                    }
-                })
-            }) as Box<dyn FnMut() -> js_sys::Promise>);
-
-            let _ = js_sys::Reflect::set(
-                &window,
-                &JsValue::from_str("tasklensSeedSampleData"),
-                closure.as_ref().unchecked_ref(),
-            );
-            closure.forget();
-        });
-    }
 
     let has_error = load_error().is_some();
     let app_state = if has_error {
