@@ -5,10 +5,12 @@ use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
+use dioxus_core::Task;
 use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
 
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
+    const HIGHLIGHT_DURATION_MS: u64 = 2000;
     let task_controller = task_controller::use_task_controller();
     let load_error = use_context::<Signal<Option<String>>>();
 
@@ -18,14 +20,19 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     let mut input_text = use_signal(String::new);
     let mut highlighted_task_id = use_signal(|| None::<TaskID>);
 
-    // FIXME: If tasks are created faster than 2s apart, multiple timers could be spawned.
-    // Consider tracking the spawned task handle and cancelling it before spawning a new one.
+    // Track the highlight timer task to allow cancellation (debouncing).
+    let mut timer_task: Signal<Option<Task>> = use_signal(|| None);
     use_effect(move || {
+        if let Some(prev) = timer_task.write().take() {
+            prev.cancel();
+        }
+
         if highlighted_task_id().is_some() {
-            spawn(async move {
-                crate::utils::async_utils::sleep(2000).await;
+            let task = spawn(async move {
+                crate::utils::async_utils::sleep(HIGHLIGHT_DURATION_MS).await;
                 highlighted_task_id.set(None);
             });
+            timer_task.set(Some(task));
         }
     });
 
