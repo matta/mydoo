@@ -1,9 +1,11 @@
+use crate::app_components::AppInput;
+use crate::app_components::AppInputStyle;
+use crate::app_components::AppTextarea;
 use crate::app_components::DateInput;
 use crate::app_components::Loading;
 use crate::app_components::MovePicker;
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::dialog::{DialogContent, DialogRoot, DialogTitle};
-use crate::dioxus_components::input::Input;
 use crate::dioxus_components::label::Label;
 use crate::dioxus_components::select::{
     Select, SelectList, SelectOption, SelectTrigger, SelectValue,
@@ -12,7 +14,6 @@ use crate::dioxus_components::slider::{
     Slider, SliderRange, SliderThumb, SliderTrack, SliderValue,
 };
 use crate::dioxus_components::switch::{Switch, SwitchThumb};
-use crate::dioxus_components::textarea::Textarea;
 use crate::utils::time_conversion;
 use dioxus::prelude::*;
 use tasklens_core::TaskUpdates;
@@ -276,11 +277,12 @@ pub(crate) fn TaskEditor(
                                     span { class: Styles::label_text_bold, "Title" }
                                 }
                                 div { class: "app_input-full app_text_lg",
-                                    Input {
+                                    AppInput {
+                                        full_width: true,
+                                        style: AppInputStyle::Large,
                                         id: "task-title-input",
                                         value: current_draft.title.clone(),
                                         "autofocus": true,
-                                        style: "width: 100%",
                                         oninput: move |evt: FormEvent| {
                                             draft
                                                 .with_mut(|task| {
@@ -302,14 +304,15 @@ pub(crate) fn TaskEditor(
                             }
 
                             div {
+                                class: Styles::notes_area,
                                 Label {
                                     class: Styles::field_label,
                                     html_for: "notes-input",
                                     span { class: Styles::label_text_bold, "Notes" }
                                 }
-                                Textarea {
+                                AppTextarea {
+                                    full_width: true,
                                     id: "notes-input",
-                                    class: "app_input-full {Styles::notes_area}",
                                     placeholder: "Add more context or details here...",
                                     value: current_draft.notes.clone(),
                                     oninput: move |e: FormEvent| {

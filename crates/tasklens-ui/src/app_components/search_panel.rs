@@ -1,5 +1,5 @@
+use crate::app_components::AppInput;
 use crate::dioxus_components::button::{Button, ButtonVariant};
-use crate::dioxus_components::input::Input;
 use crate::router::Route;
 use dioxus::prelude::*;
 use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
@@ -140,8 +140,8 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
             div { class: Styles::content_container,
                 div { class: Styles::search_header,
                     div { class: Styles::input_full,
-                        Input {
-                            style: "width: 100%",
+                        AppInput {
+                            full_width: true,
                             placeholder: "Search tasks...",
                             value: "{query}",
                             "data-testid": "search-input",
