@@ -38,6 +38,12 @@ impl BalanceInteraction {
                 .unwrap_or_else(|| current_data.get_percentage_map())
         };
 
+        // De-jitter: Don't redistribute for infinitesimal changes (browser float noise)
+        let current_val = base_map.get(&target_id).copied().unwrap_or(0.0);
+        if (new_value - current_val).abs() < 1e-6 {
+            return;
+        }
+
         let next_preview = redistribute_percentages(&base_map, &target_id, new_value);
         self.preview_state.set(Some(next_preview));
     }
