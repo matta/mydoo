@@ -357,7 +357,8 @@ fn App() -> Element {
                             Err(e) => Err(JsValue::from_str(&e)),
                         }
                     })
-                }) as Box<dyn FnMut() -> js_sys::Promise>);
+                })
+                    as Box<dyn FnMut() -> js_sys::Promise>);
 
                 let _ = js_sys::Reflect::set(
                     &window,
