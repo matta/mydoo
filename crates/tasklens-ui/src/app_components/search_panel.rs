@@ -139,13 +139,15 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
             "data-testid": "search-panel",
             div { class: Styles::content_container,
                 div { class: Styles::search_header,
-                    Input {
-                        class: Styles::input_full,
-                        placeholder: "Search tasks...",
-                        value: "{query}",
-                        "data-testid": "search-input",
-                        oninput: move |evt: FormEvent| query.set(evt.value()),
-                        onkeydown: handle_keydown,
+                    div { class: Styles::input_full,
+                        Input {
+                            style: "width: 100%",
+                            placeholder: "Search tasks...",
+                            value: "{query}",
+                            "data-testid": "search-input",
+                            oninput: move |evt: FormEvent| query.set(evt.value()),
+                            onkeydown: handle_keydown,
+                        }
                     }
                     Button {
                         variant: ButtonVariant::Ghost,
