@@ -7,6 +7,7 @@ use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
 use dioxus_core::Task;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
+use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
 
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
@@ -105,8 +106,8 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         }
     };
 
-    let toggle_task = move |task: PersistedTask| {
-        task_controller.toggle(task.id);
+    let toggle_task = move |id: TaskID| {
+        task_controller.toggle(id);
         trigger_sync();
     };
 
@@ -224,10 +225,12 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                             }
                                         }
                                     } else {
-                                        for FlattenedTask { task , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
+                                        for FlattenedTask { id , title , status , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
                                             TaskRow {
-                                                key: "{task.id}",
-                                                task: task.clone(),
+                                                key: "{id}",
+                                                id: id.clone(),
+                                                title: title.clone(),
+                                                status,
                                                 depth,
                                                 on_toggle: toggle_task,
                                                 has_children,
@@ -237,7 +240,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                                 on_delete: handle_delete,
                                                 on_create_subtask: handle_create_subtask,
                                                 on_title_tap,
-                                                is_highlighted: Some(task.id.clone()) == highlighted_task_id(),
+                                                is_highlighted: Some(id.clone()) == highlighted_task_id(),
                                                 effective_due_date,
                                                 effective_lead_time,
                                             }
@@ -279,7 +282,9 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
 
 #[derive(Debug, Clone, PartialEq)]
 struct FlattenedTask {
-    task: PersistedTask,
+    id: TaskID,
+    title: String,
+    status: TaskStatus,
     depth: usize,
     has_children: bool,
     is_expanded: bool,
@@ -328,7 +333,9 @@ fn flatten_recursive(id: &TaskID, depth: usize, ctx: &mut FlattenContext) {
             });
 
         ctx.result.push(FlattenedTask {
-            task: task.clone(),
+            id: task.id.clone(),
+            title: task.title.clone(),
+            status: task.status,
             depth,
             has_children,
             is_expanded,

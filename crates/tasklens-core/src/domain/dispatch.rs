@@ -5,7 +5,10 @@ use thiserror::Error;
 
 use crate::{
     Action, PlaceUpdates, TaskUpdates,
-    domain::{doc_bridge, lifecycle, routine_tasks},
+    domain::{
+        constants::{MAX_NOTES_LENGTH, MAX_PLACE_NAME_LENGTH, MAX_TITLE_LENGTH},
+        doc_bridge, lifecycle, routine_tasks,
+    },
     types::{
         PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_option_f64,
         hydrate_option_i64, hydrate_option_maybe_missing,
@@ -52,6 +55,9 @@ pub enum DispatchError {
 
     #[error("Inconsistency: {0}")]
     Inconsistency(String),
+
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
 
     #[error("Operation failed: {0}")]
     Internal(String),
@@ -164,6 +170,18 @@ fn handle_create_place(
     hours: String,
     included_places: Vec<crate::types::PlaceID>,
 ) -> Result<()> {
+    if name.trim().is_empty() {
+        return Err(DispatchError::InvalidInput(
+            "Place name cannot be empty".to_string(),
+        ));
+    }
+    if name.len() > MAX_PLACE_NAME_LENGTH {
+        return Err(DispatchError::InvalidInput(format!(
+            "Place name exceeds max length of {}",
+            MAX_PLACE_NAME_LENGTH
+        )));
+    }
+
     let places_obj_id = ensure_path(doc, &automerge::ROOT, vec!["places"])?;
 
     let place = crate::types::Place {
@@ -192,6 +210,17 @@ fn handle_update_place(
     };
 
     if let Some(name) = updates.name {
+        if name.trim().is_empty() {
+            return Err(DispatchError::InvalidInput(
+                "Place name cannot be empty".to_string(),
+            ));
+        }
+        if name.len() > MAX_PLACE_NAME_LENGTH {
+            return Err(DispatchError::InvalidInput(format!(
+                "Place name exceeds max length of {}",
+                MAX_PLACE_NAME_LENGTH
+            )));
+        }
         autosurgeon::reconcile_prop(doc, &place_obj_id, "name", name)
             .map_err(DispatchError::from)?;
     }
@@ -277,6 +306,18 @@ fn handle_create_task(
     parent_id: Option<TaskID>,
     title: String,
 ) -> Result<()> {
+    if title.trim().is_empty() {
+        return Err(DispatchError::InvalidInput(
+            "Title cannot be empty".to_string(),
+        ));
+    }
+    if title.len() > MAX_TITLE_LENGTH {
+        return Err(DispatchError::InvalidInput(format!(
+            "Title exceeds max length of {}",
+            MAX_TITLE_LENGTH
+        )));
+    }
+
     let tasks_obj_id = ensure_path(doc, &automerge::ROOT, vec!["tasks"])?;
 
     let parent = if let Some(pid) = &parent_id {
@@ -364,10 +405,27 @@ fn apply_basic_updates(
     updates: &TaskUpdates,
 ) -> Result<()> {
     if let Some(title) = &updates.title {
+        if title.trim().is_empty() {
+            return Err(DispatchError::InvalidInput(
+                "Title cannot be empty".to_string(),
+            ));
+        }
+        if title.len() > MAX_TITLE_LENGTH {
+            return Err(DispatchError::InvalidInput(format!(
+                "Title exceeds max length of {}",
+                MAX_TITLE_LENGTH
+            )));
+        }
         autosurgeon::reconcile_prop(doc, task_obj_id, "title", title)
             .map_err(DispatchError::from)?;
     }
     if let Some(notes) = &updates.notes {
+        if notes.len() > MAX_NOTES_LENGTH {
+            return Err(DispatchError::InvalidInput(format!(
+                "Notes exceeds max length of {}",
+                MAX_NOTES_LENGTH
+            )));
+        }
         autosurgeon::reconcile_prop(doc, task_obj_id, "notes", notes)
             .map_err(DispatchError::from)?;
     }
@@ -905,5 +963,121 @@ mod tests {
         );
 
         assert!(matches!(result, Err(DispatchError::CannotDeleteAnywhere)));
+    }
+
+    #[test]
+    fn complete_task_decays_credits() {
+        let mut doc = new_doc();
+        let task_id = TaskID::from("task-1");
+
+        // 1. Create a task
+        run_action(
+            &mut doc,
+            Action::CreateTask {
+                id: task_id.clone(),
+                parent_id: None,
+                title: "Test Task".to_string(),
+            },
+        )
+        .unwrap();
+
+        // 2. Set initial credits and timestamp
+        // Credits: 10.0, Timestamp: 1000
+        run_action(
+            &mut doc,
+            Action::UpdateTask {
+                id: task_id.clone(),
+                updates: TaskUpdates {
+                    credits: Some(10.0),
+                    credits_timestamp: Some(1000),
+                    credit_increment: Some(1.0),
+                    ..Default::default()
+                },
+            },
+        )
+        .unwrap();
+
+        // 3. Complete the task at a later time (e.g., +1 half-life)
+        // Half-life is 604_800_000 ms (7 days)
+        // New time: 1000 + 604_800_000
+        let completion_time = 1000 + super::CREDITS_HALF_LIFE_MS as i64;
+
+        run_action(
+            &mut doc,
+            Action::CompleteTask {
+                id: task_id.clone(),
+                current_time: completion_time,
+            },
+        )
+        .unwrap();
+
+        // 4. Verify results
+        let state = hydrate_tunnel_state(&doc).unwrap();
+        let task = state.tasks.get(&task_id).unwrap();
+
+        // Expected credits: (10.0 * 0.5) + 1.0 = 6.0
+        assert!(
+            (task.credits - 6.0).abs() < 0.001,
+            "Credits should be decayed and incremented"
+        );
+        assert_eq!(task.credits_timestamp, completion_time);
+        assert_eq!(task.status, TaskStatus::Done);
+        assert_eq!(task.last_completed_at, Some(completion_time));
+    }
+
+    #[test]
+    fn complete_task_defaults() {
+        let mut doc = new_doc();
+        let task_id = TaskID::from("task-2");
+
+        // 1. Create a task
+        run_action(
+            &mut doc,
+            Action::CreateTask {
+                id: task_id.clone(),
+                parent_id: None,
+                title: "Default Task".to_string(),
+            },
+        )
+        .unwrap();
+
+        // 2. Set credits but no timestamp (defaults to 0) and no increment (defaults to 0.5)
+        run_action(
+            &mut doc,
+            Action::UpdateTask {
+                id: task_id.clone(),
+                updates: TaskUpdates {
+                    credits: Some(10.0),
+                    // credits_timestamp missing -> 0
+                    // credit_increment missing -> 0.5
+                    ..Default::default()
+                },
+            },
+        )
+        .unwrap();
+
+        // 3. Complete at a time where decay happens.
+        // Half-life: 604_800_000 ms.
+        let completion_time = super::CREDITS_HALF_LIFE_MS as i64;
+
+        run_action(
+            &mut doc,
+            Action::CompleteTask {
+                id: task_id.clone(),
+                current_time: completion_time,
+            },
+        )
+        .unwrap();
+
+        // 4. Verify results
+        let state = hydrate_tunnel_state(&doc).unwrap();
+        let task = state.tasks.get(&task_id).unwrap();
+
+        // Expected credits: (10.0 * 0.5) + 0.5 = 5.5
+        assert!(
+            (task.credits - 5.5).abs() < 0.001,
+            "Credits should be decayed with default increment"
+        );
+        assert_eq!(task.credits_timestamp, completion_time);
     }
 }
