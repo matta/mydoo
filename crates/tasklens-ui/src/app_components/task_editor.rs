@@ -275,29 +275,27 @@ pub(crate) fn TaskEditor(
                                     html_for: "task-title-input",
                                     span { class: Styles::label_text_bold, "Title" }
                                 }
-                                div { class: "app_input-full app_text_lg",
-                                    Input {
-                                        id: "task-title-input",
-                                        value: current_draft.title.clone(),
-                                        "autofocus": true,
-                                        style: "width: 100%",
-                                        oninput: move |evt: FormEvent| {
-                                            draft
-                                                .with_mut(|task| {
-                                                    if let Some(task) = task.as_mut() {
-                                                        task.title = evt.value();
-                                                    }
-                                                });
-                                        },
-                                        onkeydown: {
-                                            let save_handler = save_handler.clone();
-                                            move |e: KeyboardEvent| {
-                                                if e.key() == Key::Enter {
-                                                    save_handler();
+                                Input {
+                                    id: "task-title-input",
+                                    value: current_draft.title.clone(),
+                                    "autofocus": true,
+                                    class: "app_input-full app_text_lg",
+                                    oninput: move |evt: FormEvent| {
+                                        draft
+                                            .with_mut(|task| {
+                                                if let Some(task) = task.as_mut() {
+                                                    task.title = evt.value();
                                                 }
+                                            });
+                                    },
+                                    onkeydown: {
+                                        let save_handler = save_handler.clone();
+                                        move |e: KeyboardEvent| {
+                                            if e.key() == Key::Enter {
+                                                save_handler();
                                             }
-                                        },
-                                    }
+                                        }
+                                    },
                                 }
                             }
 

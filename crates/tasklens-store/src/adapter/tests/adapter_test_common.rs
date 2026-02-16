@@ -36,8 +36,7 @@ pub(super) fn dispatch_and_validate(doc: &mut Automerge, action: Action, context
             | adapter::AdapterError::ParentNotFound(_)
             | adapter::AdapterError::TaskExists(_)
             | adapter::AdapterError::CycleDetected(..)
-            | adapter::AdapterError::MoveToSelf(..)
-            | adapter::AdapterError::InvalidInput(..),
+            | adapter::AdapterError::MoveToSelf(..),
         ) => {
             // Domain errors are expected in fuzz tests since we generate random actions.
         }

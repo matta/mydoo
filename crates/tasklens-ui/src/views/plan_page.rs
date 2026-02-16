@@ -19,19 +19,23 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     let input_text = use_signal(String::new);
     let highlighted_task_id = use_signal(|| None::<TaskID>);
 
-    // Track the highlight timer task to allow cancellation (debouncing).
-    let timer_task: Signal<Option<Task>> = use_signal(|| None);
+    // Debounce the highlight clearing timer.
     use_effect(move || {
-        if let Some(prev) = timer_task.write().take() {
-            prev.cancel();
-        }
+        let mut task_handle: Option<Task> = None;
 
         if highlighted_task_id().is_some() {
-            let task = spawn(async move {
+            task_handle = Some(spawn(async move {
                 crate::utils::async_utils::sleep(2000).await;
                 highlighted_task_id.set(None);
-            });
-            timer_task.set(Some(task));
+            }));
+        }
+
+        // The returned future is a cleanup function that Dioxus runs
+        // before the effect is re-run or when the component unmounts.
+        async move {
+            if let Some(task) = task_handle {
+                task.cancel();
+            }
         }
     });
 
@@ -104,8 +108,8 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         }
     };
 
-    let toggle_task = move |id: TaskID| {
-        task_controller.toggle(id);
+    let toggle_task = move |task: PersistedTask| {
+        task_controller.toggle(task.id);
         trigger_sync();
     };
 
@@ -223,12 +227,10 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                             }
                                         }
                                     } else {
-                                        for FlattenedTask { id , title , status , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
+                                        for FlattenedTask { task , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
                                             TaskRow {
-                                                key: "{id}",
-                                                id: id.clone(),
-                                                title: title.clone(),
-                                                status,
+                                                key: "{task.id}",
+                                                task: task.clone(),
                                                 depth,
                                                 on_toggle: toggle_task,
                                                 has_children,
@@ -238,7 +240,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                                 on_delete: handle_delete,
                                                 on_create_subtask: handle_create_subtask,
                                                 on_title_tap,
-                                                is_highlighted: Some(id.clone()) == highlighted_task_id(),
+                                                is_highlighted: Some(task.id.clone()) == highlighted_task_id(),
                                                 effective_due_date,
                                                 effective_lead_time,
                                             }
@@ -280,9 +282,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
 
 #[derive(Debug, Clone, PartialEq)]
 struct FlattenedTask {
-    id: TaskID,
-    title: String,
-    status: TaskStatus,
+    task: PersistedTask,
     depth: usize,
     has_children: bool,
     is_expanded: bool,
@@ -331,9 +331,7 @@ fn flatten_recursive(id: &TaskID, depth: usize, ctx: &mut FlattenContext) {
             });
 
         ctx.result.push(FlattenedTask {
-            id: task.id.clone(),
-            title: task.title.clone(),
-            status: task.status,
+            task: task.clone(),
             depth,
             has_children,
             is_expanded,

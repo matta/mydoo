@@ -10,6 +10,7 @@ use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::input::Input;
 use crate::hooks::use_tunnel_state::use_tunnel_state;
 use dioxus::prelude::*;
+// use dioxus::events::FormEvent;
 
 /// Document ID Manager component for switching between documents.
 ///
@@ -313,14 +314,12 @@ pub(crate) fn DocIdManager(
             if show_input() {
                 div { class: Styles::field_group,
                     label { class: Styles::field_label, "Enter Document ID" }
-                    div { class: Styles::input_full_mono,
-                        Input {
-                            value: input_value(),
-                            oninput: move |evt: FormEvent| input_value.set(evt.value()),
-                            placeholder: "Enter Base58 document ID...",
-                            style: "width: 100%",
-                            "data-testid": "document-id-input",
-                        }
+                    Input {
+                        value: input_value(),
+                        oninput: move |evt: FormEvent| input_value.set(evt.value()),
+                        placeholder: "Enter Base58 document ID...",
+                        class: Styles::input_full_mono,
+                        "data-testid": "document-id-input",
                     }
                     Button {
                         variant: ButtonVariant::Primary,
