@@ -5,6 +5,7 @@ use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
+use dioxus_core::Task;
 use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
 
 #[component]
