@@ -142,6 +142,7 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
                     div { class: Styles::input_full,
                         AppInput {
                             full_width: true,
+                            aria_label: "Search tasks",
                             placeholder: "Search tasks...",
                             value: "{query}",
                             "data-testid": "search-input",

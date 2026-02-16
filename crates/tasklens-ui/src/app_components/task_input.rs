@@ -20,6 +20,7 @@ pub(crate) fn TaskInput(
                 class: Styles::input_field,
                 AppInput {
                     full_width: true,
+                    aria_label: "New task title",
                     value: value(),
                     oninput: move |evt: FormEvent| value.set(evt.value()),
                     placeholder: "Add a new task...",
