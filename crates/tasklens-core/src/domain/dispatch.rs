@@ -964,4 +964,120 @@ mod tests {
 
         assert!(matches!(result, Err(DispatchError::CannotDeleteAnywhere)));
     }
+
+    #[test]
+    fn complete_task_decays_credits() {
+        let mut doc = new_doc();
+        let task_id = TaskID::from("task-1");
+
+        // 1. Create a task
+        run_action(
+            &mut doc,
+            Action::CreateTask {
+                id: task_id.clone(),
+                parent_id: None,
+                title: "Test Task".to_string(),
+            },
+        )
+        .unwrap();
+
+        // 2. Set initial credits and timestamp
+        // Credits: 10.0, Timestamp: 1000
+        run_action(
+            &mut doc,
+            Action::UpdateTask {
+                id: task_id.clone(),
+                updates: TaskUpdates {
+                    credits: Some(10.0),
+                    credits_timestamp: Some(1000),
+                    credit_increment: Some(1.0),
+                    ..Default::default()
+                },
+            },
+        )
+        .unwrap();
+
+        // 3. Complete the task at a later time (e.g., +1 half-life)
+        // Half-life is 604_800_000 ms (7 days)
+        // New time: 1000 + 604_800_000
+        let completion_time = 1000 + 604_800_000;
+
+        run_action(
+            &mut doc,
+            Action::CompleteTask {
+                id: task_id.clone(),
+                current_time: completion_time,
+            },
+        )
+        .unwrap();
+
+        // 4. Verify results
+        let state = hydrate_tunnel_state(&doc).unwrap();
+        let task = state.tasks.get(&task_id).unwrap();
+
+        // Expected credits: (10.0 * 0.5) + 1.0 = 6.0
+        assert!(
+            (task.credits - 6.0).abs() < 0.001,
+            "Credits should be decayed and incremented"
+        );
+        assert_eq!(task.credits_timestamp, completion_time);
+        assert_eq!(task.status, TaskStatus::Done);
+        assert_eq!(task.last_completed_at, Some(completion_time));
+    }
+
+    #[test]
+    fn complete_task_defaults() {
+        let mut doc = new_doc();
+        let task_id = TaskID::from("task-2");
+
+        // 1. Create a task
+        run_action(
+            &mut doc,
+            Action::CreateTask {
+                id: task_id.clone(),
+                parent_id: None,
+                title: "Default Task".to_string(),
+            },
+        )
+        .unwrap();
+
+        // 2. Set credits but no timestamp (defaults to 0) and no increment (defaults to 0.5)
+        run_action(
+            &mut doc,
+            Action::UpdateTask {
+                id: task_id.clone(),
+                updates: TaskUpdates {
+                    credits: Some(10.0),
+                    // credits_timestamp missing -> 0
+                    // credit_increment missing -> 0.5
+                    ..Default::default()
+                },
+            },
+        )
+        .unwrap();
+
+        // 3. Complete at a time where decay happens.
+        // Half-life: 604_800_000 ms.
+        let completion_time = 604_800_000;
+
+        run_action(
+            &mut doc,
+            Action::CompleteTask {
+                id: task_id.clone(),
+                current_time: completion_time,
+            },
+        )
+        .unwrap();
+
+        // 4. Verify results
+        let state = hydrate_tunnel_state(&doc).unwrap();
+        let task = state.tasks.get(&task_id).unwrap();
+
+        // Expected credits: (10.0 * 0.5) + 0.5 = 5.5
+        assert!(
+            (task.credits - 5.5).abs() < 0.001,
+            "Credits should be decayed with default increment"
+        );
+        assert_eq!(task.credits_timestamp, completion_time);
+    }
 }
