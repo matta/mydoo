@@ -7,27 +7,16 @@ import {
 const isCI = !!process.env.CI;
 
 /**
- * Resolve the static web build directory only when Playwright needs to
- * start the dev server. This keeps tools like knip able to load config.
- */
-function requireWebDistDir(): string {
-  const webDistDir = process.env.WEB_DIST_DIR;
-  if (!webDistDir) {
-    throw new Error(
-      "WEB_DIST_DIR must be set for Playwright E2E runs. Use `just test-e2e*` recipes.",
-    );
-  }
-  return webDistDir;
-}
-
-/**
  * Build the static file server command lazily so missing env var errors are
- * raised at first use, not when this module is imported.
+ * raised at first use, not when this module is imported. This ensures that
+ * IDE tools like knip can load the config without it crashing on a missing env var.
  */
 function buildWebServerCommand(): string {
-  return `pnpm exec serve ${JSON.stringify(
-    requireWebDistDir(),
-  )} -l tcp://127.0.0.1:5180 -s`;
+  const webDistDir = process.env.WEB_DIST_DIR;
+  if (!webDistDir) {
+    return 'echo "Error: WEB_DIST_DIR must be set for Playwright E2E runs. Use \\`just test-e2e*\\` recipes."; exit 1';
+  }
+  return `pnpm exec serve ${JSON.stringify(webDistDir)} -l tcp://127.0.0.1:5180 -s`;
 }
 
 const reporters: ReporterDescription[] = [
