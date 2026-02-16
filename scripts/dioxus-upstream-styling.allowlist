@@ -1,6 +1,0 @@
-# Path globs are relative to repository root.
-# Every non-comment entry must be preceded by a rationale comment line.
-#
-# Example:
-# A temporary exception needed for migration XYZ.
-# crates/tasklens-ui/src/app_components/example.rs

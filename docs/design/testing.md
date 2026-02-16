@@ -131,13 +131,3 @@ For faster iteration, you can run specific tests or patterns:
 - `just test-e2e` (E2E)
 
 All must pass before a commit is accepted.
-
-### Docs-Only Exception
-
-For documentation-only changes (no runtime, source, or test behavior changes):
-
-- Do not run `just verify` by default.
-- Run document-format checks (for example, `pnpm prettier --check` on changed
-  docs) and rely on commit hooks.
-- If a docs change accompanies code changes, treat it as a code change and run
-  the normal quality gates.

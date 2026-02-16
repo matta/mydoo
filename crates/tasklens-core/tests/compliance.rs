@@ -919,10 +919,7 @@ fn apply_task_input(
     store.dispatch(Action::CreateTask {
         id: task_id.clone(),
         parent_id: effective_parent_id,
-        title: t
-            .title
-            .clone()
-            .unwrap_or_else(|| format!("Untitled {}", task_id)),
+        title: t.title.clone().unwrap_or_default(),
     })?;
 
     // 2. Build and Dispatch UpdateTask for all other fields

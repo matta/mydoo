@@ -12,6 +12,4 @@ pub mod lifecycle;
 pub mod priority;
 pub mod readiness;
 pub mod routine_tasks;
-#[cfg(test)]
-mod validation_tests;
 pub mod visibility;

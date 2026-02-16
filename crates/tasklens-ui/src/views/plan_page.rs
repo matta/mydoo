@@ -5,8 +5,7 @@ use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
-use dioxus_core::Task;
-use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
+use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
 
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
@@ -20,21 +19,11 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     let mut input_text = use_signal(String::new);
     let mut highlighted_task_id = use_signal(|| None::<TaskID>);
 
-    // Track the highlight timer task to allow cancellation (debouncing).
-    let mut timer_task: Signal<Option<Task>> = use_signal(|| None);
-    use_effect(move || {
-        timer_task.with_mut(|task| {
-            if let Some(prev) = task.take() {
-                prev.cancel();
-            }
-        });
-
+    // Debounce the highlight clearing timer using use_future for automatic cancellation.
+    use_future(move || async move {
         if highlighted_task_id().is_some() {
-            let task = spawn(async move {
-                crate::utils::async_utils::sleep(HIGHLIGHT_DURATION_MS).await;
-                highlighted_task_id.set(None);
-            });
-            timer_task.set(Some(task));
+            crate::utils::async_utils::sleep(HIGHLIGHT_DURATION_MS).await;
+            highlighted_task_id.set(None);
         }
     });
 
@@ -107,8 +96,8 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
         }
     };
 
-    let toggle_task = move |id: TaskID| {
-        task_controller.toggle(id);
+    let toggle_task = move |task: PersistedTask| {
+        task_controller.toggle(task.id);
         trigger_sync();
     };
 
@@ -226,12 +215,10 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                             }
                                         }
                                     } else {
-                                        for FlattenedTask { id , title , status , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
+                                        for FlattenedTask { task , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
                                             TaskRow {
-                                                key: "{id}",
-                                                id: id.clone(),
-                                                title: title.clone(),
-                                                status,
+                                                key: "{task.id}",
+                                                task: task.clone(),
                                                 depth,
                                                 on_toggle: toggle_task,
                                                 has_children,
@@ -241,7 +228,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                                 on_delete: handle_delete,
                                                 on_create_subtask: handle_create_subtask,
                                                 on_title_tap,
-                                                is_highlighted: Some(id.clone()) == highlighted_task_id(),
+                                                is_highlighted: Some(task.id.clone()) == highlighted_task_id(),
                                                 effective_due_date,
                                                 effective_lead_time,
                                             }
@@ -283,9 +270,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
 
 #[derive(Debug, Clone, PartialEq)]
 struct FlattenedTask {
-    id: TaskID,
-    title: String,
-    status: TaskStatus,
+    task: PersistedTask,
     depth: usize,
     has_children: bool,
     is_expanded: bool,
@@ -334,9 +319,7 @@ fn flatten_recursive(id: &TaskID, depth: usize, ctx: &mut FlattenContext) {
             });
 
         ctx.result.push(FlattenedTask {
-            id: task.id.clone(),
-            title: task.title.clone(),
-            status: task.status,
+            task: task.clone(),
             depth,
             has_children,
             is_expanded,

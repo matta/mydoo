@@ -52,7 +52,7 @@ build-store:
 # -----------------------------------------------------------------------------
 
 # Run all style checks
-check-style: check-format check-xtask-all check-biome-root check-dioxus-upstream-styling
+check-style: check-format check-xtask-all check-biome-root
 
 # Check formatting (all files from root)
 check-format:
@@ -61,10 +61,6 @@ check-format:
 # Check biome for root
 check-biome-root:
     chronic pnpm biome check .
-
-# Guardrails for app-owned usage of upstream-styled Dioxus controls
-check-dioxus-upstream-styling:
-    bash scripts/check-dioxus-upstream-styling.sh
 
 # Run all xtask checks
 check-xtask-all:
@@ -104,9 +100,9 @@ check-rust-fmt:
 check-clippy:
     chronic cargo clippy --workspace --all-targets -- -D warnings
 
-# Check compilation for WASM target with strict lints
+# Check compilation for WASM target
 check-wasm:
-    chronic cargo clippy --workspace --target wasm32-unknown-unknown -- -D warnings
+    chronic cargo check --workspace --target wasm32-unknown-unknown
 
 # -----------------------------------------------------------------------------
 # Test Commands

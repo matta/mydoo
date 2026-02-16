@@ -1,5 +1,5 @@
-use crate::app_components::AppInput;
 use crate::dioxus_components::button::{Button, ButtonVariant};
+use crate::dioxus_components::input::Input;
 use dioxus::prelude::*;
 
 #[component]
@@ -16,20 +16,16 @@ pub(crate) fn TaskInput(
         div {
             class: Styles::input_container,
             "data-testid": data_testid,
-            div {
+            Input {
+                value: value(),
+                oninput: move |evt: FormEvent| value.set(evt.value()),
+                placeholder: "Add a new task...",
                 class: Styles::input_field,
-                AppInput {
-                    full_width: true,
-                    aria_label: "New task title",
-                    value: value(),
-                    oninput: move |evt: FormEvent| value.set(evt.value()),
-                    placeholder: "Add a new task...",
-                    onkeypress: move |evt: KeyboardEvent| {
-                        if evt.key() == Key::Enter {
-                            on_add.call(());
-                        }
-                    },
-                }
+                onkeypress: move |evt: KeyboardEvent| {
+                    if evt.key() == Key::Enter {
+                        on_add.call(());
+                    }
+                },
             }
             Button {
                 variant: ButtonVariant::Primary,

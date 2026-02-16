@@ -1,8 +1,7 @@
 # Dioxus Components Vendor Tree
 
 This directory is vendor-managed content produced by the Dioxus Components installer workflow.
-Canonical vendored design context lives in
-`docs/design/dioxus-vendored-components-design.md`.
+Canonical migration context lives in `docs/design/dioxus-components-migration.md`.
 
 ## Status and ownership
 
