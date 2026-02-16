@@ -10,6 +10,7 @@ use tasklens_core::types::{PersistedTask, TaskID, TunnelState};
 
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
+    const HIGHLIGHT_DURATION_MS: u64 = 2000;
     let task_controller = task_controller::use_task_controller();
     let load_error = use_context::<Signal<Option<String>>>();
 
@@ -28,7 +29,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
 
         if highlighted_task_id().is_some() {
             let task = spawn(async move {
-                crate::utils::async_utils::sleep(2000).await;
+                crate::utils::async_utils::sleep(HIGHLIGHT_DURATION_MS).await;
                 highlighted_task_id.set(None);
             });
             timer_task.set(Some(task));
