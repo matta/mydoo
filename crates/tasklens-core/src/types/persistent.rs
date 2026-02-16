@@ -248,7 +248,7 @@ pub fn reconcile_option_string_as_text_as_maybe_missing<R: autosurgeon::Reconcil
 macro_rules! define_id_type {
     ($doc:expr, $name:ident) => {
         #[doc = $doc]
-        #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
         #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
         #[serde(transparent)]
         pub struct $name(String);
