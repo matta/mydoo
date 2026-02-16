@@ -33,7 +33,17 @@ impl fmt::Display for DocumentId {
 
 impl fmt::Debug for DocumentId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "DocumentId({})", self)
+        let as_string = bs58::encode(self.0.as_bytes()).with_check().into_string();
+        if as_string.len() > 8 {
+            write!(
+                f,
+                "DocumentId({}...{})",
+                &as_string[..4],
+                &as_string[as_string.len() - 4..]
+            )
+        } else {
+            write!(f, "DocumentId([REDACTED])")
+        }
     }
 }
 
@@ -67,7 +77,7 @@ impl fmt::Display for TaskLensUrl {
 
 impl fmt::Debug for TaskLensUrl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "TaskLensUrl({})", self)
+        write!(f, "TaskLensUrl(automerge:{:?})", self.document_id)
     }
 }
 
@@ -164,5 +174,32 @@ mod tests {
     fn test_invalid_id() {
         assert!(DocumentId::from_str("invalid").is_err());
         assert!(DocumentId::from_str("123456789ABCDEF").is_err()); // Wrong length/checksum
+    }
+
+    #[test]
+    fn test_document_id_debug_redaction() {
+        let id = DocumentId::new();
+        let s = id.to_string();
+        let debug_s = format!("{:?}", id);
+
+        assert!(debug_s.contains("DocumentId("));
+        assert!(debug_s.contains("..."));
+        assert!(!debug_s.contains(&s));
+        assert!(debug_s.contains(&s[..4]));
+        assert!(debug_s.contains(&s[s.len() - 4..]));
+    }
+
+    #[test]
+    fn test_tasklens_url_debug_redaction() {
+        let id = DocumentId::new();
+        let url = TaskLensUrl::from(id);
+        let s = id.to_string();
+        let debug_s = format!("{:?}", url);
+
+        assert!(debug_s.contains("TaskLensUrl(automerge:DocumentId("));
+        assert!(debug_s.contains("..."));
+        assert!(!debug_s.contains(&s));
+        assert!(debug_s.contains(&s[..4]));
+        assert!(debug_s.contains(&s[s.len() - 4..]));
     }
 }
