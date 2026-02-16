@@ -1,5 +1,5 @@
+use crate::app_components::AppInput;
 use crate::dioxus_components::button::{Button, ButtonVariant};
-use crate::dioxus_components::input::Input;
 #[cfg(target_arch = "wasm32")]
 use crate::hooks::use_sync::SYNC_SERVER_URL_KEY;
 use crate::hooks::use_sync::SyncStatus;
@@ -84,8 +84,8 @@ pub(crate) fn SyncIndicator() -> Element {
                                 "Server URL"
                             }
                             div { class: Styles::popover_input_full,
-                                Input {
-                                    style: "width: 100%",
+                                AppInput {
+                                    full_width: true,
                                     "data-testid": "sync-server-url-input",
                                     value: "{url_input}",
                                     oninput: move |e: FormEvent| url_input.set(e.value()),

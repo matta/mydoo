@@ -155,7 +155,7 @@
   }
 }
 
-.notes_area {
+.notes_area :global(.textarea) {
   height: 8rem;
 }
 

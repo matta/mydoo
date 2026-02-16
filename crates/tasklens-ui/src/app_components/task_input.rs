@@ -1,5 +1,5 @@
+use crate::app_components::AppInput;
 use crate::dioxus_components::button::{Button, ButtonVariant};
-use crate::dioxus_components::input::Input;
 use dioxus::prelude::*;
 
 #[component]
@@ -18,13 +18,11 @@ pub(crate) fn TaskInput(
             "data-testid": data_testid,
             div {
                 class: Styles::input_field,
-                Input {
+                AppInput {
+                    full_width: true,
                     value: value(),
                     oninput: move |evt: FormEvent| value.set(evt.value()),
                     placeholder: "Add a new task...",
-                    // We remove the class prop to restore default Dioxus styling.
-                    // Instead we use inline style to make it fill the wrapper.
-                    style: "width: 100%",
                     onkeypress: move |evt: KeyboardEvent| {
                         if evt.key() == Key::Enter {
                             on_add.call(());
