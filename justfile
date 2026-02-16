@@ -37,7 +37,7 @@ build-ui-release-e2e:
 
 # Build tasklens-ui for e2e in debug mode
 build-ui-debug:
-    cd {{ui_pkg}} && chronic dx build --platform web
+    cd {{ui_pkg}} && chronic dx build --platform web --features e2e-test-hooks
 
 # Build tasklens-core
 build-core:
