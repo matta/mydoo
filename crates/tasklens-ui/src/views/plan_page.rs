@@ -23,9 +23,11 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     // Track the highlight timer task to allow cancellation (debouncing).
     let mut timer_task: Signal<Option<Task>> = use_signal(|| None);
     use_effect(move || {
-        if let Some(prev) = timer_task.write().take() {
-            prev.cancel();
-        }
+        timer_task.with_mut(|task| {
+            if let Some(prev) = task.take() {
+                prev.cancel();
+            }
+        });
 
         if highlighted_task_id().is_some() {
             let task = spawn(async move {
