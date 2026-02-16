@@ -2,7 +2,7 @@
 
 ## Status
 
-**Proposed / Blocked** (February 2026)
+**Proposed / Blocked**
 
 ## Context
 
