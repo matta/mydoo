@@ -10,6 +10,7 @@ use crate::dioxus_components::card::{Card, CardContent};
 use crate::dioxus_components::progress::Progress;
 use crate::hooks::use_balance_interaction::{BalanceItem, use_balance_interaction};
 use dioxus::prelude::*;
+use tasklens_core::domain::balance_distribution::{MAX_PERCENTAGE, MIN_PERCENTAGE};
 
 #[css_module("/src/views/balance_page.css")]
 struct Styles;
@@ -25,7 +26,6 @@ pub fn BalancePage() -> Element {
     let controller = task_controller::use_task_controller();
     let (render_items, interaction) =
         use_balance_interaction(EventHandler::new(move |distribution| {
-            tracing::info!("set_balance_distribution: {:#?}", distribution);
             controller.set_balance_distribution(distribution);
         }));
 
@@ -131,8 +131,8 @@ fn BalanceItemRow(
                         "Adjust Target"
                     }
                     BalanceSlider {
-                        min: 0.01,
-                        max: 1.0,
+                        min: MIN_PERCENTAGE,
+                        max: MAX_PERCENTAGE,
                         step: 0.01,
                         value: current_target_percent,
                         oninput: {

@@ -104,9 +104,9 @@ check-rust-fmt:
 check-clippy:
     chronic cargo clippy --workspace --all-targets -- -D warnings
 
-# Check compilation for WASM target
+# Check compilation for WASM target with strict lints
 check-wasm:
-    chronic cargo check --workspace --target wasm32-unknown-unknown
+    chronic cargo clippy --workspace --target wasm32-unknown-unknown -- -D warnings
 
 # -----------------------------------------------------------------------------
 # Test Commands
