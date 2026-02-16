@@ -1058,7 +1058,7 @@ mod tests {
 
         // 3. Complete at a time where decay happens.
         // Half-life: 604_800_000 ms.
-        let completion_time = 604_800_000;
+        let completion_time = super::CREDITS_HALF_LIFE_MS as i64;
 
         run_action(
             &mut doc,
