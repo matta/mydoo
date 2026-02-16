@@ -33,7 +33,7 @@ impl fmt::Display for DocumentId {
 
 impl fmt::Debug for DocumentId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let as_string = bs58::encode(self.0.as_bytes()).with_check().into_string();
+        let as_string = self.to_string();
         if as_string.len() > 8 {
             write!(
                 f,
