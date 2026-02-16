@@ -1000,7 +1000,7 @@ mod tests {
         // 3. Complete the task at a later time (e.g., +1 half-life)
         // Half-life is 604_800_000 ms (7 days)
         // New time: 1000 + 604_800_000
-        let completion_time = 1000 + 604_800_000;
+        let completion_time = 1000 + super::CREDITS_HALF_LIFE_MS as i64;
 
         run_action(
             &mut doc,
