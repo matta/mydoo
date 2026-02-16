@@ -35,7 +35,7 @@ For a low-level crate like `getrandom`, especially in a **WASM environment**, th
 We will stay on `getrandom 0.3.x` until the following upstream dependencies are updated to support `v0.4.0`:
 
 1.  **automerge:** Track progress on the [automerge-rs repository](https://github.com/automerge/automerge).
-2.  **rand ecosystem:** Ensure `rand` and `rand_core` (currently at `0.9.x`) have fully stabilized their `0.4` integration.
+2.  **rand ecosystem:** Ensure `rand` and `rand_core` (currently at `0.9.x`) have fully stabilized their integration with `getrandom v0.4.0`.
 
 ## Future Action
 
