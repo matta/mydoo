@@ -4,6 +4,7 @@ use crate::dioxus_components::checkbox::Checkbox;
 use chrono::{Datelike, TimeZone};
 use dioxus::prelude::*;
 use dioxus_primitives::checkbox::CheckboxState;
+use std::rc::Rc;
 use tasklens_core::domain::dates::{UrgencyStatus, get_urgency_status};
 use tasklens_core::types::{TaskID, TaskStatus};
 
@@ -36,8 +37,8 @@ fn format_relative_due_date(due_ts: i64, now: i64) -> String {
 
 #[component]
 pub(crate) fn TaskRow(
-    id: TaskID,
-    title: String,
+    id: Rc<TaskID>,
+    title: Rc<String>,
     status: TaskStatus,
     depth: usize,
     on_toggle: EventHandler<TaskID>,
@@ -110,7 +111,7 @@ pub(crate) fn TaskRow(
                         variant: ButtonVariant::Ghost,
                         onclick: move |evt: MouseEvent| {
                             evt.stop_propagation();
-                            on_expand_toggle.call(task_id_expand.clone());
+                            on_expand_toggle.call((*task_id_expand).clone());
                         },
                         "aria-label": "Toggle expansion",
                         "data-expanded": "{is_expanded}",
@@ -156,7 +157,7 @@ pub(crate) fn TaskRow(
                     CheckboxState::Unchecked
                 }),
                 on_checked_change: move |_| {
-                    on_toggle.call(task_id_toggle.clone());
+                    on_toggle.call((*task_id_toggle).clone());
                 },
                 class: Styles::checkbox_custom,
             }
@@ -175,7 +176,7 @@ pub(crate) fn TaskRow(
             span {
                 class: title_class,
                 "data-testid": "task-title",
-                onclick: move |_| on_title_tap.call(task_id_title_tap.clone()),
+                onclick: move |_| on_title_tap.call((*task_id_title_tap).clone()),
                 "{title}"
             }
 
@@ -194,7 +195,7 @@ pub(crate) fn TaskRow(
                 Button {
                     variant: ButtonVariant::Ghost,
                     title: "Add Subtask",
-                    onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
+                    onclick: move |_| on_create_subtask.call((*task_id_subtask).clone()),
                     svg {
                         class: Styles::icon_sm,
                         xmlns: "http://www.w3.org/2000/svg",
@@ -212,7 +213,7 @@ pub(crate) fn TaskRow(
                 Button {
                     variant: ButtonVariant::Destructive,
                     title: "Delete",
-                    onclick: move |_| on_delete.call(task_id_delete.clone()),
+                    onclick: move |_| on_delete.call((*task_id_delete).clone()),
                     svg {
                         class: Styles::icon_sm,
                         xmlns: "http://www.w3.org/2000/svg",
