@@ -321,7 +321,7 @@ fn test_routine_lead_time_overflow() {
         Action::CreateTask {
             id: TaskID::from("task-5"),
             parent_id: None,
-            title: "".into(),
+            title: "Task".into(),
         },
     )
     .unwrap();
@@ -368,7 +368,7 @@ fn test_move_task_to_root_removes_parent_id() {
         Action::CreateTask {
             id: TaskID::from("task-1"),
             parent_id: None,
-            title: "".into(),
+            title: "Task".into(),
         },
     )
     .unwrap();
@@ -379,7 +379,7 @@ fn test_move_task_to_root_removes_parent_id() {
         Action::CreateTask {
             id: TaskID::from("task-5"),
             parent_id: Some(TaskID::from("task-1")),
-            title: "".into(),
+            title: "Task".into(),
         },
     )
     .unwrap();
@@ -419,7 +419,7 @@ fn test_concurrent_create_child_and_delete_parent_leak() {
         Action::CreateTask {
             id: TaskID::from("task-4"),
             parent_id: None,
-            title: "".into(),
+            title: "Task".into(),
         },
     )
     .unwrap();
@@ -432,7 +432,7 @@ fn test_concurrent_create_child_and_delete_parent_leak() {
         Action::CreateTask {
             id: TaskID::from("task-5"),
             parent_id: Some(TaskID::from("task-4")),
-            title: "".into(),
+            title: "Task".into(),
         },
     )
     .unwrap();
@@ -465,7 +465,7 @@ fn test_concurrent_delete_same_task_root() {
         Action::CreateTask {
             id: TaskID::from("task-3"),
             parent_id: None,
-            title: "".into(),
+            title: "Task".into(),
         },
     )
     .unwrap();
@@ -474,7 +474,7 @@ fn test_concurrent_delete_same_task_root() {
         Action::CreateTask {
             id: TaskID::from("task-4"),
             parent_id: None,
-            title: "".into(),
+            title: "Task".into(),
         },
     )
     .unwrap();
@@ -518,7 +518,7 @@ fn test_concurrent_complete_task_status_merge() {
         Action::CreateTask {
             id: TaskID::from("task-5"),
             parent_id: None,
-            title: "".into(),
+            title: "Task".into(),
         },
     )
     .unwrap();
@@ -733,7 +733,7 @@ fn test_concurrent_move_to_locally_deleted_parent_leak() {
         Action::CreateTask {
             id: TaskID::from("task-0"),
             parent_id: None,
-            title: "".into(),
+            title: "Task".into(),
         },
     )
     .unwrap();
@@ -742,7 +742,7 @@ fn test_concurrent_move_to_locally_deleted_parent_leak() {
         Action::CreateTask {
             id: TaskID::from("task-1"),
             parent_id: None,
-            title: "".into(),
+            title: "Task".into(),
         },
     )
     .unwrap();
@@ -751,7 +751,7 @@ fn test_concurrent_move_to_locally_deleted_parent_leak() {
         Action::CreateTask {
             id: TaskID::from("task-2"),
             parent_id: None,
-            title: "".into(),
+            title: "Task".into(),
         },
     )
     .unwrap();

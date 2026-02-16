@@ -5,7 +5,7 @@ use chrono::{Datelike, TimeZone};
 use dioxus::prelude::*;
 use dioxus_primitives::checkbox::CheckboxState;
 use tasklens_core::domain::dates::{UrgencyStatus, get_urgency_status};
-use tasklens_core::types::{PersistedTask, TaskID, TaskStatus};
+use tasklens_core::types::{TaskID, TaskStatus};
 
 /// Formats a due date timestamp relative to the current time.
 ///
@@ -36,9 +36,11 @@ fn format_relative_due_date(due_ts: i64, now: i64) -> String {
 
 #[component]
 pub(crate) fn TaskRow(
-    task: PersistedTask,
+    id: TaskID,
+    title: String,
+    status: TaskStatus,
     depth: usize,
-    on_toggle: EventHandler<PersistedTask>,
+    on_toggle: EventHandler<TaskID>,
     has_children: bool,
     is_expanded: bool,
     on_expand_toggle: EventHandler<TaskID>,
@@ -54,14 +56,14 @@ pub(crate) fn TaskRow(
     struct Styles;
 
     let indentation = depth * 20;
-    let is_done = task.status == TaskStatus::Done;
+    let is_done = status == TaskStatus::Done;
 
-    // Clone IDs and task for closures
-    let task_id_expand = task.id.clone();
-    let task_id_delete = task.id.clone();
-    let task_id_subtask = task.id.clone();
-    let task_id_title_tap = task.id.clone();
-    let task_toggle = task.clone();
+    // Clone IDs for closures
+    let task_id_expand = id.clone();
+    let task_id_delete = id.clone();
+    let task_id_subtask = id.clone();
+    let task_id_title_tap = id.clone();
+    let task_id_toggle = id.clone();
 
     // Urgency Logic
     let now = js_sys::Date::now() as i64;
@@ -154,7 +156,7 @@ pub(crate) fn TaskRow(
                     CheckboxState::Unchecked
                 }),
                 on_checked_change: move |_| {
-                    on_toggle.call(task_toggle.clone());
+                    on_toggle.call(task_id_toggle.clone());
                 },
                 class: Styles::checkbox_custom,
             }
@@ -174,7 +176,7 @@ pub(crate) fn TaskRow(
                 class: title_class,
                 "data-testid": "task-title",
                 onclick: move |_| on_title_tap.call(task_id_title_tap.clone()),
-                "{task.title}"
+                "{title}"
             }
 
             if let Some(due_ts) = effective_due_date {
