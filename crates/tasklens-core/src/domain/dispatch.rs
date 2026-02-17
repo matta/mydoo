@@ -119,7 +119,20 @@ pub fn hydrate_tunnel_state(doc: &impl autosurgeon::ReadDoc) -> Result<TunnelSta
     Ok(state)
 }
 
-/// Runs an action on any Transactable + Doc object (Transaction, AutoCommit, etc.).
+/// Dispatches an action to modify the application state.
+///
+/// This function serves as the central handler for all state-mutating operations.
+/// It applies the necessary changes to the Automerge document, ensuring data integrity
+/// and business rule validation.
+///
+/// # Errors
+///
+/// Returns `Err` if:
+/// - The action violates validation rules (e.g., empty titles, cycles in hierarchy).
+/// - The target entity (Task or Place) does not exist.
+/// - The Automerge operation fails or hydration fails.
+///
+/// See [`DispatchError`] for a complete list of error variants.
 pub fn run_action(doc: &mut (impl Transactable + Doc), action: Action) -> Result<()> {
     match action {
         Action::CreateTask {
