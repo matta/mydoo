@@ -8,10 +8,32 @@ const URGENCY_THRESHOLD_RATIO: f64 = 0.25;
 
 /// Determines the urgency status of a task based on its effective due date and lead time.
 ///
+/// The urgency status is calculated relative to the `current_time` as follows:
+/// - `Overdue`: The current time is past the due date (and not the same day).
+/// - `Urgent`: The task is due today, or within the last 25% of the lead time window.
+/// - `Upcoming`: The task is not yet in its lead time window, but is within a buffer period (25% of lead time duration) just before the window starts.
+/// - `Active`: The task is inside the lead time window, but has not yet reached the "Urgent" threshold.
+/// - `None`: The task is far in the future (outside lead time and upcoming buffer) or lacks scheduling info.
+///
 /// # Arguments
+///
 /// * `effective_due_date` - The timestamp when the task is due (ms).
 /// * `effective_lead_time` - The duration (ms) before due date when task becomes active.
 /// * `current_time` - The current timestamp (ms).
+///
+/// # Examples
+///
+/// ```
+/// use tasklens_core::domain::dates::get_urgency_status;
+/// use tasklens_core::types::UrgencyStatus;
+///
+/// let due = 1000;
+/// let lead = 100;
+/// let now = 990; // 10ms before due. Within last 25% of lead time (25ms).
+///
+/// let status = get_urgency_status(Some(due), Some(lead), now);
+/// assert_eq!(status, UrgencyStatus::Urgent);
+/// ```
 pub fn get_urgency_status(
     effective_due_date: Option<i64>,
     effective_lead_time: Option<i64>,
