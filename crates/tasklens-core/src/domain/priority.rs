@@ -654,22 +654,11 @@ pub fn get_prioritized_tasks(
     options: &PriorityOptions,
 ) -> Vec<ComputedTask> {
     // --- Stage 1: Hydrate & Initialize ---
-    let PriorityContext { mut tasks, .. } = build_priority_context(state, view_filter, options);
+    let PriorityContext { tasks, .. } = build_priority_context(state, view_filter, options);
 
-    // --- Stage 3: Sorting ---
-    // Sort by: Priority (desc) -> Importance (desc) -> Outline Index (asc)
-    tasks.sort_by(|a, b| {
-        if (a.priority - b.priority).abs() > PRIORITY_EPSILON {
-            b.priority.partial_cmp(&a.priority).unwrap()
-        } else if (a.importance - b.importance).abs() > f64::EPSILON {
-            // Tiebreaker: higher importance first
-            b.importance.partial_cmp(&a.importance).unwrap()
-        } else {
-            a.outline_index.partial_cmp(&b.outline_index).unwrap()
-        }
-    });
-
-    tasks
+    // --- Stage 3: Filtering & Sorting ---
+    // Optimization: Filter before sorting to reduce O(N log N) to O(M log M)
+    let mut filtered_tasks: Vec<EnrichedTask> = tasks
         .into_iter()
         .filter(|t| {
             // Visibility Check
@@ -696,6 +685,35 @@ pub fn get_prioritized_tasks(
 
             true
         })
+        .collect();
+
+    // Sort by: Priority (desc) -> Importance (desc) -> Outline Index (asc)
+    filtered_tasks.sort_by(|a, b| {
+        if (a.priority - b.priority).abs() > PRIORITY_EPSILON {
+            b.priority.partial_cmp(&a.priority).unwrap_or_else(|| {
+                tracing::warn!("Encountered NaN in priority comparison; defaulting to Equal");
+                std::cmp::Ordering::Equal
+            })
+        } else if (a.importance - b.importance).abs() > f64::EPSILON {
+            // Tiebreaker: higher importance first
+            b.importance.partial_cmp(&a.importance).unwrap_or_else(|| {
+                tracing::warn!("Encountered NaN in importance comparison; defaulting to Equal");
+                std::cmp::Ordering::Equal
+            })
+        } else {
+            a.outline_index
+                .partial_cmp(&b.outline_index)
+                .unwrap_or_else(|| {
+                    tracing::warn!(
+                        "Encountered NaN in outline_index comparison; defaulting to Equal"
+                    );
+                    std::cmp::Ordering::Equal
+                })
+        }
+    });
+
+    filtered_tasks
+        .into_iter()
         .map(|e| {
             let is_ready = e.is_pending && e.lead_time_factor > 0.0;
             let status = crate::domain::dates::get_urgency_status(
