@@ -154,3 +154,112 @@ fn get_git_files(root: &Path, args: &[&str]) -> Result<Vec<String>> {
     let stdout = String::from_utf8(output.stdout)?;
     Ok(stdout.lines().map(|s| s.to_string()).collect())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::path::Path;
+    use std::process::Command;
+    use tempfile::tempdir;
+
+    fn git(dir: &Path, args: &[&str]) {
+        let status = Command::new("git")
+            .current_dir(dir)
+            .args(args)
+            .status()
+            .expect("Failed to run git");
+        assert!(
+            status.success(),
+            "Git command failed: git {}",
+            args.join(" ")
+        );
+    }
+
+    #[test]
+    fn test_get_files_to_check_staged_and_unstaged() {
+        let temp = tempdir().unwrap();
+        let root = temp.path();
+
+        // Init git repo
+        git(root, &["init"]);
+        git(root, &["config", "user.email", "test@example.com"]);
+        git(root, &["config", "user.name", "Test User"]);
+        git(root, &["config", "commit.gpgsign", "false"]);
+
+        // Create initial commit
+        let f1 = "file1.rs";
+        let f4 = "file4.rs";
+        fs::write(root.join(f1), "fn main() {}\n").unwrap();
+        fs::write(root.join(f4), "fn main() {}\n").unwrap();
+        git(root, &["add", f1, f4]);
+        git(root, &["commit", "-m", "initial"]);
+
+        // 1. Modify f1 (unstaged)
+        fs::write(root.join(f1), "fn main() { // unstaged }\n").unwrap();
+
+        // 2. Create f2 (staged)
+        let f2 = "file2.rs";
+        fs::write(root.join(f2), "fn main() {}\n").unwrap();
+        git(root, &["add", f2]);
+
+        // 3. Create f3 (untracked)
+        let f3 = "file3.rs";
+        fs::write(root.join(f3), "fn main() {}\n").unwrap();
+
+        // 4. Modify f4 (staged)
+        fs::write(root.join(f4), "fn main() { // staged }\n").unwrap();
+        git(root, &["add", f4]);
+
+        let files = get_files_to_check(root, false).unwrap();
+
+        assert!(files.contains(f1), "Should contain unstaged f1.rs");
+        assert!(files.contains(f2), "Should contain staged new f2.rs");
+        assert!(files.contains(f3), "Should contain untracked f3.rs");
+        assert!(files.contains(f4), "Should contain staged modified f4.rs");
+        assert_eq!(files.len(), 4);
+    }
+
+    #[test]
+    fn test_get_files_to_check_clean_repo() {
+        let temp = tempdir().unwrap();
+        let root = temp.path();
+        git(root, &["init"]);
+        git(root, &["config", "user.email", "test@example.com"]);
+        git(root, &["config", "user.name", "Test User"]);
+        git(root, &["config", "commit.gpgsign", "false"]);
+
+        let f1 = "file1.rs";
+        fs::write(root.join(f1), "fn main() {}\n").unwrap();
+        git(root, &["add", f1]);
+        git(root, &["commit", "-m", "initial"]);
+
+        let files = get_files_to_check(root, false).unwrap();
+        // If repo is clean, it should return all tracked files
+        assert!(files.contains(f1));
+        assert_eq!(files.len(), 1);
+    }
+
+    #[test]
+    fn test_get_files_to_check_all() {
+        let temp = tempdir().unwrap();
+        let root = temp.path();
+        git(root, &["init"]);
+        git(root, &["config", "user.email", "test@example.com"]);
+        git(root, &["config", "user.name", "Test User"]);
+        git(root, &["config", "commit.gpgsign", "false"]);
+
+        let f1 = "file1.rs";
+        fs::write(root.join(f1), "fn main() {}\n").unwrap();
+        git(root, &["add", f1]);
+        git(root, &["commit", "-m", "initial"]);
+
+        let f2 = "file2.rs";
+        fs::write(root.join(f2), "fn main() {}\n").unwrap();
+
+        let files = get_files_to_check(root, true).unwrap();
+        assert!(files.contains(f1));
+        assert!(!files.contains(f2)); // ls-files only shows tracked by default
+        assert_eq!(files.len(), 1);
+    }
+}
