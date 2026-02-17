@@ -288,9 +288,8 @@ fn App() -> Element {
 
 /// Register the service worker.
 ///
-/// This function is always compiled and checked, but execution is gated
-/// by the `pwa` feature in `main()` and it's a no-op on non-wasm32 targets.
-#[allow(dead_code)] // TODO: remove this when this is used
+/// This function is always compiled and checked, but execution logic is gated
+/// by the `pwa` feature and it's a no-op on non-wasm32 targets.
 fn init_service_worker() {
     #[cfg(all(feature = "pwa", target_arch = "wasm32"))]
     {
