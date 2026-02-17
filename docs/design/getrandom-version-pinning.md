@@ -19,7 +19,7 @@ In Rust's SemVer implementation for `0.x.y` versions:
 
 ### Managing Duplication
 
-While we aim for a single version, multiple versions are currently necessary to allow the rest of the workspace to use `v0.4.x` while `automerge` remains on `v0.7.3`.
+While we aim for a single version, multiple versions are currently necessary to allow the rest of the workspace to use `v0.4.x` while `automerge` remains on `v0.3.x`.
 
 To ensure WASM builds work correctly with both versions, we:
 
