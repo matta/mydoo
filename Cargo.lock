@@ -2272,10 +2272,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "139ef39800118c7683f2fd3c98c1b23c09ae076556b435f8e9064ae108aaeeec"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "r-efi",
  "wasip2",
  "wasip3",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -5284,6 +5286,7 @@ dependencies = [
  "autosurgeon",
  "chrono",
  "getrandom 0.3.4",
+ "getrandom 0.4.1",
  "glob",
  "js-sys",
  "path-clean",
@@ -5309,7 +5312,7 @@ dependencies = [
  "bs58",
  "criterion",
  "futures",
- "getrandom 0.3.4",
+ "getrandom 0.4.1",
  "gloo-net",
  "gloo-storage",
  "gloo-timers",
@@ -5352,7 +5355,7 @@ dependencies = [
  "dioxus-logger",
  "dioxus-primitives",
  "futures",
- "getrandom 0.3.4",
+ "getrandom 0.4.1",
  "gloo-net",
  "gloo-storage",
  "gloo-timers",
@@ -5897,11 +5900,11 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.21.0"
+version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b672338555252d43fd2240c714dc444b8c6fb0a5c5335e65a07bba7742735ddb"
+checksum = "e2e054861b4bd027cd373e18e8d8d8e6548085000e41290d95ce0c373a654b4a"
 dependencies = [
- "getrandom 0.4.1",
+ "getrandom 0.3.4",
  "js-sys",
  "serde_core",
  "wasm-bindgen",
