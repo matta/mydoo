@@ -198,7 +198,7 @@ pub(crate) fn TaskRow(
                     variant: ButtonVariant::Ghost,
                     title: "Add Subtask",
                     onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
-                    aria_label: "Add subtask",
+                    aria_label: "Add subtask to {title}",
                     svg {
                         class: Styles::icon_sm,
                         xmlns: "http://www.w3.org/2000/svg",
@@ -218,7 +218,7 @@ pub(crate) fn TaskRow(
                     variant: ButtonVariant::Destructive,
                     title: "Delete",
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
-                    aria_label: "Delete task",
+                    aria_label: "Delete task {title}",
                     svg {
                         class: Styles::icon_sm,
                         xmlns: "http://www.w3.org/2000/svg",
