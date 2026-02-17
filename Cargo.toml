@@ -42,6 +42,8 @@ wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
 web-sys = "0.3"
 getrandom = { version = "0.4.1", features = ["wasm_js"] }
+# TODO: remove this after automerge upgrades getrandom to v0.4.x
+# See docs/design/getrandom-version-pinning.md
 getrandom_03 = { package = "getrandom", version = "0.3.4", features = ["wasm_js"] }
 scopeguard = "1.2.0"
 console_error_panic_hook = "0.1.7"
