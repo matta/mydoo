@@ -106,7 +106,13 @@ pub fn get_balance_data_with_time(state: &TunnelState, current_time: i64) -> Bal
     let roots: Vec<_> = state
         .root_task_ids
         .iter()
-        .map(|id| tasks.get(id).unwrap())
+        .filter_map(|id| {
+            let task = tasks.get(id);
+            if task.is_none() {
+                tracing::warn!("Root task ID {} not found in tasks map", id);
+            }
+            task
+        })
         .filter(|t| t.title != "Inbox")
         .collect();
 
@@ -478,6 +484,19 @@ mod tests {
 
             let result = get_balance_data_with_time(&state, 0);
 
+            assert_eq!(result.items.len(), 1);
+            assert_eq!(result.items[0].title, "Health");
+        }
+
+        #[test]
+        fn test_missing_root_task_does_not_panic() {
+            let mut state = make_state(vec![make_persisted_root("1", "Health", 100.0, 50.0, 0)]);
+            // Intentionally introduce an inconsistency: a root ID that doesn't exist in tasks
+            state.root_task_ids.push(TaskID::from("missing-id"));
+
+            let result = get_balance_data_with_time(&state, 0);
+
+            // Should return valid data for the existing task, ignoring the missing one
             assert_eq!(result.items.len(), 1);
             assert_eq!(result.items[0].title, "Health");
         }
