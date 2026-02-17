@@ -51,6 +51,7 @@ pub(crate) fn TaskRow(
     #[props(default = false)] is_highlighted: bool,
     effective_due_date: Option<i64>,
     effective_lead_time: Option<i64>,
+    now: i64,
 ) -> Element {
     #[css_module("/src/app_components/task_row.css")]
     struct Styles;
@@ -66,7 +67,6 @@ pub(crate) fn TaskRow(
     let task_id_toggle = id.clone();
 
     // Urgency Logic
-    let now = js_sys::Date::now() as i64;
     let urgency = get_urgency_status(effective_due_date, effective_lead_time, now);
 
     let (urgency_text_class, badge_variant, urgency_label) = match urgency {

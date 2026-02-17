@@ -3,11 +3,12 @@ use crate::dioxus_components::checkbox::Checkbox;
 use crate::router::Route;
 use dioxus::prelude::*;
 use dioxus_primitives::checkbox::CheckboxState;
+use std::rc::Rc;
 use tasklens_core::types::{ComputedTask, TaskID, TaskStatus, UrgencyStatus};
 
 #[component]
 pub(crate) fn PriorityTaskRow(
-    task: ComputedTask,
+    task: Rc<ComputedTask>,
     on_toggle: EventHandler<TaskID>,
     on_title_tap: EventHandler<TaskID>,
 ) -> Element {

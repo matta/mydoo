@@ -162,6 +162,8 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     #[css_module("/src/views/plan_page.css")]
     struct Styles;
 
+    let now = js_sys::Date::now() as i64;
+
     rsx! {
         div {
             class: Styles::page_container,
@@ -242,6 +244,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                                 is_highlighted: Some(id.clone()) == highlighted_task_id(),
                                                 effective_due_date,
                                                 effective_lead_time,
+                                                now,
                                             }
                                         }
                                     }

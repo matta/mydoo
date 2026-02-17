@@ -8,6 +8,7 @@
 use crate::app_components::{Alert, AlertVariant, AppInput, AppInputStyle};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::hooks::use_tunnel_state::use_tunnel_state;
+use base64::Engine;
 use dioxus::prelude::*;
 
 /// Document ID Manager component for switching between documents.
@@ -132,7 +133,6 @@ pub(crate) fn DocIdManager(
         }
 
         spawn(async move {
-            use base64::Engine;
             let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
             let filename = format!("mydoo-{}.automerge", current_id);
             let script = format!(
