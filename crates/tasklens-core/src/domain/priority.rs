@@ -699,7 +699,8 @@ pub fn get_prioritized_tasks(
         }
     });
 
-    filtered_tasks.into_iter()
+    filtered_tasks
+        .into_iter()
         .map(|e| {
             let is_ready = e.is_pending && e.lead_time_factor > 0.0;
             let status = crate::domain::dates::get_urgency_status(
