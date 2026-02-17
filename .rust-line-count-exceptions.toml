@@ -1,0 +1,4 @@
+# Regular expressions for Rust files to exclude from line count checks.
+exceptions = [
+    "^crates/tasklens-ui/src/dioxus_components/.*",
+]

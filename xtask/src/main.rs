@@ -10,6 +10,7 @@ use commands::{
     check_dark_mode::check_dark_mode,
     check_dioxus_lock_pin::check_dioxus_lock_pin,
     check_filenames::check_filenames,
+    check_rust_token_count::{CheckRustTokenCountArgs, DEFAULT_LIMIT, check_rust_token_count},
     dx_components,
     fix_junit::{self, FixJunitArgs},
     update_dioxus_components::{UpdateDioxusComponentsArgs, update_dioxus_components},
@@ -38,6 +39,8 @@ enum Commands {
     CheckDarkMode,
     /// Check that dioxus-primitives rev pin matches Cargo.lock resolution
     CheckDioxusLockPin,
+    /// Check Rust token count
+    CheckRustTokenCount(CheckRustTokenCountArgs),
     /// Manage vendored Dioxus Components and registry cache via in-repo installer
     DxComponents(dx_components::DxComponentsArgs),
     /// Update vendored Dioxus components via a pristine vendor branch workflow
@@ -61,6 +64,11 @@ fn main() -> Result<()> {
             check_context()?;
             check_dark_mode()?;
             check_dioxus_lock_pin()?;
+            check_rust_token_count(&CheckRustTokenCountArgs {
+                all: true,
+                limit: DEFAULT_LIMIT,
+                print_counts: false,
+            })?;
         }
         Commands::CheckBiomeSchema => check_biome_schema()?,
         Commands::CheckCatalog => check_catalog()?,
@@ -68,6 +76,7 @@ fn main() -> Result<()> {
         Commands::CheckDarkMode => check_dark_mode()?,
         Commands::CheckDioxusLockPin => check_dioxus_lock_pin()?,
         Commands::CheckFilenames => check_filenames()?,
+        Commands::CheckRustTokenCount(args) => check_rust_token_count(args)?,
         Commands::DxComponents(args) => dx_components::run(args)?,
         Commands::FixJunit(args) => fix_junit::run(FixJunitArgs {
             junit_path: args.junit_path.clone(),
