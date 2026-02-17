@@ -1,26 +1,26 @@
 use anyhow::{Context, Result};
 use clap::Parser;
+use ra_ap_rustc_lexer::{FrontmatterAllowed, TokenKind};
 use regex::Regex;
 use serde::Deserialize;
 use std::collections::HashSet;
 use std::fs;
-use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::process::Command;
 
-pub(crate) const DEFAULT_LIMIT: usize = 1645;
+pub(crate) const DEFAULT_LIMIT: usize = 9201;
 
 #[derive(Parser, Debug, Clone)]
-pub(crate) struct CheckRustLineCountArgs {
+pub(crate) struct CheckRustTokenCountArgs {
     /// Scan all tracked files instead of just edited ones
     #[arg(long)]
     pub all: bool,
 
-    /// Set the maximum number of non-comment, non-whitespace lines allowed
+    /// Set the maximum number of non-comment, non-whitespace tokens allowed
     #[arg(long, default_value_t = DEFAULT_LIMIT)]
     pub limit: usize,
 
-    /// Just print the line counts for all files and exit
+    /// Just print the token counts for all files and exit
     #[arg(long)]
     pub print_counts: bool,
 }
@@ -31,7 +31,7 @@ struct ExceptionsConfig {
     exceptions: Vec<String>,
 }
 
-pub(crate) fn check_rust_line_count(args: &CheckRustLineCountArgs) -> Result<()> {
+pub(crate) fn check_rust_token_count(args: &CheckRustTokenCountArgs) -> Result<()> {
     let root = std::env::current_dir()?;
     let config_path = root.join(".rust-line-count-exceptions.toml");
 
@@ -66,7 +66,7 @@ pub(crate) fn check_rust_line_count(args: &CheckRustLineCountArgs) -> Result<()>
         }
 
         let count =
-            count_lines(&path).context(format!("Failed to count lines in {}", file_path))?;
+            count_tokens(&path).context(format!("Failed to count tokens in {}", file_path))?;
         if count > max_count {
             max_count = count;
             max_file = file_path.clone();
@@ -82,38 +82,41 @@ pub(crate) fn check_rust_line_count(args: &CheckRustLineCountArgs) -> Result<()>
     }
 
     if args.print_counts {
-        println!("Max line count: {} (in {})", max_count, max_file);
+        println!("Max token count: {} (in {})", max_count, max_file);
         return Ok(());
     }
 
     if !violations.is_empty() {
         violations.sort_by(|a, b| b.1.cmp(&a.1));
-        println!("The following Rust files exceed {} lines:", args.limit);
+        println!("The following Rust files exceed {} tokens:", args.limit);
         for (file, count) in violations {
-            println!("{}: {} lines", file, count);
+            println!("{}: {} tokens", file, count);
         }
         anyhow::bail!("Files too long. Please refactor or split them.");
     }
 
     println!(
-        "All Rust files are within the line limit ({} lines).",
+        "All Rust files are within the token limit ({} tokens).",
         args.limit
     );
     Ok(())
 }
 
-fn count_lines(path: &Path) -> Result<usize> {
-    let file = fs::File::open(path)?;
-    let reader = BufReader::new(file);
+fn count_tokens(path: &Path) -> Result<usize> {
+    let content = fs::read_to_string(path)?;
     let mut count = 0;
-    for line in reader.lines() {
-        let line = line?;
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with("//") {
-            continue;
+
+    for token in ra_ap_rustc_lexer::tokenize(&content, FrontmatterAllowed::Yes) {
+        match token.kind {
+            TokenKind::LineComment { .. }
+            | TokenKind::BlockComment { .. }
+            | TokenKind::Whitespace => {}
+            _ => {
+                count += 1;
+            }
         }
-        count += 1;
     }
+
     Ok(count)
 }
 
@@ -261,5 +264,40 @@ mod tests {
         assert!(files.contains(f1));
         assert!(!files.contains(f2)); // ls-files only shows tracked by default
         assert_eq!(files.len(), 1);
+    }
+
+    #[test]
+    fn test_count_tokens() {
+        let temp = tempdir().unwrap();
+        let path = temp.path().join("test.rs");
+
+        let code = r##"
+            fn main() {
+                // This is a comment
+                let x = 1; /* This is also a comment */
+                let s = "This is a string // with a comment inside";
+            }
+        "##;
+        fs::write(&path, code).unwrap();
+
+        let count = count_tokens(&path).unwrap();
+        // Tokens:
+        // 1: fn
+        // 2: main
+        // 3: (
+        // 4: )
+        // 5: {
+        // 6: let
+        // 7: x
+        // 8: =
+        // 9: 1
+        // 10: ;
+        // 11: let
+        // 12: s
+        // 13: =
+        // 14: "This is a string // with a comment inside"
+        // 15: ;
+        // 16: }
+        assert_eq!(count, 16);
     }
 }
