@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use std::collections::HashMap;
+use std::rc::Rc;
 use tasklens_core::domain::priority::get_prioritized_tasks;
 use tasklens_core::types::{
     ComputedTask, PriorityMode, PriorityOptions, TaskID, TunnelState, ViewFilter,
@@ -30,9 +31,14 @@ fn build_schedule_lookup(tasks: Vec<ComputedTask>) -> ScheduleLookup {
 }
 
 /// Returns prioritized tasks for Do view (visible tasks only, sorted by priority).
-pub(crate) fn use_do_list_tasks() -> Memo<Vec<ComputedTask>> {
+pub(crate) fn use_do_list_tasks() -> Memo<Vec<Rc<ComputedTask>>> {
     let state = crate::hooks::use_tunnel_state::use_tunnel_state();
-    use_memo(move || compute_prioritized_tasks(&state.read(), false))
+    use_memo(move || {
+        compute_prioritized_tasks(&state.read(), false)
+            .into_iter()
+            .map(Rc::new)
+            .collect()
+    })
 }
 
 /// Returns a schedule lookup map for Plan view (all tasks, including hidden).
