@@ -41,7 +41,7 @@ Use these documents to understand the system architecture and requirements:
 ### Git Workflow
 
 - **Clean Tree Rule:** Ensure clean working tree before starting new work.
-- **Feature Branch Isolation:** Each task gets its own branch (`codex/<task-slug>`).
+- **Feature Branch Isolation:** Each task gets its own branch.
 - **PR Isolation:** One concern per PR.
 - **Commit Rule:** Commit autonomously when quality gates pass.
   - **Code changes:** Run `just verify`.
