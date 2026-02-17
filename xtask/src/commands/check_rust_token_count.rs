@@ -35,15 +35,20 @@ pub(crate) fn check_rust_token_count(args: &CheckRustTokenCountArgs) -> Result<(
     let root = std::env::current_dir()?;
     let config_path = root.join(".rust-line-count-exceptions.toml");
 
-    let mut exceptions = Vec::new();
-    if config_path.exists() {
+    let exceptions = if config_path.exists() {
         let content = fs::read_to_string(&config_path)?;
         let config: ExceptionsConfig =
             toml::from_str(&content).context("Failed to parse .rust-line-count-exceptions.toml")?;
-        for pattern in config.exceptions {
-            exceptions.push(Regex::new(&pattern).context(format!("Invalid regex: {}", pattern))?);
-        }
-    }
+        config
+            .exceptions
+            .into_iter()
+            .map(|pattern| {
+                Regex::new(&pattern).with_context(|| format!("Invalid regex: {}", pattern))
+            })
+            .collect::<Result<Vec<_>>>()?
+    } else {
+        Vec::new()
+    };
 
     let files = get_files_to_check(&root, args.all)?;
     let mut violations = Vec::new();
@@ -104,19 +109,16 @@ pub(crate) fn check_rust_token_count(args: &CheckRustTokenCountArgs) -> Result<(
 
 fn count_tokens(path: &Path) -> Result<usize> {
     let content = fs::read_to_string(path)?;
-    let mut count = 0;
-
-    for token in ra_ap_rustc_lexer::tokenize(&content, FrontmatterAllowed::Yes) {
-        match token.kind {
-            TokenKind::LineComment { .. }
-            | TokenKind::BlockComment { .. }
-            | TokenKind::Whitespace => {}
-            _ => {
-                count += 1;
-            }
-        }
-    }
-
+    let count = ra_ap_rustc_lexer::tokenize(&content, FrontmatterAllowed::Yes)
+        .filter(|token| {
+            !matches!(
+                token.kind,
+                TokenKind::LineComment { .. }
+                    | TokenKind::BlockComment { .. }
+                    | TokenKind::Whitespace
+            )
+        })
+        .count();
     Ok(count)
 }
 
@@ -151,7 +153,8 @@ fn get_git_files(root: &Path, args: &[&str]) -> Result<Vec<String>> {
         .context(format!("Failed to run git {}", args.join(" ")))?;
 
     if !output.status.success() {
-        anyhow::bail!("Git command failed: git {}", args.join(" "));
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("Git command `git {}` failed:\n{}", args.join(" "), stderr);
     }
 
     let stdout = String::from_utf8(output.stdout)?;
