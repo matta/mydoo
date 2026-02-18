@@ -747,8 +747,6 @@ pub fn get_prioritized_tasks(
                 last_completed_at: e.last_completed_at,
                 score: e.priority,
                 normalized_importance: e.normalized_importance,
-                // TODO: Remove this field (doesn't exist in TS ComputedTask)
-                is_blocked: !is_ready && e.is_pending,
                 is_visible: e.visibility,
                 // TODO: Remove this field (doesn't exist in TS ComputedTask)
                 is_open: true,

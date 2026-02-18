@@ -119,8 +119,6 @@ pub struct ComputedTask {
     // TODO: Remove - logic detail hidden from view layer
     pub normalized_importance: f64,
     // TODO: Remove - logic detail hidden from view layer
-    pub is_blocked: bool,
-    // TODO: Remove - logic detail hidden from view layer
     pub is_visible: bool,
     // TODO: Remove - UI state, not domain state
     pub is_open: bool,
