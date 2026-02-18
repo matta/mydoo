@@ -1177,8 +1177,8 @@ fn test_concurrent_moves_create_cycle() {
 
 #[test]
 fn test_transaction_rollback_on_error() {
-    use automerge::transaction::Transactable;
     use automerge::ReadDoc;
+    use automerge::transaction::Transactable;
     let mut doc = init_doc().expect("Init failed");
 
     // 1. Corrupt rootTaskIds to force a failure during CreateTask
@@ -1201,7 +1201,10 @@ fn test_transaction_rollback_on_error() {
     );
 
     // 3. Assert Failure
-    assert!(res.is_err(), "Action should have failed due to corrupted rootTaskIds");
+    assert!(
+        res.is_err(),
+        "Action should have failed due to corrupted rootTaskIds"
+    );
 
     // 4. Assert Rollback: The task should NOT exist in the tasks map
     // We cannot use hydration because rootTaskIds is corrupted, so hydration would fail regardless.
