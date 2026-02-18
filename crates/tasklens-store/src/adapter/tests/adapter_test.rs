@@ -1174,3 +1174,51 @@ fn test_concurrent_moves_create_cycle() {
         panic!("Invariant Failure (Cycle after concurrent moves)!\n{}", msg);
     }
 }
+
+#[test]
+fn test_transaction_rollback_on_error() {
+    use automerge::ReadDoc;
+    use automerge::transaction::Transactable;
+    let mut doc = init_doc().expect("Init failed");
+
+    // 1. Corrupt rootTaskIds to force a failure during CreateTask
+    {
+        let mut tx = doc.transaction();
+        tx.put(automerge::ROOT, "rootTaskIds", "corrupted").unwrap();
+        tx.commit();
+    }
+
+    // 2. Dispatch CreateTask
+    // This action creates the task in the "tasks" map, AND THEN tries to append to "rootTaskIds".
+    // The second step will fail because "rootTaskIds" is a string, not a list.
+    let res = adapter::dispatch(
+        &mut doc,
+        Action::CreateTask {
+            id: TaskID::from("task-rollback"),
+            parent_id: None,
+            title: "Should Rollback".into(),
+        },
+    );
+
+    // 3. Assert Failure
+    assert!(
+        res.is_err(),
+        "Action should have failed due to corrupted rootTaskIds"
+    );
+
+    // 4. Assert Rollback: The task should NOT exist in the tasks map
+    // We cannot use hydration because rootTaskIds is corrupted, so hydration would fail regardless.
+    // We must inspect the document directly.
+    let tasks_val = doc.get(automerge::ROOT, "tasks").unwrap();
+    let tasks_obj_id = match tasks_val {
+        Some((_, id)) => id,
+        None => panic!("tasks map missing"),
+    };
+
+    let task_exists = doc.get(&tasks_obj_id, "task-rollback").unwrap().is_some();
+
+    assert!(
+        !task_exists,
+        "Task persisted despite transaction failure! Partial commit occurred."
+    );
+}
