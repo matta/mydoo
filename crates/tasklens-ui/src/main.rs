@@ -33,11 +33,6 @@ use wasm_bindgen::prelude::*;
 extern "C" {
     #[wasm_bindgen(js_name = registerServiceWorker, catch)]
     fn register_service_worker() -> Result<js_sys::Promise, JsValue>;
-
-    #[wasm_bindgen(js_name = subscribeToServiceWorkerStatus, catch)]
-    fn subscribe_to_service_worker_status(
-        callback: &Closure<dyn FnMut(bool)>,
-    ) -> Result<(), JsValue>;
 }
 
 fn main() {
