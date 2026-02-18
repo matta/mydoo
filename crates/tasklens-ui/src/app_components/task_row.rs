@@ -63,7 +63,8 @@ pub(crate) fn TaskRow(
     let task_id_expand = id.clone();
     let task_id_delete = id.clone();
     let task_id_subtask = id.clone();
-    let task_id_title_tap = id.clone();
+    let task_id_title_tap_click = id.clone();
+    let task_id_title_tap_keydown = id.clone();
     let task_id_toggle = id.clone();
 
     // Urgency Logic
@@ -178,7 +179,18 @@ pub(crate) fn TaskRow(
             span {
                 class: title_class,
                 "data-testid": "task-title",
-                onclick: move |_| on_title_tap.call(task_id_title_tap.clone()),
+                role: "button",
+                tabindex: "0",
+                aria_label: "Edit task {title}",
+                onclick: move |_| on_title_tap.call(task_id_title_tap_click.clone()),
+                onkeydown: move |evt: KeyboardEvent| {
+                    if evt.key() == Key::Enter || evt.key() == Key::Character(" ".to_string()) {
+                        if evt.key() == Key::Character(" ".to_string()) {
+                            evt.prevent_default();
+                        }
+                        on_title_tap.call(task_id_title_tap_keydown.clone());
+                    }
+                },
                 "{title}"
             }
 

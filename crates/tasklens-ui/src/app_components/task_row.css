@@ -85,6 +85,7 @@
   margin-left: 0.5rem;
 }
 
-.row_root:hover .actions_container {
+.row_root:hover .actions_container,
+.row_root:focus-within .actions_container {
   opacity: 1;
 }
