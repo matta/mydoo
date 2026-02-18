@@ -8,9 +8,10 @@ use crate::domain::feedback::{
 use crate::domain::readiness::calculate_lead_time_factor;
 use crate::domain::visibility::{calculate_contextual_visibility, resolve_contextual_visibility};
 use crate::types::{
-    ComputedTask, Context, EnrichedTask, FeedbackTrace, ImportanceTrace, LeadTimeStage,
-    LeadTimeTrace, PersistedTask, PriorityMode, PriorityOptions, ScheduleSource, ScheduleType,
-    ScoreFactors, ScoreTrace, TaskID, TaskStatus, TunnelState, ViewFilter, VisibilityTrace,
+    ComputedTask, ComputedTaskDebug, Context, EnrichedTask, FeedbackTrace, ImportanceTrace,
+    LeadTimeStage, LeadTimeTrace, PersistedTask, PriorityMode, PriorityOptions, ScheduleSource,
+    ScheduleType, ScoreFactors, ScoreTrace, TaskID, TaskStatus, TunnelState, ViewFilter,
+    VisibilityTrace,
 };
 use crate::utils::time::{get_current_timestamp, get_interval_ms};
 
@@ -647,14 +648,18 @@ fn build_visibility_trace(
     }
 }
 
-/// Derives the "Projected State" for the View Layer.
-pub fn get_prioritized_tasks(
+/// Core helper to filter and sort enriched tasks.
+fn get_sorted_enriched_tasks(
     state: &TunnelState,
     view_filter: &ViewFilter,
     options: &PriorityOptions,
-) -> Vec<ComputedTask> {
+) -> (Vec<EnrichedTask>, i64) {
     // --- Stage 1: Hydrate & Initialize ---
-    let PriorityContext { tasks, .. } = build_priority_context(state, view_filter, options);
+    let PriorityContext {
+        tasks,
+        current_time,
+        ..
+    } = build_priority_context(state, view_filter, options);
 
     // --- Stage 3: Filtering & Sorting ---
     // Optimization: Filter before sorting to reduce O(N log N) to O(M log M)
@@ -712,18 +717,25 @@ pub fn get_prioritized_tasks(
         }
     });
 
-    filtered_tasks
+    (filtered_tasks, current_time)
+}
+
+/// Derives the "Projected State" for the View Layer.
+pub fn get_prioritized_tasks(
+    state: &TunnelState,
+    view_filter: &ViewFilter,
+    options: &PriorityOptions,
+) -> Vec<ComputedTask> {
+    let (tasks, current_time) = get_sorted_enriched_tasks(state, view_filter, options);
+
+    tasks
         .into_iter()
         .map(|e| {
             let is_ready = e.is_pending && e.lead_time_factor > 0.0;
             let status = crate::domain::dates::get_urgency_status(
                 e.effective_due_date,
                 e.effective_lead_time,
-                options
-                    .context
-                    .as_ref()
-                    .map(|c| c.current_time)
-                    .unwrap_or_else(get_current_timestamp),
+                current_time,
             );
             ComputedTask {
                 id: e.id,
@@ -750,6 +762,61 @@ pub fn get_prioritized_tasks(
                 // TODO: Remove this field (doesn't exist in TS ComputedTask)
                 is_blocked: !is_ready && e.is_pending,
                 // TODO: Remove this field (doesn't exist in TS ComputedTask)
+                is_open: true,
+                is_container: e.is_container,
+                is_pending: e.is_pending,
+                is_ready,
+                effective_due_date: e.effective_due_date,
+                effective_lead_time: e.effective_lead_time,
+                effective_schedule_source: e.effective_schedule_source,
+                urgency_status: status,
+            }
+        })
+        .collect()
+}
+
+/// Derives the "Projected State" for compliance testing / debugging.
+/// Includes internal fields like is_visible.
+pub fn get_prioritized_tasks_debug(
+    state: &TunnelState,
+    view_filter: &ViewFilter,
+    options: &PriorityOptions,
+) -> Vec<ComputedTaskDebug> {
+    let (tasks, current_time) = get_sorted_enriched_tasks(state, view_filter, options);
+
+    tasks
+        .into_iter()
+        .map(|e| {
+            let is_ready = e.is_pending && e.lead_time_factor > 0.0;
+            let status = crate::domain::dates::get_urgency_status(
+                e.effective_due_date,
+                e.effective_lead_time,
+                current_time,
+            );
+            ComputedTaskDebug {
+                id: e.id,
+                title: e.title,
+                notes: e.notes,
+                parent_id: e.parent_id,
+                child_task_ids: e.child_task_ids,
+                place_id: e.place_id,
+                status: e.status,
+                importance: e.importance,
+                credit_increment: e.credit_increment,
+                credits: e.credits,
+                effective_credits: e.effective_credits,
+                desired_credits: e.desired_credits,
+                credits_timestamp: e.credits_timestamp,
+                priority_timestamp: e.priority_timestamp,
+                schedule: e.schedule,
+                repeat_config: e.repeat_config,
+                is_sequential: e.is_sequential,
+                is_acknowledged: e.is_acknowledged,
+                last_completed_at: e.last_completed_at,
+                score: e.priority,
+                normalized_importance: e.normalized_importance,
+                is_blocked: !is_ready && e.is_pending,
+                is_visible: e.visibility,
                 is_open: true,
                 is_container: e.is_container,
                 is_pending: e.is_pending,

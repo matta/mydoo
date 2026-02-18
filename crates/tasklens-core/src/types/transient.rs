@@ -132,6 +132,44 @@ pub struct ComputedTask {
     pub urgency_status: UrgencyStatus,
 }
 
+/// A debug/test version of ComputedTask that exposes internal state details
+/// like visibility, which are hidden from the main view layer.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ComputedTaskDebug {
+    pub id: TaskID,
+    pub title: String,
+    pub notes: String,
+    pub parent_id: Option<TaskID>,
+    pub child_task_ids: Vec<TaskID>,
+    pub place_id: Option<PlaceID>,
+    pub status: TaskStatus,
+    pub importance: f64,
+    pub credit_increment: Option<f64>,
+    pub credits: f64,
+    pub effective_credits: f64,
+    pub desired_credits: f64,
+    pub credits_timestamp: i64,
+    pub priority_timestamp: i64,
+    pub schedule: Schedule,
+    pub repeat_config: Option<RepeatConfig>,
+    pub is_sequential: bool,
+    pub is_acknowledged: bool,
+    pub last_completed_at: Option<i64>,
+    pub score: f64,
+    pub normalized_importance: f64,
+    pub is_blocked: bool,
+    pub is_visible: bool,
+    pub is_open: bool,
+    pub is_container: bool,
+    pub is_pending: bool,
+    pub is_ready: bool,
+    pub effective_due_date: Option<i64>,
+    pub effective_lead_time: Option<i64>,
+    pub effective_schedule_source: Option<ScheduleSource>,
+    pub urgency_status: UrgencyStatus,
+}
+
 /// A full breakdown of how a task's score was computed.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]

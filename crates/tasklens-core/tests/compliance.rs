@@ -9,9 +9,9 @@ use tasklens_core::PlaceID;
 
 use tasklens_core::Action;
 use tasklens_core::domain::doc_bridge;
-use tasklens_core::domain::priority::get_prioritized_tasks;
+use tasklens_core::domain::priority::get_prioritized_tasks_debug;
 use tasklens_core::types::{
-    ComputedTask, Context, Frequency, PriorityOptions, RepeatConfig, ScheduleType, TaskID,
+    ComputedTaskDebug, Context, Frequency, PriorityOptions, RepeatConfig, ScheduleType, TaskID,
     TaskStatus, TunnelState, UrgencyStatus, ViewFilter,
 };
 use tasklens_core::{PlaceUpdates, TaskUpdates};
@@ -205,8 +205,7 @@ struct ExpectedTaskProps {
     importance: Option<F64OrString>,
     normalized_importance: Option<F64OrString>,
     is_blocked: Option<BoolOrString>,
-    #[serde(rename = "is_visible")]
-    _is_visible: Option<BoolOrString>,
+    is_visible: Option<BoolOrString>,
     is_ready: Option<BoolOrString>,
     is_open: Option<BoolOrString>,
     place_id: Option<String>,
@@ -506,8 +505,9 @@ fn run_step(
             place_id: place_id_filter,
         };
 
-        let results_filtered = get_prioritized_tasks(&state, &view_filter_obj, &options_filtered);
-        let results_all = get_prioritized_tasks(&state, &view_filter_obj, &options_all);
+        let results_filtered =
+            get_prioritized_tasks_debug(&state, &view_filter_obj, &options_filtered);
+        let results_all = get_prioritized_tasks_debug(&state, &view_filter_obj, &options_all);
 
         if let Some(order) = &assertion.expected_order {
             assert_expected_order(results_filtered, order, scenario, description)?;
@@ -526,7 +526,7 @@ fn run_step(
 }
 
 fn assert_expected_order(
-    results: Vec<ComputedTask>,
+    results: Vec<ComputedTaskDebug>,
     order: &serde_json::Value,
     scenario: &Scenario,
     description: &Option<String>,
@@ -555,7 +555,7 @@ fn assert_expected_order(
 }
 
 fn assert_expected_props(
-    results: Vec<ComputedTask>,
+    results: Vec<ComputedTaskDebug>,
     props: &[ExpectedTaskProps],
     scenario: &Scenario,
     description: &Option<String>,
@@ -579,7 +579,7 @@ fn assert_expected_props(
 }
 
 fn assert_task_props(
-    actual: &ComputedTask,
+    actual: &ComputedTaskDebug,
     expected: &ExpectedTaskProps,
     scenario: &Scenario,
 ) -> Result<()> {
@@ -593,7 +593,7 @@ fn assert_task_props(
 }
 
 fn assert_basic_props(
-    actual: &ComputedTask,
+    actual: &ComputedTaskDebug,
     expected: &ExpectedTaskProps,
     scenario: &Scenario,
 ) -> Result<()> {
@@ -617,7 +617,7 @@ fn assert_basic_props(
 }
 
 fn assert_credit_props(
-    actual: &ComputedTask,
+    actual: &ComputedTaskDebug,
     expected: &ExpectedTaskProps,
     scenario: &Scenario,
 ) -> Result<()> {
@@ -657,7 +657,7 @@ fn assert_credit_props(
 }
 
 fn assert_schedule_props(
-    actual: &ComputedTask,
+    actual: &ComputedTaskDebug,
     expected: &ExpectedTaskProps,
     scenario: &Scenario,
 ) -> Result<()> {
@@ -692,7 +692,7 @@ fn assert_schedule_props(
 }
 
 fn assert_importance_props(
-    actual: &ComputedTask,
+    actual: &ComputedTaskDebug,
     expected: &ExpectedTaskProps,
     scenario: &Scenario,
 ) -> Result<()> {
@@ -729,15 +729,18 @@ fn assert_importance_props(
 }
 
 fn assert_state_props(
-    actual: &ComputedTask,
+    actual: &ComputedTaskDebug,
     expected: &ExpectedTaskProps,
     scenario: &Scenario,
 ) -> Result<()> {
-    // Note: is_visible field is present in fixtures but removed from ComputedTask view layer.
-    // We retain the field in ExpectedTaskProps for JSON compatibility but skip assertion.
-    if let Some(_visible) = &expected._is_visible {
-        // Skip assertion: actual.is_visible no longer exists.
-        // Visibility is implicitly checked by presence in 'results_filtered' via assert_expected_order.
+    if let Some(visible) = &expected.is_visible {
+        assert_eq!(
+            actual.is_visible,
+            visible.to_bool(),
+            "Task: {}, Scenario: {}, Visibility",
+            expected.id,
+            scenario.name
+        );
     }
 
     if let Some(blocked) = &expected.is_blocked {
@@ -763,7 +766,7 @@ fn assert_state_props(
 }
 
 fn assert_location_props(
-    actual: &ComputedTask,
+    actual: &ComputedTaskDebug,
     expected: &ExpectedTaskProps,
     scenario: &Scenario,
 ) -> Result<()> {
