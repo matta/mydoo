@@ -22,7 +22,7 @@ impl SyncStatus {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::SyncStatus;
 
     #[test]
     fn test_sync_status_is_connected() {
