@@ -2,6 +2,25 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{PlaceID, RepeatConfig, ScheduleType, TaskID, TaskStatus};
 
+/// Represents an atomic operation that mutates the application state.
+///
+/// This enum encapsulates all valid domain actions, such as creating, updating, or deleting
+/// tasks and places. These actions are processed by the `run_action` function, which applies
+/// them to the Automerge document while enforcing business logic and validation rules.
+///
+/// # Examples
+///
+/// ```
+/// use tasklens_core::domain::actions::Action;
+/// use tasklens_core::types::TaskID;
+///
+/// let id = TaskID::new();
+/// let action = Action::CreateTask {
+///     id,
+///     parent_id: None,
+///     title: "New Task".to_string(),
+/// };
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Action {
     CreateTask {
