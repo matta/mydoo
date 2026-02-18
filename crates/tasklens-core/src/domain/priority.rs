@@ -129,10 +129,7 @@ fn build_indexes_and_sort(
 }
 
 /// Assigns outline index via DFS traversal.
-fn assign_outline_indexes(
-    enriched_tasks: &mut [EnrichedTask],
-    children_index: &ChildrenLookup,
-) {
+fn assign_outline_indexes(enriched_tasks: &mut [EnrichedTask], children_index: &ChildrenLookup) {
     let mut current_index = 0.0;
     traverse_assign(None, enriched_tasks, children_index, &mut current_index);
 }
@@ -147,12 +144,7 @@ fn traverse_assign(
         for &idx in child_indices {
             enriched_tasks[idx].outline_index = *current_index;
             *current_index += 1.0;
-            traverse_assign(
-                Some(idx),
-                enriched_tasks,
-                children_index,
-                current_index,
-            );
+            traverse_assign(Some(idx), enriched_tasks, children_index, current_index);
         }
     }
 }
@@ -455,12 +447,12 @@ fn process_children(
 fn find_root_index(task_idx: usize, tasks: &[EnrichedTask]) -> usize {
     let mut current_idx = task_idx;
     while let Some(parent_id) = &tasks[current_idx].parent_id {
-         // Binary search for parent index
-         if let Ok(parent_idx) = tasks.binary_search_by(|t| t.id.cmp(parent_id)) {
-             current_idx = parent_idx;
-         } else {
-             break;
-         }
+        // Binary search for parent index
+        if let Ok(parent_idx) = tasks.binary_search_by(|t| t.id.cmp(parent_id)) {
+            current_idx = parent_idx;
+        } else {
+            break;
+        }
     }
     current_idx
 }
@@ -812,15 +804,8 @@ pub fn get_score_trace(
     let task_idx = context.find_task_index(task_id)?;
     let root_idx = find_root_index(task_idx, &context.tasks);
 
-    let sequential_blocked = build_sequential_blocked_map(
-        &context.children_index,
-        &context.tasks,
-    );
-    let importance_chain = build_importance_chain(
-        task_idx,
-        &context.tasks,
-        &sequential_blocked,
-    );
+    let sequential_blocked = build_sequential_blocked_map(&context.children_index, &context.tasks);
+    let importance_chain = build_importance_chain(task_idx, &context.tasks, &sequential_blocked);
 
     let feedback = build_feedback_trace(root_idx, &context.tasks);
     let lead_time = build_lead_time_trace(&context.tasks[task_idx], context.current_time);
