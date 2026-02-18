@@ -8,7 +8,8 @@ use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::checkbox::Checkbox;
 use dioxus::prelude::*;
 use dioxus_primitives::checkbox::CheckboxState;
-use tasklens_core::types::{PersistedTask, TaskStatus};
+use std::rc::Rc;
+use tasklens_core::types::{PersistedTask, TaskID, TaskStatus};
 
 #[css_module("/src/views/task_page.css")]
 struct Styles;
@@ -51,15 +52,19 @@ pub fn TaskPage() -> Element {
     };
 
     let toggle_task = {
-        move |task: PersistedTask| {
-            task_controller.toggle(task.id);
+        move |id: TaskID| {
+            task_controller.toggle(id);
             save_and_sync();
         }
     };
 
     // Prepare tasks for display (convert HashMap to Vec and Sort)
-    let tasks: Vec<PersistedTask> = {
-        let mut t: Vec<PersistedTask> = state().tasks.values().cloned().collect();
+    let tasks: Vec<Rc<PersistedTask>> = {
+        let mut t: Vec<Rc<PersistedTask>> = state()
+            .tasks
+            .values()
+            .map(|t| Rc::new(t.clone()))
+            .collect();
         // Sort by title for stability, or ID. todo_mvp didn't sort, but HashMap iteration is random.
         // Let's sort by ID string for now to have deterministic order.
         t.sort_by(|a, b| a.id.as_str().cmp(b.id.as_str()));
@@ -100,27 +105,29 @@ pub fn TaskPage() -> Element {
 }
 
 #[component]
-fn TaskList(tasks: Vec<PersistedTask>, on_toggle: EventHandler<PersistedTask>) -> Element {
+fn TaskList(tasks: Vec<Rc<PersistedTask>>, on_toggle: EventHandler<TaskID>) -> Element {
     rsx! {
         ul { class: Styles::task_list,
             for task in tasks {
-                TaskItem { key: "{task.id}", task: task.clone(), on_toggle }
+                TaskItem {
+                    key: "{task.id}",
+                    task: task,
+                    on_toggle,
+                }
             }
         }
     }
 }
 
 #[component]
-fn TaskItem(task: PersistedTask, on_toggle: EventHandler<PersistedTask>) -> Element {
+fn TaskItem(task: Rc<PersistedTask>, on_toggle: EventHandler<TaskID>) -> Element {
     let is_done = task.status == TaskStatus::Done;
-    // We can't move 'task' into multiple closures, so we clone.
-    // Actually EventHandler takes a value, so we clone for the call.
-    let task_toggle = task.clone();
-    let task_check = task.clone();
+    let task_id_toggle = task.id.clone();
+    let task_id_check = task.id.clone();
     rsx! {
         li {
             class: Styles::task_item,
-            onclick: move |_| on_toggle.call(task_toggle.clone()),
+            onclick: move |_| on_toggle.call(task_id_toggle.clone()),
             div { onclick: move |evt: MouseEvent| evt.stop_propagation(),
                 Checkbox {
                     checked: Some(if is_done {
@@ -128,7 +135,7 @@ fn TaskItem(task: PersistedTask, on_toggle: EventHandler<PersistedTask>) -> Elem
                     } else {
                         CheckboxState::Unchecked
                     }),
-                    on_checked_change: move |_| on_toggle.call(task_check.clone()),
+                    on_checked_change: move |_| on_toggle.call(task_id_check.clone()),
                     class: Styles::checkbox_input,
                 }
             }
