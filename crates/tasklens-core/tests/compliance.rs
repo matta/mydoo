@@ -205,7 +205,8 @@ struct ExpectedTaskProps {
     importance: Option<F64OrString>,
     normalized_importance: Option<F64OrString>,
     is_blocked: Option<BoolOrString>,
-    is_visible: Option<BoolOrString>,
+    #[serde(rename = "is_visible")]
+    _is_visible: Option<BoolOrString>,
     is_ready: Option<BoolOrString>,
     is_open: Option<BoolOrString>,
     place_id: Option<String>,
@@ -732,14 +733,11 @@ fn assert_state_props(
     expected: &ExpectedTaskProps,
     scenario: &Scenario,
 ) -> Result<()> {
-    if let Some(visible) = &expected.is_visible {
-        assert_eq!(
-            actual.is_visible,
-            visible.to_bool(),
-            "Task: {}, Scenario: {}, Visibility",
-            expected.id,
-            scenario.name
-        );
+    // Note: is_visible field is present in fixtures but removed from ComputedTask view layer.
+    // We retain the field in ExpectedTaskProps for JSON compatibility but skip assertion.
+    if let Some(_visible) = &expected._is_visible {
+        // Skip assertion: actual.is_visible no longer exists.
+        // Visibility is implicitly checked by presence in 'results_filtered' via assert_expected_order.
     }
 
     if let Some(blocked) = &expected.is_blocked {
