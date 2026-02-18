@@ -145,7 +145,9 @@ pub(crate) fn expensive_reconcile<T: autosurgeon::Reconcile + 'static>(
 pub(crate) fn dispatch(doc: &mut automerge::Automerge, action: Action) -> Result<()> {
     let mut tx = doc.transaction();
     let res = run_action(&mut tx, action);
-    tx.commit();
+    if res.is_ok() {
+        tx.commit();
+    }
     res.map_err(AdapterError::from)
 }
 
