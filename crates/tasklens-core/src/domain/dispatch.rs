@@ -6,11 +6,11 @@ use thiserror::Error;
 use crate::{
     Action, PlaceUpdates, TaskUpdates,
     domain::{
-        constants::{MAX_NOTES_LENGTH, MAX_PLACE_NAME_LENGTH, MAX_TITLE_LENGTH},
+        constants::{MAX_HOURS_LENGTH, MAX_NOTES_LENGTH, MAX_PLACE_NAME_LENGTH, MAX_TITLE_LENGTH},
         doc_bridge, lifecycle, routine_tasks,
     },
     types::{
-        PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_option_f64,
+        OpenHours, PersistedTask, TaskID, TaskStatus, TunnelState, hydrate_f64, hydrate_option_f64,
         hydrate_option_i64, hydrate_option_maybe_missing,
     },
 };
@@ -184,6 +184,18 @@ pub fn run_action(doc: &mut (impl Transactable + Doc), action: Action) -> Result
     }
 }
 
+fn validate_hours(hours: &str) -> Result<()> {
+    if hours.len() > MAX_HOURS_LENGTH {
+        return Err(DispatchError::InvalidInput(format!(
+            "Hours config exceeds max length of {}",
+            MAX_HOURS_LENGTH
+        )));
+    }
+    serde_json::from_str::<OpenHours>(hours)
+        .map(|_| ())
+        .map_err(|e| DispatchError::InvalidInput(format!("Invalid hours configuration: {}", e)))
+}
+
 fn handle_set_balance_distribution(
     doc: &mut (impl Transactable + Doc),
     distribution: HashMap<TaskID, f64>,
@@ -221,6 +233,8 @@ fn handle_create_place(
     }
 
     let places_obj_id = ensure_path(doc, &automerge::ROOT, vec!["places"])?;
+
+    validate_hours(&hours)?;
 
     let place = crate::types::Place {
         id: id.clone(),
@@ -263,6 +277,7 @@ fn handle_update_place(
             .map_err(DispatchError::from)?;
     }
     if let Some(hours) = updates.hours {
+        validate_hours(&hours)?;
         autosurgeon::reconcile_prop(doc, &place_obj_id, "hours", hours)
             .map_err(DispatchError::from)?;
     }
