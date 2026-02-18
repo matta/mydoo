@@ -98,7 +98,7 @@ mod tests {
             Action::CreatePlace {
                 id: PlaceID::new(),
                 name: "".to_string(),
-                hours: "{}".to_string(),
+                hours: r#"{"mode":"always_open"}"#.to_string(),
                 included_places: vec![],
             },
         );
@@ -115,7 +115,7 @@ mod tests {
             Action::CreatePlace {
                 id: id.clone(),
                 name: "Valid Place".to_string(),
-                hours: "{}".to_string(),
+                hours: r#"{"mode":"always_open"}"#.to_string(),
                 included_places: vec![],
             },
         )

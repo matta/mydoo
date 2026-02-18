@@ -30,3 +30,6 @@ pub const MAX_NOTES_LENGTH: usize = 50_000;
 
 /// Maximum length for place names.
 pub const MAX_PLACE_NAME_LENGTH: usize = 100;
+
+/// Maximum length for place hours configuration (JSON).
+pub const MAX_HOURS_LENGTH: usize = 5000;
