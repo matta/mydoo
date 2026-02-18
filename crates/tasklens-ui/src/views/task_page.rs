@@ -8,6 +8,7 @@ use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::checkbox::Checkbox;
 use dioxus::prelude::*;
 use dioxus_primitives::checkbox::CheckboxState;
+use std::rc::Rc;
 use tasklens_core::types::{PersistedTask, TaskStatus};
 
 #[css_module("/src/views/task_page.css")]
@@ -58,13 +59,13 @@ pub fn TaskPage() -> Element {
     };
 
     // Prepare tasks for display (convert HashMap to Vec and Sort)
-    let tasks: Vec<PersistedTask> = {
+    let tasks = use_memo(move || {
         let mut t: Vec<PersistedTask> = state().tasks.values().cloned().collect();
         // Sort by title for stability, or ID. todo_mvp didn't sort, but HashMap iteration is random.
         // Let's sort by ID string for now to have deterministic order.
         t.sort_by(|a, b| a.id.as_str().cmp(b.id.as_str()));
-        t
-    };
+        Rc::new(t)
+    });
 
     rsx! {
         div {
@@ -91,7 +92,7 @@ pub fn TaskPage() -> Element {
                 }
             } else {
                 TaskInput { value: input_text, on_add: move |_| add_task() }
-                TaskList { tasks, on_toggle: toggle_task }
+                TaskList { tasks: tasks().clone(), on_toggle: toggle_task }
             }
 
             div { class: Styles::build_version, "Build: {crate::BUILD_VERSION}" }
@@ -100,10 +101,10 @@ pub fn TaskPage() -> Element {
 }
 
 #[component]
-fn TaskList(tasks: Vec<PersistedTask>, on_toggle: EventHandler<PersistedTask>) -> Element {
+fn TaskList(tasks: Rc<Vec<PersistedTask>>, on_toggle: EventHandler<PersistedTask>) -> Element {
     rsx! {
         ul { class: Styles::task_list,
-            for task in tasks {
+            for task in tasks.iter() {
                 TaskItem { key: "{task.id}", task: task.clone(), on_toggle }
             }
         }
