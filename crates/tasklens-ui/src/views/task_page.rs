@@ -59,14 +59,17 @@ pub fn TaskPage() -> Element {
     };
 
     // Prepare tasks for display (convert HashMap to Vec and Sort)
-    let tasks: Vec<Rc<PersistedTask>> = {
+    // Memoized to prevent expensive deep cloning of tasks on every render.
+    let tasks_memo = use_memo(move || {
         let mut t: Vec<Rc<PersistedTask>> =
             state().tasks.values().map(|t| Rc::new(t.clone())).collect();
         // Sort by title for stability, or ID. todo_mvp didn't sort, but HashMap iteration is random.
         // Let's sort by ID string for now to have deterministic order.
         t.sort_by(|a, b| a.id.as_str().cmp(b.id.as_str()));
         t
-    };
+    });
+
+    let tasks = tasks_memo();
 
     rsx! {
         div {
@@ -119,12 +122,13 @@ fn TaskList(tasks: Vec<Rc<PersistedTask>>, on_toggle: EventHandler<TaskID>) -> E
 #[component]
 fn TaskItem(task: Rc<PersistedTask>, on_toggle: EventHandler<TaskID>) -> Element {
     let is_done = task.status == TaskStatus::Done;
-    let task_id_toggle = task.id.clone();
-    let task_id_check = task.id.clone();
     rsx! {
         li {
             class: Styles::task_item,
-            onclick: move |_| on_toggle.call(task_id_toggle.clone()),
+            onclick: {
+                let task = task.clone();
+                move |_| on_toggle.call(task.id.clone())
+            },
             div { onclick: move |evt: MouseEvent| evt.stop_propagation(),
                 Checkbox {
                     checked: Some(if is_done {
@@ -132,7 +136,10 @@ fn TaskItem(task: Rc<PersistedTask>, on_toggle: EventHandler<TaskID>) -> Element
                     } else {
                         CheckboxState::Unchecked
                     }),
-                    on_checked_change: move |_| on_toggle.call(task_id_check.clone()),
+                    on_checked_change: {
+                        let task = task.clone();
+                        move |_| on_toggle.call(task.id.clone())
+                    },
                     class: Styles::checkbox_input,
                 }
             }
@@ -141,5 +148,55 @@ fn TaskItem(task: Rc<PersistedTask>, on_toggle: EventHandler<TaskID>) -> Element
                 "{task.title}"
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tasklens_core::types::{Schedule, ScheduleType};
+
+    fn create_dummy_task() -> Rc<PersistedTask> {
+        Rc::new(PersistedTask {
+            status: TaskStatus::Pending,
+            id: TaskID::from("task-1"),
+            title: "Test Task".to_string(),
+            notes: "Some notes".to_string(),
+            parent_id: None,
+            child_task_ids: vec![],
+            place_id: None,
+            importance: 1.0,
+            credit_increment: None,
+            credits: 0.0,
+            desired_credits: 1.0,
+            credits_timestamp: 12345678,
+            priority_timestamp: 12345678,
+            schedule: Schedule {
+                schedule_type: ScheduleType::Once,
+                due_date: None,
+                lead_time: 0,
+                last_done: None,
+            },
+            repeat_config: None,
+            is_sequential: false,
+            is_acknowledged: false,
+            last_completed_at: None,
+        })
+    }
+
+    #[test]
+    fn test_task_item_renders() {
+        fn app() -> Element {
+            let task = create_dummy_task();
+            rsx! {
+                TaskItem {
+                    task: task,
+                    on_toggle: |_| {},
+                }
+            }
+        }
+
+        let mut dom = VirtualDom::new(app);
+        dom.rebuild_in_place();
     }
 }
