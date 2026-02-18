@@ -8,7 +8,41 @@ use crate::domain::constants::{
 };
 use crate::types::{PersistedTask, Schedule, ScheduleType, TaskID, TaskStatus};
 
-/// Creates a new task with default values and inheritance from parent.
+/// Creates a new task with default values and inheritance from a parent task.
+///
+/// This function initializes a [`PersistedTask`] with appropriate defaults (e.g., pending status,
+/// default importance) and inherits properties like `place_id` and `credit_increment` if a parent
+/// is provided.
+///
+/// # Arguments
+///
+/// * `id` - The unique identifier for the new task.
+/// * `title` - The title of the task.
+/// * `parent` - An optional reference to the parent task. If provided, the new task inherits
+///   the parent's `place_id` and `credit_increment`.
+///
+/// # Returns
+///
+/// Returns a fully initialized [`PersistedTask`] struct.
+///
+/// # Examples
+///
+/// ```
+/// use tasklens_core::domain::creation::create_new_task;
+/// use tasklens_core::types::{TaskID, PlaceID};
+///
+/// // Create a root task
+/// let root_id = TaskID::new();
+/// let mut root = create_new_task(root_id.clone(), "Root Task".to_string(), None);
+/// root.place_id = Some(PlaceID::from("Work"));
+///
+/// // Create a child task inheriting from root
+/// let child_id = TaskID::new();
+/// let child = create_new_task(child_id.clone(), "Child Task".to_string(), Some(&root));
+///
+/// assert_eq!(child.parent_id, Some(root_id));
+/// assert_eq!(child.place_id, Some(PlaceID::from("Work")));
+/// ```
 pub fn create_new_task(id: TaskID, title: String, parent: Option<&PersistedTask>) -> PersistedTask {
     let parent_id = parent.map(|p| p.id.clone());
 

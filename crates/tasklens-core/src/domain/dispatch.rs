@@ -125,6 +125,12 @@ pub fn hydrate_tunnel_state(doc: &impl autosurgeon::ReadDoc) -> Result<TunnelSta
 /// It applies the necessary changes to the Automerge document, ensuring data integrity
 /// and business rule validation.
 ///
+/// # Arguments
+///
+/// * `doc` - A mutable reference to an object that implements `Transactable` and `Doc` (typically
+///   an `AutoCommit` or `Transaction`).
+/// * `action` - The [`Action`] to perform (e.g., create task, update place).
+///
 /// # Errors
 ///
 /// Returns `Err` if:
@@ -133,6 +139,25 @@ pub fn hydrate_tunnel_state(doc: &impl autosurgeon::ReadDoc) -> Result<TunnelSta
 /// - The Automerge operation fails or hydration fails.
 ///
 /// See [`DispatchError`] for a complete list of error variants.
+///
+/// # Examples
+///
+/// ```
+/// use tasklens_core::domain::dispatch::run_action;
+/// use tasklens_core::domain::actions::Action;
+/// use tasklens_core::types::TaskID;
+/// use automerge::AutoCommit;
+///
+/// let mut doc = AutoCommit::new();
+/// let id = TaskID::new();
+/// let action = Action::CreateTask {
+///     id: id.clone(),
+///     parent_id: None,
+///     title: "My New Task".to_string(),
+/// };
+///
+/// run_action(&mut doc, action).expect("Action failed");
+/// ```
 pub fn run_action(doc: &mut (impl Transactable + Doc), action: Action) -> Result<()> {
     match action {
         Action::CreateTask {
