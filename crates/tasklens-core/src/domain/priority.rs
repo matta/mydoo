@@ -625,7 +625,7 @@ fn build_visibility_trace(
     let task = &context.tasks[task_idx];
     let contextual = resolve_contextual_visibility(state, task, view_filter, context.current_time);
     let has_pending_descendants =
-        has_pending_descendants(task_idx, &context.children_index, &context.tasks);
+        has_pending_descendants(task_idx, &context.children_index, context.tasks);
 
     VisibilityTrace {
         contextual,
@@ -802,12 +802,12 @@ pub fn get_score_trace(
     };
 
     let task_idx = context.find_task_index(task_id)?;
-    let root_idx = find_root_index(task_idx, &context.tasks);
+    let root_idx = find_root_index(task_idx, context.tasks);
 
-    let sequential_blocked = build_sequential_blocked_map(&context.children_index, &context.tasks);
-    let importance_chain = build_importance_chain(task_idx, &context.tasks, &sequential_blocked);
+    let sequential_blocked = build_sequential_blocked_map(&context.children_index, context.tasks);
+    let importance_chain = build_importance_chain(task_idx, context.tasks, &sequential_blocked);
 
-    let feedback = build_feedback_trace(root_idx, &context.tasks);
+    let feedback = build_feedback_trace(root_idx, context.tasks);
     let lead_time = build_lead_time_trace(&context.tasks[task_idx], context.current_time);
     let visibility = build_visibility_trace(state, task_idx, &context, view_filter);
 
