@@ -155,7 +155,9 @@ fn App() -> Element {
             let storage = SamodStorage::new("tasklens_samod", "documents");
             let repo = RepoBuilder::new(runtime)
                 .with_storage(storage)
-                // TODO: Set announce policy if needed
+                // Explicitly set announce policy to ensure all local documents
+                // are synced with the connected server.
+                .with_announce_policy(samod::AlwaysAnnounce)
                 .load_local()
                 .await;
 
