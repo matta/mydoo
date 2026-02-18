@@ -60,11 +60,8 @@ pub fn TaskPage() -> Element {
 
     // Prepare tasks for display (convert HashMap to Vec and Sort)
     let tasks: Vec<Rc<PersistedTask>> = {
-        let mut t: Vec<Rc<PersistedTask>> = state()
-            .tasks
-            .values()
-            .map(|t| Rc::new(t.clone()))
-            .collect();
+        let mut t: Vec<Rc<PersistedTask>> =
+            state().tasks.values().map(|t| Rc::new(t.clone())).collect();
         // Sort by title for stability, or ID. todo_mvp didn't sort, but HashMap iteration is random.
         // Let's sort by ID string for now to have deterministic order.
         t.sort_by(|a, b| a.id.as_str().cmp(b.id.as_str()));
