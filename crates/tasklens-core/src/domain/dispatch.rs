@@ -191,13 +191,9 @@ fn validate_hours(hours: &str) -> Result<()> {
             MAX_HOURS_LENGTH
         )));
     }
-    match serde_json::from_str::<OpenHours>(hours) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(DispatchError::InvalidInput(format!(
-            "Invalid hours configuration: {}",
-            e
-        ))),
-    }
+    serde_json::from_str::<OpenHours>(hours)
+        .map(|_| ())
+        .map_err(|e| DispatchError::InvalidInput(format!("Invalid hours configuration: {}", e)))
 }
 
 fn handle_set_balance_distribution(
