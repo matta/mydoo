@@ -16,49 +16,77 @@ use crate::utils::time::{get_current_timestamp, get_interval_ms};
 
 use std::collections::HashMap;
 
-type TaskLookup = HashMap<TaskID, usize>;
-type ChildrenLookup = HashMap<Option<TaskID>, Vec<usize>>;
+// Key is parent_index (or None for roots). Value is list of child_indices.
+type ChildrenLookup = HashMap<Option<usize>, Vec<usize>>;
 
 const PRIORITY_EPSILON: f64 = 0.000001;
 
 /// Computed priority context for trace and list rendering.
-struct PriorityContext {
-    /// Enriched tasks with computed priority fields.
-    tasks: Vec<EnrichedTask>,
-    /// Lookup from task id to task index.
-    task_lookup: TaskLookup,
+struct PriorityContext<'a> {
+    /// Enriched tasks (sorted by ID).
+    tasks: &'a [EnrichedTask],
     /// Parent -> children index for traversal.
     children_index: ChildrenLookup,
     /// Timestamp used for the calculation.
     current_time: i64,
 }
 
+impl<'a> PriorityContext<'a> {
+    fn find_task_index(&self, id: &TaskID) -> Option<usize> {
+        self.tasks.binary_search_by(|t| t.id.cmp(id)).ok()
+    }
+}
+
 /// Builds lookup indexes for tasks and sorts children based on explicit order logic.
-fn build_indexes(
+/// WARNING: This function sorts `enriched_tasks` by ID in-place.
+fn build_indexes_and_sort(
     state: &TunnelState,
-    enriched_tasks: &[EnrichedTask],
-) -> (TaskLookup, ChildrenLookup) {
-    let mut task_map = HashMap::new();
+    enriched_tasks: &mut [EnrichedTask],
+) -> ChildrenLookup {
+    // Sort tasks by ID to enable binary search lookup
+    enriched_tasks.sort_by(|a, b| a.id.cmp(&b.id));
+
     let mut children_index = HashMap::new();
 
-    for (i, task) in enriched_tasks.iter().enumerate() {
-        task_map.insert(task.id.clone(), i);
+    // We can't use iter().enumerate() efficiently because we need to look up parent indices
+    // which requires binary search on the whole slice.
 
-        let parent_id = task.parent_id.clone();
-        children_index
-            .entry(parent_id)
-            .or_insert_with(Vec::new)
-            .push(i);
+    // First pass: collect parent-child relationships
+    // We use a temporary vector of (parent_id_ref, child_index) to avoid repeated lookups inside the loop?
+    // No, we need parent INDEX.
+
+    for i in 0..enriched_tasks.len() {
+        let parent_id = enriched_tasks[i].parent_id.clone();
+
+        let parent_idx = if let Some(pid) = parent_id {
+            enriched_tasks.binary_search_by(|t| t.id.cmp(&pid)).ok()
+        } else {
+            None
+        };
+
+        // If parent_id is Some but not found (orphan), we treat it as hidden/ignored (don't add to index).
+        // If parent_id is None, it is a root (key=None).
+
+        if enriched_tasks[i].parent_id.is_some() {
+            if let Some(pidx) = parent_idx {
+                children_index
+                    .entry(Some(pidx))
+                    .or_insert_with(Vec::new)
+                    .push(i);
+            }
+        } else {
+            children_index.entry(None).or_insert_with(Vec::new).push(i);
+        }
     }
 
     // --- Sort Children based on preserved order ---
     // 1. Sort Root Tasks
     if let Some(root_indices) = children_index.get_mut(&None) {
-        let root_order_map: HashMap<TaskID, usize> = state
+        let root_order_map: HashMap<&TaskID, usize> = state
             .root_task_ids
             .iter()
             .enumerate()
-            .map(|(i, id)| (id.clone(), i))
+            .map(|(i, id)| (id, i))
             .collect();
 
         root_indices.sort_by_key(|&i| {
@@ -70,22 +98,22 @@ fn build_indexes(
     }
 
     // 2. Sort Children of each parent
-    let parent_ids: Vec<Option<TaskID>> = children_index.keys().cloned().collect();
-    for parent_id in parent_ids {
-        let parent_id = match parent_id {
-            Some(id) => id,
+    // Keys are indices.
+    let parent_indices: Vec<Option<usize>> = children_index.keys().cloned().collect();
+    for parent_idx_opt in parent_indices {
+        let parent_idx = match parent_idx_opt {
+            Some(idx) => idx,
             None => continue,
         };
 
-        if let Some(child_indices) = children_index.get_mut(&Some(parent_id.clone())) {
-            let parent_idx = task_map[&parent_id];
+        if let Some(child_indices) = children_index.get_mut(&Some(parent_idx)) {
             let parent = &enriched_tasks[parent_idx];
 
-            let child_order_map: HashMap<TaskID, usize> = parent
+            let child_order_map: HashMap<&TaskID, usize> = parent
                 .child_task_ids
                 .iter()
                 .enumerate()
-                .map(|(i, id)| (id.clone(), i))
+                .map(|(i, id)| (id, i))
                 .collect();
 
             child_indices.sort_by_key(|&i| {
@@ -97,7 +125,7 @@ fn build_indexes(
         }
     }
 
-    (task_map, children_index)
+    children_index
 }
 
 /// Assigns outline index via DFS traversal.
@@ -107,21 +135,16 @@ fn assign_outline_indexes(enriched_tasks: &mut [EnrichedTask], children_index: &
 }
 
 fn traverse_assign(
-    parent_id: Option<TaskID>,
+    parent_idx: Option<usize>,
     enriched_tasks: &mut [EnrichedTask],
     children_index: &ChildrenLookup,
     current_index: &mut f64,
 ) {
-    if let Some(child_indices) = children_index.get(&parent_id) {
+    if let Some(child_indices) = children_index.get(&parent_idx) {
         for &idx in child_indices {
             enriched_tasks[idx].outline_index = *current_index;
             *current_index += 1.0;
-            traverse_assign(
-                Some(enriched_tasks[idx].id.clone()),
-                enriched_tasks,
-                children_index,
-                current_index,
-            );
+            traverse_assign(Some(idx), enriched_tasks, children_index, current_index);
         }
     }
 }
@@ -133,7 +156,7 @@ fn aggregate_effective_credits(
     children_index: &ChildrenLookup,
 ) -> f64 {
     let child_indices = children_index
-        .get(&Some(enriched_tasks[task_idx].id.clone()))
+        .get(&Some(task_idx))
         .cloned()
         .unwrap_or_default();
 
@@ -229,7 +252,7 @@ pub fn recalculate_priorities(
     let current_time = context
         .map(|c| c.current_time)
         .unwrap_or_else(get_current_timestamp);
-    let (_, children_index) = build_indexes(state, enriched_tasks);
+    let children_index = build_indexes_and_sort(state, enriched_tasks);
     recalculate_priorities_with_time(
         state,
         enriched_tasks,
@@ -292,36 +315,6 @@ fn recalculate_priorities_with_time(
     }
 }
 
-/// Builds the enriched task context used for scoring and tracing.
-fn build_priority_context(
-    state: &TunnelState,
-    view_filter: &ViewFilter,
-    options: &PriorityOptions,
-) -> PriorityContext {
-    let mut tasks: Vec<EnrichedTask> = state.tasks.values().map(hydrate_task).collect();
-    let current_time = options
-        .context
-        .as_ref()
-        .map(|c| c.current_time)
-        .unwrap_or_else(get_current_timestamp);
-
-    let (task_lookup, children_index) = build_indexes(state, &tasks);
-    recalculate_priorities_with_time(
-        state,
-        &mut tasks,
-        view_filter,
-        current_time,
-        &children_index,
-    );
-
-    PriorityContext {
-        tasks,
-        task_lookup,
-        children_index,
-        current_time,
-    }
-}
-
 /// Returns (is_visible, has_pending_descendants)
 fn evaluate_task_recursive(
     task_idx: usize,
@@ -331,7 +324,7 @@ fn evaluate_task_recursive(
     current_time: i64,
 ) -> (bool, bool) {
     let child_indices = children_index
-        .get(&Some(enriched_tasks[task_idx].id.clone()))
+        .get(&Some(task_idx))
         .cloned()
         .unwrap_or_default();
 
@@ -451,11 +444,12 @@ fn process_children(
 }
 
 /// Finds the root index for a task by walking up its parent chain.
-fn find_root_index(task_idx: usize, tasks: &[EnrichedTask], task_lookup: &TaskLookup) -> usize {
+fn find_root_index(task_idx: usize, tasks: &[EnrichedTask]) -> usize {
     let mut current_idx = task_idx;
     while let Some(parent_id) = &tasks[current_idx].parent_id {
-        if let Some(parent_idx) = task_lookup.get(parent_id) {
-            current_idx = *parent_idx;
+        // Binary search for parent index
+        if let Ok(parent_idx) = tasks.binary_search_by(|t| t.id.cmp(parent_id)) {
+            current_idx = parent_idx;
         } else {
             break;
         }
@@ -470,7 +464,7 @@ fn has_pending_descendants(
     tasks: &[EnrichedTask],
 ) -> bool {
     let mut to_visit = children_index
-        .get(&Some(tasks[task_idx].id.clone()))
+        .get(&Some(task_idx))
         .cloned()
         .unwrap_or_default();
 
@@ -478,7 +472,7 @@ fn has_pending_descendants(
         if tasks[current_idx].is_pending {
             return true;
         }
-        if let Some(grandchild_indices) = children_index.get(&Some(tasks[current_idx].id.clone())) {
+        if let Some(grandchild_indices) = children_index.get(&Some(current_idx)) {
             to_visit.extend(grandchild_indices.iter().copied());
         }
     }
@@ -490,16 +484,11 @@ fn has_pending_descendants(
 fn build_sequential_blocked_map(
     children_index: &ChildrenLookup,
     tasks: &[EnrichedTask],
-    task_lookup: &TaskLookup,
 ) -> HashMap<TaskID, bool> {
     let mut blocked: HashMap<TaskID, bool> = HashMap::new();
 
-    for (parent_id, child_indices) in children_index {
-        let parent_id = match parent_id {
-            Some(id) => id,
-            None => continue,
-        };
-        let parent_idx = match task_lookup.get(parent_id) {
+    for (parent_idx_opt, child_indices) in children_index {
+        let parent_idx = match parent_idx_opt {
             Some(idx) => *idx,
             None => continue,
         };
@@ -527,7 +516,6 @@ fn build_sequential_blocked_map(
 fn build_importance_chain(
     task_idx: usize,
     tasks: &[EnrichedTask],
-    task_lookup: &TaskLookup,
     sequential_blocked: &HashMap<TaskID, bool>,
 ) -> Vec<ImportanceTrace> {
     let mut lineage: Vec<usize> = Vec::new();
@@ -538,7 +526,7 @@ fn build_importance_chain(
         current_idx = tasks[idx]
             .parent_id
             .as_ref()
-            .and_then(|pid| task_lookup.get(pid).copied());
+            .and_then(|pid| tasks.binary_search_by(|t| t.id.cmp(pid)).ok());
     }
 
     lineage.reverse();
@@ -549,7 +537,7 @@ fn build_importance_chain(
             let parent_idx = tasks[idx]
                 .parent_id
                 .as_ref()
-                .and_then(|pid| task_lookup.get(pid).copied());
+                .and_then(|pid| tasks.binary_search_by(|t| t.id.cmp(pid)).ok());
 
             let parent_normalized_importance =
                 parent_idx.map(|pidx| tasks[pidx].normalized_importance);
@@ -637,7 +625,7 @@ fn build_visibility_trace(
     let task = &context.tasks[task_idx];
     let contextual = resolve_contextual_visibility(state, task, view_filter, context.current_time);
     let has_pending_descendants =
-        has_pending_descendants(task_idx, &context.children_index, &context.tasks);
+        has_pending_descendants(task_idx, &context.children_index, context.tasks);
 
     VisibilityTrace {
         contextual,
@@ -654,7 +642,23 @@ pub fn get_prioritized_tasks(
     options: &PriorityOptions,
 ) -> Vec<ComputedTask> {
     // --- Stage 1: Hydrate & Initialize ---
-    let PriorityContext { tasks, .. } = build_priority_context(state, view_filter, options);
+    let mut tasks: Vec<EnrichedTask> = state.tasks.values().map(hydrate_task).collect();
+    let current_time = options
+        .context
+        .as_ref()
+        .map(|c| c.current_time)
+        .unwrap_or_else(get_current_timestamp);
+
+    // This sorts tasks by ID in-place and builds index map
+    let children_index = build_indexes_and_sort(state, &mut tasks);
+
+    recalculate_priorities_with_time(
+        state,
+        &mut tasks,
+        view_filter,
+        current_time,
+        &children_index,
+    );
 
     // --- Stage 3: Filtering & Sorting ---
     // Optimization: Filter before sorting to reduce O(N log N) to O(M log M)
@@ -774,23 +778,36 @@ pub fn get_score_trace(
     options: &PriorityOptions,
     task_id: &TaskID,
 ) -> Option<ScoreTrace> {
-    let context = build_priority_context(state, view_filter, options);
-    let task_idx = context.task_lookup.get(task_id).copied()?;
-    let root_idx = find_root_index(task_idx, &context.tasks, &context.task_lookup);
+    let mut tasks: Vec<EnrichedTask> = state.tasks.values().map(hydrate_task).collect();
+    let current_time = options
+        .context
+        .as_ref()
+        .map(|c| c.current_time)
+        .unwrap_or_else(get_current_timestamp);
 
-    let sequential_blocked = build_sequential_blocked_map(
-        &context.children_index,
-        &context.tasks,
-        &context.task_lookup,
-    );
-    let importance_chain = build_importance_chain(
-        task_idx,
-        &context.tasks,
-        &context.task_lookup,
-        &sequential_blocked,
+    let children_index = build_indexes_and_sort(state, &mut tasks);
+
+    recalculate_priorities_with_time(
+        state,
+        &mut tasks,
+        view_filter,
+        current_time,
+        &children_index,
     );
 
-    let feedback = build_feedback_trace(root_idx, &context.tasks);
+    let context = PriorityContext {
+        tasks: &tasks,
+        children_index,
+        current_time,
+    };
+
+    let task_idx = context.find_task_index(task_id)?;
+    let root_idx = find_root_index(task_idx, context.tasks);
+
+    let sequential_blocked = build_sequential_blocked_map(&context.children_index, context.tasks);
+    let importance_chain = build_importance_chain(task_idx, context.tasks, &sequential_blocked);
+
+    let feedback = build_feedback_trace(root_idx, context.tasks);
     let lead_time = build_lead_time_trace(&context.tasks[task_idx], context.current_time);
     let visibility = build_visibility_trace(state, task_idx, &context, view_filter);
 
