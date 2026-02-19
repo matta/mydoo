@@ -18,6 +18,7 @@ pub(crate) fn PriorityTaskRow(
     let is_done = task.status == TaskStatus::Done;
     let task_id_toggle = task.id.clone();
     let task_id_tap = task.id.clone();
+    let task_id_tap_keydown = task.id.clone();
 
     let urgency_variant = match task.urgency_status {
         UrgencyStatus::Overdue => Some(BadgeVariant::Destructive),
@@ -55,12 +56,24 @@ pub(crate) fn PriorityTaskRow(
                     CheckboxState::Unchecked
                 }),
                 on_checked_change: move |_| on_toggle.call(task_id_toggle.clone()),
+                aria_label: "Mark {task.title} as done",
             }
 
             span {
                 class: title_class,
                 "data-testid": "task-title",
+                role: "button",
+                tabindex: "0",
+                aria_label: "Edit task {task.title}",
                 onclick: move |_| on_title_tap.call(task_id_tap.clone()),
+                onkeydown: move |evt: KeyboardEvent| {
+                    if evt.key() == Key::Enter || evt.key() == Key::Character(" ".to_string()) {
+                        if evt.key() == Key::Character(" ".to_string()) {
+                            evt.prevent_default();
+                        }
+                        on_title_tap.call(task_id_tap_keydown.clone());
+                    }
+                },
                 "{task.title}"
             }
 
