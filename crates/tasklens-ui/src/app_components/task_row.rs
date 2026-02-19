@@ -4,6 +4,7 @@ use crate::dioxus_components::checkbox::Checkbox;
 use chrono::{Datelike, TimeZone};
 use dioxus::prelude::*;
 use dioxus_primitives::checkbox::CheckboxState;
+use std::rc::Rc;
 use tasklens_core::domain::dates::{UrgencyStatus, get_urgency_status};
 use tasklens_core::types::{TaskID, TaskStatus};
 
@@ -35,9 +36,12 @@ fn format_relative_due_date(due_ts: i64, now: i64) -> String {
 }
 
 #[component]
+/// Renders a single task in the plan view.
+/// Optimization: Accepts `Rc<TaskID>` and `Rc<String>` to avoid deep clones of heavy objects
+/// on every parent re-render. Clones for event handlers are done lazily on interaction.
 pub(crate) fn TaskRow(
-    id: TaskID,
-    title: String,
+    id: Rc<TaskID>,
+    title: Rc<String>,
     status: TaskStatus,
     depth: usize,
     on_toggle: EventHandler<TaskID>,
@@ -111,7 +115,7 @@ pub(crate) fn TaskRow(
                         variant: ButtonVariant::Ghost,
                         onclick: move |evt: MouseEvent| {
                             evt.stop_propagation();
-                            on_expand_toggle.call(task_id_expand.clone());
+                            on_expand_toggle.call((*task_id_expand).clone());
                         },
                         aria_label: "Toggle expansion",
                         "data-expanded": "{is_expanded}",
@@ -159,7 +163,7 @@ pub(crate) fn TaskRow(
                     CheckboxState::Unchecked
                 }),
                 on_checked_change: move |_| {
-                    on_toggle.call(task_id_toggle.clone());
+                    on_toggle.call((*task_id_toggle).clone());
                 },
                 class: Styles::checkbox_custom,
                 aria_label: "Toggle completion for {title}",
@@ -182,13 +186,13 @@ pub(crate) fn TaskRow(
                 role: "button",
                 tabindex: "0",
                 aria_label: "Edit task {title}",
-                onclick: move |_| on_title_tap.call(task_id_title_tap_click.clone()),
+                onclick: move |_| on_title_tap.call((*task_id_title_tap_click).clone()),
                 onkeydown: move |evt: KeyboardEvent| {
                     if evt.key() == Key::Enter || evt.key() == Key::Character(" ".to_string()) {
                         if evt.key() == Key::Character(" ".to_string()) {
                             evt.prevent_default();
                         }
-                        on_title_tap.call(task_id_title_tap_keydown.clone());
+                        on_title_tap.call((*task_id_title_tap_keydown).clone());
                     }
                 },
                 "{title}"
@@ -209,7 +213,7 @@ pub(crate) fn TaskRow(
                 Button {
                     variant: ButtonVariant::Ghost,
                     title: "Add Subtask",
-                    onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
+                    onclick: move |_| on_create_subtask.call((*task_id_subtask).clone()),
                     aria_label: "Add subtask to {title}",
                     svg {
                         class: Styles::icon_sm,
@@ -229,7 +233,7 @@ pub(crate) fn TaskRow(
                 Button {
                     variant: ButtonVariant::Destructive,
                     title: "Delete",
-                    onclick: move |_| on_delete.call(task_id_delete.clone()),
+                    onclick: move |_| on_delete.call((*task_id_delete).clone()),
                     aria_label: "Delete task {title}",
                     svg {
                         class: Styles::icon_sm,

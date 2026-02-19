@@ -6,6 +6,7 @@ use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
 use dioxus_core::Task;
+use std::rc::Rc;
 use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
 
 #[component]
@@ -241,7 +242,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                                 on_delete: handle_delete,
                                                 on_create_subtask: handle_create_subtask,
                                                 on_title_tap,
-                                                is_highlighted: Some(id.clone()) == highlighted_task_id(),
+                                                is_highlighted: highlighted_task_id.read().as_ref() == Some(id.as_ref()),
                                                 effective_due_date,
                                                 effective_lead_time,
                                                 now,
@@ -284,8 +285,12 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
 
 #[derive(Debug, Clone, PartialEq)]
 struct FlattenedTask {
-    id: TaskID,
-    title: String,
+    // Optimization: Use Rc to avoid expensive string cloning during render loops.
+    // The FlattenedTask struct is recreated on memo updates, but iterating it in RSX
+    // and passing props to TaskRow is much cheaper with Rc clones (ref count bump)
+    // than deep clones of String/TaskID.
+    id: Rc<TaskID>,
+    title: Rc<String>,
     status: TaskStatus,
     depth: usize,
     has_children: bool,
@@ -335,8 +340,9 @@ fn flatten_recursive(id: &TaskID, depth: usize, ctx: &mut FlattenContext) {
             });
 
         ctx.result.push(FlattenedTask {
-            id: task.id.clone(),
-            title: task.title.clone(),
+            // Optimization: Wrap in Rc once here. Subsequent clones in the render loop are cheap.
+            id: Rc::new(task.id.clone()),
+            title: Rc::new(task.title.clone()),
             status: task.status,
             depth,
             has_children,
