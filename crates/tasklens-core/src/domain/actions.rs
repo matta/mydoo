@@ -8,6 +8,8 @@ use crate::types::{PlaceID, RepeatConfig, ScheduleType, TaskID, TaskStatus};
 /// tasks and places. These actions are processed by the `run_action` function, which applies
 /// them to the Automerge document while enforcing business logic and validation rules.
 ///
+/// See [`crate::domain::dispatch::run_action`] for details on error handling and validation.
+///
 /// # Examples
 ///
 /// ```
