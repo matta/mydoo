@@ -37,10 +37,17 @@ extern "C" {
 
 fn main() {
     // Initialize the tracing subscriber to capture logs in the browser console.
-    dioxus_logger::init(tracing::Level::INFO).expect("failed to init logger");
+    // Use INFO for debug builds, WARN for release builds to reduce noise and potential leakage.
+    let log_level = if cfg!(debug_assertions) {
+        tracing::Level::INFO
+    } else {
+        tracing::Level::WARN
+    };
+    dioxus_logger::init(log_level).expect("failed to init logger");
 
     // Ensure Rust panics are logged to the browser console for debugging.
-    #[cfg(target_arch = "wasm32")]
+    // Only in debug builds to prevent leaking stack traces in production.
+    #[cfg(all(target_arch = "wasm32", debug_assertions))]
     console_error_panic_hook::set_once();
 
     init_service_worker();
