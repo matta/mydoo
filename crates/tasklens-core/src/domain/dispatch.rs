@@ -133,12 +133,22 @@ pub fn hydrate_tunnel_state(doc: &impl autosurgeon::ReadDoc) -> Result<TunnelSta
 ///
 /// # Errors
 ///
-/// Returns `Err` if:
-/// - The action violates validation rules (e.g., empty titles, cycles in hierarchy).
-/// - The target entity (Task or Place) does not exist.
-/// - The Automerge operation fails or hydration fails.
+/// Returns `Err` in the following situations:
 ///
-/// See [`DispatchError`] for a complete list of error variants.
+/// *   **Validation Errors**:
+///     *   [`DispatchError::InvalidInput`]: If inputs are invalid (e.g., empty title, name too long).
+///     *   [`DispatchError::CycleDetected`]: If moving a task would create a parent-child cycle.
+///     *   [`DispatchError::MoveToSelf`]: If attempting to move a task to itself.
+///
+/// *   **Not Found Errors**:
+///     *   [`DispatchError::TaskNotFound`]: If the task ID does not exist.
+///     *   [`DispatchError::ParentNotFound`]: If the specified parent ID does not exist.
+///     *   [`DispatchError::PlaceNotFound`]: If the place ID does not exist.
+///
+/// *   **System Errors**:
+///     *   [`DispatchError::Automerge`] or [`DispatchError::Hydrate`]: If the underlying data store operation fails.
+///
+/// See [`DispatchError`] for the complete list of error variants.
 ///
 /// # Examples
 ///
