@@ -635,7 +635,34 @@ fn build_visibility_trace(
     }
 }
 
-/// Derives the "Projected State" for the View Layer.
+/// Computes and returns the prioritized list of tasks for the View Layer.
+///
+/// This function acts as the central projection pipeline, transforming the raw domain `state` into a
+/// sorted vector of [`ComputedTask`] objects ready for display. The process involves:
+/// 1.  **Hydration**: Converts raw [`PersistedTask`] entities into enriched transient objects.
+/// 2.  **Scoring**: Runs the prioritization algorithm (importance propagation, lead time calculation,
+///     credit decay, and feedback loops) using the provided `options` (e.g., current time).
+/// 3.  **Filtering**: Applies visibility rules, status filters, and optional thresholds based on
+///     `view_filter` and `options`.
+/// 4.  **Sorting**: Orders tasks by their computed priority score (descending), importance (descending),
+///     and outline index (ascending).
+///
+/// # Examples
+///
+/// ```
+/// use tasklens_core::domain::priority::get_prioritized_tasks;
+/// use tasklens_core::types::{TunnelState, ViewFilter, PriorityOptions};
+///
+/// // Create a default empty state
+/// let state = TunnelState::default();
+/// let filter = ViewFilter::default();
+/// let options = PriorityOptions::default();
+///
+/// let tasks = get_prioritized_tasks(&state, &filter, &options);
+///
+/// // Since the state is empty, the result should be empty
+/// assert!(tasks.is_empty());
+/// ```
 pub fn get_prioritized_tasks(
     state: &TunnelState,
     view_filter: &ViewFilter,

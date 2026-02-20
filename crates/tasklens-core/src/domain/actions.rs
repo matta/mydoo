@@ -100,8 +100,13 @@ pub enum Action {
 /// Each `Some` field overwrites the corresponding value; `None` fields are left unchanged.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct PlaceUpdates {
+    /// Updates the display name of the place.
     pub name: Option<String>,
+    /// Updates the operating hours configuration (as a JSON string).
+    ///
+    /// The string must be deserializable into `OpenHours`.
     pub hours: Option<String>,
+    /// Updates the list of places included within this context.
     pub included_places: Option<Vec<PlaceID>>,
 }
 

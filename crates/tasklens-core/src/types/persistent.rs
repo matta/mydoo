@@ -630,26 +630,36 @@ pub struct RepeatConfig {
 
 /// A task as persisted in the Automerge document.
 ///
-/// Uses `extra_fields` with `#[serde(flatten)]` to preserve any
-/// unknown fields during roundtrip serialization.
+/// This struct represents the "Source of Truth" for a task. It is designed to be
+/// hydrated from and reconciled to an Automerge document using the `autosurgeon` library.
+///
+/// # Schema Evolution
+///
+/// Fields are mapped to `camelCase` keys in the document. Optional fields (`Option<T>`)
+/// typically handle missing keys gracefully, allowing the schema to evolve without migration.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
 pub struct PersistedTask {
+    /// The current lifecycle status (Pending vs Done).
     pub status: TaskStatus,
+    /// The unique, immutable identifier for this task.
     #[key]
     pub id: TaskID,
+    /// The display title of the task.
     #[autosurgeon(
         hydrate = "hydrate_string_or_text",
         reconcile = "reconcile_string_as_text"
     )]
     pub title: String,
+    /// Extended notes or description.
     #[serde(default)]
     #[autosurgeon(
         hydrate = "hydrate_string_or_text",
         reconcile = "reconcile_string_as_text"
     )]
     pub notes: String,
+    /// The ID of the parent task, if this is a subtask.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "parentId",
@@ -658,12 +668,16 @@ pub struct PersistedTask {
     )]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub parent_id: Option<TaskID>,
+    /// Ordered list of child task IDs.
+    ///
+    /// The order here determines the manual sort order of subtasks.
     #[autosurgeon(rename = "childTaskIds")]
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "test_strategies::arbitrary_vec_task_id()")
     )]
     pub child_task_ids: Vec<TaskID>,
+    /// The ID of the context/place where this task should be performed.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "placeId",
@@ -672,9 +686,13 @@ pub struct PersistedTask {
     )]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(value = "None"))]
     pub place_id: Option<PlaceID>,
+    /// Relative importance factor (0.0 to 1.0) compared to siblings.
     #[autosurgeon(hydrate = "hydrate_f64", reconcile = "reconcile_f64")]
     #[cfg_attr(any(test, feature = "test-utils"), proptest(strategy = "0.0..=1.0"))]
     pub importance: f64,
+    /// The amount of credit (effort) earned when this task is completed.
+    ///
+    /// If `None`, it defaults to `0.5` during calculation.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "creditIncrement",
@@ -686,12 +704,16 @@ pub struct PersistedTask {
         proptest(strategy = "test_strategies::js_safe_option_f64_pos()")
     )]
     pub credit_increment: Option<f64>,
+    /// The current accumulated credits (effort balance).
+    ///
+    /// This value decays over time according to the half-life algorithm.
     #[autosurgeon(hydrate = "hydrate_f64", reconcile = "reconcile_f64")]
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "0.0..=1000000.0")
     )]
     pub credits: f64,
+    /// The target credit goal (only relevant for root-level tasks).
     #[autosurgeon(
         rename = "desiredCredits",
         hydrate = "hydrate_f64",
@@ -702,19 +724,23 @@ pub struct PersistedTask {
         proptest(strategy = "0.0..=1000000.0")
     )]
     pub desired_credits: f64,
+    /// The timestamp (ms since epoch) when `credits` was last updated.
     #[autosurgeon(rename = "creditsTimestamp", hydrate = "hydrate_i64")]
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "test_strategies::js_safe_u64()")
     )]
     pub credits_timestamp: i64,
+    /// The timestamp (ms since epoch) when priority was last computed.
     #[autosurgeon(rename = "priorityTimestamp", hydrate = "hydrate_i64")]
     #[cfg_attr(
         any(test, feature = "test-utils"),
         proptest(strategy = "test_strategies::js_safe_u64()")
     )]
     pub priority_timestamp: i64,
+    /// Scheduling configuration (due dates, recurrence).
     pub schedule: Schedule,
+    /// Repetition configuration for recurring tasks.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "repeatConfig",
@@ -722,11 +748,14 @@ pub struct PersistedTask {
         reconcile = "reconcile_option_as_maybe_missing"
     )]
     pub repeat_config: Option<RepeatConfig>,
+    /// If true, children must be completed in order (top to bottom).
     #[autosurgeon(rename = "isSequential")]
     pub is_sequential: bool,
+    /// If true, the completion has been acknowledged (for lifecycle cleanup).
     #[serde(default)]
     #[autosurgeon(rename = "isAcknowledged")]
     pub is_acknowledged: bool,
+    /// The timestamp (ms since epoch) when the task was marked as Done.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[autosurgeon(
         rename = "lastCompletedAt",
