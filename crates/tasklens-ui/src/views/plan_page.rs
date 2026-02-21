@@ -6,6 +6,7 @@ use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
 use dioxus_core::Task;
+use std::rc::Rc;
 use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
 
 #[component]
@@ -241,7 +242,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                                                 on_delete: handle_delete,
                                                 on_create_subtask: handle_create_subtask,
                                                 on_title_tap,
-                                                is_highlighted: Some(id.clone()) == highlighted_task_id(),
+                                                is_highlighted: highlighted_task_id().as_ref() == Some(id.as_ref()),
                                                 effective_due_date,
                                                 effective_lead_time,
                                                 now,
@@ -284,8 +285,8 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
 
 #[derive(Debug, Clone, PartialEq)]
 struct FlattenedTask {
-    id: TaskID,
-    title: String,
+    id: Rc<TaskID>,
+    title: Rc<String>,
     status: TaskStatus,
     depth: usize,
     has_children: bool,
@@ -335,8 +336,8 @@ fn flatten_recursive(id: &TaskID, depth: usize, ctx: &mut FlattenContext) {
             });
 
         ctx.result.push(FlattenedTask {
-            id: task.id.clone(),
-            title: task.title.clone(),
+            id: Rc::new(task.id.clone()),
+            title: Rc::new(task.title.clone()),
             status: task.status,
             depth,
             has_children,
