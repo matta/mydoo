@@ -36,8 +36,8 @@ fn format_relative_due_date(due_ts: i64, now: i64) -> String {
 
 #[component]
 pub(crate) fn TaskRow(
-    id: TaskID,
-    title: String,
+    id: std::rc::Rc<TaskID>,
+    title: std::rc::Rc<String>,
     status: TaskStatus,
     depth: usize,
     on_toggle: EventHandler<TaskID>,
@@ -60,12 +60,12 @@ pub(crate) fn TaskRow(
     let is_done = status == TaskStatus::Done;
 
     // Clone IDs for closures
-    let task_id_expand = id.clone();
-    let task_id_delete = id.clone();
-    let task_id_subtask = id.clone();
-    let task_id_title_tap_click = id.clone();
-    let task_id_title_tap_keydown = id.clone();
-    let task_id_toggle = id.clone();
+    let task_id_expand = (*id).clone();
+    let task_id_delete = (*id).clone();
+    let task_id_subtask = (*id).clone();
+    let task_id_title_tap_click = (*id).clone();
+    let task_id_title_tap_keydown = (*id).clone();
+    let task_id_toggle = (*id).clone();
 
     // Urgency Logic
     let urgency = get_urgency_status(effective_due_date, effective_lead_time, now);
