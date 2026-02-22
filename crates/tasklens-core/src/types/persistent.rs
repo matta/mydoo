@@ -829,7 +829,7 @@ pub struct Place {
     pub included_places: Vec<PlaceID>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Reconcile)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Reconcile)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 pub struct DocMetadata {
     #[autosurgeon(
@@ -837,6 +837,23 @@ pub struct DocMetadata {
         reconcile = "reconcile_option_string_as_text_as_maybe_missing"
     )]
     pub automerge_url: Option<String>,
+}
+
+impl std::fmt::Debug for DocMetadata {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("DocMetadata")
+            .field(
+                "automerge_url",
+                &self.automerge_url.as_ref().map(|s| {
+                    if s.len() > 18 && s.is_char_boundary(14) && s.is_char_boundary(s.len() - 4) {
+                        format!("{}...{}", &s[..14], &s[s.len() - 4..])
+                    } else {
+                        "[REDACTED]".to_string()
+                    }
+                }),
+            )
+            .finish()
+    }
 }
 
 impl Hydrate for DocMetadata {
