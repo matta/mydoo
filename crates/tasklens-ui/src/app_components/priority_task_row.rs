@@ -19,6 +19,7 @@ pub(crate) fn PriorityTaskRow(
     let task_id_toggle = task.id.clone();
     let task_id_tap = task.id.clone();
     let task_id_tap_keydown = task.id.clone();
+    let title = task.title.clone();
 
     let urgency_variant = match task.urgency_status {
         UrgencyStatus::Overdue => Some(BadgeVariant::Destructive),
@@ -63,7 +64,7 @@ pub(crate) fn PriorityTaskRow(
                 "data-testid": "task-title",
                 role: "button",
                 tabindex: "0",
-                aria_label: "Edit task {task.title}",
+                aria_label: "Edit task {title}",
                 onclick: move |_| on_title_tap.call(task_id_tap.clone()),
                 onkeydown: move |evt: KeyboardEvent| {
                     if evt.key() == Key::Enter || evt.key() == Key::Character(" ".to_string()) {
