@@ -638,14 +638,14 @@ fn build_visibility_trace(
 /// Derives the "Projected State" for the View Layer by prioritizing and filtering tasks.
 ///
 /// This function executes the full prioritization pipeline:
-/// 1. **Hydration**: Converts persisted tasks into enriched domain objects, resolving schedules.
-/// 2. **Calculation**: Computes effective credits, visibility, and priority scores based on:
+/// 1. Hydration: Converts persisted tasks into enriched domain objects, resolving schedules.
+/// 2. Calculation: Computes effective credits, visibility, and priority scores based on:
 ///    - Importance and sequential dependencies (parent -> child).
 ///    - Lead time and due dates.
 ///    - Contextual visibility (place/hours).
 ///    - Feedback (historical completion rates).
-/// 3. **Filtering**: Applies the [`ViewFilter`] and [`PriorityOptions`] to exclude hidden or irrelevant tasks.
-/// 4. **Sorting**: Orders tasks by Priority (desc), Importance (desc), and Outline Index (asc).
+/// 3. Filtering: Applies the [`ViewFilter`] and [`PriorityOptions`] to exclude hidden or irrelevant tasks.
+/// 4. Sorting: Orders tasks by Priority (desc), Importance (desc), and Outline Index (asc).
 ///
 /// # Arguments
 ///
