@@ -633,8 +633,6 @@ pub struct RepeatConfig {
 /// This struct represents the "Source of Truth" for a task. It is designed to be
 /// hydrated from and reconciled to an Automerge document using the `autosurgeon` library.
 ///
-/// # Schema Evolution
-///
 /// Fields are mapped to `camelCase` keys in the document. Optional fields (`Option<T>`)
 /// typically handle missing keys gracefully, allowing the schema to evolve without migration.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
