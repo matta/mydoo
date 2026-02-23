@@ -33,3 +33,6 @@ pub const MAX_PLACE_NAME_LENGTH: usize = 100;
 
 /// Maximum length for place hours configuration (JSON).
 pub const MAX_HOURS_LENGTH: usize = 5000;
+
+/// Maximum length for IDs (TaskID, PlaceID).
+pub const MAX_ID_LENGTH: usize = 100;

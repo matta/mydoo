@@ -6,7 +6,10 @@ use thiserror::Error;
 use crate::{
     Action, PlaceUpdates, TaskUpdates,
     domain::{
-        constants::{MAX_HOURS_LENGTH, MAX_NOTES_LENGTH, MAX_PLACE_NAME_LENGTH, MAX_TITLE_LENGTH},
+        constants::{
+            MAX_HOURS_LENGTH, MAX_ID_LENGTH, MAX_NOTES_LENGTH, MAX_PLACE_NAME_LENGTH,
+            MAX_TITLE_LENGTH,
+        },
         doc_bridge, lifecycle, routine_tasks,
     },
     types::{
@@ -230,6 +233,13 @@ fn handle_create_place(
     hours: String,
     included_places: Vec<crate::types::PlaceID>,
 ) -> Result<()> {
+    if id.as_str().len() > MAX_ID_LENGTH {
+        return Err(DispatchError::InvalidInput(format!(
+            "Place ID exceeds max length of {}",
+            MAX_ID_LENGTH
+        )));
+    }
+
     if name.trim().is_empty() {
         return Err(DispatchError::InvalidInput(
             "Place name cannot be empty".to_string(),
@@ -369,6 +379,13 @@ fn handle_create_task(
     parent_id: Option<TaskID>,
     title: String,
 ) -> Result<()> {
+    if id.as_str().len() > MAX_ID_LENGTH {
+        return Err(DispatchError::InvalidInput(format!(
+            "Task ID exceeds max length of {}",
+            MAX_ID_LENGTH
+        )));
+    }
+
     if title.trim().is_empty() {
         return Err(DispatchError::InvalidInput(
             "Title cannot be empty".to_string(),
