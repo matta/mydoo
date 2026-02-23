@@ -898,7 +898,7 @@ pub fn hydrate_option_metadata<D: autosurgeon::ReadDoc>(
 /// This structure acts as the entry point for the Automerge document. It holds the complete state
 /// of the application, including:
 /// * `tasks`: A map of all tasks by ID.
-/// * `root_task_ids`: An ordered list of top-level tasks.
+/// * `root_task_ids`: An ordered list of top-level task IDs.
 /// * `places`: A map of all contexts/places by ID.
 /// * `metadata`: Optional document-level metadata (e.g., sync URLs).
 ///
