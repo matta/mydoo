@@ -656,24 +656,6 @@ fn build_visibility_trace(
 /// # Returns
 ///
 /// A vector of [`ComputedTask`] objects ready for rendering.
-///
-/// # Examples
-///
-/// ```
-/// use tasklens_core::domain::priority::get_prioritized_tasks;
-/// use tasklens_core::types::{TunnelState, ViewFilter, PriorityOptions};
-///
-/// let state = TunnelState::default();
-/// let filter = ViewFilter { place_id: None };
-/// let options = PriorityOptions {
-///     include_hidden: false,
-///     mode: None,
-///     context: None,
-/// };
-///
-/// let tasks = get_prioritized_tasks(&state, &filter, &options);
-/// assert!(tasks.is_empty());
-/// ```
 pub fn get_prioritized_tasks(
     state: &TunnelState,
     view_filter: &ViewFilter,

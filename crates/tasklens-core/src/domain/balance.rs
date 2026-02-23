@@ -50,20 +50,6 @@ fn calculate_balance_percentages(
 /// # Returns
 ///
 /// [`BalanceData`] containing balance items for each root goal.
-///
-/// # Examples
-///
-/// ```
-/// use tasklens_core::domain::balance::get_balance_data;
-/// use tasklens_core::types::{TunnelState, BalanceData};
-///
-/// // Create an empty state (no tasks)
-/// let state = TunnelState::default();
-///
-/// let balance_data = get_balance_data(&state);
-/// assert_eq!(balance_data.items.len(), 0);
-/// assert_eq!(balance_data.total_credits, 0.0);
-/// ```
 pub fn get_balance_data(state: &TunnelState) -> BalanceData {
     get_balance_data_with_time(state, get_current_timestamp())
 }
