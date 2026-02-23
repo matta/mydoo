@@ -6,19 +6,20 @@ use chrono::DateTime;
 /// - "Urgent" begins at `lead_time * URGENCY_THRESHOLD_RATIO` before due.
 const URGENCY_THRESHOLD_RATIO: f64 = 0.25;
 
-/// Determines the urgency status of a task based on its effective due date and lead time.
+/// Determines the [`UrgencyStatus`] of a task based on its effective due date and lead time.
 ///
-/// The urgency status is calculated relative to the `current_time` as follows:
-/// - `Overdue`: The current time is past the due date (and not the same day).
-/// - `Urgent`: The task is due today, or within the last 25% of the lead time window.
-/// - `Upcoming`: The task is not yet in its lead time window, but is within a buffer period (25% of lead time duration) just before the window starts.
-/// - `Active`: The task is inside the lead time window, but has not yet reached the "Urgent" threshold.
-/// - `None`: The task is far in the future (outside lead time and upcoming buffer) or lacks scheduling info.
+/// The urgency status is calculated relative to `current_time` as follows:
+/// - **Overdue**: The current time is strictly after the due date, unless it's the same UTC day.
+/// - **Urgent**: The task is due today (UTC), OR `time_remaining <= 0.25 * lead_time`.
+/// - **Active**: The task is within its lead time window (`time_remaining <= lead_time`), but not yet urgent.
+/// - **Upcoming**: The task is not yet active, but is within a buffer period (25% of `lead_time`) before the window starts.
+///   (`lead_time < time_remaining <= 1.25 * lead_time`)
+/// - **None**: The task is far in the future (outside the upcoming buffer) or lacks scheduling info.
 ///
 /// # Arguments
 ///
 /// * `effective_due_date` - The timestamp when the task is due (ms).
-/// * `effective_lead_time` - The duration (ms) before due date when task becomes active.
+/// * `effective_lead_time` - The duration (ms) before the due date when the task becomes active.
 /// * `current_time` - The current timestamp (ms).
 ///
 /// # Examples
@@ -27,12 +28,23 @@ const URGENCY_THRESHOLD_RATIO: f64 = 0.25;
 /// use tasklens_core::domain::dates::get_urgency_status;
 /// use tasklens_core::types::UrgencyStatus;
 ///
-/// let due = 1000;
-/// let lead = 100;
-/// let now = 990; // 10ms before due. Within last 25% of lead time (25ms).
+/// let day_ms = 86_400_000;
+/// let due = day_ms * 10; // Day 10
+/// let lead = day_ms;     // 1 day lead time
 ///
-/// let status = get_urgency_status(Some(due), Some(lead), now);
-/// assert_eq!(status, UrgencyStatus::Urgent);
+/// // Case 1: Urgent (within last 25% of lead time)
+/// let now_urgent = due - (day_ms / 5); // 0.2 days remaining (<= 0.25)
+/// assert_eq!(get_urgency_status(Some(due), Some(lead), now_urgent), UrgencyStatus::Urgent);
+///
+/// // Case 2: Active (within lead time window, but > 25%)
+/// // Diff = 0.5 days. 0.25 < 0.5 <= 1.0
+/// let now_active = due - (day_ms / 2);
+/// assert_eq!(get_urgency_status(Some(due), Some(lead), now_active), UrgencyStatus::Active);
+///
+/// // Case 3: Upcoming (outside window, but within 25% buffer before start)
+/// // Diff = 1.1 days. 1.0 < 1.1 <= 1.25
+/// let now_upcoming = due - (day_ms + (day_ms / 10));
+/// assert_eq!(get_urgency_status(Some(due), Some(lead), now_upcoming), UrgencyStatus::Upcoming);
 /// ```
 pub fn get_urgency_status(
     effective_due_date: Option<i64>,

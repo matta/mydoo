@@ -635,7 +635,45 @@ fn build_visibility_trace(
     }
 }
 
-/// Derives the "Projected State" for the View Layer.
+/// Derives the "Projected State" for the View Layer by prioritizing and filtering tasks.
+///
+/// This function executes the full prioritization pipeline:
+/// 1. **Hydration**: Converts persisted tasks into enriched domain objects, resolving schedules.
+/// 2. **Calculation**: Computes effective credits, visibility, and priority scores based on:
+///    - Importance and sequential dependencies (parent -> child).
+///    - Lead time and due dates.
+///    - Contextual visibility (place/hours).
+///    - Feedback (historical completion rates).
+/// 3. **Filtering**: Applies the [`ViewFilter`] and [`PriorityOptions`] to exclude hidden or irrelevant tasks.
+/// 4. **Sorting**: Orders tasks by Priority (desc), Importance (desc), and Outline Index (asc).
+///
+/// # Arguments
+///
+/// * `state` - The current application state.
+/// * `view_filter` - Criteria for filtering tasks (e.g., by Place).
+/// * `options` - Configuration for the prioritization algorithm (e.g., hidden tasks, mode).
+///
+/// # Returns
+///
+/// A vector of [`ComputedTask`] objects ready for rendering.
+///
+/// # Examples
+///
+/// ```
+/// use tasklens_core::domain::priority::get_prioritized_tasks;
+/// use tasklens_core::types::{TunnelState, ViewFilter, PriorityOptions};
+///
+/// let state = TunnelState::default();
+/// let filter = ViewFilter { place_id: None };
+/// let options = PriorityOptions {
+///     include_hidden: false,
+///     mode: None,
+///     context: None,
+/// };
+///
+/// let tasks = get_prioritized_tasks(&state, &filter, &options);
+/// assert!(tasks.is_empty());
+/// ```
 pub fn get_prioritized_tasks(
     state: &TunnelState,
     view_filter: &ViewFilter,

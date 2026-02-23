@@ -34,20 +34,36 @@ fn calculate_balance_percentages(
     (target_percent, actual_percent, is_starving)
 }
 
-/// Computes balance data directly from TunnelState.
+/// Computes balance data directly from [`TunnelState`].
 ///
 /// This is the primary entry point for the Balance View. It:
-/// 1. Extracts root tasks from the state
-/// 2. Calculates effective_credits with time decay
-/// 3. Aggregates child credits up to roots
-/// 4. Computes target_percent and actual_percent
-/// 5. Marks goals as "starving" if under-served
+/// 1. Extracts root tasks from the state.
+/// 2. Calculates effective_credits with time decay.
+/// 3. Aggregates child credits up to roots.
+/// 4. Computes target_percent and actual_percent.
+/// 5. Marks goals as "starving" if under-served (actual < target).
 ///
 /// # Arguments
-/// * `state` - The current tunnel state containing all tasks
+///
+/// * `state` - The current tunnel state containing all tasks.
 ///
 /// # Returns
-/// `BalanceData` containing balance items for each root goal.
+///
+/// [`BalanceData`] containing balance items for each root goal.
+///
+/// # Examples
+///
+/// ```
+/// use tasklens_core::domain::balance::get_balance_data;
+/// use tasklens_core::types::{TunnelState, BalanceData};
+///
+/// // Create an empty state (no tasks)
+/// let state = TunnelState::default();
+///
+/// let balance_data = get_balance_data(&state);
+/// assert_eq!(balance_data.items.len(), 0);
+/// assert_eq!(balance_data.total_credits, 0.0);
+/// ```
 pub fn get_balance_data(state: &TunnelState) -> BalanceData {
     get_balance_data_with_time(state, get_current_timestamp())
 }
