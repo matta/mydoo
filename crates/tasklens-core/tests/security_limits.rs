@@ -1,9 +1,9 @@
 use automerge::AutoCommit;
+use std::collections::HashMap;
+use tasklens_core::Action;
 use tasklens_core::domain::dispatch::{DispatchError, run_action};
 use tasklens_core::domain::doc_bridge;
 use tasklens_core::types::{PlaceID, TaskID, TunnelState};
-use tasklens_core::Action;
-use std::collections::HashMap;
 
 #[test]
 fn test_long_task_id_creation_fails() {
