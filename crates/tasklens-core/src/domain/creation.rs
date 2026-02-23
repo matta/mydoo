@@ -8,28 +8,22 @@ use crate::domain::constants::{
 };
 use crate::types::{PersistedTask, Schedule, ScheduleType, TaskID, TaskStatus};
 
-/// Creates a new task with default values and inheritance from a parent task.
+/// Creates a new task, optionally inheriting properties from a parent.
 ///
-/// This function initializes a [`PersistedTask`] with appropriate defaults (e.g., pending status,
-/// default importance) and inherits properties like `place_id` and `credit_increment` if a parent
-/// is provided.
+/// Initializes a [`PersistedTask`] with default values (e.g., `Pending` status, default importance).
+/// If a `parent` is provided, the new task inherits the parent's `place_id` and `credit_increment`.
 ///
 /// # Arguments
 ///
 /// * `id` - The unique identifier for the new task.
 /// * `title` - The title of the task.
-/// * `parent` - An optional reference to the parent task. If provided, the new task inherits
-///   the parent's `place_id` and `credit_increment`.
-///
-/// # Returns
-///
-/// Returns a fully initialized [`PersistedTask`] struct.
+/// * `parent` - An optional reference to the parent task.
 ///
 /// # Examples
 ///
 /// ```
 /// use tasklens_core::domain::creation::create_new_task;
-/// use tasklens_core::types::{TaskID, PlaceID};
+/// use tasklens_core::types::{PlaceID, TaskID};
 ///
 /// // Create a root task
 /// let root_id = TaskID::new();

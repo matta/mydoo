@@ -628,10 +628,10 @@ pub struct RepeatConfig {
     pub interval: i64,
 }
 
-/// A task as persisted in the Automerge document.
+/// The canonical representation of a task in the Automerge document.
 ///
-/// Uses `extra_fields` with `#[serde(flatten)]` to preserve any
-/// unknown fields during roundtrip serialization.
+/// This struct defines the schema for tasks as they are stored and synchronized.
+/// It uses `autosurgeon` attributes to map between Rust types and the Automerge document structure.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hydrate, Reconcile)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
@@ -893,9 +893,16 @@ pub fn hydrate_option_metadata<D: autosurgeon::ReadDoc>(
     }
 }
 
-/// The root state of a TaskLens document.
+/// The root container for all application state.
 ///
-/// This is the top-level structure serialized to/from Automerge.
+/// This structure acts as the entry point for the Automerge document. It holds the complete state
+/// of the application, including:
+/// * `tasks`: A map of all tasks by ID.
+/// * `root_task_ids`: An ordered list of top-level task IDs.
+/// * `places`: A map of all contexts/places by ID.
+/// * `metadata`: Optional document-level metadata (e.g., sync URLs).
+///
+/// Changes to the document are applied by reconciling this structure with the Automerge backend.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(any(test, feature = "test-utils"), derive(proptest_derive::Arbitrary))]
 #[serde(rename_all = "camelCase")]
