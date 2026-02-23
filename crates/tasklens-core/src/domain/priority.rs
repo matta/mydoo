@@ -635,17 +635,27 @@ fn build_visibility_trace(
     }
 }
 
-/// Computes and returns the prioritized list of tasks for the View Layer.
+/// Derives the "Projected State" for the View Layer by prioritizing and filtering tasks.
 ///
-/// This function acts as the central projection pipeline, transforming the raw domain `state` into a
-/// sorted vector of [`ComputedTask`] objects ready for display. The process involves:
-/// 1.  **Hydration**: Converts raw [`PersistedTask`] entities into enriched transient objects.
-/// 2.  **Scoring**: Runs the prioritization algorithm (importance propagation, lead time calculation,
-///     credit decay, and feedback loops) using the provided `options` (e.g., current time).
-/// 3.  **Filtering**: Applies visibility rules, status filters, and optional thresholds based on
-///     `view_filter` and `options`.
-/// 4.  **Sorting**: Orders tasks by their computed priority score (descending), importance (descending),
-///     and outline index (ascending).
+/// This function executes the full prioritization pipeline:
+/// 1. Hydration: Converts persisted tasks into enriched domain objects, resolving schedules.
+/// 2. Calculation: Computes effective credits, visibility, and priority scores based on:
+///    - Importance and sequential dependencies (parent -> child).
+///    - Lead time and due dates.
+///    - Contextual visibility (place/hours).
+///    - Feedback (historical completion rates).
+/// 3. Filtering: Applies the [`ViewFilter`] and [`PriorityOptions`] to exclude hidden or irrelevant tasks.
+/// 4. Sorting: Orders tasks by Priority (desc), Importance (desc), and Outline Index (asc).
+///
+/// # Arguments
+///
+/// * `state` - The current application state.
+/// * `view_filter` - Criteria for filtering tasks (e.g., by Place).
+/// * `options` - Configuration for the prioritization algorithm (e.g., hidden tasks, mode).
+///
+/// # Returns
+///
+/// A vector of [`ComputedTask`] objects ready for rendering.
 pub fn get_prioritized_tasks(
     state: &TunnelState,
     view_filter: &ViewFilter,
