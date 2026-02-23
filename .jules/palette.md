@@ -1,9 +1,9 @@
-## 2024-05-24 - Dioxus Accessibility Attributes
+## 2024-05-24 - Priority Task Row Accessibility
 
-**Learning:** Dioxus `rsx!` macro uses snake_case for HTML attributes, including ARIA attributes (e.g., `aria_label` instead of `aria-label`). This is a critical distinction from HTML/JSX.
-**Action:** Always verify attribute names in Dioxus documentation or existing code when porting accessible patterns.
+**Learning:** `PriorityTaskRow` (and possibly other custom list items) often use `span` or `div` for interactivity without semantic roles, making them inaccessible.
+**Action:** Always verify interactive elements have `role="button"`, `tabindex="0"`, `aria-label`, and `onkeydown` handlers for Enter/Space.
 
-## 2024-05-25 - Dynamic ARIA Labels in Dioxus
+## 2024-05-24 - Dioxus 0.7 Key Handling
 
-**Learning:** In Dioxus RSX, `aria_label` (snake_case) accepts format strings directly (e.g., `aria_label: "Toggle completion for {title}"`), making it easy to create context-aware labels for lists without manual `format!` calls.
-**Action:** Use inline format strings for dynamic accessible names to improve code readability and reduce verbosity.
+**Learning:** Dioxus 0.7 `Key` enum does not have a `Space` variant. Use `Key::Character(" ".to_string())` to detect Space bar presses.
+**Action:** Use this pattern consistently and be aware it might look like a bug to those familiar with other frameworks or versions.
