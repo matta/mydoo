@@ -242,7 +242,25 @@ fn hydrate_task(persisted: &PersistedTask) -> EnrichedTask {
     }
 }
 
-/// Runs the prioritization algorithm on the mutable EnrichedTask objects.
+/// Executes the prioritization algorithm on a mutable slice of enriched tasks.
+///
+/// This function updates the `effective_credits`, `priority`, `visibility`, and other
+/// derived fields of each [`EnrichedTask`] in place. It performs the calculation in
+/// three phases:
+///
+/// 1.  **Outline Order**: Assigns depth-first traversal indices to tasks for stable sorting.
+/// 2.  **Linear Computation**: Calculates local factors like time decay (credits),
+///     lead time urgency, and contextual visibility (places).
+/// 3.  **Unified DFS**: Propagates importance and visibility from parents to children,
+///     handles sequential blocking logic, and computes the final priority score.
+///
+/// # Arguments
+///
+/// *   `state` - The immutable application state (needed for place definitions and root structure).
+/// *   `enriched_tasks` - The slice of tasks to be prioritized. This is modified in place.
+/// *   `view_filter` - Criteria for filtering tasks (e.g., current place).
+/// *   `context` - Optional execution context (provides `current_time` and `current_place_id`).
+///     If `None`, defaults are used (e.g., system time).
 pub fn recalculate_priorities(
     state: &TunnelState,
     enriched_tasks: &mut [EnrichedTask],
@@ -635,27 +653,33 @@ fn build_visibility_trace(
     }
 }
 
-/// Derives the "Projected State" for the View Layer by prioritizing and filtering tasks.
+/// Computes the prioritized list of tasks for the view layer.
 ///
-/// This function executes the full prioritization pipeline:
-/// 1. Hydration: Converts persisted tasks into enriched domain objects, resolving schedules.
-/// 2. Calculation: Computes effective credits, visibility, and priority scores based on:
-///    - Importance and sequential dependencies (parent -> child).
-///    - Lead time and due dates.
-///    - Contextual visibility (place/hours).
-///    - Feedback (historical completion rates).
-/// 3. Filtering: Applies the [`ViewFilter`] and [`PriorityOptions`] to exclude hidden or irrelevant tasks.
-/// 4. Sorting: Orders tasks by Priority (desc), Importance (desc), and Outline Index (asc).
+/// This function executes the full prioritization pipeline to transform the raw
+/// [`TunnelState`] into a sorted list of [`ComputedTask`] objects suitable for rendering.
+/// The pipeline consists of four stages:
+///
+/// 1.  **Hydration**: Converts [`PersistedTask`] entities into [`EnrichedTask`] objects,
+///     resolving recurrence schedules and defaults.
+/// 2.  **Calculation**: Computes effective credits, visibility, and priority scores based on:
+///     *   Importance and sequential dependencies (parent -> child).
+///     *   Lead time and due dates.
+///     *   Contextual visibility (place/hours).
+///     *   Feedback (historical completion rates).
+/// 3.  **Filtering**: Applies the [`ViewFilter`] and [`PriorityOptions`] to exclude hidden
+///     or irrelevant tasks (e.g., completed tasks, low-priority items).
+/// 4.  **Sorting**: Orders tasks by Priority (descending), Importance (descending),
+///     and Outline Index (ascending).
 ///
 /// # Arguments
 ///
-/// * `state` - The current application state.
-/// * `view_filter` - Criteria for filtering tasks (e.g., by Place).
-/// * `options` - Configuration for the prioritization algorithm (e.g., hidden tasks, mode).
+/// *   `state` - The current application state.
+/// *   `view_filter` - Criteria for filtering tasks (e.g., by Place).
+/// *   `options` - Configuration for the prioritization algorithm (e.g., hidden tasks, mode).
 ///
 /// # Returns
 ///
-/// A vector of [`ComputedTask`] objects ready for rendering.
+/// A vector of [`ComputedTask`] objects, sorted and ready for rendering.
 pub fn get_prioritized_tasks(
     state: &TunnelState,
     view_filter: &ViewFilter,
@@ -790,8 +814,20 @@ pub fn get_prioritized_tasks(
 
 /// Computes a detailed score trace for a single task.
 ///
-/// This reuses the core priority pipeline so the trace stays in lockstep with
-/// the actual scoring behavior (no separate trace math).
+/// This function runs the full priority pipeline and then extracts the intermediate
+/// factors that contributed to the task's final score. This is useful for debugging
+/// why a task is ranked a certain way or visualizing the scoring algorithm.
+///
+/// # Arguments
+///
+/// *   `state` - The current application state.
+/// *   `view_filter` - Criteria for filtering tasks.
+/// *   `options` - Configuration for the prioritization algorithm.
+/// *   `task_id` - The ID of the task to trace.
+///
+/// # Returns
+///
+/// Returns `Some(ScoreTrace)` if the task is found, or `None` if the ID does not exist.
 pub fn get_score_trace(
     state: &TunnelState,
     view_filter: &ViewFilter,
