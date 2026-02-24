@@ -56,6 +56,7 @@ pub(crate) fn PriorityTaskRow(
                     CheckboxState::Unchecked
                 }),
                 on_checked_change: move |_| on_toggle.call(task_id_toggle.clone()),
+                aria_label: "Toggle completion for {task.title}",
             }
 
             span {
