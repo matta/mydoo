@@ -66,11 +66,13 @@ pub(crate) fn PriorityTaskRow(
                 "data-testid": "task-title",
                 onclick: move |_| on_title_tap.call(task_id_tap.clone()),
                 onkeydown: move |evt: KeyboardEvent| {
-                    if evt.key() == Key::Enter || evt.key() == Key::Character(" ".to_string()) {
-                        if evt.key() == Key::Character(" ".to_string()) {
+                    match evt.key() {
+                        Key::Enter => on_title_tap.call(task_id_key.clone()),
+                        Key::Character(char) if char == " " => {
                             evt.prevent_default();
+                            on_title_tap.call(task_id_key.clone());
                         }
-                        on_title_tap.call(task_id_key.clone());
+                        _ => {}
                     }
                 },
                 "{task.title}"
