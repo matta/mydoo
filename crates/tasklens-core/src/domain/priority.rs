@@ -635,7 +635,27 @@ fn build_visibility_trace(
     }
 }
 
-/// Derives the "Projected State" for the View Layer.
+/// Computes and returns a list of tasks prioritized for display.
+///
+/// This function acts as the main projection engine for the view layer. It transforms the raw
+/// persisted state into a sorted, filtered, and enriched list of tasks suitable for rendering
+/// in the UI (e.g., the "Do" list or "Plan" outline).
+///
+/// The process involves several stages:
+/// 1.  **Hydration**: Converts `PersistedTask` objects into `EnrichedTask`s, calculating effective schedules.
+/// 2.  **Prioritization**: Runs the core priority algorithm (`recalculate_priorities`) to compute scores based on importance, urgency, and feedback.
+/// 3.  **Filtering**: Applies visibility rules (e.g., hiding future tasks) and view filters (e.g., by Place).
+/// 4.  **Sorting**: Orders the final list by Priority (descending) -> Importance (descending) -> Outline Order (ascending).
+///
+/// # Arguments
+///
+/// *   `state` - The current snapshot of the document state (`TunnelState`).
+/// *   `view_filter` - Criteria for filtering the output (e.g., tasks in a specific Place).
+/// *   `options` - Configuration for the priority algorithm (e.g., current time, inclusion of hidden tasks).
+///
+/// # Returns
+///
+/// A vector of [`ComputedTask`] objects, sorted and ready for display.
 pub fn get_prioritized_tasks(
     state: &TunnelState,
     view_filter: &ViewFilter,
@@ -768,10 +788,29 @@ pub fn get_prioritized_tasks(
         .collect()
 }
 
-/// Computes a detailed score trace for a single task.
+/// Generates a detailed trace of the scoring logic for a specific task.
 ///
-/// This reuses the core priority pipeline so the trace stays in lockstep with
-/// the actual scoring behavior (no separate trace math).
+/// This function is primarily used for debugging and introspection (the "Explain" feature).
+/// It runs the same priority pipeline as [`get_prioritized_tasks`] to ensure that the trace
+/// perfectly matches the actual scoring behavior.
+///
+/// The returned [`ScoreTrace`] contains a breakdown of all factors contributing to the
+/// final score, including:
+/// *   **Importance Chain**: How importance propagates from ancestors.
+/// *   **Feedback**: How the root task's balance affects the score.
+/// *   **Lead Time**: Urgency calculations based on due dates.
+/// *   **Visibility**: Why a task might be hidden or delegated.
+///
+/// # Arguments
+///
+/// *   `state` - The current document state.
+/// *   `view_filter` - The active view filter.
+/// *   `options` - Priority configuration (time context, etc.).
+/// *   `task_id` - The ID of the task to inspect.
+///
+/// # Returns
+///
+/// Returns `Some(ScoreTrace)` if the task exists, or `None` if it cannot be found.
 pub fn get_score_trace(
     state: &TunnelState,
     view_filter: &ViewFilter,
