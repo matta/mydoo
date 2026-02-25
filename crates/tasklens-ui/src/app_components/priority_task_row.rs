@@ -43,6 +43,8 @@ pub(crate) fn PriorityTaskRow(
         format_args!("{}", Styles::title_container)
     };
 
+    let checkbox_label = format!("Toggle completion for {}", task.title);
+
     rsx! {
         div {
             class: Styles::row_root,
@@ -56,7 +58,7 @@ pub(crate) fn PriorityTaskRow(
                     CheckboxState::Unchecked
                 }),
                 on_checked_change: move |_| on_toggle.call(task_id_toggle.clone()),
-                aria_label: format!("Toggle completion for {}", task.title),
+                aria_label: checkbox_label,
             }
 
             span {

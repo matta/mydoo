@@ -96,6 +96,12 @@ pub(crate) fn TaskRow(
         format_args!("{}", Styles::row_root)
     };
 
+    let expand_label = if is_expanded {
+        format!("Collapse {}", title)
+    } else {
+        format!("Expand {}", title)
+    };
+
     rsx! {
         div {
             class: row_class,
@@ -113,11 +119,7 @@ pub(crate) fn TaskRow(
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
                         },
-                        aria_label: if is_expanded {
-                            format!("Collapse {}", title)
-                        } else {
-                            format!("Expand {}", title)
-                        },
+                        aria_label: expand_label,
                         "aria-expanded": "{is_expanded}",
                         "data-expanded": "{is_expanded}",
                         if is_expanded {
