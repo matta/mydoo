@@ -15,50 +15,69 @@ use crate::{
     },
 };
 
+/// Errors that can occur during action dispatch and state mutation.
+///
+/// This enum covers validation failures, data integrity issues, and low-level
+/// storage errors from Automerge or Autosurgeon.
 #[derive(Debug, Error)]
 pub enum DispatchError {
+    /// An error occurred in the underlying Automerge document operation.
     #[error("Automerge error: {0}")]
     Automerge(#[from] automerge::AutomergeError),
 
+    /// An error occurred while reconciling changes into the Automerge document.
     #[error("Reconcile error: {0}")]
     Reconcile(#[from] autosurgeon::ReconcileError),
 
+    /// An error occurred while hydrating data from the Automerge document.
     #[error("Hydrate error: {0}")]
     Hydrate(#[from] autosurgeon::HydrateError),
 
+    /// A custom hydration failure occurred, typically due to malformed data.
     #[error("Hydration failed: {0}")]
     Hydration(String),
 
+    /// The specified path in the document structure is invalid or not an object.
     #[error("Path key '{0}' is not an object")]
     InvalidPath(String),
 
+    /// The requested task ID does not exist in the state.
     #[error("Task not found: {0}")]
     TaskNotFound(TaskID),
 
+    /// The specified parent task ID does not exist.
     #[error("Parent task not found: {0}")]
     ParentNotFound(TaskID),
 
+    /// Attempted to create a task with an ID that already exists.
     #[error("Task already exists: {0}")]
     TaskExists(TaskID),
 
+    /// The requested place ID does not exist.
     #[error("Place not found: {0}")]
     PlaceNotFound(crate::types::PlaceID),
 
+    /// Attempted to delete the built-in "Anywhere" place, which is protected.
     #[error("Cannot delete the built-in Anywhere place")]
     CannotDeleteAnywhere,
 
+    /// Moving the task would create a cycle in the hierarchy (e.g., making a task a child of its own descendant).
     #[error("Cycle detected moving task {0} to {1}")]
     CycleDetected(TaskID, TaskID),
 
+    /// Attempted to move a task to be a child of itself.
     #[error("Cannot move task {0} to itself: {1}")]
     MoveToSelf(TaskID, TaskID),
 
+    /// Internal state inconsistency detected (e.g., missing parent reference).
     #[error("Inconsistency: {0}")]
     Inconsistency(String),
 
+    /// Input validation failure (e.g., empty title, name too long).
     #[error("Invalid input: {0}")]
     InvalidInput(String),
 
+    /// A generic internal error occurred.
     #[error("Operation failed: {0}")]
     Internal(String),
 }
@@ -133,19 +152,23 @@ pub fn hydrate_tunnel_state(doc: &impl autosurgeon::ReadDoc) -> Result<TunnelSta
 ///
 /// # Errors
 ///
-/// Returns `Err` in the following situations:
+/// Returns `Err` if the action violates business rules, targets non-existent entities,
+/// or encounters storage issues:
 ///
 /// *   **Validation Errors**:
 ///     *   [`DispatchError::InvalidInput`]: If inputs are invalid (e.g., empty title, name too long).
 ///     *   [`DispatchError::CycleDetected`]: If moving a task would create a parent-child cycle.
-///     *   [`DispatchError::MoveToSelf`]: If attempting to move a task to itself.
+///     *   [`DispatchError::MoveToSelf`]: If attempting to move a task to become its own child.
+///     *   [`DispatchError::TaskExists`]: If creating a task with an ID that is already in use.
+///     *   [`DispatchError::CannotDeleteAnywhere`]: If attempting to delete the protected "Anywhere" place.
 ///
 /// *   **Not Found Errors**:
-///     *   [`DispatchError::TaskNotFound`]: If the task ID does not exist.
-///     *   [`DispatchError::ParentNotFound`]: If the specified parent ID does not exist.
-///     *   [`DispatchError::PlaceNotFound`]: If the place ID does not exist.
+///     *   [`DispatchError::TaskNotFound`]: If the target task (for update, delete, move) does not exist.
+///     *   [`DispatchError::ParentNotFound`]: If the specified parent task does not exist.
+///     *   [`DispatchError::PlaceNotFound`]: If the target place does not exist.
 ///
-/// *   **System Errors**:
+/// *   **Integrity & System Errors**:
+///     *   [`DispatchError::Inconsistency`]: If the state is found to be in an inconsistent state (e.g. missing parent).
 ///     *   [`DispatchError::Automerge`] or [`DispatchError::Hydrate`]: If the underlying data store operation fails.
 ///
 /// See [`DispatchError`] for the complete list of error variants.

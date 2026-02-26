@@ -657,29 +657,32 @@ fn build_visibility_trace(
 ///
 /// This function executes the full prioritization pipeline to transform the raw
 /// [`TunnelState`] into a sorted list of [`ComputedTask`] objects suitable for rendering.
-/// The pipeline consists of four stages:
 ///
-/// 1.  **Hydration**: Converts [`PersistedTask`] entities into [`EnrichedTask`] objects,
-///     resolving recurrence schedules and defaults.
-/// 2.  **Calculation**: Computes effective credits, visibility, and priority scores based on:
-///     *   Importance and sequential dependencies (parent -> child).
-///     *   Lead time and due dates.
-///     *   Contextual visibility (place/hours).
-///     *   Feedback (historical completion rates).
-/// 3.  **Filtering**: Applies the [`ViewFilter`] and [`PriorityOptions`] to exclude hidden
-///     or irrelevant tasks (e.g., completed tasks, low-priority items).
-/// 4.  **Sorting**: Orders tasks by Priority (descending), Importance (descending),
-///     and Outline Index (ascending).
+/// # Pipeline Stages
+///
+/// 1.  **Hydration**: Converts [`PersistedTask`] entities into mutable [`EnrichedTask`] objects,
+///     resolving default values and expanding recurring schedules (e.g., `Routinely` tasks).
+/// 2.  **Calculation**: Computes effective scores through a multi-pass traversal:
+///     *   *Outline Order*: Assigns depth-first indices for stable structural sorting.
+///     *   *Linear Computation*: Calculates local factors like time decay (credits) and lead time urgency.
+///     *   *Unified DFS*: Propagates importance and visibility from parents to children, handles
+///         sequential blocking, and computes the final `priority` score.
+/// 3.  **Filtering**: Applies [`ViewFilter`] (e.g., current Place) and [`PriorityOptions`]
+///     (e.g., `include_hidden`) to exclude irrelevant items.
+/// 4.  **Sorting**: Orders the final list by:
+///     1.  **Priority** (Descending)
+///     2.  **Importance** (Descending, as tie-breaker)
+///     3.  **Outline Index** (Ascending, to preserve manual order among equals)
 ///
 /// # Arguments
 ///
-/// *   `state` - The current application state.
-/// *   `view_filter` - Criteria for filtering tasks (e.g., by Place).
-/// *   `options` - Configuration for the prioritization algorithm (e.g., hidden tasks, mode).
+/// *   `state` - The immutable application state containing tasks and places.
+/// *   `view_filter` - Runtime filters such as the currently selected Place.
+/// *   `options` - Algorithm configuration, including the current timestamp and display mode.
 ///
 /// # Returns
 ///
-/// A vector of [`ComputedTask`] objects, sorted and ready for rendering.
+/// A vector of [`ComputedTask`] objects, sorted and ready for the UI.
 pub fn get_prioritized_tasks(
     state: &TunnelState,
     view_filter: &ViewFilter,
