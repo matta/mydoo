@@ -655,27 +655,29 @@ fn build_visibility_trace(
 
 /// Computes the prioritized list of tasks for the view layer.
 ///
-/// This function executes the full prioritization pipeline to transform the raw
-/// [`TunnelState`] into a sorted list of [`ComputedTask`] objects suitable for rendering.
-/// The pipeline consists of four stages:
+/// This function executes the four-stage prioritization pipeline to transform raw application state
+/// into a sorted list of computed tasks.
 ///
-/// 1.  **Hydration**: Converts [`PersistedTask`] entities into [`EnrichedTask`] objects,
-///     resolving recurrence schedules and defaults.
-/// 2.  **Calculation**: Computes effective credits, visibility, and priority scores based on:
-///     *   Importance and sequential dependencies (parent -> child).
-///     *   Lead time and due dates.
-///     *   Contextual visibility (place/hours).
-///     *   Feedback (historical completion rates).
-/// 3.  **Filtering**: Applies the [`ViewFilter`] and [`PriorityOptions`] to exclude hidden
-///     or irrelevant tasks (e.g., completed tasks, low-priority items).
-/// 4.  **Sorting**: Orders tasks by Priority (descending), Importance (descending),
-///     and Outline Index (ascending).
+/// # Pipeline Stages
+///
+/// 1.  **Hydration**: Converts raw [`PersistedTask`] entities into [`EnrichedTask`] objects,
+///     resolving defaults and expanding recurrence rules.
+/// 2.  **Calculation**: Computes dynamic properties including:
+///     *   **Effective Credits**: Applies time-decay to effort balances.
+///     *   **Visibility**: Determines if tasks are actionable based on place/time context.
+///     *   **Priority Score**: Aggregates importance, lead time urgency, and feedback factors.
+/// 3.  **Filtering**: Excludes tasks based on the `ViewFilter` and `PriorityOptions` (e.g.,
+///     hiding completed tasks or those with priority below `MIN_PRIORITY`).
+/// 4.  **Sorting**: Final ordering is applied using the following precedence:
+///     *   **Priority Score** (Descending)
+///     *   **Normalized Importance** (Descending)
+///     *   **Outline Index** (Ascending, preserving manual order)
 ///
 /// # Arguments
 ///
-/// *   `state` - The current application state.
+/// *   `state` - The immutable application state.
 /// *   `view_filter` - Criteria for filtering tasks (e.g., by Place).
-/// *   `options` - Configuration for the prioritization algorithm (e.g., hidden tasks, mode).
+/// *   `options` - Configuration for the prioritization algorithm.
 ///
 /// # Returns
 ///

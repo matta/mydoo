@@ -44,13 +44,30 @@ pub fn hydrate_string_or_text<D: autosurgeon::ReadDoc>(
 
 /// Hydrates an `Option<T>` while tolerating both missing keys and null values.
 ///
-/// This provides a universal "optional" behavior for struct fields:
+/// This provides a universal "optional" behavior for struct fields, treating both explicit `null`
+/// values and missing keys (undefined) as `None`.
+///
 /// 1. If the property is missing from the document, returns `Ok(None)`.
 /// 2. If the property is present but set to `null`, returns `Ok(None)`.
 /// 3. If the property is present and non-null, delegates to `T::hydrate`.
 ///
-/// Use this with the `#[autosurgeon(hydrate = "hydrate_option_maybe_missing")]`
-/// attribute on `Option<T>` fields where you want to support both missing and null states.
+/// # Examples
+///
+/// Use this with the `hydrate` attribute on `Option<T>` fields:
+///
+/// ```rust
+/// use autosurgeon::{Hydrate, Reconcile};
+/// use tasklens_core::types::{hydrate_option_maybe_missing, reconcile_option_as_maybe_missing};
+///
+/// #[derive(Debug, Hydrate, Reconcile)]
+/// struct UserProfile {
+///     #[autosurgeon(
+///         hydrate = "hydrate_option_maybe_missing",
+///         reconcile = "reconcile_option_as_maybe_missing"
+///     )]
+///     nickname: Option<String>,
+/// }
+/// ```
 pub fn hydrate_option_maybe_missing<D: autosurgeon::ReadDoc, T: Hydrate>(
     doc: &D,
     obj: &automerge::ObjId,
