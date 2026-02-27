@@ -110,28 +110,26 @@ pub struct PlaceUpdates {
     pub included_places: Option<Vec<PlaceID>>,
 }
 
-/// Represents partial updates to be applied to a task.
+/// Represents a set of partial updates to apply to a `PersistedTask`.
 ///
-/// Fields wrapped in `Option` represent values that can be updated.
-/// - `None`: The field remains unchanged.
-/// - `Some(value)`: The field is updated to `value`.
+/// This struct uses `Option` to indicate whether a field should be updated.
+/// *   `None`: The field remains unchanged.
+/// *   `Some(val)`: The field is updated to `val`.
 ///
-/// For nullable fields in the domain (like `place_id`), `Option<Option<T>>` is used:
-/// - `None`: No change.
-/// - `Some(Some(v))`: Set to `v`.
-/// - `Some(None)`: Clear the value (set to `null` or `None`).
+/// For nullable domain fields (like `place_id`), `Option<Option<T>>` is used to differentiate
+/// between "no change" (`None`), "set value" (`Some(Some(v))`), and "clear value" (`Some(None)`).
 ///
 /// # Examples
 ///
-/// ```
-/// use tasklens_core::domain::actions::TaskUpdates;
-/// use tasklens_core::types::PlaceID;
+/// Updating a task's title while simultaneously clearing its due date:
 ///
-/// // Update title and clear the place_id
+/// ```rust
+/// use tasklens_core::domain::actions::TaskUpdates;
+///
 /// let updates = TaskUpdates {
-///     title: Some("New Title".to_string()),
-///     place_id: Some(None),
-///     ..Default::default()
+///     title: Some("Renamed Task".to_string()),
+///     due_date: Some(None), // Clear the due date
+///     ..Default::default()  // Leave other fields unchanged
 /// };
 /// ```
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
