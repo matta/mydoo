@@ -7,8 +7,8 @@ settings:
 catalogs:
   default:
     '@automerge/automerge-repo':
-      specifier: 2.5.2
-      version: 2.5.2
+      specifier: 2.5.3
+      version: 2.5.3
     '@automerge/automerge-repo-network-websocket':
       specifier: 2.5.2
       version: 2.5.2
@@ -76,7 +76,7 @@ importers:
     devDependencies:
       '@automerge/automerge-repo':
         specifier: 'catalog:'
-        version: 2.5.2
+        version: 2.5.3
       '@automerge/automerge-repo-network-websocket':
         specifier: 'catalog:'
         version: 2.5.2
