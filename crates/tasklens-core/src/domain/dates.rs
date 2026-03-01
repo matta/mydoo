@@ -63,7 +63,22 @@ pub fn get_urgency_status(
 
 /// Checks if two timestamps represent the same day in UTC.
 ///
+/// Compares two Unix timestamps (in milliseconds) to determine if they fall
+/// on the exact same calendar date when evaluated in Coordinated Universal Time.
 /// Returns `None` if either timestamp is invalid (out of range).
+///
+/// # Examples
+///
+/// ```
+/// use tasklens_core::domain::dates::is_same_day_utc;
+///
+/// let t1 = 1672531200000; // 2023-01-01 00:00:00 UTC
+/// let t2 = 1672574399000; // 2023-01-01 11:59:59 UTC
+/// let t3 = 1672617600000; // 2023-01-02 00:00:00 UTC
+///
+/// assert_eq!(is_same_day_utc(t1, t2), Some(true));
+/// assert_eq!(is_same_day_utc(t1, t3), Some(false));
+/// ```
 pub fn is_same_day_utc(t1: i64, t2: i64) -> Option<bool> {
     let dt1 = DateTime::from_timestamp_millis(t1)?;
     let dt2 = DateTime::from_timestamp_millis(t2)?;
