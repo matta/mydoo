@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:36.038332700+00:00
 tags:
   - task
 ---
+
 Playwright has deprecated and removed page.accessibility. Replace its current usage with Axe or the newer Locator.ariaSnapshot() method. Remove the declare module hack in playwright.d.ts.\n\nTidbit: The locator.ariaSnapshot() method allows you to programmatically create a YAML representation of accessible elements within a locator's scope, especially helpful for generating snapshots dynamically during test execution.\n\nExample:\nconst snapshot = await page.locator('body').ariaSnapshot();\nconsole.log(snapshot);
 
 ## Acceptance Criteria

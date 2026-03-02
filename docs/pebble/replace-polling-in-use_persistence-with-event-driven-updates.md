@@ -9,4 +9,5 @@ resolved_at: 2026-03-02T14:59:35.463307027+00:00
 tags:
   - task
 ---
+
 use_persistence.rs (and related hooks) currently polls for document changes every 100ms. This is inefficient. The persistence logic should react to messaging from samod to realize when the doc has been persisted instead of polling.

@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:34.675508534+00:00
 tags:
   - task
 ---
+
 ## Goal
 
 Move credit attribution logic (decay + increment + timestamp update) into adapter.rs::handle_complete_task, which is the production code path for task completion.

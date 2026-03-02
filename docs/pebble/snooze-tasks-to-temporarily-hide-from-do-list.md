@@ -7,6 +7,7 @@ created_at: 2026-03-02T14:59:35.766881472+00:00
 tags:
   - task
 ---
+
 Allow users to snooze a task, temporarily hiding it from the Do list until a specified time.
 
 **Key behaviors:**

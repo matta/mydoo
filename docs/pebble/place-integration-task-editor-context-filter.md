@@ -7,6 +7,7 @@ created_at: 2026-03-02T14:59:34.844821472+00:00
 tags:
   - task
 ---
+
 Integrate Place filtering into the primary application views.
 
 Planning Steps:

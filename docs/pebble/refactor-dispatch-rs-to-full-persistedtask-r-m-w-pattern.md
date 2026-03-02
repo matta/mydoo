@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:34.589056982+00:00
 tags:
   - task
 ---
+
 Refactor dispatch.rs handlers to use full PersistedTask Read-Modify-Write pattern, eliminating field name strings and hydration function drift.
 
 Current problem:

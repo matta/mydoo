@@ -9,4 +9,5 @@ resolved_at: 2026-03-02T14:59:36.078766398+00:00
 tags:
   - task
 ---
+
 Add a short doc section listing WASM-safe features and how to run just check-wasm.

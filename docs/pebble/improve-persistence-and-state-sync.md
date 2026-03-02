@@ -12,6 +12,7 @@ needs:
 tags:
   - epic
 ---
+
 Refactor persistence logic to accurately track in-memory state and use event-driven updates instead of polling.
 
 ## Related Issues

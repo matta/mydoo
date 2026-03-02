@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:34.573982721+00:00
 tags:
   - task
 ---
+
 Remove autosurgeon decorators from TunnelState struct. It is too expensive to hydrate the entire TunnelState to/from the doc. Create a new module with manual hydration/reconciliation functions that we control directly.
 
 Key changes:

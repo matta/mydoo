@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:34.974043337+00:00
 tags:
   - task
 ---
+
 ## Goal
 
 Enable the credit attribution fixtures that depend on effective_credits aggregation from children.

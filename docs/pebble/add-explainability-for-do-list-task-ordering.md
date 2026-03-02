@@ -10,6 +10,7 @@ needs:
 tags:
   - task
 ---
+
 The priority algorithm is complex, making it unclear why tasks appear in their current order. Users often wonder 'why is this task above that one?'
 
 **Goals:**

@@ -10,6 +10,7 @@ tags:
   - task
   - deferred
 ---
+
 ## Notes
 
 dioxus-primitives does NOT have a Badge component. Available components: accordion, alert_dialog, aspect_ratio, avatar, calendar, checkbox, collapsible, context_menu, date_picker, dialog, dropdown_menu, hover_card, label, menubar, navbar, popover, progress, radio_group, scroll_area, select, separator, slider, switch, tabs, toast, toggle, toggle_group, toolbar, tooltip. Options: (1) Create a custom Badge component, (2) Close this task as not applicable, (3) Wait for dioxus-primitives to add a Badge component.

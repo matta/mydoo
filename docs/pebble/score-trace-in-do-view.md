@@ -9,4 +9,5 @@ resolved_at: 2026-03-02T14:59:35.155511003+00:00
 tags:
   - task
 ---
+
 Implement score trace in Do view (core trace API, UI trace page, tests).

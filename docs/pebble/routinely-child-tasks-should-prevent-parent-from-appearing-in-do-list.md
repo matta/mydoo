@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:34.663523453+00:00
 tags:
   - task
 ---
+
 **Problem:**
 A parent task (e.g., 'Health') that contains a routinely child task (e.g., 'Take daily allergy medicine') should never appear in the Do list because it always has pending work via its recurring child.
 

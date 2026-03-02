@@ -7,6 +7,7 @@ created_at: 2026-03-02T14:59:34.839404005+00:00
 tags:
   - task
 ---
+
 Create a dedicated interface for users to manage their Places (CRUD operations).
 
 Planning Steps:

@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:34.814130326+00:00
 tags:
   - task
 ---
+
 ## Close Reason
 
 Superseded by mydoo-25x (Add credit attribution to adapter::handle_complete_task)

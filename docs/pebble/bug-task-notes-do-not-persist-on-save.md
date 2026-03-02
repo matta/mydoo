@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:35.313964074+00:00
 tags:
   - bug
 ---
+
 ## Close Reason
 
 Fixed task notes persistence by adding missing 'notes' field to TaskUpdates in core and UI, and fixing label linkage in TaskEditor. Verified with E2E test.

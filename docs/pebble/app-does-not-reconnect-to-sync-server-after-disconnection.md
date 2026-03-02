@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:36.058400056+00:00
 tags:
   - task
 ---
+
 **Problem:**
 When the app disconnects from the sync server (e.g., due to tab inactivity or other conditions), it does not attempt to reconnect.
 

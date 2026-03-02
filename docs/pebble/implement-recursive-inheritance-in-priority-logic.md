@@ -11,6 +11,7 @@ needs:
 tags:
   - task
 ---
+
 ## Close Reason
 
 Already implemented — recursive priority inheritance works correctly via DFS in evaluate_task_recursive/process_children. The repro-neutral-inheritance compliance test confirms the fix.

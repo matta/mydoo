@@ -7,6 +7,7 @@ created_at: 2026-03-02T14:59:35.422992249+00:00
 tags:
   - task
 ---
+
 ## Background
 
 When concurrent moves create cycles (e.g., Replica A moves task-1 under task-2 while Replica B moves task-2 under task-1), the merged document contains a closed loop unreachable from the root hierarchy. The current fix in heal_structural_inconsistencies detects these unreachable tasks and breaks the cycle by promoting them to root tasks.

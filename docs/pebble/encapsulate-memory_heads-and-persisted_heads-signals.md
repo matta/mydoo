@@ -9,4 +9,5 @@ resolved_at: 2026-03-02T14:59:35.479542332+00:00
 tags:
   - task
 ---
+
 Currently memory_heads and persisted_heads are exposed as bare Signal<String>. They should be encapsulated in a struct or similar abstraction so that read/write operations can be easily tracked using 'find references' features in IDEs.

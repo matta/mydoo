@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:34.927342130+00:00
 tags:
   - task
 ---
+
 Retire hydrate*optional*\* helpers in favor of standard Option<T> hydration.
 
 Requirements:

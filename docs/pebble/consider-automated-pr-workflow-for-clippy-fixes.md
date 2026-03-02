@@ -7,6 +7,7 @@ created_at: 2026-03-02T14:59:35.776381080+00:00
 tags:
   - task
 ---
+
 Evaluate using an automated workflow similar to https://github.com/obi1kenobi/cargo-semver-checks/blob/main/.github/workflows/lint_fix.yml to automatically create PRs with clippy fixes as new lints appear.
 
 Benefits:

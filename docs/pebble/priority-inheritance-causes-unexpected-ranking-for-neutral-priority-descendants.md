@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:35.649317335+00:00
 tags:
   - task
 ---
+
 **Observed behavior:**
 A top-level task 'Bikes' at priority 0.5 appeared at the top of the Do list. After adding a child task 'Clean up bike haven' also at priority 0.5 (the default), the child ranked in the middle of the Do list instead of at the same position as the parent.
 

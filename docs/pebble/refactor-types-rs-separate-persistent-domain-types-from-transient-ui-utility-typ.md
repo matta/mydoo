@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:35.824033272+00:00
 tags:
   - chore
 ---
+
 Split crates/tasklens-core/src/types.rs into two separate files:
 
 1. Persistent types that are part of the Automerge document schema (using Hydrate/Reconcile).

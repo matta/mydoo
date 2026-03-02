@@ -7,6 +7,7 @@ created_at: 2026-03-02T14:59:34.655323331+00:00
 tags:
   - task
 ---
+
 Completed tasks accumulate and clutter the task list. Need a way to clean them up.
 
 **MVP approach:** Simply delete completed tasks.

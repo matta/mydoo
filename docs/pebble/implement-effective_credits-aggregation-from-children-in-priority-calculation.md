@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:35.017356645+00:00
 tags:
   - task
 ---
+
 Per algorithm.md §5.1: 'Parent's stored credits remain unchanged, but its effective_credits reflects the child's contribution.' Currently effective_credits is calculated as just the task's own decayed credits (priority.rs:211-212). It needs to aggregate decayed credits from all descendants during the post-order traversal phase. This affects feedback calculation which uses root effective_credits. Required for credit-attribution.feature.yaml scenarios: Parent Receives Effective Credits, Deep Hierarchy Propagation, Ancestor Decay Plus Child Attribution, Sibling Credits Independent.
 
 ## Close Reason

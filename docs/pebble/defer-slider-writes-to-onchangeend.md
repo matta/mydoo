@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:35.087861934+00:00
 tags:
   - task
 ---
+
 ## Close Reason
 
 Already implemented: BalanceSlider separates oninput (preview via handle_input) from onchange (commit via handle_change). Writes only persist on slider release.

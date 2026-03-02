@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:35.204551845+00:00
 tags:
   - bug
 ---
+
 When editing tasks, the sliders for importance and effort seem to work, but their values do not stick. Clicking 'save' and then re-editing the same task sees the sliders re-set to their original values. They should be set to the values the user had specified before 'save'.
 
 ## Close Reason

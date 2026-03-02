@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:35.255186429+00:00
 tags:
   - task
 ---
+
 ## Goal
 
 Replace the apply_task_input and apply_place_input functions with Action::CreateTask + Action::UpdateTask dispatches.

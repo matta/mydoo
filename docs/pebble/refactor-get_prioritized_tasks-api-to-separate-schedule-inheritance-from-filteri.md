@@ -9,6 +9,7 @@ created_at: 2026-03-02T14:59:35.545216518+00:00
 tags:
   - task
 ---
+
 The current get_prioritized_tasks API in tasklens-core does two things:
 
 1. Computes effective schedule inheritance (due dates, lead times via tree-walking)

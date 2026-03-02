@@ -7,4 +7,5 @@ created_at: 2026-03-02T14:59:34.667721066+00:00
 tags:
   - task
 ---
+
 Add a focused unit test to ensure initial heads are set before consuming handle.changes()/handle.persisted() updates.

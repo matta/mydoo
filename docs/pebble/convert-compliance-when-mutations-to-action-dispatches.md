@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:35.169417685+00:00
 tags:
   - task
 ---
+
 ## Goal
 
 Replace apply_mutation logic with Action dispatches for complete_tasks, delete_tasks, task_updates, etc.

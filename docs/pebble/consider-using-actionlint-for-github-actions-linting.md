@@ -7,6 +7,7 @@ created_at: 2026-03-02T14:59:35.240737049+00:00
 tags:
   - task
 ---
+
 Evaluate using actionlint to lint GitHub Actions workflows, similar to https://github.com/obi1kenobi/cargo-semver-checks/blob/main/.github/workflows/actionlint.yml
 
 Benefits:

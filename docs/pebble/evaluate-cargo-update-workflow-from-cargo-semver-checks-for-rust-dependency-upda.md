@@ -9,6 +9,7 @@ created_at: 2026-03-02T14:59:35.596724301+00:00
 tags:
   - task
 ---
+
 Investigate using a GitHub Actions workflow similar to https://github.com/obi1kenobi/cargo-semver-checks/blob/main/.github/workflows/dependencies.yml to update Rust packages via 'cargo update' instead of, or in addition to, renovate.
 
 Key points to evaluate:

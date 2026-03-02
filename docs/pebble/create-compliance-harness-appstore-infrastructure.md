@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:34.904327827+00:00
 tags:
   - task
 ---
+
 ## Goal
 
 Refactor the compliance test harness to use AppStore with Automerge documents instead of directly manipulating TunnelState.

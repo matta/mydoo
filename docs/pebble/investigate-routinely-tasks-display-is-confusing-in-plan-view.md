@@ -7,6 +7,7 @@ created_at: 2026-03-02T14:59:35.693801404+00:00
 tags:
   - task
 ---
+
 Routinely tasks are currently represented as a single persistent task in the outline. When completed, they remain visible as 'done' (crossed out) but will eventually 'resurrect' in the future when their recurrence interval passes. This is confusing because they are visually indistinguishable from one-time completed tasks that stay 'done' forever.
 
 Investigate:

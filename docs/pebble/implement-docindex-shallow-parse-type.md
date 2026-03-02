@@ -9,6 +9,7 @@ resolved_at: 2026-03-02T14:59:34.581215320+00:00
 tags:
   - task
 ---
+
 Create a new DocIndex type that provides shallow parsing of the Automerge doc root structure. This separates navigation (finding where things are) from content (deserializing actual data).
 
 Key design:
