@@ -9,8 +9,8 @@ const URGENCY_THRESHOLD_RATIO: f64 = 0.25;
 /// Determines the [`UrgencyStatus`] of a task based on its effective due date and lead time.
 ///
 /// The urgency status is calculated relative to `current_time` as follows:
-/// - [`UrgencyStatus::Overdue`]: The `current_time` is strictly after the due date, unless it's the same UTC day.
-/// - [`UrgencyStatus::Urgent`]: The task is due today (UTC), or `time_remaining <= 0.25 * effective_lead_time`.
+/// - [`UrgencyStatus::Overdue`]: The `current_time` is strictly after the effective due date, unless it's the same UTC day.
+/// - [`UrgencyStatus::Urgent`]: The task's effective due date is today (UTC), or `time_remaining <= 0.25 * effective_lead_time`.
 /// - [`UrgencyStatus::Active`]: The task is within its lead time window (`time_remaining <= effective_lead_time`), but not yet urgent.
 /// - [`UrgencyStatus::Upcoming`]: The task is not yet active, but is within a buffer period (25% of `effective_lead_time`) before the window starts.
 ///   (`effective_lead_time < time_remaining <= 1.25 * effective_lead_time`)
