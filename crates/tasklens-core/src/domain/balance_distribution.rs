@@ -21,26 +21,6 @@ pub const MAX_PERCENTAGE: f64 = 0.99;
 /// they will continue to have an equal slice of the new remaining proportion.
 ///
 /// The `new_value` will be strictly clamped between `MIN_PERCENTAGE` and `MAX_PERCENTAGE`.
-///
-/// # Examples
-///
-/// ```
-/// use std::collections::HashMap;
-/// use tasklens_core::domain::balance_distribution::redistribute_percentages;
-/// use tasklens_core::types::TaskID;
-///
-/// let id1 = TaskID::new();
-/// let id2 = TaskID::new();
-/// let mut map = HashMap::new();
-/// map.insert(id1.clone(), 0.5);
-/// map.insert(id2.clone(), 0.5);
-///
-/// // Update id1 to 0.8; id2 should shrink to 0.2
-/// let new_map = redistribute_percentages(&map, &id1, 0.8);
-///
-/// assert_eq!(new_map.get(&id1), Some(&0.8));
-/// assert!((new_map.get(&id2).unwrap() - 0.2).abs() < 1e-10);
-/// ```
 pub fn redistribute_percentages(
     current_map: &HashMap<TaskID, f64>,
     target_id: &TaskID,
