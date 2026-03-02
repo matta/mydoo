@@ -26,13 +26,8 @@ pub(crate) fn BalanceSlider(props: BalanceSliderProps) -> Element {
                 step: props.step,
                 value: Some(SliderValue::Single(props.value)),
                 on_value_change: move |new_value| {
-                    match new_value {
-                        SliderValue::Single(val) => {
-                            props.oninput.call(val);
-                        }
-                        #[allow(unreachable_patterns)]
-                        _ => tracing::warn!("Unexpected SliderValue: {:?}", new_value),
-                    }
+                    let SliderValue::Single(val) = new_value;
+                    props.oninput.call(val);
                 },
                 SliderTrack {
                     SliderRange {}
