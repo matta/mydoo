@@ -9,18 +9,22 @@ const URGENCY_THRESHOLD_RATIO: f64 = 0.25;
 /// Determines the [`UrgencyStatus`] of a task based on its effective due date and lead time.
 ///
 /// The urgency status is calculated relative to `current_time` as follows:
-/// - `Overdue`: The current time is strictly after the due date, unless it's the same UTC day.
-/// - `Urgent`: The task is due today (UTC), OR `time_remaining <= 0.25 * lead_time`.
-/// - `Active`: The task is within its lead time window (`time_remaining <= lead_time`), but not yet urgent.
-/// - `Upcoming`: The task is not yet active, but is within a buffer period (25% of `lead_time`) before the window starts.
-///   (`lead_time < time_remaining <= 1.25 * lead_time`)
-/// - `None`: The task is far in the future (outside the upcoming buffer) or lacks scheduling info.
+/// - [`UrgencyStatus::Overdue`]: The `current_time` is strictly after the due date, unless it's the same UTC day.
+/// - [`UrgencyStatus::Urgent`]: The task is due today (UTC), or `time_remaining <= 0.25 * effective_lead_time`.
+/// - [`UrgencyStatus::Active`]: The task is within its lead time window (`time_remaining <= effective_lead_time`), but not yet urgent.
+/// - [`UrgencyStatus::Upcoming`]: The task is not yet active, but is within a buffer period (25% of `effective_lead_time`) before the window starts.
+///   (`effective_lead_time < time_remaining <= 1.25 * effective_lead_time`)
+/// - [`UrgencyStatus::None`]: The task is far in the future (outside the upcoming buffer) or lacks scheduling info.
 ///
 /// # Arguments
 ///
 /// * `effective_due_date` - The timestamp when the task is due (ms).
 /// * `effective_lead_time` - The duration (ms) before the due date when the task becomes active.
 /// * `current_time` - The current timestamp (ms).
+///
+/// # Returns
+///
+/// The computed [`UrgencyStatus`] for the task.
 pub fn get_urgency_status(
     effective_due_date: Option<i64>,
     effective_lead_time: Option<i64>,
