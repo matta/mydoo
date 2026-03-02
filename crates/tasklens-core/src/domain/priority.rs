@@ -43,23 +43,23 @@ fn build_indexes_and_sort(
     state: &TunnelState,
     enriched_tasks: &mut [EnrichedTask],
 ) -> ChildrenLookup {
-    // Sort tasks by ID to enable binary search lookup
+    // Sort tasks by ID to enable O(1) lookups via a pre-calculated map
     enriched_tasks.sort_by(|a, b| a.id.cmp(&b.id));
+
+    // Pre-calculate TaskID -> Index map for O(1) lookups
+    let id_to_index: HashMap<&TaskID, usize> = enriched_tasks
+        .iter()
+        .enumerate()
+        .map(|(i, t)| (&t.id, i))
+        .collect();
 
     let mut children_index = HashMap::new();
 
-    // We can't use iter().enumerate() efficiently because we need to look up parent indices
-    // which requires binary search on the whole slice.
-
-    // First pass: collect parent-child relationships
-    // We use a temporary vector of (parent_id_ref, child_index) to avoid repeated lookups inside the loop?
-    // No, we need parent INDEX.
-
     for i in 0..enriched_tasks.len() {
-        let parent_id = enriched_tasks[i].parent_id.clone();
+        let parent_id = enriched_tasks[i].parent_id.as_ref();
 
         let parent_idx = if let Some(pid) = parent_id {
-            enriched_tasks.binary_search_by(|t| t.id.cmp(&pid)).ok()
+            id_to_index.get(pid).copied()
         } else {
             None
         };
