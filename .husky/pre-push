@@ -1,20 +1,3 @@
 #!/usr/bin/env sh
-# bd-shim v1
-# bd-hooks-version: 0.49.1
-#
-# bd (beads) pre-push hook
-#
-# Run bd pre-push checks first (when available), then run project checks.
-
-# Check if bd is available
-if ! command -v bd >/dev/null 2>&1; then
-    echo "Warning: bd command not found in PATH, skipping pre-push hook" >&2
-    echo "  Install bd: brew install beads" >&2
-    echo "  Or add bd to your PATH" >&2
-else
-    if ! bd hooks run pre-push "$@"; then
-        exit 1
-    fi
-fi
 
 chronic just check
