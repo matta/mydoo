@@ -10,8 +10,8 @@ This skill provides guidelines and common commands for interacting with the **Pe
 ## 🚨 CRITICAL RULES
 
 1.  **NEVER MANUALLY EDIT YAML FRONTMATTER IN TASK FILES**.
-    - Pebble stores tasks as markdown files in `docs/pebble/`. You must NOT edit them directly.
-    - ALWAYS use the `pebble` CLI tool to read, create, or modify tasks.
+    - Pebble stores tasks as markdown files in `docs/pebble/`. While the body can be edited, you must NOT edit the YAML frontmatter directly.
+    - ALWAYS use the `pebble` CLI tool to read, create, or modify task metadata.
     - The `pebble` tool ensures graph integrity and proper metadata handling.
 
 2.  **FREELY EDIT THE BODY OF TASK FILES**.

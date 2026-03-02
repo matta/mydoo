@@ -1,6 +1,6 @@
 ---
 id: issue-wu1wnudf3
-title: "Epoch: Fully Switch to Beads for Task Tracking"
+title: "Epoch: Fully Switch to Pebble for Task Tracking"
 status: done
 priority: 0
 created_at: 2026-03-02T14:59:34.593987943+00:00
