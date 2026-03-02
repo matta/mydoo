@@ -26,7 +26,18 @@ pub fn hydrate_tunnel_state(doc: &impl ReadDoc) -> Result<TunnelState, HydrateEr
     })
 }
 
-/// Reconciles a TunnelState manually into an Automerge document.
+/// Reconciles a `TunnelState` manually into an Automerge document.
+///
+/// Converts a state object representing the full application tree into
+/// operations within the target document. It synchronizes changes to properties
+/// like tasks, places, metadata, and root IDs without overwriting the entire doc
+/// from scratch.
+///
+/// # Errors
+///
+/// This returns an `Err` containing a [`ReconcileError`] if any structural or type
+/// inconsistencies prevent updating the document (for instance, if an unexpected
+/// scalar is found instead of a map during traversal).
 pub fn reconcile_tunnel_state<T: Transactable + autosurgeon::Doc>(
     doc: &mut T,
     state: &TunnelState,

@@ -153,7 +153,7 @@ pub fn hydrate_i64<D: autosurgeon::ReadDoc>(
         .ok_or_else(|| autosurgeon::HydrateError::unexpected("i64", "missing value".to_string()))
 }
 
-/// Reconciles an Option<T> using MaybeMissing semantics (None deletes the field).
+/// Reconciles an `Option<T>` using MaybeMissing semantics (None deletes the field).
 pub fn reconcile_option_as_maybe_missing<T, R>(
     val: &Option<T>,
     reconciler: R,
@@ -170,7 +170,7 @@ where
     maybe_missing.reconcile(reconciler)
 }
 
-/// Reconciles an Option<f64> as MaybeMissing while preserving safe integer conversion.
+/// Reconciles an `Option<f64>` as MaybeMissing while preserving safe integer conversion.
 pub fn reconcile_option_f64_as_maybe_missing<R: autosurgeon::Reconciler>(
     val: &Option<f64>,
     reconciler: R,
@@ -211,7 +211,7 @@ pub fn reconcile_f64<R: autosurgeon::Reconciler>(val: &f64, reconciler: R) -> Re
     }
 }
 
-/// Reconciles an Option<f64> using the same logic as reconcile_f64.
+/// Reconciles an `Option<f64>` using the same logic as reconcile_f64.
 pub fn reconcile_option_f64<R: autosurgeon::Reconciler>(
     val: &Option<f64>,
     mut reconciler: R,
@@ -240,7 +240,7 @@ pub fn reconcile_string_as_scalar<R: autosurgeon::Reconciler>(
     reconciler.str(val)
 }
 
-/// Reconciles an Optional<String> as an optional Automerge Text object.
+/// Reconciles an `Optional<String>` as an optional Automerge Text object.
 pub fn reconcile_option_string_as_text<R: autosurgeon::Reconciler>(
     val: &Option<String>,
     mut reconciler: R,
@@ -251,7 +251,7 @@ pub fn reconcile_option_string_as_text<R: autosurgeon::Reconciler>(
     }
 }
 
-/// Reconciles an Optional<String> as an "maybe missing" Automerge Text object.
+/// Reconciles an `Optional<String>` as an "maybe missing" Automerge Text object.
 pub fn reconcile_option_string_as_text_as_maybe_missing<R: autosurgeon::Reconciler>(
     val: &Option<String>,
     reconciler: R,
@@ -922,7 +922,7 @@ impl Hydrate for DocMetadata {
     }
 }
 
-/// Hydrates an Option<DocMetadata> treating missing values as None.
+/// Hydrates an `Option<DocMetadata>` treating missing values as None.
 pub fn hydrate_option_metadata<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,

@@ -17,6 +17,14 @@ pub const MAX_PERCENTAGE: f64 = 0.99;
 /// Calculates a new mapping of task percentages when one target value changes,
 /// ensuring all percentages continue to sum to 1.0.
 ///
+/// This maintains a "fixed pie" logic where all percentage values must sum up
+/// to exactly 1.0. When adjusting the target task's percentage, the remaining
+/// proportion is distributed proportionally among all other tasks based on
+/// their previous share. If multiple tasks previously shared the same percentage,
+/// they will continue to have an equal slice of the new remaining proportion.
+///
+/// The `new_value` will be strictly clamped between `MIN_PERCENTAGE` and `MAX_PERCENTAGE`.
+///
 /// # Arguments
 ///
 /// * `current_map` - The current map of [`TaskID`] to target percentage (0.0 to 1.0).
