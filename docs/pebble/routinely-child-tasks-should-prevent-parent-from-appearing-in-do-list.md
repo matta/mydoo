@@ -19,6 +19,7 @@ The parent task appears in the Do list despite having routinely children.
 Parent tasks with routinely children should be excluded from the Do list since they perpetually have actionable descendants.
 
 **Investigation needed:**
+
 - Review prd.md for specification of this behavior
 - Review algorithm.md for how routinely tasks should affect parent visibility
 - Add/verify YAML fixture test covering this scenario

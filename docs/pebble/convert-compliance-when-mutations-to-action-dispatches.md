@@ -10,18 +10,22 @@ tags:
   - task
 ---
 ## Goal
+
 Replace apply_mutation logic with Action dispatches for complete_tasks, delete_tasks, task_updates, etc.
 
 ## Context
+
 - The 'when' block in fixtures applies mutations (complete task, delete task, update fields, advance time)
 - Currently apply_mutation directly manipulates TunnelState
 - Must convert to dispatch(Action::...) calls
 
 ## Key Files
+
 - crates/tasklens-core/tests/compliance.rs (refactor apply_mutation)
 - crates/tasklens-store/src/actions.rs (reference Action variants)
 
 ## Implementation
+
 1. complete_tasks: dispatch(Action::CompleteTask { id, current_time })
 2. delete_tasks: dispatch(Action::DeleteTask { id })
 3. task_updates: dispatch(Action::UpdateTask { id, updates })
@@ -29,6 +33,7 @@ Replace apply_mutation logic with Action dispatches for complete_tasks, delete_t
 5. update_credits: May need Action::UpdateTask with credits field
 
 ## Current Mutation struct fields
+
 - advance_time_seconds: test state only
 - update_credits: HashMap<String, F64OrString>
 - task_updates: Vec<TaskUpdate>
@@ -36,10 +41,12 @@ Replace apply_mutation logic with Action dispatches for complete_tasks, delete_t
 - complete_tasks: Vec<String>
 
 ## Dependencies
+
 - Depends on mydoo-9ak ('given' mutations)
 - Depends on mydoo-25x (credit attribution in CompleteTask)
 
 ## Acceptance Criteria
+
 - apply_mutation removed or fully converted to dispatch calls
 - All 'when' blocks work via Actions
 - Existing fixtures still pass

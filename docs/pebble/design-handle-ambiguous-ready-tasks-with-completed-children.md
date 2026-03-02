@@ -12,7 +12,7 @@ tags:
 A task with completed children that is 'ready' and showing in the Do list is ambiguous:
 
 1. **Ready to complete** - all children done, parent can be checked off
-2. **Stuck** - needs planning attention to add new subtasks  
+2. **Stuck** - needs planning attention to add new subtasks
 3. **Evergreen container** - intended as a container for repeating tasks (never meant to be 'done')
 
 This ambiguity is a natural consequence of the app design, but the app should help users distinguish these cases.

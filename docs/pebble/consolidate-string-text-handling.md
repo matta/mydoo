@@ -14,6 +14,7 @@ tags:
 Consolidate String/Text Handling (verify hydrate_string_or_text necessity and simplify).
 
 Requirements:
+
 - MUST present implementation plan for manual review before implementation.
 - MUST use TDD.
 

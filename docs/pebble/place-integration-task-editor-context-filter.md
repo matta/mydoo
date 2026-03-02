@@ -10,6 +10,7 @@ tags:
 Integrate Place filtering into the primary application views.
 
 Planning Steps:
+
 1. Create a 'ContextPicker' component for the global header.
 2. Add a 'selected_place' signal to the global UI state (app context).
 3. Update 'use_do_list_tasks' hook to accept and apply the 'selected_place' filter.
@@ -17,6 +18,7 @@ Planning Steps:
 5. Verify that changing context updates the Do list immediately.
 
 Success Criteria:
+
 - Header displays a dropdown to switch between 'All Places' and specific Places.
 - Selecting a Place filters the Do list to only show tasks associated with that Place.
 - **Hierarchy Verification:** Selecting a Place (e.g., 'Home') MUST show tasks in included places (e.g., 'Desk').

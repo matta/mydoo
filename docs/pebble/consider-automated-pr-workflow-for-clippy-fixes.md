@@ -10,6 +10,7 @@ tags:
 Evaluate using an automated workflow similar to https://github.com/obi1kenobi/cargo-semver-checks/blob/main/.github/workflows/lint_fix.yml to automatically create PRs with clippy fixes as new lints appear.
 
 Benefits:
+
 - Keeps codebase up to date with latest clippy recommendations
 - Reduces manual effort for routine lint fixes
 - New clippy lints are applied automatically as Rust toolchain updates

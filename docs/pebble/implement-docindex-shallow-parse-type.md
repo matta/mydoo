@@ -12,12 +12,14 @@ tags:
 Create a new DocIndex type that provides shallow parsing of the Automerge doc root structure. This separates navigation (finding where things are) from content (deserializing actual data).
 
 Key design:
+
 - DocIndex contains HashMap<TaskID, automerge::ObjId> for tasks
-- DocIndex contains HashMap<PlaceID, automerge::ObjId> for places  
+- DocIndex contains HashMap<PlaceID, automerge::ObjId> for places
 - DocIndex contains root_task_ids: Vec<TaskID>
 - DocIndex contains other root-level metadata
 
 Benefits:
+
 - O(1) task/place lookup by ID returns ObjId pointer
 - On-demand full hydration: PersistedTask::hydrate(doc, &obj_id)
 - Structural integrity without deserializing content

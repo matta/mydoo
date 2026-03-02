@@ -16,6 +16,7 @@ When the app disconnects from the sync server (e.g., due to tab inactivity or ot
 When the app becomes active again after disconnection, it should automatically attempt reconnection using exponential backoff.
 
 **Notes:**
+
 - Root cause of disconnection not yet characterized
 - Possible triggers: tab going inactive, network interruption, server timeout
 - Need to implement reconnection logic with exponential backoff strategy

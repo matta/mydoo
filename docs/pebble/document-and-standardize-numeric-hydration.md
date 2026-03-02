@@ -14,5 +14,6 @@ tags:
 Document and standardize numeric hydration (Adding docs to hydrate_f64/reconcile_f64).
 
 Requirements:
+
 - MUST present implementation plan for manual review before implementation.
 - MUST use TDD.

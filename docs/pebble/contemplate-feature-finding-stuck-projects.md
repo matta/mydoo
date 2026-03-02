@@ -12,6 +12,7 @@ As we move to a 'Strictly Actionable' Do List, Projects with only future-schedul
 We need to contemplate a new feature to help users find these 'stuck' or 'black hole' projects that have no current visibility.
 
 Points to consider:
+
 1. The 'Vanishing Project' Phenomenon (Time): Projects with tasks scheduled for the future are invisible until the task wakes up.
 2. Context Blindness (Places): Projects with tasks for a different context (e.g. Work tasks while at Home) are invisible.
 

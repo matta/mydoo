@@ -13,6 +13,7 @@ tags:
 The priority algorithm is complex, making it unclear why tasks appear in their current order. Users often wonder 'why is this task above that one?'
 
 **Goals:**
+
 1. **Static indicators**: Always-visible cues explaining why a task ranks high (e.g., inherited priority, balance algorithm boost, due date inflation)
 2. **On-demand explanation**: A feature users can invoke to see a detailed breakdown of why a task appears at its current position
 

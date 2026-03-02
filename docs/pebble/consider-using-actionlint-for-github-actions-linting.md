@@ -10,6 +10,7 @@ tags:
 Evaluate using actionlint to lint GitHub Actions workflows, similar to https://github.com/obi1kenobi/cargo-semver-checks/blob/main/.github/workflows/actionlint.yml
 
 Benefits:
+
 - Catches common GitHub Actions mistakes early
 - Validates workflow syntax and expressions
 - Can run as a CI check or pre-commit hook

@@ -10,6 +10,7 @@ tags:
 Perform a human/AI co-review of https://github.com/obi1kenobi/cargo-semver-checks/blob/main/.github/workflows/ci.yml to identify patterns, techniques, and ideas that could be incorporated into this project's CI setup.
 
 Areas to examine:
+
 - Job structure and parallelization
 - Caching strategies
 - Matrix testing approaches

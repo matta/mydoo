@@ -10,8 +10,9 @@ tags:
   - chore
 ---
 Split crates/tasklens-core/src/types.rs into two separate files:
+
 1. Persistent types that are part of the Automerge document schema (using Hydrate/Reconcile).
-2. Transient/Utility types like PriorityOptions and Context that are strictly *not* intended to be persisted in the Automerge doc, ensuring a cleaner separation of concerns between state storage and runtime logic.
+2. Transient/Utility types like PriorityOptions and Context that are strictly _not_ intended to be persisted in the Automerge doc, ensuring a cleaner separation of concerns between state storage and runtime logic.
 
 ## Close Reason
 

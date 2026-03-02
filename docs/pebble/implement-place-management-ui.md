@@ -10,6 +10,7 @@ tags:
 Create a dedicated interface for users to manage their Places (CRUD operations).
 
 Planning Steps:
+
 1. Define 'PlaceManagementPage' view and add to router.
 2. Implement a list view showing all existing Places from the store.
 3. Create a 'PlaceEditor' component (dialog or inline) for creating and editing Places.
@@ -18,6 +19,7 @@ Planning Steps:
 5. Add navigation entry (e.g., in Settings or Sidebar) to access the Places view.
 
 Success Criteria:
+
 - User can create, rename, and delete Places.
 - User can configure 'Operating Hours' and 'Included Places' (hierarchy).
 - Changes persist to the Automerge document.

@@ -9,8 +9,9 @@ resolved_at: 2026-03-02T14:59:34.927342130+00:00
 tags:
   - task
 ---
-Retire hydrate_optional_* helpers in favor of standard Option<T> hydration.
+Retire hydrate*optional*\* helpers in favor of standard Option<T> hydration.
 
 Requirements:
+
 - MUST present implementation plan for manual review before implementation.
 - MUST use TDD.

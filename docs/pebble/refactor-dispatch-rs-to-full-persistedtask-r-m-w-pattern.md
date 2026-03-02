@@ -12,23 +12,27 @@ tags:
 Refactor dispatch.rs handlers to use full PersistedTask Read-Modify-Write pattern, eliminating field name strings and hydration function drift.
 
 Current problem:
-- Manual hydrate_f64/hydrate_optional_* calls with string field names
+
+- Manual hydrate*f64/hydrate_optional*\* calls with string field names
 - reconcile_prop calls with string field names
 - Drift risk: struct annotations can diverge from dispatch code
 
 New pattern:
+
 1. Shallow-hydrate DocIndex to get task ObjIds (O(1) lookup)
 2. Full-hydrate individual PersistedTask structs
 3. Modify typed Rust fields (compiler-enforced)
 4. Reconcile full PersistedTask (uses struct's reconcile attributes)
 
 Handlers to refactor:
+
 - handle_complete_task (most complex, credit propagation)
 - handle_update_task (sparse updates)
 - handle_delete_task
 - handle_move_task
 
 Benefits:
+
 - Single source of truth: PersistedTask definition
 - Type safety: no string field names in dispatch logic
 - Correct reconciliation: struct attributes define serialization
