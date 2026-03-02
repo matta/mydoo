@@ -23,6 +23,3 @@ When the app becomes active again after disconnection, it should automatically a
 ## Related Issues
 
 - mydoo-cqu
-
----
-*Imported from beads issue mydoo-zf5*

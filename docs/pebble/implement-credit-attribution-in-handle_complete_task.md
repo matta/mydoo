@@ -12,6 +12,3 @@ tags:
 ## Close Reason
 
 Superseded by mydoo-25x (Add credit attribution to adapter::handle_complete_task)
-
----
-*Imported from beads issue mydoo-38e.1.8.3*

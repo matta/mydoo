@@ -14,5 +14,3 @@ needs:
 tags:
   - epic
 ---
----
-*Imported from beads issue mydoo-38e*

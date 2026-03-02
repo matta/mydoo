@@ -18,6 +18,3 @@ Benefits:
 
 - mydoo-8o0
 - mydoo-fvn
-
----
-*Imported from beads issue mydoo-olt*

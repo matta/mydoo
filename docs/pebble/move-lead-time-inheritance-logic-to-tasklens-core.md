@@ -10,6 +10,3 @@ tags:
   - task
 ---
 The Plan view currently implements lead time inheritance during tree-walking. This non-trivial business logic should be moved to tasklens-core and verified through the conformance test fixture to ensure consistency across all views including Do mode.
-
----
-*Imported from beads issue mydoo-d8u*

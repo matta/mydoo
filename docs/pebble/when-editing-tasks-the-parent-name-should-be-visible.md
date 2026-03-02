@@ -12,6 +12,3 @@ tags:
 ## Related Issues
 
 - mydoo-t42
-
----
-*Imported from beads issue mydoo-bvi*

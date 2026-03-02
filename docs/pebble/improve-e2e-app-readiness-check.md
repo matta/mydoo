@@ -14,6 +14,3 @@ tags:
 ## Close Reason
 
 Already fixed in a pending PR.
-
----
-*Imported from beads issue mydoo-g9l*

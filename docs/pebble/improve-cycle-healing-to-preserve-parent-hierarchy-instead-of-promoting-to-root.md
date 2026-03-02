@@ -35,6 +35,3 @@ The expedient fix walks from roots to find reachable tasks, then promotes any un
 
 - mydoo-1wb
 - mydoo-cqu
-
----
-*Imported from beads issue mydoo-cjj*

@@ -19,6 +19,3 @@ The priority algorithm is complex, making it unclear why tasks appear in their c
 **Stretch goal**: Allow users to drag tasks in the Do list; the app then suggests property adjustments (on this task or others) to achieve the desired ordering. This requires significant work, so prioritize the 'why' explanation first.
 
 **First step**: Brainstorm and prototype static and dynamic explanation approaches.
-
----
-*Imported from beads issue mydoo-c54*

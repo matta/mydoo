@@ -17,5 +17,3 @@ needs:
 tags:
   - task
 ---
----
-*Imported from beads issue mydoo-5k3*

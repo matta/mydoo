@@ -10,6 +10,3 @@ tags:
   - task
 ---
 Scan tasklens-ui E2E tests for unnecessary fixed pauses (e.g., page.waitForTimeout) and replace them with faster, more reliable idioms such as waiting for specific DOM elements, network idle, or application state changes. This is critical for improving CI feedback loops and development velocity.
-
----
-*Imported from beads issue mydoo-85b*

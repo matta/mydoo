@@ -19,6 +19,3 @@ Areas to examine:
 ## Related Issues
 
 - mydoo-fvn
-
----
-*Imported from beads issue mydoo-paa*

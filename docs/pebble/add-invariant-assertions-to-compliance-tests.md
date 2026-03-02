@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Extend tasklens-core compliance test runner with invariant-style assertions (e.g., non-pending siblings never affect importance sum).
-
----
-*Imported from beads issue mydoo-dc3*

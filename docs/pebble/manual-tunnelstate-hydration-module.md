@@ -18,6 +18,3 @@ Key changes:
 - These functions have full control over granularity and can be optimized
 
 This is foundational work for the DocIndex pattern.
-
----
-*Imported from beads issue mydoo-01z.1*

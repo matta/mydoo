@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Create a helper to snapshot a scoped component (not just body) and stabilize ARIA output for tests.
-
----
-*Imported from beads issue mydoo-nbh*

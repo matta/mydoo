@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Run sync.spec.ts (E2E tests). Verify persistence works in browser (IndexedDB via samod_storage). Verify cross-tab/cross-browser sync. Context from docs/plan/samod-migration.md.
-
----
-*Imported from beads issue mydoo-49b.3*

@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Measure and compare cost of stream-driven persistence updates vs prior polling to validate performance gains.
-
----
-*Imported from beads issue mydoo-281*

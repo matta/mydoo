@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Add one E2E test that fails when label/for wiring is missing to lock in accessibility selector patterns.
-
----
-*Imported from beads issue mydoo-dlr*

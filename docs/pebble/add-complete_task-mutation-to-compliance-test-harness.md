@@ -12,6 +12,3 @@ tags:
 ## Close Reason
 
 Partially completed: added complete_tasks to Mutation struct and compliance harness. Work superseded by architectural decision to route all mutations through Store::dispatch. See new beads: mydoo-25x, mydoo-3dj, mydoo-9ak, mydoo-68j, mydoo-k9x, mydoo-485.
-
----
-*Imported from beads issue mydoo-38e.1.8.2*

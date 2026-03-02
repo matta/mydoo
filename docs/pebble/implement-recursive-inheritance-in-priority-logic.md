@@ -18,6 +18,3 @@ Already implemented — recursive priority inheritance works correctly via DFS i
 ## Related Issues
 
 - mydoo-jg0
-
----
-*Imported from beads issue mydoo-jmi*

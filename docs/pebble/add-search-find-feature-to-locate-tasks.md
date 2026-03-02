@@ -12,6 +12,3 @@ tags:
 Users need the ability to search for tasks by name or other properties. Currently, if a task isn't visible in the Do or Plan views (e.g., a routine task that's snoozed, completed, or filtered out), there's no way to find it.
 
 Stipulation: The UX for this feature must not use a modal dialog. Use a slider, in-place elements, or other alternative. It must function on both desktop and mobile.
-
----
-*Imported from beads issue mydoo-72k*

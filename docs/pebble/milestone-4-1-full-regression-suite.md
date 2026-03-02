@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Ensure all 22+ feature files pass reliably.
-
----
-*Imported from beads issue mydoo-49b.1*

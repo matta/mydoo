@@ -14,6 +14,3 @@ The project currently has overlapping responsibilities between Biome and Prettie
 ## Close Reason
 
 obsolete
-
----
-*Imported from beads issue mydoo-9mp*

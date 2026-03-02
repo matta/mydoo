@@ -40,6 +40,3 @@ Replace the apply_task_input and apply_place_input functions with Action::Create
 - apply_task_input removed or converted to use dispatch
 - All 'given' blocks work via Actions
 - Existing fixtures still pass
-
----
-*Imported from beads issue mydoo-9ak*

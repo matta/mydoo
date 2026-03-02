@@ -17,6 +17,3 @@ Benefits:
 ## Related Issues
 
 - mydoo-olt
-
----
-*Imported from beads issue mydoo-8o0*

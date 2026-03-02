@@ -25,6 +25,3 @@ Benefits:
 TunnelState remains for legacy/UI rendering as a 'fully materialized view' computed when needed.
 
 Depends on: mydoo-01z.1 (Manual TunnelState Hydration Module)
-
----
-*Imported from beads issue mydoo-01z.2*

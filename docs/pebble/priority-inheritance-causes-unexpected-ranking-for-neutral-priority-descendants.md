@@ -24,6 +24,3 @@ Review the priority inheritance algorithm and adjust so that neutral-priority ch
 ## Related Issues
 
 - mydoo-jmi
-
----
-*Imported from beads issue mydoo-jg0*

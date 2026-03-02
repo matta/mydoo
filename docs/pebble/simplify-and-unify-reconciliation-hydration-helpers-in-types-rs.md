@@ -16,6 +16,3 @@ tags:
   - refactor
 ---
 Leverage MaybeMissing and other built-in autosurgeon helpers to express hydration/reconciliation functions more consistently and idiomatically. Evaluate which custom helpers (like hydrate_f64/i64) can be replaced by standard library or autosurgeon-provided traits.
-
----
-*Imported from beads issue mydoo-3o8*

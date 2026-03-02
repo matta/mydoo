@@ -36,6 +36,3 @@ Top-level tasks appear in the Do list when their children are complete, even whe
 ## Related Issues
 
 - mydoo-1wb
-
----
-*Imported from beads issue mydoo-zup*

@@ -34,6 +34,3 @@ Benefits:
 - Correct reconciliation: struct attributes define serialization
 
 Depends on: mydoo-01z.2 (DocIndex Shallow Parse Type)
-
----
-*Imported from beads issue mydoo-01z.3*

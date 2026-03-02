@@ -10,6 +10,3 @@ tags:
   - task
 ---
 Rename all 'hydrate_optional_*' and 'reconcile_optional_*' functions to use the 'option' prefix (e.g., 'hydrate_option_f64', 'reconcile_option_as_maybe_missing') to be consistent with existing 'reconcile_option_string_as_text'. Update all call sites and #[autosurgeon] attributes.
-
----
-*Imported from beads issue mydoo-w2k*

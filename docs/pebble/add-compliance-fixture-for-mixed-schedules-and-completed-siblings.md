@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Create a new compliance YAML fixture that exercises deep subtree with mixed schedule types and completed siblings to validate priority/visibility invariants.
-
----
-*Imported from beads issue mydoo-vc5*

@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Change PriorityOptions.include_hidden from a boolean to a named enum (e.g., HiddenTasksPolicy { Include, Exclude }) to improve clarity at call sites and prevent 'boolean blindness'.
-
----
-*Imported from beads issue mydoo-trr*

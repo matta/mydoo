@@ -23,6 +23,3 @@ Success Criteria:
 - Changes persist to the Automerge document.
 - UI handles the 'Anywhere' built-in place correctly (e.g., non-deletable).
 - Verified via BDD/Playwright tests.
-
----
-*Imported from beads issue mydoo-38e.2.2*

@@ -16,6 +16,3 @@ Points to consider:
 2. Context Blindness (Places): Projects with tasks for a different context (e.g. Work tasks while at Home) are invisible.
 
 This feature would likely be a separate view or a 'Review' mode to ensure nothing falls through the cracks permanently.
-
----
-*Imported from beads issue mydoo-e8j*

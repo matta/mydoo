@@ -10,6 +10,3 @@ tags:
   - bug
 ---
 Tasks like 'Maple Tree Pruning' are not visible in the Do list. This task is a parent task (Project) with status Pending, but all its children are Done and Acknowledged. According to PRD Appendix A 'Container Visibility', 'if steps are hidden (sleeping), we show the Project to prevent Black Holes'. Currently, the project is hidden.
-
----
-*Imported from beads issue mydoo-n7p*

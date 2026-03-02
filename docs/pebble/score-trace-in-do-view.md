@@ -10,6 +10,3 @@ tags:
   - task
 ---
 Implement score trace in Do view (core trace API, UI trace page, tests).
-
----
-*Imported from beads issue mydoo-66i*

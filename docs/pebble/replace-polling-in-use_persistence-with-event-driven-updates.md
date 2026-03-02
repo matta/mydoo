@@ -10,6 +10,3 @@ tags:
   - task
 ---
 use_persistence.rs (and related hooks) currently polls for document changes every 100ms. This is inefficient. The persistence logic should react to messaging from samod to realize when the doc has been persisted instead of polling.
-
----
-*Imported from beads issue mydoo-cqu.2*

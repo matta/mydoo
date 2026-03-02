@@ -36,6 +36,3 @@ Use the hydrate→mutate→reconcile pattern (like handle_refresh_lifecycle):
 - handle_complete_task applies credit attribution
 - Existing adapter tests still pass
 - cargo test --package tasklens-store passes
-
----
-*Imported from beads issue mydoo-25x*

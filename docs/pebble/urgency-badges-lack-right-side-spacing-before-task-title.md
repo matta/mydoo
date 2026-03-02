@@ -13,6 +13,3 @@ In Planning mode, badges (e.g., urgency indicators) are displayed immediately ad
 
 - mydoo-63z
 - mydoo-w1c
-
----
-*Imported from beads issue mydoo-e48*

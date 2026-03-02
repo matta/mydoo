@@ -49,6 +49,3 @@ Hydrate TunnelState, a single PersistedTask, or a single field, all with identic
 - Single source of truth for hydration/reconciliation semantics per field
 - Adapter code cannot accidentally use wrong hydrator
 - Compiler or runtime catches mismatches if annotations change
-
----
-*Imported from beads issue mydoo-01z*

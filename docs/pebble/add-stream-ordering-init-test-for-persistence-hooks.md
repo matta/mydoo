@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Add a focused unit test to ensure initial heads are set before consuming handle.changes()/handle.persisted() updates.
-
----
-*Imported from beads issue mydoo-20b*

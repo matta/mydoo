@@ -27,6 +27,3 @@ For the Plan view's use_schedule_lookup hook, we only need #1 - the schedule inh
 - Two code paths to maintain
 
 **Context:** This came up during Gemini's code review of PR #209 (lead time inheritance centralization). Gemini suggested parameterizing PriorityMode, but we identified that the real issue is API design - passing a mode that doesn't affect the output indicates the API isn't well-suited for this use case.
-
----
-*Imported from beads issue mydoo-dhh*

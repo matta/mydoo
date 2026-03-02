@@ -10,6 +10,3 @@ tags:
   - task
 ---
 The tasks rows in plan and do mode show with white backgrounds in dark mode. They shouldn't. Same for Refresh button in the Do mode. Same for the Connected button at the top of the screen. All of these should look good in dark mode.
-
----
-*Imported from beads issue mydoo-ss5*

@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Remove apps/client and promote crates/tasklens-ui to primary frontend.
-
----
-*Imported from beads issue mydoo-49b.2*

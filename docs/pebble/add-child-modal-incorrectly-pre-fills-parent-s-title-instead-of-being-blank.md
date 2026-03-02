@@ -14,6 +14,3 @@ In Plan mode, selecting a task and clicking 'Add Child' opens the Create Task mo
 ## Related Issues
 
 - mydoo-bvi
-
----
-*Imported from beads issue mydoo-t42*

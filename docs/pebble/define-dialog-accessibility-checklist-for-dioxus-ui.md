@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Document a small internal checklist for dialogs: label-input linkage, sr-only text for icon buttons, and consistent id patterns for E2E selectors.
-
----
-*Imported from beads issue mydoo-6tf*

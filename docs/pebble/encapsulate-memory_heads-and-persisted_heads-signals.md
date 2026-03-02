@@ -10,6 +10,3 @@ tags:
   - task
 ---
 Currently memory_heads and persisted_heads are exposed as bare Signal<String>. They should be encapsulated in a struct or similar abstraction so that read/write operations can be easily tracked using 'find references' features in IDEs.
-
----
-*Imported from beads issue mydoo-cqu.3*

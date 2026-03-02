@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Avoid unnecessary cloning in repetition-frequency-select and interval handlers by using with_mut and in-place updates (matches gemini-code-assist recommendation).
-
----
-*Imported from beads issue mydoo-c9d.1*

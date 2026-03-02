@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Remove any remaining dead code from tasklens-store (legacy files). Standardize logging/tracing. Context from docs/plan/samod-migration.md.
-
----
-*Imported from beads issue mydoo-49b.4*

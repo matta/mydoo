@@ -26,6 +26,3 @@ Allow users to snooze a task, temporarily hiding it from the Do list until a spe
 ## Related Issues
 
 - mydoo-1jv
-
----
-*Imported from beads issue mydoo-o4s*

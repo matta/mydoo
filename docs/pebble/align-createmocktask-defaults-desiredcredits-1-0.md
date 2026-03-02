@@ -12,6 +12,3 @@ tags:
 ## Close Reason
 
 Obsolete: createMockTask was a TypeScript helper that no longer exists. Rust test helpers (mock_root, make_test_task, etc.) all take desired_credits as an explicit parameter.
-
----
-*Imported from beads issue mydoo-5k3.5*

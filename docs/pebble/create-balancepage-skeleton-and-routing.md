@@ -9,5 +9,3 @@ resolved_at: 2026-03-02T14:59:34.736721291+00:00
 tags:
   - task
 ---
----
-*Imported from beads issue mydoo-38e.1.3*

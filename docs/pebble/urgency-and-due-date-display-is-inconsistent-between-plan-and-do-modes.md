@@ -14,6 +14,3 @@ The visual presentation of urgency indicators and due date information differs b
 - mydoo-e48
 - mydoo-5qf
 - mydoo-w1c
-
----
-*Imported from beads issue mydoo-63z*

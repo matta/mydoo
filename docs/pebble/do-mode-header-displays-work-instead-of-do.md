@@ -12,6 +12,3 @@ The Do mode view shows 'Work' as the heading text. It should display 'Do' to mat
 ## Related Issues
 
 - mydoo-63z
-
----
-*Imported from beads issue mydoo-5qf*

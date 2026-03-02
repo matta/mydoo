@@ -10,5 +10,3 @@ needs:
 tags:
   - epic
 ---
----
-*Imported from beads issue mydoo-d04*

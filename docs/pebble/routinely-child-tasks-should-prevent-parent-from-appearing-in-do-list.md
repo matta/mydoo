@@ -28,6 +28,3 @@ Parent tasks with routinely children should be excluded from the Do list since t
 
 - mydoo-m05
 - mydoo-zup
-
----
-*Imported from beads issue mydoo-1wb*

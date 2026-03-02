@@ -10,6 +10,3 @@ tags:
   - task
 ---
 Currently, memory_heads in use_persistence tracks the heads from the persisted store handle, which reflects the disk state rather than the pending in-memory state. This task is to update memory_heads. memory_heads should reflect the in-memory document state, not the persisted state.
-
----
-*Imported from beads issue mydoo-cqu.1*

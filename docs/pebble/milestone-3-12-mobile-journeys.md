@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Verify touch targets and responsive layouts on mobile. Implement mobile drill-down navigation in Plan view. Add mobile bottom bar with navigation controls.
-
----
-*Imported from beads issue mydoo-38e.5*

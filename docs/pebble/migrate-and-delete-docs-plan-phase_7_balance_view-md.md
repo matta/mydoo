@@ -12,6 +12,3 @@ tags:
 ## Close Reason
 
 Migrated all tasks to bd (mydoo-38e.1 and mydoo-5k3) and deleted source markdown file.
-
----
-*Imported from beads issue mydoo-0kq.2*

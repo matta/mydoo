@@ -14,6 +14,3 @@ Playwright has deprecated and removed page.accessibility. Replace its current us
 ## Acceptance Criteria
 
 1. Replace all usages of page.accessibility.snapshot() with Axe checks or locator.ariaSnapshot() (including in .agent/skills/playwright-debug/SKILL.md).\n2. Remove the module augmentation in crates/tasklens-ui/tests/e2e/playwright.d.ts.\n3. Ensure all E2E tests still pass.
-
----
-*Imported from beads issue mydoo-yr4*

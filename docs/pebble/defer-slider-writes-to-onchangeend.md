@@ -12,6 +12,3 @@ tags:
 ## Close Reason
 
 Already implemented: BalanceSlider separates oninput (preview via handle_input) from onchange (commit via handle_change). Writes only persist on slider release.
-
----
-*Imported from beads issue mydoo-5k3.4.2*

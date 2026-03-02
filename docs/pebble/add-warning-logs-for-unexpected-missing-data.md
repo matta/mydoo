@@ -8,6 +8,3 @@ tags:
   - task
 ---
 As per Gemini review: Use unwrap_or_else with tracing::warn! when looking up data that is expected to be present, to make issues detectable.
-
----
-*Imported from beads issue mydoo-c9d.2*

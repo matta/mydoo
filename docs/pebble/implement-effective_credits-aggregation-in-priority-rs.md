@@ -48,6 +48,3 @@ enriched_tasks[task_idx].effective_credits += sum_children;
 ## Close Reason
 
 Implemented recursive effective_credits aggregation in priority.rs and aligned dispatch logic.
-
----
-*Imported from beads issue mydoo-k9x*

@@ -13,6 +13,3 @@ Code review of the types refactor noted that ScheduleSource and PriorityMode hav
 2. PriorityMode: serde expects 'do-list'/'plan-outline' (kebab-case), but autosurgeon uses 'DoList'/'PlanOutline' (PascalCase).
 
 We should unify these to match the serde configuration while maintaining backward compatibility for hydration of existing documents.
-
----
-*Imported from beads issue mydoo-xnz*

@@ -10,6 +10,3 @@ tags:
   - bug
 ---
 The 'Balance' algorithm (domain/balance.rs) is currently output-only and does not influence the core priority calculation (domain/priority.rs). This means strict balancing rules are not being applied to task scoring.
-
----
-*Imported from beads issue mydoo-xqj*

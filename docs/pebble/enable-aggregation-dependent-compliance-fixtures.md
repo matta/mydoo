@@ -44,6 +44,3 @@ Enable the credit attribution fixtures that depend on effective_credits aggregat
 ## Close Reason
 
 Enabled credit-attribution-aggregation.feature.yaml and verified with compliance tests.
-
----
-*Imported from beads issue mydoo-485*

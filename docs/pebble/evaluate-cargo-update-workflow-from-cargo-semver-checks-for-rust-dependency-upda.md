@@ -21,6 +21,3 @@ Key points to evaluate:
 
 - mydoo-olt
 - mydoo-paa
-
----
-*Imported from beads issue mydoo-fvn*

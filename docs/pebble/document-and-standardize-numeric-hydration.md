@@ -16,6 +16,3 @@ Document and standardize numeric hydration (Adding docs to hydrate_f64/reconcile
 Requirements:
 - MUST present implementation plan for manual review before implementation.
 - MUST use TDD.
-
----
-*Imported from beads issue mydoo-3o8.3*

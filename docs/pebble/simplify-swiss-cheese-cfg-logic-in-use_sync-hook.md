@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Refactor the sync hook to eliminate "swiss cheese" platform guards. The current implementation in `crates/tasklens-ui/src/hooks/use_sync.rs` is heavily fragmented by inline `#[cfg(...)]` checks. We must distill this complexity into elegant, platform-specific sub-modules or traits, restoring clarity to the hook core logic and paving the way for desktop support.
-
----
-*Imported from beads issue mydoo-2vj*

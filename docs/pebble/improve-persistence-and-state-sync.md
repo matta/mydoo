@@ -18,6 +18,3 @@ Refactor persistence logic to accurately track in-memory state and use event-dri
 
 - mydoo-zf5
 - mydoo-cjj
-
----
-*Imported from beads issue mydoo-cqu*

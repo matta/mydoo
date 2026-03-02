@@ -14,6 +14,3 @@ tags:
   - task
 ---
 Implement the user-facing features for Places and Contexts. This includes both the management of Places and the application of Place-based filtering (Contexts) throughout the UI.
-
----
-*Imported from beads issue mydoo-38e.2*

@@ -14,6 +14,3 @@ Remove next_task_id and next_place_id from TunnelState struct in crates/tasklens
 ## Close Reason
 
 done
-
----
-*Imported from beads issue mydoo-bho*

@@ -11,6 +11,3 @@ tags:
 
 **Matt Armstrong** (2026-02-08T01:30:48Z):
 Investigated: concept applies to TaskRow (task_row.rs). It takes 6 separate EventHandler callback props. Grouping into a struct or providing via context would reduce prop drilling.
-
----
-*Imported from beads issue mydoo-38e.4.2*

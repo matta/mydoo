@@ -16,6 +16,3 @@ Completed tasks accumulate and clutter the task list. Need a way to clean them u
 ## Related Issues
 
 - mydoo-o4s
-
----
-*Imported from beads issue mydoo-1jv*

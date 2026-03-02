@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Normalize attachment filenames/metadata in e2e debug utils for easier triage.
-
----
-*Imported from beads issue mydoo-o4n*

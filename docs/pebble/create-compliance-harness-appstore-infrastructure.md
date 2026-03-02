@@ -35,6 +35,3 @@ DONE with caveat: The current implementation works but has a layering violation 
 ✓ Compliance harness uses Automerge documents, not raw TunnelState
 ✓ All existing passing fixtures still pass
 ✓ cargo test --test compliance passes
-
----
-*Imported from beads issue mydoo-3dj*

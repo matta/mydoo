@@ -10,6 +10,3 @@ tags:
   - task
 ---
 Add a short doc section listing WASM-safe features and how to run just check-wasm.
-
----
-*Imported from beads issue mydoo-zro*

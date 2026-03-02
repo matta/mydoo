@@ -17,6 +17,3 @@ Investigate:
 ## Related Issues
 
 - mydoo-1wb
-
----
-*Imported from beads issue mydoo-m05*

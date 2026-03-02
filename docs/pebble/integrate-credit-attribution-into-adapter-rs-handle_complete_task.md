@@ -14,6 +14,3 @@ The handle_complete_task function in crates/tasklens-store/src/adapter.rs curren
 ## Close Reason
 
 Superseded by mydoo-25x (Add credit attribution to adapter::handle_complete_task)
-
----
-*Imported from beads issue mydoo-fce*

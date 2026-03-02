@@ -8,6 +8,3 @@ tags:
   - task
 ---
 Analyze current state, identify PWA requirements (manifest, service workers, offline capability), and create a roadmap.
-
----
-*Imported from beads issue mydoo-d04.1*

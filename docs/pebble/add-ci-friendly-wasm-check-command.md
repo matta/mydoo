@@ -10,6 +10,3 @@ tags:
   - task
 ---
 Add a command or script that runs wasm checks with clear failure messaging for CI.
-
----
-*Imported from beads issue mydoo-i03*

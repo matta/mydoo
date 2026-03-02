@@ -20,6 +20,3 @@ Requirements:
 ## Close Reason
 
 Consolidated ID types, standardized enum reconciliation, and simplified hydration logic. All tests passed.
-
----
-*Imported from beads issue mydoo-3o8.2*

@@ -14,6 +14,3 @@ When editing tasks, the sliders for importance and effort seem to work, but thei
 ## Close Reason
 
 Fixed importance and effort sliders by including them in TaskUpdates save_handler. Verified with E2E test.
-
----
-*Imported from beads issue mydoo-7gi*

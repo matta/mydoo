@@ -14,6 +14,3 @@ Per algorithm.md §5.1: 'Parent's stored credits remain unchanged, but its effec
 ## Close Reason
 
 Superseded by mydoo-k9x (Implement effective_credits aggregation in priority.rs)
-
----
-*Imported from beads issue mydoo-59v*

@@ -22,6 +22,3 @@ Success Criteria:
 - **Hierarchy Verification:** Selecting a Place (e.g., 'Home') MUST show tasks in included places (e.g., 'Desk').
 - New tasks created while a filter is active are automatically assigned to that Place.
 - Verified via BDD/Playwright tests.
-
----
-*Imported from beads issue mydoo-38e.2.3*

@@ -16,6 +16,3 @@ Split crates/tasklens-core/src/types.rs into two separate files:
 ## Close Reason
 
 Refactored types.rs into persistent and transient modules.
-
----
-*Imported from beads issue mydoo-qh3*

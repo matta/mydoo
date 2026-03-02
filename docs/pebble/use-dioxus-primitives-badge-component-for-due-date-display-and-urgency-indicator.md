@@ -27,6 +27,3 @@ Blocked: Badge component not yet published to dioxus-components registry. It exi
 ## Deferred
 
 Deferred until: 2026-03-04T18:50:11-08:00
-
----
-*Imported from beads issue mydoo-w1c*

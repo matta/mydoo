@@ -43,6 +43,3 @@ Replace apply_mutation logic with Action dispatches for complete_tasks, delete_t
 - apply_mutation removed or fully converted to dispatch calls
 - All 'when' blocks work via Actions
 - Existing fixtures still pass
-
----
-*Imported from beads issue mydoo-68j*

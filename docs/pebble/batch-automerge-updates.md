@@ -12,6 +12,3 @@ tags:
 ## Close Reason
 
 Already implemented: All actions (including SetBalanceDistribution which updates multiple tasks) execute within a single Automerge transaction via adapter::dispatch(). Writes are inherently batched.
-
----
-*Imported from beads issue mydoo-5k3.2*

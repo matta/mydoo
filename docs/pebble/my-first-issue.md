@@ -12,6 +12,3 @@ tags:
 ## Close Reason
 
 Placeholder/test bead — no actionable work defined.
-
----
-*Imported from beads issue mydoo-2yp*

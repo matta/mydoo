@@ -12,6 +12,3 @@ tags:
 ## Close Reason
 
 Already implemented: STARVING_THRESHOLD constant is defined at crates/tasklens-core/src/domain/balance.rs:12 and used in calculate_balance_percentages.
-
----
-*Imported from beads issue mydoo-5k3.6*

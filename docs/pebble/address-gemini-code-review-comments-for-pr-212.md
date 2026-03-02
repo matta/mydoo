@@ -12,6 +12,3 @@ tags:
   - task
 ---
 Address technical feedback from gemini-code-assist on PR #212, including efficiency improvements and warning logs.
-
----
-*Imported from beads issue mydoo-c9d*

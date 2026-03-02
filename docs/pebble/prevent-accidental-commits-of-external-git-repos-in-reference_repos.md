@@ -10,6 +10,3 @@ tags:
   - task
 ---
 Commit 5dad53f accidentally committed a whole git repo under reference_repos. We should add a lint check to prevent this. Suggestion: a whitelist of approved subdirectories in reference_repos or a check for .git files that aren't expected.
-
----
-*Imported from beads issue mydoo-mu1*

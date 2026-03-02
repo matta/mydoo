@@ -14,6 +14,3 @@ Retire hydrate_optional_* helpers in favor of standard Option<T> hydration.
 Requirements:
 - MUST present implementation plan for manual review before implementation.
 - MUST use TDD.
-
----
-*Imported from beads issue mydoo-3o8.1*

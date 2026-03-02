@@ -11,6 +11,3 @@ tags:
 
 **Matt Armstrong** (2026-02-08T01:30:48Z):
 Investigated: concept applies to PlanPage TaskRow rendering. The flattened_tasks memo caches the list, but every row still clones its PersistedTask and re-renders on any state change. Per-row memoization or virtualization could help for large trees.
-
----
-*Imported from beads issue mydoo-38e.4.1*
