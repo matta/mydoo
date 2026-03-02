@@ -63,7 +63,7 @@ pub(crate) fn PriorityTaskRow(
                 class: title_class,
                 role: "button",
                 tabindex: "0",
-                "aria-label": "Edit task: {task.title}",
+                aria_label: "Edit task {task.title}",
                 "data-testid": "task-title",
                 onclick: move |_| on_title_tap.call(task_id_tap.clone()),
                 onkeydown: move |evt: KeyboardEvent| {
