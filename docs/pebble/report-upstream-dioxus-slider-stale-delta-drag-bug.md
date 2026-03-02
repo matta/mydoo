@@ -1,11 +1,11 @@
-+++
-id = "issue-u9cGaU"
-title = "Report upstream Dioxus slider stale-delta drag bug"
-status = "todo"
-created_at = 2026-02-23T17:42:00.017857+00:00
-needs = []
-tags = []
-+++
+---
+id: issue-u9cGaU
+title: Report upstream Dioxus slider stale-delta drag bug
+status: done
+created_at: 2026-02-23T17:42:00.017857+00:00
+modified_at: 2026-03-02T23:19:22.504729+00:00
+resolved_at: 2026-03-02T23:19:22.504728+00:00
+---
 
 # Bug Report: `dioxus_primitives::slider` can replay stale pointer delta, causing value drift and pointer desync
 
