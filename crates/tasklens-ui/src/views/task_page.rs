@@ -141,6 +141,7 @@ fn TaskItem(task: Rc<PersistedTask>, on_toggle: EventHandler<TaskID>) -> Element
                         move |_| on_toggle.call(task.id.clone())
                     },
                     class: Styles::checkbox_input,
+                    aria_label: "Toggle completion for {task.title}",
                 }
             }
             span {
