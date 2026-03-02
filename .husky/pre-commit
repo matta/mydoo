@@ -60,15 +60,4 @@ if git diff --name-only --cached | grep -q "^ROLLING_CONTEXT.md$"; then
   exit 1
 fi
 
-# Check if bd is available
-if ! command -v bd >/dev/null 2>&1; then
-    echo "Warning: bd command not found in PATH, skipping pre-commit hook" >&2
-    echo "  Install bd: brew install beads" >&2
-    echo "  Or add bd to your PATH" >&2
-else
-    if ! bd hooks run pre-commit "$@"; then
-        exit 1
-    fi
-fi
-
 chronic just check

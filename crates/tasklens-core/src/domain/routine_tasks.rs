@@ -1,10 +1,13 @@
 use crate::types::{ScheduleType, TaskStatus, TunnelState};
 use crate::utils::time::get_interval_ms;
 
-/// Wake up "Routinely" tasks that are due for their next cycle.
+/// Wakes up [`ScheduleType::Routinely`] tasks that are due for their next cycle.
 ///
-/// This function checks all "Done" + "Routinely" tasks to see if their wake-up window has arrived.
-/// If so, it resets them to "Pending" and updates their due date to the next interval.
+/// This function iterates over all completed routine tasks and checks if their wake-up
+/// window (defined by `lead_time`) has arrived based on `current_time`.
+/// If a task is due to wake up, its status is reset to [`TaskStatus::Pending`],
+/// its `is_acknowledged` flag is cleared, and its `last_done` timestamp is updated
+/// to reflect the start of the new cycle.
 pub fn wake_up_routine_tasks(state: &mut TunnelState, current_time: i64) {
     for task in state.tasks.values_mut() {
         if task.status == TaskStatus::Done && task.schedule.schedule_type == ScheduleType::Routinely

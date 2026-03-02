@@ -108,6 +108,10 @@ check-clippy:
 check-wasm:
     chronic cargo clippy --workspace --target wasm32-unknown-unknown -- -D warnings
 
+# Check pebble task graph
+check-pebble:
+    chronic pebble check
+
 # -----------------------------------------------------------------------------
 # Test Commands
 # -----------------------------------------------------------------------------
@@ -170,7 +174,7 @@ test-e2e-mobile-debug *args: build-ui-debug
 # -----------------------------------------------------------------------------
 
 # Full validation (static analysis)
-check: check-deps-root check-syncpack-root check-style check-types check-rust
+check: check-deps-root check-syncpack-root check-style check-types check-rust check-pebble
 
 # The "ultimate" verification command
 verify: fix check test test-e2e
@@ -204,7 +208,11 @@ check-deps-root:
 # -----------------------------------------------------------------------------
 
 # Run all auto-fixes
-fix: fix-style fix-syncpack-root fix-rust
+fix: fix-style fix-syncpack-root fix-rust fix-pebble
+
+# Fix pebble task graph
+fix-pebble:
+    chronic pebble check --fix
 
 # Run all style fixes
 fix-style: fix-format fix-biome-root

@@ -12,7 +12,10 @@ pub const MIN_PERCENTAGE: f64 = 0.01;
 /// the user (99%).
 pub const MAX_PERCENTAGE: f64 = 0.99;
 
-/// Redistributes percentages among tasks when one task's target value changes.
+/// Redistributes task percentages while maintaining proportional relationships.
+///
+/// Calculates a new mapping of task percentages when one target value changes,
+/// ensuring all percentages continue to sum to 1.0.
 ///
 /// This maintains a "fixed pie" logic where all percentage values must sum up
 /// to exactly 1.0. When adjusting the target task's percentage, the remaining
@@ -21,6 +24,16 @@ pub const MAX_PERCENTAGE: f64 = 0.99;
 /// they will continue to have an equal slice of the new remaining proportion.
 ///
 /// The `new_value` will be strictly clamped between `MIN_PERCENTAGE` and `MAX_PERCENTAGE`.
+///
+/// # Arguments
+///
+/// * `current_map` - The current map of [`TaskID`] to target percentage (0.0 to 1.0).
+/// * `target_id` - The identifier of the task being adjusted.
+/// * `new_value` - The new target percentage for the target task.
+///
+/// # Returns
+///
+/// A new map with redistributed percentages summing to 1.0.
 pub fn redistribute_percentages(
     current_map: &HashMap<TaskID, f64>,
     target_id: &TaskID,
