@@ -112,7 +112,18 @@ pub fn ensure_path<T: Transactable + Doc>(
     Ok(current)
 }
 
-/// Hydrates a TunnelState from the current document, healing any structural inconsistencies.
+/// Hydrates a [`TunnelState`] from the current document, healing any structural inconsistencies.
+///
+/// This function first delegates to [`doc_bridge::hydrate_tunnel_state`] to perform the
+/// raw Automerge hydration. It then calls [`TunnelState::heal_structural_inconsistencies`]
+/// to repair any broken invariants (e.g., phantom IDs, broken parent links, cycles)
+/// that may have occurred due to concurrent edits or schema migrations.
+///
+/// # Errors
+///
+/// Returns `Err` if the underlying hydration fails. This typically happens if the
+/// document structure does not match the expected schema or if key fields are missing
+/// in a way that `autosurgeon` cannot recover from.
 pub fn hydrate_tunnel_state(doc: &impl autosurgeon::ReadDoc) -> Result<TunnelState> {
     let mut state = doc_bridge::hydrate_tunnel_state(doc).map_err(DispatchError::from)?;
     state.heal_structural_inconsistencies();
