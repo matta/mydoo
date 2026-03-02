@@ -49,6 +49,9 @@ jobs:
         with:
           tool: cargo-binstall,just
 
+      - name: Install pebble
+        run: cargo install --git https://github.com/matta/pebble pebble --branch main --locked
+
       - name: Install dioxus-cli
         run: |
           DIOXUS_VERSION=$(cargo tree -p dioxus --depth 0 --prefix none | cut -d v -f 2)
