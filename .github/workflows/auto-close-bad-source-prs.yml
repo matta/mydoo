@@ -16,13 +16,11 @@ jobs:
         # 1. Branch name starts with 'backup-' (manual backups)
         # 2. Branch name contains 'do-not-merge' (explicitly forbidden)
         # 3. Branch is exactly 'staging' (protected workflow branch)
-        # 4. Branch is exactly 'beads-sync' (automated import branch)
-        # 5. Branch is exactly 'vendor/dioxus-components-pristine' (automated vendor branch)
+        # 4. Branch is exactly 'vendor/dioxus-components-pristine' (automated vendor branch)
         if: |
           startsWith(github.head_ref, 'backup-') ||
           contains(github.head_ref, 'do-not-merge') ||
           github.head_ref == 'staging' ||
-          github.head_ref == 'beads-sync' ||
           github.head_ref == 'vendor/dioxus-components-pristine'
         run: |
           gh pr close ${{ github.event.pull_request.number }} \

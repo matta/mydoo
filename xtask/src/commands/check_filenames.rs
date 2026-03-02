@@ -89,6 +89,12 @@ fn get_tracked_files() -> Result<Vec<String>> {
 }
 
 fn is_ignored(file_path: &str, config: &LsConfig) -> bool {
+    // Suppress filename enforcement for all of docs/pebble as they often contain
+    // code symbols (e.g. handle_complete_task) which fail standard kebab-case rules.
+    if file_path.starts_with("docs/pebble/") {
+        return true;
+    }
+
     if config.ignore_globset.is_match(file_path) {
         return true;
     }
@@ -259,6 +265,12 @@ mod tests {
             errors[0]
                 .contains("File \"Index.ts\" (stem: \"Index\") does not match rules: kebab-case")
         );
+
+        // Ignored path (docs/pebble should be skipped regardless of naming)
+        assert!(is_ignored(
+            "docs/pebble/add-complete_task-mutation-to-compliance-test-harness.md",
+            &config
+        ));
 
         Ok(())
     }
