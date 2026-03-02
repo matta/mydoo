@@ -19,6 +19,12 @@
   user-select: none;
   font-size: 1rem;
   font-weight: 500;
+  border-radius: 2px;
+}
+
+.title_container:focus-visible {
+  outline: 2px solid var(--secondary-color-2);
+  outline-offset: 2px;
 }
 
 .title_done {
