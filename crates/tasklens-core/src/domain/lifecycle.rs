@@ -1,9 +1,10 @@
 use crate::types::{TaskStatus, TunnelState};
 
-/// Acknowledge all tasks that are currently "Done".
+/// Acknowledges all tasks that are currently [`TaskStatus::Done`].
 ///
-/// This moves them from "Done" to "Acknowledged" status effectively,
-/// though they stay as "Done" in the status field, and `is_acknowledged` is set to true.
+/// This moves them from the "Done" lifecycle state to "Acknowledged" by setting
+/// the `is_acknowledged` flag to `true`. This effectively archives them from
+/// the active "Done" view while preserving their completion status.
 pub fn acknowledge_completed_tasks(state: &mut TunnelState) {
     for task in state.tasks.values_mut() {
         if task.status == TaskStatus::Done && !task.is_acknowledged {
