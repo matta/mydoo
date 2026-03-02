@@ -237,6 +237,7 @@ pub(crate) fn TaskEditor(
                         Button {
                             variant: ButtonVariant::Ghost,
                             class: "app_ghost_hover app_transition",
+                            aria_label: "Find in plan",
                             onclick: move |_| {
                                 let nav = navigator();
                                 nav.push(crate::router::Route::PlanPage {
@@ -245,7 +246,6 @@ pub(crate) fn TaskEditor(
                                 });
                                 on_close.call(());
                             },
-                            span { class: Styles::screen_reader_only, "Find in Plan" }
                             svg {
                                 "fill": "none",
                                 "viewBox": "0 0 24 24",
