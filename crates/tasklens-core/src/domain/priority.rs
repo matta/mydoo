@@ -23,8 +23,10 @@ const PRIORITY_EPSILON: f64 = 0.000001;
 
 /// Computed priority context for trace and list rendering.
 struct PriorityContext<'a> {
-    /// Enriched tasks (sorted by ID).
+    /// Enriched tasks.
     tasks: &'a [EnrichedTask],
+    /// Map from TaskID to its index in the tasks slice.
+    id_to_index: HashMap<&'a TaskID, usize>,
     /// Parent -> children index for traversal.
     children_index: ChildrenLookup,
     /// Timestamp used for the calculation.
@@ -33,33 +35,26 @@ struct PriorityContext<'a> {
 
 impl<'a> PriorityContext<'a> {
     fn find_task_index(&self, id: &TaskID) -> Option<usize> {
-        self.tasks.binary_search_by(|t| t.id.cmp(id)).ok()
+        self.id_to_index.get(id).copied()
     }
 }
 
 /// Builds lookup indexes for tasks and sorts children based on explicit order logic.
-/// WARNING: This function sorts `enriched_tasks` by ID in-place.
-fn build_indexes_and_sort(
-    state: &TunnelState,
-    enriched_tasks: &mut [EnrichedTask],
-) -> ChildrenLookup {
-    // Sort tasks by ID to enable binary search lookup
-    enriched_tasks.sort_by(|a, b| a.id.cmp(&b.id));
+fn build_indexes_and_sort(state: &TunnelState, enriched_tasks: &[EnrichedTask]) -> ChildrenLookup {
+    // Pre-calculate TaskID -> Index map for O(1) lookups
+    let id_to_index: HashMap<&TaskID, usize> = enriched_tasks
+        .iter()
+        .enumerate()
+        .map(|(i, t)| (&t.id, i))
+        .collect();
 
     let mut children_index = HashMap::new();
 
-    // We can't use iter().enumerate() efficiently because we need to look up parent indices
-    // which requires binary search on the whole slice.
-
-    // First pass: collect parent-child relationships
-    // We use a temporary vector of (parent_id_ref, child_index) to avoid repeated lookups inside the loop?
-    // No, we need parent INDEX.
-
-    for i in 0..enriched_tasks.len() {
-        let parent_id = enriched_tasks[i].parent_id.clone();
+    for (i, task) in enriched_tasks.iter().enumerate() {
+        let parent_id = task.parent_id.as_ref();
 
         let parent_idx = if let Some(pid) = parent_id {
-            enriched_tasks.binary_search_by(|t| t.id.cmp(&pid)).ok()
+            id_to_index.get(pid).copied()
         } else {
             None
         };
@@ -67,7 +62,7 @@ fn build_indexes_and_sort(
         // If parent_id is Some but not found (orphan), we treat it as hidden/ignored (don't add to index).
         // If parent_id is None, it is a root (key=None).
 
-        if enriched_tasks[i].parent_id.is_some() {
+        if task.parent_id.is_some() {
             if let Some(pidx) = parent_idx {
                 children_index
                     .entry(Some(pidx))
@@ -462,11 +457,14 @@ fn process_children(
 }
 
 /// Finds the root index for a task by walking up its parent chain.
-fn find_root_index(task_idx: usize, tasks: &[EnrichedTask]) -> usize {
+fn find_root_index(
+    task_idx: usize,
+    tasks: &[EnrichedTask],
+    id_to_index: &HashMap<&TaskID, usize>,
+) -> usize {
     let mut current_idx = task_idx;
     while let Some(parent_id) = &tasks[current_idx].parent_id {
-        // Binary search for parent index
-        if let Ok(parent_idx) = tasks.binary_search_by(|t| t.id.cmp(parent_id)) {
+        if let Some(parent_idx) = id_to_index.get(parent_id).copied() {
             current_idx = parent_idx;
         } else {
             break;
@@ -534,6 +532,7 @@ fn build_sequential_blocked_map(
 fn build_importance_chain(
     task_idx: usize,
     tasks: &[EnrichedTask],
+    id_to_index: &HashMap<&TaskID, usize>,
     sequential_blocked: &HashMap<TaskID, bool>,
 ) -> Vec<ImportanceTrace> {
     let mut lineage: Vec<usize> = Vec::new();
@@ -544,7 +543,7 @@ fn build_importance_chain(
         current_idx = tasks[idx]
             .parent_id
             .as_ref()
-            .and_then(|pid| tasks.binary_search_by(|t| t.id.cmp(pid)).ok());
+            .and_then(|pid| id_to_index.get(pid).copied());
     }
 
     lineage.reverse();
@@ -555,7 +554,7 @@ fn build_importance_chain(
             let parent_idx = tasks[idx]
                 .parent_id
                 .as_ref()
-                .and_then(|pid| tasks.binary_search_by(|t| t.id.cmp(pid)).ok());
+                .and_then(|pid| id_to_index.get(pid).copied());
 
             let parent_normalized_importance =
                 parent_idx.map(|pidx| tasks[pidx].normalized_importance);
@@ -695,8 +694,8 @@ pub fn get_prioritized_tasks(
         .map(|c| c.current_time)
         .unwrap_or_else(get_current_timestamp);
 
-    // This sorts tasks by ID in-place and builds index map
-    let children_index = build_indexes_and_sort(state, &mut tasks);
+    // Build index map
+    let children_index = build_indexes_and_sort(state, &tasks);
 
     recalculate_priorities_with_time(
         state,
@@ -853,17 +852,26 @@ pub fn get_score_trace(
         &children_index,
     );
 
+    // Build ID lookup for trace extraction
+    let id_to_index: HashMap<&TaskID, usize> = tasks
+        .iter()
+        .enumerate()
+        .map(|(i, t)| (&t.id, i))
+        .collect();
+
     let context = PriorityContext {
         tasks: &tasks,
+        id_to_index,
         children_index,
         current_time,
     };
 
     let task_idx = context.find_task_index(task_id)?;
-    let root_idx = find_root_index(task_idx, context.tasks);
+    let root_idx = find_root_index(task_idx, context.tasks, &context.id_to_index);
 
     let sequential_blocked = build_sequential_blocked_map(&context.children_index, context.tasks);
-    let importance_chain = build_importance_chain(task_idx, context.tasks, &sequential_blocked);
+    let importance_chain =
+        build_importance_chain(task_idx, context.tasks, &context.id_to_index, &sequential_blocked);
 
     let feedback = build_feedback_trace(root_idx, context.tasks);
     let lead_time = build_lead_time_trace(&context.tasks[task_idx], context.current_time);
