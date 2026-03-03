@@ -1,21 +1,41 @@
 # Tasklens UI Style Guide
 
-This project follows a strict "upstream fidelity" policy for Dioxus components.
+This project follows a deliberate, product-driven approach to styling and component
+customization. We prioritize maintainability and accessibility over rigid
+"pristine" source requirements.
 
-## 🚨 Critical Styling Rules
+## 🚨 Critical Guidance Documents
 
-If you are:
+When working on any UI or CSS changes, you **must** reference and follow these
+documents:
 
-1.  Modifying files in `crates/tasklens-ui/src/dioxus_components/`
-2.  Using `Input { class: ... }` or `Textarea { class: ... }`
-3.  Adding inline `style: "..."` to vendored components
+1.  **[CSS Style Guide](../../../docs/guidance/css.md)**: Rules for authoring
+    app-level CSS, tokens, and runtime accessibility (touch targets).
+2.  **[Dioxus Vendored Styling Guidance](../../../docs/guidance/dioxus-vendored-styling.md)**:
+    Rules for styling and overriding vendored components.
+3.  **[Dioxus Vendored Customization Guidance](../../../docs/guidance/dioxus-vendored-customization.md)**:
+    Rules for altering component behavior, APIs, or state.
 
-**You MUST read and follow:**
-`[Dioxus Upstream Styling Guidance](../../../docs/guidance/dioxus-upstream-styling.md)`
+### Reader Instruction: Transinclusion
 
-## Quick Summary
+> [!IMPORTANT]
+> **Instructions for AI Agents (including Gemini):**
+> When you are tasked with making UI or CSS changes, you MUST transinclude (read
+> or @handle) the relevant documents above to ensure your proposed changes are
+> compliant with the project's current standards.
+>
+> - If you are writing new CSS or components, start with the **CSS Style Guide**.
+> - If you are modifying anything in `src/dioxus_components/`, start with the
+>   **Vendored Styling** and **Vendored Customization** guides.
 
-- **Do NOT** pass `class` to `Input` or `Textarea` (it breaks upstream styles).
-- **Do NOT** modify vendored components unless absolutely necessary (Pristine Policy).
-- **DO** use wrapper elements and CSS parent selectors (e.g. `.wrapper :global(.input)`).
-- **DO** prefer app-owned adapters (e.g. `AppInput`) for common patterns.
+## Core Philosophy
+
+- **Deliberate vs Gratuitous**: Edit vendored code when it is the simplest, most
+  maintainable solution for the product. Avoid gratuitous changes (renaming,
+  reformatting) that create merge noise without clear value.
+- **Runtime vs Authoring Rules**: Most CSS rules are authoring constraints on
+  our source code. Sizing and touch targets are **runtime requirements**
+  evaluated in the browser.
+- **Vendored Primitives**: Surrounding app-owned composition (wrappers/padding) is the
+  preferred way to satisfy runtime accessibility rules for small vendored
+  primitives.
