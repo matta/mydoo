@@ -39,6 +39,22 @@
   color: var(--secondary-color-1);
 }
 
+.button[data-style="icon"] {
+  padding: 0;
+  min-width: var(--app_touch_target);
+  min-height: var(--app_touch_target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--secondary-color-4);
+}
+
+.button[data-style="icon"]:hover {
+  background-color: var(--primary-color-5);
+  color: var(--secondary-color-1);
+}
+
 .button[data-style="outline"] {
   border: 1px solid var(--primary-color-6);
   background-color: var(--light, var(--primary-color))

@@ -11,6 +11,7 @@ pub enum ButtonVariant {
     Destructive,
     Outline,
     Ghost,
+    Icon,
 }
 
 impl ButtonVariant {
@@ -21,6 +22,7 @@ impl ButtonVariant {
             ButtonVariant::Destructive => "destructive",
             ButtonVariant::Outline => "outline",
             ButtonVariant::Ghost => "ghost",
+            ButtonVariant::Icon => "icon",
         }
     }
 }
