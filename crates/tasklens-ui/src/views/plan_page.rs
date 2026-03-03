@@ -204,51 +204,54 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                     }
                 }
 
-                                Card {
-                                    if flattened_tasks().is_empty() {
-                                        CardContent {
-                                            div { class: Styles::empty_state_container,
-                                                p { class: Styles::empty_state_text,
-                                                    "No tasks found yet."
-                                                }
-                                                Button {
-                                                    variant: ButtonVariant::Primary,
-                                                    onclick: move |_| {
-                                                        editor_state
-                                                            .set(
-                                                                Some(EditorState::Create {
-                                                                    parent_id: None,
-                                                                }),
-                                                            )
-                                                    },
-                                                    "Add First Task"
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        for FlattenedTask { id , title , status , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
-                                            TaskRow {
-                                                key: "{id}",
-                                                id: id.clone(),
-                                                title: title.clone(),
-                                                status,
-                                                depth,
-                                                on_toggle: toggle_task,
-                                                has_children,
-                                                is_expanded,
-                                                on_expand_toggle: toggle_expand,
-                                                on_rename: handle_rename,
-                                                on_delete: handle_delete,
-                                                on_create_subtask: handle_create_subtask,
-                                                on_title_tap,
-                                                is_highlighted: Some(id.clone()) == highlighted_task_id(),
-                                                effective_due_date,
-                                                effective_lead_time,
-                                                now,
-                                            }
-                                        }
-                                    }
-                                }            }
+                Card {
+                    if flattened_tasks().is_empty() {
+                        CardContent {
+                            div { class: Styles::empty_state_container,
+                                p { class: Styles::empty_state_text,
+                                    "No tasks found yet."
+                                }
+                                Button {
+                                    variant: ButtonVariant::Primary,
+                                    onclick: move |_| {
+                                        editor_state
+                                            .set(
+                                                Some(EditorState::Create {
+                                                    parent_id: None,
+                                                }),
+                                            )
+                                    },
+                                    "Add First Task"
+                                }
+                            }
+                        }
+                    } else {
+                        div { class: Styles::task_list,
+                            for FlattenedTask { id , title , status , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
+                                TaskRow {
+                                    key: "{id}",
+                                    id: id.clone(),
+                                    title: title.clone(),
+                                    status,
+                                    depth,
+                                    on_toggle: toggle_task,
+                                    has_children,
+                                    is_expanded,
+                                    on_expand_toggle: toggle_expand,
+                                    on_rename: handle_rename,
+                                    on_delete: handle_delete,
+                                    on_create_subtask: handle_create_subtask,
+                                    on_title_tap,
+                                    is_highlighted: Some(id.clone()) == highlighted_task_id(),
+                                    effective_due_date,
+                                    effective_lead_time,
+                                    now,
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             if let Some(state) = editor_state() {
                 match state {
