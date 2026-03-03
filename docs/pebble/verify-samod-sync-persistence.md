@@ -2,8 +2,9 @@
 id: issue-k3ck8yrbq3
 title: Verify Samod Sync & Persistence
 status: todo
-priority: 20
+priority: 30
 created_at: 2026-03-02T14:59:34.998539205+00:00
+modified_at: 2026-03-03T02:59:24.657263223+00:00
 tags:
   - task
 ---

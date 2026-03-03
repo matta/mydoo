@@ -2,8 +2,9 @@
 id: issue-23tptrui9aa
 title: Fix inconsistent enum serialization in transient.rs
 status: todo
-priority: 20
+priority: 30
 created_at: 2026-03-02T14:59:35.998556903+00:00
+modified_at: 2026-03-03T02:58:31.011343847+00:00
 tags:
   - task
 ---

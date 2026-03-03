@@ -4,7 +4,7 @@ title: Add explainability for Do list task ordering
 status: todo
 priority: 30
 created_at: 2026-03-02T14:59:35.367518452+00:00
-modified_at: 2026-03-02T14:59:36.677300821+00:00
+modified_at: 2026-03-03T02:56:11.672844653+00:00
 needs:
   - issue-wzu1evbziam
 tags:

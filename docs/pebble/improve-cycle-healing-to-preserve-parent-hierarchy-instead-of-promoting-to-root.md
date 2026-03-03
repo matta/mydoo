@@ -2,8 +2,9 @@
 id: issue-zef3diqus5a
 title: Improve cycle healing to preserve parent hierarchy instead of promoting to root
 status: todo
-priority: 30
+priority: 40
 created_at: 2026-03-02T14:59:35.422992249+00:00
+modified_at: 2026-03-03T02:57:55.529648229+00:00
 tags:
   - task
 ---

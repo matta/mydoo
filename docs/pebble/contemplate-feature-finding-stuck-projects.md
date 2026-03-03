@@ -2,8 +2,9 @@
 id: issue-mned945vkxk
 title: "Contemplate Feature: Finding Stuck Projects"
 status: todo
-priority: 30
+priority: 40
 created_at: 2026-03-02T14:59:35.570784038+00:00
+modified_at: 2026-03-03T02:57:55.462685920+00:00
 tags:
   - task
 ---

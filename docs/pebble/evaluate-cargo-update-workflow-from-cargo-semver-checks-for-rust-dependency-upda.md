@@ -4,8 +4,9 @@ title: >-
   Evaluate cargo update workflow from cargo-semver-checks for Rust dependency
   updates
 status: todo
-priority: 40
+priority: 60
 created_at: 2026-03-02T14:59:35.596724301+00:00
+modified_at: 2026-03-03T02:57:32.625837584+00:00
 tags:
   - task
 ---

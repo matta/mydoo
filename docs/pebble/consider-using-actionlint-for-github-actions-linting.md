@@ -2,8 +2,9 @@
 id: issue-4h7oj49fvk
 title: Consider using actionlint for GitHub Actions linting
 status: todo
-priority: 40
+priority: 60
 created_at: 2026-03-02T14:59:35.240737049+00:00
+modified_at: 2026-03-03T02:57:32.547037508+00:00
 tags:
   - task
 ---

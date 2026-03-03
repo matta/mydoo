@@ -4,6 +4,9 @@ title: Urgency badges lack right-side spacing before task title
 status: todo
 priority: 30
 created_at: 2026-03-02T14:59:35.562148433+00:00
+modified_at: 2026-03-03T02:56:11.995475821+00:00
+needs:
+  - issue-3kc26gmgls
 tags:
   - task
 ---
