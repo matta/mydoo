@@ -2,6 +2,14 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["config:best-practices"],
   packageRules: [
+    // Github Actions rules update weekly and commit automatically.
+    {
+      matchManagers: ["github-actions"],
+      extends: ["schedule:weekly"],
+      automerge: true,
+      platformAutomerge: true,
+      automergeStrategy: "squash",
+    },
     // Group patch and minor updates by ecosystem (npm vs cargo) to keep
     // PRs cohesive and avoid mixing unrelated dependency changes.
     {
