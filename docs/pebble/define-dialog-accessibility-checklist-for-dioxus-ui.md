@@ -2,8 +2,9 @@
 id: issue-ox6ysjxlje
 title: Define dialog accessibility checklist for Dioxus UI
 status: todo
-priority: 20
+priority: 40
 created_at: 2026-03-02T14:59:35.176347948+00:00
+modified_at: 2026-03-03T02:59:24.851835617+00:00
 tags:
   - task
 ---

@@ -2,8 +2,9 @@
 id: issue-1q9ebjieli
 title: Simplify 'swiss cheese' cfg logic in use_sync hook
 status: todo
-priority: 20
+priority: 40
 created_at: 2026-03-02T14:59:34.683686162+00:00
+modified_at: 2026-03-03T02:58:31.524525752+00:00
 tags:
   - task
 ---

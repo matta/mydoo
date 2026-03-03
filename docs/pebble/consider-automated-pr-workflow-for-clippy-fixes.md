@@ -2,8 +2,9 @@
 id: issue-98f1oqxmpem
 title: Consider automated PR workflow for clippy fixes
 status: todo
-priority: 40
+priority: 60
 created_at: 2026-03-02T14:59:35.776381080+00:00
+modified_at: 2026-03-03T02:57:32.701501934+00:00
 tags:
   - task
 ---

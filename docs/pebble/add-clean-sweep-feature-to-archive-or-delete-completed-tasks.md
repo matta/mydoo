@@ -4,6 +4,7 @@ title: Add clean/sweep feature to archive or delete completed tasks
 status: todo
 priority: 30
 created_at: 2026-03-02T14:59:34.655323331+00:00
+modified_at: 2026-03-03T02:56:11.352936014+00:00
 tags:
   - task
 ---
