@@ -10,7 +10,9 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
 
-  --icon-size-md: 1.5rem;
+  /* Sizing and Spacing Layout Tokens */
+  --app_touch_target: 3rem;
+  --app_spacing_sm: 0.5rem;
 
   /* App semantic color tokens mapped to upstream theme variables from
    * dx-components-theme.css.

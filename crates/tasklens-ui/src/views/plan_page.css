@@ -22,3 +22,8 @@
   opacity: 0.6;
   margin-bottom: 1rem;
 }
+
+.task_list {
+  display: flex;
+  flex-direction: column;
+}

@@ -31,23 +31,26 @@ This design governs:
 
 1. Keep Dioxus Vendored code close to source-project behavior and structure.
 2. Preserve low-friction future vendor snapshot updates.
-3. Centralize app-specific customization in app-owned wrappers and styles.
-4. Make vendor deltas explicit, minimal, and reversible.
+3. Prefer app-owned wrappers and styles for customization, but edit vendored
+   code directly when it is the simpler, more maintainable solution.
+4. Avoid gratuitous changes to vendored files that create merge noise without
+   clear product value.
 
 ## Non-Goals
 
-1. Fork and evolve vendored components as a primary app extension surface.
-2. Collapse app-owned and vendored ownership boundaries.
-3. Optimize for short-term local hacks that raise long-term vendor drift.
+1. Collapse app-owned and vendored ownership boundaries without cause.
+2. Optimize for short-term local hacks that raise long-term vendor drift.
+3. Enforce a rigid pristine-only policy that makes simple changes artificially
+   complex.
 
 ## Ownership Boundaries
 
-### Vendored-owned (pristine by default)
+### Vendored-owned
 
 - `crates/tasklens-ui/src/dioxus_components/**`
 - `crates/tasklens-ui/assets/dx-components-theme.css`
 
-### App-owned (customization surface)
+### App-owned (preferred customization surface)
 
 - `crates/tasklens-ui/src/app_components/**`
 - `crates/tasklens-ui/src/views/**`
@@ -70,22 +73,17 @@ Do not change `module_path` without an explicit design decision.
 2. Update vendored code only via:
    - `cargo xtask dx-components vendor`
 3. Review the vendor snapshot diff before any local customization.
-4. Apply required vendor deltas as follow-on edits, not mixed into snapshot
-   mechanics.
+4. Apply local edits as follow-on commits, not mixed into snapshot mechanics.
 5. Validate with the repository quality gates for the change scope.
-6. Document non-trivial vendor deltas and removal criteria in the PR.
 
-## Vendor Delta Policy
+## Vendor Edit Policy
 
-Default policy: **pristine snapshot with selective minimal deltas**.
+The upstream dioxus-components project is designed to be forked and edited.
+Editing vendored code is acceptable when it is deliberate and product-driven.
+Avoid gratuitous changes (reformatting, renaming, drive-by improvements) that
+create merge noise without clear value.
 
-A vendor delta is acceptable only when:
-
-1. app-owned wrappers/composition cannot express the need cleanly
-2. the delta is minimal and scoped to the exact blocker
-3. tests cover observable behavior of the change
-4. a source-project issue/PR is opened for non-trivial deltas when practical
-5. follow-up tracking exists to reconcile or remove the delta later
+For detailed customization policy, see the guidance docs below.
 
 ## Customization Delegation
 
@@ -101,11 +99,10 @@ customize safely within those boundaries.
 
 ## Review Checklist
 
-1. Are changes in vendored paths necessary and minimal?
+1. Are vendored edits deliberate and product-driven, not gratuitous?
 2. Was vendoring performed via `cargo xtask dx-components vendor`?
-3. Are app-specific concerns kept in app-owned code where possible?
-4. Are vendor deltas documented, tested, and tracked for reconciliation?
-5. Do links and references use Dioxus Vendored terminology consistently?
+3. Are app-specific concerns kept in app-owned code where reasonable?
+4. Do links and references use Dioxus Vendored terminology consistently?
 
 ## Historical Notes
 
