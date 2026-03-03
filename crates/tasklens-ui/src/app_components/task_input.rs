@@ -33,6 +33,7 @@ pub(crate) fn TaskInput(
             }
             Button {
                 variant: ButtonVariant::Primary,
+                disabled: value().trim().is_empty(),
                 onclick: move |_| on_add.call(()),
                 "Add"
             }
