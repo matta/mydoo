@@ -34,14 +34,12 @@ fn calculate_balance_percentages(
     (target_percent, actual_percent, is_starving)
 }
 
-/// Computes balance data directly from [`TunnelState`].
+/// Computes balance data across all root goals using the current time.
 ///
-/// This is the primary entry point for the Balance View. It:
-/// 1. Extracts root tasks from the state.
-/// 2. Calculates effective_credits with time decay.
-/// 3. Aggregates child credits up to roots.
-/// 4. Computes target_percent and actual_percent.
-/// 5. Marks goals as "starving" if under-served (actual < target).
+/// This function calculates the effective credits for each task, aggregates them
+/// up to their respective root goals, and determines the target versus actual
+/// percentage allocation for each goal. Goals are marked as "starving" if their
+/// actual allocation falls below their target allocation.
 ///
 /// # Arguments
 ///
@@ -49,12 +47,25 @@ fn calculate_balance_percentages(
 ///
 /// # Returns
 ///
-/// [`BalanceData`] containing balance items for each root goal.
+/// A [`BalanceData`] struct containing balance items for each root goal.
 pub fn get_balance_data(state: &TunnelState) -> BalanceData {
     get_balance_data_with_time(state, get_current_timestamp())
 }
 
-/// Computes balance data with a specific timestamp.
+/// Computes balance data across all root goals for a specific timestamp.
+///
+/// This function performs the same calculations as [`get_balance_data`], but uses
+/// the provided `current_time` to calculate time decay for credits. This is useful
+/// for time-travel debugging or projecting future balance states.
+///
+/// # Arguments
+///
+/// * `state` - The current tunnel state containing all tasks.
+/// * `current_time` - The timestamp (in milliseconds) used to calculate credit decay.
+///
+/// # Returns
+///
+/// A [`BalanceData`] struct containing balance items for each root goal.
 pub fn get_balance_data_with_time(state: &TunnelState, current_time: i64) -> BalanceData {
     use std::collections::HashMap;
 
@@ -170,10 +181,20 @@ pub fn get_balance_data_with_time(state: &TunnelState, current_time: i64) -> Bal
     }
 }
 
-/// Projects enriched tasks into balance data for the Balance View.
+/// Projects a collection of enriched tasks into balance data.
 ///
-/// This is an alternative entry point when you already have enriched tasks
-/// (e.g., from the priority calculation pipeline).
+/// This function serves as an alternative entry point for generating balance data
+/// when enriched tasks have already been computed (e.g., from the priority calculation pipeline).
+/// It aggregates desired and effective credits from the provided tasks to determine
+/// balance percentages and identify starving goals.
+///
+/// # Arguments
+///
+/// * `enriched_tasks` - A slice containing the enriched tasks to project.
+///
+/// # Returns
+///
+/// A [`BalanceData`] struct containing balance items derived from the provided tasks.
 pub fn project_balance_data(enriched_tasks: &[EnrichedTask]) -> BalanceData {
     let roots: Vec<&EnrichedTask> = enriched_tasks
         .iter()
