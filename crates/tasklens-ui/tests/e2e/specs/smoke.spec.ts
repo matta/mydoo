@@ -8,6 +8,13 @@ test.describe("Smoke Test", () => {
     await I.Then.pageTitleContains("TaskLens");
   });
 
+  test("Do view heading uses Do terminology", async ({ I, page }) => {
+    await I.When.switchToDoView();
+
+    await expect(page.getByRole("heading", { name: "Do" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Work" })).toHaveCount(0);
+  });
+
   test("Sample data can be seeded without reloading", async ({ I, page }) => {
     const beforeSeedUrl = page.url();
 
