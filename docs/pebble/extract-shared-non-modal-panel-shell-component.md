@@ -4,7 +4,7 @@ title: Extract shared non-modal panel shell component
 status: todo
 priority: 8
 created_at: 2026-03-04T03:55:54.068113573+00:00
-modified_at: 2026-03-04T03:56:14.166343174+00:00
+modified_at: 2026-03-04T04:03:08.379805319+00:00
 needs:
   - issue-sbm9yw59i5z
 tags:
@@ -27,3 +27,5 @@ Acceptance:
 - Shared panel component is used by TaskEditor and ready for Settings migration.
 - TaskEditor-specific styles remain local and focused on editor content only.
 - No new hardcoded color tokens outside allowed guidance exceptions.
+
+Scope refinement (2026-03-03): TaskEditor adoption is tracked separately in `issue-xqyyw005kvu`; this task focuses on introducing the shared component/CSS foundation.

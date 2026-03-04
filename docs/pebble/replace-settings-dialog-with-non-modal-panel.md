@@ -4,10 +4,11 @@ title: Replace settings dialog with non-modal panel
 status: todo
 priority: 9
 created_at: 2026-03-04T03:24:17.674434766+00:00
-modified_at: 2026-03-04T03:56:22.259318721+00:00
+modified_at: 2026-03-04T04:03:08.356625227+00:00
 needs:
   - issue-sbm9yw59i5z
   - issue-lg8mkeb0sd8
+  - issue-xqyyw005kvu
 tags:
   - task
   - ui
