@@ -121,6 +121,15 @@ mod tests {
     use std::sync::{Arc, Mutex};
     use tasklens_store::store::AppStore;
 
+    type TestAppProps = (
+        samod::Repo,
+        samod::DocHandle,
+        DocumentId,
+        Arc<Mutex<String>>,
+        Arc<Mutex<String>>,
+        Arc<Mutex<Vec<(String, String)>>>,
+    );
+
     struct TokioRuntime;
     impl samod::runtime::LocalRuntimeHandle for TokioRuntime {
         fn spawn(&self, future: Pin<Box<dyn Future<Output = ()> + 'static>>) {
@@ -129,14 +138,7 @@ mod tests {
     }
 
     #[component]
-    fn TestApp(
-        props: (
-            samod::Repo,
-            samod::DocHandle,
-            DocumentId,
-            Arc<Mutex<String>>,
-        ),
-    ) -> Element {
+    fn TestApp(props: TestAppProps) -> Element {
         let doc_id = use_signal(|| Some(props.2));
         let store = use_signal(|| {
             let mut s = AppStore::new();
@@ -161,6 +163,21 @@ mod tests {
             && *lock != *heads
         {
             *lock = heads.clone();
+        }
+
+        let persisted = persisted_heads_signal.read();
+        if let Ok(mut lock) = props.4.lock()
+            && *lock != *persisted
+        {
+            *lock = persisted.clone();
+        }
+
+        if let Ok(mut snapshots) = props.5.lock() {
+            let next = (heads.clone(), persisted.clone());
+            let should_push = snapshots.last().map(|last| *last != next).unwrap_or(true);
+            if should_push {
+                snapshots.push(next);
+            }
         }
 
         rsx! {
@@ -202,10 +219,23 @@ mod tests {
                 let (handle, id) = AppStore::create_new(repo.clone()).await.unwrap();
 
                 let captured_heads = Arc::new(Mutex::new(String::new()));
+                let captured_persisted = Arc::new(Mutex::new(String::new()));
+                let captured_snapshots = Arc::new(Mutex::new(Vec::new()));
                 let heads_clone = captured_heads.clone();
+                let persisted_clone = captured_persisted.clone();
+                let snapshots_clone = captured_snapshots.clone();
 
-                let mut dom =
-                    VirtualDom::new_with_props(TestApp, (repo, handle.clone(), id, heads_clone));
+                let mut dom = VirtualDom::new_with_props(
+                    TestApp,
+                    (
+                        repo,
+                        handle.clone(),
+                        id,
+                        heads_clone,
+                        persisted_clone,
+                        snapshots_clone,
+                    ),
+                );
 
                 dom.rebuild_in_place();
 
@@ -237,6 +267,73 @@ mod tests {
                 assert!(
                     !heads.is_empty(),
                     "Heads should not be empty after mutation"
+                );
+            })
+            .await;
+    }
+
+    #[tokio::test]
+    async fn test_use_persistence_initializes_heads_before_stream_updates() {
+        let local = tokio::task::LocalSet::new();
+        local
+            .run_until(async move {
+                let storage = tasklens_store::samod_storage::SamodStorage::new("test", "docs");
+                let repo = samod::RepoBuilder::new(TokioRuntime)
+                    .with_storage(storage)
+                    .load_local()
+                    .await;
+                let (handle, id) = AppStore::create_new(repo.clone()).await.unwrap();
+
+                // Seed one committed change so initial heads are non-empty and stable.
+                handle.with_document(|doc| {
+                    let mut tx = doc.transaction();
+                    tx.put(automerge::ROOT, "seed", "value").unwrap();
+                    tx.commit();
+                });
+                let expected_initial_heads = handle.with_document(|doc| format_heads(&doc.get_heads()));
+
+                let captured_heads = Arc::new(Mutex::new(String::new()));
+                let captured_persisted = Arc::new(Mutex::new(String::new()));
+                let captured_snapshots = Arc::new(Mutex::new(Vec::<(String, String)>::new()));
+
+                let mut dom = VirtualDom::new_with_props(
+                    TestApp,
+                    (
+                        repo,
+                        handle.clone(),
+                        id,
+                        captured_heads.clone(),
+                        captured_persisted.clone(),
+                        captured_snapshots.clone(),
+                    ),
+                );
+                dom.rebuild_in_place();
+
+                let timeout = tokio::time::Duration::from_secs(2);
+                let snapshots_ref = captured_snapshots.clone();
+                drive_until(&mut dom, timeout, move || {
+                    snapshots_ref
+                        .lock()
+                        .unwrap()
+                        .iter()
+                        .any(|(memory, persisted)| !memory.is_empty() && !persisted.is_empty())
+                })
+                .await;
+
+                let first_snapshot = captured_snapshots
+                    .lock()
+                    .unwrap()
+                    .iter()
+                    .find(|(memory, persisted)| !memory.is_empty() && !persisted.is_empty())
+                    .cloned()
+                    .expect("expected a non-empty initialization snapshot");
+                assert_eq!(
+                    first_snapshot.0, expected_initial_heads,
+                    "memory_heads should initialize from current document heads before streaming updates"
+                );
+                assert_eq!(
+                    first_snapshot.1, expected_initial_heads,
+                    "persisted_heads should initialize from current document heads before streaming updates"
                 );
             })
             .await;
