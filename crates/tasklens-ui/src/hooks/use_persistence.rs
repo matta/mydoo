@@ -121,14 +121,30 @@ mod tests {
     use std::sync::{Arc, Mutex};
     use tasklens_store::store::AppStore;
 
-    type TestAppProps = (
-        samod::Repo,
-        samod::DocHandle,
-        DocumentId,
-        Arc<Mutex<String>>,
-        Arc<Mutex<String>>,
-        Arc<Mutex<Vec<(String, String)>>>,
-    );
+    #[derive(Clone)]
+    struct TestAppProps {
+        repo: samod::Repo,
+        handle: samod::DocHandle,
+        id: DocumentId,
+        captured_heads: Arc<Mutex<String>>,
+        captured_persisted: Arc<Mutex<String>>,
+        captured_snapshots: Arc<Mutex<Vec<HeadSnapshot>>>,
+    }
+
+    impl PartialEq for TestAppProps {
+        fn eq(&self, other: &Self) -> bool {
+            self.id == other.id
+                && Arc::ptr_eq(&self.captured_heads, &other.captured_heads)
+                && Arc::ptr_eq(&self.captured_persisted, &other.captured_persisted)
+                && Arc::ptr_eq(&self.captured_snapshots, &other.captured_snapshots)
+        }
+    }
+
+    #[derive(Clone, PartialEq)]
+    struct HeadSnapshot {
+        memory: String,
+        persisted: String,
+    }
 
     struct TokioRuntime;
     impl samod::runtime::LocalRuntimeHandle for TokioRuntime {
@@ -139,12 +155,12 @@ mod tests {
 
     #[component]
     fn TestApp(props: TestAppProps) -> Element {
-        let doc_id = use_signal(|| Some(props.2));
+        let doc_id = use_signal(|| Some(props.id));
         let store = use_signal(|| {
             let mut s = AppStore::new();
-            s.repo = Some(props.0.clone());
-            s.handle = Some(props.1.clone());
-            s.current_id = Some(props.2);
+            s.repo = Some(props.repo.clone());
+            s.handle = Some(props.handle.clone());
+            s.current_id = Some(props.id);
             s
         });
         use_context_provider(|| store);
@@ -159,21 +175,24 @@ mod tests {
         );
 
         let heads = memory_heads_signal.read();
-        if let Ok(mut lock) = props.3.lock()
+        if let Ok(mut lock) = props.captured_heads.lock()
             && *lock != *heads
         {
             *lock = heads.clone();
         }
 
         let persisted = persisted_heads_signal.read();
-        if let Ok(mut lock) = props.4.lock()
+        if let Ok(mut lock) = props.captured_persisted.lock()
             && *lock != *persisted
         {
             *lock = persisted.clone();
         }
 
-        if let Ok(mut snapshots) = props.5.lock() {
-            let next = (heads.clone(), persisted.clone());
+        if let Ok(mut snapshots) = props.captured_snapshots.lock() {
+            let next = HeadSnapshot {
+                memory: heads.clone(),
+                persisted: persisted.clone(),
+            };
             let should_push = snapshots.last().map(|last| *last != next).unwrap_or(true);
             if should_push {
                 snapshots.push(next);
@@ -227,14 +246,14 @@ mod tests {
 
                 let mut dom = VirtualDom::new_with_props(
                     TestApp,
-                    (
+                    TestAppProps {
                         repo,
-                        handle.clone(),
+                        handle: handle.clone(),
                         id,
-                        heads_clone,
-                        persisted_clone,
-                        snapshots_clone,
-                    ),
+                        captured_heads: heads_clone,
+                        captured_persisted: persisted_clone,
+                        captured_snapshots: snapshots_clone,
+                    },
                 );
 
                 dom.rebuild_in_place();
@@ -294,18 +313,18 @@ mod tests {
 
                 let captured_heads = Arc::new(Mutex::new(String::new()));
                 let captured_persisted = Arc::new(Mutex::new(String::new()));
-                let captured_snapshots = Arc::new(Mutex::new(Vec::<(String, String)>::new()));
+                let captured_snapshots = Arc::new(Mutex::new(Vec::<HeadSnapshot>::new()));
 
                 let mut dom = VirtualDom::new_with_props(
                     TestApp,
-                    (
+                    TestAppProps {
                         repo,
-                        handle.clone(),
+                        handle: handle.clone(),
                         id,
-                        captured_heads.clone(),
-                        captured_persisted.clone(),
-                        captured_snapshots.clone(),
-                    ),
+                        captured_heads: captured_heads.clone(),
+                        captured_persisted: captured_persisted.clone(),
+                        captured_snapshots: captured_snapshots.clone(),
+                    },
                 );
                 dom.rebuild_in_place();
 
@@ -316,7 +335,9 @@ mod tests {
                         .lock()
                         .unwrap()
                         .iter()
-                        .any(|(memory, persisted)| !memory.is_empty() && !persisted.is_empty())
+                        .any(|snapshot| {
+                            !snapshot.memory.is_empty() && !snapshot.persisted.is_empty()
+                        })
                 })
                 .await;
 
@@ -324,15 +345,17 @@ mod tests {
                     .lock()
                     .unwrap()
                     .iter()
-                    .find(|(memory, persisted)| !memory.is_empty() && !persisted.is_empty())
+                    .find(|snapshot| {
+                        !snapshot.memory.is_empty() && !snapshot.persisted.is_empty()
+                    })
                     .cloned()
                     .expect("expected a non-empty initialization snapshot");
                 assert_eq!(
-                    first_snapshot.0, expected_initial_heads,
+                    first_snapshot.memory, expected_initial_heads,
                     "memory_heads should initialize from current document heads before streaming updates"
                 );
                 assert_eq!(
-                    first_snapshot.1, expected_initial_heads,
+                    first_snapshot.persisted, expected_initial_heads,
                     "persisted_heads should initialize from current document heads before streaming updates"
                 );
             })
