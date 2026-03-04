@@ -34,6 +34,9 @@ fn format_relative_due_date(due_ts: i64, now: i64) -> String {
     }
 }
 
+#[css_module("/src/app_components/task_row.css")]
+struct Styles;
+
 #[component]
 pub(crate) fn TaskRow(
     id: TaskID,
@@ -53,9 +56,6 @@ pub(crate) fn TaskRow(
     effective_lead_time: Option<i64>,
     now: i64,
 ) -> Element {
-    #[css_module("/src/app_components/task_row.css")]
-    struct Styles;
-
     let indentation = depth * 20;
     let is_done = status == TaskStatus::Done;
 
@@ -99,7 +99,7 @@ pub(crate) fn TaskRow(
     rsx! {
         div {
             class: row_class,
-            style: "--indent: {indentation}px; padding-left: var(--indent);",
+            style: "--indent: {indentation}px;",
             "data-testid": "task-item",
             "data-depth": "{depth}",
             "data-urgency": "{data_urgency}",
@@ -108,7 +108,8 @@ pub(crate) fn TaskRow(
             div { class: Styles::chevron_container,
                 if has_children {
                     Button {
-                        variant: ButtonVariant::Ghost,
+                        variant: ButtonVariant::Icon,
+                        class: Styles::expand_button,
                         onclick: move |evt: MouseEvent| {
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
@@ -117,7 +118,7 @@ pub(crate) fn TaskRow(
                         "data-expanded": "{is_expanded}",
                         if is_expanded {
                             svg {
-                                class: Styles::icon_sm,
+                                class: Styles::icon_standard,
                                 xmlns: "http://www.w3.org/2000/svg",
                                 "aria-hidden": "true",
                                 fill: "none",
@@ -132,7 +133,7 @@ pub(crate) fn TaskRow(
                             }
                         } else {
                             svg {
-                                class: Styles::icon_sm,
+                                class: Styles::icon_standard,
                                 xmlns: "http://www.w3.org/2000/svg",
                                 "aria-hidden": "true",
                                 fill: "none",
@@ -148,7 +149,7 @@ pub(crate) fn TaskRow(
                         }
                     }
                 } else {
-                    div { class: Styles::spacer_w10 } // Spacer
+                    div { class: Styles::chevron_placeholder } // Spacer
                 }
             }
 
@@ -171,7 +172,6 @@ pub(crate) fn TaskRow(
                     variant: badge_variant,
                     "data-testid": "urgency-badge",
                     "data-urgency": "{data_urgency}",
-                    class: Styles::urgency_badge,
                     "{urgency_label}"
                 }
             }
@@ -207,12 +207,12 @@ pub(crate) fn TaskRow(
             // Actions
             div { class: Styles::actions_container,
                 Button {
-                    variant: ButtonVariant::Ghost,
+                    variant: ButtonVariant::Icon,
                     title: "Add Subtask",
                     onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
                     aria_label: "Add subtask to {title}",
                     svg {
-                        class: Styles::icon_sm,
+                        class: Styles::icon_standard,
                         xmlns: "http://www.w3.org/2000/svg",
                         "aria-hidden": "true",
                         fill: "none",
@@ -232,7 +232,7 @@ pub(crate) fn TaskRow(
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
                     aria_label: "Delete task {title}",
                     svg {
-                        class: Styles::icon_sm,
+                        class: Styles::icon_standard,
                         xmlns: "http://www.w3.org/2000/svg",
                         "aria-hidden": "true",
                         fill: "none",

@@ -9,62 +9,94 @@ Applies to:
 - `crates/tasklens-ui/assets/dx-components-theme.css`
 - app code that consumes vendored components
 
-Goal: preserve vendored fidelity by default, while still allowing deliberate
-product customization with minimal upgrade friction.
+> [!NOTE]
+> This guide is specifically for **styling** vendored components.
+>
+> - For general CSS authoring rules (tokens, touch targets, resets), see the **[CSS Style Guide](./css.md)**.
+> - For the distinction between authoring rules and runtime rules (and which apply to vendored code), see **[Two Kinds of Rules](./css.md#two-kinds-of-rules)**.
+> - For altering component behavior, APIs, or state, see the **[Dioxus Vendored Customization Guidance](./dioxus-vendored-customization.md)**.
 
-## Decision Summary
+## Philosophy
 
-1. Treat vendored component code and vendored theme assets as pristine by
-   default.
-2. Put app-specific visual semantics in app-owned wrappers and CSS first.
-3. Assume raw vendored components are not safe customization points unless
-   explicitly documented.
-4. Escalate to vendored patches only when wrapper/token approaches are
-   insufficient.
-5. Track every vendored delta so it can be removed or reconciled later.
+The upstream dioxus-components project is designed to be forked and edited. It
+does not provide exhaustive customization hooks for every use case — editing
+the source is the expected extension mechanism. We should do so as well, when
+prudent.
+
+Edit vendored code when it serves the product. Leave it alone when it doesn't.
+
+The goal is not to keep vendored source pristine at all costs. The goal is to
+**avoid gratuitous changes** — edits that create merge noise without clear
+product value.
+
+## Deliberate vs Gratuitous
+
+This is the core distinction. Not "app-owned vs vendored", but "deliberate vs
+gratuitous."
+
+**Deliberate edits** are product-driven changes where modifying vendored source
+is the simplest, most maintainable solution. When weighing whether a vendored
+edit is the right approach, consider:
+
+- Does the edit meaningfully simplify application code?
+- Is the change surgical (additive or narrowly scoped, not restructuring)?
+- Is merge-conflict risk low (stable area of the upstream codebase)?
+- Would the alternative (wrapper, CSS override, etc.) create brittleness or
+  disproportionate complexity?
+
+If most answers are "yes", the vendored edit is likely the right call.
+
+**Gratuitous edits** are changes that touch vendored files without clear product
+justification:
+
+> [!CAUTION]
+> **Do not:**
+>
+> - Reformat vendored code to match app conventions (naming, spacing, etc.).
+> - Rename vendored variables, classes, or functions for consistency.
+> - Make drive-by style improvements to vendored files while working on
+>   unrelated tasks.
+> - Restructure vendored component internals unless the restructure _is_ the
+>   task.
 
 ## Ownership Boundaries
 
-### Vendored-owned (keep pristine in normal flow)
+### Vendored-owned
 
 - `crates/tasklens-ui/src/dioxus_components/**`
 - `crates/tasklens-ui/assets/dx-components-theme.css`
 
-### App-owned (preferred customization surface)
+### App-owned
 
 - `crates/tasklens-ui/assets/app.css`
 - `crates/tasklens-ui/src/app_components/**/*.css`
 - `crates/tasklens-ui/src/views/**/*.css`
-- app-level wrapper/adaptor components around vendored primitives
+- app-level wrapper/adapter components around vendored primitives
 
-## Pristine vs Patch Rubric
+## Approaches (Prefer Simplicity)
 
-| Mode                         | When to use                                     | What you gain                              | What you lose                             |
-| ---------------------------- | ----------------------------------------------- | ------------------------------------------ | ----------------------------------------- |
-| **A: Pristine**              | Default for most styling work                   | Lowest upgrade friction, clean vendor diff | Fewer direct hooks in vendored code       |
-| **B: Small patch queue**     | Narrow blockers not solvable by wrappers/tokens | Practical fixes with controlled drift      | Ongoing merge/review overhead             |
-| **C: Pragmatic local edits** | Temporary emergency only                        | Fast local iteration                       | High drift and long-term maintenance risk |
-
-Project default is **A with selective B**.
-
-## Customization Ladder (Use In Order)
-
-Before editing vendored files, escalate in this order:
+When you need to change how a vendored component looks, consider these
+approaches and choose the one that produces the simplest, most maintainable
+result:
 
 1. **App tokens and semantic CSS**
-   - Prefer app semantic tokens and app-owned styles.
+   - Use app semantic tokens and app-owned styles, following the
+     **[CSS Style Guide](./css.md)**.
    - Keep global overrides small and intentional.
-2. **App wrapper/adaptor component**
+2. **App wrapper/adapter component**
    - Encapsulate layout, spacing, variants, and repeated policy in app-owned
      wrappers.
    - Keep callsites free of one-off styling hacks.
 3. **Scoped override from app code**
    - Use local wrapper classes and CSS modules.
    - Target vendored global classes with `:global(...)` when needed.
-4. **Vendored patch (last resort)**
-   - Keep patch minimal and isolated.
-   - Open source-project issue/PR when practical.
-   - Track removal criteria in the PR description and follow-up issue.
+4. **Direct vendored edit**
+   - When approaches 1–3 would create brittleness or disproportionate
+     complexity, edit the vendored source directly.
+   - Keep the edit surgical. Document rationale in the commit message.
+
+These are not a strict escalation ladder — sometimes approach 4 is simpler and
+more correct than approach 2. Use judgment.
 
 ## Styling Contract For Vendored Components
 
@@ -109,25 +141,22 @@ div {
 
 ## Theme File Policy
 
-Goal state: keep `crates/tasklens-ui/assets/dx-components-theme.css` pristine.
+Goal state: keep `crates/tasklens-ui/assets/dx-components-theme.css` pristine
+unless there is a clear product reason to change it.
 
-A controlled edit is acceptable only if all conditions hold:
+A controlled edit is acceptable only if:
 
 1. The need is truly global and cannot be solved cleanly in app-owned CSS.
 2. The change aligns with vendored semantics rather than app-only divergence.
-3. The PR documents the exact vendored delta.
-4. A follow-up item exists to reconcile at the source project or remove the
-   patch.
+3. The rationale is documented in the commit message.
 
-## Review Checklist (All Vendored Components)
+## Review Checklist
 
-1. Does the change keep vendored defaults intact wherever possible?
-2. Was the customization ladder followed before touching vendored files?
-3. Are overrides narrowly scoped and reversible?
+1. Is the vendored edit deliberate and product-driven, not gratuitous?
+2. Is the change surgical and narrowly scoped?
+3. Are overrides reversible and documented?
 4. Did we avoid broad global selectors and repeated per-callsite hacks?
-5. If vendored files changed, is the delta documented and tracked?
-6. Is there a source-project issue/PR for non-trivial local patches?
-7. Does the change remain robust after a future `cargo xtask dx-components vendor` run?
+5. Does the change remain robust after a future `cargo xtask dx-components vendor` run?
 
 ## Optional Guardrails
 

@@ -1,9 +1,11 @@
 .row_root {
   display: flex;
   align-items: center;
-  padding-block: 0.75rem;
+  gap: var(--app_spacing_sm);
+  min-height: var(--app_touch_target);
   border-bottom: 1px solid var(--app_border);
-  padding-right: 0.5rem;
+  padding-left: var(--indent);
+  padding-right: var(--app_spacing_sm);
   transition-property: all;
 }
 
@@ -12,6 +14,8 @@
 }
 
 @keyframes flash-yellow {
+  /* TODO: Use a theme or semantic variable instead of hardcoded RGBA
+     See CSS Style Guide */
   0% {
     background-color: rgba(255, 255, 0, 0.4);
   }
@@ -21,29 +25,34 @@
 }
 
 .chevron_container {
-  width: 2.5rem;
+  width: var(--app_touch_target); /* 48px baseline */
   display: flex;
   justify-content: center;
+  align-items: center;
   flex-shrink: 0;
 }
 
-.spacer_w10 {
-  width: 2.5rem;
+.chevron_placeholder {
+  width: var(--app_touch_target);
 }
 
-.icon_sm {
+.icon_standard {
   width: 1rem;
   height: 1rem;
 }
 
-.checkbox_custom {
-  cursor: pointer;
-  margin-right: 0.5rem;
-  flex-shrink: 0;
+/* We let ButtonVariant::Icon handle sizes natively */
+.expand_button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.urgency_badge {
-  margin-left: 0.5rem;
+.checkbox_custom {
+  cursor: pointer;
+  padding: var(--app_spacing_sm);
+  /* Increase hit area without growing the visual checkbox */
+  flex-shrink: 0;
 }
 
 .title_base {
@@ -82,7 +91,7 @@
   gap: 0.25rem;
   opacity: 0;
   transition: opacity 0.2s;
-  margin-left: 0.5rem;
+  /* gap handles left spacing from due date/title */
 }
 
 .row_root:hover .actions_container,
