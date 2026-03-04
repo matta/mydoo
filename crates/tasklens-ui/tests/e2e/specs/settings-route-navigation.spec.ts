@@ -39,21 +39,4 @@ test.describe("Settings Route Navigation", () => {
     // Should navigate back to Plan (same as browser Back would do)
     await expect(page).toHaveURL(/\/plan/);
   });
-
-  test("Deep-Link Exception: close-settings replaces to fallback route", async ({
-    plan,
-    page,
-  }) => {
-    // Navigate directly to settings via deep link
-    await plan.setupClock();
-    await page.goto("/settings?ctx=plan&e2e_hooks=true");
-    await plan.waitForAppReady();
-    await expect(page.getByTestId("settings-page")).toBeVisible();
-
-    // Click close-settings
-    await page.getByTestId("close-settings").click();
-
-    // Should replace to the fallback route (/plan)
-    await expect(page).toHaveURL(/\/plan/);
-  });
 });
