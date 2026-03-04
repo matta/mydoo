@@ -1,5 +1,6 @@
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use dioxus::prelude::*;
+use dioxus_core::current_scope_id;
 
 #[css_module("/src/app_components/app_panel.css")]
 struct Styles;
@@ -18,7 +19,7 @@ pub(crate) fn AppPanel(
     #[props(default)] header_actions: Option<Element>,
     #[props(default)] footer: Option<Element>,
 ) -> Element {
-    let panel_aria_label = aria_label.unwrap_or_else(|| title.clone());
+    let title_id = format!("app-panel-title-{}", current_scope_id().0);
     let close_label = close_button_label.unwrap_or_else(|| "Close panel".to_string());
     let panel_testid = panel_testid.unwrap_or_default();
     let close_button_testid = close_button_testid.unwrap_or_default();
@@ -27,7 +28,7 @@ pub(crate) fn AppPanel(
         div {
             class: Styles::panel_shell,
             onkeydown: move |event: KeyboardEvent| {
-                if event.key() == Key::Escape {
+                if matches!(event.key(), Key::Escape) {
                     on_close.call(());
                 }
             },
@@ -35,12 +36,13 @@ pub(crate) fn AppPanel(
                 class: Styles::panel_root,
                 role: "dialog",
                 aria_modal: "false",
-                aria_label: panel_aria_label,
+                aria_label: aria_label.clone(),
+                aria_labelledby: if aria_label.is_none() { Some(title_id.clone()) } else { None },
                 "data-testid": panel_testid,
 
                 div { class: "dialog-header",
                     div { class: "dialog-title-group",
-                        h2 { class: Styles::panel_title, "{title}" }
+                        h2 { id: "{title_id}", class: Styles::panel_title, "{title}" }
                         if let Some(text) = subtitle {
                             span { class: Styles::panel_subtitle, "{text}" }
                         }
