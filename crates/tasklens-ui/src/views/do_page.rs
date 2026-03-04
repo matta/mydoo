@@ -51,7 +51,7 @@ pub fn DoPage() -> Element {
             class: Styles::page_container,
             style: "padding-top: var(--safe-top); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
 
-            PageHeader { title: "Work",
+            PageHeader { title: "Do",
                 Button {
                     variant: ButtonVariant::Ghost,
                     class: Styles::refresh_button,
