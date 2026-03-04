@@ -167,7 +167,6 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     rsx! {
         div {
             class: Styles::page_container,
-            style: "padding-top: var(--safe-top); padding-left: max(1rem, var(--safe-left)); padding-right: max(1rem, var(--safe-right));",
 
             PageHeader { title: "Plan",
                 if !flattened_tasks().is_empty() && load_error().is_none() {

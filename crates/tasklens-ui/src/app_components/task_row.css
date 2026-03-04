@@ -6,7 +6,6 @@
   border-bottom: 1px solid var(--app_border);
   padding-left: var(--indent);
   padding-right: var(--app_spacing_sm);
-  transition-property: all;
 }
 
 .row_highlighted {
@@ -94,7 +93,6 @@
   display: flex;
   gap: 0.25rem;
   opacity: 0;
-  transition: opacity 0.2s;
   /* gap handles left spacing from due date/title */
 }
 
