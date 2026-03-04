@@ -1,10 +1,10 @@
 ---
 id: issue-7pvk6zui91c
 title: "Phase 1: Migrate Settings to Full-Page Route Navigation"
-status: todo
+status: in_progress
 priority: 9
 created_at: 2026-03-04T03:24:17.674434766+00:00
-modified_at: 2026-03-04T04:44:49.136429085+00:00
+modified_at: 2026-03-04T21:17:42.225849388+00:00
 needs:
   - issue-sbm9yw59i5z
 tags:

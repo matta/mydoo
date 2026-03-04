@@ -926,75 +926,58 @@ export class PlanPage implements PlanFixture {
 
   // --- Document Management ---
 
-  async getCurrentDocumentId(): Promise<string | undefined> {
-    // Open Settings modal
+  private async openSettingsPage(): Promise<void> {
     await this.page.getByTestId("settings-button").click();
+    await expect(this.page.getByTestId("settings-page")).toBeVisible();
+  }
 
-    // Find the modal
-    const modal = this.page.getByRole("dialog", {
-      name: "Document Management",
-    });
-    await expect(modal).toBeVisible();
+  private async closeSettingsPage(): Promise<void> {
+    await this.page.getByTestId("close-settings").click();
+    await this.waitForAppReady();
+  }
 
-    // Get the ID from the hidden span using data-testid
-    const id = await modal.getByTestId("full-document-id").textContent();
+  async getCurrentDocumentId(): Promise<string | undefined> {
+    await this.openSettingsPage();
 
-    // Close the modal
-    await modal.getByTestId("close-settings").click();
-    await expect(modal).not.toBeVisible();
+    const settingsPage = this.page.getByTestId("settings-page");
+    const id = await settingsPage.getByTestId("full-document-id").textContent();
+
+    await this.closeSettingsPage();
 
     return id?.trim() || undefined;
   }
 
   async createNewDocument(): Promise<void> {
-    // Open Settings modal
-    await this.page.getByTestId("settings-button").click();
+    await this.openSettingsPage();
 
-    // Find the modal
-    const modal = this.page.getByRole("dialog", {
-      name: "Document Management",
-    });
-    await expect(modal).toBeVisible();
+    const settingsPage = this.page.getByTestId("settings-page");
 
-    // Click "New Document"
     await this.waitForPersistence(async () => {
-      await modal.getByTestId("new-document-button").click();
+      await settingsPage.getByTestId("new-document-button").click();
     });
 
-    // Modal remains open or closes depending on implementation,
-    // but the app should reload. Let's close modal.
-    await modal.getByTestId("close-settings").click();
-    await expect(modal).not.toBeVisible();
-    await this.waitForAppReady();
+    await this.closeSettingsPage();
   }
 
   async switchToDocument(id: string): Promise<void> {
-    // Open Settings modal
-    await this.page.getByTestId("settings-button").click();
+    await this.openSettingsPage();
 
-    // Find the modal
-    const modal = this.page.getByRole("dialog", {
-      name: "Document Management",
-    });
-    await expect(modal).toBeVisible();
+    const settingsPage = this.page.getByTestId("settings-page");
 
     // Click "Enter ID" to reveal input
-    const toggleBtn = modal.getByTestId("toggle-enter-id-button");
+    const toggleBtn = settingsPage.getByTestId("toggle-enter-id-button");
     if ((await toggleBtn.textContent()) === "Enter ID") {
       await toggleBtn.click();
     }
 
     // Fill the ID
-    const input = modal.getByTestId("document-id-input");
+    const input = settingsPage.getByTestId("document-id-input");
     await input.fill(id);
 
     // Click "Load Document"
-    await modal.getByTestId("load-document-button").click();
+    await settingsPage.getByTestId("load-document-button").click();
 
-    // Wait for the app to be ready.
-    await modal.getByTestId("close-settings").click();
-    await expect(modal).not.toBeVisible();
-    await this.waitForAppReady();
+    await this.closeSettingsPage();
   }
 
   // --- Clock Control ---
@@ -1115,30 +1098,22 @@ export class PlanPage implements PlanFixture {
   }
 
   async downloadDocument(): Promise<string> {
-    // Open Settings modal
-    await this.page.getByTestId("settings-button").click();
+    await this.openSettingsPage();
 
-    // Find the modal
-    const modal = this.page.getByRole("dialog", {
-      name: "Document Management",
-    });
-    await expect(modal).toBeVisible();
+    const settingsPage = this.page.getByTestId("settings-page");
 
     // Setup download listener
     const downloadPromise = this.page.waitForEvent("download");
 
-    await modal.getByTestId("download-document-button").click();
+    await settingsPage.getByTestId("download-document-button").click();
 
     const download = await downloadPromise;
-    // Close settings
-    await modal.getByTestId("close-settings").click();
+    await this.closeSettingsPage();
 
     // Get path or safe fallback
     let path = await download.path();
     if (!path) {
-      const fs = await import("node:fs"); // Dynamic import to avoid top-level node dep issues if any
-      // Use a consistent temp path strategy
-      // Playwright usually saves to a temp dir
+      const fs = await import("node:fs");
       const tempDir = (await fs.promises.stat("/tmp").catch(() => null))
         ? "/tmp"
         : ".";
@@ -1152,42 +1127,20 @@ export class PlanPage implements PlanFixture {
 
   async uploadDocument(filePath: string): Promise<void> {
     await this.waitForAppReady();
+    await this.openSettingsPage();
 
-    const modal = this.page.getByRole("dialog", {
-      name: "Document Management",
-    });
+    const settingsPage = this.page.getByTestId("settings-page");
 
-    for (let i = 0; i < 3; i++) {
-      if (await modal.isVisible()) break;
-
-      const btn = this.page.getByTestId("settings-button");
-      await btn.waitFor({ state: "visible" });
-      await btn.click();
-
-      try {
-        await expect(modal).toBeVisible({ timeout: 2000 });
-      } catch (_e) {
-        console.log(
-          `Attempt ${i + 1} to open settings modal failed, retrying...`,
-        );
-      }
-    }
-
-    // Prepare file input - Correct Key!
-    const fileInput = modal.locator(
+    const fileInput = settingsPage.locator(
       'input[type="file"][data-testid="document-upload-input"]',
     );
-    await expect(fileInput).toBeAttached(); // Input is hidden but attached
+    await expect(fileInput).toBeAttached();
 
-    // Upload file
     await this.waitForPersistence(async () => {
       await fileInput.setInputFiles(filePath);
     });
 
-    // Close settings
-    await modal.getByTestId("close-settings").click();
-    await expect(modal).not.toBeVisible();
-    await this.waitForAppReady();
+    await this.closeSettingsPage();
   }
 
   async getDetailedDocumentUrl(): Promise<string> {
