@@ -79,6 +79,9 @@ just test-e2e      # All E2E tests
 just test-e2e -- --ui  # Open Playwright UI mode
 just test-e2e -- -g "my test name" # Run specific test by name
 just test-e2e -- crates/tasklens-ui/tests/e2e/specs/my.spec.ts # Run specific file
+
+# Manual browser verification (outside Playwright runs)
+just dev  # Starts the Dioxus dev server with SPA routing support
 ```
 
 ### AI Agent Instructions
@@ -91,6 +94,8 @@ just test-e2e -- crates/tasklens-ui/tests/e2e/specs/my.spec.ts # Run specific fi
 
 ### Playwright & E2E Strategies
 
+- **Canonical E2E Entry Point:** Use `just test-e2e*`, not direct `pnpm exec playwright test`.
+- **Manual Visual Verification:** Use `just dev`; do not use `python -m http.server` (client routes like `/plan` will 404 without SPA routing/fallback).
 - **Semantic Selectors:** Use `data-testid` or `data-urgency`, avoid CSS styles.
 - **Timezone Pitfalls:** `page.clock.setFixedTime()` sets system time (UTC), but `new Date()` uses browser timezone.
 - **WASM Init Race:** Use `page.waitForFunction` to ensure custom WASM APIs are attached.
