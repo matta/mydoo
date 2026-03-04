@@ -5,7 +5,6 @@ use crate::app_components::DateInput;
 use crate::app_components::Loading;
 use crate::app_components::MovePicker;
 use crate::dioxus_components::button::{Button, ButtonVariant};
-use crate::dioxus_components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use crate::dioxus_components::label::Label;
 use crate::dioxus_components::select::{
     Select, SelectList, SelectOption, SelectTrigger, SelectValue,
@@ -215,47 +214,80 @@ pub(crate) fn TaskEditor(
         }
     };
 
+    let panel_title = if task_id.is_some() {
+        "Edit Task"
+    } else {
+        "Create Task"
+    };
+
     rsx! {
-        DialogRoot { open: true, on_open_change: move |_| on_close.call(()),
-            DialogContent { class: Some(Styles::task_editor_dialog.to_string()),
+        div {
+            class: Styles::task_editor_shell,
+            onkeydown: move |event: KeyboardEvent| {
+                if event.key() == Key::Escape {
+                    on_close.call(());
+                }
+            },
+            div {
+                class: Styles::task_editor_panel,
+                "data-testid": "task-editor-panel",
+                "data-editor-mode": if task_id.is_some() { "edit" } else { "create" },
+                role: "dialog",
+                aria_modal: "false",
+                aria_label: panel_title,
                 // Header
                 div { class: "dialog-header",
                     div { class: "dialog-title-group",
-                        DialogTitle {
-                            if task_id.is_some() {
-                                "Edit Task"
-                            } else {
-                                "Create Task"
-                            }
-                        }
+                        h2 { class: Styles::panel_title, "{panel_title}" }
                         if let Some(ref title) = parent_title {
                             span { class: Styles::dialog_subtitle, "Subtask of {title}" }
                         }
                     }
 
-                    if let Some(id) = task_id.clone() {
+                    div { class: Styles::panel_actions,
+                        if let Some(id) = task_id.clone() {
+                            Button {
+                                variant: ButtonVariant::Ghost,
+                                class: "{Styles::panel_icon_button} app_ghost_hover app_transition",
+                                aria_label: "Find in plan",
+                                onclick: move |_| {
+                                    let nav = navigator();
+                                    nav.push(crate::router::Route::PlanPage {
+                                        focus_task: Some(id.clone()),
+                                        seed: None,
+                                    });
+                                    on_close.call(());
+                                },
+                                svg {
+                                    "fill": "none",
+                                    "viewBox": "0 0 24 24",
+                                    "stroke-width": "2",
+                                    "stroke": "currentColor",
+                                    class: Styles::find_in_plan_icon,
+                                    path {
+                                        "stroke-linecap": "round",
+                                        "stroke-linejoin": "round",
+                                        "d": "m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z",
+                                    }
+                                }
+                            }
+                        }
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: "app_ghost_hover app_transition",
-                            aria_label: "Find in plan",
-                            onclick: move |_| {
-                                let nav = navigator();
-                                nav.push(crate::router::Route::PlanPage {
-                                    focus_task: Some(id.clone()),
-                                    seed: None,
-                                });
-                                on_close.call(());
-                            },
+                            class: "{Styles::panel_icon_button} app_ghost_hover app_transition",
+                            aria_label: "Close editor",
+                            "data-testid": "close-task-editor",
+                            onclick: move |_| on_close.call(()),
                             svg {
                                 "fill": "none",
                                 "viewBox": "0 0 24 24",
                                 "stroke-width": "2",
                                 "stroke": "currentColor",
-                                class: Styles::find_in_plan_icon,
+                                class: Styles::close_editor_icon,
                                 path {
                                     "stroke-linecap": "round",
                                     "stroke-linejoin": "round",
-                                    "d": "m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z",
+                                    "d": "M6 18L18 6M6 6l12 12",
                                 }
                             }
                         }
@@ -263,7 +295,7 @@ pub(crate) fn TaskEditor(
                 }
 
                 // Main Content (Scrollable if needed)
-                div { class: "dialog-body",
+                div { class: "{Styles::task_editor_body} dialog-body",
                     // Section: Core Details
                     fieldset { class: Styles::section_fieldset,
                         legend { class: Styles::section_legend,
@@ -822,7 +854,7 @@ pub(crate) fn TaskEditor(
                 }
             }
         }
-        // Render MovePicker as a sibling dialog outside TaskEditor's DialogRoot
+        // Render MovePicker as a sibling dialog outside TaskEditor's panel shell.
         if show_move_picker() {
             if let Some(id) = task_id.clone() {
                 MovePicker {
