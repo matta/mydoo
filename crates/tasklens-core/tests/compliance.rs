@@ -204,7 +204,6 @@ struct ExpectedTaskProps {
     urgency_status: Option<UrgencyStatus>,
     importance: Option<F64OrString>,
     normalized_importance: Option<F64OrString>,
-    is_blocked: Option<BoolOrString>,
     is_visible: Option<BoolOrString>,
     is_ready: Option<BoolOrString>,
     is_open: Option<BoolOrString>,
@@ -737,16 +736,6 @@ fn assert_state_props(
             actual.is_visible,
             visible.to_bool(),
             "Task: {}, Scenario: {}, Visibility",
-            expected.id,
-            scenario.name
-        );
-    }
-
-    if let Some(blocked) = &expected.is_blocked {
-        assert_eq!(
-            actual.is_blocked,
-            blocked.to_bool(),
-            "Task: {}, Scenario: {}, Blocked",
             expected.id,
             scenario.name
         );

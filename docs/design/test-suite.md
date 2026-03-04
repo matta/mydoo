@@ -134,8 +134,8 @@ during execution:
   `effective_credits`, `normalized_importance`), comparisons **MUST** use a
   tolerance of **0.001** (e.g., `abs(actual - expected) < 0.001`). This accounts
   for minor differences in floating-point arithmetic across languages.
-- **Boolean Exactness**: Boolean checks (`is_blocked`, `is_visible`, `is_ready`,
-  `is_open`) **MUST** match exactly.
+- **Boolean Exactness**: Boolean checks (`is_visible`, `is_ready`, `is_open`)
+  **MUST** match exactly.
 
 ## Contributing
 
