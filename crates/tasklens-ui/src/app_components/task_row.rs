@@ -5,7 +5,7 @@ use chrono::{Datelike, TimeZone};
 use dioxus::prelude::*;
 use dioxus_primitives::checkbox::CheckboxState;
 use tasklens_core::domain::dates::{UrgencyStatus, get_urgency_status};
-use tasklens_core::types::{TaskID, TaskStatus};
+use tasklens_core::types::{ScheduleType, TaskID, TaskStatus};
 
 /// Formats a due date timestamp relative to the current time.
 ///
@@ -34,6 +34,24 @@ fn format_relative_due_date(due_ts: i64, now: i64) -> String {
     }
 }
 
+fn routine_state_label(
+    schedule_type: ScheduleType,
+    status: TaskStatus,
+    effective_due_date: Option<i64>,
+    now: i64,
+) -> Option<String> {
+    if schedule_type != ScheduleType::Routinely {
+        return None;
+    }
+
+    if status == TaskStatus::Done {
+        return effective_due_date
+            .map(|due_ts| format!("Repeats {}", format_relative_due_date(due_ts, now)));
+    }
+
+    Some("Routine".to_string())
+}
+
 #[css_module("/src/app_components/task_row.css")]
 struct Styles;
 
@@ -52,6 +70,7 @@ pub(crate) fn TaskRow(
     on_create_subtask: EventHandler<TaskID>,
     on_title_tap: EventHandler<TaskID>,
     #[props(default = false)] is_highlighted: bool,
+    schedule_type: ScheduleType,
     effective_due_date: Option<i64>,
     effective_lead_time: Option<i64>,
     now: i64,
@@ -95,6 +114,7 @@ pub(crate) fn TaskRow(
     } else {
         format_args!("{}", Styles::row_root)
     };
+    let routine_label = routine_state_label(schedule_type, status, effective_due_date, now);
 
     rsx! {
         div {
@@ -194,6 +214,15 @@ pub(crate) fn TaskRow(
                 "{title}"
             }
 
+            if let Some(routine_label_text) = routine_label {
+                Badge {
+                    variant: BadgeVariant::Outline,
+                    class: Styles::routine_badge,
+                    "data-testid": "routine-state",
+                    "{routine_label_text}"
+                }
+            }
+
             if let Some(due_ts) = effective_due_date {
                 if !is_done {
                     span {
@@ -248,5 +277,42 @@ pub(crate) fn TaskRow(
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::routine_state_label;
+    use tasklens_core::types::{ScheduleType, TaskStatus};
+
+    #[test]
+    fn labels_non_done_routine_rows() {
+        let label = routine_state_label(
+            ScheduleType::Routinely,
+            TaskStatus::Pending,
+            Some(0),
+            86_400_000,
+        );
+
+        assert_eq!(label.as_deref(), Some("Routine"));
+    }
+
+    #[test]
+    fn labels_done_routine_rows_with_next_cycle() {
+        let label = routine_state_label(
+            ScheduleType::Routinely,
+            TaskStatus::Done,
+            Some(86_400_000),
+            0,
+        );
+
+        assert_eq!(label.as_deref(), Some("Repeats Tomorrow"));
+    }
+
+    #[test]
+    fn returns_none_for_non_routines() {
+        let label = routine_state_label(ScheduleType::Once, TaskStatus::Done, Some(0), 0);
+
+        assert_eq!(label, None);
     }
 }

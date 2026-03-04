@@ -6,7 +6,7 @@ use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_prioritized_tasks::{ScheduleLookup, use_schedule_lookup};
 use dioxus::prelude::*;
 use dioxus_core::Task;
-use tasklens_core::types::{TaskID, TaskStatus, TunnelState};
+use tasklens_core::types::{ScheduleType, TaskID, TaskStatus, TunnelState};
 
 #[component]
 pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
@@ -227,13 +227,14 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                         }
                     } else {
                         div { class: Styles::task_list,
-                            for FlattenedTask { id , title , status , depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
+                            for FlattenedTask { id , title , status , schedule_type, depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
                                 TaskRow {
                                     key: "{id}",
                                     id: id.clone(),
                                     title: title.clone(),
                                     status,
                                     depth,
+                                    schedule_type: schedule_type,
                                     on_toggle: toggle_task,
                                     has_children,
                                     is_expanded,
@@ -290,6 +291,7 @@ struct FlattenedTask {
     id: TaskID,
     title: String,
     status: TaskStatus,
+    schedule_type: ScheduleType,
     depth: usize,
     has_children: bool,
     is_expanded: bool,
@@ -341,6 +343,7 @@ fn flatten_recursive(id: &TaskID, depth: usize, ctx: &mut FlattenContext) {
             id: task.id.clone(),
             title: task.title.clone(),
             status: task.status,
+            schedule_type: task.schedule.schedule_type,
             depth,
             has_children,
             is_expanded,

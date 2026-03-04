@@ -86,6 +86,10 @@
   margin-left: 0.5rem;
 }
 
+.routine_badge {
+  flex-shrink: 0;
+}
+
 .actions_container {
   display: flex;
   gap: 0.25rem;
