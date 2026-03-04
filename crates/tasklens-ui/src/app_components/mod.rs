@@ -6,6 +6,7 @@
 
 mod alert;
 mod app_navbar;
+mod app_panel;
 mod back_button;
 mod balance_slider;
 mod date_time_inputs;
@@ -25,6 +26,7 @@ mod task_row;
 
 pub(crate) use alert::{Alert, AlertVariant};
 pub(crate) use app_navbar::AppNavBar;
+pub(crate) use app_panel::AppPanel;
 pub(crate) use back_button::BackButton;
 pub(crate) use balance_slider::BalanceSlider;
 pub(crate) use date_time_inputs::DateInput;

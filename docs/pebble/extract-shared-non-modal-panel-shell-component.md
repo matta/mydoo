@@ -1,10 +1,11 @@
 ---
 id: issue-lg8mkeb0sd8
 title: Extract shared non-modal panel shell component
-status: todo
+status: done
 priority: 8
 created_at: 2026-03-04T03:55:54.068113573+00:00
-modified_at: 2026-03-04T04:03:08.379805319+00:00
+modified_at: 2026-03-04T04:22:49.086210714+00:00
+resolved_at: 2026-03-04T04:22:49.086206459+00:00
 needs:
   - issue-sbm9yw59i5z
 tags:
