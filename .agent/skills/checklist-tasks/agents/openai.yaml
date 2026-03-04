@@ -1,0 +1,4 @@
+interface:
+  display_name: "Checklist Tasks"
+  short_description: "Write checklist tasks that stay true when checked"
+  default_prompt: "Rewrite checklist bullets into explicit, actionable tasks with objective done checks."

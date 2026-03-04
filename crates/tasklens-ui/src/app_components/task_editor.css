@@ -1,90 +1,7 @@
-.task_editor_shell {
-  position: fixed;
-  z-index: 900;
-  inset: 0;
-  display: flex;
-  align-items: stretch;
-  justify-content: flex-end;
-  pointer-events: none;
-  padding-top: max(0.5rem, var(--safe-top));
-  padding-right: max(0.5rem, var(--safe-right));
-  padding-bottom: max(0.5rem, var(--safe-bottom));
-}
-
-.task_editor_panel {
-  width: min(100%, var(--app_content-max-width));
-  border: 1px solid var(--app_border-strong);
-  border-radius: 0.75rem;
-  background-color: var(--app_surface);
-  box-shadow: 0 20px 30px -20px rgb(0 0 0 / 35%);
+.task_editor_content {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  pointer-events: auto;
-  animation: task_editor_slide_in 160ms ease-out;
-}
-
-@keyframes task_editor_slide_in {
-  from {
-    opacity: 0;
-    transform: translateX(1rem);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@media (max-width: 767px) {
-  .task_editor_shell {
-    padding: 0;
-  }
-
-  .task_editor_panel {
-    width: 100%;
-    min-height: 100dvh;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-    animation-name: task_editor_sheet_in;
-  }
-}
-
-@keyframes task_editor_sheet_in {
-  from {
-    opacity: 0;
-    transform: translateY(1rem);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.panel_title {
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.panel_actions {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.panel_icon_button {
-  min-width: var(--app_touch_target);
-  min-height: var(--app_touch_target);
-  border-radius: 0.5rem;
-}
-
-.task_editor_body {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: none;
+  gap: 2.5rem;
 }
 
 .section_fieldset {
@@ -156,30 +73,13 @@
   background-color: var(--app_surface);
 }
 
-.dialog_subtitle {
-  font-size: 0.75rem;
-  opacity: 0.5;
-  font-weight: 500;
-}
-
-.screen_reader_only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+.find_action_button {
+  min-width: var(--app_touch_target);
+  min-height: var(--app_touch_target);
+  border-radius: 0.5rem;
 }
 
 .find_in_plan_icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.close_editor_icon {
   width: 1.25rem;
   height: 1.25rem;
 }

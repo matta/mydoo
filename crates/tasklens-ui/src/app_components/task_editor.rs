@@ -1,5 +1,6 @@
 use crate::app_components::AppInput;
 use crate::app_components::AppInputStyle;
+use crate::app_components::AppPanel;
 use crate::app_components::AppTextarea;
 use crate::app_components::DateInput;
 use crate::app_components::Loading;
@@ -219,83 +220,78 @@ pub(crate) fn TaskEditor(
     } else {
         "Create Task"
     };
+    let save_handler_for_footer = save_handler.clone();
 
     rsx! {
-        div {
-            class: Styles::task_editor_shell,
-            onkeydown: move |event: KeyboardEvent| {
-                if event.key() == Key::Escape {
-                    on_close.call(());
-                }
-            },
-            div {
-                class: Styles::task_editor_panel,
-                "data-testid": "task-editor-panel",
-                "data-editor-mode": if task_id.is_some() { "edit" } else { "create" },
-                role: "dialog",
-                aria_modal: "false",
-                aria_label: panel_title,
-                // Header
-                div { class: "dialog-header",
-                    div { class: "dialog-title-group",
-                        h2 { class: Styles::panel_title, "{panel_title}" }
-                        if let Some(ref title) = parent_title {
-                            span { class: Styles::dialog_subtitle, "Subtask of {title}" }
-                        }
-                    }
-
-                    div { class: Styles::panel_actions,
-                        if let Some(id) = task_id.clone() {
-                            Button {
-                                variant: ButtonVariant::Ghost,
-                                class: "{Styles::panel_icon_button} app_ghost_hover app_transition",
-                                aria_label: "Find in plan",
-                                onclick: move |_| {
-                                    let nav = navigator();
-                                    nav.push(crate::router::Route::PlanPage {
-                                        focus_task: Some(id.clone()),
-                                        seed: None,
-                                    });
-                                    on_close.call(());
-                                },
-                                svg {
-                                    "fill": "none",
-                                    "viewBox": "0 0 24 24",
-                                    "stroke-width": "2",
-                                    "stroke": "currentColor",
-                                    class: Styles::find_in_plan_icon,
-                                    path {
-                                        "stroke-linecap": "round",
-                                        "stroke-linejoin": "round",
-                                        "d": "m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z",
-                                    }
-                                }
+        AppPanel {
+            title: panel_title.to_string(),
+            subtitle: parent_title.clone().map(|title| format!("Subtask of {title}")),
+            on_close: move |_| on_close.call(()),
+            panel_testid: Some("task-editor-panel".to_string()),
+            close_button_label: Some("Close editor".to_string()),
+            close_button_testid: Some("close-task-editor".to_string()),
+            header_actions: Some(rsx! {
+                if let Some(id) = task_id.clone() {
+                    Button {
+                        variant: ButtonVariant::Ghost,
+                        class: "{Styles::find_action_button} app_ghost_hover app_transition",
+                        aria_label: "Find in plan",
+                        onclick: move |_| {
+                            let nav = navigator();
+                            nav.push(crate::router::Route::PlanPage {
+                                focus_task: Some(id.clone()),
+                                seed: None,
+                            });
+                            on_close.call(());
+                        },
+                        svg {
+                            "fill": "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke-width": "2",
+                            "stroke": "currentColor",
+                            class: Styles::find_in_plan_icon,
+                            path {
+                                "stroke-linecap": "round",
+                                "stroke-linejoin": "round",
+                                "d": "m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z",
                             }
                         }
+                    }
+                }
+            }),
+            footer: Some(rsx! {
+                div { class: Styles::footer_delete_box,
+                    if task_id.is_some() {
                         Button {
                             variant: ButtonVariant::Ghost,
-                            class: "{Styles::panel_icon_button} app_ghost_hover app_transition",
-                            aria_label: "Close editor",
-                            "data-testid": "close-task-editor",
-                            onclick: move |_| on_close.call(()),
-                            svg {
-                                "fill": "none",
-                                "viewBox": "0 0 24 24",
-                                "stroke-width": "2",
-                                "stroke": "currentColor",
-                                class: Styles::close_editor_icon,
-                                path {
-                                    "stroke-linecap": "round",
-                                    "stroke-linejoin": "round",
-                                    "d": "M6 18L18 6M6 6l12 12",
-                                }
-                            }
+                            class: "{Styles::btn_delete} {Styles::footer_button_full}",
+                            onclick: on_delete,
+                            "Delete Task"
                         }
                     }
                 }
+                div { class: "dialog-footer-actions",
+                    Button {
+                        variant: ButtonVariant::Ghost,
+                        class: "{Styles::footer_button_full} {Styles::footer_cancel_btn}",
+                        onclick: move |_| on_close.call(()),
+                        "Cancel"
+                    }
+                    Button {
+                        variant: ButtonVariant::Primary,
+                        class: "{Styles::btn_save} {Styles::footer_button_full}",
+                        onclick: move |_| save_handler_for_footer(),
+                        if task_id.is_some() {
+                            "Save Changes"
+                        } else {
+                            "Create Task"
+                        }
+                    }
+                }
+            }),
 
-                // Main Content (Scrollable if needed)
-                div { class: "{Styles::task_editor_body} dialog-body",
+            // Main Content
+            div { class: Styles::task_editor_content,
                     // Section: Core Details
                     fieldset { class: Styles::section_fieldset,
                         legend { class: Styles::section_legend,
@@ -820,39 +816,6 @@ pub(crate) fn TaskEditor(
                         }
                     }
                 }
-
-                // Footer
-                div { class: "dialog-footer",
-                    div { class: Styles::footer_delete_box,
-                        if task_id.is_some() {
-                            Button {
-                                variant: ButtonVariant::Ghost,
-                                class: "{Styles::btn_delete} {Styles::footer_button_full}",
-                                onclick: on_delete,
-                                "Delete Task"
-                            }
-                        }
-                    }
-                    div { class: "dialog-footer-actions",
-                        Button {
-                            variant: ButtonVariant::Ghost,
-                            class: "{Styles::footer_button_full} {Styles::footer_cancel_btn}",
-                            onclick: move |_| on_close.call(()),
-                            "Cancel"
-                        }
-                        Button {
-                            variant: ButtonVariant::Primary,
-                            class: "{Styles::btn_save} {Styles::footer_button_full}",
-                            onclick: move |_| save_handler(),
-                            if task_id.is_some() {
-                                "Save Changes"
-                            } else {
-                                "Create Task"
-                            }
-                        }
-                    }
-                }
-            }
         }
         // Render MovePicker as a sibling dialog outside TaskEditor's panel shell.
         if show_move_picker() {
