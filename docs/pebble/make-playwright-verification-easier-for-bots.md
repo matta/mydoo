@@ -1,8 +1,10 @@
 ---
 id: issue-o946qqvc74s
 title: Make playwright verification easier for bots
-status: todo
+status: done
 created_at: 2026-03-02T20:18:42.819802578+00:00
+modified_at: 2026-03-04T01:59:56.527257760+00:00
+resolved_at: 2026-03-04T01:59:56.527254552+00:00
 ---
 
 Consider adding serve command guidance that is easier for bots to understand. I got

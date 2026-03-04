@@ -16,6 +16,25 @@ just test-e2e-desktop
 just test-e2e-desktop -- -g "Move Task"
 ```
 
+### Manual Visual Verification (Bots + Humans)
+
+Use the Dioxus dev server when you need to click through the app manually:
+
+```bash
+# Terminal 1 (from repo root)
+just dev
+```
+
+Then open the URL printed by `dx serve` (typically `http://127.0.0.1:8080`) and
+navigate to routes like `/plan`.
+
+Do not use `python -m http.server` for this app; client-side routes (for
+example `/plan`) will return 404 without SPA fallback routing.
+
+For automated E2E runs, keep using `just test-e2e*`. Those commands build the
+app and provide `WEB_DIST_DIR` so Playwright can run against its own local
+server on `http://localhost:5180`.
+
 ## Test Output Locations
 
 Playwright saves test outputs to these directories (relative to
