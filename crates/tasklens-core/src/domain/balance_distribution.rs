@@ -34,6 +34,27 @@ pub const MAX_PERCENTAGE: f64 = 0.99;
 /// # Returns
 ///
 /// A new map with redistributed percentages summing to 1.0.
+///
+/// # Examples
+///
+/// ```
+/// use std::collections::HashMap;
+/// use tasklens_core::domain::balance_distribution::redistribute_percentages;
+/// use tasklens_core::types::TaskID;
+///
+/// let mut map = HashMap::new();
+/// let t1 = TaskID::new();
+/// let t2 = TaskID::new();
+/// map.insert(t1.clone(), 0.5);
+/// map.insert(t2.clone(), 0.5);
+///
+/// // Adjust t1 to 0.8. t2 should become 0.2.
+/// let new_map = redistribute_percentages(&map, &t1, 0.8);
+///
+/// assert_eq!(new_map.get(&t1), Some(&0.8));
+/// // Use an epsilon for floating point comparison
+/// assert!((new_map.get(&t2).unwrap() - 0.2).abs() < f64::EPSILON);
+/// ```
 pub fn redistribute_percentages(
     current_map: &HashMap<TaskID, f64>,
     target_id: &TaskID,
@@ -101,6 +122,53 @@ pub fn redistribute_percentages(
 }
 
 /// Calculates the new absolute credits for all tasks based on a percentage distribution.
+///
+/// # Examples
+///
+/// ```
+/// use std::collections::HashMap;
+/// use tasklens_core::domain::balance_distribution::apply_redistribution_to_credits;
+/// use tasklens_core::types::{BalanceData, BalanceItem, TaskID};
+///
+/// let mut percentages = HashMap::new();
+/// let t1 = TaskID::new();
+/// let t2 = TaskID::new();
+/// percentages.insert(t1.clone(), 0.75);
+/// percentages.insert(t2.clone(), 0.25);
+///
+/// // Create a BalanceData object with two items (total length = 2)
+/// let balance_data = BalanceData {
+///     items: vec![
+///         BalanceItem {
+///             id: t1.clone(),
+///             title: "Task 1".to_string(),
+///             target_percent: 0.5,
+///             actual_percent: 0.5,
+///             is_starving: false,
+///             desired_credits: 1.0,
+///             effective_credits: 1.0,
+///             preview_percent: None,
+///         },
+///         BalanceItem {
+///             id: t2.clone(),
+///             title: "Task 2".to_string(),
+///             target_percent: 0.5,
+///             actual_percent: 0.5,
+///             is_starving: false,
+///             desired_credits: 1.0,
+///             effective_credits: 1.0,
+///             preview_percent: None,
+///         },
+///     ],
+///     total_credits: 2.0,
+/// };
+///
+/// // The absolute credits will be the percentage multiplied by the number of items (2.0)
+/// let credits = apply_redistribution_to_credits(&balance_data, &percentages);
+///
+/// assert_eq!(credits.get(&t1), Some(&1.5)); // 0.75 * 2.0
+/// assert_eq!(credits.get(&t2), Some(&0.5)); // 0.25 * 2.0
+/// ```
 pub fn apply_redistribution_to_credits(
     balance_data: &BalanceData,
     percentages: &HashMap<TaskID, f64>,
