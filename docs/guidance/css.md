@@ -19,7 +19,7 @@ difference matters when deciding what applies to vendored code.
 
 **Authoring rules** govern how we write and organize CSS source code: token
 usage, naming conventions, CSS modules, layout patterns, and inline-style
-restrictions (Sections 1, 2, 4, 5, 6, 7). These apply to **app-owned source
+restrictions (Sections 1, 2, 4, 5, 6, 7, 8). These apply to **app-owned source
 files** — they constrain _implementation_, not rendered output. Vendored source
 files are exempt from authoring rules because we treat them as upstream code
 with its own conventions.
@@ -71,6 +71,9 @@ Properties (variables).
   - **Surfaces**: `--app_surface`, `--app_surface-muted`, `--app_surface-subtle`
   - **Text**: `--app_text`, `--app_text-muted`, `--app_text-subtle`, `--app_accent`
   - **Borders**: `--app_border`, `--app_border-strong`
+  - Some existing semantic token names are legacy hyphenated forms; keep using
+    existing tokens as-is, but follow Section 4 for naming of new app-owned
+    names.
 
 ## 3. Sizing and Touch Areas (Accessibility)
 
@@ -124,12 +127,26 @@ Runtime rules are verified in the browser, not by CSS source inspection alone.
 
 ## 4. Utilities and Naming Conventions
 
-- **Global Utilities**: Any class inside `app.css` intended for general use across multiple component trees **must** be prefixed with `app_` (e.g., `.app_rounded`, `.app_stack_4`, `.app_text_sm`).
-- **Legacy Utility Migration**: Existing non-`app_` utility classes in
-  `app.css` are legacy. Do not introduce new non-`app_` utilities; migrate
-  legacy names opportunistically when touching the same area, and track larger
-  renames in a follow-up task.
-- **Component Classes**: Components should use descriptive class names relevant to their local domain (e.g., `.row_root`, `.urgency_badge`). Do not use raw tag selectors outside of global resets.
+- **Naming scope (app-owned CSS)**: This rule applies to all non-vendored CSS in
+  this project, including `assets/app.css` and
+  `src/app_components/**/*.css`. Vendored CSS paths
+  (`src/dioxus_components/**`, `assets/dx-components-theme.css`) are exempt.
+- **Underscore naming style**: In app-owned CSS, use underscore-style names for
+  selectors and custom properties (for example, `.task_row`,
+  `--task_row_indent`, `--app_spacing_sm`). Do not introduce new kebab-case
+  names in app-owned CSS. This is to ensure grep alignment with Rust/CSS-module
+  identifiers.
+- **`app_` prefix scope**: The `app_` prefix is required for shared global names
+  declared in `assets/app.css`:
+  1. Global utility classes (for example, `.app_rounded`, `.app_stack_4`).
+  2. Global app custom properties (for example, `--app_spacing_sm`).
+- **CSS Module local names**: Within component-local CSS modules,
+  `app_` is not required. Prefer descriptive domain names
+  (for example, `.row_root`, `.urgency_badge`).
+- **Legacy naming migration**: Existing non-conforming names (including
+  non-`app_` global utilities and hyphenated app-owned names) are legacy. Do not
+  add new names in those styles; migrate opportunistically when touching related
+  areas, and track larger renames in follow-up tasks.
 - **Transitions**: To maintain a cohesive feel, reuse the standard `.app_transition` class for hover or focus state animations rather than defining custom transition rates and easing everywhere.
 
 ## 5. CSS Modules for App-Specific Components
@@ -188,7 +205,9 @@ pub fn MyComponent() -> Element {
 ## 6. Layout Engine
 
 - Prefer **Flexbox** for 1D layouts and **CSS Grid** for 2D layouts.
-- Avoid absolute positioning unless building overlays, or floating menus. Use Flexbox's `gap` property over arbitrary margin assignments where possible.
+- Avoid absolute positioning unless building overlays, or floating menus.
+- For flow spacing policy (`gap` over sibling margins for stack/row/grid
+  layouts), follow Section 8.2.
 
 ## 7. Avoid Inline Styles For Concrete Properties
 
@@ -225,3 +244,129 @@ div {
   padding-left: var(--indent);
 }
 ```
+
+## 8. Layout Expression and Spacing Consistency
+
+This section defines how we express layout in app-owned UI so that spacing and
+structure stay consistent as the component library grows.
+It is policy for all new app-owned UI work, with opportunistic migration of
+existing layouts when touched.
+
+### 8.1 Design Language: Spacing Scale First
+
+Consistency comes primarily from a **single spacing scale** (tokens) and a
+policy that components follow it.
+
+- **Prefer tokenized spacing**: Use the app spacing token set in
+  `assets/app.css` and keep new spacing values on a semantic t-shirt scale with
+  the `--app_spacing_` prefix (`--app_spacing_xs`, `--app_spacing_sm`,
+  `--app_spacing_md`, `--app_spacing_lg`, `--app_spacing_xl`). Do not introduce
+  numeric spacing token suffixes for new app-owned tokens.
+- **Avoid one-off spacing**: Do not introduce arbitrary values like `13px`,
+  `18px`, `22px` for margins/padding/gaps unless you are explicitly matching a
+  runtime requirement (e.g., the 44px touch target) or bridging to a future
+  token with a time-boxed exception and a TODO.
+
+### 8.2 Prefer `gap` Over Margins for Flow Layout
+
+Where possible, express spacing between siblings using `gap`:
+
+- **Stacks (vertical flow)**: `display: flex; flex-direction: column; gap: …`
+- **Clusters/Rows (horizontal flow)**: `display: flex; flex-direction: row; gap: …`
+- **Grids**: `display: grid; gap: …`
+
+Using `gap` avoids margin-collapsing surprises and reduces the need for
+selector-specific spacing rules.
+
+### 8.3 Layout Primitives (Recommended Set)
+
+Most app screens can be expressed using a small set of primitives. Prefer these
+before inventing bespoke page-specific layout classes:
+
+- **Container**: max width + horizontal padding
+- **Stack**: vertical layout with `gap`
+- **Cluster/Row**: horizontal layout with `gap`, optional wrap and alignment
+- **Grid**: 2D layout with responsive columns
+- **Spacer/Divider (optional)**: explicit separation when flow layout is not enough
+
+### 8.4 Where Spacing Lives (Ownership Policy)
+
+To keep layouts predictable:
+
+- **Parents own outer spacing**: placement, page/grid/stack spacing, section
+  padding, and distance between components.
+- **Components own inner spacing**: padding and internal arrangement of the
+  component’s own sub-elements.
+- **Avoid “mystery margins” on leaf components**: Leaf UI components should not
+  generally add external margins that surprise their parent container.
+
+This policy makes it easier to rearrange layouts without hunting for stray
+margins across unrelated modules.
+
+### 8.5 Dioxus Composition: Primitives as Components vs Global Utilities
+
+Because this codebase uses CSS Modules for app components, we have two valid
+ways to express layout consistently without falling back into “utility class
+clutter”.
+
+**Option A (Preferred): Layout primitives as small Dioxus components**
+
+Create a tiny set of app-owned primitives in `src/app_components/layout/**`
+(e.g., `Stack`, `Row`, `Grid`, `Container`). These components should:
+
+- Render minimal markup (`div` / `section`) with predictable classes.
+- Accept a _small_ set of parameters (e.g., `gap`, `align`, `justify`, `wrap`,
+  `pad`, `max_width`) that map to tokens.
+- Avoid becoming a mini-framework. Keep the API intentionally small and aligned
+  with our token scale.
+
+For example, your Dioxus code would remain declarative and clean:
+
+```rust
+rsx! {
+    Stack { gap: "md",
+        h1 { "Title" }
+        Row { gap: "sm", justify: "end",
+            Button { "Cancel" }
+            Button { "Save" }
+        }
+    }
+}
+```
+
+This approach keeps RSX trees readable and enforces the spacing scale by
+construction.
+
+**Option B: A small set of global layout utilities**
+
+If primitives-as-components feels too heavy for a specific area, define a small
+set of global utilities in `assets/app.css`, **prefixed with `app_`** (per the
+utilities rules). Keep them few and stable, e.g.:
+
+- `.app_container`
+- `.app_stack_{n}` (or `.app_stack` + a CSS variable `--stack-gap`)
+- `.app_row_{n}`
+- `.app_grid_{variant}`
+
+Do **not** reintroduce a large “utility matrix”. If you find yourself needing
+dozens of near-duplicates, prefer Option A or a local CSS Module.
+
+**Default choice**: Use **Option A** for common structural layout. Use Option B
+sparingly for simple screen-level composition or when prototyping.
+
+### 8.6 Responsive Layout Guidance (Minimal and Predictable)
+
+- Prefer **Grid** for responsive “card” layouts and **flex wrap** for small
+  horizontal clusters.
+- Prefer **a few named breakpoints** (if present) rather than continuous
+  one-off media queries per component.
+- Avoid embedding responsive behavior deep inside leaf components unless the
+  component’s responsibility is inherently responsive (e.g., a navigation bar).
+
+### 8.7 Working With Vendored Components
+
+When composing with vendored Dioxus components:
+
+- Prefer theme/token alignment (CSS variables) over selector overrides.
+- If a vendored primitive is visually small, satisfy runtime touch targets with
+  **app-owned wrappers** that provide the effective hit region (see Section 3).

@@ -12,7 +12,11 @@
 
   /* Sizing and Spacing Layout Tokens */
   --app_touch_target: 3rem;
+  --app_spacing_xs: 0.25rem;
   --app_spacing_sm: 0.5rem;
+  --app_spacing_md: 0.75rem;
+  --app_spacing_lg: 1rem;
+  --app_spacing_xl: 1.5rem;
 
   /* App semantic color tokens mapped to upstream theme variables from
    * dx-components-theme.css.
@@ -190,6 +194,10 @@ textarea,
 .app_font_medium {
   font-weight: 500;
 }
+/* TODO: These stack utilities currently use lobotomized owl and margins.
+ * They should be migrated to use `display: flex; flex-direction: column; gap: ...`
+ * to align with the guidance in docs/guidance/css.md.
+ */
 .app_stack_4 > :not([hidden]) ~ :not([hidden]) {
   margin-top: 1rem;
 }
