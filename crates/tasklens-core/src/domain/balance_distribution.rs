@@ -23,17 +23,28 @@ pub const MAX_PERCENTAGE: f64 = 0.99;
 /// their previous share. If multiple tasks previously shared the same percentage,
 /// they will continue to have an equal slice of the new remaining proportion.
 ///
-/// The `new_value` will be strictly clamped between `MIN_PERCENTAGE` and `MAX_PERCENTAGE`.
+/// The given `new_value` for the `target_id` task will be strictly clamped between
+/// `MIN_PERCENTAGE` and `MAX_PERCENTAGE`. The `current_map` must map each [`TaskID`]
+/// to a target percentage (0.0 to 1.0).
 ///
-/// # Arguments
+/// # Examples
 ///
-/// * `current_map` - The current map of [`TaskID`] to target percentage (0.0 to 1.0).
-/// * `target_id` - The identifier of the task being adjusted.
-/// * `new_value` - The new target percentage for the target task.
+/// ```
+/// use tasklens_core::domain::balance_distribution::redistribute_percentages;
+/// use tasklens_core::types::TaskID;
+/// use std::collections::HashMap;
 ///
-/// # Returns
+/// let mut map = HashMap::new();
+/// let t1 = TaskID::new();
+/// let t2 = TaskID::new();
+/// map.insert(t1.clone(), 0.5);
+/// map.insert(t2.clone(), 0.5);
 ///
-/// A new map with redistributed percentages summing to 1.0.
+/// let result = redistribute_percentages(&map, &t1, 0.75);
+///
+/// assert_eq!(result[&t1], 0.75);
+/// assert_eq!(result[&t2], 0.25);
+/// ```
 pub fn redistribute_percentages(
     current_map: &HashMap<TaskID, f64>,
     target_id: &TaskID,
