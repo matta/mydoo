@@ -10,7 +10,7 @@
 }
 
 .row_root:hover {
-  background-color: var(--app_surface-muted);
+  background-color: var(--app_surface_muted);
 }
 
 .title_container {

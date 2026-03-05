@@ -386,7 +386,18 @@ sparingly for simple screen-level composition or when prototyping.
 - Avoid embedding responsive behavior deep inside leaf components unless the
   component’s responsibility is inherently responsive (e.g., a navigation bar).
 
-### 8.7 Working With Vendored Components
+### 8.7 No Fallback Defaults for Guaranteed Variables
+
+Do not provide fallback default values for CSS variables that should always
+resolve (for example, `padding-top: max(0.5rem, var(--app_safe_top))` or
+`var(--app_spacing_sm, 0.5rem)`).
+
+When a variable is globally defined (like safe-area insets or app tokens),
+local fallbacks merely serve to hide bugs. Trust the variable to resolve correctly.
+If an element lacks appropriate spacing when the variable resolves to `0px`,
+fix the parent layout container rather than masking it with a default.
+
+## 9. Working With Vendored Components
 
 When composing with vendored Dioxus components:
 

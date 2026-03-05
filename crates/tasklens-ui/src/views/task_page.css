@@ -39,7 +39,7 @@
 }
 
 .task_item:hover {
-  background-color: var(--app_surface-muted);
+  background-color: var(--app_surface_muted);
 }
 
 .checkbox_input {

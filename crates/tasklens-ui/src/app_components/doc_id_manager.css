@@ -35,8 +35,8 @@
 .id_display_box {
   flex: 1 1 0%;
   padding: 0.5rem 0.75rem;
-  background-color: var(--app_surface-muted);
-  border: 1px solid var(--app_border-strong);
+  background-color: var(--app_surface_muted);
+  border: 1px solid var(--app_border_strong);
   border-radius: 0.25rem;
   font-size: 1rem;
   font-family:
@@ -63,8 +63,8 @@
 
 .id_display_small {
   padding: 0.25rem 0.5rem;
-  background-color: var(--app_surface-muted);
-  border: 1px solid var(--app_border-strong);
+  background-color: var(--app_surface_muted);
+  border: 1px solid var(--app_border_strong);
   border-radius: 0.25rem;
   font-size: 0.75rem;
   font-family:

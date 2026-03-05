@@ -6,14 +6,14 @@
   align-items: stretch;
   justify-content: flex-end;
   pointer-events: none;
-  padding-top: max(0.5rem, var(--safe-top));
-  padding-right: max(0.5rem, var(--safe-right));
-  padding-bottom: max(0.5rem, var(--safe-bottom));
+  padding-top: var(--app_safe_top);
+  padding-right: var(--safe-right);
+  padding-bottom: var(--app_safe_bottom);
 }
 
 .panel_root {
-  width: min(100%, var(--app_content-max-width));
-  border: 1px solid var(--app_border-strong);
+  width: min(100%, var(--app_content_max_width));
+  border: 1px solid var(--app_border_strong);
   border-radius: 0.75rem;
   background-color: var(--app_surface);
   box-shadow: 0 20px 30px -20px rgb(0 0 0 / 35%);
