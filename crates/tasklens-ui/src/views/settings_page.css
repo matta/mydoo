@@ -1,13 +1,16 @@
 .settings_root {
-  max-width: 40rem;
+  max-width: var(--app_content-max-width);
   margin: 0 auto;
-  padding: 1.5rem 1rem;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
 }
 
 .settings_header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--app_spacing_sm);
   margin-bottom: 1.5rem;
 }
 
@@ -15,6 +18,7 @@
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
+  color: var(--app_text);
 }
 
 .settings_body {
