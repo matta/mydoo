@@ -30,11 +30,9 @@ pub fn SettingsPage(ctx: Option<ViewContext>) -> Element {
             class: Styles::settings_root,
 
             div { class: Styles::settings_header,
-                div {
-                    "data-testid": "close-settings",
-                    BackButton {
-                        onclick: close_settings,
-                    }
+                BackButton {
+                    onclick: close_settings,
+                    data_testid: Some("close-settings".to_string()),
                 }
                 h1 { class: Styles::settings_title, "Settings" }
             }

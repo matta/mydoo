@@ -36,8 +36,8 @@ Acceptance:
 
 Implementation Checklist:
 
-- [x] Define `ViewContext` and `SettingsQuery { ctx: ViewContext }` in `crates/tasklens-ui/src/router.rs` so `/settings` only accepts approved return contexts; verify via `cargo build -p tasklens-ui`.
-- [x] Add `Route::SettingsPage { query: SettingsQuery }` with `#[route("/settings?:ctx")]` in `crates/tasklens-ui/src/router.rs` so settings is a first-class routed page; verify via `cargo build -p tasklens-ui`.
+- [x] Define `ViewContext` in `crates/tasklens-ui/src/router.rs` so `/settings` accepts approved return contexts via `ctx`; verify via `cargo build -p tasklens-ui`.
+- [x] Add `Route::SettingsPage { ctx: Option<ViewContext> }` with `#[route("/settings?:ctx")]` in `crates/tasklens-ui/src/router.rs` so settings is a first-class routed page; verify via `cargo build -p tasklens-ui`.
 - [x] Create `crates/tasklens-ui/src/views/settings_page.rs` with a top-level `data-testid="settings-page"` anchor and page heading so E2E can target full-page settings reliably; verify via `crates/tasklens-ui/tests/e2e/specs/settings-route-navigation.spec.ts`.
 - [x] Wire `Route::SettingsPage` into the app shell (imports and `Outlet::<Route>`) so `/settings` renders the new page component; verify via `cargo build -p tasklens-ui`.
 - [x] Replace modal state toggling in `crates/tasklens-ui/src/app_components/app_navbar.rs` with route navigation to `/settings?ctx=plan` for Plan-origin settings entry so the Plan return context is explicit; verify via `crates/tasklens-ui/tests/e2e/specs/settings-route-navigation.spec.ts`.

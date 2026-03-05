@@ -9,8 +9,12 @@ use dioxus::prelude::*;
 /// # Props
 ///
 /// * `onclick` - Event handler called when the button is clicked.
+/// * `data_testid` - Optional E2E selector attached to the rendered button.
 #[component]
-pub(crate) fn BackButton(onclick: EventHandler<MouseEvent>) -> Element {
+pub(crate) fn BackButton(
+    onclick: EventHandler<MouseEvent>,
+    #[props(default)] data_testid: Option<String>,
+) -> Element {
     #[css_module("/src/app_components/back_button.css")]
     struct Styles;
 
@@ -19,6 +23,7 @@ pub(crate) fn BackButton(onclick: EventHandler<MouseEvent>) -> Element {
             variant: ButtonVariant::Ghost,
             class: Styles::back_button,
             onclick: move |evt| onclick.call(evt),
+            "data-testid": data_testid,
             svg {
                 class: Styles::back_icon,
                 fill: "none",

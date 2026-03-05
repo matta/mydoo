@@ -12,9 +12,9 @@ use tasklens_core::types::TaskID;
 
 /// Defines the valid return-context values for the `/settings` route.
 ///
-/// When the user navigates away from settings, the `ViewContext` determines
-/// the fallback route when no in-app history exists (deep-link scenario).
-/// Invalid or missing values normalize to `Plan`.
+/// This captures in-app provenance for settings entry (for example from
+/// `Plan` or `Do`) and keeps query handling stable when `ctx` is omitted
+/// or unexpected.
 #[derive(Clone, Debug, PartialEq, Default)]
 pub(crate) enum ViewContext {
     #[default]
@@ -37,7 +37,7 @@ impl FromStr for ViewContext {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "do" => Ok(ViewContext::Do),
-            _ => Ok(ViewContext::Plan), // Normalize unknown values to Plan
+            _ => Ok(ViewContext::Plan),
         }
     }
 }
