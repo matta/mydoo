@@ -29,8 +29,7 @@ Scope:
     | **Do** | `?ctx=do` | `/do` |
     | **Search** | `?ctx=search&return_to=[/plan\|/do]` | `/plan` or `/do` |
     | **Find-in-Plan** | `?ctx=find_in_plan&highlight=[TaskID]` | `/plan` |
-  - Any missing fields or invalid combinations (e.g. `?ctx=search` missing its required `return_to`) cause typed parsing to fail gracefully.
-  - If URL parsing fails for any reason (missing values, typos, malformed deep-links), it will normalize query state to `ctx=plan`, then route behavior resolves destination. The canonical behavior for malformed editor deep-links is to normalize to `ctx=plan` and resolve on editor exit; it must not trigger an immediate redirect on load. Because Editor exits resolve their underlying `ViewContext`, the `ctx=plan` normalized query state deterministically resolves to the concrete `/plan` route destination during editor-exit behavior.
+  - In-app navigation always emits valid `ViewContext` query combinations. Direct deep-link URL entry with missing/invalid fields is unsupported user error; behavior is intentionally unspecified and untested.
 - `ViewContext` Invariant: `ViewContext` variants are the only valid states. Component-level invalidity concepts (such as a `valid return_to` coupled with an invalid sibling field) are completely out-of-model and must not appear in requirements text. Thanks to atomicity and serialization bounds, invalid states are unrepresentable.
 - Router Type Safety: Implement `ViewContext` using strictly-typed Rust Enums `#[serde(tag = "ctx", rename_all = "snake_case")]` and flatten it into the router query struct. This forces `serde` to handle the parsing logic, automatically rejecting bad variants and collapsing the need for complex fallback rules.
 
@@ -53,13 +52,8 @@ Scope:
 
 - Both `PlanPage` and `DoPage` no longer import or render `<TaskEditor />` directly. Clicking a task (`on_title_tap` / create) pushes the canonical enum route to the navigator.
 - Exact Return Semantics:
-  - **Precedence Rule**: Close actions (UI controls and programmatic exits) must use `In-App Parity Rule` (history back) if a prior in-app page exists in history; variant-derived exit targets (from the table above) are used only for deep-links or direct entries where no in-app history is available. This ensures UI controls and native Back buttons remain perfectly synchronized.
-  - Exit target resolution is derived directly from the parsed `ViewContext` enum (see above table) only when history back is unavailable.
-  - Because `ViewContext` is a strictly-typed enum parsed atomically, a missing/invalid field (such as a malformed `highlight` on `ctx=find_in_plan`) causes the entire struct parsing to fail. It cannot partially succeed or "honor a valid return_to". It must normalize query state to `ctx=plan`, then route behavior resolves destination.
-  - **In-App Parity Rule**: If browser history contains a prior in-app page, the editor exit must perform a history back, identically to the native browser Back button.
-  - **Deep-Link Exception**: If visited directly via deep-link (no in-app history), the parity rule is entirely exempted:
-    1. The editor exit fallback must use `history replace` to the `/plan` destination and never `push`.
-    2. The native browser Back button is permitted to exhibit standard host OS behavior (e.g., closing the tab completely within its native Back scope).
+  - **Dioxus Navigation API Rule**: Tasklens UI code must use Dioxus Navigation APIs exclusively. Close actions (UI controls and programmatic exits) use `navigator().go_back()`.
+  - **Deep-Link Non-Goal**: Direct deep-link arrivals to editor routes are unsupported and untested. We do not provide fallback, normalization, or recovery requirements for those entries.
 - Search Context Policy:
   - Search remains temporary UI state, not a URL-driven route state.
   - `ctx=search` records provenance only and does not define return destination (it uses its internal `return_to` field).
@@ -81,4 +75,4 @@ Acceptance:
 - Return-Target Preservation: Returning from the canonical editor route is determined strictly by `ViewContext` variant semantics (`Plan`, `Do`, `Search{return_to}`, `FindInPlan{highlight}`). When returning to `/plan` via `FindInPlan{highlight}`, the app must correctly restore the UI state (expanded/collapsed tree, scroll offset, highlighted row).
 - Search Entry/Exit: Selecting a task from search opens the editor with `ctx=search`; pressing Back returns to the underlying context safely, proving deterministic navigation without restoring dropped search text.
 - Enum Discipline: Plan/Do launches use `ctx=plan`/`ctx=do`; Search launches include `ctx=search` and `return_to`; Find-in-Plan launches include `ctx=find_in_plan` and `highlight`.
-- Deep-link Safety: Visiting an editor deep-link with missing or malformed query variants strictly follows the canonical rule to normalize to `ctx=plan` and resolve on editor exit to the `/plan` destination (rejecting immediate redirect interpretations). Pressing Back after fallback must not reopen the deep-link editor state.
+- Deep-link Non-Goal: Direct deep-link editor entries (valid or malformed) are unsupported user error and excluded from acceptance testing.

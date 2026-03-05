@@ -52,6 +52,7 @@ build-store:
 # -----------------------------------------------------------------------------
 
 # Run all style checks
+[parallel]
 check-style: check-format check-xtask-all check-biome-root check-dioxus-upstream-styling
 
 # Check formatting (all files from root)
@@ -64,7 +65,7 @@ check-biome-root:
 
 # Guardrails for app-owned usage of upstream-styled Dioxus controls
 check-dioxus-upstream-styling:
-    bash scripts/check-dioxus-upstream-styling.sh
+    chronic bash scripts/check-dioxus-upstream-styling.sh
 
 # Run all xtask checks
 check-xtask-all:
@@ -75,6 +76,7 @@ check-xtask-all:
 # -----------------------------------------------------------------------------
 
 # Run all type checks
+[parallel]
 check-types: check-types-root check-types-scripts check-types-ui
 
 # Check types for root
@@ -94,6 +96,7 @@ check-types-ui:
 # -----------------------------------------------------------------------------
 
 # Run all rust checks
+[parallel]
 check-rust: check-rust-fmt check-clippy check-wasm
 
 # Check rust formatting
@@ -174,6 +177,7 @@ test-e2e-mobile-debug *args: build-ui-debug
 # -----------------------------------------------------------------------------
 
 # Full validation (static analysis)
+[parallel]
 check: check-deps-root check-syncpack-root check-style check-types check-rust check-pebble
 
 # The "ultimate" verification command
