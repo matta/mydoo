@@ -88,7 +88,7 @@ pub(crate) fn AppNavBar() -> Element {
                 SyncIndicator {}
 
                 Button {
-                    variant: ButtonVariant::Ghost,
+                    variant: ButtonVariant::Icon,
                     onclick: move |_| show_search.set(!show_search()),
                     aria_label: "Search tasks",
                     "data-testid": "search-button",
@@ -107,7 +107,7 @@ pub(crate) fn AppNavBar() -> Element {
                 }
 
                 Button {
-                    variant: ButtonVariant::Ghost,
+                    variant: ButtonVariant::Icon,
                     onclick: move |_| {
                         navigator().push(Route::SettingsPage {
                             ctx: Some(settings_ctx.clone()),
