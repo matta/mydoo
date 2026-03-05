@@ -1,10 +1,11 @@
 ---
 id: issue-xofnrsxe3oj
 title: Fix settings-button nested interactive markup in AppNavBar
-status: todo
+status: done
 priority: 80
 created_at: 2026-03-05T01:02:55.714693974+00:00
-modified_at: 2026-03-05T01:02:59.832638351+00:00
+modified_at: 2026-03-05T05:21:25.029899495+00:00
+resolved_at: 2026-03-05T05:21:25.029895165+00:00
 tags:
   - ui
   - a11y
