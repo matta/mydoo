@@ -577,7 +577,7 @@ export class PlanPage implements PlanFixture {
       .first();
     await expect(row).toBeVisible({ timeout: 5000 });
 
-    const toggle = row.locator('button[data-expanded]');
+    const toggle = row.locator("button[data-expanded]");
 
     // If the toggle isn't visible, the task might not have children yet (or just got its first one)
     // Wait for the UI to update if we expect it to have children.
