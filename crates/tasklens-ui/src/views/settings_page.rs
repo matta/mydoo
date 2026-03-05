@@ -5,11 +5,11 @@ use dioxus::prelude::*;
 use tasklens_store::doc_id::DocumentId;
 use tasklens_store::store::AppStore;
 
+#[css_module("/src/views/settings_page.css")]
+struct Styles;
+
 #[component]
 pub fn SettingsPage(ctx: Option<ViewContext>) -> Element {
-    #[css_module("/src/views/settings_page.css")]
-    struct Styles;
-
     let store = use_context::<Signal<AppStore>>();
     let doc_id = use_context::<Signal<Option<DocumentId>>>();
     let handle_doc_change = move |new_doc_id: DocumentId| {
