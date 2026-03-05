@@ -76,6 +76,27 @@ pub fn calculate_contextual_visibility(
 }
 
 /// Checks if a place is currently open based on its schedule.
+///
+/// If the schedule JSON cannot be parsed, it falls back to being open. Returns `true`
+/// if `place` is set to always open, or if `current_time` (in milliseconds) falls within
+/// its custom schedule. Otherwise, returns `false`.
+///
+/// # Examples
+///
+/// ```
+/// use tasklens_core::domain::visibility::is_place_open;
+/// use tasklens_core::types::{Place, PlaceID};
+///
+/// let place = Place {
+///     id: PlaceID::from("office"),
+///     name: "Office".to_string(),
+///     hours: r#"{"mode":"always_open"}"#.to_string(),
+///     included_places: vec![],
+/// };
+///
+/// let current_time = 1768212000000;
+/// assert!(is_place_open(&place, current_time));
+/// ```
 pub fn is_place_open(place: &Place, current_time: i64) -> bool {
     let open_hours: OpenHours = match serde_json::from_str(&place.hours) {
         Ok(h) => h,
