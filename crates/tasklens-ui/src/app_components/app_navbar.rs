@@ -51,8 +51,12 @@ pub(crate) fn AppNavBar() -> Element {
     // This ensures the settings page knows where to return to.
     let current_route = use_route::<Route>();
     let settings_ctx = match &current_route {
-        Route::DoPage {} | Route::ScoreTracePage { .. } => ViewContext::Do,
-        _ => ViewContext::Plan,
+        Route::DoPage { .. } | Route::ScoreTracePage { .. } => ViewContext::Do,
+        Route::Home { .. }
+        | Route::PlanPage { .. }
+        | Route::BalancePage { .. }
+        | Route::PageNotFound { .. } => ViewContext::Plan,
+        Route::SettingsPage { ctx } => ctx.clone().unwrap_or_default(),
     };
 
     rsx! {
