@@ -157,7 +157,6 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
                             on_close.call(());
                         },
                         aria_label: "Close search",
-                        title: "Close search (Esc)",
                         "data-testid": "search-close",
                         svg {
                             class: Styles::close_icon,
