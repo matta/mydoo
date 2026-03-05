@@ -91,7 +91,6 @@ pub(crate) fn AppNavBar() -> Element {
                     variant: ButtonVariant::Icon,
                     onclick: move |_| show_search.set(!show_search()),
                     aria_label: "Search tasks",
-                    title: "Search tasks (Cmd/Ctrl+K)",
                     "data-testid": "search-button",
                     svg {
                         class: Styles::icon_button_svg,
@@ -115,7 +114,6 @@ pub(crate) fn AppNavBar() -> Element {
                         });
                     },
                     aria_label: "Settings",
-                    title: "Settings",
                     "data-testid": "settings-button",
                     svg {
                         class: Styles::icon_button_svg,

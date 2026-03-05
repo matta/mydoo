@@ -1,0 +1,11 @@
+--- crates/tasklens-ui/tests/e2e/pages/plan-page.ts
++++ crates/tasklens-ui/tests/e2e/pages/plan-page.ts
+@@ -577,7 +577,7 @@
+       .first();
+     await expect(row).toBeVisible({ timeout: 5000 });
+
+-    const toggle = row.locator("button", { has: this.page.locator("svg") }).first(); // use the first button with an svg as the toggle
++    const toggle = row.locator('button[data-expanded]');
+
+     // If the toggle isn't visible, the task might not have children yet (or just got its first one)
+     // Wait for the UI to update if we expect it to have children.

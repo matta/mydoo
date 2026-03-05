@@ -35,8 +35,7 @@ pub(crate) fn TaskInput(
                 variant: ButtonVariant::Primary,
                 disabled: value().trim().is_empty(),
                 onclick: move |_| on_add.call(()),
-                title: "Add Task (Enter)",
-                "Add (Enter)"
+                "Add"
             }
         }
     }

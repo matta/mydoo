@@ -55,8 +55,7 @@ pub(crate) fn AppPanel(
                         Button {
                             variant: ButtonVariant::Ghost,
                             class: "{Styles::panel_icon_button} app_ghost_hover app_transition",
-                            aria_label: close_label.clone(),
-                            title: "{close_label} (Esc)",
+                            aria_label: close_label,
                             "data-testid": close_button_testid,
                             onclick: move |_| on_close.call(()),
                             svg {
