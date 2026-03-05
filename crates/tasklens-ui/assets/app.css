@@ -4,11 +4,11 @@
  */
 
 :root {
-  --app_content-max-width: 42rem;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
+  --app_content_max_width: 42rem;
+  --app_safe_top: env(safe-area-inset-top, 0px);
+  --app_safe_right: env(safe-area-inset-right, 0px);
+  --app_safe_bottom: env(safe-area-inset-bottom, 0px);
+  --app_safe_left: env(safe-area-inset-left, 0px);
 
   /* Sizing and Spacing Layout Tokens */
   --app_touch_target: 3rem;
@@ -22,15 +22,15 @@
    * dx-components-theme.css.
    */
   --app_surface: var(--primary-color-2);
-  --app_surface-muted: var(--primary-color-4);
-  --app_surface-subtle: var(--primary-color-5);
+  --app_surface_muted: var(--primary-color-4);
+  --app_surface_subtle: var(--primary-color-5);
   --app_border: var(--primary-color-6);
-  --app_border-strong: var(--primary-color-7);
+  --app_border_strong: var(--primary-color-7);
   --app_text: var(--secondary-color-4);
-  --app_text-muted: var(--secondary-color-5);
-  --app_text-subtle: var(--secondary-color-6);
+  --app_text_muted: var(--secondary-color-5);
+  --app_text_subtle: var(--secondary-color-6);
   --app_accent: var(--focused-border-color);
-  --app_primary-shadow-color: rgba(43, 127, 255, 0.2);
+  --app_primary_shadow_color: rgba(43, 127, 255, 0.2);
 }
 
 [data-app-state] {
@@ -103,26 +103,35 @@ textarea,
 
 /* --- Shared Dialog & Layout Layouts --- */
 
+/* TODO(legacy-naming): The following .dialog-* classes violate the Global Project CSS naming rules in docs/guidance/css.md.
+ * They lack the required `app_` prefix and use kebab-case instead of underscore-style names.
+ * They are currently allowed under the legacy affordance (Section 4), but should be migrated
+ * opportunistically (e.g. renamed to .app_dialog_md, .app_dialog_header, etc.).
+ */
 .dialog-md {
   max-width: 28rem;
 }
 
+/* TODO(legacy-naming): See .dialog-md for migration details. */
 .dialog-lg {
   max-width: 32rem;
 }
 
+/* TODO(legacy-naming): See .dialog-md for migration details. */
 .dialog-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
 }
 
+/* TODO(legacy-naming): See .dialog-md for migration details. */
 .dialog-title-group {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
+/* TODO(legacy-naming): See .dialog-md for migration details. */
 .dialog-body {
   flex: 1 1 0%;
   overflow-y: auto;
@@ -134,6 +143,7 @@ textarea,
   margin-right: -0.5rem;
 }
 
+/* TODO(legacy-naming): See .dialog-md for migration details. */
 .dialog-footer {
   display: flex;
   flex-direction: column;
@@ -150,6 +160,7 @@ textarea,
   }
 }
 
+/* TODO(legacy-naming): See .dialog-md for migration details. */
 .dialog-footer-actions {
   display: flex;
   flex-direction: column-reverse;
@@ -167,7 +178,7 @@ textarea,
 
 /* --- App Utilities --- */
 
-.app_input-full {
+.app_input_full {
   width: 100%;
 }
 .app_text_lg {
@@ -194,22 +205,25 @@ textarea,
 .app_font_medium {
   font-weight: 500;
 }
-/* TODO: These stack utilities currently use lobotomized owl and margins.
- * They should be migrated to use `display: flex; flex-direction: column; gap: ...`
- * to align with the guidance in docs/guidance/css.md.
+/* TODO(legacy-naming): The following stack utilities violate the Global Project CSS naming rules in docs/guidance/css.md.
+ * They use numeric suffixes (.app_stack_4) instead of semantic t-shirt sizing (.app_stack_md) and
+ * they use lobotomized owl and margins instead of `display: flex; flex-direction: column; gap: ...`
+ * They are currently allowed under the legacy affordance (Section 4 & 8.5), but should be migrated
+ * opportunistically.
  */
 .app_stack_4 > :not([hidden]) ~ :not([hidden]) {
   margin-top: 1rem;
 }
+/* TODO(legacy-naming): See .app_stack_4 for migration details. */
 .app_stack_6 > :not([hidden]) ~ :not([hidden]) {
   margin-top: 1.5rem;
 }
 
 .app_ghost_hover:hover {
-  background-color: var(--app_surface-muted);
+  background-color: var(--app_surface_muted);
 }
 
-.app_row-cluster {
+.app_row_cluster {
   display: flex;
   width: 100%;
   gap: 0.5rem;
@@ -224,6 +238,11 @@ textarea,
 
 /* --- Alerts --- */
 
+/* TODO(legacy-naming): The following .alert* classes violate the Global Project CSS naming rules in docs/guidance/css.md.
+ * They lack the required `app_` prefix and use kebab-case instead of underscore-style names.
+ * They are currently allowed under the legacy affordance (Section 4), but should be migrated
+ * opportunistically (e.g. renamed to .app_alert, .app_alert_info, etc.).
+ */
 .alert {
   display: flex;
   width: 100%;
@@ -233,16 +252,19 @@ textarea,
   padding: 1rem;
 }
 
+/* TODO(legacy-naming): See .alert for migration details. */
 .alert-info {
   background-color: var(--primary-info-color);
   color: var(--secondary-info-color);
 }
 
+/* TODO(legacy-naming): See .alert for migration details. */
 .alert-success {
   background-color: var(--primary-success-color);
   color: var(--secondary-success-color);
 }
 
+/* TODO(legacy-naming): See .alert for migration details. */
 .alert-error {
   background-color: var(--primary-error-color);
   color: var(--secondary-error-color);
