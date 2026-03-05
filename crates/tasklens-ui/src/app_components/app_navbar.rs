@@ -1,13 +1,9 @@
 use crate::app_components::SearchPanel;
 use crate::app_components::SyncIndicator;
-use crate::controllers::doc_controller;
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::navbar::{Navbar, NavbarItem, NavbarNav};
-use crate::router::Route;
-use crate::views::auth::SettingsModal;
+use crate::router::{Route, ViewContext};
 use dioxus::prelude::*;
-use tasklens_store::doc_id::DocumentId;
-use tasklens_store::store::AppStore;
 
 #[component]
 pub(crate) fn AppNavBar() -> Element {
@@ -15,22 +11,11 @@ pub(crate) fn AppNavBar() -> Element {
     struct Styles;
 
     let active_index = use_signal(|| 0);
-    let mut show_settings = use_signal(|| false);
     let mut show_search = use_signal(|| false);
-    let store = use_context::<Signal<AppStore>>();
-    let doc_id = use_context::<Signal<Option<DocumentId>>>();
 
     // Hydrate state at the top level and provide it to children
     let state = crate::hooks::use_tunnel_state::use_tunnel_state();
     use_context_provider(|| state);
-
-    let handle_doc_change = move |new_doc_id: DocumentId| {
-        doc_controller::switch_document(store, doc_id, new_doc_id);
-    };
-
-    let handle_create_doc = move |_| {
-        doc_controller::create_new_document(store, doc_id);
-    };
 
     // Global Ctrl+K / Cmd+K keyboard shortcut to toggle search.
     // Registered once on mount via use_hook to avoid leaking duplicate listeners.
@@ -62,15 +47,19 @@ pub(crate) fn AppNavBar() -> Element {
         }
     });
 
+    // Determine the current view context for the settings link.
+    // This ensures the settings page knows where to return to.
+    let current_route = use_route::<Route>();
+    let settings_ctx = match &current_route {
+        Route::DoPage { .. } | Route::ScoreTracePage { .. } => ViewContext::Do,
+        Route::Home { .. }
+        | Route::PlanPage { .. }
+        | Route::BalancePage { .. }
+        | Route::PageNotFound { .. } => ViewContext::Plan,
+        Route::SettingsPage { ctx } => ctx.clone().unwrap_or_default(),
+    };
+
     rsx! {
-        if show_settings() {
-            SettingsModal {
-                on_close: move |_| show_settings.set(false),
-                doc_id,
-                on_doc_change: handle_doc_change,
-                on_create_doc: handle_create_doc,
-            }
-        }
         Navbar {
             NavbarNav { index: active_index,
                 NavbarItem {
@@ -99,7 +88,7 @@ pub(crate) fn AppNavBar() -> Element {
                 SyncIndicator {}
 
                 Button {
-                    variant: ButtonVariant::Ghost,
+                    variant: ButtonVariant::Icon,
                     onclick: move |_| show_search.set(!show_search()),
                     aria_label: "Search tasks",
                     "data-testid": "search-button",
@@ -118,8 +107,12 @@ pub(crate) fn AppNavBar() -> Element {
                 }
 
                 Button {
-                    variant: ButtonVariant::Ghost,
-                    onclick: move |_| show_settings.set(true),
+                    variant: ButtonVariant::Icon,
+                    onclick: move |_| {
+                        navigator().push(Route::SettingsPage {
+                            ctx: Some(settings_ctx.clone()),
+                        });
+                    },
                     aria_label: "Settings",
                     "data-testid": "settings-button",
                     svg {
