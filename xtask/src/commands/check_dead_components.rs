@@ -1,10 +1,15 @@
 use anyhow::{Context, Result};
 use miette::{LabeledSpan, NamedSource, Report, miette};
+use ra_ap_rustc_lexer::TokenKind;
 use regex::Regex;
 use serde::Deserialize;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
+
+#[cfg(test)]
+use crate::commands::rust_tokens::parse_rust_source;
+use crate::commands::rust_tokens::{TokenSpan, parse_rust_file_cached};
 
 const TASKLENS_UI_SRC_ROOT: &str = "crates/tasklens-ui/src";
 const SUPPRESSION_CONFIG_PATH: &str = "xtask/config/dead-components.toml";
@@ -50,6 +55,7 @@ struct SourceFile {
     source: String,
     code_lines: Vec<String>,
     line_starts: Vec<usize>,
+    tokens: Vec<TokenSpan>,
 }
 
 fn load_source_files(src_root: &Path) -> Result<Vec<SourceFile>> {
@@ -58,9 +64,13 @@ fn load_source_files(src_root: &Path) -> Result<Vec<SourceFile>> {
 
     for entry in glob::glob(&pattern).context("Invalid glob pattern")? {
         let path = entry.with_context(|| format!("Failed to read glob entry for {pattern}"))?;
-        let source = std::fs::read_to_string(&path)
-            .with_context(|| format!("Failed to read {}", path.display()))?;
-        files.push(SourceFile::new(path, source));
+        let parsed = parse_rust_file_cached(&path)
+            .with_context(|| format!("Failed to parse {}", path.display()))?;
+        files.push(SourceFile::from_parsed(
+            path,
+            &parsed.content,
+            parsed.tokens.clone(),
+        ));
     }
 
     files.sort_by(|left, right| left.path.cmp(&right.path));
@@ -68,15 +78,31 @@ fn load_source_files(src_root: &Path) -> Result<Vec<SourceFile>> {
 }
 
 impl SourceFile {
-    fn new(path: PathBuf, source: String) -> Self {
+    fn from_parsed(path: PathBuf, source: &str, tokens: Vec<TokenSpan>) -> Self {
         let raw_lines: Vec<&str> = source.split('\n').collect();
         let line_starts = line_start_offsets(&raw_lines);
         let code_lines = strip_comments_for_search(&raw_lines);
         Self {
             path,
+            source: source.to_string(),
+            code_lines,
+            line_starts,
+            tokens,
+        }
+    }
+
+    #[cfg(test)]
+    fn new(path: PathBuf, source: String) -> Self {
+        let raw_lines: Vec<&str> = source.split('\n').collect();
+        let line_starts = line_start_offsets(&raw_lines);
+        let code_lines = strip_comments_for_search(&raw_lines);
+        let tokens = parse_rust_source(&source).tokens;
+        Self {
+            path,
             source,
             code_lines,
             line_starts,
+            tokens,
         }
     }
 }
@@ -219,23 +245,209 @@ fn find_component_declarations(file: &SourceFile) -> Vec<ComponentDecl> {
 }
 
 fn has_any_reference(component: &ComponentDecl, files: &[SourceFile]) -> bool {
-    let pattern = format!(r"\b{}\b", regex::escape(&component.name));
-    let reference_re = Regex::new(&pattern).expect("component name regex");
-
     for file in files {
-        for (line_index, code_line) in file.code_lines.iter().enumerate() {
-            for name_match in reference_re.find_iter(code_line) {
-                let is_declaration = file.path == component.path
-                    && line_index + 1 == component.line
-                    && name_match.start() + 1 == component.column;
-                if !is_declaration {
-                    return true;
-                }
+        for (index, token) in file.tokens.iter().enumerate() {
+            if !is_ident_token(&token.kind) {
+                continue;
+            }
+            if token_text(file, token) != component.name {
+                continue;
+            }
+
+            let is_declaration_site =
+                file.path == component.path && token.start == component.span_offset;
+            if is_declaration_site {
+                continue;
+            }
+
+            if is_component_use_token(file, index) {
+                return true;
             }
         }
     }
 
     false
+}
+
+fn is_component_use_token(file: &SourceFile, token_index: usize) -> bool {
+    if is_rsx_component_invocation(file, token_index) {
+        return true;
+    }
+
+    if is_layout_attribute_reference(file, token_index) {
+        return true;
+    }
+
+    is_component_fn_pointer_argument(file, token_index)
+}
+
+fn is_rsx_component_invocation(file: &SourceFile, token_index: usize) -> bool {
+    let Some((next_index, next_token)) = next_non_trivia_token(file, token_index) else {
+        return false;
+    };
+
+    // RSX-like component invocation: `ComponentName { ... }`
+    if matches!(next_token.kind, TokenKind::OpenBrace) {
+        return true;
+    }
+
+    // RSX with explicit turbofish: `ComponentName::<T> { ... }`
+    if !matches!(next_token.kind, TokenKind::Colon) {
+        return false;
+    }
+    let Some((second_colon_index, second_colon)) = next_non_trivia_token(file, next_index) else {
+        return false;
+    };
+    if !matches!(second_colon.kind, TokenKind::Colon) {
+        return false;
+    }
+    let Some((lt_index, lt_token)) = next_non_trivia_token(file, second_colon_index) else {
+        return false;
+    };
+    if !matches!(lt_token.kind, TokenKind::Lt) {
+        return false;
+    }
+
+    let Some(after_generics_index) = scan_past_generic_args(file, lt_index) else {
+        return false;
+    };
+    matches!(
+        next_non_trivia_token(file, after_generics_index).map(|(_, token)| token.kind),
+        Some(TokenKind::OpenBrace)
+    )
+}
+
+fn is_layout_attribute_reference(file: &SourceFile, token_index: usize) -> bool {
+    // Router layout attribute: `#[layout(ComponentName)]`
+    if let Some((prev_index, prev_token)) = prev_non_trivia_token(file, token_index)
+        && matches!(prev_token.kind, TokenKind::OpenParen)
+        && let Some((layout_index, layout_token)) = prev_non_trivia_token(file, prev_index)
+        && is_ident_token(&layout_token.kind)
+        && token_text(file, layout_token) == "layout"
+        && let Some((before_layout_index, before_layout_token)) =
+            prev_non_trivia_token(file, layout_index)
+        && matches!(before_layout_token.kind, TokenKind::OpenBracket)
+        && let Some((_before_bracket_index, before_bracket_token)) =
+            prev_non_trivia_token(file, before_layout_index)
+        && matches!(before_bracket_token.kind, TokenKind::Pound)
+    {
+        return true;
+    }
+    false
+}
+
+fn is_component_fn_pointer_argument(file: &SourceFile, token_index: usize) -> bool {
+    // Function pointer-style usage in tests/helpers:
+    // `VirtualDom::new_with_props(ComponentName, props)`
+    let Some((_, prev_token)) = prev_non_trivia_token(file, token_index) else {
+        return false;
+    };
+    let Some((_, next_token)) = next_non_trivia_token(file, token_index) else {
+        return false;
+    };
+
+    if !(matches!(prev_token.kind, TokenKind::OpenParen | TokenKind::Comma)
+        && matches!(next_token.kind, TokenKind::Comma | TokenKind::CloseParen))
+    {
+        return false;
+    }
+
+    let Some((open_paren_index, _open_paren)) = nearest_enclosing_open_paren(file, token_index)
+    else {
+        return false;
+    };
+    let Some((_, token_before_open_paren)) = prev_non_trivia_token(file, open_paren_index) else {
+        return false;
+    };
+
+    matches!(
+        token_before_open_paren.kind,
+        TokenKind::Ident
+            | TokenKind::RawIdent
+            | TokenKind::CloseParen
+            | TokenKind::CloseBracket
+            | TokenKind::CloseBrace
+    )
+}
+
+fn scan_past_generic_args(file: &SourceFile, lt_index: usize) -> Option<usize> {
+    let mut depth = 0usize;
+    for index in lt_index..file.tokens.len() {
+        let token = &file.tokens[index];
+        if is_trivia_token(&token.kind) {
+            continue;
+        }
+        match token.kind {
+            TokenKind::Lt => {
+                depth += 1;
+            }
+            TokenKind::Gt => {
+                depth = depth.saturating_sub(1);
+                if depth == 0 {
+                    return Some(index);
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+fn nearest_enclosing_open_paren(
+    file: &SourceFile,
+    token_index: usize,
+) -> Option<(usize, &TokenSpan)> {
+    let mut depth = 0usize;
+    for index in (0..token_index).rev() {
+        let token = &file.tokens[index];
+        if is_trivia_token(&token.kind) {
+            continue;
+        }
+        match token.kind {
+            TokenKind::CloseParen => depth += 1,
+            TokenKind::OpenParen => {
+                if depth == 0 {
+                    return Some((index, token));
+                }
+                depth -= 1;
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+fn is_ident_token(kind: &TokenKind) -> bool {
+    matches!(kind, TokenKind::Ident | TokenKind::RawIdent)
+}
+
+fn is_trivia_token(kind: &TokenKind) -> bool {
+    matches!(
+        kind,
+        TokenKind::Whitespace | TokenKind::LineComment { .. } | TokenKind::BlockComment { .. }
+    )
+}
+
+fn token_text<'a>(file: &'a SourceFile, token: &TokenSpan) -> &'a str {
+    &file.source[token.start..token.end]
+}
+
+fn next_non_trivia_token(file: &SourceFile, token_index: usize) -> Option<(usize, &TokenSpan)> {
+    file.tokens
+        .iter()
+        .enumerate()
+        .skip(token_index + 1)
+        .find(|(_index, token)| !is_trivia_token(&token.kind))
+}
+
+fn prev_non_trivia_token(file: &SourceFile, token_index: usize) -> Option<(usize, &TokenSpan)> {
+    for index in (0..token_index).rev() {
+        let token = &file.tokens[index];
+        if !is_trivia_token(&token.kind) {
+            return Some((index, token));
+        }
+    }
+    None
 }
 
 fn line_start_offsets(lines: &[&str]) -> Vec<usize> {
@@ -439,6 +651,113 @@ fn Parent() -> Element {
 "#,
             ),
         ];
+
+        let result = scan_for_dead_components(&files, &BTreeSet::new());
+        assert!(result.violations.is_empty());
+    }
+
+    #[test]
+    fn marks_component_live_when_referenced_in_layout_attribute() {
+        let files = vec![
+            source_file(
+                "a.rs",
+                r#"
+#[component]
+fn AppNavBar() -> Element { rsx! { div {} } }
+"#,
+            ),
+            source_file(
+                "b.rs",
+                r#"
+#[derive(Clone, Routable, Debug, PartialEq)]
+enum Route {
+    #[layout(AppNavBar)]
+    #[route("/")]
+    Home {},
+}
+"#,
+            ),
+        ];
+
+        let result = scan_for_dead_components(&files, &BTreeSet::new());
+        assert!(result.violations.is_empty());
+    }
+
+    #[test]
+    fn enum_variants_do_not_count_as_component_references() {
+        let files = vec![source_file(
+            "a.rs",
+            r#"
+#[component]
+fn Do() -> Element { rsx! { div {} } }
+
+enum ViewContext { Do, Plan }
+
+fn map(ctx: ViewContext) -> bool {
+    matches!(ctx, ViewContext::Do)
+}
+"#,
+        )];
+
+        let result = scan_for_dead_components(&files, &BTreeSet::new());
+        assert_eq!(result.violations.len(), 1);
+        assert_eq!(result.violations[0].component.name, "Do");
+    }
+
+    #[test]
+    fn string_literals_do_not_count_as_component_references() {
+        let files = vec![source_file(
+            "a.rs",
+            r#"
+#[component]
+fn Do() -> Element { rsx! { div {} } }
+
+fn label() -> &'static str { "Do" }
+"#,
+        )];
+
+        let result = scan_for_dead_components(&files, &BTreeSet::new());
+        assert_eq!(result.violations.len(), 1);
+        assert_eq!(result.violations[0].component.name, "Do");
+    }
+
+    #[test]
+    fn rsx_invocation_with_turbofish_counts_as_reference() {
+        let files = vec![
+            source_file(
+                "a.rs",
+                r#"
+#[component]
+fn SelectOption<T: Clone + PartialEq + 'static>() -> Element { rsx! { div {} } }
+"#,
+            ),
+            source_file(
+                "b.rs",
+                r#"
+fn Parent() -> Element {
+    rsx! { SelectOption::<String> {} }
+}
+"#,
+            ),
+        ];
+
+        let result = scan_for_dead_components(&files, &BTreeSet::new());
+        assert!(result.violations.is_empty());
+    }
+
+    #[test]
+    fn function_pointer_component_argument_counts_as_reference() {
+        let files = vec![source_file(
+            "a.rs",
+            r#"
+#[component]
+fn TestApp() -> Element { rsx! { div {} } }
+
+fn boot() {
+    let _ = VirtualDom::new_with_props(TestApp, ());
+}
+"#,
+        )];
 
         let result = scan_for_dead_components(&files, &BTreeSet::new());
         assert!(result.violations.is_empty());

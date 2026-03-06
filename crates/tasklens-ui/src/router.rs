@@ -4,7 +4,6 @@ use crate::views::do_page::DoPage;
 use crate::views::plan_page::PlanPage;
 use crate::views::score_trace_page::ScoreTracePage;
 use crate::views::settings_page::SettingsPage;
-use crate::views::task_page::TaskPage;
 use dioxus::prelude::*;
 use std::fmt;
 use std::str::FromStr;
@@ -83,15 +82,5 @@ fn PageNotFound(route: Vec<String>) -> Element {
 fn Home() -> Element {
     rsx! {
         div { "Redirecting..." }
-    }
-}
-
-#[component]
-fn Do() -> Element {
-    // Re-use TaskPage logic or wrap it?
-    // TaskPage needs props: master_key, service_worker_active.
-    // We need to inject them via Context.
-    rsx! {
-        TaskPage {}
     }
 }

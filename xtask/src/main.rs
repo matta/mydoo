@@ -70,6 +70,7 @@ fn main() -> Result<()> {
             check_catalog()?;
             check_biome_schema()?;
             check_bin_pub_visibility()?;
+            check_dead_components()?;
             check_filenames()?;
             check_context()?;
             check_dark_mode()?;

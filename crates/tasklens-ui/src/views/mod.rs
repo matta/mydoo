@@ -3,4 +3,3 @@ pub(crate) mod do_page;
 pub(crate) mod plan_page;
 pub(crate) mod score_trace_page;
 pub(crate) mod settings_page;
-pub(crate) mod task_page;
