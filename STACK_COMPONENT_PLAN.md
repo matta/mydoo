@@ -115,6 +115,7 @@ Complex components often hand-roll vertical layouts for form fields, labels, and
 - [x] Replace manual `flex-col` wrappers using `.field_group` with `Stack { gap: StackGap::Sm }` in `doc_id_manager.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
 - [x] Replace manual `flex-col` wrappers using `.settings_stack` with `Stack { gap: StackGap::Md }` in `sync_indicator.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
 - [x] Replace manual `flex-col` wrappers using `.field_stack` with `Stack { gap: StackGap::Xs }` in `sync_indicator.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
+- [x] Replace manual `flex-col` wrappers using `.item_picker_list` with `Stack { gap: StackGap::Xs }` in `move_picker.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
 - [x] Replace hardcoded `gap: 2.5rem` with `gap: var(--app_spacing_xl)` for `.dialog-body` in `app.css` so that spacing adheres to tokens; verify via visual inspection.
 - [x] Replace hardcoded `gap: 0.25rem` with `gap: var(--app_spacing_xs)` for `.dialog-title-group` in `app.css` so that spacing adheres to tokens; verify via visual inspection.
 - [x] Replace hardcoded `gap: 0.5rem` with `gap: var(--app_spacing_sm)` for `.alert` rules in `app.css` so that spacing adheres to tokens; verify via visual inspection.
