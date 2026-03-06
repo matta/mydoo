@@ -1,50 +1,109 @@
-# Row Component Implementation Plan
+# Row Component Implementation Plan (Single-Conversion Scope)
 
-## Overview
+## Objective
 
-Based on a review of the `tasklens-ui` CSS guidelines and the extensive use of `display: flex;` horizontal layout patterns across the codebase, the next most impactful layout primitive to implement is the **Row** component. Currently, there are dozens of CSS files (e.g., `task_row.css`, `app_navbar.css`, `doc_id_manager.css`) manually applying `display: flex`, various `gap` sizes, and `align-items`. Creating a standard standard layout primitive will unify these manual rules into a concise and consistent Dioxus component, similarly to the recent `Stack` migration.
+Land the initial `Row` layout primitive and exactly **one** production conversion in the same change.
+
+## Scope Guardrails
+
+- In scope:
+  - Implement `Row` primitive + CSS module.
+  - Export `Row` through layout/app component modules.
+  - Convert exactly one existing horizontal wrapper to `Row`.
+- Out of scope:
+  - Batch migration of all row-like wrappers.
+  - Refactoring `task_row`, `app_navbar`, `search_panel`, or global utilities in this PR.
+
+## Chosen Single Conversion
+
+Convert only this wrapper:
+
+- `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
+  - First `div` using `Styles::row_layout` under "Current Document" block.
+  - Replace with `Row { gap: RowGap::Sm, align: RowAlign::Center, ... }`.
+
+Notes:
+
+- Do not convert the second `Styles::row_layout` usage in the metadata subsection yet.
+- Keep this PR intentionally narrow to validate primitive ergonomics with one real callsite.
 
 ## Implementation Steps
 
-### 1. Create Layout Component (`Row`)
+### 1. Create `Row` Primitive
 
-Create `crates/tasklens-ui/src/app_components/layout/row.rs`:
+Create:
 
-- Define Enums for properties mapping to CSS classes:
-  - `RowGap`: `None`, `Xs`, `Sm`, `Md` (default), `Lg`, `Xl` (maps to app spacing tokens)
-  - `RowAlign`: `Start`, `Center` (default), `End`, `Stretch`, `Baseline`
-  - `RowJustify`: `Start` (default), `Center`, `End`, `Between`, `Around`
-  - `RowWrap`: `NoWrap` (default), `Wrap`, `WrapReverse`
-- Create the `Row` component using the `#[component]` macro with standard Dioxus attribute merging (`GlobalAttributes` and `div` extends).
-- Add unit tests verifying attribute spread, CSS class composition, and virtual DOM logic, mirroring `stack.rs`.
+- `crates/tasklens-ui/src/app_components/layout/row.rs`
+- `crates/tasklens-ui/src/app_components/layout/row.css`
 
-### 2. Create CSS Module
+Initial API (minimal):
 
-Create `crates/tasklens-ui/src/app_components/layout/row.css`:
+- `RowGap`: `None`, `Xs`, `Sm`, `Md` (default), `Lg`, `Xl`
+- `RowAlign`: `Start`, `Center` (default), `End`, `Stretch`, `Baseline`
+- `children: Element`
+- Standard Dioxus attribute passthrough/merge (`GlobalAttributes` + `div`).
 
-- Define `.row_root { display: flex; flex-direction: row; }`
-- Define sizing classes like `.gap_sm { gap: var(--app_spacing_sm); }`
-- Define alignment classes like `.align_center { align-items: center; }`
-- Define justification classes like `.justify_between { justify-content: space-between; }`
-- Define wrap classes like `.flex_wrap { flex-wrap: wrap; }`
+Defer justify/wrap until a concrete callsite requires them.
 
-### 3. Expose Row Component
+### 2. Export `Row`
 
-Update `crates/tasklens-ui/src/app_components/layout/mod.rs`:
+Update:
 
-- Add `pub mod row;`
-- Re-export `pub use row::{Row, RowGap, RowAlign, RowJustify, RowWrap};`
+- `crates/tasklens-ui/src/app_components/layout/mod.rs`
+- `crates/tasklens-ui/src/app_components/mod.rs`
 
-### 4. Integration & Refactoring (Iterative Phase)
+### 3. Apply the Single Conversion
 
-Start replacing manual flex implementations in components. High-value targets identified:
+Update:
 
-- **`task_row.rs`** and **`priority_task_row.rs`**: Migrate `.row_root`, `.actions_container`, and related inner elements.
-- **`app_navbar.rs`**: Standardize the top navbar horizontal layout and action groups.
-- **`doc_id_manager.rs`**: Migrate header action rows and control panels.
-- **`search_panel.rs`**: Clean up horizontal search inputs and filter pills.
-- **Global `app.css`**: Eliminate `.app_row_cluster` occurrences.
+- `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
 
-### 5. Document Completion
+Optional cleanup (only if no remaining usage):
 
-- In `docs/guidance/css.md`, update the layout primitives list to mark `Cluster/Row` as "(Done)".
+- Remove `display:flex` + horizontal gap/align concerns from the converted `.row_layout` CSS rule.
+
+### 4. Tests and Validation
+
+- Add focused unit tests in `row.rs` for class mapping/defaults and attribute spread.
+- Run `just check`.
+- Perform one manual visual check in Document Management:
+  - Current document row keeps alignment and spacing parity.
+
+## Post-Landing Roadmap (Planned)
+
+After the initial Row primitive lands with one conversion, continue with iterative follow-up PRs.
+
+### High-Value Follow-Up Conversions
+
+- `crates/tasklens-ui/src/app_components/task_row.rs`
+  - Migrate row/action wrappers currently using manual flex alignment.
+- `crates/tasklens-ui/src/app_components/priority_task_row.rs`
+  - Align horizontal row wrappers with `Row`.
+- `crates/tasklens-ui/src/app_components/app_navbar.rs`
+  - Standardize navbar action clusters and horizontal groups.
+- `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
+  - Convert remaining `row_layout` usage(s) not included in phase 1.
+- `crates/tasklens-ui/src/app_components/search_panel.rs`
+  - Convert horizontal control/filter wrappers.
+- `crates/tasklens-ui/assets/app.css`
+  - Eliminate remaining legacy horizontal utility usage where `Row` is appropriate
+    (for example `.app_row_cluster` callsites).
+
+### API Expansion Triggers (Deferred)
+
+- Add `RowJustify` only when a real callsite needs `justify-content` control.
+- Add wrapping API only when a real callsite needs explicit `flex-wrap` behavior.
+- Keep the primitive minimal until concrete usage justifies expansion.
+
+## Definition of Done (Phase 1: Initial Landing)
+
+- `Row` primitive exists and is exported.
+- Exactly one conversion is present (the selected `DocIdManager` row).
+- `just check` passes.
+- No additional row migrations are included in this change.
+
+## Definition of Done (Row Initiative Complete)
+
+- Planned follow-up conversions are completed in subsequent PRs.
+- Legacy horizontal utility usage targeted by the roadmap is removed or justified.
+- `docs/guidance/css.md` is updated to mark Row/Cluster as done.
