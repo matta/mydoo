@@ -173,15 +173,14 @@ impl AppStore {
     /// 2. **Reconcile**: Handlers use surgical reconciliation for efficiency.
     ///    operations, ensuring history and conflict resolution are preserved.
     ///
-    /// # Arguments
+    /// It accepts an `action` encapsulating the intent of the mutation (e.g., creating a task,
+    /// updating a field, moving a task) and attempts to apply it.
     ///
-    /// * `action` - The `Action` to perform, encapsulating the intent of the mutation
-    ///   (e.g., creating a task, updating a field, moving a task).
+    /// # Errors
     ///
-    /// # Returns
-    ///
-    /// Returns `Ok(())` if the action was successfully applied and reconciled, or an `Error`
-    /// if hydration or reconciliation failed.
+    /// Returns an error if the underlying store has no handle, or if the action
+    /// fails to be successfully applied and reconciled (e.g., due to hydration or
+    /// reconciliation failure).
     pub fn dispatch(&mut self, action: Action) -> Result<()> {
         let handle = self.handle.as_mut().ok_or_else(|| anyhow!("No handle"))?;
         handle
