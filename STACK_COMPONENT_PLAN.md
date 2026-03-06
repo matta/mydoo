@@ -93,9 +93,9 @@ The following locations have been identified as primary candidates for migration
 
 Many views manually style a `div` wrapper for a list of task rows (often using a `.task_list` CSS class). These should be replaced by `<Stack gap={StackGap::Sm}>` (or appropriate gap):
 
-- [ ] `crates/tasklens-ui/src/views/plan_page.rs` (task list wrapper)
+- [x] `crates/tasklens-ui/src/views/plan_page.rs` (task list wrapper)
 - [x] `crates/tasklens-ui/src/views/score_trace_page.rs` (trace list)
-- [ ] `crates/tasklens-ui/src/views/balance_page.rs`
+- [x] `crates/tasklens-ui/src/views/balance_page.rs`
       _Rationale: Centralizes the spacing policy for lists of rows across the entire application and allows us to delete the redundant `.task_list` CSS classes._
 
 ### 2. Legacy `app.css` Utilities (`.app_stack_4`, `.app_stack_6`)
