@@ -1,13 +1,3 @@
-.page_container {
-  padding-left: max(1rem, var(--app_safe_left));
-  padding-right: max(1rem, var(--app_safe_right));
-  padding-top: max(1rem, var(--app_safe_top));
-  padding-bottom: 5rem;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 42rem;
-}
-
 .input_section {
   margin-bottom: 1.5rem;
 }
