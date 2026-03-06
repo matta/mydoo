@@ -205,19 +205,6 @@ textarea,
 .app_font_medium {
   font-weight: 500;
 }
-/* TODO(legacy-naming): The following stack utilities violate the Global Project CSS naming rules in docs/guidance/css.md.
- * They use numeric suffixes (.app_stack_4) instead of semantic t-shirt sizing (.app_stack_md) and
- * they use lobotomized owl and margins instead of `display: flex; flex-direction: column; gap: ...`
- * They are currently allowed under the legacy affordance (Section 4 & 8.5), but should be migrated
- * opportunistically.
- */
-.app_stack_4 > :not([hidden]) ~ :not([hidden]) {
-  margin-top: 1rem;
-}
-/* TODO(legacy-naming): See .app_stack_4 for migration details. */
-.app_stack_6 > :not([hidden]) ~ :not([hidden]) {
-  margin-top: 1.5rem;
-}
 
 .app_ghost_hover:hover {
   background-color: var(--app_surface_muted);

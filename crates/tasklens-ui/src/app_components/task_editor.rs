@@ -5,6 +5,7 @@ use crate::app_components::AppTextarea;
 use crate::app_components::DateInput;
 use crate::app_components::Loading;
 use crate::app_components::MovePicker;
+use crate::app_components::{Stack, StackGap};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::label::Label;
 use crate::dioxus_components::select::{
@@ -297,14 +298,14 @@ pub(crate) fn TaskEditor(
                         legend { class: Styles::section_legend,
                             "Task Details"
                         }
-                        div { class: "app_input-full app_stack_4",
+                        Stack { class: "app_input_full", gap: StackGap::Lg,
                             div {
                                 Label {
                                     class: Styles::field_label,
                                     html_for: "task-title-input",
                                     span { class: Styles::label_text_bold, "Title" }
                                 }
-                                div { class: "app_input-full app_text_lg",
+                                div { class: "app_input_full app_text_lg",
                                     AppInput {
                                         full_width: true,
                                         style: AppInputStyle::Large,
@@ -362,7 +363,7 @@ pub(crate) fn TaskEditor(
                             legend { class: Styles::section_legend,
                                 "Prioritization"
                             }
-                            div { class: "app_stack_6 app_input-full",
+                            Stack { class: "app_input_full", gap: StackGap::Xl,
                                 div {
                                     Label {
                                         class: Styles::field_label,
@@ -439,7 +440,7 @@ pub(crate) fn TaskEditor(
                             legend { class: Styles::section_legend,
                                 "Location"
                             }
-                            div { class: "app_input-full",
+                            div { class: "app_input_full",
                                 Label {
                                     class: Styles::field_label,
                                     html_for: "place-select",
@@ -486,7 +487,7 @@ pub(crate) fn TaskEditor(
                         legend { class: Styles::section_legend,
                             "Scheduling"
                         }
-                        div { class: "{Styles::settings_cells} app_input-full",
+                        div { class: "{Styles::settings_cells} app_input_full",
                             div {
                                 Label {
                                     class: Styles::field_label,
