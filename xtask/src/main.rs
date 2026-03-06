@@ -9,6 +9,7 @@ use commands::{
     check_catalog::check_catalog,
     check_context::check_context,
     check_dark_mode::check_dark_mode,
+    check_dead_components::check_dead_components,
     check_dioxus_lock_pin::check_dioxus_lock_pin,
     check_filenames::check_filenames,
     check_rust_token_count::{CheckRustTokenCountArgs, DEFAULT_LIMIT, check_rust_token_count},
@@ -39,6 +40,8 @@ enum Commands {
     CheckFilenames,
     /// Check context directory for unauthorized files
     CheckContext,
+    /// Check tasklens-ui for potentially dead Dioxus components
+    CheckDeadComponents,
     /// Check for dark mode violations in UI components
     CheckDarkMode,
     /// Check that dioxus-primitives rev pin matches Cargo.lock resolution
@@ -82,6 +85,7 @@ fn main() -> Result<()> {
         Commands::CheckBinPubVisibility => check_bin_pub_visibility()?,
         Commands::CheckCatalog => check_catalog()?,
         Commands::CheckContext => check_context()?,
+        Commands::CheckDeadComponents => check_dead_components()?,
         Commands::CheckDarkMode => check_dark_mode()?,
         Commands::CheckDioxusLockPin => check_dioxus_lock_pin()?,
         Commands::CheckVendoredBoundaries => check_vendored_boundaries()?,
