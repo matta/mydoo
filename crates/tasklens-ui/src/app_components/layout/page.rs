@@ -9,7 +9,7 @@ struct Styles;
 ///
 /// It encapsulates the `.page_container` styles previously duplicated across all views.
 #[component]
-pub fn PageContainer(
+pub(crate) fn PageContainer(
     #[props(extends=GlobalAttributes)]
     #[props(extends=div)]
     attributes: Vec<Attribute>,

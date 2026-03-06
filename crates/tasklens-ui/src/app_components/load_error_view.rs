@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 
 /// A shared component for displaying document load or hydration errors.
 #[component]
-pub fn LoadErrorView(error: String, help_text: Option<String>) -> Element {
+pub(crate) fn LoadErrorView(error: String, help_text: Option<String>) -> Element {
     #[css_module("/src/app_components/load_error_view.css")]
     struct Styles;
 

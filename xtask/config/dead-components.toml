@@ -1,0 +1,39 @@
+# Suppressions for the dead-component xtask check.
+# Each suppression must include both:
+# - `path`: repo-relative source file path
+# - `name`: component identifier
+#
+# These entries are intended for vendored Dioxus components that are
+# currently unused by tasklens-ui but intentionally retained.
+
+[[allow]]
+path = "crates/tasklens-ui/src/dioxus_components/badge/component.rs"
+name = "VerifiedIcon"
+
+[[allow]]
+path = "crates/tasklens-ui/src/dioxus_components/card/component.rs"
+name = "CardHeader"
+
+[[allow]]
+path = "crates/tasklens-ui/src/dioxus_components/card/component.rs"
+name = "CardTitle"
+
+[[allow]]
+path = "crates/tasklens-ui/src/dioxus_components/card/component.rs"
+name = "CardDescription"
+
+[[allow]]
+path = "crates/tasklens-ui/src/dioxus_components/card/component.rs"
+name = "CardAction"
+
+[[allow]]
+path = "crates/tasklens-ui/src/dioxus_components/card/component.rs"
+name = "CardFooter"
+
+[[allow]]
+path = "crates/tasklens-ui/src/dioxus_components/collapsible/component.rs"
+name = "CollapsibleItem"
+
+[[allow]]
+path = "crates/tasklens-ui/src/dioxus_components/collapsible/component.rs"
+name = "CollapsibleList"

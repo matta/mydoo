@@ -19,6 +19,10 @@ expected extension mechanism. We should do so as well, when prudent.
 Edit vendored code when it is the simplest correct solution. Avoid gratuitous
 changes that create merge noise without clear product value.
 
+Strong default: keep vendored code independent from app-owned modules.
+Vendored files should not import `crate::app_components::*` or
+`crate::views::*` unless there is an explicit, documented exception.
+
 ## Deliberate vs Gratuitous
 
 The same distinction from the
@@ -66,6 +70,9 @@ result:
    - When approaches 1–4 would create brittleness or disproportionate
      complexity, edit the vendored source directly.
    - Keep the edit surgical. Document rationale in the commit message.
+   - Keep vendored internals self-contained. For shared look/feel, align
+     vendored code to shared design tokens instead of importing app-owned
+     components.
 
 These are not a strict escalation ladder — sometimes approach 5 is simpler and
 more correct than approach 2. Use judgment.
@@ -107,6 +114,19 @@ Adapter anti-responsibilities:
 2. Embed large per-feature conditionals that belong in feature code.
 3. Introduce app-specific behavior by editing vendor files when wrappers can
    express it just as simply.
+4. Add app-owned module dependencies inside vendored code when token alignment,
+   wrappers, or composition can solve the need.
+
+## Exception Rubric (Soft Rule)
+
+Vendored-to-app dependencies are discouraged, not absolutely forbidden. Approve
+an exception only when all are true:
+
+1. The need is product-critical and near-term.
+2. Token alignment, wrappers, and vendored-local edits were considered and are
+   materially worse.
+3. The exception scope is narrow and reversible.
+4. The rationale is documented in the commit message and allowlist.
 
 ## Styling Is A Special Case
 
@@ -144,12 +164,17 @@ Favor realistic user interactions over synthetic events in E2E tests.
 7. Is styling guidance applied via
    [`dioxus-vendored-styling.md`](./dioxus-vendored-styling.md) for visual
    changes?
+8. Are vendored-to-app dependencies avoided unless explicitly approved under
+   the exception rubric?
 
 ## Optional Guardrails
 
 Use these checks to spot risky customization changes:
 
 ```bash
+# enforce vendored ownership boundaries
+cargo xtask check-vendored-boundaries
+
 # vendored behavior files touched in current diff
 git diff --name-only -- crates/tasklens-ui/src/dioxus_components
 

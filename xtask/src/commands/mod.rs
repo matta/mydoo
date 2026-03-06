@@ -1,11 +1,15 @@
+pub(crate) mod check_bin_pub_visibility;
 pub(crate) mod check_biome_schema;
 pub(crate) mod check_catalog;
 pub(crate) mod check_context;
 pub(crate) mod check_dark_mode;
+pub(crate) mod check_dead_components;
 pub(crate) mod check_dioxus_lock_pin;
 pub(crate) mod check_filenames;
 pub(crate) mod check_rust_token_count;
+pub(crate) mod check_vendored_boundaries;
 pub(crate) mod dioxus_info;
 pub(crate) mod dx_components;
 pub(crate) mod fix_junit;
+pub(crate) mod rust_tokens;
 pub(crate) mod update_dioxus_components;

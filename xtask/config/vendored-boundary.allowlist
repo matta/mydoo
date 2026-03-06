@@ -1,0 +1,6 @@
+# Path globs are relative to repository root.
+# Every non-comment entry must be preceded by a rationale comment line.
+#
+# Example:
+# Intentional exception for product-critical divergence.
+# crates/tasklens-ui/src/dioxus_components/example/component.rs

@@ -9,7 +9,7 @@ use dioxus::prelude::*;
 use tasklens_core::types::TaskID;
 
 #[component]
-pub fn DoPage() -> Element {
+pub(crate) fn DoPage() -> Element {
     let task_controller = task_controller::use_task_controller();
     let load_error = use_context::<Signal<Option<String>>>();
     let mut input_text = use_signal(String::new);

@@ -2,6 +2,10 @@
 
 This document records important framework quirks, bugs, and non-obvious behaviors in Dioxus. It serves as a living anti-pattern guide to save developers from lengthy debugging sessions.
 
+The agent-facing summary for this repository lives in
+`docs/guidance/agents-dioxus.md`. Keep detailed framework caveats and examples
+here; keep agent instructions concise in that file.
+
 ## 1. CSS Module Tree-Shaking (`#[css_module]`)
 
 When using the `#[css_module]` macro, Dioxus pairs your Rust component with a specific `.css` file. It reads the CSS, hashes the class names to prevent global collisions, and generates a wrapper `struct Styles;` that provides properties for each class.

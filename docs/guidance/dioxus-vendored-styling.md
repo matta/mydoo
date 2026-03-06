@@ -29,6 +29,10 @@ The goal is not to keep vendored source pristine at all costs. The goal is to
 **avoid gratuitous changes** — edits that create merge noise without clear
 product value.
 
+Strong default: vendored code should remain structurally independent from
+app-owned UI modules. Use shared tokens and vendored-local styles instead of
+importing app-owned components into vendored internals.
+
 ## Deliberate vs Gratuitous
 
 This is the core distinction. Not "app-owned vs vendored", but "deliberate vs
@@ -94,6 +98,9 @@ result:
    - When approaches 1–3 would create brittleness or disproportionate
      complexity, edit the vendored source directly.
    - Keep the edit surgical. Document rationale in the commit message.
+   - Preserve ownership boundaries; avoid vendored dependencies on
+     `crate::app_components::*` or `crate::views::*` unless explicitly approved
+     as an exception.
 
 These are not a strict escalation ladder — sometimes approach 4 is simpler and
 more correct than approach 2. Use judgment.
@@ -157,6 +164,8 @@ A controlled edit is acceptable only if:
 3. Are overrides reversible and documented?
 4. Did we avoid broad global selectors and repeated per-callsite hacks?
 5. Does the change remain robust after a future `cargo xtask dx-components vendor` run?
+6. Are vendored internals free of app-owned dependencies unless an explicit
+   exception is documented?
 
 ## Optional Guardrails
 
