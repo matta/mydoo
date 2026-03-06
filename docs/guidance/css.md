@@ -306,7 +306,7 @@ Most app screens can be expressed using a small set of primitives. Prefer these
 before inventing bespoke page-specific layout classes:
 
 - **Container**: max width + horizontal padding
-- **Stack**: vertical layout with `gap`
+- **Stack (Done)**: vertical layout with `gap`
 - **Cluster/Row**: horizontal layout with `gap`, optional wrap and alignment
 - **Grid**: 2D layout with responsive columns
 - **Spacer/Divider (optional)**: explicit separation when flow layout is not enough
