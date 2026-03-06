@@ -7,7 +7,7 @@
   justify-content: flex-end;
   pointer-events: none;
   padding-top: var(--app_safe_top);
-  padding-right: var(--safe-right);
+  padding-right: var(--app_safe_right);
   padding-bottom: var(--app_safe_bottom);
 }
 

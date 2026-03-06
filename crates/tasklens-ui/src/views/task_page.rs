@@ -74,7 +74,7 @@ pub fn TaskPage() -> Element {
     rsx! {
         div {
             class: Styles::page_container,
-            style: "padding-top: var(--app_safe_top); padding-bottom: var(--app_safe_bottom); padding-left: var(--app_safe_left); padding-right: var(--safe-right);",
+            style: "padding-top: var(--app_safe_top); padding-bottom: var(--app_safe_bottom); padding-left: var(--app_safe_left); padding-right: var(--app_safe_right);",
             PageHeader { title: "TaskLens",
                 if service_worker_active() {
                     Badge {
