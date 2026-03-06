@@ -3,7 +3,9 @@
 //! Displays the Balance View showing effort distribution across root goals.
 //! Users can adjust target percentages via sliders to rebalance their focus.
 
-use crate::app_components::{BalanceSlider, EmptyState, LoadErrorView, PageContainer, PageHeader};
+use crate::app_components::{
+    BalanceSlider, EmptyState, LoadErrorView, PageContainer, PageHeader, Stack, StackGap,
+};
 use crate::controllers::task_controller;
 use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::card::{Card, CardContent};
@@ -48,7 +50,7 @@ pub(crate) fn BalancePage() -> Element {
                     subtitle: "Create root-level tasks in the Plan view to see balance data.",
                 }
             } else {
-                div { class: Styles::item_list,
+                Stack { gap: StackGap::Lg,
                     for item in render_items.iter().cloned() {
                         BalanceItemRow {
                             key: "{item.id}",

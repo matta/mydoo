@@ -5,7 +5,7 @@
 //! - Generating a new document (new random ID)
 //! - Entering an existing document ID to switch documents
 
-use crate::app_components::{Alert, AlertVariant, AppInput, AppInputStyle};
+use crate::app_components::{Alert, AlertVariant, AppInput, AppInputStyle, Stack, StackGap};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::hooks::use_tunnel_state::use_tunnel_state;
 use base64::Engine;
@@ -190,7 +190,7 @@ pub(crate) fn DocIdManager(
     };
 
     rsx! {
-        div { class: Styles::manager_root,
+        Stack { gap: StackGap::Md,
             h4 { class: Styles::section_title, "Document Management" }
 
             if !error_msg().is_empty() {
@@ -198,7 +198,7 @@ pub(crate) fn DocIdManager(
             }
 
             // Current Document Display
-            div { class: Styles::field_group,
+            Stack { gap: StackGap::Sm,
                 label { class: Styles::field_label, "Current Document" }
                 div { class: Styles::row_layout,
                     div {
@@ -310,7 +310,7 @@ pub(crate) fn DocIdManager(
 
             // Enter ID Input (conditional)
             if show_input() {
-                div { class: Styles::field_group,
+                Stack { gap: StackGap::Sm,
                     label { class: Styles::field_label, "Enter Document ID" }
                     AppInput {
                         full_width: true,

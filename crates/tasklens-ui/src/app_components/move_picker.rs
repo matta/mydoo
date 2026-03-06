@@ -1,3 +1,4 @@
+use crate::app_components::{Stack, StackGap};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use dioxus::prelude::*;
@@ -56,7 +57,7 @@ pub(crate) fn MovePicker(
                 class: Some("dialog-md".to_string()),
                 DialogTitle { "Move \"{task_title}\"" }
 
-                div { class: Styles::item_picker_list,
+                Stack { class: Styles::item_picker_list, gap: StackGap::Xs,
                     // Option for Root
                     button {
                         r#type: "button",
