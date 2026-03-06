@@ -1,6 +1,6 @@
 //! Score trace view for Do list tasks.
 
-use crate::app_components::{BackButton, EmptyState, LoadErrorView, PageHeader};
+use crate::app_components::{BackButton, EmptyState, LoadErrorView, PageContainer, PageHeader};
 use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_score_trace::use_score_trace;
@@ -24,13 +24,12 @@ pub fn ScoreTracePage(task_id: TaskID) -> Element {
     };
 
     rsx! {
-        div {
-            class: Styles::page_container,
-            style: "padding-top: var(--app_safe_top); padding-left: var(--app_safe_left); padding-right: var(--app_safe_right);",
+        PageContainer {
             "data-testid": "score-trace",
 
-            BackButton { onclick: on_back }
-            PageHeader { title: "Score Trace" }
+            div { class: Styles::trace_layout,
+                BackButton { onclick: on_back }
+                PageHeader { title: "Score Trace" }
 
             if let Some(error) = load_error() {
                 LoadErrorView {
@@ -47,6 +46,7 @@ pub fn ScoreTracePage(task_id: TaskID) -> Element {
                     title: "Score trace unavailable.",
                     subtitle: "The task might no longer exist or is filtered out.",
                 }
+            }
             }
         }
     }

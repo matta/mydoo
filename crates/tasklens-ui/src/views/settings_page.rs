@@ -1,4 +1,4 @@
-use crate::app_components::{BackButton, DocIdManager};
+use crate::app_components::{BackButton, DocIdManager, PageContainer};
 use crate::controllers::doc_controller;
 use crate::router::ViewContext;
 use dioxus::prelude::*;
@@ -25,9 +25,8 @@ pub fn SettingsPage(ctx: Option<ViewContext>) -> Element {
     };
 
     rsx! {
-        div {
+        PageContainer {
             "data-testid": "settings-page",
-            class: Styles::settings_root,
 
             div { class: Styles::settings_header,
                 BackButton {

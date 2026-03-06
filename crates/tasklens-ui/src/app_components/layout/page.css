@@ -1,0 +1,14 @@
+/*
+ * Base padding is combined with safe area insets using calc().
+ * This ensures content maintains aesthetic spacing (e.g., 1rem) from the
+ * edge of the safe area (notches, home bars) rather than sitting flush against it.
+ */
+.page_container {
+  padding-left: calc(1rem + var(--app_safe_left));
+  padding-right: calc(1rem + var(--app_safe_right));
+  padding-top: calc(1rem + var(--app_safe_top));
+  padding-bottom: calc(5rem + var(--app_safe_bottom));
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 42rem;
+}

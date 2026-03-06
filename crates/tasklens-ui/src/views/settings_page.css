@@ -1,12 +1,3 @@
-.settings_root {
-  max-width: var(--app_content_max_width);
-  margin: 0 auto;
-  padding-top: var(--app_safe_top);
-  padding-bottom: var(--app_safe_bottom);
-  padding-left: var(--app_safe_left);
-  padding-right: var(--app_safe_right);
-}
-
 .settings_header {
   display: flex;
   align-items: center;
