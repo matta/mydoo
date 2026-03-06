@@ -4,6 +4,8 @@
 //! Shared and vendored component primitives remain under `components` and
 //! `dioxus_components` during migration.
 
+mod layout;
+
 mod alert;
 mod app_navbar;
 mod app_panel;
@@ -33,6 +35,7 @@ pub(crate) use date_time_inputs::DateInput;
 pub(crate) use doc_id_manager::DocIdManager;
 pub(crate) use empty_state::EmptyState;
 pub(crate) use form_controls::{AppInput, AppInputStyle, AppTextarea};
+pub(crate) use layout::PageContainer;
 pub(crate) use load_error_view::LoadErrorView;
 pub(crate) use loading::Loading;
 pub(crate) use move_picker::MovePicker;

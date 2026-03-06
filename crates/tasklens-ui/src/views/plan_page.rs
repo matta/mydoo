@@ -1,5 +1,6 @@
-use crate::app_components::TaskRow;
-use crate::app_components::{LoadErrorView, PageHeader, TaskEditor, TaskInput};
+use crate::app_components::{
+    LoadErrorView, PageContainer, PageHeader, TaskEditor, TaskInput, TaskRow,
+};
 use crate::controllers::task_controller;
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::card::{Card, CardContent};
@@ -165,9 +166,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     let now = js_sys::Date::now() as i64;
 
     rsx! {
-        div {
-            class: Styles::page_container,
-
+        PageContainer {
             PageHeader { title: "Plan",
                 if !flattened_tasks().is_empty() && load_error().is_none() {
                     Button {

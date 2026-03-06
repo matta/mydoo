@@ -1,5 +1,7 @@
 use crate::app_components::PriorityTaskRow;
-use crate::app_components::{EmptyState, LoadErrorView, PageHeader, TaskEditor, TaskInput};
+use crate::app_components::{
+    EmptyState, LoadErrorView, PageContainer, PageHeader, TaskEditor, TaskInput,
+};
 use crate::controllers::task_controller;
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::hooks::use_prioritized_tasks::use_do_list_tasks;
@@ -47,9 +49,7 @@ pub fn DoPage() -> Element {
     struct Styles;
 
     rsx! {
-        div {
-            class: Styles::page_container,
-            style: "padding-top: var(--app_safe_top); padding-left: var(--app_safe_left); padding-right: var(--app_safe_right);",
+        PageContainer {
 
             PageHeader { title: "Do",
                 Button {

@@ -9,6 +9,7 @@
   padding-top: var(--app_safe_top);
   padding-right: var(--app_safe_right);
   padding-bottom: var(--app_safe_bottom);
+  padding-left: var(--app_safe_left);
 }
 
 .panel_root {

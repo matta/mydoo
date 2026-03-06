@@ -3,7 +3,7 @@
 //! This module contains the core application logic and UI components for the Task list functionality.
 //! It handles state management, synchronization integration, and the composition of the main page.
 
-use crate::app_components::{LoadErrorView, PageHeader, TaskInput};
+use crate::app_components::{LoadErrorView, PageContainer, PageHeader, TaskInput};
 use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::checkbox::Checkbox;
 use dioxus::prelude::*;
@@ -72,9 +72,7 @@ pub fn TaskPage() -> Element {
     let tasks = tasks_memo();
 
     rsx! {
-        div {
-            class: Styles::page_container,
-            style: "padding-top: var(--app_safe_top); padding-bottom: var(--app_safe_bottom); padding-left: var(--app_safe_left); padding-right: var(--app_safe_right);",
+        PageContainer {
             PageHeader { title: "TaskLens",
                 if service_worker_active() {
                     Badge {

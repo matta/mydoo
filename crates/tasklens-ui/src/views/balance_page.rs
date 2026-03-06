@@ -3,7 +3,7 @@
 //! Displays the Balance View showing effort distribution across root goals.
 //! Users can adjust target percentages via sliders to rebalance their focus.
 
-use crate::app_components::{BalanceSlider, EmptyState, LoadErrorView, PageHeader};
+use crate::app_components::{BalanceSlider, EmptyState, LoadErrorView, PageContainer, PageHeader};
 use crate::controllers::task_controller;
 use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::card::{Card, CardContent};
@@ -30,9 +30,7 @@ pub fn BalancePage() -> Element {
         }));
 
     rsx! {
-        div {
-            class: Styles::page_container,
-            style: "padding-top: var(--app_safe_top); padding-left: var(--app_safe_left); padding-right: var(--app_safe_right);",
+        PageContainer {
 
             PageHeader { title: "Balance" }
 
