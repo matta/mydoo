@@ -26,7 +26,7 @@ pub fn ScoreTracePage(task_id: TaskID) -> Element {
     rsx! {
         div {
             class: Styles::page_container,
-            style: "padding-top: var(--safe-top); padding-left: var(--app_safe_left); padding-right: var(--safe-right);",
+            style: "padding-top: var(--app_safe_top); padding-left: var(--app_safe_left); padding-right: var(--app_safe_right);",
             "data-testid": "score-trace",
 
             BackButton { onclick: on_back }

@@ -32,7 +32,7 @@ pub fn BalancePage() -> Element {
     rsx! {
         div {
             class: Styles::page_container,
-            style: "padding-top: var(--app_safe_top); padding-left: var(--app_safe_left); padding-right: var(--safe-right);",
+            style: "padding-top: var(--app_safe_top); padding-left: var(--app_safe_left); padding-right: var(--app_safe_right);",
 
             PageHeader { title: "Balance" }
 
