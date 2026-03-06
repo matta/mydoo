@@ -228,7 +228,7 @@ pub(crate) fn DocIdManager(
                         label { class: Styles::meta_label,
                             "Metadata ID (Internal)"
                         }
-                        div { class: Styles::row_layout,
+                        Row { gap: RowGap::Sm, align: RowAlign::Center,
                             div { class: Styles::id_display_small,
                                 "{meta_id}"
                             }

@@ -92,7 +92,7 @@ After the initial Row primitive lands with one conversion, continue with iterati
 ### API Expansion Triggers (Deferred)
 
 - Add `RowJustify` only when a real callsite needs `justify-content` control.
-- Add wrapping API only when a real callsite needs explicit `flex-wrap` behavior.
+- Add wrapping API only when a real callsite needs explicit `flex-wrap` behavior (Note: `doc_id_manager.rs` currently uses this for its button grid; prioritize when migrating that specific block).
 - Keep the primitive minimal until concrete usage justifies expansion.
 
 ## Definition of Done (Phase 1: Initial Landing)

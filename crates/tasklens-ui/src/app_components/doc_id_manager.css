@@ -14,12 +14,6 @@
   opacity: 0.7;
 }
 
-.row_layout {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .id_display_box {
   flex: 1 1 0%;
   padding: 0.5rem 0.75rem;
