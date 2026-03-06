@@ -1,5 +1,5 @@
 use crate::app_components::{
-    LoadErrorView, PageContainer, PageHeader, TaskEditor, TaskInput, TaskRow,
+    LoadErrorView, PageContainer, PageHeader, Stack, StackGap, TaskEditor, TaskInput, TaskRow,
 };
 use crate::controllers::task_controller;
 use crate::dioxus_components::button::{Button, ButtonVariant};
@@ -224,7 +224,7 @@ pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
                             }
                         }
                     } else {
-                        div { class: Styles::task_list,
+                        Stack { gap: StackGap::Sm,
                             for FlattenedTask { id , title , status , schedule_type, depth , has_children , is_expanded , effective_due_date , effective_lead_time , .. } in flattened_tasks() {
                                 TaskRow {
                                     key: "{id}",
