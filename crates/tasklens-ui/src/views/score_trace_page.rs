@@ -1,6 +1,8 @@
 //! Score trace view for Do list tasks.
 
-use crate::app_components::{BackButton, EmptyState, LoadErrorView, PageContainer, PageHeader};
+use crate::app_components::{
+    BackButton, EmptyState, LoadErrorView, PageContainer, PageHeader, Stack, StackGap,
+};
 use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::card::{Card, CardContent};
 use crate::hooks::use_score_trace::use_score_trace;
@@ -27,26 +29,28 @@ pub(crate) fn ScoreTracePage(task_id: TaskID) -> Element {
         PageContainer {
             "data-testid": "score-trace",
 
-            div { class: Styles::trace_layout,
+            Stack {
+                gap: StackGap::Lg,
+
                 BackButton { onclick: on_back }
                 PageHeader { title: "Score Trace" }
 
-            if let Some(error) = load_error() {
-                LoadErrorView {
-                    error,
-                    help_text: Some(
-                        "Access the settings menu to switch documents or change sync servers."
-                            .to_string(),
-                    ),
+                if let Some(error) = load_error() {
+                    LoadErrorView {
+                        error,
+                        help_text: Some(
+                            "Access the settings menu to switch documents or change sync servers."
+                                .to_string(),
+                        ),
+                    }
+                } else if let Some(trace) = trace() {
+                    ScoreTraceContent { trace }
+                } else {
+                    EmptyState {
+                        title: "Score trace unavailable.",
+                        subtitle: "The task might no longer exist or is filtered out.",
+                    }
                 }
-            } else if let Some(trace) = trace() {
-                ScoreTraceContent { trace }
-            } else {
-                EmptyState {
-                    title: "Score trace unavailable.",
-                    subtitle: "The task might no longer exist or is filtered out.",
-                }
-            }
             }
         }
     }
@@ -59,7 +63,8 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
     let computed_at = format_timestamp(Some(trace.computed_at));
 
     rsx! {
-        div { class: Styles::trace_content,
+        Stack {
+            gap: StackGap::Lg,
             Card {
                 "data-testid": "score-trace-summary",
                 CardContent {
@@ -115,9 +120,10 @@ fn ScoreTraceContent(trace: ScoreTrace) -> Element {
                 CardContent {
                     h3 { class: Styles::formula_title, "Importance Chain" }
                     for entry in trace.importance_chain.iter() {
-                        div {
+                        Stack {
                             key: "{entry.task_id}",
                             class: Styles::importance_item,
+                            gap: StackGap::Xs,
                             div { class: Styles::importance_item_header,
                                 span { class: Styles::importance_task_title, "{entry.task_title}" }
                                 if entry.sequential_blocked {
