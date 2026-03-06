@@ -142,11 +142,19 @@ fn list_source_files(src_root: &Path) -> Result<Vec<PathBuf>> {
 
     for entry in glob::glob(&pattern).context("Invalid glob pattern")? {
         let path = entry.with_context(|| format!("Failed to read glob entry for {pattern}"))?;
+        if is_target_artifact_path(&path) {
+            continue;
+        }
         files.push(path);
     }
 
     files.sort();
     Ok(files)
+}
+
+fn is_target_artifact_path(path: &Path) -> bool {
+    path.components()
+        .any(|component| component.as_os_str() == "target")
 }
 
 fn is_excluded_path(path: &Path) -> bool {
@@ -507,6 +515,20 @@ pub fn run() {}
 "#;
         let violations = scan(source);
         assert_eq!(violations.len(), 1);
+    }
+
+    #[test]
+    fn detects_target_artifact_paths() {
+        assert!(is_target_artifact_path(Path::new(
+            "crates/tasklens-ui/target/debug/build/out.rs"
+        )));
+    }
+
+    #[test]
+    fn ignores_normal_source_paths() {
+        assert!(!is_target_artifact_path(Path::new(
+            "crates/tasklens-ui/src/main.rs"
+        )));
     }
 }
 // lint -restore
