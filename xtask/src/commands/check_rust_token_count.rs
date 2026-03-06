@@ -1,12 +1,13 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use ra_ap_rustc_lexer::{FrontmatterAllowed, TokenKind};
 use regex::Regex;
 use serde::Deserialize;
 use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
+
+use crate::commands::rust_tokens::parse_rust_file_cached;
 
 pub(crate) const DEFAULT_LIMIT: usize = 9201;
 
@@ -108,18 +109,8 @@ pub(crate) fn check_rust_token_count(args: &CheckRustTokenCountArgs) -> Result<(
 }
 
 fn count_tokens(path: &Path) -> Result<usize> {
-    let content = fs::read_to_string(path)?;
-    let count = ra_ap_rustc_lexer::tokenize(&content, FrontmatterAllowed::Yes)
-        .filter(|token| {
-            !matches!(
-                token.kind,
-                TokenKind::LineComment { .. }
-                    | TokenKind::BlockComment { .. }
-                    | TokenKind::Whitespace
-            )
-        })
-        .count();
-    Ok(count)
+    let parsed = parse_rust_file_cached(path)?;
+    Ok(parsed.non_trivia_token_count)
 }
 
 fn get_files_to_check(root: &Path, all: bool) -> Result<HashSet<String>> {

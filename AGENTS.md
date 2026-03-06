@@ -22,7 +22,7 @@ Use these documents to understand the system architecture and requirements:
 - **[Scoring Algorithm](docs/design/algorithm.md):** The core logic for task prioritization.
 - **[Testing Strategy](docs/design/testing.md):** The 3-tier testing pyramid (Unit, Integration, E2E).
 - **[Automerge Schema](docs/design/automerge-schema.md):** The exact structure of the CRDT document.
-- **[Dioxus Guide](AGENTS_DIOXUS.md):** Syntax cheat sheet for Dioxus 0.7 components.
+- **[Dioxus Guide](docs/guidance/agents-dioxus.md):** Agent-facing Dioxus workflow summary and links to canonical guidance.
 
 ## 3. Development Guidelines
 

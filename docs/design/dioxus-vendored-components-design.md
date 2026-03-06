@@ -35,6 +35,8 @@ This design governs:
    code directly when it is the simpler, more maintainable solution.
 4. Avoid gratuitous changes to vendored files that create merge noise without
    clear product value.
+5. Maintain one-way dependencies: app-owned code may depend on vendored code,
+   but vendored code should not depend on app-owned modules by default.
 
 ## Non-Goals
 
@@ -42,6 +44,7 @@ This design governs:
 2. Optimize for short-term local hacks that raise long-term vendor drift.
 3. Enforce a rigid pristine-only policy that makes simple changes artificially
    complex.
+4. Treat vendored-to-app dependencies as a routine customization path.
 
 ## Ownership Boundaries
 
@@ -83,6 +86,14 @@ Editing vendored code is acceptable when it is deliberate and product-driven.
 Avoid gratuitous changes (reformatting, renaming, drive-by improvements) that
 create merge noise without clear value.
 
+Strong default: vendored source should not import or reference app-owned UI
+modules (`crate::app_components::*`, `crate::views::*`). Prefer token-aligned
+vendored-local edits or app-owned wrappers/composition around vendored
+primitives.
+
+Rare exceptions are allowed when product-critical and demonstrably simpler than
+alternatives. Document exception rationale in the commit message and allowlist.
+
 For detailed customization policy, see the guidance docs below.
 
 ## Customization Delegation
@@ -102,7 +113,9 @@ customize safely within those boundaries.
 1. Are vendored edits deliberate and product-driven, not gratuitous?
 2. Was vendoring performed via `cargo xtask dx-components vendor`?
 3. Are app-specific concerns kept in app-owned code where reasonable?
-4. Do links and references use Dioxus Vendored terminology consistently?
+4. Are vendored-to-app dependencies avoided (or explicitly justified as an
+   approved exception)?
+5. Do links and references use Dioxus Vendored terminology consistently?
 
 ## Historical Notes
 
