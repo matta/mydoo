@@ -21,7 +21,7 @@ struct Styles;
 /// - Handles hydration from persistent storage (IndexedDB).
 /// - Orchestrates the background synchronization task.
 #[component]
-pub fn TaskPage() -> Element {
+pub(crate) fn TaskPage() -> Element {
     let service_worker_active = use_context::<Signal<bool>>();
     let task_controller = crate::controllers::task_controller::use_task_controller();
     let load_error = use_context::<Signal<Option<String>>>();

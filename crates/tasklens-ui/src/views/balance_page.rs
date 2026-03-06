@@ -21,7 +21,7 @@ struct Styles;
 /// across their top-level goals. It uses the `use_balance_interaction` hook
 /// to manage the state of the sliders and the distribution logic.
 #[component]
-pub fn BalancePage() -> Element {
+pub(crate) fn BalancePage() -> Element {
     let load_error = use_context::<Signal<Option<String>>>();
     let controller = task_controller::use_task_controller();
     let (render_items, interaction) =

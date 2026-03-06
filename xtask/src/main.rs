@@ -4,6 +4,7 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 use commands::{
+    check_bin_pub_visibility::check_bin_pub_visibility,
     check_biome_schema::check_biome_schema,
     check_catalog::check_catalog,
     check_context::check_context,
@@ -32,6 +33,8 @@ enum Commands {
     CheckCatalog,
     /// Check that biome.json $schema version matches installed Biome version
     CheckBiomeSchema,
+    /// Check binary crates for accidental bare `pub` API visibility
+    CheckBinPubVisibility,
     /// Check filenames for naming conventions
     CheckFilenames,
     /// Check context directory for unauthorized files
@@ -63,6 +66,7 @@ fn main() -> Result<()> {
         Commands::CheckAll => {
             check_catalog()?;
             check_biome_schema()?;
+            check_bin_pub_visibility()?;
             check_filenames()?;
             check_context()?;
             check_dark_mode()?;
@@ -75,6 +79,7 @@ fn main() -> Result<()> {
             })?;
         }
         Commands::CheckBiomeSchema => check_biome_schema()?,
+        Commands::CheckBinPubVisibility => check_bin_pub_visibility()?,
         Commands::CheckCatalog => check_catalog()?,
         Commands::CheckContext => check_context()?,
         Commands::CheckDarkMode => check_dark_mode()?,

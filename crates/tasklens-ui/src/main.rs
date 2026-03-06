@@ -48,18 +48,18 @@ fn main() {
     dioxus::launch(App);
 }
 #[derive(Clone, Copy)]
-pub struct MemoryHeads(Signal<String>);
+pub(crate) struct MemoryHeads(Signal<String>);
 
 impl MemoryHeads {
-    pub fn new(signal: Signal<String>) -> Self {
+    pub(crate) fn new(signal: Signal<String>) -> Self {
         Self(signal)
     }
 
-    pub fn read(&self) -> impl std::ops::Deref<Target = String> + '_ {
+    pub(crate) fn read(&self) -> impl std::ops::Deref<Target = String> + '_ {
         self.0.read()
     }
 
-    pub fn set(&mut self, value: String) {
+    pub(crate) fn set(&mut self, value: String) {
         self.0.set(value);
     }
 }
@@ -71,18 +71,14 @@ impl std::fmt::Display for MemoryHeads {
 }
 
 #[derive(Clone, Copy)]
-pub struct PersistedHeads(Signal<String>);
+pub(crate) struct PersistedHeads(Signal<String>);
 
 impl PersistedHeads {
-    pub fn new(signal: Signal<String>) -> Self {
+    pub(crate) fn new(signal: Signal<String>) -> Self {
         Self(signal)
     }
 
-    pub fn read(&self) -> impl std::ops::Deref<Target = String> + '_ {
-        self.0.read()
-    }
-
-    pub fn set(&mut self, value: String) {
+    pub(crate) fn set(&mut self, value: String) {
         self.0.set(value);
     }
 }

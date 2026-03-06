@@ -1,3 +1,4 @@
+pub(crate) mod check_bin_pub_visibility;
 pub(crate) mod check_biome_schema;
 pub(crate) mod check_catalog;
 pub(crate) mod check_context;

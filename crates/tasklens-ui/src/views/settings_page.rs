@@ -9,7 +9,7 @@ use tasklens_store::store::AppStore;
 struct Styles;
 
 #[component]
-pub fn SettingsPage(ctx: Option<ViewContext>) -> Element {
+pub(crate) fn SettingsPage(ctx: Option<ViewContext>) -> Element {
     let store = use_context::<Signal<AppStore>>();
     let doc_id = use_context::<Signal<Option<DocumentId>>>();
     let handle_doc_change = move |new_doc_id: DocumentId| {

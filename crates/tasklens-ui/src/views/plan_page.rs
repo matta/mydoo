@@ -10,7 +10,7 @@ use dioxus_core::Task;
 use tasklens_core::types::{ScheduleType, TaskID, TaskStatus, TunnelState};
 
 #[component]
-pub fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
+pub(crate) fn PlanPage(focus_task: Option<TaskID>, seed: Option<bool>) -> Element {
     const HIGHLIGHT_DURATION_MS: u64 = 2000;
     let task_controller = task_controller::use_task_controller();
     let load_error = use_context::<Signal<Option<String>>>();

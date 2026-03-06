@@ -20,7 +20,7 @@ use tasklens_store::doc_id::DocumentId;
 /// * `doc_id` - Signal containing the current document ID.
 /// * `on_doc_change` - Event handler called when the document ID changes.
 #[component]
-pub fn SettingsModal(
+pub(crate) fn SettingsModal(
     on_close: EventHandler<()>,
     doc_id: Signal<Option<DocumentId>>,
     on_doc_change: EventHandler<DocumentId>,

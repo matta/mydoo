@@ -14,7 +14,7 @@ struct Styles;
 
 /// Renders the score trace for a single task.
 #[component]
-pub fn ScoreTracePage(task_id: TaskID) -> Element {
+pub(crate) fn ScoreTracePage(task_id: TaskID) -> Element {
     let load_error = use_context::<Signal<Option<String>>>();
     let trace = use_score_trace(task_id);
     let navigator = use_navigator();
