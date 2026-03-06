@@ -47,18 +47,6 @@
   margin-bottom: 0.75rem;
 }
 
-.settings_stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.field_stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
 .field_label {
   padding-block: 0.25rem;
   font-size: 0.75rem;

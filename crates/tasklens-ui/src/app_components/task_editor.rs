@@ -292,7 +292,7 @@ pub(crate) fn TaskEditor(
             }),
 
             // Main Content
-            div { class: Styles::task_editor_content,
+            Stack { gap: StackGap::Xl,
                     // Section: Core Details
                     fieldset { class: Styles::section_fieldset,
                         legend { class: Styles::section_legend,
@@ -739,7 +739,7 @@ pub(crate) fn TaskEditor(
                             Label {
                                 class: "{Styles::field_label} app_cursor_pointer",
                                 html_for: "sequential-toggle",
-                                div { class: Styles::sequential_label_group,
+                                Stack { gap: StackGap::Xs,
                                     span { class: "{Styles::label_text_bold} app_text_sm", "Sequential Project" }
                                     span { class: Styles::sequential_label_description,
                                         "Steps must be completed in order"

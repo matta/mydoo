@@ -128,7 +128,7 @@ textarea,
 .dialog-title-group {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--app_spacing_xs);
 }
 
 /* TODO(legacy-naming): See .dialog-md for migration details. */
@@ -138,7 +138,7 @@ textarea,
   max-height: 60vh;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: var(--app_spacing_xl);
   padding-right: 0.5rem;
   margin-right: -0.5rem;
 }
@@ -234,7 +234,7 @@ textarea,
   display: flex;
   width: 100%;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--app_spacing_sm);
   border-radius: 0.5rem;
   padding: 1rem;
 }

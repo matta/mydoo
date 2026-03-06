@@ -109,15 +109,15 @@ Many views manually style a `div` wrapper for a list of task rows (often using a
 
 Complex components often hand-roll vertical layouts for form fields, labels, and setting groups. Gap analysis shows several opportunities to standardize scaling using `Stack`:
 
-- [ ] Replace manual `flex-col` wrappers using `.task_editor_content` with `Stack { gap: StackGap::Xl }` in `task_editor.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui` and visual inspection.
-- [ ] Replace manual `flex-col` wrappers using `.sequential_label_group` with `Stack { gap: StackGap::Xs }` in `task_editor.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui` and visual inspection.
-- [ ] Replace manual `flex-col` wrappers using `.manager_root` with `Stack { gap: StackGap::Md }` in `doc_id_manager.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
-- [ ] Replace manual `flex-col` wrappers using `.field_group` with `Stack { gap: StackGap::Sm }` in `doc_id_manager.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
-- [ ] Replace manual `flex-col` wrappers using `.settings_stack` with `Stack { gap: StackGap::Md }` in `sync_indicator.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
-- [ ] Replace manual `flex-col` wrappers using `.field_stack` with `Stack { gap: StackGap::Xs }` in `sync_indicator.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
-- [ ] Replace hardcoded `gap: 2.5rem` with `gap: var(--app_spacing_xl)` for `.dialog-body` in `app.css` so that spacing adheres to tokens; verify via visual inspection.
-- [ ] Replace hardcoded `gap: 0.25rem` with `gap: var(--app_spacing_xs)` for `.dialog-title-group` in `app.css` so that spacing adheres to tokens; verify via visual inspection.
-- [ ] Replace hardcoded `gap: 0.5rem` with `gap: var(--app_spacing_sm)` for `.alert` rules in `app.css` so that spacing adheres to tokens; verify via visual inspection.
+- [x] Replace manual `flex-col` wrappers using `.task_editor_content` with `Stack { gap: StackGap::Xl }` in `task_editor.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui` and visual inspection.
+- [x] Replace manual `flex-col` wrappers using `.sequential_label_group` with `Stack { gap: StackGap::Xs }` in `task_editor.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui` and visual inspection.
+- [x] Replace manual `flex-col` wrappers using `.manager_root` with `Stack { gap: StackGap::Md }` in `doc_id_manager.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
+- [x] Replace manual `flex-col` wrappers using `.field_group` with `Stack { gap: StackGap::Sm }` in `doc_id_manager.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
+- [x] Replace manual `flex-col` wrappers using `.settings_stack` with `Stack { gap: StackGap::Md }` in `sync_indicator.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
+- [x] Replace manual `flex-col` wrappers using `.field_stack` with `Stack { gap: StackGap::Xs }` in `sync_indicator.rs` so that spacing adheres to tokens; verify via `cargo test -p tasklens-ui`.
+- [x] Replace hardcoded `gap: 2.5rem` with `gap: var(--app_spacing_xl)` for `.dialog-body` in `app.css` so that spacing adheres to tokens; verify via visual inspection.
+- [x] Replace hardcoded `gap: 0.25rem` with `gap: var(--app_spacing_xs)` for `.dialog-title-group` in `app.css` so that spacing adheres to tokens; verify via visual inspection.
+- [x] Replace hardcoded `gap: 0.5rem` with `gap: var(--app_spacing_sm)` for `.alert` rules in `app.css` so that spacing adheres to tokens; verify via visual inspection.
 
   _Rationale: Forces our complex forms to adhere to the core tokenized spacing scale instead of drifting off-scale (e.g. replacing hardcoded 2.5rem gaps with standard Xl tokens)._
 

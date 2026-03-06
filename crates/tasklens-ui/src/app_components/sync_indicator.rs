@@ -1,4 +1,4 @@
-use crate::app_components::AppInput;
+use crate::app_components::{AppInput, Stack, StackGap};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 #[cfg(target_arch = "wasm32")]
 use crate::hooks::use_sync::SYNC_SERVER_URL_KEY;
@@ -78,8 +78,8 @@ pub(crate) fn SyncIndicator() -> Element {
                     class: Styles::settings_popover,
                     "data-testid": "sync-settings-popover",
                     h3 { class: Styles::popover_title, "Sync Settings" }
-                    div { class: Styles::settings_stack,
-                        div { class: Styles::field_stack,
+                    Stack { gap: StackGap::Md,
+                        Stack { gap: StackGap::Xs,
                             label { class: Styles::field_label,
                                 "Server URL"
                             }
