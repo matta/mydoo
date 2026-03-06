@@ -6,9 +6,3 @@
 .refresh_button:hover {
   opacity: 1;
 }
-
-.task_list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}

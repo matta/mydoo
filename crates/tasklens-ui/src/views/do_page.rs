@@ -1,6 +1,6 @@
 use crate::app_components::PriorityTaskRow;
 use crate::app_components::{
-    EmptyState, LoadErrorView, PageContainer, PageHeader, TaskEditor, TaskInput,
+    EmptyState, LoadErrorView, PageContainer, PageHeader, Stack, StackGap, TaskEditor, TaskInput,
 };
 use crate::controllers::task_controller;
 use crate::dioxus_components::button::{Button, ButtonVariant};
@@ -80,7 +80,7 @@ pub fn DoPage() -> Element {
                     subtitle: "Check your Plan or wait for scheduled tasks.",
                 }
             } else {
-                div { class: Styles::task_list,
+                Stack { gap: StackGap::Sm,
                     for task in prioritized_tasks() {
                         PriorityTaskRow {
                             key: "{task.id}",
