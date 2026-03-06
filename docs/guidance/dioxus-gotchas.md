@@ -35,20 +35,100 @@ To ensure Dioxus automatically injects your CSS module `<link>` into the HTML `<
 A pattern that satisfies both dynamic composition and static analysis is to specify `class` multiple times. Dioxus will correctly merge them:
 
 ```rust
-// ✅ CORRECT: The wrapper type is explicitly used, triggering CSS asset injection.
-fn stack_class() -> String {
-    format!("{} {}", Styles::stack.inner, Styles::gap_md.inner)
+// ✅ CORRECT: Return only dynamic classes from helper logic.
+fn dynamic_class() -> String {
+    format!("{}", Styles::gap_md.inner)
 }
 
 #[component]
 pub fn Stack(attributes: Vec<Attribute>, children: Element) -> Element {
-    let class_name = stack_class();
+    let class_name = dynamic_class();
     let base = attributes!(div {
-        class: Styles::stack,     // 1. Explicitly notify Dioxus that the CSS module is used!
-        class: "{class_name}",    // 2. Safely apply your derived dynamic string!
+        class: Styles::stack,     // 1. Explicitly notify Dioxus that the CSS module is used.
+        class: "{class_name}",    // 2. Add derived dynamic classes without duplication.
     });
     // ...
 }
 ```
 
 > **Alternative Note:** If you cannot modify the macro logic for some reason, you can manually force the stylesheet to load using an explicit `document::Link { href: asset!("/path/to/file.css") }`. However, using the native `class: Styles::property` approach is officially idiomatic and avoids manually managing paths.
+
+## 2. Spread Attributes and Class Merging in `rsx!`
+
+When a component accepts passthrough attributes (`#[props(extends = ...)]`), direct `..attributes` spread in `rsx!` is not always equivalent to explicitly merging attributes first.
+
+In this document, **explicit merge** means:
+
+1. Build a base attribute set for the component-owned defaults (`class`, `role`, etc.) with `attributes!`.
+2. Merge base attributes with caller-provided attributes using `merge_attributes`.
+3. Spread the merged result into the final element.
+
+### The Pitfall: Assuming Spread Fully Merges Classes
+
+This pattern looks concise, but has two common failure modes in Dioxus 0.7.x:
+
+```rust
+// ❌ Fragile: may fail to compile or merge classes as expected
+rsx! {
+    div {
+        class: Styles::stack,
+        class: gap.class_name(),
+        class: align.class_name(),
+        ..attributes,
+        {children}
+    }
+}
+```
+
+1. Dioxus macro limitation:
+   builds can fail with `Cannot merge non-fmt literals` when multiple `class:` entries are non-format values in this shape.
+2. Class semantics mismatch:
+   even when rewritten to compile, caller `class` passed via spread may render as a separate `class="..."` attribute in SSR output instead of a single merged class list.
+
+### The Safe Pattern: Build + Merge Explicitly
+
+Use `attributes!` + `merge_attributes` to guarantee one normalized class list and stable passthrough behavior.
+
+```rust
+use dioxus::prelude::*;
+use dioxus_primitives::dioxus_attributes::attributes;
+use dioxus_primitives::merge_attributes;
+```
+
+```rust
+let base = attributes!(div {
+    class: Styles::stack,
+    class: "{gap.class_name()} {align.class_name()}",
+});
+let merged = merge_attributes(vec![base, attributes]);
+
+rsx! {
+    div {
+        ..merged,
+        {children}
+    }
+}
+```
+
+### What "non-fmt literals" Means
+
+The Dioxus RSX macro has a merge path for repeated attributes (like multiple `class:`). In this path, values often need to be format-string compatible. These can fail:
+
+```rust
+// Can trigger: "Cannot merge non-fmt literals"
+class: Styles::stack,
+class: gap.class_name(),
+class: align.class_name(),
+```
+
+A format-string expression is safer for repeated class composition:
+
+```rust
+class: "{Styles::stack} {gap.class_name()} {align.class_name()}",
+```
+
+Even with the format-string workaround, `..attributes` spread still may not match `merge_attributes` semantics for caller-provided `class` values. For reusable primitives, prefer explicit merge.
+
+### Testing Gotcha: `render_element` vs Full Component Rendering
+
+`dioxus_ssr::render_element` is useful for plain element snippets that do not rely on component runtime behavior. For component-level equality checks (especially with props/spread), render a `VirtualDom` with `dioxus_ssr::render(&dom)` so the component runs inside a Dioxus runtime and emitted markup matches real behavior.

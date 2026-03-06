@@ -9,6 +9,9 @@ struct Styles;
 ///
 /// Each variant maps to one app spacing token in `stack.css`:
 /// `--app_spacing_xs|sm|md|lg|xl`.
+// Keep the full variant set as the component API surface. In this bin crate,
+// clippy `-D warnings` evaluates dead-code on non-test targets and only the
+// currently used variants are constructed at runtime.
 #[allow(dead_code)]
 #[derive(Copy, Clone, PartialEq, Eq, Default)]
 pub(crate) enum StackGap {
@@ -36,6 +39,7 @@ impl StackGap {
 ///
 /// `Stretch` keeps children full-width by default, while the remaining
 /// variants map to `align-items: flex-start|center|flex-end`.
+// Keep the full variant set for the same reason as `StackGap`.
 #[allow(dead_code)]
 #[derive(Copy, Clone, PartialEq, Eq, Default)]
 pub(crate) enum StackAlign {
@@ -68,8 +72,7 @@ pub(crate) fn Stack(
 ) -> Element {
     let base = attributes!(div {
         class: Styles::stack,
-        class: gap.class_name(),
-        class: align.class_name(),
+        class: "{gap.class_name()} {align.class_name()}",
     });
     let merged = merge_attributes(vec![base, attributes]);
 
@@ -84,6 +87,7 @@ pub(crate) fn Stack(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_str_eq;
 
     #[test]
     fn gap_enum_maps_to_expected_classes() {
@@ -126,5 +130,44 @@ mod tests {
 
         let mut dom = VirtualDom::new(app);
         dom.rebuild_in_place();
+    }
+
+    #[test]
+    fn stack_spread_attributes_match_equivalent_div() {
+        fn stack_component() -> Element {
+            rsx! {
+                Stack {
+                    id: "stack-root",
+                    class: "caller_class",
+                    gap: StackGap::Lg,
+                    align: StackAlign::Center,
+                    "Child"
+                }
+            }
+        }
+
+        fn equivalent_div() -> Element {
+            rsx! {
+                div {
+                    class: "{Styles::stack} {Styles::gap_lg.inner} {Styles::align_center.inner} caller_class",
+                    id: "stack-root",
+                    "Child"
+                }
+            }
+        }
+
+        assert_component_rsx_eq(stack_component, equivalent_div);
+    }
+
+    fn assert_component_rsx_eq(first: fn() -> Element, second: fn() -> Element) {
+        let first = render_component(first);
+        let second = render_component(second);
+        assert_str_eq!(first, second);
+    }
+
+    fn render_component(component: fn() -> Element) -> String {
+        let mut dom = VirtualDom::new(component);
+        dom.rebuild_in_place();
+        dioxus_ssr::render(&dom)
     }
 }

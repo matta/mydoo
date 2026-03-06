@@ -15,6 +15,9 @@ documents:
     Rules for styling and overriding vendored components.
 3.  **[Dioxus Vendored Customization Guidance](../../../docs/guidance/dioxus-vendored-customization.md)**:
     Rules for altering component behavior, APIs, or state.
+4.  **[Dioxus Gotchas](../../../docs/guidance/dioxus-gotchas.md)**:
+    Known framework pitfalls around CSS module injection, `rsx!` attribute/class
+    merging, and SSR/component test behavior.
 
 ### Reader Instruction: Transinclusion
 
@@ -27,6 +30,11 @@ documents:
 > - If you are writing new CSS or components, start with the **CSS Style Guide**.
 > - If you are modifying anything in `src/dioxus_components/`, start with the
 >   **Vendored Styling** and **Vendored Customization** guides.
+> - If you are:
+>   - touching `#[css_module]` components or class composition logic,
+>   - using `..attributes` spread or `merge_attributes`,
+>   - adding/changing SSR tests (`dioxus_ssr`) for component markup equality,
+>     read **Dioxus Gotchas** before implementing changes.
 
 ## Core Philosophy
 
