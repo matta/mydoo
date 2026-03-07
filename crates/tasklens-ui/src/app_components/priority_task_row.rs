@@ -95,7 +95,6 @@ pub(crate) fn PriorityTaskRow(
                 if let Some(variant) = urgency_variant {
                     Badge {
                         variant,
-                        class: Styles::urgency_badge,
                         "data-testid": "urgency-badge",
                         "data-urgency": "{task.urgency_status:?}".to_lowercase(),
                         "{urgency_label}"
