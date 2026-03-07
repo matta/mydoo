@@ -307,7 +307,7 @@ before inventing bespoke page-specific layout classes:
 
 - **Container**: max width + horizontal padding
 - **Stack (Done)**: vertical layout with `gap`
-- **Cluster/Row**: horizontal layout with `gap`, optional wrap and alignment
+- **Row (Done)**: horizontal layout with `gap` and cross-axis alignment
 - **Grid**: 2D layout with responsive columns
 - **Spacer/Divider (optional)**: explicit separation when flow layout is not enough
 
@@ -337,18 +337,21 @@ Create a tiny set of Project-authored primitives in `src/app_components/layout/*
 (e.g., `Stack`, `Row`, `Grid`, `Container`). These components should:
 
 - Render minimal markup (`div` / `section`) with predictable classes.
-- Accept a _small_ set of parameters (e.g., `gap`, `align`, `justify`, `wrap`,
-  `pad`, `max_width`) that map to tokens.
+- Accept a _small_ set of parameters that map to tokens. Keep the initial API
+  narrow (for example, `gap` and `align`) and expand only when a concrete
+  callsite requires it.
 - Avoid becoming a mini-framework. Keep the API intentionally small and aligned
   with our token scale.
 
 For example, your Dioxus code would remain declarative and clean:
 
 ```rust
+use crate::app_components::{Row, RowAlign, RowGap, Stack, StackGap};
+
 rsx! {
-    Stack { gap: "md",
+    Stack { gap: StackGap::Md,
         h1 { "Title" }
-        Row { gap: "sm", justify: "end",
+        Row { gap: RowGap::Sm, align: RowAlign::Center,
             Button { "Cancel" }
             Button { "Save" }
         }

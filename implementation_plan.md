@@ -93,6 +93,8 @@ After the initial Row primitive lands with one conversion, continue with iterati
   - Converted root task row wrapper to `Row`.
 - [x] `crates/tasklens-ui/assets/app.css`
   - Removed unused `app_row_cluster` utility.
+- [x] `docs/guidance/css.md`
+  - Marked Row/Cluster guidance as done and aligned primitive API examples with current `Row`.
 
 ### High-Value Follow-Up Conversions
 
