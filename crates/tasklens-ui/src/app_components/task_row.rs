@@ -1,3 +1,4 @@
+use crate::app_components::{Row, RowAlign, RowGap};
 use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::checkbox::Checkbox;
@@ -117,8 +118,10 @@ pub(crate) fn TaskRow(
     let routine_label = routine_state_label(schedule_type, status, effective_due_date, now);
 
     rsx! {
-        div {
+        Row {
             class: row_class,
+            gap: RowGap::Sm,
+            align: RowAlign::Center,
             style: "--indent: {indentation}px;",
             "data-testid": "task-item",
             "data-depth": "{depth}",
@@ -234,7 +237,7 @@ pub(crate) fn TaskRow(
             }
 
             // Actions
-            div { class: Styles::actions_container,
+            Row { class: Styles::actions_container, gap: RowGap::Xs, align: RowAlign::Center,
                 Button {
                     variant: ButtonVariant::Icon,
                     title: "Add Subtask",

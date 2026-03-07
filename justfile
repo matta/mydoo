@@ -128,7 +128,7 @@ test-scripts *args:
 
 # Run unit tests for rust crates
 test-rust:
-    chronic cargo test --workspace
+    chronic cargo nextest run --workspace
 
 # Run all e2e tests
 test-e2e *args: build-ui-release-e2e

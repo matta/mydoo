@@ -5,7 +5,9 @@
 //! - Generating a new document (new random ID)
 //! - Entering an existing document ID to switch documents
 
-use crate::app_components::{Alert, AlertVariant, AppInput, AppInputStyle, Stack, StackGap};
+use crate::app_components::{
+    Alert, AlertVariant, AppInput, AppInputStyle, Row, RowAlign, RowGap, RowWrap, Stack, StackGap,
+};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::hooks::use_tunnel_state::use_tunnel_state;
 use base64::Engine;
@@ -200,7 +202,7 @@ pub(crate) fn DocIdManager(
             // Current Document Display
             Stack { gap: StackGap::Sm,
                 label { class: Styles::field_label, "Current Document" }
-                div { class: Styles::row_layout,
+                Row { gap: RowGap::Sm, align: RowAlign::Center,
                     div {
                         class: Styles::id_display_box,
                         "data-testid": "document-id-display",
@@ -226,7 +228,7 @@ pub(crate) fn DocIdManager(
                         label { class: Styles::meta_label,
                             "Metadata ID (Internal)"
                         }
-                        div { class: Styles::row_layout,
+                        Row { gap: RowGap::Sm, align: RowAlign::Center,
                             div { class: Styles::id_display_small,
                                 "{meta_id}"
                             }
@@ -242,7 +244,7 @@ pub(crate) fn DocIdManager(
                 }
 
                 if show_copy_toast() {
-                    div { class: Styles::copy_feedback,
+                    Row { class: Styles::copy_feedback, gap: RowGap::Xs, align: RowAlign::Center,
                         svg {
                             class: Styles::icon_small,
                             fill: "none",
@@ -261,7 +263,7 @@ pub(crate) fn DocIdManager(
             }
 
             // Action Buttons
-            div { class: Styles::button_grid,
+            Row { gap: RowGap::Sm, align: RowAlign::Stretch, wrap: RowWrap::Wrap,
                 Button {
                     variant: ButtonVariant::Primary,
                     onclick: handle_new_document,

@@ -5,7 +5,7 @@ use crate::app_components::AppTextarea;
 use crate::app_components::DateInput;
 use crate::app_components::Loading;
 use crate::app_components::MovePicker;
-use crate::app_components::{Stack, StackGap};
+use crate::app_components::{Row, RowAlign, RowGap, Stack, StackGap};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::label::Label;
 use crate::dioxus_components::select::{
@@ -543,7 +543,7 @@ pub(crate) fn TaskEditor(
                                         html_for: "repetition-interval-input",
                                         span { class: Styles::label_text_medium, "Repeat Every" }
                                     }
-                                    div { class: "app_row_cluster",
+                                    Row { class: "app_input_full", gap: RowGap::Sm, align: RowAlign::Center,
                                         input {
                                             r#type: "number",
                                             id: "repetition-interval-input",
@@ -675,7 +675,7 @@ pub(crate) fn TaskEditor(
                                         html_for: "lead-time-scalar-input",
                                         span { class: Styles::label_text_medium, "Lead Time" }
                                     }
-                                    div { class: "app_row_cluster",
+                                    Row { class: "app_input_full", gap: RowGap::Sm, align: RowAlign::Center,
                                         {
                                             let (val, unit) = time_conversion::ms_to_period(
                                                 current_draft.schedule.lead_time,

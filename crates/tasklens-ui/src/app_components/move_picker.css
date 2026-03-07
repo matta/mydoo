@@ -33,8 +33,6 @@
 
 .picker_footer {
   margin-top: 1rem;
-  display: flex;
-  justify-content: flex-end;
 }
 
 .app_font_medium {

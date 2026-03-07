@@ -76,12 +76,6 @@
   font-weight: 500;
 }
 
-.panel_actions {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
 .panel_icon_button {
   min-width: var(--app_touch_target);
   min-height: var(--app_touch_target);

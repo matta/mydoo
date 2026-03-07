@@ -14,12 +14,6 @@
   opacity: 0.7;
 }
 
-.row_layout {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .id_display_box {
   flex: 1 1 0%;
   padding: 0.5rem 0.75rem;
@@ -76,20 +70,11 @@
 .copy_feedback {
   font-size: 1rem;
   color: var(--secondary-success-color);
-  display: flex;
-  align-items: center;
 }
 
 .icon_small {
   height: 1rem;
   width: 1rem;
-  margin-right: 0.25rem;
-}
-
-.button_grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .flex_button {

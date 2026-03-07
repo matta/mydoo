@@ -1,4 +1,4 @@
-use crate::app_components::AppInput;
+use crate::app_components::{AppInput, Row, RowAlign, RowGap};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::router::Route;
 use dioxus::prelude::*;
@@ -138,7 +138,7 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
             "data-open": "{open()}",
             "data-testid": "search-panel",
             div { class: Styles::content_container,
-                div { class: Styles::search_header,
+                Row { gap: RowGap::Sm, align: RowAlign::Center,
                     div { class: Styles::input_full,
                         AppInput {
                             full_width: true,
