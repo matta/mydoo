@@ -89,6 +89,8 @@ After the initial Row primitive lands with one conversion, continue with iterati
   - Converted root task row wrapper to `Row`.
 - [x] `crates/tasklens-ui/src/app_components/task_row.rs` (iteration: actions cluster)
   - Converted actions cluster wrapper to `Row`.
+- [x] `crates/tasklens-ui/src/app_components/task_row.css` (iteration: spacing cleanup)
+  - Removed manual due-date left margin; spacing now relies on `Row` gap tokens.
 - [x] `crates/tasklens-ui/src/app_components/priority_task_row.rs`
   - Converted root task row wrapper to `Row`.
 - [x] `crates/tasklens-ui/src/app_components/priority_task_row.rs` (iteration: spacing cleanup)
