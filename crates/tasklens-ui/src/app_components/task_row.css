@@ -87,11 +87,8 @@
 }
 
 .actions_container {
-  display: flex;
-  gap: 0.25rem;
   opacity: 0;
   transition: opacity 0.2s;
-  /* gap handles left spacing from due date/title */
 }
 
 .row_root:hover .actions_container,

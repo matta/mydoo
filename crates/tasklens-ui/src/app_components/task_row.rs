@@ -237,7 +237,7 @@ pub(crate) fn TaskRow(
             }
 
             // Actions
-            div { class: Styles::actions_container,
+            Row { class: Styles::actions_container, gap: RowGap::Xs, align: RowAlign::Center,
                 Button {
                     variant: ButtonVariant::Icon,
                     title: "Add Subtask",
