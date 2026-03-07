@@ -55,6 +55,7 @@ pub(crate) fn DoPage() -> Element {
                 Button {
                     variant: ButtonVariant::Ghost,
                     class: Styles::refresh_button,
+                    aria_label: "Refresh tasks",
                     onclick: move |_| task_controller.refresh_lifecycle(),
                     "Refresh"
                 }
