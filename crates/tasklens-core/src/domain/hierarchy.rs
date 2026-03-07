@@ -35,6 +35,9 @@ pub fn get_descendant_ids(state: &TunnelState, task_id: &TaskID) -> HashSet<Task
 }
 
 /// Collects all ancestor IDs up to the root.
+///
+/// Traverses parent links starting from the given task's immediate parent,
+/// returning a list of ancestor IDs ordered from immediate parent to root.
 pub fn get_ancestor_ids(state: &TunnelState, task_id: &TaskID) -> Vec<TaskID> {
     let mut ancestors = Vec::new();
     let mut current_id = task_id.clone();
@@ -52,6 +55,9 @@ pub fn get_ancestor_ids(state: &TunnelState, task_id: &TaskID) -> Vec<TaskID> {
 }
 
 /// Returns the previous sibling in the parent's `child_task_ids` list.
+///
+/// Looks up the task in its parent's list and returns `None` if it is the first child
+/// or if the task or its parent is not found.
 pub fn get_previous_sibling(state: &TunnelState, task_id: &TaskID) -> Option<TaskID> {
     let task = state.tasks.get(task_id)?;
 
