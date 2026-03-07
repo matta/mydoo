@@ -57,10 +57,33 @@ impl RowAlign {
     }
 }
 
+/// Controls main-axis distribution for children in [`Row`].
+#[allow(dead_code)]
+#[derive(Copy, Clone, PartialEq, Eq, Default)]
+pub(crate) enum RowJustify {
+    #[default]
+    Start,
+    Center,
+    End,
+    Between,
+}
+
+impl RowJustify {
+    fn class_name(self) -> &'static str {
+        match self {
+            Self::Start => Styles::justify_start.inner,
+            Self::Center => Styles::justify_center.inner,
+            Self::End => Styles::justify_end.inner,
+            Self::Between => Styles::justify_between.inner,
+        }
+    }
+}
+
 #[component]
 pub(crate) fn Row(
     #[props(default)] gap: RowGap,
     #[props(default)] align: RowAlign,
+    #[props(default)] justify: RowJustify,
     #[props(extends = GlobalAttributes)]
     #[props(extends = div)]
     attributes: Vec<Attribute>,
@@ -68,7 +91,7 @@ pub(crate) fn Row(
 ) -> Element {
     let base = attributes!(div {
         class: Styles::row,
-        class: "{gap.class_name()} {align.class_name()}",
+        class: "{gap.class_name()} {align.class_name()} {justify.class_name()}",
     });
     let merged = merge_attributes(vec![base, attributes]);
 
@@ -108,9 +131,27 @@ mod tests {
     }
 
     #[test]
-    fn defaults_map_to_md_gap_and_center_alignment() {
+    fn justify_enum_maps_to_expected_classes() {
+        assert_eq!(RowJustify::Start.class_name(), Styles::justify_start.inner);
+        assert_eq!(
+            RowJustify::Center.class_name(),
+            Styles::justify_center.inner
+        );
+        assert_eq!(RowJustify::End.class_name(), Styles::justify_end.inner);
+        assert_eq!(
+            RowJustify::Between.class_name(),
+            Styles::justify_between.inner
+        );
+    }
+
+    #[test]
+    fn defaults_map_to_md_gap_center_alignment_and_start_justification() {
         assert_eq!(RowGap::default().class_name(), Styles::gap_md.inner);
         assert_eq!(RowAlign::default().class_name(), Styles::align_center.inner);
+        assert_eq!(
+            RowJustify::default().class_name(),
+            Styles::justify_start.inner
+        );
     }
 
     #[test]
@@ -136,6 +177,7 @@ mod tests {
                     class: "caller_class",
                     gap: RowGap::Lg,
                     align: RowAlign::Baseline,
+                    justify: RowJustify::End,
                     "Child"
                 }
             }
@@ -144,7 +186,7 @@ mod tests {
         fn equivalent_div() -> Element {
             rsx! {
                 div {
-                    class: "{Styles::row} {Styles::gap_lg.inner} {Styles::align_baseline.inner} caller_class",
+                    class: "{Styles::row} {Styles::gap_lg.inner} {Styles::align_baseline.inner} {Styles::justify_end.inner} caller_class",
                     id: "row-root",
                     "Child"
                 }

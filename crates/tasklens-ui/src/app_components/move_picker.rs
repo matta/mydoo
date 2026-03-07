@@ -1,4 +1,4 @@
-use crate::app_components::{Stack, StackGap};
+use crate::app_components::{Row, RowAlign, RowGap, RowJustify, Stack, StackGap};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::dialog::{DialogContent, DialogRoot, DialogTitle};
 use dioxus::prelude::*;
@@ -85,7 +85,7 @@ pub(crate) fn MovePicker(
                     }
                 }
 
-                div { class: Styles::picker_footer,
+                Row { class: Styles::picker_footer, gap: RowGap::Xs, align: RowAlign::Center, justify: RowJustify::End,
                     Button {
                         variant: ButtonVariant::Secondary,
                         onclick: move |_| on_close.call(()),

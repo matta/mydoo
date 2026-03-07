@@ -97,12 +97,18 @@ After the initial Row primitive lands with one conversion, continue with iterati
   - Removed manual urgency badge left margin; row spacing now comes from `Row` gap tokens.
 - [x] `crates/tasklens-ui/src/app_components/page_header.rs` (iteration: actions cluster)
   - Converted header actions cluster wrapper to `Row`.
+- [x] `crates/tasklens-ui/src/app_components/page_header.rs` (iteration: root row)
+  - Converted header root wrapper to `Row` using `RowJustify::Between`.
 - [x] `crates/tasklens-ui/src/app_components/app_panel.rs` (iteration: header actions)
   - Converted panel header actions wrapper to `Row`.
 - [x] `crates/tasklens-ui/src/app_components/task_input.rs` (iteration: input row)
   - Converted task input row wrapper to `Row` and removed duplicated manual spacing.
 - [x] `crates/tasklens-ui/src/app_components/doc_id_manager.rs` (iteration: copy feedback row)
   - Converted copy feedback wrapper to `Row` and removed manual icon margin spacing.
+- [x] `crates/tasklens-ui/src/app_components/move_picker.rs` (iteration: footer row)
+  - Converted picker footer wrapper to `Row` using `RowJustify::End`.
+- [x] `crates/tasklens-ui/src/app_components/layout/row.rs` (iteration: justify API)
+  - Added `RowJustify` and migrated justify-content callsites from manual CSS to `Row`.
 - [x] `crates/tasklens-ui/assets/app.css`
   - Removed unused `app_row_cluster` utility.
 - [x] `docs/guidance/css.md`
@@ -126,7 +132,7 @@ After the initial Row primitive lands with one conversion, continue with iterati
 
 ### API Expansion Triggers (Deferred)
 
-- Add `RowJustify` only when a real callsite needs `justify-content` control.
+- `RowJustify` is now implemented and in use by production callsites that needed `justify-content` control.
 - Add wrapping API only when a real callsite needs explicit `flex-wrap` behavior (Note: `doc_id_manager.rs` currently uses this for its button grid; prioritize when migrating that specific block).
 - Keep the primitive minimal until concrete usage justifies expansion.
 
