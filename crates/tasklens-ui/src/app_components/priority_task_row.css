@@ -1,7 +1,4 @@
 .row_root {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   padding: 0.75rem;
   border: 1px solid var(--app_border);
   border-radius: 0.5rem;

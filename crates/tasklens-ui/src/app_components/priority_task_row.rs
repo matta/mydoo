@@ -1,3 +1,4 @@
+use crate::app_components::{Row, RowAlign, RowGap};
 use crate::dioxus_components::badge::{Badge, BadgeVariant};
 use crate::dioxus_components::checkbox::Checkbox;
 use crate::router::Route;
@@ -44,8 +45,10 @@ pub(crate) fn PriorityTaskRow(
     };
 
     rsx! {
-        div {
+        Row {
             class: Styles::row_root,
+            gap: RowGap::Sm,
+            align: RowAlign::Center,
             "data-testid": "task-item",
             "data-urgency": "{task.urgency_status:?}",
 

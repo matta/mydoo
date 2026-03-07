@@ -86,9 +86,10 @@ After the initial Row primitive lands with one conversion, continue with iterati
 - [x] `crates/tasklens-ui/src/app_components/task_editor.rs` (iteration: Lead Time)
   - Converted the `Lead Time` controls wrapper from `app_row_cluster` to `Row`.
 - [ ] `crates/tasklens-ui/src/app_components/task_row.rs`
-- [ ] `crates/tasklens-ui/src/app_components/priority_task_row.rs`
-- [ ] `crates/tasklens-ui/assets/app.css`
-  - Remove or justify remaining global horizontal utility usage targeted by this initiative.
+- [x] `crates/tasklens-ui/src/app_components/priority_task_row.rs`
+  - Converted root task row wrapper to `Row`.
+- [x] `crates/tasklens-ui/assets/app.css`
+  - Removed unused `app_row_cluster` utility.
 
 ### High-Value Follow-Up Conversions
 
@@ -123,4 +124,5 @@ After the initial Row primitive lands with one conversion, continue with iterati
 
 - Planned follow-up conversions are completed in subsequent PRs.
 - Legacy horizontal utility usage targeted by the roadmap is removed or justified.
+- `crates/tasklens-ui/assets/app.css` is audited and unused classes are removed.
 - `docs/guidance/css.md` is updated to mark Row/Cluster as done.
