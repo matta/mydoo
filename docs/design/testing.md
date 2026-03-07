@@ -13,20 +13,20 @@ pass-through for targeted runs. Avoid invoking `pnpm test` or
 We adhere to a 3-tier testing approach tailored for our Local-First PWA
 architecture:
 
-| Tier               | Tool                    | Scope                             | Speed     |
-| ------------------ | ----------------------- | --------------------------------- | --------- |
-| **1. Unit Logic**  | `vitest`                | Domain functions, pure algorithms | ⚡️ Fast   |
-| **2. Integration** | `vitest` + Browser Mode | React Hooks, Views, Redux store   | 🚀 Medium |
-| **3. End-to-End**  | `Playwright`            | Full App in Browser               | 🐢 Slow   |
+| Tier               | Tool            | Scope                             | Speed     |
+| ------------------ | --------------- | --------------------------------- | --------- |
+| **1. Unit Logic**  | `just test`     | Rust Crate Logic, Algorithm Tests | ⚡️ Fast   |
+| **2. Integration** | `just test`     | Dioxus Component Integration      | 🚀 Medium |
+| **3. End-to-End**  | `just test-e2e` | Full App in Browser               | 🐢 Slow   |
 
 ---
 
-## 1. Unit Logic Tests (`@mydoo/tasklens`)
+## 1. Unit Logic Tests
 
-These tests verify the domain "brain" of the application—pure logic with no
-React dependencies.
+These tests verify the core Rust logic—pure algorithms and state management with no
+UI dependencies.
 
-**Location:** `packages/tasklens/tests/**` **Runner:** `vitest`
+**Location:** `crates/tasklens-core/src/**`, `crates/tasklens-store/src/**` **Runner:** `just test` (for Rust crates)
 
 ### What to Test:
 
@@ -42,13 +42,11 @@ just test
 
 ---
 
-## 2. Integration & Component Tests (`apps/client`)
+## 2. Integration & Component Tests
 
-These tests verify React hooks, view models, and component interactions using
-**Vitest Browser Mode** (Chromium).
+These tests verify Dioxus components and their integration with the store.
 
-**Location:** `apps/client/src/**/*.test.tsx` **Runner:** `vitest` with
-`@vitest/browser` (Chromium via Playwright)
+**Location:** `crates/tasklens-ui/src/**/*.rs` **Runner:** `just test`
 
 > **Note:** We use Vitest Browser Mode instead of jsdom for higher fidelity.
 > Tests run in a real Chromium instance.

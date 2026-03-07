@@ -32,7 +32,7 @@ if ! dx build -p tasklens-ui; then
 fi
 
 echo "5. Running Rust tests..."
-if ! cargo test; then
+if ! cargo nextest run; then
     echo "❌ Tests failed."
     exit 1
 fi
