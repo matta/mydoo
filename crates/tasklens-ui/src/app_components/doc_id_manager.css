@@ -70,14 +70,11 @@
 .copy_feedback {
   font-size: 1rem;
   color: var(--secondary-success-color);
-  display: flex;
-  align-items: center;
 }
 
 .icon_small {
   height: 1rem;
   width: 1rem;
-  margin-right: 0.25rem;
 }
 
 .button_grid {

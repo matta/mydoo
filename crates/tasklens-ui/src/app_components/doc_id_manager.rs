@@ -244,7 +244,7 @@ pub(crate) fn DocIdManager(
                 }
 
                 if show_copy_toast() {
-                    div { class: Styles::copy_feedback,
+                    Row { class: Styles::copy_feedback, gap: RowGap::Xs, align: RowAlign::Center,
                         svg {
                             class: Styles::icon_small,
                             fill: "none",

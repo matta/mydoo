@@ -101,6 +101,8 @@ After the initial Row primitive lands with one conversion, continue with iterati
   - Converted panel header actions wrapper to `Row`.
 - [x] `crates/tasklens-ui/src/app_components/task_input.rs` (iteration: input row)
   - Converted task input row wrapper to `Row` and removed duplicated manual spacing.
+- [x] `crates/tasklens-ui/src/app_components/doc_id_manager.rs` (iteration: copy feedback row)
+  - Converted copy feedback wrapper to `Row` and removed manual icon margin spacing.
 - [x] `crates/tasklens-ui/assets/app.css`
   - Removed unused `app_row_cluster` utility.
 - [x] `docs/guidance/css.md`
