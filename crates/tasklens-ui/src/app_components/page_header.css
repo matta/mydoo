@@ -10,12 +10,3 @@
   font-weight: 700;
   color: var(--app_text);
 }
-
-.header_actions {
-  display: flex;
-  align-items: center;
-}
-
-.header_actions > :not([hidden]) ~ :not([hidden]) {
-  margin-left: 0.5rem;
-}
