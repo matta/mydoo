@@ -675,7 +675,7 @@ pub(crate) fn TaskEditor(
                                         html_for: "lead-time-scalar-input",
                                         span { class: Styles::label_text_medium, "Lead Time" }
                                     }
-                                    div { class: "app_row_cluster",
+                                    Row { class: "app_input_full", gap: RowGap::Sm, align: RowAlign::Center,
                                         {
                                             let (val, unit) = time_conversion::ms_to_period(
                                                 current_draft.schedule.lead_time,

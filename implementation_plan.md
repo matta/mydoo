@@ -83,8 +83,8 @@ After the initial Row primitive lands with one conversion, continue with iterati
   - Converted search header controls wrapper to `Row`.
 - [x] `crates/tasklens-ui/src/app_components/task_editor.rs` (iteration: Repeat Every)
   - Converted the `Repeat Every` controls wrapper from `app_row_cluster` to `Row`.
-- [ ] `crates/tasklens-ui/src/app_components/task_editor.rs` (remaining)
-  - Convert the `Lead Time` controls wrapper still using `app_row_cluster`.
+- [x] `crates/tasklens-ui/src/app_components/task_editor.rs` (iteration: Lead Time)
+  - Converted the `Lead Time` controls wrapper from `app_row_cluster` to `Row`.
 - [ ] `crates/tasklens-ui/src/app_components/task_row.rs`
 - [ ] `crates/tasklens-ui/src/app_components/priority_task_row.rs`
 - [ ] `crates/tasklens-ui/assets/app.css`
