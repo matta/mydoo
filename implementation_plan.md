@@ -118,21 +118,19 @@ After the initial Row primitive lands with one conversion, continue with iterati
 - [x] `docs/guidance/css.md`
   - Marked Row/Cluster guidance as done and aligned primitive API examples with current `Row`.
 
-### High-Value Follow-Up Conversions
+### High-Value Follow-Up Conversions (Completed)
 
-- `crates/tasklens-ui/src/app_components/task_row.rs`
-  - Migrate row/action wrappers currently using manual flex alignment.
-- `crates/tasklens-ui/src/app_components/priority_task_row.rs`
-  - Align horizontal row wrappers with `Row`.
-- `crates/tasklens-ui/src/app_components/app_navbar.rs`
-  - Standardize navbar action clusters and horizontal groups.
-- `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
-  - Convert remaining `row_layout` usage(s) not included in phase 1.
-- `crates/tasklens-ui/src/app_components/search_panel.rs`
-  - Convert horizontal control/filter wrappers.
-- `crates/tasklens-ui/assets/app.css`
-  - Eliminate remaining legacy horizontal utility usage where `Row` is appropriate
-    (for example `.app_row_cluster` callsites).
+- `task_row`, `priority_task_row`, `app_navbar`, `doc_id_manager`, and `search_panel`
+  horizontal wrappers have been migrated to `Row` where applicable.
+- Legacy global horizontal utility usage in `assets/app.css` has been audited and
+  removed where unused (`.app_row_cluster`).
+- Remaining `display: flex` usages are intentional for non-row-wrapper cases
+  (for example column flow, shell positioning, touch-target centering, or
+  segmented controls).
+
+### Remaining Required Follow-Up
+
+- None.
 
 ### API Expansion Triggers (Deferred)
 
