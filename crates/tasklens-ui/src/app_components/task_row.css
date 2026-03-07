@@ -1,7 +1,4 @@
 .row_root {
-  display: flex;
-  align-items: center;
-  gap: var(--app_spacing_sm);
   min-height: var(--app_touch_target);
   border-bottom: 1px solid var(--app_border);
   padding-left: var(--indent);

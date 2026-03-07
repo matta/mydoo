@@ -85,7 +85,10 @@ After the initial Row primitive lands with one conversion, continue with iterati
   - Converted the `Repeat Every` controls wrapper from `app_row_cluster` to `Row`.
 - [x] `crates/tasklens-ui/src/app_components/task_editor.rs` (iteration: Lead Time)
   - Converted the `Lead Time` controls wrapper from `app_row_cluster` to `Row`.
-- [ ] `crates/tasklens-ui/src/app_components/task_row.rs`
+- [x] `crates/tasklens-ui/src/app_components/task_row.rs` (iteration: root wrapper)
+  - Converted root task row wrapper to `Row`.
+- [ ] `crates/tasklens-ui/src/app_components/task_row.rs` (remaining)
+  - Migrate additional internal row-like wrappers as needed (for example actions cluster).
 - [x] `crates/tasklens-ui/src/app_components/priority_task_row.rs`
   - Converted root task row wrapper to `Row`.
 - [x] `crates/tasklens-ui/assets/app.css`
