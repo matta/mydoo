@@ -105,10 +105,14 @@ After the initial Row primitive lands with one conversion, continue with iterati
   - Converted task input row wrapper to `Row` and removed duplicated manual spacing.
 - [x] `crates/tasklens-ui/src/app_components/doc_id_manager.rs` (iteration: copy feedback row)
   - Converted copy feedback wrapper to `Row` and removed manual icon margin spacing.
+- [x] `crates/tasklens-ui/src/app_components/doc_id_manager.rs` (iteration: wrapped action row)
+  - Converted action button grid wrapper to `Row` with `RowWrap::Wrap`.
 - [x] `crates/tasklens-ui/src/app_components/move_picker.rs` (iteration: footer row)
   - Converted picker footer wrapper to `Row` using `RowJustify::End`.
 - [x] `crates/tasklens-ui/src/app_components/layout/row.rs` (iteration: justify API)
   - Added `RowJustify` and migrated justify-content callsites from manual CSS to `Row`.
+- [x] `crates/tasklens-ui/src/app_components/layout/row.rs` (iteration: wrap API)
+  - Added `RowWrap` and migrated wrapped action rows from manual CSS to `Row`.
 - [x] `crates/tasklens-ui/assets/app.css`
   - Removed unused `app_row_cluster` utility.
 - [x] `docs/guidance/css.md`
@@ -133,7 +137,7 @@ After the initial Row primitive lands with one conversion, continue with iterati
 ### API Expansion Triggers (Deferred)
 
 - `RowJustify` is now implemented and in use by production callsites that needed `justify-content` control.
-- Add wrapping API only when a real callsite needs explicit `flex-wrap` behavior (Note: `doc_id_manager.rs` currently uses this for its button grid; prioritize when migrating that specific block).
+- `RowWrap` is now implemented and in use by production callsites that needed `flex-wrap` behavior.
 - Keep the primitive minimal until concrete usage justifies expansion.
 
 ## Definition of Done (Phase 1: Initial Landing)

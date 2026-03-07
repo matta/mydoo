@@ -79,11 +79,30 @@ impl RowJustify {
     }
 }
 
+/// Controls wrapping behavior for children in [`Row`].
+#[allow(dead_code)]
+#[derive(Copy, Clone, PartialEq, Eq, Default)]
+pub(crate) enum RowWrap {
+    #[default]
+    NoWrap,
+    Wrap,
+}
+
+impl RowWrap {
+    fn class_name(self) -> &'static str {
+        match self {
+            Self::NoWrap => Styles::wrap_nowrap.inner,
+            Self::Wrap => Styles::wrap_wrap.inner,
+        }
+    }
+}
+
 #[component]
 pub(crate) fn Row(
     #[props(default)] gap: RowGap,
     #[props(default)] align: RowAlign,
     #[props(default)] justify: RowJustify,
+    #[props(default)] wrap: RowWrap,
     #[props(extends = GlobalAttributes)]
     #[props(extends = div)]
     attributes: Vec<Attribute>,
@@ -91,7 +110,7 @@ pub(crate) fn Row(
 ) -> Element {
     let base = attributes!(div {
         class: Styles::row,
-        class: "{gap.class_name()} {align.class_name()} {justify.class_name()}",
+        class: "{gap.class_name()} {align.class_name()} {justify.class_name()} {wrap.class_name()}",
     });
     let merged = merge_attributes(vec![base, attributes]);
 
@@ -145,13 +164,20 @@ mod tests {
     }
 
     #[test]
-    fn defaults_map_to_md_gap_center_alignment_and_start_justification() {
+    fn wrap_enum_maps_to_expected_classes() {
+        assert_eq!(RowWrap::NoWrap.class_name(), Styles::wrap_nowrap.inner);
+        assert_eq!(RowWrap::Wrap.class_name(), Styles::wrap_wrap.inner);
+    }
+
+    #[test]
+    fn defaults_map_to_md_gap_center_alignment_start_justification_and_no_wrap() {
         assert_eq!(RowGap::default().class_name(), Styles::gap_md.inner);
         assert_eq!(RowAlign::default().class_name(), Styles::align_center.inner);
         assert_eq!(
             RowJustify::default().class_name(),
             Styles::justify_start.inner
         );
+        assert_eq!(RowWrap::default().class_name(), Styles::wrap_nowrap.inner);
     }
 
     #[test]
@@ -178,6 +204,7 @@ mod tests {
                     gap: RowGap::Lg,
                     align: RowAlign::Baseline,
                     justify: RowJustify::End,
+                    wrap: RowWrap::Wrap,
                     "Child"
                 }
             }
@@ -186,7 +213,7 @@ mod tests {
         fn equivalent_div() -> Element {
             rsx! {
                 div {
-                    class: "{Styles::row} {Styles::gap_lg.inner} {Styles::align_baseline.inner} {Styles::justify_end.inner} caller_class",
+                    class: "{Styles::row} {Styles::gap_lg.inner} {Styles::align_baseline.inner} {Styles::justify_end.inner} {Styles::wrap_wrap.inner} caller_class",
                     id: "row-root",
                     "Child"
                 }

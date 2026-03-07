@@ -77,12 +77,6 @@
   width: 1rem;
 }
 
-.button_grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
 .flex_button {
   flex: 1 1 0%;
   min-width: 120px;

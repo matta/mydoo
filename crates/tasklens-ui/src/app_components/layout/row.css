@@ -62,3 +62,11 @@
 .justify_between {
   justify-content: space-between;
 }
+
+.wrap_nowrap {
+  flex-wrap: nowrap;
+}
+
+.wrap_wrap {
+  flex-wrap: wrap;
+}

@@ -6,7 +6,7 @@
 //! - Entering an existing document ID to switch documents
 
 use crate::app_components::{
-    Alert, AlertVariant, AppInput, AppInputStyle, Row, RowAlign, RowGap, Stack, StackGap,
+    Alert, AlertVariant, AppInput, AppInputStyle, Row, RowAlign, RowGap, RowWrap, Stack, StackGap,
 };
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::hooks::use_tunnel_state::use_tunnel_state;
@@ -263,7 +263,7 @@ pub(crate) fn DocIdManager(
             }
 
             // Action Buttons
-            div { class: Styles::button_grid,
+            Row { gap: RowGap::Sm, align: RowAlign::Stretch, wrap: RowWrap::Wrap,
                 Button {
                     variant: ButtonVariant::Primary,
                     onclick: handle_new_document,

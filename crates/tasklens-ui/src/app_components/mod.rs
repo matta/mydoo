@@ -35,7 +35,9 @@ pub(crate) use date_time_inputs::DateInput;
 pub(crate) use doc_id_manager::DocIdManager;
 pub(crate) use empty_state::EmptyState;
 pub(crate) use form_controls::{AppInput, AppInputStyle, AppTextarea};
-pub(crate) use layout::{PageContainer, Row, RowAlign, RowGap, RowJustify, Stack, StackGap};
+pub(crate) use layout::{
+    PageContainer, Row, RowAlign, RowGap, RowJustify, RowWrap, Stack, StackGap,
+};
 pub(crate) use load_error_view::LoadErrorView;
 pub(crate) use loading::Loading;
 pub(crate) use move_picker::MovePicker;
