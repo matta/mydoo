@@ -1,3 +1,4 @@
+use crate::app_components::{Row, RowAlign, RowGap};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use dioxus::prelude::*;
 use dioxus_core::current_scope_id;
@@ -48,7 +49,7 @@ pub(crate) fn AppPanel(
                         }
                     }
 
-                    div { class: Styles::panel_actions,
+                    Row { gap: RowGap::Xs, align: RowAlign::Center,
                         if let Some(actions) = header_actions {
                             {actions}
                         }

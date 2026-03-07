@@ -95,6 +95,8 @@ After the initial Row primitive lands with one conversion, continue with iterati
   - Removed manual urgency badge left margin; row spacing now comes from `Row` gap tokens.
 - [x] `crates/tasklens-ui/src/app_components/page_header.rs` (iteration: actions cluster)
   - Converted header actions cluster wrapper to `Row`.
+- [x] `crates/tasklens-ui/src/app_components/app_panel.rs` (iteration: header actions)
+  - Converted panel header actions wrapper to `Row`.
 - [x] `crates/tasklens-ui/assets/app.css`
   - Removed unused `app_row_cluster` utility.
 - [x] `docs/guidance/css.md`
