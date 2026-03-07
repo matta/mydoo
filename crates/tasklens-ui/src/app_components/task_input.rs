@@ -1,4 +1,4 @@
-use crate::app_components::AppInput;
+use crate::app_components::{AppInput, Row, RowAlign, RowGap};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use dioxus::prelude::*;
 
@@ -13,8 +13,10 @@ pub(crate) fn TaskInput(
 
     let mut value = value;
     rsx! {
-        div {
+        Row {
             class: Styles::input_container,
+            gap: RowGap::Sm,
+            align: RowAlign::Center,
             "data-testid": data_testid,
             div {
                 class: Styles::input_field,

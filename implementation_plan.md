@@ -97,6 +97,8 @@ After the initial Row primitive lands with one conversion, continue with iterati
   - Converted header actions cluster wrapper to `Row`.
 - [x] `crates/tasklens-ui/src/app_components/app_panel.rs` (iteration: header actions)
   - Converted panel header actions wrapper to `Row`.
+- [x] `crates/tasklens-ui/src/app_components/task_input.rs` (iteration: input row)
+  - Converted task input row wrapper to `Row` and removed duplicated manual spacing.
 - [x] `crates/tasklens-ui/assets/app.css`
   - Removed unused `app_row_cluster` utility.
 - [x] `docs/guidance/css.md`
