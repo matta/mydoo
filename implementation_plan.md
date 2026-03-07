@@ -73,6 +73,23 @@ Optional cleanup (only if no remaining usage):
 
 After the initial Row primitive lands with one conversion, continue with iterative follow-up PRs.
 
+### Progress Tracker
+
+- [x] `crates/tasklens-ui/src/app_components/doc_id_manager.rs`
+  - Converted both previous `row_layout` wrappers to `Row`.
+- [x] `crates/tasklens-ui/src/app_components/app_navbar.rs`
+  - Converted navbar action cluster to `Row`.
+- [x] `crates/tasklens-ui/src/app_components/search_panel.rs`
+  - Converted search header controls wrapper to `Row`.
+- [x] `crates/tasklens-ui/src/app_components/task_editor.rs` (iteration: Repeat Every)
+  - Converted the `Repeat Every` controls wrapper from `app_row_cluster` to `Row`.
+- [ ] `crates/tasklens-ui/src/app_components/task_editor.rs` (remaining)
+  - Convert the `Lead Time` controls wrapper still using `app_row_cluster`.
+- [ ] `crates/tasklens-ui/src/app_components/task_row.rs`
+- [ ] `crates/tasklens-ui/src/app_components/priority_task_row.rs`
+- [ ] `crates/tasklens-ui/assets/app.css`
+  - Remove or justify remaining global horizontal utility usage targeted by this initiative.
+
 ### High-Value Follow-Up Conversions
 
 - `crates/tasklens-ui/src/app_components/task_row.rs`
