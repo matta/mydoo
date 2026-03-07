@@ -91,10 +91,15 @@ fn am_put_object<T: Transactable>(
         .map_err(DispatchError::from)
 }
 
-/// Helper to ensure a path of map objects exists in the document.
+/// Ensures a path of map objects exists in the document.
 ///
 /// Returns the `ObjId` of the final object in the path.
 /// Creates intermediate maps if they are missing.
+///
+/// # Errors
+///
+/// Returns [`DispatchError::InvalidPath`] if a key in the path exists but is not an object.
+/// Returns other [`DispatchError`] variants if the underlying Automerge get or put operations fail.
 pub fn ensure_path<T: Transactable + Doc>(
     doc: &mut T,
     root: &automerge::ObjId,
