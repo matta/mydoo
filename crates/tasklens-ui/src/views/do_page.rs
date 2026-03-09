@@ -53,10 +53,22 @@ pub(crate) fn DoPage() -> Element {
 
             PageHeader { title: "Do",
                 Button {
-                    variant: ButtonVariant::Ghost,
-                    class: Styles::refresh_button,
+                    variant: ButtonVariant::Icon,
+                    class: Styles::refresh_icon,
                     onclick: move |_| task_controller.refresh_lifecycle(),
-                    "Refresh"
+                    aria_label: "Refresh tasks",
+                    svg {
+                        class: Styles::refresh_icon,
+                        fill: "none",
+                        view_box: "0 0 24 24",
+                        stroke: "currentColor",
+                        path {
+                            stroke_linecap: "round",
+                            stroke_linejoin: "round",
+                            stroke_width: "2",
+                            d: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
+                        }
+                    }
                 }
             }
 
