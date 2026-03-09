@@ -8,20 +8,10 @@ use crate::domain::constants::{
 };
 use crate::types::{PersistedTask, Schedule, ScheduleType, TaskID, TaskStatus};
 
-/// Creates a new task with default properties and optional parent inheritance.
+/// Creates a new initialized [`PersistedTask`] with default properties and optional parent inheritance.
 ///
-/// Initializes a [`PersistedTask`] with default values (e.g., `Pending` status, default importance).
-/// If `parent` is provided, the new task inherits the parent's `place_id` and `credit_increment`.
-///
-/// # Arguments
-///
-/// * `id` - The unique identifier for the new task.
-/// * `title` - The title of the task.
-/// * `parent` - An optional reference to the parent task.
-///
-/// # Returns
-///
-/// A new initialized [`PersistedTask`].
+/// Initializes a [`PersistedTask`] with default values (e.g., `Pending` status, default importance) using the provided unique identifier `id` and `title`.
+/// If an optional reference to the parent task `parent` is provided, the new task inherits the parent's `place_id` and `credit_increment`.
 ///
 /// # Examples
 ///
