@@ -134,7 +134,8 @@ pub(crate) fn TaskRow(
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
                         },
-                        aria_label: "Toggle expansion",
+                        aria_label: "Toggle expansion for {title}",
+                        "aria-expanded": "{is_expanded}",
                         "data-expanded": "{is_expanded}",
                         if is_expanded {
                             svg {

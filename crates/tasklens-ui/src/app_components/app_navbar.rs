@@ -91,6 +91,8 @@ pub(crate) fn AppNavBar() -> Element {
                     variant: ButtonVariant::Icon,
                     onclick: move |_| show_search.set(!show_search()),
                     aria_label: "Search tasks",
+                    "aria-expanded": "{show_search()}",
+                    "aria-controls": "search-panel",
                     "data-testid": "search-button",
                     svg {
                         class: Styles::icon_button_svg,
