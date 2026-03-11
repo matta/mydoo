@@ -130,6 +130,7 @@ pub(crate) fn TaskRow(
                     Button {
                         variant: ButtonVariant::Icon,
                         class: Styles::expand_button,
+                        title: if is_expanded { "Collapse" } else { "Expand" },
                         onclick: move |evt: MouseEvent| {
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
