@@ -16,15 +16,7 @@ const URGENCY_THRESHOLD_RATIO: f64 = 0.25;
 ///   (`effective_lead_time < time_remaining <= 1.25 * effective_lead_time`)
 /// - [`UrgencyStatus::None`]: The task is far in the future (outside the upcoming buffer) or lacks scheduling info.
 ///
-/// # Arguments
-///
-/// * `effective_due_date` - The timestamp when the task is due (ms).
-/// * `effective_lead_time` - The duration (ms) before the due date when the task becomes active.
-/// * `current_time` - The current timestamp (ms).
-///
-/// # Returns
-///
-/// The computed [`UrgencyStatus`] for the task.
+/// If `effective_due_date` (the timestamp when the task is due in ms) and `effective_lead_time` (the duration in ms before the due date when the task becomes active) are provided, it returns the computed [`UrgencyStatus`] for the task relative to `current_time` (the current timestamp in ms).
 pub fn get_urgency_status(
     effective_due_date: Option<i64>,
     effective_lead_time: Option<i64>,

@@ -133,14 +133,10 @@ pub fn hydrate_tunnel_state(doc: &impl autosurgeon::ReadDoc) -> Result<TunnelSta
 /// Dispatches an action to modify the application state.
 ///
 /// This function serves as the central handler for all state-mutating operations.
-/// It applies the necessary changes to the Automerge document, ensuring data integrity
-/// and business rule validation.
-///
-/// # Arguments
-///
-/// * `doc` - A mutable reference to an object that implements `Transactable` and `Doc` (typically
-///   an `AutoCommit` or `Transaction`).
-/// * `action` - The [`Action`] to perform (e.g., create task, update place).
+/// It applies the necessary changes to the Automerge `doc` (a mutable reference to an
+/// object that implements `Transactable` and `Doc`, typically an `AutoCommit` or
+/// `Transaction`) based on the `action` (the [`Action`] to perform, e.g., create
+/// task, update place), ensuring data integrity and business rule validation.
 ///
 /// # Errors
 ///
