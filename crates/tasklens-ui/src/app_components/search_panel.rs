@@ -134,6 +134,7 @@ pub(crate) fn SearchPanel(open: Signal<bool>, on_close: EventHandler) -> Element
 
     rsx! {
         div {
+            id: "search-panel",
             class: Styles::panel_root,
             "data-open": "{open()}",
             "data-testid": "search-panel",
