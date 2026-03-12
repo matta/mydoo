@@ -6,15 +6,9 @@ use std::collections::HashSet;
 /// Performs a depth-first traversal to find all tasks that are direct or indirect children
 /// of the specified `task_id`.
 ///
-/// # Arguments
-///
-/// * `state` - The current tunnel state containing the task map.
-/// * `task_id` - The ID of the task to find descendants for.
-///
-/// # Returns
-///
-/// A `HashSet` containing the IDs of all descendants. Returns an empty set if the task
-/// has no children or does not exist.
+/// This requires passing the current `state` (containing the task map) and the `task_id`
+/// of the task for which descendants should be found. It returns a [`HashSet`] containing
+/// the IDs of all descendants, or an empty set if the task has no children or does not exist.
 pub fn get_descendant_ids(state: &TunnelState, task_id: &TaskID) -> HashSet<TaskID> {
     let mut descendants = HashSet::new();
     let mut stack = Vec::new();
