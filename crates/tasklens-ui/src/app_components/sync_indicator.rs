@@ -61,6 +61,9 @@ pub(crate) fn SyncIndicator() -> Element {
             "data-testid": "sync-indicator",
             Button {
                 variant: ButtonVariant::Ghost,
+                aria_label: "Sync settings",
+                "aria-expanded": "{show_settings()}",
+                "aria-controls": "sync-settings-popover",
                 "data-testid": "sync-status-button",
                 onclick: move |_| {
                     let new_state = !show_settings();
@@ -75,6 +78,7 @@ pub(crate) fn SyncIndicator() -> Element {
 
             if show_settings() {
                 div {
+                    id: "sync-settings-popover",
                     class: Styles::settings_popover,
                     "data-testid": "sync-settings-popover",
                     h3 { class: Styles::popover_title, "Sync Settings" }
