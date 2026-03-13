@@ -5483,7 +5483,6 @@ dependencies = [
  "automerge",
  "autosurgeon",
  "chrono",
- "getrandom 0.3.4",
  "getrandom 0.4.1",
  "glob",
  "js-sys",
