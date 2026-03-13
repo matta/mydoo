@@ -256,8 +256,8 @@ pub(crate) fn TaskRow(
                     }
                 }
                 Button {
-                    variant: ButtonVariant::Destructive,
-                    title: "Delete",
+                    variant: ButtonVariant::Icon,
+                    title: "Delete task",
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
                     aria_label: "Delete task {title}",
                     svg {
