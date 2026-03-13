@@ -36,18 +36,31 @@ fn calculate_balance_percentages(
 
 /// Computes balance data across all root goals using the current time.
 ///
-/// This function calculates the effective credits for each task, aggregates them
-/// up to their respective root goals, and determines the target versus actual
-/// percentage allocation for each goal. Goals are marked as "starving" if their
-/// actual allocation falls below their target allocation.
+/// This function calculates the effective credits for each task within the
+/// given `state`, aggregates them up to their respective root goals, and
+/// determines the target versus actual percentage allocation for each goal.
+/// Goals are marked as "starving" if their actual allocation falls below
+/// their target allocation. Returns a [`BalanceData`] struct containing
+/// balance items for each root goal.
 ///
-/// # Arguments
+/// # Examples
 ///
-/// * `state` - The current tunnel state containing all tasks.
+/// ```
+/// use tasklens_core::domain::balance::get_balance_data;
+/// use tasklens_core::types::TunnelState;
+/// use std::collections::HashMap;
 ///
-/// # Returns
+/// let state = TunnelState {
+///     tasks: HashMap::new(),
+///     root_task_ids: vec![],
+///     places: HashMap::new(),
+///     metadata: None,
+/// };
 ///
-/// A [`BalanceData`] struct containing balance items for each root goal.
+/// let balance_data = get_balance_data(&state);
+/// assert!(balance_data.items.is_empty());
+/// assert_eq!(balance_data.total_credits, 0.0);
+/// ```
 pub fn get_balance_data(state: &TunnelState) -> BalanceData {
     get_balance_data_with_time(state, get_current_timestamp())
 }

@@ -3,18 +3,29 @@ use std::collections::HashSet;
 
 /// Recursively collects all descendant IDs of a given task.
 ///
-/// Performs a depth-first traversal to find all tasks that are direct or indirect children
-/// of the specified `task_id`.
+/// Performs a depth-first traversal of the `state` (the current tunnel state containing the task map)
+/// to find all tasks that are direct or indirect children of the specified `task_id`.
+/// Returns a [`HashSet`] containing the IDs of all descendants, or an empty set
+/// if the task has no children or does not exist.
 ///
-/// # Arguments
+/// # Examples
 ///
-/// * `state` - The current tunnel state containing the task map.
-/// * `task_id` - The ID of the task to find descendants for.
+/// ```
+/// use tasklens_core::domain::hierarchy::get_descendant_ids;
+/// use tasklens_core::types::{TunnelState, TaskID};
+/// use std::collections::HashMap;
 ///
-/// # Returns
+/// let state = TunnelState {
+///     tasks: HashMap::new(),
+///     root_task_ids: vec![],
+///     places: HashMap::new(),
+///     metadata: None,
+/// };
 ///
-/// A `HashSet` containing the IDs of all descendants. Returns an empty set if the task
-/// has no children or does not exist.
+/// let task_id = TaskID::from("1");
+/// let descendants = get_descendant_ids(&state, &task_id);
+/// assert!(descendants.is_empty());
+/// ```
 pub fn get_descendant_ids(state: &TunnelState, task_id: &TaskID) -> HashSet<TaskID> {
     let mut descendants = HashSet::new();
     let mut stack = Vec::new();
