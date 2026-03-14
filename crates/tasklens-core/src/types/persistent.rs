@@ -10,6 +10,15 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use uuid::Uuid;
 
+/// Hydrates a string from either an Automerge Text object or a Scalar string.
+///
+/// # Errors
+///
+/// Returns an `[`autosurgeon::HydrateError`]` if:
+/// * The property cannot be retrieved from the document.
+/// * The property is missing.
+/// * The value is not an Automerge Text object or a Scalar string.
+/// * There is an error reading the text.
 pub fn hydrate_string_or_text<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,
@@ -117,8 +126,12 @@ pub fn hydrate_option_f64<D: autosurgeon::ReadDoc>(
 
 /// Hydrates an `Option<i64>` while tolerating various Automerge numeric types.
 ///
-/// Similar to `hydrate_option_f64`, this accepts `Int`, `Uint`, and `F64`,
+/// Similar to `[`hydrate_option_f64`]`, this accepts `Int`, `Uint`, and `F64`,
 /// truncating fractional parts when converting to `i64`.
+///
+/// # Errors
+///
+/// Returns an `[`autosurgeon::HydrateError`]` if the property cannot be retrieved from the document.
 pub fn hydrate_option_i64<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,
@@ -143,7 +156,9 @@ pub fn hydrate_option_i64<D: autosurgeon::ReadDoc>(
 
 /// Hydrates an `i64` while tolerating various Automerge numeric types.
 ///
-/// Returns an error if the value is missing or not a number.
+/// # Errors
+///
+/// Returns an `[`autosurgeon::HydrateError`]` if the value is missing or not a number, or if the property cannot be retrieved from the document.
 pub fn hydrate_i64<D: autosurgeon::ReadDoc>(
     doc: &D,
     obj: &automerge::ObjId,
