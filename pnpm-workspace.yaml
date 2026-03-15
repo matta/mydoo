@@ -20,7 +20,7 @@ catalogs:
     husky: ^9.1.7
     knip: 5.84.1
     prettier: ^3.4.2
-    serve: ^14.2.4
+    serve: ^14.2.6
     syncpack: ^13.0.2
     typescript: 5.9.3
 
