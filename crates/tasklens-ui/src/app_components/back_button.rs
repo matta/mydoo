@@ -22,6 +22,7 @@ pub(crate) fn BackButton(
 ) -> Element {
     let base = attributes!(button {
         class: Styles::back_button,
+        title: "Back",
         aria_label: "Back",
     });
     let merged = merge_attributes(vec![base, attributes]);

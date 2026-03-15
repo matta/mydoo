@@ -90,6 +90,7 @@ pub(crate) fn AppNavBar() -> Element {
                 Button {
                     variant: ButtonVariant::Icon,
                     onclick: move |_| show_search.set(!show_search()),
+                    title: "Search tasks",
                     aria_label: "Search tasks",
                     "data-testid": "search-button",
                     svg {
@@ -113,6 +114,7 @@ pub(crate) fn AppNavBar() -> Element {
                             ctx: Some(settings_ctx.clone()),
                         });
                     },
+                    title: "Settings",
                     aria_label: "Settings",
                     "data-testid": "settings-button",
                     svg {
