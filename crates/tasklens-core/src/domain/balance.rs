@@ -54,18 +54,9 @@ pub fn get_balance_data(state: &TunnelState) -> BalanceData {
 
 /// Computes balance data across all root goals for a specific timestamp.
 ///
-/// This function performs the same calculations as [`get_balance_data`], but uses
-/// the provided `current_time` to calculate time decay for credits. This is useful
+/// This function performs the same calculations as [`get_balance_data`] on the given `state` (the current tunnel state containing all tasks), but uses
+/// the provided `current_time` (in milliseconds) to calculate time decay for credits. This is useful
 /// for time-travel debugging or projecting future balance states.
-///
-/// # Arguments
-///
-/// * `state` - The current tunnel state containing all tasks.
-/// * `current_time` - The timestamp (in milliseconds) used to calculate credit decay.
-///
-/// # Returns
-///
-/// A [`BalanceData`] struct containing balance items for each root goal.
 pub fn get_balance_data_with_time(state: &TunnelState, current_time: i64) -> BalanceData {
     use std::collections::HashMap;
 
