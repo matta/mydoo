@@ -306,8 +306,8 @@ Most app screens can be expressed using a small set of primitives. Prefer these
 before inventing bespoke page-specific layout classes:
 
 - **Container**: max width + horizontal padding
-- **Stack**: vertical layout with `gap`
-- **Cluster/Row**: horizontal layout with `gap`, optional wrap and alignment
+- **Stack (Done)**: vertical layout with `gap`
+- **Row (Done)**: horizontal layout with `gap` and cross-axis alignment
 - **Grid**: 2D layout with responsive columns
 - **Spacer/Divider (optional)**: explicit separation when flow layout is not enough
 
@@ -337,18 +337,21 @@ Create a tiny set of Project-authored primitives in `src/app_components/layout/*
 (e.g., `Stack`, `Row`, `Grid`, `Container`). These components should:
 
 - Render minimal markup (`div` / `section`) with predictable classes.
-- Accept a _small_ set of parameters (e.g., `gap`, `align`, `justify`, `wrap`,
-  `pad`, `max_width`) that map to tokens.
+- Accept a _small_ set of parameters that map to tokens. Keep the initial API
+  narrow (for example, `gap` and `align`) and expand only when a concrete
+  callsite requires it.
 - Avoid becoming a mini-framework. Keep the API intentionally small and aligned
   with our token scale.
 
 For example, your Dioxus code would remain declarative and clean:
 
 ```rust
+use crate::app_components::{Row, RowAlign, RowGap, Stack, StackGap};
+
 rsx! {
-    Stack { gap: "md",
+    Stack { gap: StackGap::Md,
         h1 { "Title" }
-        Row { gap: "sm", justify: "end",
+        Row { gap: RowGap::Sm, align: RowAlign::Center,
             Button { "Cancel" }
             Button { "Save" }
         }
@@ -396,6 +399,45 @@ When a variable is globally defined (like safe-area insets or app tokens),
 local fallbacks merely serve to hide bugs. Trust the variable to resolve correctly.
 If an element lacks appropriate spacing when the variable resolves to `0px`,
 fix the parent layout container rather than masking it with a default.
+
+### 8.8 Candidate Follow-Up Abstractions (Audit Breadcrumbs)
+
+The current `Stack` + `Row` primitives cover most flow layout needs. If we want
+to reduce remaining raw flex/margin patterns further, these are high-value next
+abstractions to consider.
+
+- **`FieldLabelRow` (or `FormFieldHeader`)**
+  - Purpose: standardize label rows with left label + right-side companion text/control, replacing ad-hoc `display:flex; justify-content: space-between; align-items: center;`.
+  - Useful at:
+    - `crates/tasklens-ui/src/app_components/task_editor.css:38`
+    - `crates/tasklens-ui/src/app_components/task_editor.rs:369`
+    - `crates/tasklens-ui/src/app_components/task_editor.rs:404`
+
+- **`CenterBox` (or `CenterInline`)**
+  - Purpose: standardize small center-aligned icon/button shells used for touch-target centering, replacing repeated `display:flex; justify-content:center; align-items:center;`.
+  - Useful at:
+    - `crates/tasklens-ui/src/app_components/task_row.css:23`
+    - `crates/tasklens-ui/src/app_components/task_row.css:41`
+    - `crates/tasklens-ui/assets/app.css:213`
+
+- **`IconLabel` (or `InlineIconText`)**
+  - Purpose: remove one-off icon spacing margins (`margin-right`) by composing icon + text with tokenized `Row` gap semantics.
+  - Useful at:
+    - `crates/tasklens-ui/src/app_components/back_button.css:9`
+    - `crates/tasklens-ui/src/app_components/doc_id_manager.rs:247`
+
+- **`SectionStack` (or `InsetStack`)**
+  - Purpose: reduce manual vertical rhythm margins (`margin-top`/`margin-bottom`) by expressing section spacing with stack gaps and optional insets.
+  - Useful at:
+    - `crates/tasklens-ui/src/app_components/doc_id_manager.css:32`
+    - `crates/tasklens-ui/src/app_components/move_picker.css:2`
+    - `crates/tasklens-ui/src/app_components/task_input.css:1`
+
+- **`OverlayCenter` (or `FullscreenCenter`)**
+  - Purpose: encapsulate full-screen centered loading/error overlays so layout behavior is shared and tokenized.
+  - Useful at:
+    - `crates/tasklens-ui/src/app_components/loading_style.css:1`
+    - `crates/tasklens-ui/src/app_components/load_error_view.css:1`
 
 ## 9. Working With Vendored Components
 

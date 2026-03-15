@@ -210,12 +210,6 @@ textarea,
   background-color: var(--app_surface_muted);
 }
 
-.app_row_cluster {
-  display: flex;
-  width: 100%;
-  gap: 0.5rem;
-}
-
 .app_center_pt {
   display: flex;
   align-items: center;

@@ -1,5 +1,4 @@
-use crate::app_components::SearchPanel;
-use crate::app_components::SyncIndicator;
+use crate::app_components::{Row, RowAlign, RowGap, SearchPanel, SyncIndicator};
 use crate::dioxus_components::button::{Button, ButtonVariant};
 use crate::dioxus_components::navbar::{Navbar, NavbarItem, NavbarNav};
 use crate::router::{Route, ViewContext};
@@ -84,7 +83,7 @@ pub(crate) fn AppNavBar() -> Element {
                     "Balance"
                 }
             }
-            div { class: Styles::navbar_actions,
+            Row { class: Styles::navbar_actions, gap: RowGap::Sm, align: RowAlign::Center,
                 SyncIndicator {}
 
                 Button {

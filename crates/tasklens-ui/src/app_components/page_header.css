@@ -1,7 +1,4 @@
 .header_root {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 1.5rem;
 }
 
@@ -9,13 +6,4 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--app_text);
-}
-
-.header_actions {
-  display: flex;
-  align-items: center;
-}
-
-.header_actions > :not([hidden]) ~ :not([hidden]) {
-  margin-left: 0.5rem;
 }
