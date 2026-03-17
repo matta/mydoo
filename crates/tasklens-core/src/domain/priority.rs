@@ -245,8 +245,12 @@ fn hydrate_task(persisted: &PersistedTask) -> EnrichedTask {
 /// Executes the prioritization algorithm on a mutable slice of enriched tasks.
 ///
 /// This function updates the `effective_credits`, `priority`, `visibility`, and other
-/// derived fields of each [`EnrichedTask`] in place. It performs the calculation in
-/// three phases:
+/// derived fields of each [`EnrichedTask`] within `enriched_tasks` in place. It uses the
+/// immutable `state` for place definitions and root structure, applies the `view_filter`
+/// criteria, and utilizes an optional execution `context` (providing `current_time` and
+/// `current_place_id`, defaulting to system time if `None`).
+///
+/// It performs the calculation in three phases:
 ///
 /// 1.  **Outline Order**: Assigns depth-first traversal indices to tasks for stable sorting.
 /// 2.  **Linear Computation**: Calculates local factors like time decay (credits),
@@ -254,13 +258,23 @@ fn hydrate_task(persisted: &PersistedTask) -> EnrichedTask {
 /// 3.  **Unified DFS**: Propagates importance and visibility from parents to children,
 ///     handles sequential blocking logic, and computes the final priority score.
 ///
-/// # Arguments
+/// # Examples
 ///
-/// *   `state` - The immutable application state (needed for place definitions and root structure).
-/// *   `enriched_tasks` - The slice of tasks to be prioritized. This is modified in place.
-/// *   `view_filter` - Criteria for filtering tasks (e.g., current place).
-/// *   `context` - Optional execution context (provides `current_time` and `current_place_id`).
-///     If `None`, defaults are used (e.g., system time).
+/// ```
+/// use tasklens_core::domain::priority::recalculate_priorities;
+/// use tasklens_core::types::{Context, EnrichedTask, TunnelState, ViewFilter};
+///
+/// let state = TunnelState::default();
+/// let mut tasks: Vec<EnrichedTask> = vec![];
+/// let filter = ViewFilter::default();
+/// let context = Context {
+///     current_place_id: None,
+///     current_time: 1000,
+/// };
+///
+/// recalculate_priorities(&state, &mut tasks, &filter, Some(&context));
+/// assert!(tasks.is_empty());
+/// ```
 pub fn recalculate_priorities(
     state: &TunnelState,
     enriched_tasks: &mut [EnrichedTask],
@@ -655,8 +669,10 @@ fn build_visibility_trace(
 
 /// Computes the prioritized list of tasks for the view layer.
 ///
-/// This function executes the four-stage prioritization pipeline to transform raw application state
-/// into a sorted list of computed tasks.
+/// This function executes the four-stage prioritization pipeline to transform the raw
+/// application `state` into a sorted vector of [`ComputedTask`] objects, ready for rendering.
+/// It filters out tasks based on the `view_filter` criteria (e.g., by Place) and the
+/// configuration provided in `options`.
 ///
 /// # Pipeline Stages
 ///
@@ -673,15 +689,19 @@ fn build_visibility_trace(
 ///     *   **Normalized Importance** (Descending)
 ///     *   **Outline Index** (Ascending, preserving manual order)
 ///
-/// # Arguments
+/// # Examples
 ///
-/// *   `state` - The immutable application state.
-/// *   `view_filter` - Criteria for filtering tasks (e.g., by Place).
-/// *   `options` - Configuration for the prioritization algorithm.
+/// ```
+/// use tasklens_core::domain::priority::get_prioritized_tasks;
+/// use tasklens_core::types::{PriorityOptions, TunnelState, ViewFilter};
 ///
-/// # Returns
+/// let state = TunnelState::default();
+/// let filter = ViewFilter::default();
+/// let options = PriorityOptions::default();
 ///
-/// A vector of [`ComputedTask`] objects, sorted and ready for rendering.
+/// let computed_tasks = get_prioritized_tasks(&state, &filter, &options);
+/// assert!(computed_tasks.is_empty());
+/// ```
 pub fn get_prioritized_tasks(
     state: &TunnelState,
     view_filter: &ViewFilter,
@@ -816,20 +836,27 @@ pub fn get_prioritized_tasks(
 
 /// Computes a detailed score trace for a single task.
 ///
-/// This function runs the full priority pipeline and then extracts the intermediate
-/// factors that contributed to the task's final score. This is useful for debugging
-/// why a task is ranked a certain way or visualizing the scoring algorithm.
+/// This function runs the full priority pipeline using the given `state`, `view_filter`,
+/// and prioritization `options`. It then extracts the intermediate factors that contributed
+/// to the final score for the specified `task_id`. This is useful for debugging why a task
+/// is ranked a certain way or visualizing the scoring algorithm.
 ///
-/// # Arguments
+/// Returns `Some` if the task is found, or `None` if the ID does not exist in the state.
 ///
-/// *   `state` - The current application state.
-/// *   `view_filter` - Criteria for filtering tasks.
-/// *   `options` - Configuration for the prioritization algorithm.
-/// *   `task_id` - The ID of the task to trace.
+/// # Examples
 ///
-/// # Returns
+/// ```
+/// use tasklens_core::domain::priority::get_score_trace;
+/// use tasklens_core::types::{PriorityOptions, TaskID, TunnelState, ViewFilter};
 ///
-/// Returns `Some(ScoreTrace)` if the task is found, or `None` if the ID does not exist.
+/// let state = TunnelState::default();
+/// let filter = ViewFilter::default();
+/// let options = PriorityOptions::default();
+/// let task_id = TaskID::new();
+///
+/// let trace = get_score_trace(&state, &filter, &options, &task_id);
+/// assert!(trace.is_none());
+/// ```
 pub fn get_score_trace(
     state: &TunnelState,
     view_filter: &ViewFilter,
