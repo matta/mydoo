@@ -134,8 +134,7 @@ pub(crate) fn TaskRow(
                             evt.stop_propagation();
                             on_expand_toggle.call(task_id_expand.clone());
                         },
-                        aria_label: if is_expanded { "Collapse task" } else { "Expand task" },
-                        title: if is_expanded { "Collapse task" } else { "Expand task" },
+                        aria_label: "Toggle expansion",
                         "data-expanded": "{is_expanded}",
                         if is_expanded {
                             svg {
@@ -238,7 +237,7 @@ pub(crate) fn TaskRow(
             div { class: Styles::actions_container,
                 Button {
                     variant: ButtonVariant::Icon,
-                    title: "Add subtask to {title}",
+                    title: "Add Subtask",
                     onclick: move |_| on_create_subtask.call(task_id_subtask.clone()),
                     aria_label: "Add subtask to {title}",
                     svg {
@@ -258,7 +257,7 @@ pub(crate) fn TaskRow(
                 }
                 Button {
                     variant: ButtonVariant::Destructive,
-                    title: "Delete task {title}",
+                    title: "Delete",
                     onclick: move |_| on_delete.call(task_id_delete.clone()),
                     aria_label: "Delete task {title}",
                     svg {
