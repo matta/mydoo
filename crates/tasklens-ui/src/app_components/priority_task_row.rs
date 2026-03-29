@@ -84,6 +84,7 @@ pub(crate) fn PriorityTaskRow(
                 to: Route::ScoreTracePage {
                     task_id: task.id.clone(),
                 },
+                aria_label: "Score {score_label}. View score trace for {task.title}",
                 "data-testid": "task-score",
                 "Score {score_label}"
             }
