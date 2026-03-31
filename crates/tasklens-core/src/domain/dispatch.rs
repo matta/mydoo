@@ -95,6 +95,11 @@ fn am_put_object<T: Transactable>(
 ///
 /// Returns the `ObjId` of the final object in the path.
 /// Creates intermediate maps if they are missing.
+///
+/// # Errors
+///
+/// Returns `Err` if a path segment already exists but is not an Automerge object (map).
+/// Also returns `Err` if any underlying Automerge operation fails.
 pub fn ensure_path<T: Transactable + Doc>(
     doc: &mut T,
     root: &automerge::ObjId,
