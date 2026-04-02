@@ -46,8 +46,8 @@ catalogs:
       specifier: ^4.1.1
       version: 4.1.1
     knip:
-      specifier: 5.84.1
-      version: 5.84.1
+      specifier: 5.88.1
+      version: 5.88.1
     prettier:
       specifier: ^3.4.2
       version: 3.8.1
@@ -97,7 +97,7 @@ importers:
         version: 9.1.7
       knip:
         specifier: 'catalog:'
-        version: 5.84.1(@types/node@25.3.2)(typescript@5.9.3)
+        version: 5.88.1(@types/node@25.3.2)(typescript@5.9.3)
       prettier:
         specifier: 'catalog:'
         version: 3.8.1
@@ -148,7 +148,7 @@ importers:
         version: 25.3.2
       vitest:
         specifier: 'catalog:'
-        version: 4.0.18(@types/node@25.3.2)(jiti@2.6.1)
+        version: 4.0.18(@types/node@25.3.2)(jiti@2.6.1)(yaml@2.8.3)
 
 packages:
 
@@ -1354,8 +1354,8 @@ packages:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
     engines: {node: '>=6'}
 
-  knip@5.84.1:
-    resolution: {integrity: sha512-F1+yACEsSapAwmQLzfD4i9uPsnI82P4p5ABpNQ9pcc4fpQtjHEX34XDtNl5863I4O6SCECpymylcWDHI3ouhQQ==}
+  knip@5.88.1:
+    resolution: {integrity: sha512-tpy5o7zu1MjawVkLPuahymVJekYY3kYjvzcoInhIchgePxTlo+api90tBv2KfhAIe5uXh+mez1tAfmbv8/TiZg==}
     engines: {node: '>=18.18.0'}
     hasBin: true
     peerDependencies:
@@ -1792,6 +1792,10 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  unbash@2.2.0:
+    resolution: {integrity: sha512-X2wH19RAPZE3+ldGicOkoj/SIA83OIxcJ6Cuaw23hf8Xc6fQpvZXY0SftE2JgS0QhYLUG4uwodSI3R53keyh7w==}
+    engines: {node: '>=14'}
+
   undici-types@7.18.2:
     resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
@@ -1940,6 +1944,11 @@ packages:
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
     engines: {node: '>=10'}
+
+  yaml@2.8.3:
+    resolution: {integrity: sha512-AvbaCLOO2Otw/lW5bmh9d/WEdcDFdQp2Z2ZUH3pX9U2ihyUY0nvLv7J6TrWowklRGPYbB/IuIMfYgxaCPg5Bpg==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
 
   yargs-parser@21.1.1:
     resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
@@ -2464,13 +2473,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.0.3
 
-  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@25.3.2)(jiti@2.6.1))':
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@25.3.2)(jiti@2.6.1)(yaml@2.8.3))':
     dependencies:
       '@vitest/spy': 4.0.18
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.3.1(@types/node@25.3.2)(jiti@2.6.1)
+      vite: 7.3.1(@types/node@25.3.2)(jiti@2.6.1)(yaml@2.8.3)
 
   '@vitest/pretty-format@4.0.18':
     dependencies:
@@ -2982,14 +2991,13 @@ snapshots:
 
   kleur@3.0.3: {}
 
-  knip@5.84.1(@types/node@25.3.2)(typescript@5.9.3):
+  knip@5.88.1(@types/node@25.3.2)(typescript@5.9.3):
     dependencies:
       '@nodelib/fs.walk': 1.2.8
       '@types/node': 25.3.2
       fast-glob: 3.3.3
       formatly: 0.3.0
       jiti: 2.6.1
-      js-yaml: 4.1.1
       minimist: 1.2.8
       oxc-resolver: 11.19.1
       picocolors: 1.1.1
@@ -2997,6 +3005,8 @@ snapshots:
       smol-toml: 1.6.0
       strip-json-comments: 5.0.3
       typescript: 5.9.3
+      unbash: 2.2.0
+      yaml: 2.8.3
       zod: 4.3.6
 
   lines-and-columns@1.2.4: {}
@@ -3431,6 +3441,8 @@ snapshots:
 
   typescript@5.9.3: {}
 
+  unbash@2.2.0: {}
+
   undici-types@7.18.2: {}
 
   unicorn-magic@0.3.0: {}
@@ -3450,7 +3462,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite@7.3.1(@types/node@25.3.2)(jiti@2.6.1):
+  vite@7.3.1(@types/node@25.3.2)(jiti@2.6.1)(yaml@2.8.3):
     dependencies:
       esbuild: 0.27.3
       fdir: 6.5.0(picomatch@4.0.3)
@@ -3462,11 +3474,12 @@ snapshots:
       '@types/node': 25.3.2
       fsevents: 2.3.3
       jiti: 2.6.1
+      yaml: 2.8.3
 
-  vitest@4.0.18(@types/node@25.3.2)(jiti@2.6.1):
+  vitest@4.0.18(@types/node@25.3.2)(jiti@2.6.1)(yaml@2.8.3):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.3.2)(jiti@2.6.1))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.3.2)(jiti@2.6.1)(yaml@2.8.3))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -3483,7 +3496,7 @@ snapshots:
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vite: 7.3.1(@types/node@25.3.2)(jiti@2.6.1)
+      vite: 7.3.1(@types/node@25.3.2)(jiti@2.6.1)(yaml@2.8.3)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 25.3.2
@@ -3540,6 +3553,8 @@ snapshots:
   xstate@5.28.0: {}
 
   y18n@5.0.8: {}
+
+  yaml@2.8.3: {}
 
   yargs-parser@21.1.1: {}
 
