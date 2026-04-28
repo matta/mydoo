@@ -1261,7 +1261,7 @@ dependencies = [
 [[package]]
 name = "dioxus-attributes"
 version = "0.1.0"
-source = "git+https://github.com/DioxusLabs/components?rev=6826678ae59d47ad0c70fb203979a64b34db5d5d#6826678ae59d47ad0c70fb203979a64b34db5d5d"
+source = "git+https://github.com/DioxusLabs/components?rev=6f9b40e728838a8db9b2122c9528e5b1c3e36169#6f9b40e728838a8db9b2122c9528e5b1c3e36169"
 dependencies = [
  "dioxus-rsx",
  "proc-macro2",
@@ -1637,13 +1637,14 @@ dependencies = [
 [[package]]
 name = "dioxus-primitives"
 version = "0.0.1"
-source = "git+https://github.com/DioxusLabs/components?rev=6826678ae59d47ad0c70fb203979a64b34db5d5d#6826678ae59d47ad0c70fb203979a64b34db5d5d"
+source = "git+https://github.com/DioxusLabs/components?rev=6f9b40e728838a8db9b2122c9528e5b1c3e36169#6f9b40e728838a8db9b2122c9528e5b1c3e36169"
 dependencies = [
  "dioxus",
  "dioxus-attributes",
  "dioxus-sdk-time",
  "lazy-js-bundle 0.6.2",
  "num-integer",
+ "serde",
  "time",
  "tracing",
 ]
