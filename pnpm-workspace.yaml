@@ -24,7 +24,7 @@ catalogs:
     syncpack: ^13.0.2
     typescript: 5.9.3
 
-    vitest: 4.0.18
+    vitest: 4.1.11
     wait-port: ^1.1.0
     ws: ^8.19.0
     js-yaml: ^4.1.1
